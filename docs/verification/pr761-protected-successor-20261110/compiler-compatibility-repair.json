@@ -1,0 +1,57 @@
+{
+  "acceptedRetainedFixtureUnchanged": {
+    "terminal/e2e/fixtures/retained-fonts-34fb/13bf9871fe164e7f-s.2f7nqdagzwx2-.woff2": "992eea2f70210457ddd1196de4df3240919ffe068ad188c79d985fba4565d3bf",
+    "terminal/e2e/fixtures/retained-fonts-34fb/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+    "terminal/e2e/fixtures/retained-fonts-34fb/2bbe8d2671613f1f-s.0k62hbripvv8p.woff2": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+    "terminal/e2e/fixtures/retained-fonts-34fb/2c55a0e60120577a-s.0-dom-5bn10r2.woff2": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+    "terminal/e2e/fixtures/retained-fonts-34fb/3fe682a82f50d426-s.0vfdmo25voy_0.woff2": "7db7affbce1fdee69c1ffc2641bbca289b049867f524c9d861fe35ab6670bf29",
+    "terminal/e2e/fixtures/retained-fonts-34fb/5476f68d60460930-s.2uwcyprjm3xu3.woff2": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+    "terminal/e2e/fixtures/retained-fonts-34fb/70bc3e132a0a741e-s.3t6q91iet4nsy.woff2": "1e06740a02a443fb7f3eeda8fcaa685a0f6c620e3f01e6666e847295469ce3ad",
+    "terminal/e2e/fixtures/retained-fonts-34fb/71b036adf157cdcf-s.0bp8oijd_gu96.woff2": "3edf363dbf9d5fa0cdc784ae2b431a8a4152f4055a8a8858028c0bd668808273",
+    "terminal/e2e/fixtures/retained-fonts-34fb/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+    "terminal/e2e/fixtures/retained-fonts-34fb/89b21bb081cb7469-s.1fby2rem9ngyr.woff2": "1390e86cc2823e759358918c01c4fcc1b6e4f01bca915bdbeb6d68eb5c244405",
+    "terminal/e2e/fixtures/retained-fonts-34fb/9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+    "terminal/e2e/fixtures/retained-fonts-34fb/ad66f9afd8947f86-s.3lvt2whj97whp.woff2": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+    "terminal/e2e/fixtures/retained-fonts-34fb/cc545e633e20c56d-s.176arc174-8zp.woff2": "af7486955880be1c2b972e9c766acffb776768d669b6576ed9a0919ce72e7ca6",
+    "terminal/e2e/fixtures/retained-fonts-34fb/inter.css": "233309a8a446af20a57ee0624015fa47cefaa79597a215c7cda3ebb503a4c806",
+    "terminal/e2e/fixtures/retained-fonts-34fb/jetbrains-mono.css": "23bf53a55eaeb682857196c376a095ee4af317212eebca971ceea83f33edaf34",
+    "terminal/e2e/fixtures/retained-fonts-34fb/receipt.json": "1d04bbe5678ad7eef6e969a5c46e643f9526695bc3167de5a7d8a29280b6ca0f",
+    "terminal/e2e/fixtures/retained-fonts-34fb/responses.cjs": "b71ca91900ecd2e4e7a4fa1e4b8a07c8b1dd1342dfffc0d2ee63cb145661143c"
+  },
+  "changes": {
+    "terminal/e2e/tools/capture_pl6_batch1.cjs": {
+      "after": "1259f8cb3661584cc2f77dfe7d8752683a13a030052f2e4af5237feea3d9dd79",
+      "before": "64a28e150da080c2f3c439970a5847305d4b590b519a0d0a88eda2de5e9c5802"
+    },
+    "terminal/e2e/tools/capture_visual_evidence.cjs": {
+      "after": "7bdbf7f8276239c2a85323dedf1d3bbeedbacecaaa41f91308aabc3b6caddac5",
+      "before": "d0f818215361cd31a1a7a53e56907ae636277649f48b588c4b10d45f9426dcff"
+    },
+    "terminal/e2e/tools/visualEvidence.cjs": {
+      "after": "7055d186b2d191475e9c124d14777a55ba8793e0d549f83a9ff8b4d4b5b233d1",
+      "before": "bbfd213b11e41df71cf6728d31f6e8d425f8411820a10ce10db12f98b0074daa"
+    },
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts": {
+      "after": "64a7eacd658d8fa58384cc85c49b913598fa53b5a01148ecb5d59f5852ad7e1f",
+      "before": "b8255d56e443887e715708b25eb372ba2ad3e3e7d7881c727960ffef84feb4ac"
+    },
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts": {
+      "after": "41b4a9cf0ab7cf744e1d718d311f8c6f8d9b5d88189303c3c0de52ebf5c2b5b4",
+      "before": "95caaecab481b1b428ea8220d5e584c5b9c703e2cc2a752d8842cfba04df3df0"
+    }
+  },
+  "compilerDeclaration": "webpack",
+  "executionSelector": "IS_WEBPACK_TEST=1",
+  "installedBundlerSha256": "dd5771243a9e7732260aaeb1ac74dacca0382dc49cc4e6e959699bd820730be1",
+  "limitations": "The default Turbopack capture failed before any case; no repaired Turbopack compatibility is claimed. The prospective current packet will explicitly qualify Webpack with retained-fonts-34fb.",
+  "nextVersion": "16.4.6",
+  "observedDefaultFailure": "capture-reconciliation.json",
+  "protectedOwnersUnchanged": {
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "51956187614f10d745c5a65f62621845d96cac25",
+    "terminal/playwright.config.ts": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6"
+  },
+  "red": "compiler-red-execution.json",
+  "schema": "terminal_pr761_compiler_compatibility_repair.v1",
+  "startedAt": "2026-11-10T18:19:16.326895+00:00",
+  "state": "DECLARED_WEBPACK_BOUND_PENDING_CONTRACTS"
+}

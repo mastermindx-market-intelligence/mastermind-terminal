@@ -1,0 +1,81 @@
+[warmup] /terminal?symbol=NVDA → 200 in 129ms
+[warmup] /options → 200 in 321ms
+[warmup] /portfolio → 200 in 304ms
+[warmup] /alerts → 200 in 165ms
+[warmup] /analysis → 200 in 276ms
+[warmup] /discover → 200 in 183ms
+[warmup] /admin → 200 in 128ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 112ms
+[warmup] /login → 200 in 125ms
+[warmup] /reset-password → 200 in 150ms
+[warmup] /api/me → 200 in 101ms
+[warmup] /api/watchlist → 200 in 45ms
+[warmup] /api/layouts → 200 in 56ms
+[warmup] /api/watchlist/annotations → 409 in 51ms
+[warmup] 14 routes compiled in 2s
+[fixture-ready] prophet_idx fixture 200 in 264ms
+
+Running 30 tests using 1 worker
+
+statistics initial controls {"surface":"analysis","lang":"en","annual":{"x":1211.28125,"y":201,"width":61.890625,"height":44},"interim":{"x":1273.171875,"y":201,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓   1 [desktop] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios (2.8s)
+statistics initial controls {"surface":"analysis","lang":"zh","annual":{"x":1257,"y":201,"width":46,"height":44},"interim":{"x":1303,"y":201,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓   2 [desktop] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios (2.3s)
+statistics initial controls {"surface":"terminal","lang":"en","annual":{"x":850.28125,"y":185,"width":61.890625,"height":44},"interim":{"x":912.171875,"y":185,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓   3 [desktop] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios (13.9s)
+statistics initial controls {"surface":"terminal","lang":"zh","annual":{"x":896,"y":185,"width":46,"height":44},"interim":{"x":942,"y":185,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓   4 [desktop] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios (12.6s)
+  ✓   5 [desktop] › e2e/statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance (2.5s)
+statistics interim-only guidance No semiannual valuation ratios
+The fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.
+  ✓   6 [desktop] › e2e/statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance (2.0s)
+statistics current-value geometry {"surface":"analysis","lang":"en","text":"200.00M","left":1288.953125,"right":1342,"width":53.046875,"clipLeft":148,"clipRight":1352,"scrollLeft":0,"scrollWidth":1204,"clientWidth":1204,"hit":true}
+  ✓   7 [desktop] › e2e/statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels (5.5s)
+statistics current-value geometry {"surface":"analysis","lang":"zh","text":"200.00M","left":1288.953125,"right":1342,"width":53.046875,"clipLeft":148,"clipRight":1352,"scrollLeft":0,"scrollWidth":1204,"clientWidth":1204,"hit":true}
+  ✓   8 [desktop] › e2e/statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels (4.9s)
+statistics current-value geometry {"surface":"terminal","lang":"en","text":"200.00M","left":927.953125,"right":981,"width":53.046875,"clipLeft":148,"clipRight":991,"scrollLeft":0,"scrollWidth":843,"clientWidth":843,"hit":true}
+  ✓   9 [desktop] › e2e/statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels (11.5s)
+statistics current-value geometry {"surface":"terminal","lang":"zh","text":"200.00M","left":927.953125,"right":981,"width":53.046875,"clipLeft":148,"clipRight":991,"scrollLeft":0,"scrollWidth":843,"clientWidth":843,"hit":true}
+  ✓  10 [desktop] › e2e/statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels (15.8s)
+statistics initial controls {"surface":"analysis","lang":"en","annual":{"x":647.28125,"y":195,"width":61.890625,"height":44},"interim":{"x":709.171875,"y":195,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  11 [tablet] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios (3.2s)
+statistics initial controls {"surface":"analysis","lang":"zh","annual":{"x":693,"y":195,"width":46,"height":44},"interim":{"x":739,"y":195,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  12 [tablet] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios (2.4s)
+statistics initial controls {"surface":"terminal","lang":"en","annual":{"x":647.28125,"y":143,"width":61.890625,"height":44},"interim":{"x":709.171875,"y":143,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  13 [tablet] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios (10.3s)
+statistics initial controls {"surface":"terminal","lang":"zh","annual":{"x":693,"y":143,"width":46,"height":44},"interim":{"x":739,"y":143,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  14 [tablet] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios (8.7s)
+  ✓  15 [tablet] › e2e/statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance (1.9s)
+statistics interim-only guidance No semiannual valuation ratios
+The fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.
+  ✓  16 [tablet] › e2e/statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance (1.8s)
+statistics current-value geometry {"surface":"analysis","lang":"en","text":"200.00M","left":724.953125,"right":778,"width":53.046875,"clipLeft":32,"clipRight":788,"scrollLeft":0,"scrollWidth":756,"clientWidth":756,"hit":true}
+  ✓  17 [tablet] › e2e/statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels (4.9s)
+statistics current-value geometry {"surface":"analysis","lang":"zh","text":"200.00M","left":724.953125,"right":778,"width":53.046875,"clipLeft":32,"clipRight":788,"scrollLeft":0,"scrollWidth":756,"clientWidth":756,"hit":true}
+  ✓  18 [tablet] › e2e/statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels (4.1s)
+statistics current-value geometry {"surface":"terminal","lang":"en","text":"200.00M","left":724.953125,"right":778,"width":53.046875,"clipLeft":32,"clipRight":788,"scrollLeft":0,"scrollWidth":756,"clientWidth":756,"hit":true}
+  ✓  19 [tablet] › e2e/statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels (12.9s)
+statistics current-value geometry {"surface":"terminal","lang":"zh","text":"200.00M","left":724.953125,"right":778,"width":53.046875,"clipLeft":32,"clipRight":788,"scrollLeft":0,"scrollWidth":756,"clientWidth":756,"hit":true}
+  ✓  20 [tablet] › e2e/statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels (12.2s)
+statistics initial controls {"surface":"analysis","lang":"en","annual":{"x":155.28125,"y":185,"width":61.890625,"height":44},"interim":{"x":217.171875,"y":185,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  21 [mobile] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis en: selected statistics basis matches available ratios (2.6s)
+statistics initial controls {"surface":"analysis","lang":"zh","annual":{"x":201,"y":185,"width":46,"height":44},"interim":{"x":247,"y":185,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  22 [mobile] › e2e/statistics-basis-controls.spec.ts:78:7 › analysis zh: selected statistics basis matches available ratios (2.5s)
+statistics initial controls {"surface":"terminal","lang":"en","annual":{"x":155.28125,"y":135,"width":61.890625,"height":44},"interim":{"x":217.171875,"y":135,"width":75.828125,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  23 [mobile] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal en: selected statistics basis matches available ratios (12.1s)
+statistics initial controls {"surface":"terminal","lang":"zh","annual":{"x":201,"y":135,"width":46,"height":44},"interim":{"x":247,"y":135,"width":46,"height":44},"role":"group","annualPressed":"true","interimPressed":"false"}
+  ✓  24 [mobile] › e2e/statistics-basis-controls.spec.ts:78:7 › terminal zh: selected statistics basis matches available ratios (9.0s)
+  ✓  25 [mobile] › e2e/statistics-basis-controls.spec.ts:143:7 › annual-only basis preserves honest availability guidance (1.9s)
+statistics interim-only guidance 暂无半年度估值比率
+基本面数据源仅按年度报告期发布估值比率。该快照暂无年度报表历史。
+  ✓  26 [mobile] › e2e/statistics-basis-controls.spec.ts:143:7 › semiannual-only basis preserves honest availability guidance (1.9s)
+statistics current-value geometry {"surface":"analysis","lang":"en","text":"200.00M","left":232.953125,"right":286,"width":53.046875,"clipLeft":24,"clipRight":296,"scrollLeft":0,"scrollWidth":272,"clientWidth":272,"hit":true}
+  ✓  27 [mobile] › e2e/statistics-current-tables.spec.ts:94:7 › analysis en: current values fit beside their labels (4.4s)
+statistics current-value geometry {"surface":"analysis","lang":"zh","text":"200.00M","left":232.953125,"right":286,"width":53.046875,"clipLeft":24,"clipRight":296,"scrollLeft":0,"scrollWidth":272,"clientWidth":272,"hit":true}
+  ✓  28 [mobile] › e2e/statistics-current-tables.spec.ts:94:7 › analysis zh: current values fit beside their labels (4.1s)
+statistics current-value geometry {"surface":"terminal","lang":"en","text":"200.00M","left":232.953125,"right":286,"width":53.046875,"clipLeft":24,"clipRight":296,"scrollLeft":0,"scrollWidth":272,"clientWidth":272,"hit":true}
+  ✓  29 [mobile] › e2e/statistics-current-tables.spec.ts:94:7 › terminal en: current values fit beside their labels (13.7s)
+statistics current-value geometry {"surface":"terminal","lang":"zh","text":"200.00M","left":232.953125,"right":286,"width":53.046875,"clipLeft":24,"clipRight":296,"scrollLeft":0,"scrollWidth":272,"clientWidth":272,"hit":true}
+  ✓  30 [mobile] › e2e/statistics-current-tables.spec.ts:94:7 › terminal zh: current values fit beside their labels (11.9s)
+
+  30 passed (4.0m)

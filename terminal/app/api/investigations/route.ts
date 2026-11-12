@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 import { qualifyScenarioCaptureSave } from "@/lib/investigationScenarioServer";
+import { INVESTIGATION_ADMISSION } from "@/lib/investigations";
+import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -18,6 +20,8 @@ async function session(): Promise<{ db: InvestigationDb; userId: string } | null
   return { db: db as unknown as InvestigationDb, userId: user.id };
 }
 export async function GET(request: Request) {
+  const unavailable = investigationApiUnavailable();
+  if (unavailable) return unavailable;
   try {
     const authed = await session();
     if (!authed) return respond({ status: "unauthenticated" }, 401);
@@ -27,6 +31,15 @@ export async function GET(request: Request) {
     if (!keys.length) {
       const result=await listInvestigations(db);
       return respond(result,result.status==="listed"?200:503);
+    }
+    if (keys.includes("admission")) {
+      const parts = (params.get("admission") ?? "").split(":");
+      const owner = parts[0] ?? ""; const objectType = parts[1] ?? "";
+      const registered = (INVESTIGATION_ADMISSION.evidence ?? []).some(adapter => adapter.owner === owner && adapter.object_types.includes(objectType));
+      if (keys.length !== 1 || parts.length !== 2 || !owner || !objectType || !registered) return respond({ status: "invalid_payload" }, 400);
+      const { data, error } = await db.rpc("investigation_evidence_admitted_v2", { owner, object_type: objectType });
+      if (error || typeof data !== "boolean") return respond({ status: "unavailable" }, 503);
+      return respond({ status: "admission", admitted: data });
     }
     if (new Set(keys).size !== keys.length || keys.some(k => !["id", "revision", "operation_id"].includes(k))) return respond({ status: "invalid_payload" }, 400);
     const operation = params.get("operation_id");
@@ -44,6 +57,8 @@ export async function GET(request: Request) {
   } catch { return respond({ status: "unavailable" }, 503); }
 }
 export async function POST(request: Request) {
+  const unavailable = investigationApiUnavailable();
+  if (unavailable) return unavailable;
   const limit = rateLimit(request, { name: "investigations-save", max: 30 });
   if (!limit.ok) {
     const response = tooMany(limit);

@@ -1,0 +1,15 @@
+.trigger:focus-visible, .popup :is(button, input):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+.popup button:disabled { opacity: .4; cursor: default; }
+.popup input { color-scheme: dark; }
+:global(html[data-theme="light"]) .popup input { color-scheme: light; }
+
+@media (pointer: coarse) {
+  .frame { min-height: 44px; }
+  .trigger { min-width: 44px; min-height: 44px; }
+  .popup :is(button, input) { min-height: 44px; }
+  .popup button { min-width: 44px; }
+  .popup input { font-size: 16px; }
+}

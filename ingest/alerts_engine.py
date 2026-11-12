@@ -130,7 +130,7 @@ if str(CA_ROOT) not in sys.path:
     sys.path.insert(0, str(CA_ROOT))
 from ingest.options_frozen_lifecycle import FrozenNodeLifecycleAdapter  # noqa: E402
 from ingest.options_frozen_service import FrozenNodeServiceReader  # noqa: E402
-from ingest.options_frozen_assembly import assemble_frozen_node_services  # noqa: E402
+from ingest.options_frozen_assembly import assemble_frozen_node_services, assemble_frozen_node_publisher  # noqa: E402
 from ingest.options_frozen_hit import FrozenNodeHitPublisher, runtime_record  # noqa: E402
 
 DEFAULT_ENV = "/opt/terminal/terminal/.env.local"
@@ -2579,6 +2579,7 @@ def main() -> int:
         frozen_reader, frozen_lifecycle = assemble_frozen_node_services(
             supa, env, load_env=load_env, fingerprint=frozen_node_target_fingerprint,
             instant_micros=_fnp_instant_micros)
+        frozen_publisher = assemble_frozen_node_publisher(frozen_lifecycle, env)
     except (OSError, TypeError, ValueError):
         log("FATAL: frozen options host configuration is unavailable")
         return 2
@@ -2592,6 +2593,7 @@ def main() -> int:
         dry_run=args.dry_run,
         frozen_node_reader=frozen_reader,
         frozen_lifecycle_adapter=frozen_lifecycle,
+        frozen_node_publisher=frozen_publisher,
         lane_cadence_budget_s=ALERTS_LANE_CADENCE_S,
     )
     return 0

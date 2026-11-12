@@ -1,0 +1,64 @@
+{
+  "browserFailed": 0,
+  "browserFlaky": 0,
+  "browserPassed": 89,
+  "browserRetries": 0,
+  "browserSeconds": 634.82,
+  "browserSkipped": 94,
+  "chartPanelSha256": "38548416357cd37858952862f5d56f84a557469bfd59a98213bb258cde587744",
+  "ciOwnerSeconds": 385.54,
+  "ciOwnerWorkflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109190632-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "1534f2cf63e6b8ccfb917ba71f44edc825682fa6cd32d39c3551340a9d1d20dd"
+  },
+  "diagnosticPackaging": {
+    "path": "docs/verification/pr632-path-finalization-integration-20261109/publication-api-reconciliation.json",
+    "sha256": "d00d6cc424c2755d5033133a22cf56b276257ac365ac2dca9788fa9a8d12e730",
+    "sourceUnchanged": true
+  },
+  "drawingSpecSha256": "0b6f75ed26a0536db22a81da66846fc38a12de207eeaf7d8e8e6990f0d4b9aa0",
+  "finalConsumerTestsPassed": 18,
+  "inheritedLintDiagnostics": {
+    "ChartPanel": 200,
+    "drawingSpec": 7
+  },
+  "newLintDiagnostics": 0,
+  "optionsAxisCaptured": true,
+  "parents": [
+    "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+    "d03e7587711f1182531f25459fa1f60c679bac10",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "preparedAt": "2026-11-09T19:21:10.267137+00:00",
+  "productionAccepted": false,
+  "publicationFormatting": {
+    "findingCount": 1,
+    "path": "docs/verification/pr632-path-finalization-integration-20261109/publication-formatting-observation.json",
+    "sha256": "dff6284221ddc0fa709a2547e7eab0fe365ba137e64f0afaf3b4a63b80c7ec9c"
+  },
+  "records": {
+    "ci-owner-r1/execution-final.json": "c12a2e26faa9e29f8eb6edfde2fc1a3ab7875dadd1c75ee196adeb00ed0fe890",
+    "ci-owner-r1/execution.json": "71914c82993009d3dd35c60361d490ad53f121dbe3610ac20e85207b282148c5",
+    "ci-owner-r1/selected-owner-vi-lifecycle.json": "580aef342156cd75a62ac673325a2c60b7d1c166a8b853d00afa6176aeb0e5bc",
+    "dependencies.json": "596de6a70f1adac703cd093abfe5e21a7b01726ebb56dc5dddf46210770a2664",
+    "drawing-guard-r2/execution.json": "559d4e069443452ae55155d6e402d54427979f5584f6567894bce66b97faf50d",
+    "drawing-guard-r3/execution.json": "af84ab7ca7d8b1000bccd922abe6309eff1a31d37c50df9c3aa8cbbcf69c377f",
+    "drawing-red-r1/execution.json": "868af8c9037916e89d6a57ba1ffea7fdd0d9e1d83812ba1e32f3bc2a971030c2",
+    "drawing-regression-r1-continuation/execution.json": "4b444ba76f2a018d1aef5d322a51978be2fd18a04fd0f1a2b3d6670264df15e9",
+    "drawing-regression-r1/execution.json": "63d7e372203d4725247f65fea45709384a41b22c29acb6fc187a53d1b69b1e79",
+    "final-consumers-r1/execution.json": "d2957d2978dc6baf13fafea94de41b319b3ab37173f04c9481072b3c46c1ebaf",
+    "guard-repair-r2.json": "81ab8a71c50b9b84ec7a6695d741a63de4725ddd3d913252556d62ed73f43273",
+    "parent-preservation.json": "d91048c2ecb1052dd4e9c66e687327d290d9218c3aafcb48633807ae766b98fc",
+    "selection-continuity-r3.json": "74f434bb8c812d0145b882d3fe5916e37c2c7058e180344815870784cef87a9b",
+    "source-composition-r1.json": "5e86439eaa91cb3059950760874015ed4fff6a33426234dd13a8dc6d1a6a733a",
+    "visual-inspection.json": "52d775dc090b8e765c72dcc1df5510f2af1944a296090cbfb0d5440af6faa03a"
+  },
+  "schema": "terminal_pr632_path_finalization_qualification.v1",
+  "sourceEntries": 1938,
+  "sourceStable": true,
+  "state": "SOURCE_BROWSER_OWNER_AND_CONSUMERS_QUALIFIED",
+  "typecheckSeconds": 42.69,
+  "unitTestsPassed": 25
+}

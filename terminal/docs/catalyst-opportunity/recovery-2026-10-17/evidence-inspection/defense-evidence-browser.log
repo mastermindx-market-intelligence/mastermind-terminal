@@ -1,0 +1,52 @@
+[warmup] /terminal?symbol=NVDA → 200 in 75ms
+[warmup] /options → 200 in 125ms
+[warmup] /portfolio → 200 in 64ms
+[warmup] /alerts → 200 in 76ms
+[warmup] /analysis → 200 in 127ms
+[warmup] /discover → 200 in 76ms
+[warmup] /admin → 200 in 48ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 42ms
+[warmup] /login → 200 in 58ms
+[warmup] /reset-password → 200 in 67ms
+[warmup] /api/me → 200 in 55ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 26ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+
+Running 33 tests using 1 worker
+
+[1/33] [desktop] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - en native dark
+[2/33] [desktop] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - zh native dark
+[3/33] [desktop] › e2e/catalyst-opportunity.spec.ts:54:5 › dated source and uncovered watch remain distinct; refresh clears access
+[4/33] [desktop] › e2e/catalyst-opportunity.spec.ts:78:5 › failed sources do not pretend that the market is quiet; native tab is reachable
+[5/33] [desktop] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - en
+[6/33] [desktop] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - zh
+[7/33] [desktop] › e2e/catalyst-opportunity.spec.ts:108:5 › Defense outage clears company figures without removing market observations
+[8/33] [desktop] › e2e/catalyst-opportunity.spec.ts:120:5 › 49-theme dated source keeps covered Defense separate from company research
+[9/33] [desktop] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - en
+[10/33] [desktop] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - zh
+[11/33] [desktop] › e2e/catalyst-opportunity.spec.ts:172:5 › Defense entitlement denial clears both lanes and a fresh authorized read can recover
+[12/33] [tablet] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - en native dark
+[13/33] [tablet] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - zh native dark
+[14/33] [tablet] › e2e/catalyst-opportunity.spec.ts:54:5 › dated source and uncovered watch remain distinct; refresh clears access
+[15/33] [tablet] › e2e/catalyst-opportunity.spec.ts:78:5 › failed sources do not pretend that the market is quiet; native tab is reachable
+[16/33] [tablet] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - en
+[17/33] [tablet] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - zh
+[18/33] [tablet] › e2e/catalyst-opportunity.spec.ts:108:5 › Defense outage clears company figures without removing market observations
+[19/33] [tablet] › e2e/catalyst-opportunity.spec.ts:120:5 › 49-theme dated source keeps covered Defense separate from company research
+[20/33] [tablet] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - en
+[21/33] [tablet] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - zh
+[22/33] [tablet] › e2e/catalyst-opportunity.spec.ts:172:5 › Defense entitlement denial clears both lanes and a fresh authorized read can recover
+[23/33] [mobile] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - en native dark
+[24/33] [mobile] › e2e/catalyst-opportunity.spec.ts:27:7 › usable discovery, evidence and coverage - zh native dark
+[25/33] [mobile] › e2e/catalyst-opportunity.spec.ts:54:5 › dated source and uncovered watch remain distinct; refresh clears access
+[26/33] [mobile] › e2e/catalyst-opportunity.spec.ts:78:5 › failed sources do not pretend that the market is quiet; native tab is reachable
+[27/33] [mobile] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - en
+[28/33] [mobile] › e2e/catalyst-opportunity.spec.ts:88:7 › source-bound Defense economics and readable conditions - zh
+[29/33] [mobile] › e2e/catalyst-opportunity.spec.ts:108:5 › Defense outage clears company figures without removing market observations
+[30/33] [mobile] › e2e/catalyst-opportunity.spec.ts:120:5 › 49-theme dated source keeps covered Defense separate from company research
+[31/33] [mobile] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - en
+[32/33] [mobile] › e2e/catalyst-opportunity.spec.ts:136:7 › inspect exact economic evidence without confusing cash, guidance or ownership - zh
+[33/33] [mobile] › e2e/catalyst-opportunity.spec.ts:172:5 › Defense entitlement denial clears both lanes and a fresh authorized read can recover
+  33 passed (50.0s)

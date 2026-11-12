@@ -68,6 +68,7 @@ let requests: GateRequest[];
 let container: HTMLDivElement;
 let root: Root;
 let serial: number;
+let activeIdentityKey = "guest";
 
 function browserHref() {
   return window.location.pathname + window.location.search + window.location.hash;
@@ -95,7 +96,7 @@ function renderRouteTree(href: string, mode: CommitMode) {
   navigation.params = new URLSearchParams(url.search);
   root.render(<>
     <HistoryCommit href={href} mode={mode} commit={++serial} />
-    <LegacyPageHost legacyOrigin={LEGACY} identityKey="guest" context={context}
+    <LegacyPageHost legacyOrigin={LEGACY} identityKey={activeIdentityKey} context={context}
       onContextRequest={onContextRequest} onTitle={onTitle} />
   </>);
 }
@@ -185,6 +186,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   requests = [];
   serial = 0;
+  activeIdentityKey = "guest";
   navigation.renders.length = 0;
   window.history.replaceState({}, "", INITIAL);
   vi.spyOn(HTMLIFrameElement.prototype, "contentWindow", "get").mockReturnValue(childWindow);
@@ -410,6 +412,145 @@ describe("Shared Shell committed navigation", () => {
     expectPersistent(owned);
   });
 
+  it("restores a saved entry when Next commits before the popstate listener, without arming the next push", async () => {
+    const owned = await start();
+    const view = { x: 0, y: 650, focusId: "risk-summary" };
+    await childMessage({ type: "VIEW_STATE", view });
+    const macroEntry = window.history.state.mmxSharedShellEntry;
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(macroEntry);
+
+    // Real Next can install the traversed route in its insertion effect before
+    // the host's popstate callback. Recreate that browser ordering explicitly.
+    await act(async () => {
+      window.history.replaceState({ ...window.history.state, mmxSharedShellEntry: macroEntry }, "", INITIAL);
+      renderRouteTree(INITIAL, "traverse");
+    });
+    await resolveGate();
+    const restored = await loadFrame();
+    expect(restored.canonicalPath).toBe(INITIAL);
+    expect(restored.restore).toEqual(view);
+    await childMessage(readyBody(INITIAL));
+    // A late popstate must not leave traversal armed for a fresh route entry.
+    await act(async () => { window.dispatchEvent(new PopStateEvent("popstate", { state: window.history.state })); });
+    const fresh = "/china.html";
+    await navigate(fresh);
+    await resolveGate();
+    const next = await loadFrame();
+    expect(next.restore).toBeNull();
+    await childMessage(readyBody(fresh));
+    expectPersistent(owned);
+  });
+
+  it("resets previous account snapshots and rejects late old-generation packets on A→B", async () => {
+    activeIdentityKey = "account:fixture-A";
+    const first = await start();
+    const generationA = latestFrameNavigation().generation;
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 650, focusId: "account-A-focus" } });
+
+    // The actual AppShell ownership key changes independently of route/URL.
+    // This is a synthetic identity fixture, not a proof of auth admission.
+    activeIdentityKey = "account:fixture-B";
+    await renderCommittedRoute(INITIAL, "replace");
+    expect(iframe()).not.toBe(first.frame);
+    expectVisible(false);
+    await resolveGate();
+    const generationB = latestFrameNavigation().generation;
+    expect(generationB).not.toBe(generationA);
+    let init = await loadFrame();
+    expect(init.frameGeneration).toBe(generationB);
+    expect(init.restore).toBeNull();
+
+    // Same-origin/window old packets must not re-admit identity A or mutate route.
+    const beforeRoute = browserHref();
+    const beforeCalls = navigation.router.push.mock.calls.length;
+    await childMessage(readyBody(INITIAL), generationA);
+    await childMessage({ type: "VIEW_STATE", view: { x: 0, y: 999, focusId: "account-A-secret" } }, generationA);
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push", sameDocument: false,
+      requestId: "stale-A-account" }, generationA);
+    expectVisible(false);
+    expect(browserHref()).toBe(beforeRoute);
+    expect(navigation.router.push).toHaveBeenCalledTimes(beforeCalls);
+    await childMessage(readyBody(INITIAL), generationB);
+    expectVisible(true);
+
+    const about = "/about.html?lang=en#mission";
+    await navigate(about);
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(about));
+    await traverse(-1, INITIAL);
+    await resolveGate();
+    init = await loadFrame();
+    expect(init.canonicalPath).toBe(INITIAL);
+    // A's original history entry may be selected by Back, but B must not
+    // inherit A's focus or scroll; no canonical-path-keyed fallback is allowed.
+    expect(init.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+  });
+
+  it("B04: duplicate child navigation request ID never pushes twice", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const before = requests.length;
+    const message = { type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "duplicate-b04" };
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(before);
+    await childMessage(message);
+    expect(navigation.router.push).toHaveBeenCalledTimes(1);
+    expect(browserHref()).toBe(original);
+    expect(requests).toHaveLength(before);
+    expectPersistent(owned);
+  });
+
+  it("B04: rejected same-document pathname cannot mutate parent history", async () => {
+    const owned = await start();
+    const original = browserHref();
+    const originalKey = window.history.state.mmxSharedShellEntry;
+    const originalLength = window.history.length;
+    await childMessage({ type: "NAVIGATE", href: "/about.html#wrong-document",
+      mode: "push", sameDocument: true, requestId: "wrong-b04" });
+    expect(browserHref()).toBe(original);
+    expect(window.history.state.mmxSharedShellEntry).toBe(originalKey);
+    expect(window.history.length).toBe(originalLength);
+    expect(navigation.router.push).not.toHaveBeenCalled();
+    expect(navigation.router.replace).not.toHaveBeenCalled();
+    expect(iframe().style.visibility).toBe("hidden");
+    expect(container.querySelector('main')?.getAttribute('data-shared-shell-failure')).toBe("navigation-target");
+    expectPersistent(owned);
+  });
+
+  it("H05: evicts the first of 65 saved entries rather than borrowing an unrelated view", async () => {
+    const owned = await start();
+    const oldest = { x: 0, y: 650, focusId: "initial-focus" };
+    await childMessage({ type: "VIEW_STATE", view: oldest });
+    const firstId = window.history.state.mmxSharedShellEntry;
+    for (let i = 1; i <= 65; i++) {
+      const href = `/about.html?entry=${i}`;
+      await navigate(href);
+      await resolveGate();
+      await loadFrame();
+      await childMessage(readyBody(href));
+      await childMessage({ type: "VIEW_STATE", view: { x: 0, y: i * 7, focusId: `entry-${i}` } });
+    }
+    expect(window.history.state.mmxSharedShellEntry).not.toBe(firstId);
+    await traverse(-65, INITIAL);
+    await resolveGate();
+    const back = await loadFrame();
+    expect(back.canonicalPath).toBe(INITIAL);
+    expect(back.restore).toBeNull();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+    expectPersistent(owned);
+  });
+
   it("aborts an older admission and cannot install its frame after a faster later navigation", async () => {
     const owned = await start();
     await navigate("/about.html");
@@ -450,6 +591,25 @@ describe("Shared Shell committed navigation", () => {
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
   });
 
+  it("SECURITY: commits a fresh gate after NAVIGATE and denies a rollback between intent and commit", async () => {
+    const owned = await start();
+    const priorRequests = requests.length;
+    const priorNavigations = replaceFrame.mock.calls.length;
+    await childMessage({ type: "NAVIGATE", href: "/about.html", mode: "push",
+      sameDocument: false, requestId: "rollback-between-intent-and-commit" });
+    // No early response can authorize a future document that has not committed.
+    expect(requests).toHaveLength(priorRequests);
+    expect(replaceFrame).toHaveBeenCalledTimes(priorNavigations);
+    await renderCommittedRoute("/about.html", "push");
+    expect(requests).toHaveLength(priorRequests + 1);
+    await resolveGate(requests.at(-1)!, { enabled: false });
+    expect(replaceFrame).toHaveBeenCalledTimes(priorNavigations);
+    expect(iframe().style.visibility).toBe("hidden");
+    expect(container.querySelector("[role=alert]")).not.toBeNull();
+    expect(container.textContent).toContain("shellRefreshTitle");
+    expectPersistent(owned);
+  });
+
   it("keeps runtime build admission ahead of every iframe navigation", async () => {
     await renderCommittedRoute(INITIAL, "replace");
     await resolveGate(requests[0], { buildId: "different-running-build" });
@@ -457,5 +617,138 @@ describe("Shared Shell committed navigation", () => {
     expect(postToFrame).not.toHaveBeenCalled();
     expectVisible(false);
     expect(container.textContent).toContain("shellRefreshTitle");
+  });
+});
+
+describe("Shared Shell status revalidation", () => {
+  const failure = () => container.querySelector("main")?.getAttribute("data-shared-shell-failure");
+  async function visibleAgain() {
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
+  }
+  async function retryFrame() {
+    const button = Array.from(container.querySelectorAll("button")).find(node => ["retry", "shellRetry"].includes(node.textContent ?? ""));
+    expect(button).toBeDefined();
+    await act(async () => { button!.click(); });
+    await resolveGate();
+    await loadFrame();
+    await childMessage(readyBody(INITIAL));
+    expectVisible(true);
+  }
+  it("keeps an expired frame hidden until a fresh retry is admitted", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace"); await resolveGate(); await loadFrame();
+      const oldGeneration = latestFrameNavigation().generation;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(failure()).toBe("deadline"); expectVisible(false);
+      await childMessage(readyBody(INITIAL), oldGeneration);
+      expectVisible(false); expect(failure()).toBe("deadline");
+      await retryFrame();
+      expect(latestFrameNavigation().generation).not.toBe(oldGeneration);
+      expect(browserHref()).toBe(INITIAL);
+    } finally { vi.useRealTimers(); }
+  });
+  it("aborts a pending admission request when its original deadline expires", async () => {
+    vi.useFakeTimers();
+    try {
+      await renderCommittedRoute(INITIAL, "replace");
+      const gate = requests.at(-1)!;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(gate.signal.aborted).toBe(true);
+      await resolveGate(gate);
+      expect(replaceFrame).not.toHaveBeenCalled(); expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("does not let a late READY erase a rejected child version", async () => {
+    await start();
+    await childMessage({ ...readyBody(INITIAL), bridgeVersion: "different-bridge" });
+    expect(failure()).toBe("ready-version"); expectVisible(false);
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("ready-version");
+  });
+  it("does not let a late READY erase an explicit child error", async () => {
+    await start();
+    await childMessage({ type: "ERROR", code: "initialization_failed" });
+    expect(failure()).toBe("child-error");
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("child-error");
+  });
+  it("offers a route-preserving retry rather than a false version refresh after HTTP 503", async () => {
+    await start();
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) } as Response);
+    await visibleAgain();
+    expectVisible(false); expect(failure()).toBe("gate-http");
+    expect(container.textContent).not.toContain("shellRefreshTitle");
+    await retryFrame(); expect(browserHref()).toBe(INITIAL);
+  });
+  it("keeps a verified server version change fenced against old frame messages", async () => {
+    await start(); await visibleAgain();
+    await resolveGate(requests.at(-1)!, { buildId: "new-server-generation" });
+    expect(failure()).toBe("gate-mismatch"); expectVisible(false);
+    await childMessage(readyBody(INITIAL));
+    expectVisible(false); expect(failure()).toBe("gate-mismatch");
+  });
+  it("ignores a superseded visibility check instead of hiding a freshly confirmed page", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    await visibleAgain(); const current = requests.at(-1)!;
+    expect(current).not.toBe(old);
+    await resolveGate(current);
+    await resolveGate(old, { buildId: "obsolete-status-response" });
+    expectVisible(true); expect(failure()).toBe("none");
+    expect(old.signal?.aborted).toBe(true);
+  });
+  it("bounds an unresolved visibility check and ignores its late success", async () => {
+    vi.useFakeTimers();
+    try {
+      await start(); await visibleAgain(); const check = requests.at(-1)!;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expectVisible(false); expect(failure()).toBe("deadline");
+      expect(check.signal?.aborted).toBe(true);
+      await resolveGate(check); await childMessage(readyBody(INITIAL));
+      expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("cancels the old status request when navigation selects another document", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    await navigate("/about.html");
+    expect(old.signal.aborted).toBe(true);
+    await resolveGate(); await loadFrame(); await childMessage(readyBody("/about.html"));
+    await resolveGate(old, { buildId: "stale-before-navigation" });
+    expectVisible(true); expect(failure()).toBe("none");
+    expect(browserHref()).toBe("/about.html");
+  });
+  it("cancels a pending status check on hiding without retiring the admitted page", async () => {
+    await start(); await visibleAgain(); const old = requests.at(-1)!;
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); });
+    expect(old.signal.aborted).toBe(true);
+    await resolveGate(old, { enabled: false }); expectVisible(true);
+    await visibleAgain(); await resolveGate(); expectVisible(true);
+  });
+  it("bounds a stalled status response body, not only receipt of HTTP headers", async () => {
+    vi.useFakeTimers();
+    try {
+      await start(); let release!: (value: typeof healthyGate) => void;
+      vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: () => new Promise(resolve => { release = resolve; }) } as Response);
+      await visibleAgain();
+      const signal = vi.mocked(fetch).mock.calls.at(-1)?.[1]?.signal;
+      await act(async () => { await vi.advanceTimersByTimeAsync(15001); });
+      expect(signal?.aborted).toBe(true); expectVisible(false); expect(failure()).toBe("deadline");
+      await act(async () => { release(healthyGate); }); expectVisible(false);
+    } finally { vi.useRealTimers(); }
+  });
+  it("keeps transport errors recoverable without displaying internal exception text", async () => {
+    await start(); vi.mocked(fetch).mockRejectedValueOnce(new Error("private-upstream-diagnostic"));
+    await visibleAgain(); expectVisible(false); expect(failure()).toBe("gate-network");
+    expect(container.textContent).not.toContain("private-upstream-diagnostic");
+    await retryFrame(); expect(browserHref()).toBe(INITIAL);
+  });
+  it("requires literal enabled true during revalidation, matching initial admission", async () => {
+    await start();
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ ...healthyGate, enabled: "true" }) } as Response);
+    await visibleAgain(); expectVisible(false); expect(failure()).toBe("gate-mismatch");
+    expect(container.textContent).toContain("shellRefreshTitle");
+    await childMessage(readyBody(INITIAL)); expectVisible(false);
   });
 });

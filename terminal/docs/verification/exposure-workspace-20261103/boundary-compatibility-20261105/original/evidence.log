@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal
+
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (11 tests) 583ms
+   ✓ EOD / heatmap / flow desk load-failure evidence lock is the sha256 of the layout sources > reconciles retained native capture with fresh boundary proof and preserves historical image sets 310ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (12 tests) 607ms
+
+ Test Files  2 passed (2)
+      Tests  23 passed (23)
+   Start at  20:03:26
+   Duration  1.50s (transform 92ms, setup 0ms, collect 111ms, tests 1.19s, environment 0ms, prepare 191ms)
+

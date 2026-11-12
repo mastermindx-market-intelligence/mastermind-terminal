@@ -1,0 +1,91 @@
+{
+  "schema": "terminal_pr761_lint_baseline_classification.v1",
+  "startedAt": "2026-11-10T18:05:45.064Z",
+  "path": "terminal/components/TerminalShell.tsx",
+  "current": {
+    "errors": 46,
+    "warnings": 22,
+    "sha256": "1302bfc8899bc224bb8d5ed9123afd23252a3fae4c2c890558ace855bbd5bb97"
+  },
+  "baselines": [
+    {
+      "name": "protected",
+      "ref": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+      "sha256": "ad3cba56bb624a4da87a056f10caee8c61bf82a30423b2ca3c9cebf444b3a7ac",
+      "errors": 47,
+      "warnings": 22,
+      "currentFindingsNotPresent": []
+    },
+    {
+      "name": "accepted",
+      "ref": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+      "sha256": "52e8f8ee0916a1646e79af7ef9d1bc45ee94695a3713f92a972f0e1e0b6a2e5b",
+      "errors": 53,
+      "warnings": 21,
+      "currentFindingsNotPresent": [
+        {
+          "key": "{\"ruleId\":\"react-hooks/exhaustive-deps\",\"severity\":1,\"nodeType\":\"Identifier\",\"message\":\"The ref value 'wlCsvImportEpochRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'wlCsvImportEpochRef.current' to a variable inside the effect, and use that variable in the cleanup function.\",\"sourceLine\":\"return () => { wlCsvMountedRef.current = false; wlCsvImportEpochRef.current++; };\",\"endLine\":\"return () => { wlCsvMountedRef.current = false; wlCsvImportEpochRef.current++; };\"}",
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "line": 1135,
+          "column": 73,
+          "message": "The ref value 'wlCsvImportEpochRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'wlCsvImpor"
+        },
+        {
+          "key": "{\"ruleId\":\"react-hooks/exhaustive-deps\",\"severity\":1,\"nodeType\":\"VariableDeclarator\",\"message\":\"The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4123) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.\",\"sourceLine\":\"const activeLegs = activeIsComposite ? (parseComposite(active) ?? []) : [];\",\"endLine\":\"const activeLegs = activeIsComposite ? (parseComposite(active) ?? []) : [];\"}",
+          "ruleId": "react-hooks/exhaustive-deps",
+          "severity": 1,
+          "line": 4096,
+          "column": 9,
+          "message": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 4123) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initial"
+        }
+      ]
+    }
+  ],
+  "newFindings": [],
+  "otherEightFiles": [
+    {
+      "path": "terminal/components/mobile/RollerStrip.tsx",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/e2e/mobile-chart-chrome.spec.ts",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/e2e/visual-evidence-capture.spec.ts",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/lib/__tests__/hubDiscoveryState.test.tsx",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/lib/__tests__/mobileHubHydrationFixture.test.ts",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "terminal/lib/useHubDiscovery.ts",
+      "errors": 0,
+      "warnings": 0
+    }
+  ],
+  "sourceUnchanged": true,
+  "state": "NO_NEW_LINT_FINDINGS_ALL_TERMINAL_SHELL_DIAGNOSTICS_INHERITED_FROM_PROTECTED",
+  "finishedAt": "2026-11-10T18:06:20.747Z"
+}

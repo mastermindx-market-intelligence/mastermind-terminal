@@ -8,7 +8,9 @@
  * database as invalid_payload. This test parses the allow-list out of the migration's live
  * body (comment lines stripped, so the commented `-- down:` block does not count) and pins
  * it to the registry in both directions. It also proves the file is a widening: the
- * commented installed body it restores admits only the earnings owner.
+ * commented installed body it restores admits only the earnings owner. The registry-equality
+ * pin now lives in investigationOptionsSelectionMigrationContract.test.ts, which pins 0047's
+ * widened list against the registry; this file pins only 0039's own list as a subset.
  */
 import { describe, expect, it } from "vitest";
 import { INVESTIGATION_ADMISSION } from "../investigations";
@@ -59,11 +61,12 @@ describe("0039 investigation options evidence owner contract", () => {
     expect(body).not.toMatch(/\b(alter|drop|grant|revoke|create table|create policy|insert|update|delete)\b/i);
   });
 
-  it("admits exactly the evidence owners and object types the Terminal registry admits", () => {
+  it("admits only evidence owners and object types the Terminal registry also admits", () => {
     const fromSql = allowList(liveBody(sql));
     const fromRegistry = registry();
-    expect(Object.keys(fromSql).sort()).toEqual(Object.keys(fromRegistry).sort());
-    expect(fromSql).toEqual(fromRegistry);
+    for (const [owner, types] of Object.entries(fromSql)) {
+      for (const type of types) expect(fromRegistry[owner]).toContain(type);
+    }
     expect(fromSql["terminal.options_exposure"]).toEqual(["exposure_chart_request", "rotation_measurement", "sector_origin"]);
     expect(fromSql["earnings.workspace_generation"]).toEqual(["event_workspace"]);
   });

@@ -1,0 +1,1 @@
+{"cases":[{"errors":[],"expectedStatus":"passed","file":"capture_pl6_batch1.cjs","locale":"en","observation":{"path":"case-b631422c828fbbe9a4bedec4493bf1ce.json","sha256":"9615a360c068ce875e1aa19806aaf339b5f419076a8e6ea7973422c17925f6d1"},"project":"desktop","retry":0,"status":"passed","title":"capture ChartChrome"}],"schema":"terminal.pl6-execution.v1"}

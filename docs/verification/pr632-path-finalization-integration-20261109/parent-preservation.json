@@ -1,0 +1,115 @@
+{
+  "dependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "fetchedExactObjects": [
+    "d03e7587711f1182531f25459fa1f60c679bac10",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "head": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "originalChangedPaths": [
+    "terminal/components/ChartPanel.tsx",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+    "terminal/e2e/QUARANTINE.md",
+    "terminal/e2e/drawing-system.spec.ts"
+  ],
+  "parents": {
+    "dependency1268": {
+      "commit": "d03e7587711f1182531f25459fa1f60c679bac10",
+      "files": {
+        "terminal/components/ChartPanel.tsx": {
+          "bytes": 716878,
+          "sha256": "655095c14c7b1ee5739f4826ceafd3aa41a039faff98be113b631bfcbc6aa13f"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml": {
+          "bytes": 68128,
+          "sha256": "eb9d0bd8c2fa52565a61f103b3855d4bc21d6a7d43fa3808e86df2d02173108e"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png": {
+          "bytes": 246794,
+          "sha256": "9ce0014f57b940c66f9e206ecaced37d9248758a1eac6f89009e74b5c2966090"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png": {
+          "bytes": 241978,
+          "sha256": "66153da19a3e71b90e6117448c515e3f6e36c2e05168136409f57f34df8bb4e9"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png": {
+          "bytes": 51850,
+          "sha256": "7491db058f74a494459ddcbd0a2d9e76a4ee9516c0061183a8b0288e53fef8ef"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png": {
+          "bytes": 42877,
+          "sha256": "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png": {
+          "bytes": 80524,
+          "sha256": "096d3b4fdda00da5bde7347adee430b6a457337b81d08a771b0baafa2a51f383"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png": {
+          "bytes": 66021,
+          "sha256": "8ed57f68b1e11561d73532f64de5d9daa5515b9004d06aa62de008ec468d3a2b"
+        },
+        "terminal/e2e/QUARANTINE.md": {
+          "bytes": 5449,
+          "sha256": "94aa8323207c8168327bcbd47c2e59d67727a2244aa64e0dba01f4d113140abf"
+        },
+        "terminal/e2e/drawing-system.spec.ts": {
+          "bytes": 146264,
+          "sha256": "4cffd9bfcc9fa3661c79df6f351e7f06e4bd7ad17de4fa79b93bbfa86afcb144"
+        }
+      }
+    },
+    "original": {
+      "commit": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+      "files": {
+        "terminal/components/ChartPanel.tsx": {
+          "bytes": 588178,
+          "sha256": "2bafd6e4da65e0d877a38ca1615877e8e737c3694ca4c407036ba6386cadef16"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml": {
+          "bytes": 3180,
+          "sha256": "0fc1259d802db51a8bcd042d1fc88acf30e56afafd79636c7a09e47683728706"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png": {
+          "bytes": 321074,
+          "sha256": "c176084e9ee7f56b14e388cf544ac63887083ad578d4303fcc140043fc9f57a0"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png": {
+          "bytes": 313657,
+          "sha256": "5c5f4bf6c49c0e9cce0960440a86d54009a0a9448e4568a0fe40d12cd145d6f2"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png": {
+          "bytes": 107384,
+          "sha256": "a808ec9298c52aee2ce656e2af162359844f75869093c355bddd472f7f798547"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png": {
+          "bytes": 105837,
+          "sha256": "33b2cbaee40585a90749ae62d68d405cd8e987581b2a7e4954507d3127fdc695"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png": {
+          "bytes": 231330,
+          "sha256": "800e926bc42ff27b849cc569a622286ba160bb3ba418cfad9102330fa330c6ec"
+        },
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png": {
+          "bytes": 225794,
+          "sha256": "5ca884564132236b20f8ba6ba66c32701e3587f5aa7cd5d2e0b01eab76c27c5a"
+        },
+        "terminal/e2e/QUARANTINE.md": {
+          "bytes": 6406,
+          "sha256": "41512483d6abb921d0d98ae95c2f355048e869d7f1b2565d80201827dee1d1d8"
+        },
+        "terminal/e2e/drawing-system.spec.ts": {
+          "bytes": 87567,
+          "sha256": "a1cb350959025195abe4385f359322fd52c13f46830ac380cf4f93c9e9f11ec1"
+        }
+      }
+    }
+  },
+  "preparedAt": "2026-11-09T18:25:59.066245+00:00",
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr632_parent_preservation.v1"
+}

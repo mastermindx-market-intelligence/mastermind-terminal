@@ -1,0 +1,18 @@
+[
+  {
+    "source": ".next/d08c-full-unit-final.log",
+    "archive": "logs/d08c-full-unit-final.log.gz",
+    "bytes": 208142,
+    "sha256": "d9ac1f7100e6f2b2cfd8200a60478360602fef970c3c605241700313c0847ec6",
+    "archive_sha256": "446c4034322fe7e0c2c7ab94673023743dc9bea90fb23d38ca07235088e5315e",
+    "roundtrip_verified": true
+  },
+  {
+    "source": ".next/d08c-account-lifecycle-qualification.log",
+    "archive": "logs/d08c-account-lifecycle-qualification.log.gz",
+    "bytes": 1486,
+    "sha256": "c0e3b9aadcabaf46deeb96717cb386a1d4094d8aa66b8b5e51f87667ef768d87",
+    "archive_sha256": "426bb8b61bd84a6bdfe65123c59e0a815e9a0c69d023f7ffaec2ba9aea052217",
+    "roundtrip_verified": true
+  }
+]

@@ -6,6 +6,9 @@ import { useLang, useT } from "@/lib/i18n";
 type ShellLang = "en" | "zh";
 const pick = (lang: ShellLang, en: string, zh: string): string => lang === "zh" ? zh : en;
 export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
+  shellIntelligence: (lang) => pick(lang, "Market Intelligence", "市场情报"),
+  shellProphet: (lang) => pick(lang, "Model plans & options", "模型计划与期权"),
+  shellSectors: (lang) => pick(lang, "Sector Intelligence", "行业情报"),
   shellToday: (lang) => pick(lang, "Today","今日"),
   shellMonitor: (lang) => pick(lang, "Monitor","监测"),
   shellResearch: (lang) => pick(lang, "Research","研究"),
@@ -37,6 +40,7 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellRefreshTitle: (lang) => pick(lang, "Your workspace has been updated","您的工作区已更新"),
   shellRefreshBody: (lang) => pick(lang, "Refresh to load the current version and continue.","请刷新以加载当前版本并继续。"),
   shellRefresh: (lang) => pick(lang, "Refresh workspace","刷新工作区"),
+  shellRetry: (lang) => pick(lang, "Try again","重试"),
   shellOpenOriginal: (lang) => pick(lang, "Open original page","打开原始页面"),
   shellDirectoryIntro: (lang) => pick(lang, "Explore your workspaces, markets, research, and tools.","探索工作区、市场、研究及工具。"),
   shellFindPage: (lang) => pick(lang, "Find a page or tool…","查找页面或工具…"),
@@ -52,6 +56,21 @@ export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellNoPagesHint: (lang) => pick(lang, "Try another name, or use company search to find a business.","请尝试其他名称，或使用公司搜索。"),
   shellShowMore: (lang) => pick(lang, "Show more","显示更多"),
   shellPageCount: (lang) => pick(lang, "{count} destinations","{count} 个页面"),
+  shellMatchCount: (lang) => pick(lang, "{count} matches","{count} 个匹配结果"),
+  shellOneDestination: (lang) => pick(lang, "1 destination","1 个页面"),
+  shellOneMatch: (lang) => pick(lang, "1 match","1 个匹配结果"),
+  shellCategoryMatchCount: (lang) => pick(lang, "{count} in this category","此分类中有 {count} 个匹配结果"),
+  shellCategoryDestinationCount: (lang) => pick(lang, "{count} destinations in this category","此分类中有 {count} 个页面"),
+  shellCategoryOneDestination: (lang) => pick(lang, "1 destination in this category","此分类中有 1 个页面"),
+  shellResultsShown: (lang) => pick(lang, "Showing {shown} of {count}","已显示 {shown} / {count}"),
+  shellShowAllMatches: (lang) => pick(lang, "Show all {count} matches","查看全部 {count} 个匹配结果"),
+  shellShowOneMatch: (lang) => pick(lang, "Show the matching destination","查看匹配的页面"),
+  shellShowAllDestinations: (lang) => pick(lang, "Show all {count} destinations","查看全部 {count} 个页面"),
+  shellShowOneDestination: (lang) => pick(lang, "Show the destination","查看此页面"),
+  shellNoPagesInCategory: (lang) => pick(lang, "No matches in this category","此分类中没有匹配结果"),
+  shellNoPagesInCategoryHint: (lang) => pick(lang, "Keep your search and look in all categories.","保留搜索内容，查看全部分类。"),
+  shellClearDirectoryQuery: (lang) => pick(lang, "Clear search","清除搜索内容"),
+  shellCloseDirectory: (lang) => pick(lang, "Close","关闭"),
   shellNavigation: (lang) => pick(lang, "Main navigation","主导航"),
   shellMenu: (lang) => pick(lang, "Open navigation","打开导航"),
   shellCloseMenu: (lang) => pick(lang, "Close navigation","关闭导航"),
@@ -72,3 +91,4 @@ export function useSharedShellT() {
     return entry ? entry(lang) : t(key, fallback);
   }, [lang, t]);
 }
+

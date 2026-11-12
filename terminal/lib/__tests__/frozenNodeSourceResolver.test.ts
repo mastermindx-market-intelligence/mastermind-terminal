@@ -49,6 +49,23 @@ describe("source-only exact frozen-node composition", () => {
     expect(result).not.toHaveProperty("armingEpoch");
   });
 
+  it("cannot bind a two-settlement-root family to a frozen single-root source", async () => {
+    const request = await pin();
+    const marked = { ...structuredClone(fixture), family_source: {
+      schema: "mastermind.index_options_family_source.v1",
+      source_roots: ["NDX", "NDXP"],
+      state: "OFFLINE_SOURCE_QUALIFIED_NOT_PUBLISHABLE",
+    } };
+    expect(await matchFrozenNodeSource(marked, request)).toEqual({
+      kind: "unavailable", reason: "unadmitted_gex_family",
+    });
+    marked.family_source = { ...marked.family_source, complete_chain_receipt: true,
+      redistribution_grant: true } as typeof marked.family_source;
+    expect(await matchFrozenNodeSource(marked, request)).toEqual({
+      kind: "unavailable", reason: "unadmitted_gex_family",
+    });
+  });
+
   it("refuses an outside-lens correction even when the entire selected projection is unchanged", async () => {
     const request = await pin(fixture, one, 100);
     const corrected = structuredClone(fixture);

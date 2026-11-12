@@ -1526,10 +1526,11 @@ def test_ci_wires_the_pull_request_number_into_the_pytest_step():
             "from the pull_request event, or from the workflow_dispatch input merge-on-green "
             "fills in -- or the pull-request mode of the namespace guard can never engage"
         )
-        # Native membership reads need the existing contents-read token only in
-        # merge groups. Candidate permissions remain pinned by the companion guard.
+        # Candidate Ingest withholds the denied built-in queue-read capability.
+        # Closed namespaces need no API; an open prefix must refuse before HTTP.
+        # Candidate permissions remain pinned by the companion guard.
         assert set(step["env"]) == {"PR_NUMBER", "GH_TOKEN"}, step["env"]
-        assert step["env"]["GH_TOKEN"] == "${{ github.event_name == 'merge_group' && github.token || '' }}"
+        assert step["env"]["GH_TOKEN"] == ""
 
     # `on:` parses to the YAML boolean True under safe_load (the "Norway problem"
     # for `on`), so read it that way rather than by the string key.

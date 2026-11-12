@@ -11,6 +11,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
+import type { EntitlementVisualState } from "@/lib/entitlementVisualState";
 import { useLang, useT } from "@/lib/i18n";
 import { LARGE_TRADES_LABELS } from "@/lib/largeTrades/labels";
 import {
@@ -166,6 +167,8 @@ export interface IndicatorsModalProps {
   onRenameScript?: (id: string, name: string) => void;
   onDeleteScript?: (id: string) => void;
   userTier?: Tier;
+  /** Whether the existing entitlement authority has actually answered. */
+  accessState: EntitlementVisualState;
   /** Opens the study-template library (E07). The dialog closes first; the library owns focus next. */
   onOpenTemplates?: () => void;
 }
@@ -191,6 +194,7 @@ export default function IndicatorsModal({
   onRenameScript,
   onDeleteScript,
   userTier = "free",
+  accessState,
   onOpenTemplates,
 }: IndicatorsModalProps) {
   const t = useT();
@@ -504,6 +508,7 @@ export default function IndicatorsModal({
   const renderModule = (entry: SuiteModuleCatalogEntry) => {
     const on = !!activeModules?.has(entry.id);
     const locked = TIER_RANK[userTier] < TIER_RANK[entry.tier];
+    const pendingAccess = locked && accessState !== "verified";
     const description = lang === "zh" ? entry.descriptionZh : entry.description;
     const surfaceLabel = {
       overlay: copy("Overlay", "叠加"),
@@ -515,14 +520,14 @@ export default function IndicatorsModal({
     const disabled = locked || !onToggleModule;
 
     return (
-      <div key={entry.id} className={`imod-row${on ? " on" : ""}${locked ? " locked" : ""}`}>
+      <div key={entry.id} className={`imod-row${on ? " on" : ""}${locked && !pendingAccess ? " locked" : ""}`}>
         <button
           type="button"
           className="imod-main"
           role="switch"
           aria-checked={on}
           aria-describedby={`imod-desc-${entry.suiteKey}-${entry.moduleKey}`}
-          aria-label={locked ? `${entry.label} — ${copy("upgrade required", "需要升级")}` : entry.label}
+          aria-label={locked ? `${entry.label} — ${pendingAccess ? (accessState === "checking" ? copy("checking access", "正在验证权限") : copy("access unavailable", "权限暂不可用")) : copy("upgrade required", "需要升级")}` : entry.label}
           data-im-search-result={searching ? "" : undefined}
           disabled={disabled}
           onClick={() => onToggleModule?.(entry.id)}
@@ -540,7 +545,7 @@ export default function IndicatorsModal({
               {description}
             </span>
           </span>
-          <StateSwitch on={on} locked={locked} />
+          <StateSwitch on={on} locked={locked && !pendingAccess} />
         </button>
         <span className="imod-actions">
           {onOpenGuide && (
@@ -800,7 +805,7 @@ export default function IndicatorsModal({
                   const dense = preset.id === "research";
                   return (
                     <article
-                      className={`${selected ? "selected " : ""}${dense ? "dense" : ""}${locked ? " locked" : ""}`}
+                      className={`${selected ? "selected " : ""}${dense ? "dense" : ""}${locked && accessState === "verified" ? " locked" : ""}`}
                       key={preset.id}
                     >
                       <div className="ipreset-profile-top">
@@ -815,7 +820,11 @@ export default function IndicatorsModal({
                           return <span key={moduleKey}>{moduleEntry?.tag ?? moduleKey}</span>;
                         })}
                       </div>
-                      {locked ? (
+                      {locked && accessState !== "verified" ? (
+                        <button type="button" className="ipreset-add" disabled aria-live="polite">
+                          {accessState === "checking" ? copy("Checking access…", "正在验证权限…") : copy("Access unavailable", "权限暂不可用")}
+                        </button>
+                      ) : locked ? (
                         <a
                           className="ipreset-add"
                           href={ACS_UPGRADE_URL}

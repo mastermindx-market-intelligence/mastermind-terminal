@@ -79,7 +79,7 @@ export interface CompiledScript extends CompileResult { ast: ParseResult | null;
 
 // sessionAnchor: the symbol's published session_anchor ({ v, date, index, basis }, lib/sessionBars),
 // which phases nD requests the way the chart's own nD bars are phased. Validated by the engine.
-export type RunOpts = { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; sessionAnchor?: SessionAnchor | null };
+export type RunOpts = { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; captureInputValues?: boolean; sessionAnchor?: SessionAnchor | null };
 
 // Parse ONCE and hand back the AST for reuse. This is the compile half of the split: the editor and
 // the worker call it, cache the AST by source hash, and feed it to runCompiled() for every data change.

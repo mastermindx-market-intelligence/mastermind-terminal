@@ -1,0 +1,22 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/persistent-sector-leadership-ui-20261107-c4/terminal
+
+(node:79879) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:79880) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/CompanyIntelligencePrivate.test.tsx (7 tests) 73ms
+ ✓ lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx (24 tests) 246ms
+(node:79878) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/SectorConstituentEvidence.test.tsx (12 tests) 1031ms
+ ✓ lib/__tests__/usePrivateCompanyIntelligence.test.tsx (64 tests) 6464ms
+   ✓ classification of closed refusals > maps the 503 source trio by stage: before context unavailable, after context metadata_only, at fact unavailable 529ms
+   ✓ classification of closed refusals > reports selection_changed only for context/selection binding and selection/fact drift 358ms
+
+ Test Files  4 passed (4)
+      Tests  107 passed (107)
+   Start at  23:21:35
+   Duration  9.22s (transform 1.13s, setup 0ms, collect 2.19s, tests 7.81s, environment 3.35s, prepare 1.34s)
+

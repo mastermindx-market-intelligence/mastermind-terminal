@@ -1,0 +1,15 @@
+{
+  "hashes": {
+    "tests/sql/options_frozen_node/proposed_atomic_hit.sql": "480749e6b3e5872ed3e1ae3a16ba1a40ca6698ccdc7e5edd0b9df0aa26d9e5fb",
+    "tests/test_alerts_frozen_hit_postgres.py": "db7ae7163a384a37da25ba664b1a8cebc1d39d3c7cf4f70398a68399fd2d98df",
+    "ingest/options_frozen_hit.py": "74c9a37cc329f79505428bd5fcc976424a0bc852f6971a41bc5ddfc9fe5b2474",
+    "ingest/alerts_engine.py": "d08569144973ac96cfcb9561533c77b5552219a9abbbf251ead1ea031f355d0a",
+    "tests/sql/options_frozen_node/proposed_prepared_intent.sql": "ad9079e9a659b8b2b28e9aefd285863f192381b8d094148f7470d69c87696f23",
+    "tests/test_alerts_frozen_prepared_postgres.py": "5f0220a7179eed94470d7b2967ac2548c2aaad9608daa337723e317d06afbca0",
+    "tests/test_frozen_prepared_run_barrier.py": "66623c50845630f827f08e8a34f1e676e9e9024cc9f2152bd61b173803225c52",
+    ".github/workflows/ci.yml": "84ff923f4e326bc2c8e3b5a6ee00273506e4f0b4c7a8a448244f9bcc5edcf151"
+  },
+  "postgres_version_num": 170011,
+  "listen_addresses": "",
+  "scope": "disposable socket only; no target DB or delivery"
+}

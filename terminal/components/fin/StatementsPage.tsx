@@ -306,8 +306,8 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
                 with both. */}
             {pick(
               zh,
-              `Deep history is taken from company filings. Filings before ${gapNotice.fullFrom ?? "that point"} report statement totals only. Not reported there: ${listJoin(gapNotice.rows, false)} — those cells show a dash rather than an estimate.`,
-              `深度历史取自公司备案文件。${gapNotice.fullFrom ?? "更早"}之前的备案仅披露报表总额，其中未披露：${listJoin(gapNotice.rows, true)}——这些单元格显示为短横线，而非估算值。`,
+              `Deep history before ${gapNotice.fullFrom ?? "that point"} is taken from company filings, where some rows are defined differently from the later periods. Not comparable there: ${listJoin(gapNotice.rows, false)} — those cells show a dash rather than an estimate.`,
+              `${gapNotice.fullFrom ?? "更早"}之前的深度历史取自公司备案文件，部分项目的口径与之后的期间不同。其中不可比：${listJoin(gapNotice.rows, true)}——这些单元格显示为短横线，而非估算值。`,
             )}
           </div>
         )}

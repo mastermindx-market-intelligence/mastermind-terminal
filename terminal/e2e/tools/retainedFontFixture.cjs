@@ -20,7 +20,7 @@ function environment(env) {
 }
 function assetIdentity(raw) {
   const url = new URL(raw);
-  check(url.protocol === "http:" && url.hostname === "127.0.0.1" && ["33961", "33962"].includes(url.port) && !url.username && !url.password && !url.hash);
+  check(url.protocol === "http:" && url.hostname === "127.0.0.1" && ["33961", "33962", "3536", "3537"].includes(url.port) && !url.username && !url.password && !url.hash);
   check(/^\/_next\/static\/media\/[a-f0-9]{16}(?:-s)?(?:\.p)?\.woff2$/.test(url.pathname));
   check(url.search === "" || /^\?v=\d+$/.test(url.search));
   return url.origin + url.pathname;

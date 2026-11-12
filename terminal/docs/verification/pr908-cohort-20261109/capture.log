@@ -1,0 +1,16 @@
+[dev] - Network:       http://127.0.0.1:3572
+✓ Ready in 342ms
+capture desktop-en-closed.png … ok
+capture desktop-zh-closed.png … ok
+capture desktop-en-open.png … ok
+capture desktop-zh-open.png … ok
+capture desktop-en-page-open.png … ok
+capture desktop-en-closed-unavailable.png … ok
+capture tablet-en-ready.png … ok
+capture mobile-en-ready.png … ok
+capture mobile-en-unavailable.png … ok
+capture mobile-en-empty.png … ok
+capture mobile-zh-ready.png … ok
+capture mobile-zh-unavailable.png … ok
+capture mobile-zh-empty.png … ok
+wrote 13 crops + EVIDENCE.yml to /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr908-cohort-evidence-20261109-2fe663974ce0/terminal/docs/pr-crops/gmi-gate8-cohort-card

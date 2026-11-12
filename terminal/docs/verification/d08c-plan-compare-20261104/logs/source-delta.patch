@@ -1,0 +1,852 @@
+diff --git a/terminal/components/options/OptionsPlanPayoffPanel.module.css b/terminal/components/options/OptionsPlanPayoffPanel.module.css
+index 9efa76b64..964fa6aa1 100644
+--- a/terminal/components/options/OptionsPlanPayoffPanel.module.css
++++ b/terminal/components/options/OptionsPlanPayoffPanel.module.css
+@@ -30,3 +30,67 @@
+ .breakeven { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; }
+ .breakevenDot { fill: var(--text); }
+ .chart button { min-height: 44px; margin-top: 8px; }
++
++/* D08C — local comparison retains exact server numbers, not a second payoff. */
++.comparePanel { grid-column: 1 / -1; min-width: 0; display: grid; gap: 12px; padding: 16px;
++  border: 1px solid var(--line); border-radius: var(--r-md, 8px); background: var(--panel); color: var(--text); }
++.compareHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
++.compareHead h3 { margin: 0; font: 600 17px/1.4 var(--font-ui); }
++.compareHead p { margin: 4px 0 0; color: var(--text-2); font: 12px/1.5 var(--font-ui); }
++.compareActions { display: flex; flex-wrap: wrap; gap: 8px; }
++.actionPrimary, .actionSecondary { min-height: 44px; border-radius: 8px; padding: 10px 14px;
++  font: 600 12px/1.3 var(--font-ui); cursor: pointer; }
++.actionPrimary { background: var(--brand-2); color: var(--bg); border: 1px solid var(--brand-2); }
++.actionSecondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
++.compareActions :is(button):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
++.compareEmpty { margin: 0; font: 13px/1.5 var(--font-ui); color: var(--text-2); }
++.compareBasis { margin: 0; font: 12px/1.55 var(--font-ui); color: var(--text-2); overflow-wrap: anywhere; }
++.compareLegend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--text-2); font: 12px/1.4 var(--font-ui); }
++.compareLegend span { display: inline-flex; align-items: center; gap: 7px; }
++.compareLegend i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; }
++.baselineSwatch { border-color: var(--text-2) !important; border-top-style: dashed !important; }
++.candidateSwatch { border-color: var(--brand-2) !important; }
++.overlay { min-width: 0; width: 100%; overflow: hidden; }
++.overlay svg { display: block; max-width: 100%; color: var(--text-2); }
++.overlay svg text { fill: currentColor; font: 11px var(--font-num); }
++.baselineLine { stroke: var(--text-2); stroke-dasharray: 7 4; stroke-width: 2.5; }
++.candidateLine { stroke: var(--brand-2); stroke-width: 2.5; }
++.comparePanel h4 { margin: 2px 0 0; font: 600 13px/1.4 var(--font-ui); }
++.comparisonTableWrap { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain;
++  border: 1px solid var(--line); border-radius: 8px; }
++.comparisonTableWrap:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
++.comparisonTable { width: 100%; border-collapse: collapse; font: 12px/1.55 var(--font-ui); font-variant-numeric: tabular-nums; }
++.comparisonTable caption { padding: 10px 12px; text-align: left; color: var(--text-2); font: 11px/1.5 var(--font-ui); }
++.comparisonTable :is(th,td) { min-width: 112px; padding: 10px 12px; border-top: 1px solid var(--line);
++  text-align: left; vertical-align: top; overflow-wrap: anywhere; }
++.comparisonTable th { color: var(--text); font-weight: 600; }
++.comparisonTable td { color: var(--text-2); }
++.comparisonTable th:first-child { position: sticky; left: 0; background: var(--panel); z-index: 1; }
++.scenarioDetails { min-width: 0; }
++.scenarioDetails summary { min-height: 44px; display: flex; align-items: center;
++  cursor: pointer; color: var(--text); font: 500 13px/1.4 var(--font-ui); }
++.scenarioDetails summary:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
++.scenarioDetails .comparisonTableWrap { max-height: 440px; overflow: auto; }
++.compareFootnote { margin: 0; color: var(--text-2); font: 11px/1.55 var(--font-ui); }
++@media (max-width: 600px) {
++  .comparePanel { padding: 12px; gap: 10px; }
++  .compareActions { width: 100%; }
++  .compareActions button { flex: 1; min-width: min(130px, 100%); }
++  .comparisonTable { min-width: 480px; }
++}
++@media (prefers-reduced-motion: reduce) {
++  .comparePanel, .overlay svg { scroll-behavior: auto; transition: none; }
++}
++
++.sampleSummary { min-width: 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
++.sampleSummary > p { margin: 0 0 10px; color: var(--text-2); font: 500 12px/1.5 var(--font-ui); }
++.sampleSummary dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
++.sampleSummary dt { color: var(--text-2); font: 11px/1.45 var(--font-ui); }
++.sampleSummary dd { margin: 4px 0 0; color: var(--text); font: 600 17px/1.35 var(--font-num);
++  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
++.overlay button { margin-top: 8px; }
++@media (max-width: 600px) {
++  .sampleSummary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
++  .sampleSummary dl div:last-child { grid-column: 1 / -1; }
++}
++@media (max-width: 350px) { .sampleSummary dl { grid-template-columns: 1fr; } .sampleSummary dl div:last-child { grid-column: auto; } }
+diff --git a/terminal/components/options/OptionsPlanPayoffPanel.tsx b/terminal/components/options/OptionsPlanPayoffPanel.tsx
+index fb46e15b9..0a985a399 100644
+--- a/terminal/components/options/OptionsPlanPayoffPanel.tsx
++++ b/terminal/components/options/OptionsPlanPayoffPanel.tsx
+@@ -2,6 +2,8 @@
+ 
+ import React, { useEffect, useId, useRef, useState } from "react";
+ import { OptionsPlanDraftEditor } from "./OptionsPlanDraftEditor";
++import { OptionsPlanComparePanel } from "./OptionsPlanComparePanel";
++import type { QualifiedPlanScenario } from "@/lib/optionsPlanScenarioCompare";
+ import { preparePlanExpiryRequest, readPlanPayoff, planPayoffView, type PlanPayoff, type PlanReferenceCoverage } from "@/lib/optionsPlanPayoff";
+ import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+ import { useChartWidth, niceTicks, padDomain, thinLabels, fmtTick } from "@/components/charts/svgChart";
+@@ -75,6 +77,9 @@ export function OptionsPlanPayoffPanel(props: Props) {
+ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose }: Props) {
+   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
+   const [result, setResult] = useState<PlanPayoff | null>(null);
++  // Explicit local comparison only; the existing Investigation owner alone may Save.
++  const [lastQualified, setLastQualified] = useState<QualifiedPlanScenario | null>(null);
++  const [baseline, setBaseline] = useState<QualifiedPlanScenario | null>(null);
+   const [coverage, setCoverage] = useState<PlanReferenceCoverage | null>(null);
+   const [status, setStatus] = useState("idle"), [reason, setReason] = useState("");
+   const answer = useRef<HTMLHeadingElement>(null);
+@@ -83,7 +88,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
+   useEffect(() => { if (result) answer.current?.focus(); }, [result]);
+   const calculate = async (candidate: OptionsPlanDraft) => {
+     controller.current?.abort(); const own = ++sequence.current;
+-    setResult(null); setCoverage(null); setReason(""); onDraftChange(candidate);
++    setResult(null); setLastQualified(null); setCoverage(null); setReason(""); onDraftChange(candidate);
+     const request = preparePlanExpiryRequest(candidate);
+     if (!request.ok) { setStatus("incomplete"); setReason(request.reason); return; }
+     setStatus("loading"); controller.current = new AbortController();
+@@ -106,7 +111,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
+       const parsed = readPlanPayoff(await response.json(), request.value);
+       if (own !== sequence.current) return;
+       if (!parsed) { setStatus("unavailable"); return; }
+-      setResult(parsed); setCoverage({ root: parsed.source_boundary.reference_root, contract_count: parsed.source_boundary.reference_contract_count,
++      setResult(parsed); setLastQualified({ draft: candidate, payoff: parsed }); setCoverage({ root: parsed.source_boundary.reference_root, contract_count: parsed.source_boundary.reference_contract_count,
+         expirations: parsed.source_boundary.reference_expirations, as_of: parsed.source_boundary.reference_as_of, captured_at: parsed.source_boundary.reference_observed_at }); setStatus("ready");
+     } catch { if (own === sequence.current) setStatus("unavailable"); }
+   };
+@@ -116,7 +121,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
+       : t("Enter a side, whole contract quantity and your USD entry assumption for every leg.", "请为每条腿填写方向、合约整数数量及美元入场价假设。");
+   return <section className={styles.panel} data-testid="options-plan-payoff-panel" aria-label={t("Exact-contract Plan", "精确合约计划")}>
+     <OptionsPlanDraftEditor layout="planning" draft={draft} lang={lang} onApply={candidate => { void calculate(candidate); }} onClose={onClose}
+-      onEdit={candidate => { onDraftInputChange?.(candidate); sequence.current++; controller.current?.abort(); setResult(null); setCoverage(null); setStatus("idle"); }}
++      onEdit={candidate => { onDraftInputChange?.(candidate); sequence.current++; controller.current?.abort(); setResult(null); setLastQualified(null); setCoverage(null); setStatus("idle"); }}
+       applyLabel={t("Calculate expiry payoff", "计算到期损益")}
+       contextDescription={t("Use your entry assumptions for a conditional expiry outcome. Current executable quotes are unavailable.", "用个人入场假设研究条件到期结果；当前可成交报价不可用。")} />
+     <div className={styles.answer} aria-live="polite" aria-busy={status === "loading"}>
+@@ -147,5 +152,7 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
+         </details>
+       </>}
+     </div>
++    <OptionsPlanComparePanel lang={lang} candidate={lastQualified} baseline={baseline}
++      onPin={() => { if (lastQualified) setBaseline(lastQualified); }} onClear={() => setBaseline(null)} />
+   </section>;
+ }
+diff --git a/terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx b/terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx
+index 8523e3de0..96a1b8348 100644
+--- a/terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx
++++ b/terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx
+@@ -100,4 +100,38 @@ describe("Plan editor to conditional curve", () => {
+     expect(host.textContent).not.toContain("Contract terms unavailable");
+   });
+ 
++  it.each(["en", "zh"] as const)("pins a local baseline then compares exact API P/L in %s without saving", async lang => {
++    const fetcher = vi.fn(async (_url, init) => {
++      const req = JSON.parse(init.body) as PlanExpiryRequest;
++      const raw = response(req);
++      const premium = req.draft.legs[0].assumptions.entry!.premium_per_unit;
++      raw.curve.pnl = req.spots.map(s => Math.max(s - 765, 0) * 100 - premium * 100);
++      raw.curve.cost = premium * 100;
++      raw.curve.max_loss = -premium * 100;
++      raw.curve.breakevens = [765 + premium];
++      return new Response(JSON.stringify(raw), { status: 200 });
++    });
++    vi.stubGlobal("fetch", fetcher);
++    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="exact-user-and-pins"
++      draft={draft()} lang={lang} onDraftChange={() => undefined} onClose={() => undefined} />));
++    await submit();
++    expect(host.querySelector('[data-testid="plan-pin-baseline"]')).not.toBeNull();
++    await act(async () => { (host.querySelector('[data-testid="plan-pin-baseline"]') as HTMLButtonElement).click(); });
++    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
++    await changeEntry("4");
++    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
++    await submit();
++    expect(fetcher).toHaveBeenCalledTimes(2);
++    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
++    expect(host.querySelector('[data-testid="plan-assumption-diff"]')?.textContent).toContain("4");
++    // CSS modules rename the class; locate the exact figures table within its disclosure.
++    const exactTable = host.querySelector('[data-testid="plan-comparison-points"]') as HTMLTableElement;
++    expect(exactTable).not.toBeNull();
++    expect(exactTable.querySelectorAll("tbody tr").length).toBeGreaterThanOrEqual(101);
++    expect(exactTable.querySelector("tbody tr")?.children[3].textContent).toBe("-200");
++    expect(host.textContent).toContain(lang === "en" ? "Pinning does not save" : "已有研究记录保持不变");
++    await act(async () => { (host.querySelector('[data-testid="plan-clear-baseline"]') as HTMLButtonElement).click(); });
++    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
++  });
++
+ });
+diff --git a/terminal/lib/optionsPlanScenarioCompare.ts b/terminal/lib/optionsPlanScenarioCompare.ts
+new file mode 100644
+index 000000000..45a783a32
+--- /dev/null
++++ b/terminal/lib/optionsPlanScenarioCompare.ts
+@@ -0,0 +1,110 @@
++import type { OptionsPlanDraft } from "./optionsPlanDraft";
++import type { ContractIdentity } from "./optionsContractShortlist";
++import { preparePlanExpiryRequest, readPlanPayoff, type PlanPayoff } from "./optionsPlanPayoff";
++
++/** Explicitly pinned, in-memory research calculations. Not an account Save,
++ * quote, tradable order, persisted scenario, or independent valuation model. */
++export type QualifiedPlanScenario = Readonly<{
++  draft: OptionsPlanDraft;
++  payoff: PlanPayoff;
++}>;
++
++export type PlanScenarioComparison =
++  | { ok: false; reason: "invalid_result" | "contract_changed" | "reference_changed" | "axis_changed" }
++  | { ok: true;
++      root: string;
++      expiration: string;
++      referenceAsOf: string;
++      referenceObservedAt: string;
++      baselineKnownBy: string;
++      candidateKnownBy: string;
++      spots: readonly number[];
++      baselinePnl: readonly number[];
++      candidatePnl: readonly number[];
++      deltaPnl: readonly number[];
++      anchors: readonly number[];
++      sample: { spot: number; baselinePnl: number; candidatePnl: number; deltaPnl: number };
++      changes: ReadonlyArray<{
++        leg: string;
++        identity: ContractIdentity;
++        side: { before: "buy" | "sell" | null; after: "buy" | "sell" | null };
++        quantity: { before: number | null; after: number | null };
++        entry: { before: number | null; after: number | null };
++        changed: boolean;
++      }>;
++    };
++
++/** Compare validated API outputs only on the same exact contracts, actual
++ * server-sampled axes and immutable dated reference. Never interpolate P/L
++ * or silently normalize altered deliverables or differing source vintages. */
++export function comparePlanScenarios(
++  baseline: QualifiedPlanScenario,
++  candidate: QualifiedPlanScenario,
++): PlanScenarioComparison {
++  const a = preparePlanExpiryRequest(baseline.draft);
++  const b = preparePlanExpiryRequest(candidate.draft);
++  if (!a.ok || !b.ok || !readPlanPayoff(baseline.payoff, a.value)
++    || !readPlanPayoff(candidate.payoff, b.value)) return { ok: false, reason: "invalid_result" };
++  if (a.value.draft.legs.length !== b.value.draft.legs.length
++    || a.value.payoff_basis.expiration !== b.value.payoff_basis.expiration
++    || a.value.draft.legs.some((leg, i) => {
++      const other = b.value.draft.legs[i];
++      return leg.snapshot.pinKey !== other.snapshot.pinKey
++        || leg.snapshot.identity.key !== other.snapshot.identity.key
++        || leg.snapshot.asofRaw !== other.snapshot.asofRaw
++        || leg.snapshot.sourceStale !== other.snapshot.sourceStale
++        || leg.snapshot.schema !== other.snapshot.schema
++        || leg.snapshot.hotView !== other.snapshot.hotView
++        || JSON.stringify(leg.snapshot.row) !== JSON.stringify(other.snapshot.row);
++    })) return { ok: false, reason: "contract_changed" };
++  const sourceA = baseline.payoff.source_boundary;
++  const sourceB = candidate.payoff.source_boundary;
++  if (sourceA.reference_root !== sourceB.reference_root
++    || sourceA.reference_sha256 !== sourceB.reference_sha256
++    || sourceA.installed_observation_sha256 !== sourceB.installed_observation_sha256
++    || sourceA.reference_as_of !== sourceB.reference_as_of
++    || sourceA.reference_observed_at !== sourceB.reference_observed_at
++    || sourceA.reference_contract_count !== sourceB.reference_contract_count
++    || JSON.stringify(sourceA.reference_expirations) !== JSON.stringify(sourceB.reference_expirations))
++    return { ok: false, reason: "reference_changed" };
++  const x = baseline.payoff.curve.spots, y = candidate.payoff.curve.spots;
++  if (x.length !== y.length || x.some((spot, i) => spot !== y[i]))
++    return { ok: false, reason: "axis_changed" };
++  const deltaPnl = candidate.payoff.curve.pnl.map((v, i) => v - baseline.payoff.curve.pnl[i]);
++  if (!deltaPnl.every(Number.isFinite)) return { ok: false, reason: "invalid_result" };
++  const anchor = a.value.draft.legs[0].snapshot.identity.strike;
++  let sampleIndex = 0;
++  for (let i = 1; i < x.length; i++) {
++    if (Math.abs(x[i] - anchor) < Math.abs(x[sampleIndex] - anchor)) sampleIndex = i;
++  }
++  return {
++    ok: true,
++    root: sourceA.reference_root,
++    expiration: a.value.payoff_basis.expiration,
++    referenceAsOf: sourceA.reference_as_of,
++    referenceObservedAt: sourceA.reference_observed_at,
++    baselineKnownBy: baseline.payoff.known_by,
++    candidateKnownBy: candidate.payoff.known_by,
++    spots: x,
++    baselinePnl: baseline.payoff.curve.pnl,
++    candidatePnl: candidate.payoff.curve.pnl,
++    deltaPnl,
++    anchors: [...a.value.draft.legs.map(l => l.snapshot.identity.strike),
++      ...baseline.payoff.curve.breakevens, ...candidate.payoff.curve.breakevens],
++    sample: { spot: x[sampleIndex], baselinePnl: baseline.payoff.curve.pnl[sampleIndex],
++      candidatePnl: candidate.payoff.curve.pnl[sampleIndex], deltaPnl: deltaPnl[sampleIndex] },
++    changes: a.value.draft.legs.map((leg, i) => {
++      const next = b.value.draft.legs[i];
++      const before = leg.assumptions, after = next.assumptions;
++      const beforeEntry = before.entry?.premium_per_unit ?? null, afterEntry = after.entry?.premium_per_unit ?? null;
++      return {
++        identity: leg.snapshot.identity,
++        leg: leg.snapshot.identity.root + " " + leg.snapshot.identity.exp + " " + leg.snapshot.identity.strike + leg.snapshot.identity.right,
++        side: { before: before.side, after: after.side },
++        quantity: { before: before.quantity, after: after.quantity },
++        entry: { before: beforeEntry, after: afterEntry },
++        changed: before.side !== after.side || before.quantity !== after.quantity || beforeEntry !== afterEntry,
++      };
++    }),
++  };
++}
+diff --git a/terminal/components/options/OptionsPlanComparePanel.tsx b/terminal/components/options/OptionsPlanComparePanel.tsx
+new file mode 100644
+index 000000000..ea9c65fa2
+--- /dev/null
++++ b/terminal/components/options/OptionsPlanComparePanel.tsx
+@@ -0,0 +1,160 @@
++"use client";
++
++import { useId, useRef, useState } from "react";
++import { useChartWidth, niceTicks, padDomain, fmtTick } from "@/components/charts/svgChart";
++import { comparePlanScenarios, type QualifiedPlanScenario } from "@/lib/optionsPlanScenarioCompare";
++import styles from "./OptionsPlanPayoffPanel.module.css";
++
++type Props = {
++  lang: "en" | "zh";
++  baseline: QualifiedPlanScenario | null;
++  candidate: QualifiedPlanScenario | null;
++  onPin: () => void;
++  onClear: () => void;
++};
++
++const money = (v: number, lang: "en" | "zh") => new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", {
++  style: "currency", currency: "USD", maximumFractionDigits: 2,
++}).format(v);
++
++function Overlay({ data, lang }: {
++  data: Extract<ReturnType<typeof comparePlanScenarios>, { ok: true }>;
++  lang: "en" | "zh";
++}) {
++  const id = useId(), outer = useRef<HTMLDivElement>(null);
++  const [full, setFull] = useState(false);
++  const width = Math.max(240, useChartWidth(outer)), height = 256;
++  const left = width < 350 ? 52 : width < 500 ? 66 : 84, right = 20, top = 28, bottom = 42;
++  const t = (en: string, zh: string) => lang === "zh" ? zh : en;
++  const visible = (() => {
++    if (full) return data.spots.map((_, i) => i);
++    const anchors = data.anchors.filter(v => Number.isFinite(v) && v >= data.spots[0]
++      && v <= data.spots[data.spots.length - 1]);
++    if (!anchors.length) return data.spots.map((_, i) => i);
++    const low = Math.min(...anchors), high = Math.max(...anchors);
++    const pad = Math.max((high - low) * 0.75, Math.max(Math.abs(low), Math.abs(high), 1) * 0.005);
++    const start = Math.max(0, data.spots.findIndex(v => v >= low - pad) - 1);
++    const rightEdge = data.spots.findIndex(v => v > high + pad);
++    const end = rightEdge < 0 ? data.spots.length : Math.min(data.spots.length, rightEdge + 1);
++    return data.spots.map((_, i) => i).slice(start, end);
++  })();
++  const spots = visible.map(i => data.spots[i]);
++  const baseline = visible.map(i => data.baselinePnl[i]);
++  const candidate = visible.map(i => data.candidatePnl[i]);
++  const [x0, x1] = padDomain(spots[0], spots[spots.length - 1], { padFrac: 0 });
++  const [y0, y1] = padDomain(Math.min(0, ...baseline, ...candidate),
++    Math.max(0, ...baseline, ...candidate), { includeZero: true });
++  const x = (v: number) => left + (v - x0) / Math.max(0.001, x1 - x0) * (width - left - right);
++  const y = (v: number) => height - bottom - (v - y0) / Math.max(0.001, y1 - y0) * (height - top - bottom);
++  const line = (values: readonly number[]) => spots.map((spot, i) => String(x(spot)) + "," + String(y(values[i]))).join(" ");
++  const ticksY = niceTicks(y0, y1, 4), ticksX = niceTicks(x0, x1, 4);
++  return <div ref={outer} className={styles.overlay} data-testid="plan-compare-overlay" data-chart-range={full ? "full" : "focus"}>
++    <svg viewBox={"0 0 " + width + " " + height} width={width} height={height} role="img"
++      aria-labelledby={id + "-title " + id + "-desc"}>
++      <title id={id + "-title"}>{t("Two hypothetical expiry P/L curves on identical underlying prices", "相同假设标的价格下的两条到期损益曲线")}</title>
++      <desc id={id + "-desc"}>{t("Baseline dashed; revised calculation solid. Lines connect actual samples; no repricing or interpolation is used to calculate P/L.", "基线为虚线，修订计算为实线。连接原始样本点，不重新定价或插值计算损益。")}</desc>
++      {ticksY.values.map(v => <g key={v}><line className={styles.grid} x1={left} x2={width - right} y1={y(v)} y2={y(v)} />
++        <text x={left - 8} y={y(v) + 4} textAnchor="end">{fmtTick(v, ticksY.step)}</text></g>)}
++      {ticksX.values.map(v => <text key={v} x={x(v)} y={height - bottom + 20} textAnchor="middle">{fmtTick(v, ticksX.step)}</text>)}
++      {y0 < 0 && y1 > 0 && <line className={styles.zero} x1={left} x2={width - right} y1={y(0)} y2={y(0)} />}
++      <polyline className={styles.baselineLine} points={line(baseline)} fill="none" />
++      <polyline className={styles.candidateLine} points={line(candidate)} fill="none" />
++      <text x={(left + width - right) / 2} y={height - 4} textAnchor="middle">
++        {t("Underlying at expiry (USD)", "到期标的价格（美元）")}
++      </text>
++    </svg>
++    <button type="button" className={styles.actionSecondary} onClick={() => setFull(v => !v)} aria-pressed={full}
++      data-testid="plan-compare-range">
++      {full ? t("Focus strikes & breakevens", "聚焦行权价与盈亏平衡点") : t("Show full sampled range", "显示全部样本范围")}
++    </button>
++  </div>;
++}
++
++/** Explicit local-only comparison. No fetch, Save, watch or repricing happens
++ * here. Baseline and candidate are trusted only after the original endpoint's
++ * request-bound response validator has accepted both exact results. */
++export function OptionsPlanComparePanel({ lang, baseline, candidate, onPin, onClear }: Props) {
++  const t = (en: string, zh: string) => lang === "zh" ? zh : en;
++  const heading = useRef<HTMLHeadingElement>(null);
++  const side = (value: "buy" | "sell" | null) => value === "buy" ? t("Buy", "买入") : value === "sell" ? t("Sell", "卖出") : "—";
++  const comparison = baseline && candidate && baseline !== candidate ? comparePlanScenarios(baseline, candidate) : null;
++  const refused = comparison && !comparison.ok;
++  const reason = refused ? ({
++    contract_changed: t("Exact contracts or original evidence changed. Start a new baseline.", "合约或原始证据已改变，请重新设定基线。"),
++    reference_changed: t("Reference date or source changed. These curves cannot be overlaid.", "参考日期或来源已改变，无法叠加曲线。"),
++    axis_changed: t("The calculation used different price samples. Comparison is withheld.", "计算价格样本不同，暂不比较。"),
++    invalid_result: t("A calculation could not be verified. Comparison is withheld.", "计算结果无法核验，暂不比较。"),
++  } as const)[comparison.reason] : null;
++  return <section className={styles.comparePanel} aria-label={t("Research scenario comparison", "研究情景对比")} data-testid="plan-scenario-compare">
++    <div className={styles.compareHead}>
++      <div>
++        <h3 ref={heading} tabIndex={-1}>{t("Compare assumptions", "对比假设")}</h3>
++        <p>{t("Same contracts, same dated terms. Hypothetical research only.", "相同合约、相同日期条款。仅供假设研究。")}</p>
++      </div>
++      <div className={styles.compareActions}>
++        {candidate && <button type="button" className={styles.actionPrimary} onClick={onPin} data-testid="plan-pin-baseline">
++          {baseline ? t("Replace baseline", "替换基线") : t("Pin baseline", "固定基线")}
++        </button>}
++        {baseline && <button type="button" className={styles.actionSecondary} onClick={() => { onClear(); heading.current?.focus({ preventScroll: true }); }} data-testid="plan-clear-baseline">
++          {t("Clear baseline", "清除基线")}
++        </button>}
++      </div>
++    </div>
++    {!baseline && <p className={styles.compareEmpty}>
++      {t("Calculate your Plan, then pin a baseline to compare a changed assumption.", "先计算计划并固定基线，再修改假设进行对比。")}
++    </p>}
++    {baseline && (!candidate || baseline === candidate) && <p role="status" className={styles.compareEmpty} data-testid="plan-baseline-pending">
++      {t("Baseline pinned in this tab. Edit an assumption and calculate again. Pinning sends no Save or watch.", "基线已暂存在本页面。修改假设并再次计算；固定基线不会保存或设置监控。")}
++    </p>}
++    {refused && <p role="status" className={styles.compareEmpty} data-testid="plan-compare-withheld">{reason}</p>}
++    {comparison?.ok && <>
++      <p className={styles.compareBasis} data-testid="plan-comparison-basis">
++        {t("Shared dated terms", "共同参考条款")}: {comparison.root} · <bdi>{comparison.expiration}</bdi> ·
++        <bdi> {comparison.referenceAsOf}</bdi> · {t("Captured", "采集")} <bdi>{comparison.referenceObservedAt}</bdi>
++      </p>
++      <details className={styles.scenarioDetails} data-testid="plan-comparison-clocks">
++        <summary>{t("Calculation times", "计算时间")}</summary>
++        <p className={styles.compareBasis}>{t("Baseline calculated at", "基线计算时间")}: <bdi>{comparison.baselineKnownBy}</bdi></p>
++        <p className={styles.compareBasis}>{t("Revised calculated at", "修订计算时间")}: <bdi>{comparison.candidateKnownBy}</bdi></p>
++      </details>
++      <div className={styles.compareLegend}>
++        <span><i className={styles.baselineSwatch}/>{t("Pinned baseline", "固定基线")}</span>
++        <span><i className={styles.candidateSwatch}/>{t("Revised hypothesis", "修订假设")}</span>
++      </div>
++      <div className={styles.sampleSummary} data-testid="plan-comparison-sample">
++        <p>{t("At sampled underlying", "假设标的样本价格")} <bdi>{money(comparison.sample.spot, lang)}</bdi></p>
++        <dl>
++          <div><dt>{t("Baseline P/L", "基线损益")}</dt><dd>{money(comparison.sample.baselinePnl, lang)}</dd></div>
++          <div><dt>{t("Revised P/L", "修订损益")}</dt><dd>{money(comparison.sample.candidatePnl, lang)}</dd></div>
++          <div><dt>{t("Scenario difference", "情景差额")}</dt><dd>{money(comparison.sample.deltaPnl, lang)}</dd></div>
++        </dl>
++      </div>
++      <Overlay data={comparison} lang={lang} />
++      <h4>{t("What changed", "假设变化")}</h4>
++      {comparison.changes.some(x => x.changed) ? <div className={styles.comparisonTableWrap} tabIndex={0} role="region" aria-label={t("Assumption differences table", "假设差异表")}>
++        <table className={styles.comparisonTable} data-testid="plan-assumption-diff">
++          <caption>{t("Differences are user-authored assumptions, not market-price moves.", "差异来自用户假设，不代表市场价格变动。")}</caption>
++          <thead><tr><th scope="col">{t("Contract", "合约")}</th><th scope="col">{t("Baseline", "基线")}</th><th scope="col">{t("Revised", "修订")}</th></tr></thead>
++          <tbody>{comparison.changes.filter(x => x.changed).map(x => <tr key={x.identity.key}>
++            <th scope="row"><bdi>{x.identity.root} · {x.identity.exp} · {x.identity.strike} · {x.identity.right === "C" ? t("Call", "看涨") : t("Put", "看跌")}</bdi></th>
++            <td>{t("Side", "方向")}: {side(x.side.before)} · {t("Contracts", "张数")}: {x.quantity.before ?? "—"} · {t("Entry USD/unit", "入场美元/单位")}: {x.entry.before ?? "—"}</td>
++            <td>{t("Side", "方向")}: {side(x.side.after)} · {t("Contracts", "张数")}: {x.quantity.after ?? "—"} · {t("Entry USD/unit", "入场美元/单位")}: {x.entry.after ?? "—"}</td>
++          </tr>)}</tbody>
++        </table>
++      </div> : <p>{t("No authored assumption changed. The calculations match the same scenario.", "用户假设未变化；两个计算对应相同情景。")}</p>}
++      <details className={styles.scenarioDetails}>
++        <summary>{t("All exact scenario prices and P/L", "查看全部精确情景价格与损益")}</summary>
++        <div className={styles.comparisonTableWrap} tabIndex={0} role="region" aria-label={t("All exact scenario values", "全部精确情景数值")}>
++          <table className={styles.comparisonTable} data-testid="plan-comparison-points">
++            <caption>{t("Unrounded API values in USD. Difference is revised minus baseline, not an executable return.", "未四舍五入的API美元数值。差额为修订减基线，不代表可执行收益。")}</caption>
++            <thead><tr><th scope="col">{t("Underlying", "标的价格")}</th><th scope="col">{t("Baseline P/L", "基线损益")}</th><th scope="col">{t("Revised P/L", "修订损益")}</th><th scope="col">{t("Difference", "差额")}</th></tr></thead>
++            <tbody>{comparison.spots.map((spot, i) => <tr key={i}><th scope="row">{String(spot)}</th>
++              <td>{String(comparison.baselinePnl[i])}</td><td>{String(comparison.candidatePnl[i])}</td>
++              <td>{String(comparison.deltaPnl[i])}</td></tr>)}</tbody>
++          </table>
++        </div>
++      </details>
++      <p className={styles.compareFootnote}>{t("No fees, early exercise, assignment, current quotes or trading execution. Pinning does not save or create a watch; existing saved research is unchanged.", "不包含费用、提前行权、指派、当前报价或交易执行。固定基线不会保存或设置监控，已有研究记录保持不变。")}</p>
++    </>}
++  </section>;
++}
+diff --git a/terminal/lib/__tests__/optionsPlanScenarioCompare.test.ts b/terminal/lib/__tests__/optionsPlanScenarioCompare.test.ts
+new file mode 100644
+index 000000000..32e5689ab
+--- /dev/null
++++ b/terminal/lib/__tests__/optionsPlanScenarioCompare.test.ts
+@@ -0,0 +1,93 @@
++import { describe, expect, it } from "vitest";
++import { comparePlanScenarios } from "../optionsPlanScenarioCompare";
++import { preparePlanExpiryRequest, readPlanPayoff } from "../optionsPlanPayoff";
++import { draft, response } from "./fixtures/optionsPlanPayoff";
++import type { OptionsPlanDraft } from "../optionsPlanDraft";
++
++function verified(input: OptionsPlanDraft) {
++  const prepared = preparePlanExpiryRequest(input);
++  if (!prepared.ok) throw Error(prepared.reason);
++  const raw = response(prepared.value);
++  const premium = input.legs[0].assumptions.entry!.premium_per_unit;
++  raw.curve.pnl = prepared.value.spots.map(spot => Math.max(spot - 765, 0) * 100 - premium * 100);
++  raw.curve.cost = premium * 100;
++  raw.curve.max_loss = -premium * 100;
++  raw.curve.breakevens = [765 + premium];
++  const payoff = readPlanPayoff(raw, prepared.value);
++  if (!payoff) throw Error("invalid fixture result");
++  return { draft: input, payoff };
++}
++function changedEntry(amount: number) {
++  const revised = draft();
++  revised.legs[0].assumptions.entry!.premium_per_unit = amount;
++  return revised;
++}
++describe("qualified in-memory Plan comparison", () => {
++  it("compares the actual shared 103-price grid without interpolating or using reference marks", () => {
++    const result = comparePlanScenarios(verified(draft()), verified(changedEntry(4)));
++    expect(result.ok).toBe(true);
++    if (!result.ok) return;
++    expect(result.spots.length).toBeGreaterThanOrEqual(101);
++    expect(result.referenceAsOf).toBe("2026-10-23");
++    expect(result.deltaPnl.every(n => n === -200)).toBe(true);
++    expect(result.sample).toEqual({ spot: 765, baselinePnl: -200, candidatePnl: -400, deltaPnl: -200 });
++    expect(result.changes).toHaveLength(1);
++    expect(result.changes[0].entry).toEqual({ before: 2, after: 4 });
++    expect(result.changes[0].changed).toBe(true);
++  });
++  it("retains signed P/L and returns zero difference for the identical hypothesis", () => {
++    const result = comparePlanScenarios(verified(draft()), verified(draft()));
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.deltaPnl.every(n => n === 0)).toBe(true);
++      expect(result.changes.every(c => !c.changed)).toBe(true);
++      expect(result.baselinePnl.some(n => n < 0)).toBe(true);
++    }
++  });
++  it("keeps user-authored side and contracts explicit in changed-leg disclosure", () => {
++    const revised = changedEntry(4);
++    revised.legs[0].assumptions.side = "sell";
++    revised.legs[0].assumptions.quantity = 3;
++    const result = comparePlanScenarios(verified(draft()), verified(revised));
++    expect(result.ok).toBe(true);
++    if (result.ok) {
++      expect(result.changes[0].side).toEqual({ before: "buy", after: "sell" });
++      expect(result.changes[0].quantity).toEqual({ before: 1, after: 3 });
++    }
++  });
++  it("refuses altered exact-leg identity even when the numeric price grid happens to coincide", () => {
++    const a = verified(draft()), b = verified(draft());
++    b.draft.legs[0].snapshot.identity.strike = 766;
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "invalid_result" });
++  });
++  it("refuses a change in immutable selected-observation basis", () => {
++    const a = verified(draft()), b = verified(draft());
++    (b.draft.legs[0].snapshot.row as Record<string, unknown>).mid = 9;
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "contract_changed" });
++  });
++  it("refuses changed source reference even with matching contracts and actual spots", () => {
++    const a = verified(draft()), b = verified(draft());
++    b.payoff.source_boundary.reference_sha256 = "f".repeat(64);
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "reference_changed" });
++  });
++  it("withholds a price-axis mismatch rather than interpolating a curve", () => {
++    const a = verified(draft()), b = verified(draft());
++    b.payoff.curve.spots[1] += 0.001;
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "invalid_result" });
++  });
++  it("refuses an invalid source response rather than treating it as a comparison", () => {
++    const a = verified(draft()), b = verified(draft());
++    b.payoff.source_boundary.current_quote_eligible = true as false;
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "invalid_result" });
++  });
++  it("does not silently accept a different original observed source date", () => {
++    const a = verified(draft()), b = verified(draft());
++    b.payoff.source_boundary.reference_observed_at = "2026-10-23T20:15:00Z";
++    expect(comparePlanScenarios(a, b)).toEqual({ ok: false, reason: "reference_changed" });
++  });
++  it("does not infer a save, executable price, watch or persistent scenario", () => {
++    const result = comparePlanScenarios(verified(draft()), verified(changedEntry(4)));
++    expect(result.ok).toBe(true);
++    expect(Object.keys(result)).not.toEqual(expect.arrayContaining(["saved", "orderId", "watchId", "currentQuote"]));
++  });
++});
+diff --git a/terminal/lib/__tests__/optionsPlanComparePanel.test.tsx b/terminal/lib/__tests__/optionsPlanComparePanel.test.tsx
+new file mode 100644
+index 000000000..8e9cc6650
+--- /dev/null
++++ b/terminal/lib/__tests__/optionsPlanComparePanel.test.tsx
+@@ -0,0 +1,73 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot, type Root } from "react-dom/client";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { OptionsPlanComparePanel } from "@/components/options/OptionsPlanComparePanel";
++import { preparePlanExpiryRequest, readPlanPayoff } from "../optionsPlanPayoff";
++import { draft, response } from "./fixtures/optionsPlanPayoff";
++import type { QualifiedPlanScenario } from "../optionsPlanScenarioCompare";
++
++let host: HTMLDivElement, root: Root;
++beforeEach(() => { vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
++afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
++function scenario(entry = 2): QualifiedPlanScenario {
++  const source = draft(); source.legs[0].assumptions.entry!.premium_per_unit = entry;
++  const request = preparePlanExpiryRequest(source); if (!request.ok) throw Error(request.reason);
++  const raw = response(request.value);
++  raw.curve.pnl = request.value.spots.map(spot => Math.max(spot - 765, 0) * 100 - entry * 100);
++  raw.curve.cost = entry * 100; raw.curve.max_loss = -entry * 100; raw.curve.breakevens = [765 + entry];
++  const payoff = readPlanPayoff(raw, request.value); if (!payoff) throw Error("invalid test response");
++  return { draft: request.value.draft, payoff };
++}
++async function render(baseline = scenario(), candidate = scenario(4), lang: "en" | "zh" = "en", onClear = vi.fn()) {
++  await act(async () => root.render(<OptionsPlanComparePanel baseline={baseline} candidate={candidate} lang={lang} onPin={() => undefined} onClear={onClear} />));
++}
++describe("Plan comparison preserves evidence and native-owner truth", () => {
++  it("shows every raw API decimal rather than rounding a tiny nonzero outcome to zero", async () => {
++    const a = scenario(), b = scenario(4);
++    a.payoff.curve.pnl[0] = 0.000012345678;
++    b.payoff.curve.pnl[0] = 0.000013345679;
++    await render(a, b);
++    const first = host.querySelector('[data-testid="plan-comparison-points"] tbody tr')!;
++    expect(first.children[1].textContent).toBe(String(a.payoff.curve.pnl[0]));
++    expect(first.children[2].textContent).toBe(String(b.payoff.curve.pnl[0]));
++    expect(first.children[3].textContent).toBe(String(b.payoff.curve.pnl[0] - a.payoff.curve.pnl[0]));
++  });
++  it("does not declare an existing saved-research input unsaved", async () => {
++    await render();
++    expect(host.textContent).not.toContain("Neither scenario is saved");
++    expect(host.textContent).toContain("Pinning does not save");
++  });
++  it("localizes buy/sell assumptions and call/put contract labels in Chinese", async () => {
++    await render(scenario(), scenario(4), "zh");
++    const changes = host.querySelector('[data-testid="plan-assumption-diff"]')!;
++    expect(changes.textContent).toContain("买入");
++    expect(changes.textContent).toContain("看涨");
++    expect(changes.textContent).not.toMatch(/\bbuy\b|\bsell\b/);
++  });
++  it("returns keyboard focus to the comparison heading when Clear removes its own control", async () => {
++    const clear = vi.fn(); await render(scenario(), scenario(4), "en", clear);
++    const button = host.querySelector<HTMLButtonElement>('[data-testid="plan-clear-baseline"]')!;
++    button.focus(); await act(async () => button.click());
++    expect(clear).toHaveBeenCalledOnce();
++    expect(document.activeElement).toBe(host.querySelector("h3"));
++  });
++  it("discloses each calculation clock separately from the shared dated reference", async () => {
++    const baseline = scenario(), candidate = scenario(4);
++    candidate.payoff.known_by = "2026-10-24T12:05:00Z";
++    await render(baseline, candidate);
++    const clocks = host.querySelector('[data-testid="plan-comparison-clocks"]');
++    expect(clocks).not.toBeNull();
++    expect(clocks!.textContent).toContain("Baseline calculated at");
++    expect(clocks!.textContent).toContain("2026-10-24T12:00:00Z");
++    expect(clocks!.textContent).toContain("Revised calculated at");
++    expect(clocks!.textContent).toContain("2026-10-24T12:05:00Z");
++  });
++  it("withholds the overlay and exact differences when the dated reference changed", async () => {
++    const a = scenario(), b = scenario(4); b.payoff.source_boundary.reference_sha256 = "d".repeat(64);
++    await render(a, b);
++    expect(host.querySelector('[data-testid="plan-compare-withheld"]')).not.toBeNull();
++    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
++    expect(host.querySelector('[data-testid="plan-comparison-points"]')).toBeNull();
++  });
++});
+diff --git a/terminal/e2e/options-plan-scenario-comparison.spec.ts b/terminal/e2e/options-plan-scenario-comparison.spec.ts
+new file mode 100644
+index 000000000..ab81fd5eb
+--- /dev/null
++++ b/terminal/e2e/options-plan-scenario-comparison.spec.ts
+@@ -0,0 +1,58 @@
++import { expect, test } from "@playwright/test";
++import { response } from "../lib/__tests__/fixtures/optionsPlanPayoff";
++import type { PlanExpiryRequest } from "../lib/optionsPlanPayoff";
++
++for (const lang of ["en", "zh"] as const) {
++  test("D08C exact research baseline, compare, clear — " + lang, async ({ page }, info) => {
++    let requests = 0;
++    await page.route("**/api/options/plan/expiry", async route => {
++      requests++;
++      const request = route.request().postDataJSON() as PlanExpiryRequest;
++      const premium = request.draft.legs[0].assumptions.entry!.premium_per_unit;
++      expect(premium).toBe(requests === 1 ? 2 : 4);
++      expect(request.draft.legs[0].snapshot.row.mid).toBe(3);
++      const result = response(request);
++      result.curve.pnl = request.spots.map(spot => Math.max(spot - 765, 0) * 100 - premium * 100);
++      result.curve.cost = premium * 100;
++      result.curve.max_loss = -premium * 100;
++      result.curve.breakevens = [765 + premium];
++      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(result) });
++    });
++    await page.goto("/dev/options-plan?lang=" + lang);
++    await expect(page.getByTestId("options-plan-payoff-panel")).toBeVisible();
++    await page.getByRole("button", { name: lang === "en" ? "Calculate expiry payoff" : "计算到期损益" }).click();
++    await expect(page.getByTestId("plan-reference-basis")).toBeVisible();
++    await page.getByTestId("plan-pin-baseline").click();
++    await expect(page.getByTestId("plan-baseline-pending")).toBeVisible();
++    await page.getByLabel(lang === "en" ? "Your entry assumption — premium per unit" : "假设入场价——每单位权利金").fill("4");
++    await expect(page.getByTestId("plan-expiry-chart")).toHaveCount(0);
++    await page.getByRole("button", { name: lang === "en" ? "Calculate expiry payoff" : "计算到期损益" }).click();
++    await expect(page.getByTestId("plan-compare-overlay")).toBeVisible();
++    await expect(page.getByTestId("plan-compare-overlay")).toHaveAttribute("data-chart-range", "focus");
++    await expect(page.getByTestId("plan-comparison-sample")).toContainText("200.00");
++    await page.getByTestId("plan-compare-range").click();
++    await expect(page.getByTestId("plan-compare-overlay")).toHaveAttribute("data-chart-range", "full");
++    await page.getByTestId("plan-compare-range").click();
++    await expect(page.getByTestId("plan-compare-overlay")).toHaveAttribute("data-chart-range", "focus");
++    await expect(page.getByTestId("plan-comparison-basis")).toContainText("2026-10-23");
++    await expect(page.getByTestId("plan-assumption-diff")).toContainText("4");
++    await expect(page.getByTestId("plan-comparison-points").locator("tbody tr")).toHaveCount(101);
++    await page.getByTestId("plan-comparison-points").locator("tbody tr").last().scrollIntoViewIfNeeded();
++    await expect(page.getByTestId("plan-comparison-points")).toContainText("-200");
++    await expect(page.getByText(lang === "en" ? /Pinning does not save/ : /已有研究记录保持不变/)).toBeVisible();
++    const baselineBtn = page.getByTestId("plan-pin-baseline");
++    const rect = await baselineBtn.boundingBox();
++    expect(rect?.height).toBeGreaterThanOrEqual(44);
++    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++    await page.screenshot({ path: info.outputPath("d08c-compare-" + lang + "-" + info.project.name + ".png"), fullPage: true });
++    if (info.project.name === "mobile") {
++      await page.setViewportSize({ width: 320, height: 844 });
++      await page.emulateMedia({ reducedMotion: "reduce" });
++      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++      await page.screenshot({ path: info.outputPath("d08c-compare-" + lang + "-320.png"), fullPage: true });
++    }
++    await page.getByTestId("plan-clear-baseline").click();
++    await expect(page.getByTestId("plan-compare-overlay")).toHaveCount(0);
++    expect(requests).toBe(2);
++  });
++}
+diff --git a/terminal/e2e/options-plan-compare-mounted.spec.ts b/terminal/e2e/options-plan-compare-mounted.spec.ts
+new file mode 100644
+index 000000000..69c05c91a
+--- /dev/null
++++ b/terminal/e2e/options-plan-compare-mounted.spec.ts
+@@ -0,0 +1,105 @@
++import { expect, test } from "@playwright/test";
++import { response } from "../lib/__tests__/fixtures/optionsPlanPayoff";
++import type { PlanExpiryRequest } from "../lib/optionsPlanPayoff";
++
++// Exercise the production component tree on /options. Auth, source acquisition
++// and the dated reference response are explicit local fixtures, not live proof.
++const user = { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "responsive@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-10-20T00:00:00Z" };
++const row = { root: "SPY", right: "C", exp: "2026-10-30", strike: 765, mid: 9, oi: 40, oi_prev: 20, d_oi: 20 };
++const sharedShell = process.env.MMX_SHARED_SHELL === "1";
++const themes = sharedShell ? ["dark", "light"] as const : ["dark"] as const;
++for (const lang of ["en", "zh"] as const) for (const theme of themes) {
++  test(`D08C mounted shortlist → Plan → comparison ${lang} ${theme}`, async ({ page, context, baseURL }, info) => {
++    test.setTimeout(90_000);
++    const t = (en: string, zh: string) => lang === "zh" ? zh : en;
++    const session = { access_token: "local-plan-fixture-only", refresh_token: "local-plan-fixture-only", token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user };
++    await context.addCookies([
++      { name: "mm_e2e_rs30", value: "1", url: baseURL! },
++      { name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), url: baseURL! },
++    ]);
++    await page.addInitScript(({ lang, theme, user }) => {
++      localStorage.setItem("mm.lang", lang); localStorage.setItem("mmx.shell.theme", theme);
++      const originalFetch = window.fetch.bind(window);
++      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
++        const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), window.location.href);
++        if (url.pathname.startsWith("/auth/v1/")) {
++          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw Error("Unexpected fixture Auth operation");
++          return new Response(JSON.stringify(user), { headers: { "content-type": "application/json" } });
++        }
++        return originalFetch(input, init);
++      };
++    }, { lang, theme, user });
++    await page.route(/\/api\/flow\?f=oi$/, route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: "2026-10-23T20:00:00Z", stale: true, movers: [row] } }));
++    let calculations = 0, persistence = 0;
++    page.on("request", req => { if (/\/api\/(investigations|alerts|orders)(?:[/?]|$)/.test(req.url()) && ["POST", "PUT", "DELETE", "PATCH"].includes(req.method())) persistence++; });
++    await page.route("**/api/options/plan/expiry", route => {
++      calculations++;
++      const request = route.request().postDataJSON() as PlanExpiryRequest;
++      expect(request.draft.legs).toHaveLength(1);
++      const leg = request.draft.legs[0];
++      // The incumbent source adapter adds its own DOI preset before pinning.
++      expect(leg.snapshot.row).toEqual({ ...row, preset: "doi" });
++      expect(leg.snapshot.sourceStale).toBe(true);
++      expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
++      expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
++      const raw = response(request), entry = leg.assumptions.entry!.premium_per_unit;
++      raw.curve.pnl = request.spots.map(spot => Math.max(spot - 765, 0) * 100 - entry * 100);
++      raw.curve.cost = entry * 100; raw.curve.max_loss = -entry * 100; raw.curve.breakevens = [765 + entry];
++      return route.fulfill({ json: raw });
++    });
++    await page.goto("/options?tab=screener");
++    await page.getByRole("button", { name: t("ΔOI Builds", "持仓增长"), exact: true }).click();
++    const pin = page.locator("table.scr [data-contract-pin]"); await expect(pin).toHaveCount(1); await pin.click();
++    const tray = page.locator("[data-contract-shortlist]");
++    const open = tray.getByRole("button", { name: t("Plan from pinned contracts", "用固定合约创建计划"), exact: true });
++    await open.click();
++    const plan = page.getByTestId("options-plan-payoff-panel");
++    await plan.getByRole("combobox", { name: t("Your assumed side", "假设方向"), exact: true }).selectOption("buy");
++    await plan.getByLabel(t("Your assumed quantity — contracts", "假设数量——张"), { exact: true }).fill("1");
++    const entry = plan.getByLabel(t("Your entry assumption — premium per unit", "假设入场价——每单位权利金"), { exact: true });
++    await entry.fill("2");
++    await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
++    const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
++    await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
++    await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
++    await entry.fill("4"); await calculate.click();
++    const comparison = plan.getByTestId("plan-scenario-compare");
++    await expect(comparison.getByTestId("plan-compare-overlay")).toBeVisible();
++    await expect(comparison.getByTestId("plan-comparison-sample")).toContainText("200.00");
++    if (sharedShell) {
++      await expect(page.locator("html")).toHaveAttribute("data-mmx-shared-shell", "1");
++      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
++    }
++    await expect(comparison).toHaveCSS("background-color", sharedShell ? (theme === "light" ? "rgb(255, 255, 255)" : "rgb(24, 27, 33)") : "rgb(13, 15, 19)");
++    const compareHeading = comparison.getByRole("heading", { name: t("Compare assumptions", "对比假设"), exact: true });
++    await compareHeading.scrollIntoViewIfNeeded();
++    await expect(compareHeading).toBeInViewport({ ratio: 1 });
++    await page.screenshot({ path: info.outputPath(`mounted-compare-${lang}-${theme}-${info.project.name}-header.png`) });
++    await comparison.getByTestId("plan-compare-overlay").scrollIntoViewIfNeeded();
++    await expect(comparison.getByTestId("plan-compare-overlay").locator("svg")).toBeInViewport({ ratio: 0.99 });
++    await page.screenshot({ path: info.outputPath(`mounted-compare-${lang}-${theme}-${info.project.name}-chart.png`) });
++    await comparison.getByText(t("All exact scenario prices and P/L", "查看全部精确情景价格与损益"), { exact: true }).click();
++    const exact = comparison.getByTestId("plan-comparison-points");
++    await expect(exact.locator("tbody tr")).toHaveCount(101);
++    await expect(exact.locator("tbody tr").first().locator("td").last()).toHaveText("-200");
++    const scroll = exact.locator(".."); await scroll.focus(); await expect(scroll).toBeFocused();
++    await page.keyboard.press("End");
++    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++    if (info.project.name === "mobile") {
++      await page.setViewportSize({ width: 320, height: 844 }); await page.emulateMedia({ reducedMotion: "reduce" });
++      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++      await comparison.getByText(t("All exact scenario prices and P/L", "查看全部精确情景价格与损益"), { exact: true }).click();
++      await comparison.getByTestId("plan-clear-baseline").scrollIntoViewIfNeeded();
++      await expect(comparison.getByTestId("plan-clear-baseline")).toBeInViewport({ ratio: 1 });
++      await page.screenshot({ path: info.outputPath(`mounted-compare-${lang}-${theme}-320-controls.png`) });
++    }
++    const clear = comparison.getByTestId("plan-clear-baseline");
++    expect((await clear.boundingBox())!.height).toBeGreaterThanOrEqual(44);
++    await clear.click(); await expect(comparison.getByRole("heading", { name: t("Compare assumptions", "对比假设"), exact: true })).toBeFocused();
++    await expect(comparison.getByTestId("plan-compare-overlay")).toHaveCount(0);
++    await plan.getByRole("button", { name: t("Close draft", "关闭草稿"), exact: true }).click();
++    await expect(open).toBeFocused(); await expect(plan).toHaveCount(0);
++    await expect(page.locator("table.scr tbody")).toContainText("SPY");
++    expect(calculations).toBe(2); expect(persistence).toBe(0);
++  });
++}
+diff --git a/terminal/playwright.d08c.config.ts b/terminal/playwright.d08c.config.ts
+new file mode 100644
+index 000000000..661c27eb5
+--- /dev/null
++++ b/terminal/playwright.d08c.config.ts
+@@ -0,0 +1,38 @@
++import { defineConfig } from "@playwright/test";
++
++const port = Number(process.env.TERMINAL_E2E_PORT || 43721);
++const origin = "http://127.0.0.1:" + port;
++
++/** Small isolated Plan-comparison browser qualifier. The canonical full suite
++ * remains mandatory for actual integration; this does not replace hosted CI. */
++export default defineConfig({
++  testDir: "./e2e",
++  testMatch: /options-(?:plan-scenario-comparison|plan-compare-mounted|plan-payoff|shortlist-plan)\.spec\.ts/,
++  fullyParallel: false,
++  workers: 1,
++  retries: 0,
++  timeout: 60000,
++  reporter: "list",
++  use: { baseURL: origin, trace: "retain-on-failure", screenshot: "only-on-failure" },
++  projects: [
++    { name: "desktop", use: { viewport: { width: 1440, height: 900 } } },
++    { name: "tablet", use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
++    { name: "mobile", use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
++  ],
++  webServer: {
++    command: "npm run dev -- --hostname 127.0.0.1 --port " + port,
++    url: origin + "/dev/options-plan?lang=en",
++    reuseExistingServer: false,
++    timeout: 120000,
++    env: {
++      ANALYSIS_LOCAL_PREVIEW: "1",
++      TERMINAL_E2E_FIXTURE: "1",
++      TERMINAL_E2E_EMAIL: "responsive@example.com",
++      TERMINAL_E2E_ENTITLEMENT: "unlimited",
++      FLOW_FIXTURE: "1",
++      RATE_LIMIT_MAX: "100000",
++      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
++      NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
++    },
++  },
++});

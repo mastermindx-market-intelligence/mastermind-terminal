@@ -11,13 +11,13 @@ import { join } from "node:path";
 
 const REPO = join(__dirname, "../../..");
 const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
-// Explicit accepted-source selection; legacy packets keep their original provenance.
+// Explicit successor selection; prior packets keep their original historical provenance.
 const composition = immutableEvidence.selectedComposition(REPO,
   process.env.TERMINAL_EVIDENCE_COMPOSITION === undefined ? {
     ...process.env,
     TERMINAL_EVIDENCE_COMPILER: "webpack",
     TERMINAL_EVIDENCE_FONTS: "retained-fonts-34fb",
-    TERMINAL_EVIDENCE_COMPOSITION: "terminal/docs/pr-crops/b-pl-6-batch-1/p1t9-hub-596e.composition.json",
+    TERMINAL_EVIDENCE_COMPOSITION: "terminal/docs/pr-crops/b-pl-6-batch-1/pr761-protected-20261110.composition.json",
   } : process.env,
 );
 

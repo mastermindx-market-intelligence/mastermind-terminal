@@ -1,0 +1,29 @@
+{
+  "cleanupAttempt": {
+    "effect": "owned stale lock unlink applied",
+    "exit": 1,
+    "ownerPid": 43308,
+    "reason": "post-unlink lsof(file) no-such-file diagnostic failed the first cleanup assertion"
+  },
+  "consumerReadback": {
+    "exit": 0,
+    "ownerPid": 85276
+  },
+  "consumerReadbackDiagnostic": {
+    "exit": 1,
+    "ownerPid": 82688,
+    "reason": "readback passed a nonexistent ci.GEX_CROPS export; corrected to enumerate the unchanged physical GEX root set after native-reader tests had already passed"
+  },
+  "original": {
+    "ownerPid": 97759,
+    "playwrightExit": 0,
+    "reason": "123 tests passed; initial ownedServerStopped=false because a stale Next lock remained while port3802 was closed",
+    "wrapperExit": 1
+  },
+  "reconciliation": {
+    "effect": "verified lock absence, closed port, absent original server PID and no owned-workspace working directory; qualified without rerunning tests",
+    "exit": 0,
+    "ownerPid": 47274
+  },
+  "schema": "pr650_browser_wrapper_results.v1"
+}

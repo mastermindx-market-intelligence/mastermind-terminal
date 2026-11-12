@@ -1,0 +1,53 @@
+{
+  "startedAt": "2026-11-10T11:57:25.130020+00:00",
+  "before": {
+    "headRefOid": "34b232f1ffd62e6bdcc5712c307a38cb93a52ee2",
+    "isDraft": false,
+    "autoMergeRequest": {
+      "enabledAt": "2026-11-10T09:13:26Z",
+      "enabledBy": {
+        "login": "mastermindxryan"
+      }
+    },
+    "mergeQueueEntry": null,
+    "labels": {
+      "nodes": [
+        {
+          "name": "merge-on-green"
+        },
+        {
+          "name": "merge-blocked"
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "action": "disable-existing-native-auto",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "action": "remove-owned-merge-on-green-optin",
+      "exit": 0,
+      "stdout": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1422\n",
+      "stderr": ""
+    }
+  ],
+  "pending": null,
+  "after": {
+    "headRefOid": "34b232f1ffd62e6bdcc5712c307a38cb93a52ee2",
+    "isDraft": false,
+    "autoMergeRequest": null,
+    "mergeQueueEntry": null,
+    "labels": {
+      "nodes": [
+        {
+          "name": "merge-blocked"
+        }
+      ]
+    }
+  },
+  "state": "RECONCILED_DISARMED_FOR_ONE_QUALIFIED_JOIN"
+}

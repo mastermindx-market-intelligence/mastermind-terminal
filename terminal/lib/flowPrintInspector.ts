@@ -152,34 +152,79 @@ export function projectFlowPrint(
 
 // ─── Coverage ─────────────────────────────────────────────────────────────────
 
+/**
+ * A print the session gauge can attribute: a call/put right AND a finite,
+ * non-negative premium. The ONE predicate behind the gauge's "n of m prints carry
+ * no premium or call/put side" and the coverage line's `missing`, so the two never
+ * disagree about the same loaded tape.
+ */
+export function printAttributable(ev: unknown): ev is { right: "C" | "P"; premium: number } {
+  if (!ev || typeof ev !== "object") return false;
+  const e = ev as { right?: unknown; premium?: unknown };
+  return (e.right === "C" || e.right === "P")
+    && typeof e.premium === "number" && Number.isFinite(e.premium) && e.premium >= 0;
+}
+
+/**
+ * The loaded tape: `feed.events` when it is an array, else an empty tape. The ONE guard
+ * the session gauge and the coverage line (and the feed list) read the tape through, so
+ * a malformed `events` reads as no prints everywhere. For an array it is the identity:
+ * the same array object comes back.
+ */
+export function feedEvents<T>(feed: { events?: readonly T[] } | null | undefined): T[] {
+  const events: unknown = feed?.events;
+  return Array.isArray(events) ? (events as T[]) : [];
+}
+
 export interface FlowCoverage {
-  /** Eligible premium: every row with a finite premium, unknown included. */
+  /**
+   * Eligible premium: every row whose premium is a finite number >= 0 (the premium
+   * half of printAttributable), whatever its side or right — unknown side included,
+   * and a row with no call/put right included. A negative or non-finite premium
+   * contributes nothing here, to classified/unknown, or to the call/put totals.
+   */
   total: number;
+  /** Eligible premium on a ~buy/~sell/mixed side estimate. */
   classified: number;
+  /** Eligible premium on any other side; never dropped from total. */
   unknown: number;
   /** Fractions 0..1; null when total is 0. Unknown never leaves the denominator. */
   classifiedShare: number | null;
   unknownShare: number | null;
-  /** Unsigned totals by right — a different fact from the side estimate. */
+  /**
+   * Unsigned eligible premium by right — a different fact from the side estimate.
+   * A row with an eligible premium but no C/P right is in total, not in either.
+   */
   callPremium: number;
   putPremium: number;
+  /** Every loaded entry, null and non-object entries included — the gauge's m. */
   rows: number;
+  /**
+   * Loaded entries the session gauge cannot attribute (printAttributable fails): not
+   * an object, no finite non-negative premium, or no call/put right — the gauge's n.
+   * When > 0 the call/put totals are incomplete.
+   */
+  missing: number;
 }
 
-export function flowCoverage(events: readonly object[]): FlowCoverage {
+export function flowCoverage(events: readonly unknown[]): FlowCoverage {
   let total = 0;
   let classified = 0;
   let unknown = 0;
   let calls = 0;
   let puts = 0;
   let rows = 0;
+  let missing = 0;
 
   for (const e of events) {
+    // Every entry is a row, judged by the gauge's own predicate first: a null or
+    // non-object entry counts in rows AND in missing, exactly as the gauge counts it.
+    rows += 1;
+    if (!printAttributable(e)) missing += 1;
     if (!e || typeof e !== "object") continue;
     const ev = wireRow(e);
-    rows += 1;
     const prem = ev.premium;
-    if (!isNum(prem)) continue;
+    if (!isNum(prem) || prem < 0) continue;
     total += prem;
     if (ev.side === "~buy" || ev.side === "~sell" || ev.side === "mixed") {
       classified += prem;
@@ -199,6 +244,7 @@ export function flowCoverage(events: readonly object[]): FlowCoverage {
     callPremium: calls,
     putPremium: puts,
     rows,
+    missing,
   };
 }
 

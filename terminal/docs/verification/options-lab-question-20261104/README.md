@@ -1,0 +1,7 @@
+# Lab exact-selection question consumer
+
+The existing Matrix reader captures original direct R2 bytes (SHA256, byte length and producer session), never a hash of serialized JSON. Backend Matrix metadata is stripped until a qualified producer exists. The Lab stages an immutable Chain coordinate and comparisons into the existing Brain singleton only for its current account. Explicit widget Send remains the sole network boundary; selection, account, source and unmount changes withdraw only this panel’s exact reference. No new reader, store, grant, Save, enrollment or valuation.
+
+Parent qualification: 45 focused identity/selection/proxy/DOM checks; 403 affected reader/route regression checks; full TypeScript and owned lint pass. Twelve actual local browser journeys pass across EN/ZH, dark/light and desktop/tablet/mobile, zero retries. The screenshots are cropped question-action states within those viewports, not full-page design proof. Dark uses the existing instrument surface and neutral outline; light uses the existing white research surface, hairline button and darker text. No new style or palette.
+
+Worker candidate f8e322ec was independently consumed through its original artifact reader. Parent corrected one ineffective wrong-session test assertion; raw worker return is not independent review or product acceptance. Parent implementation is SELF_REVIEWED; scoped independent changed-risk review and normal CI/merge/release are still owed. Original production-tab refusal, 61394, T03k and all other frozen effects remain held.

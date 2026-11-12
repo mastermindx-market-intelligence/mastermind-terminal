@@ -1,0 +1,15 @@
+{
+  "startedAt": "2026-11-09T11:01:06.462789+00:00",
+  "sourceHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
+  "sourceTree": "b9a6282e627f6b33b07d1912479a95df11175b8b",
+  "protectedParent": "ceb4a7cd9daa8ae8e0483268faa53af30d7876d1",
+  "sourceSha256": {
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "92c3f537fee4c86eda97fc302f3d9fe467bf7194f15c1e86d841bdeb8147643f",
+    "terminal/app/company-intelligence.css": "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/components/fin/CompanyThemeContextCard.tsx": "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555",
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "aa046cfc3686f23a813833af4c8b6e37bbfd0714700a8bba39a5de7e149d2472",
+    "terminal/e2e/tools/capture_mi_g10_b4t_theme_empty.mjs": "3795be06ccc252511672f7c1e2a5a64c3828721606f4602ea340d04112cbc08a"
+  },
+  "scope": "local fixture; no production or authenticated account proof"
+}

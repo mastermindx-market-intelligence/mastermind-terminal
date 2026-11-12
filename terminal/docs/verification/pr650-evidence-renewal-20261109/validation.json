@@ -1,0 +1,37 @@
+{
+  "files": {
+    "native-evidence-tests-report.json": "42fef98582681e1e4d1ebcefeb9b036a04d5d7881e2296d0cb6ffbd3215bdb60",
+    "post-capture-check-0.log": "dbad99af9fe28fa241dd204dc93d8d3252623ec7cdaf9b361bbb9193f0178f07",
+    "post-capture-check-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "post-capture-check-2.log": "e1cd6fd820b6cd3b4fa33ea3a13444410d02a95bd278b3e5ff6425022ad8054c",
+    "post-capture-checks.json": "ef7f2c5d0025246de962b5c1db7d62d41572f9527ab55e19de480b7f2c8505d4",
+    "pre-capture-check-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-check-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-check-2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-check-3.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-check-4.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-check-5.log": "1ac9774a3ac58e0d5277a51a18af5e232089ddee104d308bf971b1dbd5b4a51d",
+    "pre-capture-check-6.log": "c900d185cc8ae5af5896eda15b04fa510c8a41d5867b3bcb0b0ced3cde156f36",
+    "pre-capture-check-7.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pre-capture-checks.json": "1fd5a752467ffc0db12af1b5af521eab1eac8c75f7eccdf63f1d2d024d6a3df3",
+    "source-tests-report.json": "ac804f66465f9935c4619fa29b05dfd9176a85c91d3916e3ffc9080aa576b649"
+  },
+  "focusedLint": "passed",
+  "nativeImages": 126,
+  "nativeReaderTests": {
+    "failed": 0,
+    "passed": 5
+  },
+  "nativeSourceFiles": 3389,
+  "nodeTests": {
+    "failed": 0,
+    "passed": 136
+  },
+  "retainedNestedHistoricalFiles": 43,
+  "schema": "terminal_pr650_validation.v1",
+  "sourceTests": {
+    "failed": 0,
+    "passed": 86
+  },
+  "typecheck": "passed"
+}

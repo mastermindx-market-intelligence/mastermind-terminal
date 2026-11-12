@@ -1,0 +1,15 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/mobile-nav-upgrade.spec.ts:397:5 › Dislocations keeps a visible glyph and the current workspace across navigation (11.4s)
+[WebServer] dislocations source_unavailable: missing
+[WebServer] dislocations source_unavailable: missing
+[WebServer] dislocations source_unavailable: missing
+[WebServer] dislocations source_unavailable: missing
+  ✓  2 [tablet] › e2e/mobile-nav-upgrade.spec.ts:397:5 › Dislocations keeps a visible glyph and the current workspace across navigation (3.4s)
+[WebServer] dislocations source_unavailable: missing
+[WebServer] dislocations source_unavailable: missing
+  ✓  3 [mobile] › e2e/mobile-nav-upgrade.spec.ts:397:5 › Dislocations keeps a visible glyph and the current workspace across navigation (2.2s)
+
+  3 passed (27.4s)

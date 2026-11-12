@@ -1,0 +1,37 @@
+[warmup] /terminal?symbol=NVDA → 200 in 134ms
+[warmup] /options → 200 in 2692ms
+[warmup] /portfolio → 200 in 1355ms
+[warmup] /alerts → 200 in 1426ms
+[warmup] /analysis → 200 in 2100ms
+[warmup] /discover → 200 in 2498ms
+[warmup] /admin → 200 in 755ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 434ms
+[warmup] /login → 200 in 182ms
+[warmup] /reset-password → 200 in 607ms
+[warmup] /api/me → 200 in 725ms
+[warmup] /api/watchlist → 200 in 287ms
+[warmup] /api/layouts → 200 in 309ms
+[warmup] /api/watchlist/annotations → 409 in 231ms
+[warmup] 14 routes compiled in 14s
+[fixture-ready] prophet_idx fixture 200 in 742ms
+
+Running 3 tests using 1 worker
+
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+  ✓  1 [desktop] › e2e/rs-pivot-study.spec.ts:154:5 › a missing study client chunk leaves the streamed action inert (4.2s)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+  ✓  2 [tablet] › e2e/rs-pivot-study.spec.ts:154:5 › a missing study client chunk leaves the streamed action inert (4.9s)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+[WebServer] [browser] [ErrorBoundary] ChunkLoadError: Failed to load chunk /_next/static/chunks/_0eznkrk1o63_n._.js from module [project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript, next/dynamic entry, async loader) (app/error.tsx:75:13)
+  ✓  3 [mobile] › e2e/rs-pivot-study.spec.ts:154:5 › a missing study client chunk leaves the streamed action inert (3.0s)
+
+  3 passed (45.8s)

@@ -1,0 +1,28 @@
+{
+  "source": "protected3eb, actual SharedShellPresentation + ErrorPage, mocked preference value only; ReactDOM component lifetime, not Next/inShell proof",
+  "observations": [
+    {
+      "phase": "healthy-light",
+      "theme": "light",
+      "owner": "1"
+    },
+    {
+      "phase": "fallback-render",
+      "theme": "light",
+      "owner": "1"
+    },
+    {
+      "phase": "fallback-render",
+      "theme": "light",
+      "owner": "1"
+    },
+    {
+      "phase": "fallback-layout-effect",
+      "theme": "dark"
+    },
+    {
+      "phase": "after-fallback",
+      "theme": "dark"
+    }
+  ]
+}

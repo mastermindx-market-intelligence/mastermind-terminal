@@ -1,0 +1,24 @@
+{
+  "operation": "beta-analysis-quotes-20261109-astra-01",
+  "observedSourceHead": "0dced0433f66d1c461f518060d30652a1f34deb7",
+  "sourceAssociation": "Original workspace/head and recorded completed command; this run did not produce a new source-hash capture manifest",
+  "originalRunnerPid": 73420,
+  "originalRunnerExit": 0,
+  "passed": 29,
+  "skipped": 4,
+  "recordedStartUtc": "2026-11-09T09:03:41Z",
+  "producer": "terminal/e2e/rotation-monitor.spec.ts",
+  "fixtures": "Synthetic October 27 fixture inputs, /discover?tab=rs-pivot; EN viewport and ZH element crops",
+  "command": "MMX_SHARED_SHELL=1 TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT=intl-fixture-v1 TERMINAL_E2E_PORT=3187 CI=1 npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/rotation-monitor.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=/tmp/mmx-beta-shell-sweep-20261109/broader-shell-browser",
+  "logSha256": "5a6a9694493836b90f3d3c1ef9058e84af3679bc829b26297e1c8e5837760e4c",
+  "resultSha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+  "imageSha256": {
+    "desktop-en.png": "4f85c9969d3294a6142eddab3c2e1d13eb11bd20f4e4feac3cf3369e5c269b17",
+    "desktop-zh.png": "fce4cc6368d346858f90641682ee64d4a63edc9a4c0bc972a0a1e4aa77dd196a",
+    "mobile-en.png": "dd66c482537c0533cca43431f562b3fa47016ba54313672047661dbe43909030",
+    "mobile-zh.png": "491b814becada59ba4f704b68255d93d277bf4e2af49be22f7f659dcc062771d",
+    "tablet-en.png": "b2f4c3cbb63b38ecc372a136296911e1c2bd281734028fe56a781cdd169ffd16",
+    "tablet-zh.png": "54a89314e966007da372a1336e23744a340961fca0dab21b8a1c159339e8603a"
+  },
+  "scope": "Preserved completed post-publication local regression outputs; no upgrade of the historical November 3 R1 qualification and no production proof"
+}

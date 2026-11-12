@@ -1,0 +1,227 @@
+{
+  "browserQualificationSha256": "cd5a64f4cb8e1c573d923ed6567054cc126d1ccabeabe1f09ccef0d35a1692cd",
+  "changedSourceFiles": {
+    "terminal/components/eodcontext/EodContextBelt.tsx": "7be644f8b402b36a0e6bf066a3f0c8bf7e8b4ffc743b6393ac3edf4f94003060",
+    "terminal/components/exposure-map/ExposureMap.tsx": "c93d70a4a6bb6586c3f8d1e51114312157eb265817245642b05bf5168399a34b",
+    "terminal/components/gexdesk/ExposureWorkspace.module.css": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+    "terminal/components/gexdesk/GexDeskView.tsx": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+    "terminal/components/gexdesk/GexHistory.tsx": "98cee19d83f754a4c6afb7b152576cfb9c1a52e7532e937bd52e8600a98bcdc9",
+    "terminal/components/gexdesk/MarketStateCard.tsx": "67258667b95d40d9d5c97902248381ef8f9b4f286b1666d15c1f22b981ba2740",
+    "terminal/components/gexdesk/StrikeLadder.tsx": "10139efa85d746454477f36dbc0cbcb50bcdbb20aaab2701a4840604fd0575ea",
+    "terminal/components/gexdesk/gexStrings.ts": "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637",
+    "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+    "terminal/e2e/exposure-partial-totals.spec.ts": "15be383d94284d83c7b893dc9c1a83c3d023528b97b2527891c7801c0f1f9c16",
+    "terminal/e2e/exposure-workspace.spec.ts": "b97552c974dcfcb63129083397f83156dd09c2fc012212aaaff84805cd17a630",
+    "terminal/e2e/options-exposure-workspace.spec.ts": "b381d73ee59e9915ec229a4747e85e2eaa1a4dfd7dcc4c4c172a7e2a9d1c8af7",
+    "terminal/e2e/options-lab-source-state.spec.ts": "1f95f49d3b701adbfff457ad6b4ce32f218aae9b321f0a15fcf34821d7e609e6",
+    "terminal/e2e/responsive.spec.ts": "37744c0e646c51af896f1fc4c633eed70f814270f0eefe773574d43698896a9c",
+    "terminal/e2e/sector-exposure-journey.spec.ts": "939182d605acb5cf1a2c7964b878a0ecf8889d574c53c672d33c8f88b7f63cec",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "866a1f4f6a823f878476dbb83fa48258deee5bf26eb651b9c2fcc3d5491ad3ba",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": "ddbb882b35eb9cfb502cf19092f000cb0189258e797de16e67fb5f95ac7798f4",
+    "terminal/lib/__tests__/exposureOrigin.test.ts": "bd78dd28c8af2d562f1366111d24aa05e2c1d71783b6194441cf0571568e56f1",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": "b21c390c886e431fd3cfd578c6c596441a74439f3f498d77b73a8d62f00f1aef",
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": "74a1a0a5452c23f0d0f5c588b89a0ae20e260f3ffef3ae4b817abab1654876f2",
+    "terminal/lib/__tests__/optionsExposureEvidence.test.ts": "d7a40c81518a40c1bf743f459311eaa67f57ff11d2736874748183e2f190e4ab",
+    "terminal/lib/__tests__/researchLabSourceAvailability.test.tsx": "12093c6d15f90b3d3bfe9b37e31308508bd2d9df6305ca8cd802621b6f3792ea",
+    "terminal/lib/useMediaQuery.ts": "ed7b4262fefaa2a9e4aba12916fdfe23224612f5523a3eefd5649b10a65e9eaf"
+  },
+  "checks": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/researchLabSourceAvailability.test.tsx",
+        "lib/__tests__/researchLabAdmission.test.tsx",
+        "lib/__tests__/researchLabView.test.tsx",
+        "lib/__tests__/researchLabKeyboardFocus.test.tsx",
+        "lib/__tests__/researchLabQuestion.test.tsx",
+        "lib/__tests__/researchReportedGammaMounted.test.tsx",
+        "lib/__tests__/researchReportedGamma.test.ts",
+        "lib/__tests__/gexDeskStateRace.test.tsx",
+        "lib/__tests__/gexDeskLoadFailureState.test.tsx",
+        "lib/__tests__/gexDeskPartialData.test.tsx",
+        "lib/__tests__/exposureWorkspace.test.ts",
+        "lib/__tests__/exposureOrigin.test.ts",
+        "lib/__tests__/exposureReplay.test.tsx",
+        "lib/__tests__/exposureExpirySelection.test.tsx",
+        "lib/__tests__/exposureMapProjection.test.ts",
+        "lib/__tests__/sectorDepthReturn.test.ts",
+        "lib/__tests__/dataCachePersist.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/test-results/pr1243-recovery-20261109/source-unit-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "4f00301d0a284f28b32681ae43c3a83361d668c5d0a28213240baad60e7d75a6",
+      "name": "source-unit",
+      "seconds": 15.44,
+      "tests": {
+        "numFailedTests": 0,
+        "numPassedTests": 328,
+        "numPendingTests": 0,
+        "numTotalTests": 328
+      }
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "seconds": 84.59
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/test-results/pr1243-recovery-20261109/current-evidence-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "6e80633bbe29e813f7d529ed38478526bb8d429dcc7d8e3560c425de86f6d1f2",
+      "name": "current-evidence-tests",
+      "seconds": 2.53
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "final-reader-typecheck",
+      "seconds": 71.24
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/eodcontext/EodContextBelt.tsx",
+        "components/exposure-map/ExposureMap.tsx",
+        "components/gexdesk/GexDeskView.tsx",
+        "components/gexdesk/GexHistory.tsx",
+        "components/gexdesk/MarketStateCard.tsx",
+        "components/gexdesk/StrikeLadder.tsx",
+        "components/gexdesk/gexStrings.ts",
+        "components/researchlab/AdmittedOptionsResearchLab.tsx",
+        "e2e/exposure-partial-totals.spec.ts",
+        "e2e/exposure-workspace.spec.ts",
+        "e2e/options-exposure-workspace.spec.ts",
+        "e2e/options-lab-source-state.spec.ts",
+        "e2e/responsive.spec.ts",
+        "e2e/sector-exposure-journey.spec.ts",
+        "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+        "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/exposureOrigin.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/researchLabSourceAvailability.test.tsx",
+        "lib/useMediaQuery.ts"
+      ],
+      "exit": 0,
+      "logSha256": "7144679b51a1bc821945870b82999e3e12ad1fbc90a23f07e7a70c33ad70af6c",
+      "name": "eslint",
+      "seconds": 10.88
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--root",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3",
+        "--diff-file",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/test-results/pr1243-recovery-20261109/plain-language-source.diff",
+        "--json"
+      ],
+      "diffSha256": "d9fbf1958ae022c37dfc36c4b38c0c3df0518179153e49110e07ac0d587989c5",
+      "exit": 0,
+      "name": "plain-language",
+      "reportSha256": "25811931faf3ad1f91005099d1f706e7c27dccf9b4917171779a9d563d17c29e",
+      "seconds": 2.07,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "copiedReports": {
+    "current-evidence-report.json": "7d16e939041661de17b6e923305c806c943e6d2b336b1244c99a0b5df6bf3df5",
+    "final-plain-language.json": "25811931faf3ad1f91005099d1f706e7c27dccf9b4917171779a9d563d17c29e",
+    "source-unit-report.json": "8ec36d31712923bfee90f1fac39940eda61a3aa0011af22ed4cb77f99aeb9120"
+  },
+  "eslintErrors": 0,
+  "eslintWarnings": 1,
+  "originalHead": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+  "policyPin": "494d095813dad415938800fa0e4d2719497738fa",
+  "postCheckFormatting": [
+    {
+      "afterSha256": "ddbb882b35eb9cfb502cf19092f000cb0189258e797de16e67fb5f95ac7798f4",
+      "beforeSha256": "950093aa7a0798a51def63c420349b4a2e2e5a6493b1ff2e5711b71fa8bdccaa",
+      "change": "remove surplus trailing blank line only",
+      "file": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    },
+    {
+      "afterSha256": "b21c390c886e431fd3cfd578c6c596441a74439f3f498d77b73a8d62f00f1aef",
+      "beforeSha256": "d045eba929f39b7f67818d756e88f04d466ce34b4fe90f77c4b3a083cfce2255",
+      "change": "remove surplus trailing blank line only",
+      "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
+    },
+    {
+      "afterSha256": "74a1a0a5452c23f0d0f5c588b89a0ae20e260f3ffef3ae4b817abab1654876f2",
+      "beforeSha256": "74a2b90be3916d15f82d1670337b745168b65d1a7eec3fe15e1d9826386f8614",
+      "change": "remove surplus trailing blank line only",
+      "file": "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts"
+    },
+    {
+      "afterSha256": "d7a40c81518a40c1bf743f459311eaa67f57ff11d2736874748183e2f190e4ab",
+      "beforeSha256": "602019bf63e9a00f02f8e56d6883304598548118bb980dda93f443ab24c958b5",
+      "change": "remove surplus trailing blank line only",
+      "file": "terminal/lib/__tests__/optionsExposureEvidence.test.ts"
+    }
+  ],
+  "protectedSnapshot": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "recordedAt": "2026-11-09T12:21:15.786161+00:00",
+  "runtime": {
+    "next": "16.2.9",
+    "node": "v26.5.0",
+    "playwright": "1.61.1",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
+  },
+  "schema": "exposure_master_integration_final_checks.v1",
+  "stagedSourceDiffCheck": {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+      "--",
+      ".",
+      ":!terminal/docs",
+      ":!docs"
+    ],
+    "exit": 0,
+    "preservation": "Raw historical/captured logs and error-context bytes remain unchanged; no source whitespace error.",
+    "rawEvidenceWhitespaceFindings": 91
+  },
+  "visualInspection": {
+    "browser-artifacts/playwright/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png": "bb4ac9216262d1c4d8cd5d07f268ed770f06e33e3a9e0df4f4ab8a2f24f7998d",
+    "browser-artifacts/playwright/options-research-question--dd0b9-age-and-withdrawal-zh-light-mobile/question-zh-light.png": "cea03325c5cb009bd8c57623ec517ff233810939ea6ff9a6a8e375c1779d0a3e"
+  }
+}

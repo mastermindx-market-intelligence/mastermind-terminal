@@ -1,0 +1,68 @@
+{
+  "branchHeadBeforeChange": "483554457f302a90305f03c360636ca97ed75fb3",
+  "browserProof": {
+    "actualOriginalPassed": 123,
+    "newExecution": false,
+    "path": "terminal/docs/verification/exposure-workspace-20261103/master-integration-20261109",
+    "permittedProducerTransitions": {
+      "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": {
+        "current": "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e",
+        "recorded": "866a1f4f6a823f878476dbb83fa48258deee5bf26eb651b9c2fcc3d5491ad3ba"
+      },
+      "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": {
+        "current": "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e",
+        "recorded": "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28"
+      }
+    },
+    "qualificationSha256": "cd5a64f4cb8e1c573d923ed6567054cc126d1ccabeabe1f09ccef0d35a1692cd",
+    "reason": "The five browser specs, configuration, global setup and fixture warmup never execute either native producer. The source-reader projects only these two literal producer transitions and still requires every other browser input to match.",
+    "sourceKeyCount": 66,
+    "unchangedInputs": 64
+  },
+  "files": {
+    "evidence-tests-report.json": "462316d242fd694eefbe17f517580e0764c70d32a6fb6a9ef402004fa45567bf",
+    "final-check-0.log": "67cedbdf3e4999c049bf3ceb0f480dd4e2f910726f7e22359da5e7fadd5d0f67",
+    "final-check-1.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-check-2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-checks.json": "54732f74e367604565b9eb97415bc298da6b705718590ee630268e4e51fac0a5",
+    "producer-tests-report.json": "96cabd542a4d890419035d24cb37522a2654dd74430331c15aa0089c519cedd2",
+    "producer-tests.json": "6e87ea3e26d7077a6af21acb8192b51c7ba113493cb0c2f8cce1a78ce009f790",
+    "producer-tests.log": "406adf8315be049feea93d218e964cffc754ebea370b4ba0971728f6113bf519"
+  },
+  "nativePackets": {
+    "eod": {
+      "actualImages": 126,
+      "descriptorSha256": "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9",
+      "logSha256": "2c6632445ccc2df6ee6a9d04102c039f853ea1fd1edbaa647f6115c03d2da1c9",
+      "nextLockAbsent": true,
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109",
+      "portClosed": true,
+      "sourceStable": true,
+      "successfulFiles": 126
+    },
+    "gex": {
+      "actualImages": 114,
+      "descriptorSha256": "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b",
+      "logSha256": "ad768acca3252a9190dbdcd41939b56ad69cb01d79fc806fc1ca1645a2235324",
+      "nextLockAbsent": true,
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109",
+      "portClosed": true,
+      "sourceStable": true,
+      "successfulFiles": 114
+    }
+  },
+  "protectedIntegrationMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "qualifiedAt": "2026-11-09T13:10:45.732941+00:00",
+  "schema": "terminal_pr1243_indicator_guard_qualification.v1",
+  "sourceFiles": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e",
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": "845211fc14f3ac9b94318bcb99b0de2d1d1ea2f3b1e953e53cde0b2245d93a6d",
+    "terminal/lib/__tests__/nativeCaptureIndicatorGate.test.ts": "9697a9d10d2d8c1b9c186fb9819e38eaeda0c85302ae5c0a87eb22277c49bd0d",
+    "terminal/lib/__tests__/optionsExposureEvidence.test.ts": "eaa5033ddb2f3918652d73457b63c70ea22b0f887e4801548e546d17bdff93c9"
+  },
+  "visualSpotChecks": [
+    "gex-pick-absent-390-zh.png",
+    "eod-darkpool-absent-390-zh.png"
+  ]
+}

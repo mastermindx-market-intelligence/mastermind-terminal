@@ -24,6 +24,7 @@ import {
   type ReactNode,
 } from "react";
 import { fmtNum, fmtPct, fmtDate, pick } from "../../lib/finFormat";
+import tableControls from "./MiniTableControls.module.css";
 
 /**
  * Measure the chart box's live pixel width so the SVG viewBox can be set to
@@ -388,6 +389,8 @@ export function StackedBars({ labels, series, fmtY = fmtNum, vw = 320, vh = 180,
 export interface LineSeriesProps {
   labels: string[];
   series: Series[];
+  /** Break every series before these existing label slots without inventing a source coordinate. */
+  breakBefore?: boolean[];
   fmtY?: ValFmt;
   vw?: number;
   vh?: number;
@@ -408,7 +411,7 @@ export interface LineSeriesProps {
  * Multi-line chart with an optional dotted variant per series and optional node
  * markers. Holes (null values) break the path. Right y-axis, faint gridlines.
  */
-export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
+export function LineSeries({ labels, series, breakBefore, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
   const { tip, show, hide } = useFinTip();
   const box = useBoxW(vw);
   if (allEmpty(series, labels)) return <Empty zh={zh} />;
@@ -441,13 +444,38 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
         {refLine != null && <line className="fin-refline" x1={PAD.l} x2={vw - PR} y1={y(refLine)} y2={y(refLine)} />}
         {series.map((s, si) => {
           const col = s.color ?? PALETTE[si % PALETTE.length];
-          const pts: string[] = [];
-          s.values.forEach((v, i) => { if (num(v)) pts.push(`${x(i)},${y(v as number)}`); });
-          if (pts.length === 0) return null;
+          const runs: string[][] = [];
+          let run: string[] = [];
+          for (let i = 0; i < s.values.length; i++) {
+            const v = s.values[i];
+            if (breakBefore?.[i] === true && run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
+            if (num(v)) {
+              run.push(`${x(i)},${y(v)}`);
+            } else if (run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
+          }
+          if (run.length > 0) runs.push(run);
+          if (runs.length === 0) return null;
           return (
             <g key={si}>
-              <polyline className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")} points={pts.join(" ")} fill="none" stroke={col} />
-              {markers && s.values.map((v, i) => num(v) ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v as number)} r={2.4} fill={col} /> : null)}
+              {runs.map((points, ri) => (
+                <polyline key={ri}
+                  className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")}
+                  points={points.join(" ")} fill="none" stroke={col} />
+              ))}
+              {s.values.map((v, i) => {
+                if (!num(v)) return null;
+                const isolated = (breakBefore?.[i] === true || !num(s.values[i - 1]))
+                  && (breakBefore?.[i + 1] === true || !num(s.values[i + 1]));
+                return markers || isolated
+                  ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
+                  : null;
+              })}
             </g>
           );
         })}
@@ -1266,13 +1294,13 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     const out: ReactNode[] = [
       <tr key={key} className={"fin-row" + (r.bold ? " fin-row-b" : "") + (hover === key ? " fin-row-hl" : "")}
         onMouseEnter={() => setHover(key)} onMouseLeave={() => setHover((h) => (h === key ? null : h))}>
-        <th className="fin-cell fin-cell-sticky" style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
-          {hasChildren && (
-            <button className="fin-row-toggle" onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
-              {isOpen ? "▾" : "▸"}
+        <th className={"fin-cell fin-cell-sticky" + (hasChildren ? ` ${tableControls.disclosureCell}` : "")} style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
+          {hasChildren ? (
+            <button type="button" className={`fin-row-toggle ${tableControls.disclosureButton}`} onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
+              <span className={tableControls.chevron} aria-hidden>{isOpen ? "▾" : "▸"}</span>
+              <span>{r.label}</span>
             </button>
-          )}
-          <span>{r.label}</span>
+          ) : <span>{r.label}</span>}
         </th>
         {cols.map(({ i }) => (
           <td
@@ -1297,9 +1325,9 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     <div className="fin-table-wrap">
       {pages > 1 && (
         <div className="fin-table-pager">
-          <button className="fin-pg-chev" disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
           <span className="fin-pg-info">{cols[0]?.p}–{cols[cols.length - 1]?.p}</span>
-          <button className="fin-pg-chev" disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
         </div>
       )}
       <div className="fin-table-scroll">

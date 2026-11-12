@@ -1,0 +1,97 @@
+/* CompanyListingIdentity (P12.T25) — alternate-listing identity strip, shared by the
+   company-search preview card and the /analysis destination. Neutral surfaces and hairlines
+   from the shared tokens only: identity copy carries no accent edges, no literal palette,
+   no decorative accent. Dark uses the raised neutral panel; light uses white material and
+   the shared card shadow for separation on its cooler canvas. */
+
+.strip {
+  min-width: 0;
+  flex: none;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font: 500 12px/1.5 var(--font-ui);
+}
+
+/* Preview: compact neutral surface with an even hairline — a candidate card, not a banner. */
+.preview {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 9px 12px;
+}
+
+:global(html[data-theme="light"]) .preview {
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+
+.identity {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  min-width: 0;
+}
+
+.symbol {
+  flex: none;
+  font: 600 14px/1.2 var(--mono);
+  letter-spacing: .02em;
+  color: var(--text);
+}
+
+.name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Fact phrases ("Venue NYSE", "Trading currency HKD") wrap as whole phrases; their text
+   wraps inside themselves rather than stretching the strip. */
+.field {
+  min-width: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.selection {
+  margin: 5px 0 0;
+  min-width: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Smaller instance of the shared .btn grammar — size only; palette/radius stay shared. */
+.open {
+  flex: none;
+  align-self: center;
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.open:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+/* Wrap points: the strip stays one readable flow down to a 320px phone — phrases drop to
+   their own lines by wrapping, never by horizontal scroll. */
+@media (max-width: 820px) {
+  .identity {
+    gap: 4px 10px;
+  }
+
+  .preview {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .identity {
+    gap: 3px 8px;
+  }
+
+  .symbol {
+    font-size: 13px;
+  }
+}

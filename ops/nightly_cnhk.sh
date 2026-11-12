@@ -191,8 +191,17 @@ if [ "$RC_PREFLIGHT" != "0" ]; then
 fi
 
 # 1. engine clone on latest main (collectors code + CI-maintained parquets).
-git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGINE" reset --hard origin/main --quiet 2>>"$LOG" \
-  || echo "[$(ts)] WARN: engine git update failed — using current code" >> "$LOG"
+#    Same external-volume (TCC) guard and SHA line as nightly_fund.sh step 0.
+for p in "$ENGINE" "$SRC"; do
+  case "$(readlink "$p" 2>/dev/null || true)" in
+    /Volumes/*) echo "[$(ts)] WARN: $p -> $(readlink "$p") is on an external volume; launchd TCC blocks git/bin writes there — move it back to the internal disk" >> "$LOG" ;;
+  esac
+done
+if git -C "$ENGINE" fetch --depth 1 origin main --quiet 2>>"$LOG" && git -C "$ENGINE" reset --hard origin/main --quiet 2>>"$LOG"; then
+  echo "[$(ts)] engine at $(git -C "$ENGINE" log -1 --format='%h %cI' 2>/dev/null)" >> "$LOG"
+else
+  echo "[$(ts)] WARN: engine git update failed — using current code" >> "$LOG"
+fi
 
 # 2. copy the CI-maintained parquets into the MACRO surface. Collector-written stores
 #    (financials/lhb/holders/stmt_*/hk_deep/...) live alongside as real files and are

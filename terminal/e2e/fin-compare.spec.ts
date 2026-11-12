@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Page, type Route, type Locator } from "@playwright/test";
 
 /**
  * E11 — Financials · Compare. Real multi-company comparison over committed fund.json
@@ -31,7 +31,7 @@ async function serveFund(page: Page, sym: string, body: FundJson = fixture(sym))
 
 async function openCompare(page: Page): Promise<void> {
   await page.goto("/analysis?symbol=NVDA&page=compare");
-  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+  await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
     await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Compare");
   } else {
@@ -126,7 +126,7 @@ test("peers share one explicit frame; other formats, currencies and split period
 
   // Reached from the existing Financials family, next to Statements — no second router.
   await page.goto("/analysis?symbol=NVDA&page=statements");
-  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+  await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
     await page.locator(".fin-local-mobile-tab", { hasText: "Compare" }).click();
   } else {
@@ -352,4 +352,70 @@ test("a restated period keeps its filing version in the cell and the source", as
   await expect(panel).toHaveAttribute("data-fc-source", `INTC:annual:income:${n - 2}`);
   await expect(panel.locator("[data-fc-source-restated]")).toContainText("earlier figures are not retained by the source");
   await expect(panel.locator('thead th[data-focus="true"]')).toHaveText("2024");
+});
+
+async function expectPeerControlUnobstructed(control: Locator): Promise<void> {
+  await expect.poll(() => control.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    return rect.top >= 0 && rect.bottom <= window.innerHeight &&
+      [rect.top + 3, rect.top + rect.height / 2, rect.bottom - 3].every(y =>
+        el.contains(document.elementFromPoint(rect.left + rect.width / 2, y)));
+  })).toBe(true);
+}
+
+test("removing comparison peers preserves keyboard focus through the next add", async ({ page }, testInfo) => {
+  for (const sym of ["NVDA", "AMD", "INTC", "MSFT", "JPM"]) await serveFund(page, sym);
+  if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
+  await openCompare(page);
+  for (const sym of ["AMD", "INTC", "MSFT"]) await addPeer(page, sym);
+  const remove = (sym: string) => page.getByRole("button", { name: `Remove ${sym}`, exact: true });
+  await remove("INTC").focus();
+  await expectPeerControlUnobstructed(remove("INTC"));
+  await page.screenshot({ path: testInfo.outputPath("before-remove.png"), animations: "disabled" });
+  await remove("INTC").press("Enter");
+  await expect(page.locator('[data-fc-chip="INTC"]')).toHaveCount(0);
+  await expect(remove("MSFT")).toBeFocused();
+  await expectPeerControlUnobstructed(remove("MSFT"));
+  await page.screenshot({ path: testInfo.outputPath("after-remove.png"), animations: "disabled" });
+  await page.keyboard.press("Space");
+  await expect(page.locator('[data-fc-chip="MSFT"]')).toHaveCount(0);
+  await expect(remove("AMD")).toBeFocused();
+  await expectPeerControlUnobstructed(remove("AMD"));
+  await page.keyboard.press("Enter");
+  await expect(page.locator('[data-fc-chip="AMD"]')).toHaveCount(0);
+  await expect(page.locator("#fc-add-peer")).toBeFocused();
+  await expectPeerControlUnobstructed(page.locator("#fc-add-peer"));
+  await page.keyboard.type("JPM");
+  await page.keyboard.press("Enter");
+  await expect(page.locator('[data-fc-chip="JPM"]')).toBeVisible();
+  await expect(row(page, "revenue", "JPM")).toHaveAttribute("data-fc-row-state", "ready");
+  await expect(cell(page, "revenue", "JPM", "F0")).not.toHaveAttribute("data-fc-status", "ok");
+  await expectNoPageOverflow(page);
+});
+
+test("comparison peer removal has a visible focus ring and a contained touch target", async ({ page }, testInfo) => {
+  for (const sym of ["NVDA", "AMD", "0700.HK"]) await serveFund(page, sym);
+  if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
+  await openCompare(page);
+  for (const sym of ["AMD", "0700.HK"]) await addPeer(page, sym);
+  const button = page.getByRole("button", { name: "Remove 0700.HK", exact: true });
+  await button.focus();
+  await expectPeerControlUnobstructed(button);
+  await page.screenshot({ path: testInfo.outputPath("remove-target.png"), animations: "disabled" });
+  const box = await button.boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  for (const control of [page.locator("#fc-add-peer"), page.locator("#fc-add-peer + button")]) {
+    const target = await control.boundingBox();
+    expect(target!.height).toBeGreaterThanOrEqual(44);
+  }
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const focus = await button.evaluate(el => {
+    const style = getComputedStyle(el);
+    return { width: parseFloat(style.outlineWidth), style: style.outlineStyle };
+  });
+  expect(focus.width).toBeGreaterThanOrEqual(2);
+  expect(focus.style).not.toBe("none");
+  await expectNoPageOverflow(page);
 });

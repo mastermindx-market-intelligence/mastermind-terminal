@@ -106,6 +106,8 @@ All repository and allowance paths must be normalized relative paths. Every live
 
 An allowance applies to the exact path and its descendants. Keep allowances narrow. Never classify a broad source directory as runtime merely to obtain a green result.
 
+`.next.bak` and `.next.broken` are retained build generations inside the live app root — the previous build and the build that failed acceptance — and both policies classify them as `rollback_build_artifact` so a retained generation cannot surface as `HOST_ONLY_UNTRACKED` on the next audit.
+
 `sensitive: true` records only the existence and classification of the allowance root. The audit does not read or hash allowed content, and no file content is ever included in a receipt. `sensitive`, `allow_tracked_absence`, `allow_tracked_runtime_subtree`, and `allow_tracked_runtime_file` must be real JSON booleans.
 
 The policy root, every mapping, and every allowance reject unknown fields. A misspelled safety key therefore fails closed instead of silently disabling its constraint.

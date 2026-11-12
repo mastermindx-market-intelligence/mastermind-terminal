@@ -1,0 +1,15 @@
+{
+  "expected": 1,
+  "folder": "pr768-lazy-details-readiness-20261110",
+  "grep": "phone drawing chrome keeps one collision-free editing surface",
+  "port": 47768,
+  "pr": 768,
+  "projects": [
+    "mobile"
+  ],
+  "publishedParent": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "sharedShell": 0,
+  "target": "terminal/e2e/drawing-system.spec.ts",
+  "validationHead": "1b5fe9b88568e4d74dc48db84f10f198cb297153",
+  "workspace": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-lazy-readiness"
+}

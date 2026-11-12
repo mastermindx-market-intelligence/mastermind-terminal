@@ -44,3 +44,9 @@
   .controls { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 44px; }
   .controls button, .iconBtn, .textBtn, .defer input { min-height: 44px; }
 }
+/* The inert copy that holds the idle control's slot until the stored review loads: its frame shows,
+   its text doesn't. Only one mount shows it, by the same 640px line as `useIsPhone`. */
+.reserve { cursor: default; pointer-events: none; }
+.reserve > * { visibility: hidden; }
+@media (max-width: 640px) { .reserveTop { display: none; } }
+@media (min-width: 641px) { .reserveFoot { display: none; } }

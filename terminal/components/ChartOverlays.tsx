@@ -10,6 +10,9 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { chartLegendInk } from "@/lib/chartSettingsUi";
+import { usePineRunT } from "@/lib/pineRunLex";
+import styles from "./ChartOverlays.module.css";
 
 export type LegendEntry = {
   key: string;          // "ema" | "bb" | … | "pine" | "cmp:SYM"
@@ -21,7 +24,20 @@ export type LegendEntry = {
   noParams?: boolean;   // signal-style row (e.g. Golden Oracle) — no Settings / Source, just eye + remove
   noSource?: boolean;   // premium suite row — Settings works but there is no pseudo-Pine source view
   color?: string;       // line color (used for the compare row's swatch dot)
+  // Custom-script run state. Absent = settled (plotted, or a script error carried by the ⚠ label).
+  // A row with no plot must say why: still running, waiting on the engine, or the engine failed.
+  pineState?: PineLegendState;
 };
+
+export type PineLegendState = "running" | "engineWait" | "engineFail" | "engineError" | "interrupted";
+const PINE_STATE_TEXT: Record<PineLegendState, string> = {
+  running: "pineRunning",
+  engineWait: "pineEngineWait",
+  engineFail: "pineEngineFail",
+  engineError: "pineEngineError",
+  interrupted: "pineRunInterrupted",
+};
+const pineStatePending = (s: PineLegendState) => s === "running" || s === "engineWait";
 
 export type PaneInfo = {
   key: string;          // stable pane identity ("__price__" | indicator key) — survives reorder
@@ -47,6 +63,7 @@ export type OverlayActions = {
   onMaximize: (paneIndex: number) => void;
   canMoveUp: (paneIndex: number) => boolean;
   canMoveDown: (paneIndex: number) => boolean;
+  onRetry?: (key: string) => void;   // re-run a custom script whose engine failed (pineState unavailable)
 };
 
 // B5 icon sizing: width/height removed from inline style so CSS (.lg-ic svg, .po-ic svg) can scale them.
@@ -87,10 +104,12 @@ export default function ChartOverlays(props: {
   coarse?: boolean;
   showTitles?: boolean;
   backgroundOpacity?: number;
+  frameBackground?: string;
   paneButtons?: "always" | "hover" | "never";
 } & OverlayActions) {
   const coarse = !!props.coarse;
   const t = useT();
+  const pt = usePineRunT();   // pine run-state copy (feature-local LEX)
   const [more, setMore] = useState<MoreState | null>(null);
   const [flip, setFlip] = useState<{ key: string; n: number } | null>(null);
   // Static Legend (touch): tapping a row's name ARMS it — the icon strip appears INSIDE the same
@@ -99,6 +118,7 @@ export default function ChartOverlays(props: {
   const [armedKey, setArmedKey] = useState<string | null>(null);
   const armedRowRef = useRef<HTMLDivElement | null>(null);
   const moreRef = useRef<HTMLDivElement | null>(null);
+  const moreTriggerRef = useRef<HTMLButtonElement | null>(null);
   // bump `n` (a monotonic nonce) so the flipped icon remounts and the CSS animation replays on every click
   const doFlip = (key: string) => setFlip((f) => ({ key, n: (f?.n ?? 0) + 1 }));
   // close the More dropdown on outside pointerdown / Escape (desktop AND coarse — the coarse More is
@@ -107,7 +127,13 @@ export default function ChartOverlays(props: {
   useEffect(() => {
     if (!more) return;
     const close = () => { setMore(null); setArmedKey(null); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setMore(null); setArmedKey(null); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const trigger = moreTriggerRef.current;
+      setMore(null);
+      setArmedKey(null);
+      trigger?.focus({ preventScroll: true });
+    };
     window.addEventListener("pointerdown", close); window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener("pointerdown", close); window.removeEventListener("keydown", onKey); };
   }, [more]);
@@ -133,6 +159,7 @@ export default function ChartOverlays(props: {
     }
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
+    el.querySelector<HTMLButtonElement>(".lg-more-row:not(:disabled)")?.focus({ preventScroll: true });
   }, [more]);
   // Static Legend: pointerdown outside the armed row disarms it (mirrors the More closer). Skipped
   // while a More dropdown is open on coarse — that popover owns its own outside-click dismissal
@@ -148,8 +175,11 @@ export default function ChartOverlays(props: {
   }, [coarse, armedKey, more]);
 
   const stop = (fn: () => void) => (ev: React.MouseEvent) => { ev.stopPropagation(); ev.preventDefault(); fn(); };
-  const openMore = (e: LegendEntry, paneIndex: number, rect: DOMRect) =>
+  const openMore = (e: LegendEntry, paneIndex: number, trigger: HTMLButtonElement, anchor: HTMLElement = trigger) => {
+    moreTriggerRef.current = trigger;
+    const rect = anchor.getBoundingClientRect();
     setMore({ key: e.key, label: e.label, paneIndex, isPane: e.kind === "pane", hidden: e.hidden, isCompare: !!e.isCompare, noParams: !!e.noParams, noSource: !!e.noSource, x: rect.left, y: rect.bottom + 4, rowTop: rect.top });
+  };
 
   // B5: total entries count across all panes (for the count chip)
   const totalEntries = props.panes.reduce((s, p) => s + p.entries.length, 0);
@@ -202,49 +232,81 @@ export default function ChartOverlays(props: {
                 {p.entries.map((e) => {
                   const visible = entriesVisible;
                   const isArmed = coarse && armedKey === e.key;
+                  const rowBackground = `rgba(6,9,14,${Math.max(0, Math.min(100, props.backgroundOpacity ?? 70)) * 0.0054})`;
+                  const foreground = props.frameBackground ? chartLegendInk(props.frameBackground, rowBackground) : undefined;
+                  const foregroundStyle = foreground ? { color: foreground } : undefined;
                   return (
                     <div
                       key={e.key}
                       ref={isArmed ? armedRowRef : undefined}
-                      className={`lg-row${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}`}
+                      className={`lg-row ${styles.focusRow}${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}${e.pineState ? ` ${styles.stateRow}` : ""}`}
+                      role="group"
+                      aria-label={e.label}
+                      tabIndex={coarse ? -1 : 0}
                       style={visible
-                        ? { background: `rgba(6,9,14,${Math.max(0, Math.min(100, props.backgroundOpacity ?? 70)) * 0.0054})` }
+                        ? { background: rowBackground }
                         : { display: "none" }}
                     >
                       {e.isCompare && <span className="lg-dot" style={{ background: e.color || "currentColor" }} />}
                       {/* Static Legend: tapping the name area on touch ARMS the row (fires no action) */}
                       <span
-                        className="lg-name"
+                        className="lg-name" style={foregroundStyle}
+                        role={coarse && !isArmed ? "button" : undefined}
+                        tabIndex={coarse && !isArmed ? 0 : undefined}
                         onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
+                        onKeyDown={coarse && !isArmed ? (ev) => {
+                          if (ev.key !== "Enter" && ev.key !== " ") return;
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          setArmedKey(e.key);
+                        } : undefined}
                       >{e.label}</span>
+                      {e.pineState && (
+                        <span
+                          className={`${styles.stateChip} ${pineStatePending(e.pineState) ? styles.pending : styles.unavail}`}
+                          role="status"
+                          data-pine-state={e.pineState}
+                          onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
+                        >{pt(PINE_STATE_TEXT[e.pineState])}</span>
+                      )}
+                      {e.pineState && !pineStatePending(e.pineState) && props.onRetry && !isArmed && (
+                        <button
+                          type="button"
+                          className={styles.retry}
+                          data-pine-retry={e.key}
+                          title={pt("pineRetryTip")}
+                          aria-label={`${pt("pineRetry")}: ${e.label}`}
+                          onClick={stop(() => props.onRetry!(e.key))}
+                        >{pt("pineRetry")}</button>
+                      )}
                       {/* Touch armed strip: icons appear INSIDE the same box — same .lg-menu as desktop,
                           no separate pill, no geometry change. Eye is the fixed first slot. */}
                       {coarse && isArmed ? (
                         <span className="lg-menu">
-                          <button className="lg-ic eye" aria-label={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
-                          {!e.noParams && <button className="lg-ic" aria-label={t("lgSettings")} onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
-                          <button className="lg-ic" aria-label={t("lgRemove")} onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
+                          <button style={foregroundStyle} className="lg-ic eye" aria-label={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
+                          {!e.noParams && <button style={foregroundStyle} className="lg-ic" aria-label={t("lgSettings")} onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
+                          <button style={foregroundStyle} className="lg-ic" aria-label={t("lgRemove")} onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
                           {/* More → dropdown anchored under the armed row's left edge (conforms on coarse too) */}
-                          <button className="lg-ic" aria-label={t("lgMore")} onClick={(ev) => {
+                          <button style={foregroundStyle} className="lg-ic" aria-label={t("lgMore")} onClick={(ev) => {
                             ev.stopPropagation(); ev.preventDefault();
-                            const rowEl = (ev.currentTarget as HTMLElement).closest(".lg-row") as HTMLElement | null;
-                            const r = (rowEl ?? (ev.currentTarget as HTMLElement)).getBoundingClientRect();
-                            setMore({ key: e.key, label: e.label, paneIndex: p.paneIndex, isPane: e.kind === "pane", hidden: e.hidden, isCompare: !!e.isCompare, noParams: !!e.noParams, noSource: !!e.noSource, x: r.left, y: r.bottom + 4, rowTop: r.top });
+                            const trigger = ev.currentTarget;
+                            const rowEl = trigger.closest(".lg-row") as HTMLElement | null;
+                            openMore(e, p.paneIndex, trigger, rowEl ?? trigger);
                           }}>{I(ICONS.more, 2.4)}</button>
                         </span>
                       ) : !coarse ? (
                         <span className="lg-menu">
-                          <button className="lg-ic eye" data-tip={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => props.onEye(e.key))} aria-label={e.hidden ? t("lgShow") : t("lgHide")}><EyeIcon off={e.hidden} /></button>
-                          {!e.noParams && <button className="lg-ic" data-tip={t("lgSettings")} onClick={stop(() => props.onSettings(e.key))} aria-label={t("lgSettings")}>{I(ICONS.settings, 1.6)}</button>}
-                          {!e.isCompare && !e.noParams && !e.noSource && <button className="lg-ic" data-tip={t("pmSourceCode")} onClick={stop(() => props.onSource(e.key))} aria-label={t("pmSourceCode")}>{I(ICONS.source)}</button>}
-                          <button className="lg-ic" data-tip={t("lgRemove")} onClick={stop(() => props.onRemove(e.key))} aria-label={t("lgRemove")}>{I(ICONS.remove)}</button>
-                          <button className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, (ev.currentTarget as HTMLElement).getBoundingClientRect()); }} aria-label={t("lgMore")}>{I(ICONS.more, 2.4)}</button>
+                          <button style={foregroundStyle} className="lg-ic eye" data-tip={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => props.onEye(e.key))} aria-label={e.hidden ? t("lgShow") : t("lgHide")}><EyeIcon off={e.hidden} /></button>
+                          {!e.noParams && <button style={foregroundStyle} className="lg-ic" data-tip={t("lgSettings")} onClick={stop(() => props.onSettings(e.key))} aria-label={t("lgSettings")}>{I(ICONS.settings, 1.6)}</button>}
+                          {!e.isCompare && !e.noParams && !e.noSource && <button style={foregroundStyle} className="lg-ic" data-tip={t("pmSourceCode")} onClick={stop(() => props.onSource(e.key))} aria-label={t("pmSourceCode")}>{I(ICONS.source)}</button>}
+                          <button style={foregroundStyle} className="lg-ic" data-tip={t("lgRemove")} onClick={stop(() => props.onRemove(e.key))} aria-label={t("lgRemove")}>{I(ICONS.remove)}</button>
+                          <button style={foregroundStyle} className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, ev.currentTarget); }} aria-label={t("lgMore")}>{I(ICONS.more, 2.4)}</button>
                         </span>
                       ) : e.hidden ? (
                         // C1 coarse: hidden indicator keeps a persistent crossed-eye in the pill's eye
                         // slot (right after the name) — one tap un-hides without opening the pill
                         <span className="lg-menu">
-                          <button className="lg-ic eye" aria-label={t("lgShow")} onClick={stop(() => props.onEye(e.key))}><EyeIcon off /></button>
+                          <button style={foregroundStyle} className="lg-ic eye" aria-label={t("lgShow")} onClick={stop(() => props.onEye(e.key))}><EyeIcon off /></button>
                         </span>
                       ) : null}
                     </div>
@@ -280,18 +342,18 @@ export default function ChartOverlays(props: {
           border, anchored flush under the row's left edge, viewport-clamped (effect above). */}
       {more && (() => { const done = () => { setMore(null); setArmedKey(null); }; return (
         <div ref={moreRef} className="lg-more" style={{ left: more.x, top: more.y }} onPointerDown={(e) => e.stopPropagation()}>
-          <div className="lg-more-row" onClick={stop(() => { props.onEye(more.key); done(); })}><span className="mi"><EyeIcon off={more.hidden} /></span>{more.hidden ? t("lgShow") : t("lgHide")}</div>
-          {!more.noParams && <div className="lg-more-row" onClick={stop(() => { props.onSettings(more.key); done(); })}><span className="mi">{I(ICONS.settings, 1.6)}</span>{t("lgSettingsMore")}</div>}
-          {!more.isCompare && !more.noParams && !more.noSource && <div className="lg-more-row" onClick={stop(() => { props.onSource(more.key); done(); })}><span className="mi">{I(ICONS.source)}</span>{t("pmSourceCodeMore")}</div>}
+          <button type="button" className="lg-more-row" onClick={stop(() => { props.onEye(more.key); done(); })}><span className="mi"><EyeIcon off={more.hidden} /></span>{more.hidden ? t("lgShow") : t("lgHide")}</button>
+          {!more.noParams && <button type="button" className="lg-more-row" onClick={stop(() => { props.onSettings(more.key); done(); })}><span className="mi">{I(ICONS.settings, 1.6)}</span>{t("lgSettingsMore")}</button>}
+          {!more.isCompare && !more.noParams && !more.noSource && <button type="button" className="lg-more-row" onClick={stop(() => { props.onSource(more.key); done(); })}><span className="mi">{I(ICONS.source)}</span>{t("pmSourceCodeMore")}</button>}
           {more.isPane && <>
             <div className="lg-more-sep" />
-            <div className={`lg-more-row${props.canMoveUp(more.paneIndex) ? "" : " dis"}`} onClick={stop(() => { if (props.canMoveUp(more.paneIndex)) { props.onMoveUp(more.paneIndex); done(); } })}><span className="mi">{I(ICONS.up)}</span>{t("pmMovePaneUp")}</div>
-            <div className={`lg-more-row${props.canMoveDown(more.paneIndex) ? "" : " dis"}`} onClick={stop(() => { if (props.canMoveDown(more.paneIndex)) { props.onMoveDown(more.paneIndex); done(); } })}><span className="mi">{I(ICONS.down)}</span>{t("pmMovePaneDown")}</div>
-            <div className="lg-more-row" onClick={stop(() => { props.onCollapse(more.paneIndex); done(); })}><span className="mi">{I(ICONS.collapse)}</span>{t("pmCollapsePane")}</div>
-            <div className="lg-more-row" onClick={stop(() => { props.onMaximize(more.paneIndex); done(); })}><span className="mi">{I(ICONS.maximize)}</span>{t("pmMaximizePane")}</div>
+            <button type="button" className={`lg-more-row${props.canMoveUp(more.paneIndex) ? "" : " dis"}`} disabled={!props.canMoveUp(more.paneIndex)} onClick={stop(() => { props.onMoveUp(more.paneIndex); done(); })}><span className="mi">{I(ICONS.up)}</span>{t("pmMovePaneUp")}</button>
+            <button type="button" className={`lg-more-row${props.canMoveDown(more.paneIndex) ? "" : " dis"}`} disabled={!props.canMoveDown(more.paneIndex)} onClick={stop(() => { props.onMoveDown(more.paneIndex); done(); })}><span className="mi">{I(ICONS.down)}</span>{t("pmMovePaneDown")}</button>
+            <button type="button" className="lg-more-row" onClick={stop(() => { props.onCollapse(more.paneIndex); done(); })}><span className="mi">{I(ICONS.collapse)}</span>{t("pmCollapsePane")}</button>
+            <button type="button" className="lg-more-row" onClick={stop(() => { props.onMaximize(more.paneIndex); done(); })}><span className="mi">{I(ICONS.maximize)}</span>{t("pmMaximizePane")}</button>
           </>}
           <div className="lg-more-sep" />
-          <div className="lg-more-row danger" onClick={stop(() => { props.onRemove(more.key); done(); })}><span className="mi">{I(ICONS.remove)}</span>{t("lgRemove")}</div>
+          <button type="button" className="lg-more-row danger" onClick={stop(() => { props.onRemove(more.key); done(); })}><span className="mi">{I(ICONS.remove)}</span>{t("lgRemove")}</button>
         </div>
       ); })()}
     </div>

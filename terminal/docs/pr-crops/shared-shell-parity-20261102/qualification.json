@@ -1,0 +1,48 @@
+{
+  "scope": "Shared Shell responsive chrome source/fixture qualification only",
+  "base": "ed2e633852564dcd604afc26eb03eeed54954dee",
+  "source_sha256": {
+    "terminal/components/SymbolPicker.tsx": "18de3cfa2ef988cef3b90fc3e2929fbe88157fc3660c138cb28784d056a0bdef",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx": "7fdb4099cfaedd307fe95ab9a3e96a3f7514753adb0563402cabac69a7ff0cfd",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+    "terminal/e2e/shared-shell-refinement.spec.ts": "21dedb147c30e652c0dd523e42383004148fccfe8be9a647f604c4310df618e2",
+    "terminal/components/SearchModal.tsx": "36880f1100bbcfa051a0c46131dd84c48a7278f0adb5678ee969a8db190774e9"
+  },
+  "paper": {
+    "file": "01M2WGNCX9475G79JRKJTCM08P",
+    "page": "p-23-0",
+    "references": [
+      "SS05/6NVJ-0",
+      "SS11/6OS6-0",
+      "SS12/6OQP-0"
+    ],
+    "live_read": "get_basic_info, SS11 get_jsx, SS12 get_screenshot; packet JSX/source map retained",
+    "token_hash": "cfd3d65c"
+  },
+  "checks": {
+    "responsive": "10 passed, 2 intentional skips; widths320/390/641/820/860 dark EN/light ZH plus contract1440/820/390 ticker selection",
+    "unit": "20 passed (companySearchIdentity, sharedShellNavigationCommit)",
+    "types": "tsc --noEmit passed",
+    "lint": "changed TSX/spec passed",
+    "baseline": "40px navigation hit area; visible-dialog assertion failed before portal repair",
+    "review_delta": "Shared company title reused for native phone sheet; 4 targeted desktop/tablet/phone selection and bilingual touch-dismiss cases passed; final320/390 phone capture check passed"
+  },
+  "limits": [
+    "Local deterministic fixture and browser proof only; no authenticated production proof",
+    "PR804, Chrome Person1, SQL and runtime holds unchanged",
+    "Fabric ss-paper-mobile-targets-20261102-001 terminal rc75 admission host_temperature_at_or_above_limit; no implementation started, no replay, no acceptance verdict"
+  ],
+  "images_sha256": {
+    "search-320-light-zh.png": "0f291701d7f831176cb1dcf36ce6a3327e52f000942e3cc3b23e9884d28b3b2f",
+    "company-selection-tablet.png": "482c7c2b49920d8d81c8b3136ca9967b2edc9c5f48b530e2ecd72c6fa60720fe",
+    "search-860-light-zh.png": "7da4e0fa133acc8e724b0e07378770f945feba66aed78e33c35551ef4e1cb52c",
+    "search-820-light-zh.png": "20627a421249ec55e0366c5e8b16a802c68beed3c20853ee3c04c1a139043234",
+    "company-selection-mobile.png": "9ba7f1db3dcf51ad79ff63fa159e52486c0f1722eb97d586488d9788bae413a1",
+    "chrome-320-light-zh.png": "8dbc861bb7594b61634a02183174f07063e1b3a6fe6bdd641b975ff98fdbafe3",
+    "search-390-light-zh.png": "61e80023d8b749f946a0bbc2fc4680bb79d11bd00253cf3d6605013c6c2564fd",
+    "chrome-390-dark-en.png": "b37a87f0ae82930adb2287331259fae319628d32488920ce39e81c9d757b9e54",
+    "company-selection-desktop.png": "2712e435192122dd25aba991545dbb49080b344cd5c147196fc31b5c650ee5ac",
+    "search-390-dark-en.png": "dcef1081103b83d2dcee867aa34df7240522084ca8e119cc5c90f219e6664d8d",
+    "search-641-dark-en.png": "3aaf71a1dc614628dcbb418deeaa167aaf71a7f7ee1ff63a022733e98098630a"
+  }
+}

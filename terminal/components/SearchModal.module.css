@@ -21,6 +21,13 @@
   overscroll-behavior: contain;
 }
 
+/* A short company list keeps its selected listing and next action together.
+   Long results still shrink and scroll inside the incumbent dialog or sheet. */
+.panel .companyResults,
+:global(.msheet-search) .companyResults {
+  flex: 0 1 auto;
+}
+
 .panel :global(.sh input) {
   min-width: 0;
 }
@@ -135,3 +142,9 @@
   outline: 2px solid var(--brand-2);
   outline-offset: 2px;
 }
+
+/* SS05 is a wide workspace task within the existing dialog/focus owner. */
+.sharedScope { padding-inline: calc(var(--search-content-left, 0px) + 24px) 24px; }
+.panel.sharedPanel:global(.smodal) { width: min(1280px, calc(100vw - var(--search-content-left, 0px) - 48px)); max-width: none; }
+.sharedSheet { max-height: 96dvh; }
+@media(max-width:760px) { .panel.sharedPanel:global(.smodal) { width: calc(100vw - 24px); } }

@@ -1,0 +1,20 @@
+{
+  "branchHead": "d5dcb1452778d4fd289ec9d6d056d9f28809177d",
+  "originalBranch": "claude/b-pl-6-batch-3-evidence",
+  "pr": 898,
+  "protectedMaster": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+  "roots": {
+    "prior-pr": {
+      "commit": "d5dcb1452778d4fd289ec9d6d056d9f28809177d",
+      "files": 21,
+      "inventorySha256": "9c8b617ca09c5a71533fdd33c7a77e8133311d792a5933846b90faa9875f5341"
+    },
+    "prior-protected": {
+      "commit": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+      "files": 37,
+      "inventorySha256": "3c905721ca443161d58f0e68420a3890df1049708c0fb9252d325055898f187c"
+    }
+  },
+  "schema": "pl6_batch3_capture_history.v1",
+  "validationOperation": "terminal-pr898-native-validation-20261109"
+}

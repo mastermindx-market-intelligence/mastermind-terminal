@@ -1,0 +1,10 @@
+{
+  "sourceWhitespaceCheck": "PASS",
+  "rawProofWhitespaceWarnings": [
+    "docs/verification/frozen-pause-race-20261109/baseline-junit.xml:37: trailing whitespace.",
+    "+E         ",
+    "docs/verification/frozen-pause-race-20261109/baseline.log:41: trailing whitespace.",
+    "+E         "
+  ],
+  "disposition": "Preserve the two exact pytest-rendered raw records and their recorded digests; no source whitespace defect."
+}

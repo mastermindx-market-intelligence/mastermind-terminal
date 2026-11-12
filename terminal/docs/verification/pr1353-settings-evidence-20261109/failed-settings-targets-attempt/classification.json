@@ -1,0 +1,10 @@
+{
+  "classification": "execution failure waiting for Settings overlay after second native click",
+  "completedNewImages": 1,
+  "packetPromoted": false,
+  "rootPacketUnchanged": true,
+  "rootImageCount": 8,
+  "rootImagesAreHistorical": true,
+  "ownedServerSettled": true,
+  "sourceStable": true
+}

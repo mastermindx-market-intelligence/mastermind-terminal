@@ -1,0 +1,10 @@
+{
+  "classification": "New test declaration lacked its final closing parenthesis; Node failed before any selected behavioral test executed. This is not a font-origin counterexample.",
+  "firstLogSha256": "ec72ec7983336b3f83b851edde5c542ecf892d7ab04ef5c1f1c54506c1ed5a61",
+  "firstRun": "origin-red-execution.json",
+  "next": "Run the two actual current-origin cases against the unchanged production observer, retaining this original failure.",
+  "recordedAt": "2026-11-10T17:54:11.564188+00:00",
+  "repair": "Close the final new test declaration only; preserve every assertion and the production font observer.",
+  "schema": "terminal_pr761_test_harness_reconciliation.v1",
+  "state": "TEST_SYNTAX_FAILURE_DISTINGUISHED"
+}

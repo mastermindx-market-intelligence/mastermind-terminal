@@ -1,0 +1,32 @@
+{
+  "observedAt": "2026-10-17T13:03:00Z",
+  "status": "PASS_SOURCE_REVIEW",
+  "productionProof": false,
+  "sourceReviewOnly": true,
+  "reviews": [
+    {
+      "reviewer": "lt16_admission_judgment",
+      "scope": "Drawing rescale current-DOM sampling and positive axis-range controls",
+      "result": "PASS",
+      "sourceSha256": "0d89cc288d1b204b8afd272e59302e0e4d41015e0ad643e848b081c552391e26",
+      "note": "Original exact toBeCloseTo(before,0), wheel gesture and readiness budget retained; no added retry, sleep, skip or tolerance."
+    },
+    {
+      "reviewer": "lt16_admission_judgment",
+      "scope": "Independent A03 current-DOM geometry review",
+      "result": "PASS",
+      "sourceSha256": "bc74f5d5ed0b371630611669559db38e36b998a5d0d09e64618c9715402bae95",
+      "note": "Original mobile-only scope and size assertions retained. DOM rectangles exclude stroke inflation; offscreen geometry remains permitted by the existing contract."
+    },
+    {
+      "reviewer": "tp1_capture_evidence",
+      "scope": "Independent transparent pane clearing and distinct-history pixel regression",
+      "result": "PASS",
+      "sourceSha256s": [
+        "7d24385531d12c6600272fafd3dd4bb39859eb52f22fb7133d5021083b18f697",
+        "bc3c2c623bd21698f11b4f009037a4635f0eac52263575d28f1894a02fb5c67d"
+      ],
+      "note": "Separate DPR-scaled pane surfaces; unchanged composition/clip/primitive order; cursor-only frames bypass pane painting. Exact complete PNG equality between independently constructed canvases; actual file-backed PNG/JSON artifacts before assertions. Scope is deterministic repaint history, not all visual configurations."
+    }
+  ]
+}

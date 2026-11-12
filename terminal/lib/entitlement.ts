@@ -204,12 +204,27 @@ const LIVE_OPTIONS = {
   ok: (e: Entitlement) => optionsReadAccess(e),
 };
 
+/** Preserve the reason for a denial without changing the existing three-state
+ * server/data-API contract. A verified Free account MUST see its real upgrade
+ * invitation, but a session that the server could not authenticate first gets
+ * the existing bounded browser recovery check rather than a false paywall. */
+export type LiveOptionsAccessDetail =
+  | { access: "allowed"; reason: "verified" }
+  | { access: "denied"; reason: "plan_missing_feature" | "authentication_denied" }
+  | { access: "unavailable"; reason: "authority_unavailable" };
+
+export async function getLiveOptionsAccessDetail(): Promise<LiveOptionsAccessDetail> {
+  const result = await fetchEntitlementCached(LIVE_OPTIONS);
+  if (result.status === "unavailable") return { access: "unavailable", reason: "authority_unavailable" };
+  if (result.status === "denied") return { access: "denied", reason: "authentication_denied" };
+  if (LIVE_OPTIONS.ok(result.ent)) return { access: "allowed", reason: "verified" };
+  return { access: "denied", reason: "plan_missing_feature" };
+}
+
 /** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
 /** Tri-state boundary for the page and polling API. Never grants on uncertainty. */
 export async function getLiveOptionsAccess(): Promise<LiveOptionsAccess> {
-  const result = await fetchEntitlementCached(LIVE_OPTIONS);
-  if (result.status !== "ok") return result.status;
-  return LIVE_OPTIONS.ok(result.ent) ? "allowed" : "denied";
+  return (await getLiveOptionsAccessDetail()).access;
 }
 
 /** Boolean compatibility for existing security-sensitive call sites. */

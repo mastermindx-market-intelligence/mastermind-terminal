@@ -59,6 +59,10 @@ interface OptionCardProps {
 const LIVE_WINDOW_MS = 20 * 60 * 1000; // 20 min
 
 function isMarkFresh(mark: LiveMark, forced: boolean): boolean {
+  // A fixture may bypass the clock, not the numeric render contract.
+  if (![mark.bid, mark.ask, mark.mid].every((value) => typeof value === "number" && Number.isFinite(value))) {
+    return false;
+  }
   if (forced) return true;
   try {
     const age = Date.now() - new Date(mark.ts_utc).getTime();

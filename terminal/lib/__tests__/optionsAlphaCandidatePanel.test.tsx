@@ -773,6 +773,91 @@ describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
   });
 });
 
+describe("P18.T1 underlying chart action", () => {
+  it("renders the exact frozen-context chart action for a formed candidate", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: schemaValidSyntheticResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const card = host!.querySelector('[data-testid="options-alpha-candidate-item"]');
+    expect(card).toBeTruthy();
+    const link = card!.querySelector('[data-testid="options-alpha-candidate-chart-link"]') as HTMLAnchorElement | null;
+    expect(link).toBeTruthy();
+    // Exact root/url from the validated frozen campaign context group only — the
+    // ticker is never inferred from the campaign identifier.
+    expect(link!.getAttribute("href")).toBe("/terminal?symbol=SPY");
+    expect(link!.getAttribute("target")).toBe("_blank");
+    expect(link!.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(link!.textContent).toBe("Open underlying chart");
+    expect(link!.className).toContain("obs-chip");
+    const caption = card!.querySelector('[data-testid="options-alpha-candidate-chart-caption"]');
+    expect(caption?.textContent).toBe(
+      "The chart shows underlying market prices, not an option fill or a recommended entry.",
+    );
+    // Placement: after the campaign context block, before the outcome horizons.
+    const context = card!.querySelector('[data-testid="options-alpha-candidate-context"]');
+    expect(context).toBeTruthy();
+    expect(Boolean(context!.compareDocumentPosition(link!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    const horizons = card!.querySelector('[data-testid="options-alpha-candidate-horizons"]');
+    if (horizons) {
+      expect(Boolean(horizons.compareDocumentPosition(link!) & Node.DOCUMENT_POSITION_PRECEDING)).toBe(true);
+    }
+  });
+
+  for (const lang of ["en", "zh"] as const) {
+    it(`chart action label and disclaimer localize (${lang})`, async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: schemaValidSyntheticResponse() }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      const link = host!.querySelector('[data-testid="options-alpha-candidate-chart-link"]');
+      expect(link?.textContent).toBe(lang === "zh" ? "打开标的图表" : "Open underlying chart");
+      const caption = host!.querySelector('[data-testid="options-alpha-candidate-chart-caption"]');
+      expect(caption?.textContent).toBe(
+        lang === "zh"
+          ? "图表显示标的市场价格，并非期权成交价或建议入场价。"
+          : "The chart shows underlying market prices, not an option fill or a recommended entry.",
+      );
+    });
+  }
+
+  it("withholds the chart action when campaign context is absent", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: fixtureFeedWithoutContext() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-context-absent"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-link"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-caption"]')).toBeNull();
+  });
+
+  it("withholds the chart action when the context revision mismatches the first qualification", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({
+      status: 200,
+      body: schemaValidSyntheticResponse("ocrev_aaaaaaaaaaaaaaaaaaaaaaaa"),
+    }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-context-absent"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-link"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-caption"]')).toBeNull();
+  });
+
+  it("retains the chart action, clocks and stale notice when a later poll fails", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: schemaValidSyntheticResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-link"]')).toBeTruthy();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await flushMicrotasks(8);
+    // The same frozen row survives: chart action untouched, the distinct stale notice
+    // shows, no unavailable notice, and the receipt last-modified clock is still rendered.
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-chart-link"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
+    expect(host!.innerHTML).toContain("Thu, 13 Aug 2026 14:30:02 GMT");
+  });
+});
+
 const NBBO_SENTENCE: Record<Lang, string> = {
   en: "No valid bid/ask quote was measured for this campaign, so no candidate was formed.",
   zh: "该活动没有测到有效的买卖报价，因此未形成候选。",

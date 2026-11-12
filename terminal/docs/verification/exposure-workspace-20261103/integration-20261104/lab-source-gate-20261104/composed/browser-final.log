@@ -1,0 +1,50 @@
+[warmup] /terminal?symbol=NVDA → 200 in 385ms
+[warmup] /options → 200 in 173ms
+[warmup] /portfolio → 200 in 3746ms
+[warmup] /alerts → 200 in 3343ms
+[warmup] /analysis → 200 in 4807ms
+[warmup] /discover → 200 in 4498ms
+[warmup] /admin → 200 in 2846ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2514ms
+[warmup] /login → 200 in 418ms
+[warmup] /reset-password → 200 in 4101ms
+[warmup] /api/me → 200 in 2701ms
+[warmup] /api/watchlist → 200 in 2202ms
+[warmup] /api/layouts → 200 in 1986ms
+[warmup] /api/watchlist/annotations → 409 in 2134ms
+[warmup] 14 routes compiled in 36s
+
+Running 30 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (8.2s)
+  ✓   2 [desktop] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en dark (5.7s)
+  ✓   3 [desktop] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en light (3.6s)
+  ✓   4 [desktop] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh dark (3.3s)
+  ✓   5 [desktop] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh light (3.1s)
+  ✓   6 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.6s)
+  ✓   7 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.4s)
+  ✓   8 [desktop] › e2e/options-lab-source-state.spec.ts:79:5 › Research Lab admits a valid current read before the stream supplies a frame (2.7s)
+  ✓   9 [desktop] › e2e/options-lab-source-state.spec.ts:97:5 › Research Lab preserves the selected archive without substituting an available live book (2.9s)
+  ✓  10 [desktop] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (8.0s)
+  ✓  11 [tablet] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (3.9s)
+  ✓  12 [tablet] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en dark (4.1s)
+  ✓  13 [tablet] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en light (4.4s)
+  ✓  14 [tablet] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh dark (3.6s)
+  ✓  15 [tablet] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh light (4.1s)
+  ✓  16 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (4.6s)
+  ✓  17 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.7s)
+  ✓  18 [tablet] › e2e/options-lab-source-state.spec.ts:79:5 › Research Lab admits a valid current read before the stream supplies a frame (3.5s)
+  ✓  19 [tablet] › e2e/options-lab-source-state.spec.ts:97:5 › Research Lab preserves the selected archive without substituting an available live book (3.5s)
+  ✓  20 [tablet] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (6.1s)
+  ✓  21 [mobile] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (3.4s)
+  ✓  22 [mobile] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en dark (3.0s)
+  ✓  23 [mobile] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer en light (3.0s)
+  ✓  24 [mobile] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh dark (2.7s)
+  ✓  25 [mobile] › e2e/options-lab-reported-gamma.spec.ts:5:6 › reported Gamma exact host consumer zh light (3.8s)
+  ✓  26 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.5s)
+  ✓  27 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.7s)
+  ✓  28 [mobile] › e2e/options-lab-source-state.spec.ts:79:5 › Research Lab admits a valid current read before the stream supplies a frame (3.0s)
+  ✓  29 [mobile] › e2e/options-lab-source-state.spec.ts:97:5 › Research Lab preserves the selected archive without substituting an available live book (3.3s)
+  ✓  30 [mobile] › e2e/sector-exposure-depth-return.spec.ts:39:5 › stepping and Back preserve unrelated query and existing appearance preferences (5.7s)
+
+  30 passed (2.9m)

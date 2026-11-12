@@ -316,7 +316,7 @@ class AlpacaFeed {
   ensureSubscribed(sym) {
     const onEvict = (old) => {
       this._send({ action: "unsubscribe", trades: [old] });
-      log.info("alpaca LRU-evicted", old);
+      log.tally("alpaca LRU-evicted", old);
     };
     lruTouch(this.subs, sym, ALPACA_LRU_CAP, onEvict);
     if (!this.subs.get(sym) || this.subs.get(sym).subscribedOnServer) return;
@@ -616,7 +616,7 @@ class WebullFeed {
     lruTouch(this.subs, sym, WEBULL_LRU_CAP, (old) => {
       // Eviction ends refresh only. The last-good print remains in the independently bounded
       // cache and is served only while ExtFeed.getExt's session/freshness gates accept it.
-      log.info("webull subscription LRU-evicted", old);
+      log.tally("webull subscription LRU-evicted", old);
     });
   }
 
@@ -972,12 +972,12 @@ class ExtFeed {
       // auth fails.  _yahooSubs is always initialised in alpaca mode (see constructor).
       lruTouch(this._yahooSubs, sym, ALPACA_LRU_CAP, (old) => {
         // Subscription eviction ends refresh only; retain the bounded last-good print.
-        log.info("yahoo fallback subscription LRU-evicted", old);
+        log.tally("yahoo fallback subscription LRU-evicted", old);
       });
     } else if (this.mode === "yahoo_fallback" && this._yahooSubs) {
       lruTouch(this._yahooSubs, sym, ALPACA_LRU_CAP, (old) => {
         // Subscription eviction ends refresh only; retain the bounded last-good print.
-        log.info("yahoo ext subscription LRU-evicted", old);
+        log.tally("yahoo ext subscription LRU-evicted", old);
       });
     }
     // Webull mirrors every demanded US symbol regardless of mode.

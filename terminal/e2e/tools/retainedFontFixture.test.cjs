@@ -70,15 +70,15 @@ test("actual VI writeCase statement forwards the page's font witness", () => {
   });
   assert.equal(observation.fonts, marker);
 });
-async function actualTrackerCase({ unavailableOnly = false, badBytes = false, badStatus = false, uniqueMissing = false, conflictingKnown = false } = {}) {
+async function actualTrackerCase({ unavailableOnly = false, badBytes = false, badStatus = false, uniqueMissing = false, conflictingKnown = false, origin = "http://127.0.0.1:33962" } = {}) {
   const page = new (require("node:events").EventEmitter)();
   const shape = observation();
   page.evaluate = async () => ({ loadedFaces: shape.loadedFaces, numeric: shape.numeric });
   f.track(page);
   const inter = receipt.families[0].files.find(x => x.subset === "latin");
-  const asset = row => `http://127.0.0.1:33962/_next/static/media/${row.sha256.slice(0,16)}-s.woff2`;
+  const asset = row => `${origin}/_next/static/media/${row.sha256.slice(0,16)}-s.woff2`;
   const response = (body, status = 200, url = asset(inter)) => ({ url: () => url, status: () => status, body });
-  page.emit("response", response(async () => { throw new Error("synthetic body unavailable after reload"); }, 200, uniqueMissing ? "http://127.0.0.1:33962/_next/static/media/0000000000000000-s.woff2" : asset(inter)));
+  page.emit("response", response(async () => { throw new Error("synthetic body unavailable after reload"); }, 200, uniqueMissing ? `${origin}/_next/static/media/0000000000000000-s.woff2` : asset(inter)));
   if (!unavailableOnly) for (const family of receipt.families) {
     const row = family.files.find(x => x.subset === "latin");
     page.emit("response", response(async () => require("node:fs").readFileSync(path.join(__dirname, "../fixtures/retained-fonts-34fb", row.file)), 200, asset(row) + "?v=123"));
@@ -99,4 +99,34 @@ test("unreadable duplicate is uncredited when both exact font bodies are indepen
 });
 test("unavailable-only, actual wrong bytes and non200 still refuse", async () => {
   for (const options of [{ unavailableOnly: true }, { badBytes: true }, { badStatus: true }, { uniqueMissing: true }, { conflictingKnown: true }]) await assert.rejects(actualTrackerCase(options), /FONT_FIXTURE_BINDING/);
+});
+
+for (const origin of ["http://127.0.0.1:3536", "http://127.0.0.1:3537"]) {
+  test(`actual tracker validates current capture origin ${origin}`, async () => {
+    const actual = await actualTrackerCase({ origin });
+    assert.equal(actual.responses.length, 2);
+    assert.equal(actual.unavailableBodies, 1);
+    assert.ok(actual.responses.every(row => row.asset.startsWith(origin + "/_next/static/media/")));
+  });
+  test(`current origin retains byte, status and same-asset refusal ${origin}`, async () => {
+    for (const options of [{ badBytes: true }, { badStatus: true }, { uniqueMissing: true }, { unavailableOnly: true }, { conflictingKnown: true }]) {
+      await assert.rejects(actualTrackerCase({ ...options, origin }), /FONT_FIXTURE_BINDING/);
+    }
+  });
+}
+for (const origin of ["http://127.0.0.1:3538", "http://localhost:3536", "https://127.0.0.1:3537", "http://user:password@127.0.0.1:3537", "http://[::1]:3537", "http://example.invalid:3537"]) {
+  test(`actual tracker refuses an undeclared origin ${origin}`, async () => {
+    await assert.rejects(actualTrackerCase({ origin }), /FONT_FIXTURE_BINDING/);
+  });
+}
+test("historical origins remain valid while malformed serialized asset identities refuse", () => {
+  for (const port of ["33961", "33962"]) {
+    const actual = observation();
+    for (const row of actual.responses) row.asset = row.asset.replace(":33962/", `:${port}/`);
+    f.validate(actual);
+  }
+  for (const change of [url => url + "?source=foreign", url => url + "#fragment", url => url.replace("/_next/static/media/", "/other/")]) {
+    const actual = observation(); actual.responses[0].asset = change(actual.responses[0].asset);
+    assert.throws(() => f.validate(actual), /FONT_FIXTURE_BINDING/);
+  }
 });

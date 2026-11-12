@@ -124,6 +124,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (req.headers.get("x-mm-frozen-entry") === "v1") {
+    const { handleFrozenNodeEntry } = await import("@/lib/frozenNodeEntryServer");
+    return handleFrozenNodeEntry(req);
+  }
   const { supabase, user } = await uid();
   if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   const parsed = await req.json().catch(() => null);

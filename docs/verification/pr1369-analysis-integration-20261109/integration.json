@@ -1,0 +1,183 @@
+{
+  "schema": "terminal_pr1369_source_integration.v1",
+  "head": "496ef734fafb64500bb95384770b59eb51555e00",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "integratedDependency": "5b4fe809fa43e164415a71ec0cc129110632e587",
+  "startedAt": "2026-11-09T14:48:06.102901+00:00",
+  "protectedMergeExit": 0,
+  "protectedMergeConflicts": [],
+  "protectedResolvedTree": "ee8a5949ea3e277e85349204e4adda0cacb1fee5",
+  "unreferencedValidationCommit": "6431c5d04b033929f6319ed456f532f473049ff2",
+  "validationIdentitySource": "GitHub git commit 716cedb203404285c717d3178396dd00c425b7de author/committer, authenticated native login mastermindxryan",
+  "finalPublicationParents": [
+    "496ef734fafb64500bb95384770b59eb51555e00",
+    "03af393ce05c12282003a3919cc473c032264922",
+    "5b4fe809fa43e164415a71ec0cc129110632e587"
+  ],
+  "dependencyMergeExit": 1,
+  "dependencyMergeTree": "ae9bff19a3599e7e580d2a81ca490d3eb9c4ac6d",
+  "dependencyConflictStages": [
+    {
+      "mode": "100644",
+      "sha": "0bd8c1b472a2a3701f99b404ecac27b3b2d1e215",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml"
+    },
+    {
+      "mode": "100644",
+      "sha": "5c89981c1a0c1228891f648c35de91e0970cba47",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml"
+    },
+    {
+      "mode": "100644",
+      "sha": "59de7884b42c1356bfdc347f4c0317d71ebac310",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml"
+    },
+    {
+      "mode": "100644",
+      "sha": "a5ef015d98b64f2478e2c0ff1009dc155a022b5e",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "349bd89145a40362cf69547517bf847c4495ed7b",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "110acad3406aa527e540a062b912cdcd12c4e88e",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "0e20babd930ee2d6d138ed0cdc7f09b681179fcf",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "cfec692471681d3e51060596cfc32d576912c2fa",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "d1ee09a13c6fe0bc381933a948771c17b23c7033",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "c9f18b5249d959df1fd738c1fbe459e9779f2923",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "b0e3ed28bac92986ea1e77984cb5f6c47b5f3b97",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "7a557db678f44bc15aa306f0543ac17bedf9fd5f",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "6bdb7d5d6a92c06e795888dee18b0df4a6225cb7",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "abe568389a1ad95c3c37eff487c1e6af78445fd8",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "3f3477b8835315acdb59f89b589755900dc60133",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "7f0e9b7b6907210ed1fc5abb5e2c7e4a5b6988e2",
+      "stage": 1,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "19796b853dde064c1bb43cf9e887880d05d8d7ba",
+      "stage": 2,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png"
+    },
+    {
+      "mode": "100644",
+      "sha": "cd6f3d3e2690bde8b9804c9403ff0658016ab065",
+      "stage": 3,
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png"
+    }
+  ],
+  "dependencyConflictPaths": [
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png"
+  ],
+  "installedCompositionTree": "ae9bff19a3599e7e580d2a81ca490d3eb9c4ac6d",
+  "installedAt": "2026-11-09T14:49:26.569252+00:00",
+  "conflictResolutionState": "SIX_REPORTED_PATHS_RESOLVED_TO_RETAINED_DEPENDENCY_PACKET_PENDING_FRESH_CAPTURE",
+  "explicitResolutions": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "a74c30291df79f9536ae7cae3a537feb6ff1e5a3a8fd31129ea96a623986badb"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "38ae5e7bc7a911e80c45554d3b13aaceb6c6c74c45bb676e3d35a75652178449"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-en.png",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "c398287d82b9a90da63dc852c29a0af10f243e9c365e4db7d92097ba6e80707c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/mobile-zh.png",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "4991bb763188bfb6000714e5fc5e9dc4844bf89c6936c7ad6e3f0a8e2e24a4e9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-en.png",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "4a5fb94b7497e8e8770c028bd198e027bdc776c2b1bfcc4f06f070768420ee0a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/tablet-zh.png",
+      "resolution": "dependency1316 root retained provisionally; complete combined-source recapture required",
+      "sha256": "174817e14b86335c65e441f4436e3d6905828d361642bc086bfdb15bd7da8171"
+    }
+  ],
+  "producerRepair": {
+    "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+    "beforeSha256": "aa046cfc3686f23a813833af4c8b6e37bbfd0714700a8bba39a5de7e149d2472",
+    "afterSha256": "9b612d316eb8491efafb6498d3fec1b30e738bc60138ca9380dc9ab3b71dfd84",
+    "removed": "DOM-removing stripDevOverlay helper and its two calls; nondestructive indicator count/throw retained"
+  },
+  "preservedAppendixSha256": "71f6291ecebb133db4058933a5164355414ac0ca3a493f49db9bf0dbd7324903",
+  "sourceResolvedTree": "1b255548d28faac3b3afb8cfc2518b043ebf2c99",
+  "packageSha256": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "playwrightCache": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1369-analysis-integration-20261109/terminal/node_modules/.cache/pr1369-playwright"
+}

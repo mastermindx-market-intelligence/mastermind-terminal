@@ -1,0 +1,20 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ✓ lib/__tests__/commandPaletteCatalog.test.ts (30 tests) 193ms
+ ✓ lib/__tests__/chartQuickSettings.test.tsx (5 tests) 512ms
+ ✓ lib/__tests__/chartShortcutOwnership.test.tsx (10 tests) 585ms
+ ✓ lib/__tests__/screenerInteractionContinuity.test.tsx (4 tests) 1415ms
+   ✓ Screener result continuity > reveals a small filtered result after scrolling deeply into a large universe 373ms
+   ✓ Screener result continuity > preserves the viewport on a same-universe background refresh 370ms
+   ✓ Screener result continuity > bounds the rendered window when a background result set shrinks 373ms
+ ✓ lib/__tests__/screenerPresetPersistence.test.tsx (38 tests) 4654ms
+   ✓ Screener device-local preset acknowledgements > preserves a draft when focus leaves the editor and keeps the new focus owner 364ms
+   ✓ Screener device-local preset acknowledgements > retains both failures when the delete retry succeeds first 465ms
+
+ Test Files  5 passed (5)
+      Tests  87 passed (87)
+   Start at  08:57:20
+   Duration  8.22s (transform 4.06s, setup 0ms, collect 11.20s, tests 7.36s, environment 2.90s, prepare 543ms)
+

@@ -1,0 +1,70 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ❯ lib/__tests__/screenerInteractionContinuity.test.tsx (4 tests | 3 failed) 1828ms
+   × Screener result continuity > reveals a small filtered result after scrolling deeply into a large universe 838ms
+     → expected [] to have a length of 2 but got +0
+   ✓ Screener result continuity > preserves the viewport on a same-universe background refresh 541ms
+   × Screener result continuity > bounds the rendered window when a background result set shrinks 189ms
+     → expected [] to have a length of 2 but got +0
+   × Screener result continuity > uses a native sort button and a canonical link without intercepting nested actions 259ms
+     → expected null not to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/screenerInteractionContinuity.test.tsx > Screener result continuity > reveals a small filtered result after scrolling deeply into a large universe
+AssertionError: expected [] to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ lib/__tests__/screenerInteractionContinuity.test.tsx:48:20
+     46|     expect(host.querySelector<HTMLTableRowElement>(".scr2-spacer")!.st…
+     47|     await search("Focus company");
+     48|     expect(rows()).toHaveLength(2);
+       |                    ^
+     49|     expect(table().scrollTop).toBe(0);
+     50|     expect([...host.querySelectorAll<HTMLElement>(".scr2-spacer")].eve…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/__tests__/screenerInteractionContinuity.test.tsx > Screener result continuity > bounds the rendered window when a background result set shrinks
+AssertionError: expected [] to have a length of 2 but got +0
+
+- Expected
++ Received
+
+- 2
++ 0
+
+ ❯ lib/__tests__/screenerInteractionContinuity.test.tsx:66:20
+     64|     scroll(6000);
+     65|     act(() => { state.revalidate?.({ symbols: { S000: symbols.S000, S0…
+     66|     expect(rows()).toHaveLength(2);
+       |                    ^
+     67|     expect(host.querySelectorAll(".scr2-spacer")).toHaveLength(0);
+     68|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/__tests__/screenerInteractionContinuity.test.tsx > Screener result continuity > uses a native sort button and a canonical link without intercepting nested actions
+AssertionError: expected null not to be null
+ ❯ lib/__tests__/screenerInteractionContinuity.test.tsx:72:22
+     70|   it("uses a native sort button and a canonical link without intercept…
+     71|     const sort = host.querySelector<HTMLButtonElement>("thead th:first…
+     72|     expect(sort).not.toBeNull();
+       |                      ^
+     73|     scroll(4000); act(() => sort!.click());
+     74|     expect(table().scrollTop).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  08:37:52
+   Duration  4.86s (transform 1.30s, setup 0ms, collect 1.80s, tests 1.83s, environment 614ms, prepare 103ms)
+

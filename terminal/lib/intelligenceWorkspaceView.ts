@@ -4,7 +4,7 @@ export type SourceClock = { kind: "dated"; date: string; ageDays: number } | { k
 export function workspaceSourceClock(value: unknown, now = Date.now()): SourceClock {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T|$)/.test(value)) return { kind: "unknown" }
   const timestamp = Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value)
-  if (!Number.isFinite(timestamp) || timestamp > now + 86_400_000) return { kind: "unknown" }
+  if (!Number.isFinite(timestamp) || timestamp > now) return { kind: "unknown" }
   const day = value.slice(0, 10)
   // Reject normalized impossible dates such as February 30.
   if (new Date(Date.parse(`${day}T00:00:00Z`)).toISOString().slice(0, 10) !== day) return { kind: "unknown" }
@@ -68,11 +68,11 @@ export function workspaceSourceValid(kind: "intel" | "slice" | "backtest", raw: 
   if (!optionalFields(cards, ["ai_judgment", "conviction"], record)) return false
   if (record(cards.ai_judgment) && (!stringFields(cards.ai_judgment, ["verdict", "verdict_zh", "gloss", "gloss_zh"]) || !numberFields(cards.ai_judgment, ["size_pct"]))) return false
   if (record(cards.conviction) && (!numberFields(cards.conviction, ["score"]) || !stringFields(cards.conviction, ["band", "band_zh"])
-    || !optionalFields(cards.conviction, ["drivers", "cautions", "cautions_zh"], strings))) return false
+    || !optionalFields(cards.conviction, ["drivers", "drivers_zh", "cautions", "cautions_zh"], strings))) return false
   const tape = record(raw.tape) ? raw.tape : {}
   if (!stringFields(tape, ["asof"]) || !optionalFields(tape, ["ai_lean", "sector_pulse"], record)) return false
   if (record(tape.ai_lean) && (!stringFields(tape.ai_lean, ["dir", "band", "entry"]) || !numberFields(tape.ai_lean, ["score"]))) return false
-  if (record(tape.sector_pulse) && (!stringFields(tape.sector_pulse, ["theme_name", "label", "reco"]) || !numberFields(tape.sector_pulse, ["rank", "n_themes"]))) return false
+  if (record(tape.sector_pulse) && (!stringFields(tape.sector_pulse, ["theme_name", "theme_name_zh", "label", "label_zh", "reco"]) || !numberFields(tape.sector_pulse, ["rank", "n_themes"]))) return false
   return true
 }
 const date = (value: unknown): string | null => {

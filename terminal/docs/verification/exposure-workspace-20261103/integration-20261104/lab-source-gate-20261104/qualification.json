@@ -1,0 +1,129 @@
+{
+  "schema": "terminal.options-exposure.lab-source-gate-qualification.v1",
+  "status": "IMPLEMENTATION_AND_LOCAL_INTEGRATION_QUALIFIED",
+  "sourceLawPin": "700eef54bca4a2dc4e30d94a6b30dcfa733ad57c",
+  "protectedTerminalPin": "4df7aad16ea775ad8112858a5095210c076efe08",
+  "originalCarrierOperation": "exposure-strike-workspace-ux-20261103-c3",
+  "originalParentHead": "04afd94cb11649820688912cf23df2f3b0a5b2c3",
+  "exposurePaperImplementation": "6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b",
+  "optionsHead": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "paper": {
+    "fileId": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "pageId": "p-V-0",
+    "acceptedBoards": [
+      "1SWN-0",
+      "1T68-0",
+      "1TD2-0",
+      "1TK8-0",
+      "1TR5-0",
+      "1TY2-0"
+    ],
+    "disposition": "DO_NOT_REDO; prior screenshot and JSX acceptance retained"
+  },
+  "runtimeSha256": {
+    "terminal/components/gexdesk/GexDeskView.tsx": "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+    "terminal/components/researchlab/ResearchReportedGammaPanel.tsx": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+    "terminal/components/researchlab/researchReportedGamma.ts": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2"
+  },
+  "original": {
+    "redFailures": 2,
+    "redCause": "A retained payload remained visible after classified absent/unavailable SSE status.",
+    "browserPassed": 24,
+    "retries": 0,
+    "focusedUnitPassed": 304,
+    "finalEvidencePassed": 21,
+    "sourceTypecheck": "PASS; generated Next validator output excluded",
+    "lint": "PASS",
+    "sourceMapSha256": "11d189c3259e81d5b95e9e7a68f14268921086a6e749a1be48b9e3fb39911b93"
+  },
+  "composed": {
+    "browserPassed": 30,
+    "retries": 0,
+    "browserSourceStable": true,
+    "browserSourceFileCount": 3108,
+    "browserSourceMapSha256": "0a66cf420e9538bda0598e3c6bce3653e9bb55e7ccc12c047ca6b0762a5fa98c",
+    "focusedUnitBeforeGatePassed": 308,
+    "finalEvidencePassed": 38,
+    "sourceTypecheck": "PASS; generated Next validator output excluded",
+    "lint": "PASS",
+    "notAGitMergeCommit": true
+  },
+  "captures": {
+    "originalFreshAffected": 96,
+    "composedFullBeforeGate": 240,
+    "composedFreshAffectedAfterGate": 96,
+    "composedFinalActive": 240,
+    "composedRetainedUnaffected": 144,
+    "packets": [
+      {
+        "kind": "gex",
+        "reference": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/options-combined-4df-lab-source-gate-20261104",
+        "qualifiedRootImages": 114,
+        "freshGateImages": 54,
+        "retainedBaselineImages": 60,
+        "frozenManifestSha256": "3a6170ecbf98a367bfbd77268c35620ebb3bb04e1a0b6d1091f7e2c845828b18",
+        "qualifiedRootSha256": "caff80e2489d880bb3bfe29e5bc86b0f9885e1eedc68be5ed5511e8f486b712f"
+      },
+      {
+        "kind": "eod",
+        "reference": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/options-combined-4df-lab-source-gate-20261104",
+        "qualifiedRootImages": 126,
+        "freshGateImages": 42,
+        "retainedBaselineImages": 84,
+        "frozenManifestSha256": "f4368986b0c18e6700c76bfe093bf8afdec34b758af2501848e8624cb0d43e47",
+        "qualifiedRootSha256": "3d64068a3e03d2ee61b11ec9f4b5ce37a2bdf5153e8160738cc500d42eabeeb4"
+      }
+    ]
+  },
+  "reusedProof": [
+    {
+      "packet": "terminal-visual-intelligence",
+      "manifestSha256": "f1b9beb8204985d12d679c618b7431aef1caea614b28b94182bfb6fa2915f21f",
+      "declaredDependencies": 58,
+      "mismatches": [],
+      "qualification": "Historical native proof reused only within its unchanged declared dependency set; no new run claimed."
+    },
+    {
+      "packet": "b-pl-6-batch-1",
+      "manifestSha256": "92a17f1e61499e7831fca588b9cff1f8eebb40d8d9bb762db0aa3aa6ffacce0a",
+      "declaredDependencies": 55,
+      "mismatches": [],
+      "qualification": "Historical native proof reused only within its unchanged declared dependency set; no new run claimed."
+    }
+  ],
+  "visualQA": {
+    "result": "PASS",
+    "reviewedActualScreenshots": [
+      "original-green/options-lab-reported-gamma-61a05-exact-host-consumer-en-dark-mobile/gamma-en-dark.png",
+      "original-green/options-lab-reported-gamma-75ead-xact-host-consumer-zh-light-mobile/gamma-zh-light.png",
+      "original-green/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png",
+      "composed-green/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png",
+      "composed-green/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png",
+      "composed-green/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png",
+      "composed-green/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png"
+    ],
+    "checks": [
+      "Hierarchy and readable values",
+      "No horizontal overflow",
+      "Native disclosure state",
+      "Source withdrawal",
+      "Archive identity retained",
+      "Responsive ladder and History controls"
+    ]
+  },
+  "scopeLimits": [
+    "Synthetic identity and data fixtures; no production provider/account proof.",
+    "App shell remains dark; light Paper boards and component-theme checks do not claim an appwide light setting.",
+    "No fresh VI/B-PL6 browser run; historical proof reused only for unchanged declared dependencies.",
+    "The earlier 166/171 run plus 12/12 recovery remains historical; the full 18,000+ unit inventory was not rerun after this bounded repair."
+  ],
+  "release": {
+    "merged": false,
+    "deployed": false,
+    "authority": "Existing no-merge/no-enqueue/no-Ready/no-label/no-deploy restrictions retained.",
+    "nativeCI": "Not replaced by local proof; exact new-head status must be read after publication."
+  },
+  "nextAuthorizedAction": "Publish this exact bounded source and proof through the original C3 typed publisher, read back the head and native checks, and update the existing PR description."
+}

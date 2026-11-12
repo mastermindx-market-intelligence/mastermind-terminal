@@ -1,0 +1,41 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal
+
+ ✓ lib/__tests__/optionsMarketMemory.test.tsx (28 tests) 520ms
+ ✓ lib/__tests__/researchReportedGammaMounted.test.tsx (8 tests) 786ms
+ ✓ lib/__tests__/gexDeskPartialData.test.tsx (12 tests) 722ms
+ ✓ lib/__tests__/exposureChartReference.test.tsx (18 tests) 245ms
+ ✓ lib/__tests__/researchLabView.test.tsx (11 tests) 684ms
+ ✓ lib/__tests__/exposureReplay.test.tsx (8 tests) 300ms
+ ✓ lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 731ms
+ ✓ lib/__tests__/researchLabAdmission.test.tsx (11 tests) 366ms
+ ✓ lib/__tests__/gexDeskLoadFailureState.test.tsx (52 tests) 12782ms
+   ✓ GEX desk: a failed live-snapshot read is not a coverage gap > over silent stream > never asks for ^VIX, a name no store can hold: the coverage gap, with nothing to retry 337ms
+   ✓ GEX desk: a failed live-snapshot read is not a coverage gap > over silent stream > never asks for $SPX, a name no store can hold: the coverage gap, with nothing to retry 553ms
+   ✓ GEX desk: a failed live-snapshot read is not a coverage gap > over silent stream > never asks for BRK/B, a name no store can hold: the coverage gap, with nothing to retry 315ms
+   ✓ GEX desk: a failed live-snapshot read is not a coverage gap > a refused name still fences the read it replaced 567ms
+   ✓ GEX desk: a failed live-snapshot read is not a coverage gap > does not remember a failed read: the next visit to the root reads again 301ms
+   ✓ GEX desk: an archived session that could not be read is not an archive gap > re-reads the session in place 314ms
+   ✓ GEX desk: the market-state card names a failed read > re-reads the state in place 339ms
+   ✓ GEX desk: an unread matrix is not an unpublished one > the matrix view keeps 'no matrix published' for a real 404 380ms
+   ✓ GEX desk: an unread matrix is not an unpublished one > the confluence board does not judge alignment on a partial read 380ms
+   ✓ GEX desk: one root's reads never render under another > a late session index for the previous root never fills the new root's dropdown 329ms
+   ✓ GEX desk: one root's reads never render under another > a late session index for the previous root does not erase the new root's dropdown 399ms
+   ✓ GEX desk: a failed refresh of the live snapshot is labelled, not silent > keeps the ladder, says it is the last read, and offers a Retry that re-reads 550ms
+   ✓ GEX desk: a failed refresh of the live snapshot is labelled, not silent > a Retry that fails again keeps the ladder and the label 814ms
+   ✓ GEX desk: a failed refresh of the live snapshot is labelled, not silent > the next pushed frame clears the label without a Retry 1009ms
+ ✓ lib/__tests__/ExposureOriginStrip.test.tsx (5 tests) 537ms
+ ✓ lib/__tests__/researchReportedGamma.test.ts (27 tests) 24ms
+ ✓ lib/__tests__/useExposureOriginRoster.test.tsx (3 tests) 36ms
+ ✓ lib/__tests__/exposureOrigin.test.ts (14 tests) 14ms
+ ✓ lib/__tests__/researchLabAdapter.test.ts (32 tests) 68ms
+ ✓ lib/__tests__/exposureReplayFrames.test.ts (14 tests) 47ms
+ ✓ lib/__tests__/exposureChartLink.test.ts (31 tests) 26ms
+ ✓ lib/__tests__/sectorDepthReturn.test.ts (22 tests) 13ms
+
+ Test Files  17 passed (17)
+      Tests  308 passed (308)
+   Start at  11:49:22
+   Duration  30.84s (transform 8.19s, setup 0ms, collect 16.99s, tests 17.90s, environment 9.91s, prepare 2.18s)
+

@@ -1,0 +1,45 @@
+{
+  "activePacketSource": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "conflicts": [
+    "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png",
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+    "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+    "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+    "terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml"
+  ],
+  "dependencyPostimages": {
+    "terminal/components/ChartBoatsStatus.tsx": {
+      "after": "8b1abefc29b5c87edb7f71576b3bf554e28ff261",
+      "before": "496e3b81501cec2fb97f36651e249f16b6b9cd83",
+      "sourceCommit": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d"
+    },
+    "terminal/lib/extQuoteCopy.ts": {
+      "after": "7c59a47e2ca86074ee657ff3c10d285f5a6f8e65",
+      "before": "8e1e80849233a6f38371e1e8e07726bb0eefbcb4",
+      "sourceCommit": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d"
+    }
+  },
+  "head": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+  "historicalCounts": {
+    "original": 78,
+    "protected": 78
+  },
+  "historicalFilesPreserved": 156,
+  "historicalInventorySha256": "b300b428fdc3cee254d3c51114e163ef01c240ea90bb3c6ff8ab646eff60138a",
+  "mergeExit": 1,
+  "mergeStderr": "",
+  "mergeStdout": "Auto-merging terminal/components/ChartFrameBar.tsx\nAuto-merging terminal/components/ChartPane.tsx\nAuto-merging terminal/components/ChartPanel.tsx\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/options-level-axis-labels/desktop.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/options-level-axis-labels/desktop.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/options-level-axis-labels/desktop.png\nAuto-merging terminal/docs/pr-crops/options-level-axis-labels/manifest.json\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/options-level-axis-labels/manifest.json\nwarning: Cannot merge binary files: terminal/docs/pr-crops/options-level-axis-labels/tablet.png (HEAD vs. 04989d7a9b4e235b9a4c056c9f2f60c5d5008d39)\nAuto-merging terminal/docs/pr-crops/options-level-axis-labels/tablet.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/options-level-axis-labels/tablet.png\nAuto-merging terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml\nAuto-merging terminal/e2e/drawing-system.spec.ts\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "originalOperation": "terminal-pr-duty-20261110-632-protected-successor",
+  "protectedMaster": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "publishedDependency": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+  "resolvedAt": "2026-11-10T08:37:05.190242+00:00",
+  "schema": "terminal_pr632_protected_composition.v1",
+  "sourceTreeBeforeProof": "ac783093b294d182784550f4acdcdbacf1ecf5d9",
+  "startedAt": "2026-11-10T08:36:57.121431+00:00",
+  "state": "CONFLICTS_RESOLVED_PENDING_SOURCE_AND_PROOF_QUALIFICATION"
+}

@@ -1,0 +1,11 @@
+{"head":"793dd27a1bc88fe2bcf86fa2de9962034b0769a2","script":"capture_b_f12_b5_3_account_completeness.cjs","scriptSha256":"3971f7950bf65fbbb5c0270a84fe7ee8fced30fa131833c0d6fe9fa535808c00","baseURL":"http://127.0.0.1:3391","adaptation":"reuse existing preview; no spawn/termination; original checks preserved"}
+capture desktop-en-overview.png … ok
+capture desktop-zh-overview.png … ok
+capture desktop-en-password.png … ok
+capture desktop-zh-password.png … ok
+capture mobile-en-overview.png … ok
+capture mobile-zh-overview.png … ok
+capture mobile-en-password.png … ok
+capture mobile-zh-password.png … ok
+capturedAtHead 793dd27a1bc88fe2bcf86fa2de9962034b0769a2
+wrote 8 crops + EVIDENCE.yml to /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-beta-profile-settings-crash-20261108/terminal/docs/pr-crops/b-f12-b5-3-account-completeness

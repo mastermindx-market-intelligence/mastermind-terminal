@@ -1,0 +1,128 @@
+{
+  "chrome": "149.0.7827.55",
+  "lightMode": "SIMULATED_TOKEN_COMPATIBILITY_ONLY",
+  "productionAccepted": false,
+  "scenarios": [
+    {
+      "background": "rgb(13, 15, 19)",
+      "columns": 1,
+      "contrast": 13.7,
+      "foreground": "rgb(214, 218, 227)",
+      "lang": "en",
+      "scrollWidth": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "background": "rgb(13, 15, 19)",
+      "columns": 1,
+      "contrast": 13.7,
+      "foreground": "rgb(214, 218, 227)",
+      "lang": "zh",
+      "scrollWidth": 390,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "background": "rgb(255, 255, 255)",
+      "columns": 1,
+      "contrast": 16.35,
+      "foreground": "rgb(23, 32, 47)",
+      "lang": "en",
+      "scrollWidth": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "background": "rgb(255, 255, 255)",
+      "columns": 1,
+      "contrast": 16.35,
+      "foreground": "rgb(23, 32, 47)",
+      "lang": "zh",
+      "scrollWidth": 390,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "background": "rgb(13, 15, 19)",
+      "columns": 1,
+      "contrast": 13.7,
+      "foreground": "rgb(214, 218, 227)",
+      "lang": "en",
+      "scrollWidth": 768,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "background": "rgb(255, 255, 255)",
+      "columns": 1,
+      "contrast": 16.35,
+      "foreground": "rgb(23, 32, 47)",
+      "lang": "zh",
+      "scrollWidth": 768,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "background": "rgb(13, 15, 19)",
+      "columns": 3,
+      "contrast": 13.7,
+      "foreground": "rgb(214, 218, 227)",
+      "lang": "en",
+      "scrollWidth": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "background": "rgb(13, 15, 19)",
+      "columns": 3,
+      "contrast": 13.7,
+      "foreground": "rgb(214, 218, 227)",
+      "lang": "zh",
+      "scrollWidth": 1440,
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "background": "rgb(255, 255, 255)",
+      "columns": 3,
+      "contrast": 16.35,
+      "foreground": "rgb(23, 32, 47)",
+      "lang": "en",
+      "scrollWidth": 1440,
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "background": "rgb(255, 255, 255)",
+      "columns": 3,
+      "contrast": 16.35,
+      "foreground": "rgb(23, 32, 47)",
+      "lang": "zh",
+      "scrollWidth": 1440,
+      "theme": "light",
+      "width": 1440
+    }
+  ],
+  "sourceFixtures": [
+    {
+      "bytes": 3394,
+      "file": "tp2PrivateView.synthetic.v0.json",
+      "sha": "8c1ee4f865566f013d7a5805fccdd11c031223d39c6d8ec6b66968cbdc35f60b"
+    },
+    {
+      "bytes": 1541,
+      "file": "tp2R0Sidecar.synthetic.v0.json",
+      "sha": "fe03401a908d26230aa6f8426f9dd9318249a0cdd2eac256ed93786a0a48b715"
+    }
+  ],
+  "stateCases": [
+    "source_absent",
+    "corrected_stale",
+    "partial_rth",
+    "cross_symbol_r0",
+    "corrected_zh"
+  ],
+  "status": "OFFLINE_TP2_RESPONSIVE_BROWSER_FIXTURE_PASS",
+  "unauthorizedDom": "WITHHELD"
+}

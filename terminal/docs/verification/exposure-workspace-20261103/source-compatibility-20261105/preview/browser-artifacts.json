@@ -1,0 +1,242 @@
+[
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png",
+    "sha256": "c571de9188c734ed66997fe24db3f990742e657ed4a6a8e6cacec13fa4d322f2",
+    "bytes": 270940
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png",
+    "sha256": "ca536b6faaf1c2d2a524a1490b86d0bcf01aaf896c078257eda4288cde26213a",
+    "bytes": 242887
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png",
+    "sha256": "8b374009cb35106d85ab71fd22d29162d74b27eb9ab1987dece0ded082d90eb4",
+    "bytes": 279361
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png",
+    "sha256": "f6a3a209085dfbcf53f65aba376b80ca28ee78850de7f1e323025d0989107dac",
+    "bytes": 227174
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/trace.zip",
+    "sha256": "825e5b44122b1d1f5f8de0c97cc20bd80df53f950a638a75b26b914d2ecfb5f7",
+    "bytes": 3003214
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png",
+    "sha256": "aa1afeec5caad0bb176ab618badc0823a02e9018e2a2771e94cf362771a1ec54",
+    "bytes": 105884
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png",
+    "sha256": "5ffffdcfdaaa4719ff23b9b9c8654dcbe6a634ddd12ac5dde51b475dd5d5d929",
+    "bytes": 108913
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png",
+    "sha256": "24513b14850b9c25a4fb2a4842b3604ca697950c62eb4d58ff57487697d6aec1",
+    "bytes": 116217
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png",
+    "sha256": "4f536f7ab7abecb861614b2c81e67acc3a5876ec0c07c633d711b3fc04c01d68",
+    "bytes": 111710
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/trace.zip",
+    "sha256": "393f607003a6c6eb08992ccf87612c82d7c6b6911e838b8b5a4967c3aea08d60",
+    "bytes": 2681099
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png",
+    "sha256": "c0b586f5e5614dd6711e2631ddcae4f5e99082c073da7b152a8c01a6da6c02fe",
+    "bytes": 214459
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png",
+    "sha256": "60fa8610a6038da7bbd0d277706259647ecb419ed08941e87c7c6eb748ab4289",
+    "bytes": 186977
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png",
+    "sha256": "7ace6f14be80ed066ac21cb76ca4bb075dd5c7d08e680c4bc789b25d3907600b",
+    "bytes": 184478
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png",
+    "sha256": "53a8d7520340db9673601a81aeac7770a42bdcaf562973274ef5d530d9c1c8d0",
+    "bytes": 184524
+  },
+  {
+    "path": "browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/trace.zip",
+    "sha256": "ff7bd8fd07f3b3dc89067973215f464b9614d2302ebccd6cd98de58c4f0b2fbe",
+    "bytes": 2521456
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "6dcd5133b67928ed05108e9cc5dc9cf46ad2cead829e2332029b7a6bf1ab4418",
+    "bytes": 967750
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "475480bb484eae605ddbed07b64c31fd9465302a12b810e7be7bfadb873217bf",
+    "bytes": 1021220
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png",
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png",
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "89dcd3f22bdeeb6f7ac6cf507187138bd0d97f686c060544149a87ff174fd093",
+    "bytes": 1095369
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png",
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png",
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png",
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "be3f5345f56e14a425fc80859da42938bdc4a40f5d3682e5fbf22720d97679ee",
+    "bytes": 950349
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png",
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png",
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "2695b43b91e6ac57a57d556487c83fce92703e50604bb8e902c25c4a50c51896",
+    "bytes": 1184944
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png",
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png",
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "ef61af8e552b68feb8ec47c720bede52b2a75880a669c3b15d2259b63ffc7357",
+    "bytes": 1093226
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png",
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip",
+    "sha256": "0bb1d1e90aeb72a649b8bbf18ad0fb3f70e5c0aded43e590c185a5c6e2e9741f",
+    "bytes": 1019382
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png",
+    "sha256": "ad4ca288dec696445f30ec73039acdc3e44ba70d0dbe536a64383e1673077a88",
+    "bytes": 42953
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip",
+    "sha256": "3cc0809ecaeeede6edf9315b02db883dfb7becc8886308b8e7af043f7d0cecbb",
+    "bytes": 1092959
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png",
+    "sha256": "10fd463611114e7015a101e9de602855beabdfc3cb51e740fad1a8b5a0553bfd",
+    "bytes": 93534
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip",
+    "sha256": "906735d8a80af457b61d3e196bdd1dcbd71525f69ecad241d0913a5577b57107",
+    "bytes": 1002603
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png",
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip",
+    "sha256": "17d423a435d8a3152565fb6953a1cdf4e1a03c349e4815316c44475927d3d872",
+    "bytes": 702634
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png",
+    "sha256": "471affc361925c8fd47b39c8c1eb887176524cae55e6b77be4f422031d99ad7a",
+    "bytes": 39858
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip",
+    "sha256": "975974e48e23f034eed2db407cdbc0064a272b2817087655a2ef2057126e8f85",
+    "bytes": 777486
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png",
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  {
+    "path": "browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip",
+    "sha256": "134cc14d7fa96e113a5a3496889f7939dd6c92f1cbd579a74b4f51e415bae615",
+    "bytes": 820907
+  },
+  {
+    "path": "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-desktop/trace.zip",
+    "sha256": "9e2d6628d6e427c67ae1c9ffc44e422c5759afd068dfbe20d107ac01449d73c2",
+    "bytes": 1141902
+  },
+  {
+    "path": "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-mobile/trace.zip",
+    "sha256": "e5e4ab48dfd3d72f3c0f3d2c79465e44ef7af5e12257dd829e5cba08b9813de3",
+    "bytes": 1224007
+  },
+  {
+    "path": "browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-tablet/trace.zip",
+    "sha256": "3e28122ccbd86c3bb837d6eeecfde66af4edcc93cc2e2a8947ac15ca8217a9dc",
+    "bytes": 1202182
+  }
+]

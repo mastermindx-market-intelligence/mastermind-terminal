@@ -151,7 +151,7 @@ function guestOk(upstreamPath: string): boolean {
 // The caller decides what null means per path. We NEVER read or forward a client-supplied
 // Authorization header — the only Bearer this proxy sends is one minted here from the
 // server-verified session.
-async function sessionToken(): Promise<string | null> {
+async function sessionIdentity(): Promise<{ token: string; principal: string } | null> {
   const supabase = await createClient();
   const {
     data: { session },
@@ -160,7 +160,7 @@ async function sessionToken(): Promise<string | null> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!session || !user) return null;
-  return session.access_token;
+  return { token: session.access_token, principal: user.id };
 }
 
 // Resolve auth for a resolved upstream path: return the outbound headers to attach
@@ -170,8 +170,9 @@ async function sessionToken(): Promise<string | null> {
 async function authHeaders(
   req: Request,
   upstreamPath: string,
-): Promise<{ headers: Record<string, string> } | { error: Response }> {
-  const token = await sessionToken();
+): Promise<{ headers: Record<string, string>; principal: string | null } | { error: Response }> {
+  const identity = await sessionIdentity();
+  const token = identity?.token;
   if (!token && !guestOk(upstreamPath)) {
     return {
       error: NextResponse.json({ error: "unauthenticated" }, { status: 401 }),
@@ -179,7 +180,7 @@ async function authHeaders(
   }
   const headers: Record<string, string> = { ...idHeaders(req) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  return { headers };
+  return { headers, principal: token ? identity!.principal : null };
 }
 
 // SSE / JSON pass-through: relay upstream status + body untouched. Streaming bodies
@@ -284,6 +285,19 @@ export async function POST(
   const body = await req.text();
   if (body.length > maxBody) {
     return NextResponse.json({ error: "payload_too_large" }, { status: 413 });
+  }
+
+  // An Options selector is stateless and cannot cross an account change between
+  // staging and send. Treat the header only as an expectation, never authority.
+  if (upstreamPath === "stream") {
+    let parsed: unknown;
+    try { parsed = JSON.parse(body); } catch { /* Gateway retains malformed-body handling. */ }
+    if (parsed && typeof parsed === "object" && Object.prototype.hasOwnProperty.call(parsed, "options_question_reference")) {
+      const expected = req.headers.get("x-mm-options-principal");
+      if (!auth.principal || expected !== auth.principal) {
+        return NextResponse.json({ error: "options_question_principal_mismatch" }, { status: 403 });
+      }
+    }
   }
 
   try {

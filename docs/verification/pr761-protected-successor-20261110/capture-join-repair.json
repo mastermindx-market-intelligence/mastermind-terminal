@@ -1,0 +1,14 @@
+{
+  "harnessScope": "Existing actual VI entrypoint VM extended with real font preparation; actual PL6 main tested only through mocked artifact/process boundaries and wait stop. No server/browser/artifact is started by those unit cases.",
+  "originPolicy": "Exact historical33961/33962 plus current incumbent3536/3537; protocol/host/credentials/path/query/hash and byte/face constraints unchanged.",
+  "priorHarnessFailure": "test-harness-reconciliation.json",
+  "recordedAt": "2026-11-10T17:55:13.143867+00:00",
+  "redReceipt": "origin-red-valid-execution.json",
+  "schema": "terminal_pr761_capture_join_repair.v1",
+  "sourceSha256": {
+    "terminal/e2e/tools/capture_visual_evidence.test.cjs": "812771117958f0d28b3478a8ca69364722572b26ba9d826b728694c665b00a43",
+    "terminal/e2e/tools/retainedFontFixture.cjs": "4f30a3515522041d35558d204710fec7cb80630c938bf9edd8b099c3018f28b9",
+    "terminal/e2e/tools/retainedFontFixture.test.cjs": "fe0f9f42cd65963ef3faece731b850c55f0e3b7ccc7dd58b628a3abe132f4fd5"
+  },
+  "state": "CAPTURE_ORIGIN_AND_HANDOFF_REPAIR_APPLIED"
+}

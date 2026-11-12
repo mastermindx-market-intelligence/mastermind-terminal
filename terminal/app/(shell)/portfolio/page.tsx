@@ -1,9 +1,13 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL, SHARED_SHELL_DEV_SUBJECT } from "@/lib/shared-shell/devOpen";
 import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
 import SignupGate from "@/components/gates/SignupGate";
 import { readPositions } from "@/lib/portfolio";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+
+export const metadata = workspaceMetadata("Portfolio", "Mastermind Terminal");
 
 // W5: this page is the user's REAL portfolio.
 //
@@ -48,6 +52,19 @@ export default async function PortfolioPage() {
   }
 
   const supabase = await createClient();
+  // Beta development mode (lib/shared-shell/devOpen.ts): the shared development
+  // subject's own RLS-visible book (typically empty), with no auth read at all.
+  if (isSharedShellDevOpen()) {
+    const read = await readPositions(supabase as never, SHARED_SHELL_DEV_SUBJECT);
+    return (
+      <PortfolioViewMount
+        positions={read.ok ? read.positions : []}
+        unreadable={!read.ok}
+        userId={SHARED_SHELL_DEV_SUBJECT}
+        email={SHARED_SHELL_DEV_EMAIL}
+      />
+    );
+  }
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <SignupGate surface="portfolio" />;
 

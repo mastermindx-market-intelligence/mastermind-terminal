@@ -7,6 +7,7 @@ import { fmtDate, pick } from "../../lib/finFormat";
 import { getTx, transcriptBodyUrl, type Transcript } from "../../lib/fund";
 import { canonicalTranscriptBodySha256, classifyTranscriptQaChapter, type TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { acquireScrollLock } from "../../lib/scrollLock";
+import styles from "./TranscriptDrawer.module.css";
 
 export interface TranscriptDrawerProps {
   sym: string;
@@ -18,6 +19,13 @@ export interface TranscriptDrawerProps {
 }
 
 type Section = "all" | "prepared" | "qa";
+interface CopyFeedback {
+  owner: string;
+  attempt: number;
+  key: string;
+  state: "pending" | "success" | "error";
+}
+
 interface TranscriptLoad {
   key: string;
   transcript: Transcript | null;
@@ -56,7 +64,11 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
   const [query, setQuery] = useState(() => focus?.query ?? "");
   const [section, setSection] = useState<Section>("all");
   const [speaker, setSpeaker] = useState("all");
-  const [copied, setCopied] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback | null>(null);
+  const copyAttemptRef = useRef(0);
+  const copyTimerRef = useRef<number | undefined>(undefined);
+  const currentCopy = copyFeedback?.owner === requestKey ? copyFeedback : null;
+  const copied = currentCopy?.state === "success" ? currentCopy.key : null;
   const modalRootRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -187,13 +199,27 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
     target.focus({ preventScroll: true });
   }, [focus?.expected_document_sha256, focus?.segment_index, id, load.error, sym, tx]);
 
+  useEffect(() => () => {
+    // A closed or changed reader cannot receive a previous copy result.
+    copyAttemptRef.current += 1;
+    window.clearTimeout(copyTimerRef.current);
+  }, [requestKey]);
+
   async function copyText(value: string, key: string) {
+    const attempt = ++copyAttemptRef.current;
+    const feedback = { owner: requestKey, attempt, key };
+    window.clearTimeout(copyTimerRef.current);
+    setCopyFeedback({ ...feedback, state: "pending" });
     try {
       await navigator.clipboard.writeText(value);
-      setCopied(key);
-      window.setTimeout(() => setCopied((current) => current === key ? null : current), 1600);
+      if (copyAttemptRef.current !== attempt) return;
+      setCopyFeedback({ ...feedback, state: "success" });
+      copyTimerRef.current = window.setTimeout(() => {
+        if (copyAttemptRef.current === attempt) setCopyFeedback(null);
+      }, 1600);
     } catch {
-      setCopied(null);
+      if (copyAttemptRef.current !== attempt) return;
+      setCopyFeedback({ ...feedback, state: "error" });
     }
   }
 
@@ -261,6 +287,11 @@ export default function TranscriptDrawer({ sym, id, name, focus, onClose }: Tran
                 <button onClick={copyDeepLink}>{copied === "link" ? pick(zh, "Copied", "已复制") : pick(zh, "Copy link", "复制链接")}</button>
               </span>
             </div>
+            <p className={styles.copyStatus} role="status" aria-live="polite" aria-atomic="true">
+              {currentCopy?.state === "error" && (
+                <span key={currentCopy.attempt}>{pick(zh, "Couldn’t copy. Try the copy button again.", "复制失败，请再次点击复制按钮。")}</span>
+              )}
+            </p>
           </div>
         )}
 

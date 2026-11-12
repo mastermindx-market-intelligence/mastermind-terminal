@@ -1,0 +1,24 @@
+.retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;
+  min-height: 44px;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-3, var(--line));
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.retry:hover { background: var(--panel-2); }
+.retry:focus-visible { outline: 2px solid var(--info, var(--brand-2)); outline-offset: 3px; }
+
+.cell:focus-visible { outline: 2px solid var(--info, var(--brand-2)); outline-offset: -2px; }

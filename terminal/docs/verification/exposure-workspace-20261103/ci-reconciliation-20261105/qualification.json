@@ -1,0 +1,82 @@
+{
+  "schema": "exposure_ci_reconciliation.v1",
+  "published_parent": "0182a45abccb9c0e77b2c8e4626431e89635b35f",
+  "ci": {
+    "run": 41965639438,
+    "job": 127041886722,
+    "event": "pull_request",
+    "attempt": 1,
+    "unit_passed": 18741,
+    "unit_failed": 1,
+    "unit_skipped": 50,
+    "unit_todo": 4,
+    "sole_failure": "Historical test-output collision with the account-boundary source inventory."
+  },
+  "repair": {
+    "runtime_changes": false,
+    "guard_changes": false,
+    "original_log_sha256": "8dd94ee8e8fe5165c59978e1c34c1101a3f385e51d1eee8518fa25121fc2cbd1",
+    "archive_sha256": "db675bf99967e7ed6ef84f52e9f3b31cdf7992986fe79141de210e2e41b1730d",
+    "integration_package_index_sha256": "1446f14888638ad012ca3ed230513e8ff8c63872b1f7df5cd85dfba3e2e963f1"
+  },
+  "verification": {
+    "account_boundary_passed": 28,
+    "native_reader_and_selection_passed": 32,
+    "focused_lint_exit": 0,
+    "shared_helper_sha256": "a5e787f6508e61df7b329a276aa529993c01fcf30acc9f39b2fdb09ebb590004",
+    "previous_reader_sha256": "a9cb5cdaa66655ea6209873432d0f3977c2921766b0c1040b6fedaada8ec3e18",
+    "joint-reader-final-unit_receipt_sha256": "573a6d2219388998187d0af5f82657fd126d920dfc57627cf61839831d77f11c",
+    "joint-reader-final-lint_receipt_sha256": "dc546d2f29efe7323ee11172d3c5f1d147fd84a0e8a826af71f778e678c62cf0"
+  },
+  "archives": {
+    "account-boundary-after-archive.log": {
+      "raw_sha256": "c67148ba3d98160f2304112314abc02885793009273d5a0507c7c2009870dd5b",
+      "raw_bytes": 1503,
+      "archive": "account-boundary-after-archive.log.gz",
+      "archive_sha256": "f2b62db6839c817d65d73fbe58728eb74a90aef29beb4967fa6f8bd785f010da",
+      "archive_bytes": 773,
+      "lossless_decompression_verified": true
+    },
+    "joint-reader-exposure-unit.log": {
+      "raw_sha256": "2c2dc559f658274750ca080166581df4eca3160c1474f94baca6929975b10f8b",
+      "raw_bytes": 2920,
+      "archive": "joint-reader-exposure-unit.log.gz",
+      "archive_sha256": "e303a4fe2fb42b0b510495f3b1ce3456bda8a81acf0e746828f165878d726266",
+      "archive_bytes": 824,
+      "lossless_decompression_verified": true
+    },
+    "joint-reader-lint.log": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "archive": "joint-reader-lint.log.gz",
+      "archive_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "archive_bytes": 20,
+      "lossless_decompression_verified": true
+    },
+    "ci-41965639438-job127041886722.log": {
+      "raw_sha256": "7b5fa516a9eac007df432e184e776fba64f8542aa34d8f28e4ba1dd77700d32a",
+      "raw_bytes": 442577,
+      "archive": "ci-41965639438-job127041886722.log.gz",
+      "archive_sha256": "395f167c5a0bf0dc02c888eb1cb5a68bccefd3fd82ba0823bf03dd922c330223",
+      "archive_bytes": 66469,
+      "lossless_decompression_verified": true
+    },
+    "joint-reader-final-unit.log": {
+      "raw_sha256": "6038da3105ce9fd81723d33708a5a290889e8e9996c8de256129a0ac9780de59",
+      "raw_bytes": 681,
+      "archive": "joint-reader-final-unit.log.gz",
+      "archive_sha256": "df63e318f9eaea2615dc1622912a360b373188950c0546c13ab27b11d9a078e4",
+      "archive_bytes": 437,
+      "lossless_decompression_verified": true
+    },
+    "joint-reader-final-lint.log": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "archive": "joint-reader-final-lint.log.gz",
+      "archive_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "archive_bytes": 20,
+      "lossless_decompression_verified": true
+    }
+  },
+  "stage": "Local repair verified; successor commit and actual PR CI are distinct later stages."
+}

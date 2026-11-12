@@ -86,7 +86,7 @@
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  padding: 4px 4px 4px 10px;
+  padding: 0 0 0 10px;
   white-space: nowrap;
 }
 .chipAnchor {
@@ -108,8 +108,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   border: none;
   border-radius: 50%;
   background: transparent;
@@ -121,6 +122,22 @@
 .chipRemove:focus-visible {
   color: var(--text);
   background: var(--panel-3);
+}
+
+.chipRemove:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: -4px;
+}
+
+.addInput,
+.addBtn {
+  min-height: 44px;
+}
+
+.chipRemove,
+.addInput,
+.addBtn {
+  scroll-margin-block: 24px 96px;
 }
 
 .addForm {
@@ -438,12 +455,6 @@
 }
 
 @media (pointer: coarse) {
-  .chipRemove {
-    width: 32px;
-    height: 32px;
-  }
-  .addInput,
-  .addBtn,
   .metricChip,
   .retry,
   .close {

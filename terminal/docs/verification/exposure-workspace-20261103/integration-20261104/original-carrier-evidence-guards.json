@@ -1,0 +1,12 @@
+{
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "--minWorkers=1",
+    "--maxWorkers=2"
+  ],
+  "logSha256": "b2a963fb544d5d5f5751f61ca8564020f5eda48d7e1102c8b82b58ae62e767e9"
+}

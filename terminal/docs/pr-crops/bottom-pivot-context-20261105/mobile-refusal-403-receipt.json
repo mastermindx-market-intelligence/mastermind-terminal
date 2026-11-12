@@ -1,0 +1,23 @@
+{
+  "fixture": true,
+  "production": false,
+  "route": "/analysis?symbol=AAPL&page=technicals",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "variant": "refusal-403",
+  "geometry": {
+    "width": 366,
+    "height": 310.734375,
+    "background": "rgb(13, 15, 19)",
+    "theme": "dark",
+    "lang": "en",
+    "documentOverflow": 0
+  },
+  "fixedClock": "2026-11-05T22:00:00Z",
+  "footerUncovered": true,
+  "themePolicy": "native-dark-only: DEC-TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+  "source": "Python-composer fixture from Macro PR10785; browser route intercepted",
+  "requestsOnStartup": 0
+}

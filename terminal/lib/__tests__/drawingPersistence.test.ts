@@ -192,6 +192,74 @@ it("writing a stored copy selected over an unsaved edit keeps the unsaved copy s
  expect([left,...left.alternatives??[]].map(c=>c.drawings[0].id)).toEqual(["unsaved"]);
 });
 
+// An edit that never reached storage, reconciled beside another tab's unsaved
+// copy X, then X selected over it.
+const selectOtherTabCopy=async()=>{
+ const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+ const otherTab:import("@/lib/drawingPersistence").DrawingJournal={NVDA:{drawings:[line("other-tab")],revision:null}};
+ await persist(storage,otherTab);
+ const other=otherTab.NVDA.recoveryId!;
+ journal.NVDA={drawings:[line("unsaved")],revision:null};
+ expect(await writeDrawingJournal(storage,"account:a",journal,null)).toBe(false);
+ reconcileDrawingJournal(storage,"account:a",journal);
+ selectDrawingRecoveryCopy(journal,"NVDA",other);
+ return {storage,journal,other,otherTab};
+};
+const storedIds=(storage:MemoryStorage)=>{const entry=readDrawingJournal(storage,"account:a").NVDA;return entry?[entry,...entry.alternatives??[]].map(c=>c.drawings[0].id).sort():[];};
+
+it("discarding a stored copy selected over an unsaved edit before any write keeps the unsaved copy stored",async()=>{
+ const {storage,journal,other}=await selectOtherTabCopy();
+ delete journal.NVDA;await persist(storage,journal);
+ expect(retiredIds(storage)).toContain(other);
+ expect(storedIds(storage)).toEqual(["unsaved"]);
+ expect(refreshDrawingJournalSymbol(storage,"account:a",journal,"NVDA")?.drawings[0].id).toBe("unsaved");
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["unsaved"]);
+});
+
+it("keeping a stored copy selected over an unsaved edit before any write keeps the unsaved copy stored",async()=>{
+ const {storage,journal,other}=await selectOtherTabCopy();
+ delete journal.NVDA.alternatives;journal.NVDA.revision=revision;
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["other-tab","unsaved"]);
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["other-tab","unsaved"]);
+ expect(retiredIds(storage)).not.toContain(other);
+});
+
+it("another tab acknowledging the copy selected over an unsaved edit keeps the unsaved copy stored",async()=>{
+ const {storage,journal,other,otherTab}=await selectOtherTabCopy();
+ delete otherTab.NVDA;await persist(storage,otherTab);
+ expect(retiredIds(storage)).toContain(other);
+ await persist(storage,journal);
+ // The acknowledged copy still leaves memory without a replacement copy.
+ expect(journal.NVDA).toBeUndefined();
+ expect(storedIds(storage)).toEqual(["unsaved"]);
+ expect(refreshDrawingJournalSymbol(storage,"account:a",journal,"NVDA")?.drawings[0].id).toBe("unsaved");
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["unsaved"]);
+});
+
+it("an unsaved copy dropped by a discard whose write failed survives owner re-entry",async()=>{
+ const {storage,journal,other}=await selectOtherTabCopy();
+ delete journal.NVDA;
+ expect(await writeDrawingJournal(storage,"account:a",journal,null)).toBe(false);
+ reconcileDrawingJournal(storage,"account:a",journal);
+ // The discard never committed, so the selected copy is back for a choice.
+ expect(journal.NVDA.recoveryId).toBe(other);
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["other-tab","unsaved"]);
+});
+
+it("owner re-entry after a selection stores the unsaved copy once",async()=>{
+ const {storage,journal}=await selectOtherTabCopy();
+ reconcileDrawingJournal(storage,"account:a",journal);
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["other-tab","unsaved"]);
+ await persist(storage,journal);
+ expect(storedIds(storage)).toEqual(["other-tab","unsaved"]);
+});
+
 it("writing a stored copy selected over a forked memory copy keeps the fork stored beside it",async()=>{
  const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("memory-old")],revision:null}});
  const memory=readDrawingJournal(storage,"account:a"),other=readDrawingJournal(storage,"account:a");

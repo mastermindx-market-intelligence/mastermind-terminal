@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { R2_BASE } from "@/lib/upstreams";
 import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, resolveRetainedEventWorkspaceFromR2, authorizeRetainedPublicEventContext, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
+import { investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
 const response = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
 export async function GET(request: Request) {
+  const unavailable = investigationApiUnavailable();
+  if (unavailable) return unavailable;
   try {
     const db = await createClient();
     const { data: { user }, error } = await db.auth.getUser();

@@ -1,0 +1,10 @@
+{
+  "protected": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "ancestor": "350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+  "paths": [
+    "terminal/lib/dataCache.ts",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  ],
+  "scope": "Only existing capture dependency and harness changes that native PR integration will include."
+}

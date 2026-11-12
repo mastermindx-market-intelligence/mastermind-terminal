@@ -14,7 +14,7 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
@@ -22,6 +22,7 @@ const { chromium, expect } = require("@playwright/test");
 const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 const evidence = require("./visualEvidence.cjs");
 const { waitForFixtureServer } = require("./fixtureServerWait.cjs");
+const { captureOptions, startLegacyServer, settleLegacyServer } = require("./capture_ci_evidence.cjs");
 const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
 let immutablePng = null;
 let immutableFonts = null;
@@ -35,8 +36,10 @@ const LAYOUT_FILES = [
   "terminal/components/OptionsHubView.tsx",
   "terminal/components/SearchModal.tsx",
   "terminal/components/StockAnalysis.tsx",
+  "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
   "terminal/components/ChartPanel.tsx",
+  "terminal/lib/pricePaneSvgScope.ts",
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
@@ -74,43 +77,7 @@ function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...evidence.fonts.environment(process.env),
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", ...(process.env.TERMINAL_EVIDENCE_COMPILER === "webpack" ? ["--webpack"] : []), "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready in/.test(line)) child.captureReady = true;
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
+function startServer() { return startLegacyServer(ROOT, PORT); }
 
 function ownedServer(child) {
   if (!child || child.exitCode !== null || child.signalCode !== null) throw new Error("CAPTURE_SERVER_EXITED");
@@ -369,8 +336,13 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  // Bind the declared compiler and retained bytes before the incumbent launcher starts.
+  Object.assign(process.env, evidence.captureEnvironment(process.env));
+  const captureOptionsAxis = process.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1";
+  if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
   const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  if (captureOptionsAxis && (!operation || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_OWNED_CAPTURE");
   const executionRows = [];
   const child = startServer();
   const files = [];
@@ -421,8 +393,9 @@ async function main() {
     } finally {
       await browser.close();
     }
+    if (captureOptionsAxis && failed === 0) await captureOptions({ server: child, ownedServer, baseURL: BASE, terminal: ROOT });
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   if (operation && failed) evidence.writePayload(operation, "failed-execution.json", Buffer.from(evidence.canonical({ schema: "terminal.pl6-execution.v1", cases: executionRows, failed })));

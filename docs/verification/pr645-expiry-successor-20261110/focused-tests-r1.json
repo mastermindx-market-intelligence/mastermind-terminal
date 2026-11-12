@@ -1,0 +1,20 @@
+{
+  "schema": "terminal_pr645_focused_validation.v1",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "vitest",
+    "run",
+    "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "lib/__tests__/optionsExposureEvidence.test.ts",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/expirySourceToView.test.tsx",
+    "lib/__tests__/expiryTermStructure.test.ts",
+    "lib/__tests__/gexExpiryPopulation.test.tsx"
+  ],
+  "exitCode": 1,
+  "seconds": 37.41,
+  "logSha256": "dd919121eca91568477e44f163dc3c323176fd47d22b1c6905310ab12e506d64"
+}

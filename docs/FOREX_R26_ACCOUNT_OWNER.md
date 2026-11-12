@@ -1,5 +1,13 @@
 # Forex R26 inactive account conditions
 
+## Current delivery status — 21 October 2026
+
+Migration 0038 was applied once and catalog-verified at 17:39–17:40 UTC; the full receipt was posted/read back on PR #1100 before the ledger update. PR #1100 then landed alone as squash `5f14b35c18d8f9f70e8f0d381963dee98e59a521` at 2026-10-21T19:11:55Z. The first subsequent master merge, PR #1103 (`eb752cd653f3add2aa67cdcc7b588dae13c86843`), already reconciled 0038 in the shared ledger. This documentation follow-up preserves that accepted ledger and README byte-for-byte, including the later 0039 reservation, and does not claim to perform the first ledger update. The former operator-context dependency is resolved. See [the current application and release handoff](verification/forex-r26/0038-operator-handoff.md) and [the original complete application receipt](verification/forex-r26/0038-apply-receipt.json). Deployment and real-account acceptance are separate from these source/application facts. Finalized 4H admission, activation, evaluation and notification delivery remain outstanding.
+
+## Historical qualification and continuation record
+
+The status, unapplied-ledger wording and operator-context next action below describe earlier checkpoints; the current delivery status above supersedes those earlier state observations without rewriting their historical evidence.
+
 Status: exact implementation head 5969bf5 independently passed storage and API/UI reviews. Two hosted evidence-lock failures are repaired by actual affected-surface recapture and targeted guards; hosted CI for the next evidence commit remains separate. Existing production operator context is unresolved; no production DDL, deployed account acceptance, active monitoring or notification proof.
 
 This is the Terminal storage/API portion of the existing Forex R26 program `forex-r26-native-completion-20261020-sol-001`, paired with Macro PR #9866. The managed operation is `forex-r26-account-owner-20261021-sol-002`. It was acquired at `8f00622096d0dc574458c134516e802ce78907ae` and fast-forwarded to `8189edb8abd41e1c95d6460ad735549af5538d48`; the forward delta only reconciled the already-applied Portfolio 0036 ledger. The original branch and workspace remain bound to the same operation.

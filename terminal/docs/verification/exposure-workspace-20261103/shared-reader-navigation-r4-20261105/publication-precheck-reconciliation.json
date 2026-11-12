@@ -1,0 +1,32 @@
+{
+  "schema": "original_publisher_refusal_reconciliation.v1",
+  "operation_id": "exposure-strike-workspace-ux-20261103-c3",
+  "branch": "sol/web-exposure-strike-workspace-ux-20261103-c3",
+  "attempted_local_head": "428fd8a845895f260c4da3f71916455c1fc35b0f",
+  "remote_head_after_refusal": "4624a10e48b348b7298074d28cc26510fb1d6353",
+  "refusal": {
+    "status": "REFUSED",
+    "effect_state": "NOT_APPLIED",
+    "code": "TYPED_GIT_PRECHECK_REFUSED",
+    "structured_error_code": "INVALID_ARGUMENT",
+    "action_ref": null
+  },
+  "original_target_readback": {
+    "local_head": "428fd8a845895f260c4da3f71916455c1fc35b0f",
+    "remote_head": "4624a10e48b348b7298074d28cc26510fb1d6353",
+    "clean_at_readback": true,
+    "ready_to_push": true
+  },
+  "push_was_not_attempted": true,
+  "precise_exception": "Not exposed by installed gateway; no permission denial established.",
+  "optional_repository_omission_readback": {
+    "same_original_operation": true,
+    "same_branch": true,
+    "same_local_and_remote_heads": true
+  },
+  "policy_checks": {
+    "canonical_origin_fetch_and_push_destinations": true,
+    "submodule_policy_permitted": true
+  },
+  "scope": "Original carrier and publication operation retained. No raw push, alternate publisher, force push, ref rewrite, configuration change or modifying retry occurred in diagnosis."
+}

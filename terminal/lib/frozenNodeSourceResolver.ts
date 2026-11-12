@@ -2,6 +2,7 @@
  * A matching canonical JSON VALUE fingerprint is not response-byte identity or authentication.
  */
 import { readFrozenNodeDatedGex } from "./frozenNodeSource";
+import { isUnadmittedGexFamilyArtifact } from "./ndxFamilyAdmission";
 import { createExposureMapReader } from "./exposureMap";
 import { exposureValueFingerprint } from "./exposureChartLink";
 import type { ExposureLens } from "./exposureMapProjection";
@@ -52,6 +53,12 @@ export async function matchFrozenNodeSource(raw: unknown, request: FrozenNodeSou
   try { document = structuredClone(raw); } catch { return unavailable("document_unreadable"); }
   if (!object(document) || document.schema !== "options_hub.gex/v1" || document.root !== expected.root) {
     return unavailable("document_identity_mismatch");
+  }
+  // The frozen transport can read a dated R2 object directly, without the
+  // shared Flow resolver. Apply the same family admission refusal before a
+  // correct fingerprint can bind two settlement roots as one frozen node.
+  if (isUnadmittedGexFamilyArtifact(`gex_at:${expected.root}:${expected.sourceSession}`, document)) {
+    return unavailable("unadmitted_gex_family");
   }
   const asof = document.asof;
   const documentSession = typeof asof === "string" && (isoSession(asof) || fnpInstantMicros(asof) !== null)

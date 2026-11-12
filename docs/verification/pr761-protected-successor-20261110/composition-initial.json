@@ -1,0 +1,16 @@
+{
+  "commonAncestor": "729a781acdb639f9e8ef9aaaba043c7624b6ceda",
+  "conflicts": [
+    "terminal/e2e/tools/capture_pl6_batch1.cjs",
+    "terminal/e2e/tools/capture_visual_evidence.cjs"
+  ],
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "mergeExitCode": 1,
+  "mergeHead": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "originalHead": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+  "recordedAt": "2026-11-10T17:45:16.350355+00:00",
+  "recoveryClaim": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/761#issuecomment-6774708759",
+  "schema": "terminal_pr761_composition_initial.v1",
+  "state": "COMPOSITION_REQUIRES_OWNED_RESOLUTION",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor"
+}

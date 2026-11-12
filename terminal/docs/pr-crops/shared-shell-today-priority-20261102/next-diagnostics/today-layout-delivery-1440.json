@@ -1,0 +1,25 @@
+{
+  "width": 1440,
+  "theme": "dark",
+  "lang": "en",
+  "url": "http://127.0.0.1:3197/_next/static/chunks/app/layout.js",
+  "status": 200,
+  "headers": {
+    "accept-ranges": "bytes",
+    "cache-control": "no-cache, must-revalidate",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/javascript; charset=UTF-8",
+    "date": "Mon, 02 Nov 2026 23:05:16 GMT",
+    "etag": "W/\"233096-1a19e82844e\"",
+    "keep-alive": "timeout=5",
+    "last-modified": "Mon, 02 Nov 2026 23:05:16 GMT",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding"
+  },
+  "deliveredBytes": 2306198,
+  "deliveredSha256": "73e846261986624b3358d33394665f7894f42ab393701db6028c3f2a911af10f",
+  "compilerBytes": 2306198,
+  "compilerSha256": "73e846261986624b3358d33394665f7894f42ab393701db6028c3f2a911af10f",
+  "at": "2026-11-02T23:05:16.414Z"
+}

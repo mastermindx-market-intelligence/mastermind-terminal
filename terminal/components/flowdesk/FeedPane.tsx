@@ -21,7 +21,8 @@ import { FlowCoverageLine } from "./PrintInspector";
 import { trackSearch } from "@/lib/searchTrack";
 import { pick } from "@/lib/finFormat";
 import { FD } from "@/lib/flowdeskStrings";
-import { compareTape, flowCoverage } from "@/lib/flowPrintInspector";
+import type { FlowStreamStatus } from "@/lib/flowStream";
+import { compareTape, feedEvents, flowCoverage } from "@/lib/flowPrintInspector";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
 import { useT } from "@/lib/i18n";
@@ -347,6 +348,16 @@ interface FeedPaneProps {
   feed: FeedPayload | null;
   /** SSE transport state only; never interpreted as producer freshness. */
   connected?: boolean;
+  /** What the last read of the feed key established. Absent = the pre-status
+   *  behavior (a null feed renders the loading skeletons), so callers that do
+   *  not know the read outcome behave exactly as before. */
+  status?: FlowStreamStatus;
+  /** Data held from an earlier read because the latest did not land. Absent =
+   *  derived from `status` (a held feed with an unavailable or absent read). */
+  stale?: boolean;
+  /** Re-read the feed key now. Wired to the Retry affordances of the
+   *  unavailable states; absent = no-op. */
+  onRetry?: () => void;
   /** Strict measured timing is accepted only from live_flow.meta/v2. */
   flowMeta?: unknown;
   enrich: EnrichPayload | null;
@@ -362,6 +373,9 @@ interface FeedPaneProps {
 export function FeedPane({
   feed,
   connected,
+  status,
+  stale,
+  onRetry,
   flowMeta,
   enrich,
   lang,
@@ -372,6 +386,12 @@ export function FeedPane({
 }: FeedPaneProps) {
   const zh = lang === "zh";
   const t = useT();
+  // The hook's `stale` (a held feed whose latest read did not land); callers without it
+  // derive the same fact from the read status.
+  const heldStale = stale ?? (feed !== null && (status === "unavailable" || status === "absent"));
+  // Toolbar state when no feed is held: the same three branches the list draws.
+  const heldCountState: "unavailable" | "absent" | "loading" =
+    status === "unavailable" ? "unavailable" : status === "absent" ? "absent" : "loading";
 
   // Persist preset + sort across page loads
   const [prefs, setPrefs] = useState<PersistedPrefs>(() => loadPrefs());
@@ -492,22 +512,26 @@ export function FeedPane({
 
   // Coverage is computed over EVERY loaded event before the user's filters —
   // unknown premium stays in every denominator (W3A A1).
-  const coverage = useMemo(() => flowCoverage(feed?.events ?? []), [feed]);
+  // The tape is read through the same guard as the session gauge (feedEvents): a
+  // malformed `events` is an empty tape for the coverage line, the expiry options and
+  // the list alike. For an array it is the identity.
+  const loadedEvents = useMemo(() => feedEvents(feed), [feed]);
+  const coverage = useMemo(() => flowCoverage(loadedEvents), [loadedEvents]);
 
   // Distinct expiries present in the feed, ascending — the expiry filter's options.
   const expiryOptions = useMemo(
     () => [...new Set(
-      (feed?.events ?? [])
+      loadedEvents
         .map((ev) => ev.exp)
         .filter((e): e is string => typeof e === "string"),
     )].sort(),
-    [feed],
+    [loadedEvents],
   );
 
   // Filter + sort pipeline (pure derivation from props — no internal state)
   const filtered = useMemo(() => {
     if (!feed) return [];
-    let events = feed.events;
+    let events = loadedEvents;
 
     const enrichEvents = enrich?.events ?? {};
 
@@ -607,7 +631,7 @@ export function FeedPane({
     events = [...events].sort((a, b) => compareTape(a, b, sort));
 
     return events;
-  }, [feed, enrich, search, effectiveFilters, preset, sort]);
+  }, [feed, loadedEvents, enrich, search, effectiveFilters, preset, sort]);
 
   // (Placed after `filtered` — the deps array evaluates at render time, so
   // referencing it above the declaration is a TDZ ReferenceError.)
@@ -641,12 +665,25 @@ export function FeedPane({
     <div className="obs-fd-feed-wrap">
       {/* ── Toolbar ── */}
       <div className="obs-fd-toolbar">
-        {/* N SIGNALS count */}
+        {/* N SIGNALS count. Unknown is not zero: with no feed there is no tape to
+            count, so the held state takes the count's place (the list says why). */}
         <div className="obs-fd-count">
-          <span style={{ color: "var(--signal)", fontWeight: 700 }}>
-            {filtered.length}
-          </span>{" "}
-          {zh ? "信号" : "SIGNALS"}
+          {feed === null ? (
+            <span data-testid="flowfeed-count-held" data-held-state={heldCountState}>
+              {heldCountState === "unavailable"
+                ? pick(zh, FD.countHeldUnavailable.en, FD.countHeldUnavailable.zh)
+                : heldCountState === "absent"
+                  ? pick(zh, FD.countHeldAbsent.en, FD.countHeldAbsent.zh)
+                  : pick(zh, FD.feedLoading.en, FD.feedLoading.zh)}
+            </span>
+          ) : (
+            <>
+              <span style={{ color: "var(--signal)", fontWeight: 700 }}>
+                {filtered.length}
+              </span>{" "}
+              {zh ? "信号" : "SIGNALS"}
+            </>
+          )}
           {feed?.stale && (
             <span
               className="obs-tag"
@@ -734,12 +771,46 @@ export function FeedPane({
 
       {/* ── Coverage line (W3A) — every loaded event, before the user's filters;
           unknown premium stays in the denominator, C/P totals are unsigned ── */}
-      <FlowCoverageLine coverage={coverage} lang={lang} />
+      {/* No feed, no coverage claim: "no eligible premium" describes a tape, and the
+          desk has none (the list carries the held state and its reason). */}
+      {feed !== null && <FlowCoverageLine coverage={coverage} lang={lang} />}
 
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
-        {/* Loading state */}
-        {feed === null && <LoadingState zh={zh} />}
+        {/* A read that did not land is not "still loading": unavailable is a load
+            error with Retry, a 404 is published absence, only an in-flight read
+            keeps the skeletons. Same doctrine as the chain-heat rail. */}
+        {feed === null && status === "unavailable" && (
+          <div style={FEED_LOAD_ERROR} data-testid="flowfeed-load-error" role="alert">
+            <span style={FEED_LOAD_ERROR_TITLE}>{pick(zh, FD.errFeed.en, FD.errFeed.zh)}</span>
+            <span>{pick(zh, FD.feedErrorWhy.en, FD.feedErrorWhy.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
+        {feed === null && status === "absent" && (
+          <div data-testid="flowfeed-absent">{pick(zh, FD.feedAbsent.en, FD.feedAbsent.zh)}</div>
+        )}
+        {/* Loading state (also covers the status-less callers — behavior unchanged) */}
+        {feed === null && status !== "unavailable" && status !== "absent" && <LoadingState zh={zh} />}
+
+        {/* A failed refresh keeps every loaded card and says they are the last read */}
+        {feed !== null && heldStale && status === "unavailable" && (
+          <div className="obs-fd-feed-state" style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-failed" role="status">
+            <span>{pick(zh, FD.feedRefreshFailed.en, FD.feedRefreshFailed.zh)}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={FEED_RETRY_INLINE} onClick={onRetry}>
+              {pick(zh, FD.errRetry.en, FD.errRetry.zh)}
+            </button>
+          </div>
+        )}
+        {/* A held feed whose latest read found nothing published: the cards are the last
+            read, and there is nothing to retry until a feed is published again. */}
+        {feed !== null && heldStale && status === "absent" && (
+          <div className="obs-fd-feed-state" style={FEED_REFRESH_FAILED} data-testid="flowfeed-refresh-absent" role="status">
+            <span>{pick(zh, FD.feedRefreshAbsent.en, FD.feedRefreshAbsent.zh)}</span>
+          </div>
+        )}
 
         {/* Empty state */}
         {feed !== null && filtered.length === 0 && (
@@ -790,6 +861,24 @@ export function FeedPane({
 }
 
 // ── Empty / loading states ────────────────────────────────────────────────────
+
+// Load-error block for a feed read that did not land (CHAIN_LOAD_ERROR shape on
+// the chain-heat rail): neutral card surface, muted text, one Retry.
+const FEED_LOAD_ERROR: React.CSSProperties = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: 16, fontSize: 11, textAlign: "center", color: "var(--muted)",
+};
+const FEED_LOAD_ERROR_TITLE: React.CSSProperties = { color: "var(--text)", fontWeight: 600 };
+// Held-feed note (a failed refresh, or a latest read with nothing published): the
+// loaded cards stay on screen and the note says they are the last read. It is its own
+// full-width row above the cards (.obs-fd-feed-state spans grid-column 1 / -1), on the
+// neutral surface with an even border on every side — no stripe, no fill.
+const FEED_REFRESH_FAILED: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "6px 16px", fontSize: 10, lineHeight: 1.4, color: "var(--warn)",
+  border: "1px solid var(--line-2)", borderRadius: "var(--r-tile)",
+};
+const FEED_RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, flexShrink: 0 };
 
 // Empty-state session tone is resolved by the pure flowFreshness helper using
 // both the ET window and payload session_date, so pre-open/closed/holiday data

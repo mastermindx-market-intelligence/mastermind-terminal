@@ -57,6 +57,8 @@ export const SUITE_ALERT_EVENTS: SuiteAlertEventDef[] = [
   { event: "liq_grab",        suite: "structure", module: "liq",  tier: "pro",       dirs: true, strength: true,  tkey: "suiteEvLiqGrab",       en: "Liquidity grab" },
   { event: "sfp",             suite: "structure", module: "sfp",  tier: "pro",       dirs: true, strength: true,  tkey: "suiteEvSfp",           en: "Swing failure pattern (SFP)" },
   { event: "pd_golden_touch", suite: "structure", module: "pd",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvPdGoldenTouch", en: "Golden zone touch" },
+  { event: "sr_hold",         suite: "structure", module: "sr",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvSrHold",        en: "Support / resistance hold" },
+  { event: "sr_break",        suite: "structure", module: "sr",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvSrBreak",       en: "Support / resistance break" },
   // Trend Waves
   { event: "te_flip",         suite: "trend",     module: "te",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvTeFlip",        en: "Trend Engine flip" },
   { event: "te_power",        suite: "trend",     module: "te",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvTePower",       en: "Trend Engine power move" },
@@ -80,6 +82,8 @@ export const SUITE_ALERT_EVENTS: SuiteAlertEventDef[] = [
 /** zh display names for suiteAlertPreview (the catalog stays UI-framework-free; LEX
  *  integration uses tkey — these are the same strings the LEX entries should carry). */
 const ZH_EVENT_NAMES: Record<string, string> = {
+  sr_hold: "支撑 / 阻力守住",
+  sr_break: "支撑 / 阻力突破",
   bos: "结构突破 (BOS)",
   choch: "结构反转 (CHoCH)",
   cisd: "CISD（失败交付）",
@@ -113,6 +117,13 @@ const EVENT_BY_TYPE: Map<string, SuiteAlertEventDef> = new Map(
 
 export function suiteAlertEventDef(event: string): SuiteAlertEventDef | null {
   return EVENT_BY_TYPE.get(event) ?? null;
+}
+
+/** Picker and previews share the existing bilingual event catalog, not a third copy. */
+export function suiteEventName(event: string, lang: "en" | "zh"): string {
+  const def = EVENT_BY_TYPE.get(event);
+  if (!def) return lang === "zh" ? "未知的套件事件" : "Unknown suite event";
+  return lang === "zh" ? ZH_EVENT_NAMES[event] || def.en : def.en;
 }
 
 // ─────────────────────────────────────────────────────────────────────── condition
@@ -455,7 +466,7 @@ export function suiteAlertPreview(cond: SuiteAlertCondition, lang: "en" | "zh"):
   if (!def) return zh ? "未知的套件事件" : "Unknown suite event";
   const minS = isNum(cond.minStrength) ? cond.minStrength : undefined;
   if (zh) {
-    const name = ZH_EVENT_NAMES[def.event] || def.en;
+    const name = suiteEventName(def.event, "zh");
     const dirTxt = cond.dir === "bull" ? "（看涨）" : cond.dir === "bear" ? "（看跌）" : "";
     const strTxt = minS !== undefined ? `且强度 ≥ ${minS} ` : "";
     return `当日线图出现${name}${dirTxt}${strTxt}时提醒我（按模块默认参数评估）`;
@@ -475,7 +486,7 @@ export function suiteSequencePreview(cond: SuiteSequenceCondition, lang: "en" | 
   const gap = isNum(cond.maxBarsBetween) ? cond.maxBarsBetween : 10;
   if (zh) {
     const name = (d: SuiteAlertEventDef, s: { dir?: "bull" | "bear" }) =>
-      `${ZH_EVENT_NAMES[d.event] || d.en}${s.dir === "bull" ? "（看涨）" : s.dir === "bear" ? "（看跌）" : ""}`;
+      `${suiteEventName(d.event, "zh")}${s.dir === "bull" ? "（看涨）" : s.dir === "bear" ? "（看跌）" : ""}`;
     return `${name(defA, steps[0])} → ${name(defB, steps[1])}，${gap} 根K线内（日线，按模块默认参数评估）`;
   }
   const name = (d: SuiteAlertEventDef, s: { dir?: "bull" | "bear" }) =>

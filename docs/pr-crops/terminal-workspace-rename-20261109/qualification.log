@@ -1,0 +1,21 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ✓ lib/__tests__/workspaceMenuLex.test.ts (49 tests) 16ms
+ ✓ lib/__tests__/workspaceMenuOps.test.ts (29 tests) 53ms
+ ✓ lib/__tests__/layoutRenameFocus.test.tsx (21 tests) 529ms
+ ✓ lib/__tests__/layoutMenuTeamRead.test.ts (3 tests) 486ms
+   ✓ LayoutMenu — team-directory failure is unavailable, never absent or empty > a team-directory failure still shows the team heading and the unavailable banner when teams is empty 386ms
+
+ Test Files  4 passed (4)
+      Tests  102 passed (102)
+   Start at  07:13:37
+   Duration  2.06s (transform 1.27s, setup 0ms, collect 2.49s, tests 1.08s, environment 983ms, prepare 392ms)
+
+
+Baseline-relative ESLint comparison (rule, severity and message; no added findings):
+[{"file": "terminal/components/LayoutMenu.tsx", "added_count": 0, "removed_count": 1, "errors": 1, "warnings": 0}, {"file": "terminal/components/TerminalShell.tsx", "added_count": 0, "removed_count": 0, "errors": 53, "warnings": 18}, {"file": "terminal/e2e/workspace-rename-focus.spec.ts", "added_count": 0, "removed_count": 0, "errors": 0, "warnings": 0}, {"file": "terminal/lib/__tests__/layoutRenameFocus.test.tsx", "added_count": 0, "removed_count": 0, "errors": 0, "warnings": 0}]
+
+Full combined-integration TypeScript --noEmit:
+exit 0

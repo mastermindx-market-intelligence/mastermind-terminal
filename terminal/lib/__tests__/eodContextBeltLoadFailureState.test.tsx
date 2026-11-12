@@ -25,7 +25,7 @@ import { flowInvalidate } from "@/lib/flowClientCache";
 import type { EodReadStatus, StructureGexState } from "@/lib/eodContext";
 
 const DP_LOAD_ERROR = "Could not load the off-exchange panel";
-const DP_ABSENT = "hasn't published yet";
+const DP_ABSENT = "Settled dark-pool data hasn't been published yet. We don't estimate a replacement.";
 const BELT_LOAD_ERROR = "Could not load the settled structure";
 const BELT_EMPTY = "No settled structure published for this ticker yet";
 const BELT_LOADING = "Reading the settled structure…";

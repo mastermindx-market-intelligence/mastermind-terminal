@@ -79,14 +79,14 @@ describe("Oracle historical signal and current entry truth", () => {
   it.each([100.91, 110, 90, null])("does not infer entry permission from current price %s or an unqualified owner blob", price => {
     const slice = { ...fixture(), quote: { price, stale: price === null, corporate_action_ambiguous: true }, entry_availability: { status: "ENTRY_OPEN", strategy: "B4" } };
     const read = oracleVerdict("BUY", slice, false, NOW);
-    expect(read.entryAvailability).toMatchObject({ status: "UNAVAILABLE_DATA", reason: "No qualified current Oracle entry source" });
+    expect(read.entryAvailability).toMatchObject({ status: "UNAVAILABLE_DATA", reason: "Current Oracle entry data unavailable" });
   });
 
   it("shows entry unavailable when the workspace signal source itself is unavailable", () => {
     source.status = "unavailable"; source.slice = null;
     const html = renderToStaticMarkup(createElement(OracleDash, { sym: "USFD" }));
-    expect(html).toContain("Entry availability not verified");
-    expect(html).toContain("No qualified current Oracle entry source");
+    expect(html).toContain("Entry unverified");
+    expect(html).toContain("Current Oracle entry data unavailable");
   });
 
   it("never uses a refused event's bar-open date as its knowledge date", () => {
@@ -115,7 +115,7 @@ describe("Oracle historical signal and current entry truth", () => {
     expect(html.indexOf('data-testid="prophet-observation-launcher"')).toBeGreaterThan(-1);
     expect(html.indexOf('data-testid="oracle-entry-availability"')).toBeGreaterThan(html.indexOf('data-testid="prophet-observation-launcher"'));
     expect(html).toContain("Source unavailable");
-    expect(html).toContain("Entry availability not verified");
+    expect(html).toContain("Entry unverified");
   });
 
   it.each([false, true])("keeps the stance historical event and unknown date in a separate phone row (zh=%s)", zh => {
@@ -142,14 +142,14 @@ describe("Oracle historical signal and current entry truth", () => {
     const workspace = renderToStaticMarkup(createElement(OracleDash, { sym: "USFD", row: { verdict: "BUY" }, zh }));
     for (const html of [launcher, workspace]) {
       expect(html).toContain(zh ? "已确认买入" : "Confirmed Buy");
-      expect(html).toContain(zh ? "入场机会尚未核实" : "Entry availability not verified");
+      expect(html).toContain(zh ? "入场机会尚未核实" : "Entry unverified");
       if (html === launcher) expect(html).toContain(zh ? "神谕入场尚未核实 · 缺少当前数据" : "Oracle entry unverified · No current data");
-      expect(html).toContain(zh ? "缺少适用于神谕的当前入场数据源" : "No qualified current Oracle entry source");
+      expect(html).toContain(zh ? "缺少当前神谕入场数据" : "Current Oracle entry data unavailable");
       expect(html).toContain('data-status="UNAVAILABLE_DATA"');
       expect(html).not.toContain('data-status="ENTRY_OPEN"');
     }
     expect(workspace).toContain(zh ? "历史信号" : "Historical signal");
-    if (zh) expect(workspace).not.toContain("Entry availability not verified");
+    if (zh) expect(workspace).not.toContain("Entry unverified");
     else expect(workspace).not.toContain("入场机会尚未核实");
   });
 });

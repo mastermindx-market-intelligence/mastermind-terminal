@@ -1,0 +1,86 @@
+/* The retained workspace owns its recovery surface; the shared chrome stays put. */
+.boundary:global(.shared-shell-boundary) {
+  justify-content: flex-start;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(20px, 4vw, 40px);
+}
+
+.surface {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 480px);
+  margin-block: auto;
+}
+
+.surface :global(.shared-shell-boundary-mark) {
+  flex: none;
+}
+
+.surface h1 {
+  scroll-margin-block: 20px;
+}
+
+.surface :global(.shared-shell-boundary-actions) {
+  width: 100%;
+  gap: 10px;
+}
+
+.surface :global(.shared-shell-boundary-actions) :is(button, a) {
+  display: inline-flex;
+  flex: 1 1 180px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 11px 16px;
+  border: 1px solid var(--line-3);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: 500 13px/1.5 var(--font-ui);
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+
+.surface :global(.shared-shell-boundary-actions) button {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.surface :global(.shared-shell-boundary-actions) a:hover {
+  background: var(--panel-3);
+}
+
+.surface :global(.shared-shell-boundary-actions) button:hover {
+  background: var(--text-2);
+  border-color: var(--text-2);
+}
+
+.surface :is(button, a, h1):focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 3px;
+}
+
+.surface a svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface :global(.shared-shell-boundary-actions) :is(button, a) {
+    transition: none;
+  }
+}

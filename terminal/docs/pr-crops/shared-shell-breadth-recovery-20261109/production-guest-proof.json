@@ -1,0 +1,21 @@
+{
+  "productBuildSource": "b5a00479a1bd76ef09bc92ae969232aa60ef1e47",
+  "boundary": "actual Next production build; controlled local identity configuration; guest only",
+  "checks": [
+    "root redirect to /today",
+    "1440 /today: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "1440 /discover: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "820 /today: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "820 /discover: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "390 /today: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "390 /discover: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "320 /today: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "320 /discover: real guest gate, keyboard dialog, touch target, no overflow or private body",
+    "/api/shared-shell/today: 401, no private body",
+    "/api/shared-shell/research/catalog: 401, no private body",
+    "/api/portfolio-brief: 401, no private body",
+    "/api/market-breadth: 401, no private body"
+  ],
+  "passed": 13,
+  "authenticatedProof": false
+}

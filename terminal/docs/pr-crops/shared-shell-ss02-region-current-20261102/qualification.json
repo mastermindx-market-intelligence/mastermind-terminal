@@ -1,0 +1,307 @@
+{
+  "status": "PASS_SCOPED",
+  "sourceBase": "e0ae63e43965ec1d1c93405ee903fd92b63e3470",
+  "job": "P12.T20 mobile region current-page visual and identity repair",
+  "fixture": "Actual Next AppShell, MobileNav, Today, route admission and status; unchanged real Macrobridge/assets101dd; fixed SDK and browser payloads only",
+  "results": [
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/today?ss02=regional#attention",
+      "destinations": [
+        "/china.html",
+        "/hk.html",
+        "/china.html",
+        "/today?ss02=regional#attention"
+      ],
+      "oneCurrentPagePerStep": true,
+      "persistentShell": true,
+      "USBriefingPreserved": true,
+      "errors": [],
+      "blocked": [],
+      "calls": [
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/today?ss02=regional#attention",
+      "destinations": [
+        "/china.html",
+        "/hk.html",
+        "/china.html",
+        "/today?ss02=regional#attention"
+      ],
+      "oneCurrentPagePerStep": true,
+      "persistentShell": true,
+      "USBriefingPreserved": true,
+      "errors": [],
+      "blocked": [],
+      "calls": [
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/today?ss02=regional#attention",
+      "destinations": [
+        "/china.html",
+        "/hk.html",
+        "/china.html",
+        "/today?ss02=regional#attention"
+      ],
+      "oneCurrentPagePerStep": true,
+      "persistentShell": true,
+      "USBriefingPreserved": true,
+      "errors": [],
+      "blocked": [],
+      "calls": [
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/today?ss02=regional#attention",
+      "destinations": [
+        "/china.html",
+        "/hk.html",
+        "/china.html",
+        "/today?ss02=regional#attention"
+      ],
+      "oneCurrentPagePerStep": true,
+      "persistentShell": true,
+      "USBriefingPreserved": true,
+      "errors": [],
+      "blocked": [],
+      "calls": [
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Local navigation/bridge fixture, not real regional content or authenticated production acceptance",
+    "No global regional preference or Today data composition",
+    "PR1228 remains independent"
+  ],
+  "source_sha256": {
+    "terminal/components/MobileNav.tsx": "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f",
+    "terminal/lib/sharedShellNavigation.ts": "4cb0a18251ead0cb111f9ba930f6b059acce81b7184b462c66f7895b49773fed",
+    "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts": "7df43eb098cc336c3667c2fb7468e6a6385f9a5b668fb38c85d228280a4c4a81"
+  },
+  "macro_sha256": {
+    "shared_shell.py": "eb1f06843b556968f15a0478d756e8312a3b6f4f4c8cb3daf047a6c438f79c1c",
+    "shared_shell_bridge.js": "071ef7202d8886228342c00f0e7a3026eaba1d0103c4dcf1e6d204a7da77451b",
+    "shared_shell.css": "b1918ccaa2294f18c0fd5bca123e38267251c7e9d9a7c4fce1f296ef9e4c3c1e"
+  },
+  "images_sha256": {
+    "820-light-zh-china-selected.png": "24ef26441013c4f27c60983c7f45d23627874e65d0ae0e12106602dbd89135be",
+    "390-light-zh-hk-selected.png": "581878ba1bbbd1f738d57d32a30b58b56b63a1ee0607eba33c8865bdd05f8aa3",
+    "390-light-zh-china-selected.png": "5617d40b0282dac9536a86eda095269133ecce5dc84efcc8803fdc797f30ddcc",
+    "390-light-zh-back-today-selected.png": "0c7d10d561e4325a1b509d2a87436ebcccd0c0bce3fbffb3c117238fe2255fa7",
+    "390-dark-en-china-selected.png": "1514d709f7260e9520ed58b41c1e16432593b0218204a74372a920152c4f2ad9",
+    "390-light-zh-back-china-selected.png": "5617d40b0282dac9536a86eda095269133ecce5dc84efcc8803fdc797f30ddcc",
+    "1440-dark-en-china-selected.png": "5b8205ef29a4c69a56494ec52b21a460d0b15377d7a528841236c25a74bdb341"
+  },
+  "checks": {
+    "unit": "20 passed",
+    "types": "tsc --noEmit passed",
+    "lint": "0 errors; one inherited _isTerminal warning in MobileNav",
+    "diff": "passed",
+    "browser": "4 actual Next + unchanged Macrobridge journeys; 390 darkEN/lightZH,820lightZH,1440darkEN"
+  }
+}

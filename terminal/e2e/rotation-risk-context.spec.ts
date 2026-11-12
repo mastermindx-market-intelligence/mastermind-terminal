@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { MARKET_RISK_NOW, marketRiskSourceFixture, riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
+import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
 
 // Synthetic presentation fixtures. This is local UI proof, not market/backtest/auth proof.
 const sector = { as_of: "2026-10-07", sectors: [
@@ -25,6 +26,10 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     const envelope = riskEnvelopeFixture();
     await page.route("**/api/sector-intelligence?**", async route => {
       const source = new URL(route.request().url()).searchParams.get("source")!;
+      if (source === "generation") return route.fulfill({ json: { data: nativeGenerationFixture(sector), receipt: {
+        source, status: "ready", path: "/api/sector-generation?audience=preview", asOf: sector.as_of,
+        observedAt: "2026-10-08T12:00:00Z", stale: false, contentHash: null,
+      } } });
       const data = source === "sector" ? sector : source === "risk" && !riskStale ? envelope : null;
       const status = source === "sector" || source === "risk" ? "ready" : "unavailable";
       await route.fulfill({ status: status === "ready" ? 200 : 404, json: { data, receipt: {

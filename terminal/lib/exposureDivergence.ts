@@ -107,14 +107,17 @@ export interface ConfirmedExposureDivergence {
   event: (DivergenceEvent & { pivotAtDisplay: number; confirmedAtDisplay: number; ageBars: number }) | null;
 }
 
+export const EXPOSURE_RSI_PROFILE = { id: "rsi14-w2-s60-v1", period: 14, wing: 2, maxSpan: 60 } as const;
+
 /** Frozen descriptive profile. Historical events become visible at confirmation close, never pivot time. */
 export function confirmedExposureDivergence(bars: ClosedExposureBar[], hidden: boolean, stale = false): ConfirmedExposureDivergence {
   const base = { bars: bars.length, latestClose: bars.at(-1)?.closedAtDisplay ?? null, shortened: bars.at(-1)?.shortened ?? false, event: null };
   if (stale) return { ...base, state: "stale" };
   // RSI warmup plus two distinct confirmed oscillator pivots; absence before this is not 'none'.
-  if (bars.length < 14 + 2 * 2 + 3) return { ...base, state: "insufficient" };
-  const oscillator = Float64Array.from(rsi(bars.map((b) => b.c), 14));
-  const events = findDivergences(bars, oscillator, { wing: 2, maxSpan: 60, hidden });
+  const { period, wing, maxSpan } = EXPOSURE_RSI_PROFILE;
+  if (bars.length < period + 2 * wing + 3) return { ...base, state: "insufficient" };
+  const oscillator = Float64Array.from(rsi(bars.map((b) => b.c), period));
+  const events = findDivergences(bars, oscillator, { wing, maxSpan, hidden });
   const event = events.at(-1);
   if (!event) return { ...base, state: "none" };
   return { ...base, state: "confirmed", event: { ...event, pivotAtDisplay: bars[event.iB].t,

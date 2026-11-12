@@ -164,3 +164,104 @@ describe("origin constructors", () => {
     expect(originNotCovered("NVDA", "INTRADAY_NOT_IN_V1")).toMatchObject({ state: "unknown", refusals: ["INTRADAY_NOT_IN_V1"] });
   });
 });
+
+// B1 — the source clock (sourceLastSession): the document's OWN last daily session,
+// carried as an optional field that is strictly separate from the adjustment reference.
+// asOf/generation keep answering adjustment_reference.as_at/action_revision_set_id and
+// nothing else; the source clock never fills them, and every non-qualifying document
+// omits the field entirely instead of guessing.
+describe("sourceLastSession (B1 source clock)", () => {
+  const LAST = "2026-10-09";
+  const bar = (t: unknown) => [t, 1, 2, 0.5, 1.5, 10];
+  const withBars = (overrides: Record<string, unknown> = {}) => doc({ bars: [bar("2026-10-05"), bar(LAST)], ...overrides });
+
+  it("u02_b1_known: a known tradj doc gains its own last session; the adjustment references are unchanged", () => {
+    const o = deriveDataOrigin("NVDA", withBars());
+    expect(o.sourceLastSession).toBe(LAST);
+    expect(o.state).toBe("known");
+    expect(o.basis).toBe("tradj");
+    expect(o.asOf).toBe(AS_OF);
+    expect(o.generation).toBe(REV);
+    expect(o.mode).toBe("CURRENT");
+  });
+
+  it("u02_b1_partial: a partial tradj doc keeps both the caveats and its source session", () => {
+    const o = deriveDataOrigin("NVDA", withBars({ view: view({ refusal_reasons: ["SEGMENT_SRC_UNKNOWN"] }) }));
+    expect(o.state).toBe("partial");
+    expect(o.sourceLastSession).toBe(LAST);
+    expect(o.asOf).toBe(AS_OF);
+    expect(o.generation).toBe(REV);
+  });
+
+  it("u02_b1_legacy: a legacy doc (no view) gains the source clock while basis/asOf/generation stay unknown", () => {
+    const o = deriveDataOrigin("NVDA", { t: "NVDA", o: 1, src: "deep", bar_quality: "raw", bars: [bar(LAST)] });
+    expect(o.state).toBe("unknown");
+    expect(o.refusals).toEqual(["VIEW_ABSENT"]);
+    expect(o.sourceLastSession).toBe(LAST);
+    expect(o.basis).toBe(null);
+    expect(o.asOf).toBe(null);
+    expect(o.generation).toBe(null);
+  });
+
+  it("u02_b1_contract_null: the source clock is a document fact, not a contract fact", () => {
+    const o = deriveDataOrigin("NVDA", withBars({ view: view({ contract: null }) }));
+    expect(o.state).toBe("unknown");
+    expect(o.sourceLastSession).toBe(LAST);
+    expect(o.basis).toBe(null);
+    expect(o.asOf).toBe(null);
+    expect(o.generation).toBe(null);
+  });
+
+  it("u02_b1_no_field: empty/missing bars and non-tuple last bars never qualify", () => {
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [] })).sourceLastSession).toBeUndefined();
+    expect(deriveDataOrigin("NVDA", doc({})).sourceLastSession).toBeUndefined();
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [{ t: LAST, o: 1 }] })).sourceLastSession).toBeUndefined();
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [["2026-10-05"]] })).sourceLastSession).toBe("2026-10-05");
+  });
+
+  it("u02_b1_wrong_symbol: a wrong or merely case-variant document is never adopted", () => {
+    // A different symbol is refused outright.
+    const wrong = deriveDataOrigin("NVDA", withBars({ t: "AMD" }));
+    expect(wrong.refusals).toEqual(["SYMBOL_MISMATCH"]);
+    expect(wrong.sourceLastSession).toBeUndefined();
+    // The case-insensitive mismatch guard tolerates a case-variant file, but the exact
+    // source-clock gate does not: no field rather than an adopted guess.
+    expect(deriveDataOrigin("NVDA", withBars({ t: "nvda" })).sourceLastSession).toBeUndefined();
+  });
+
+  it.each(["2026-13-01", "2026-02-30", "2026-04-31", "20261009", "2026-10", "not-a-date", ""])(
+    "u02_b1_invalid_date: %s never qualifies",
+    (bad) => {
+      expect(deriveDataOrigin("NVDA", withBars({ bars: [bar(bad)] })).sourceLastSession).toBeUndefined();
+    },
+  );
+
+  it("u02_b1_numeric_time: an intraday numeric epoch in the last tuple never qualifies", () => {
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [bar(1760006400000)] })).sourceLastSession).toBeUndefined();
+  });
+
+  it("u02_b1_calendar: only a real UTC-calendar date qualifies (leap years included)", () => {
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [bar("2024-02-29")] })).sourceLastSession).toBe("2024-02-29");
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [bar("2023-02-29")] })).sourceLastSession).toBeUndefined();
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [bar("2000-02-29")] })).sourceLastSession).toBe("2000-02-29");
+    expect(deriveDataOrigin("NVDA", withBars({ bars: [bar("1900-02-29")] })).sourceLastSession).toBeUndefined();
+  });
+
+  it("u02_b1_pure: a deep-frozen payload neither throws nor changes", () => {
+    const payload = deepFreeze(withBars({ view: view({ refusal_reasons: ["SEGMENT_SRC_UNKNOWN"] }) }));
+    const before = JSON.stringify(payload);
+    const o = deriveDataOrigin("NVDA", payload);
+    expect(o.state).toBe("partial");
+    expect(o.sourceLastSession).toBe(LAST);
+    expect(JSON.stringify(payload)).toBe(before);
+  });
+
+  it("u02_b1_constructors_unchanged: the no-date constructors still carry no source clock key", () => {
+    for (const o of [originPending("NVDA"), originUnavailable("NVDA"), originComposite("AAPL+MSFT"), originNotCovered("NVDA", "INTRADAY_NOT_IN_V1")]) {
+      expect("sourceLastSession" in o).toBe(false);
+    }
+    // And a non-qualifying document leaves the key absent, not present-with-null.
+    expect("sourceLastSession" in deriveDataOrigin("NVDA", doc({}))).toBe(false);
+    expect("sourceLastSession" in deriveDataOrigin("NVDA", withBars({ t: "AMD" }))).toBe(false);
+  });
+});

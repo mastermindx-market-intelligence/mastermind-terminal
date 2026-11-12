@@ -25,7 +25,7 @@ vi.mock("@/components/ui/Tip", () => ({ Tip: ({ children }: { children: React.Re
 vi.mock("@/components/eodcontext/EodContextBelt", () => ({ EodContextBelt: () => null }));
 
 import { GexDeskView } from "@/components/gexdesk/GexDeskView";
-import { flowInvalidate } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate } from "@/lib/flowClientCache";
 
 const LOAD_ERROR = "Could not load GEX data";
 const LOADING = "Loading GEX data…";
@@ -367,6 +367,51 @@ describe("GEX desk: an archived session that could not be read is not an archive
       dates: ["2026-07-10", "2026-07-09", "2026-07-08"],
       latest: "2026-07-10",
     });
+  });
+
+  it("awaits the corrected dated book on the first stale cached selection", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    expect(requested(key)).toBe(2);
+    expect(text()).not.toContain("111.11");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).toContain("987.65");
+    expect(text()).not.toContain("111.11");
+  });
+
+  it.each([
+    ["failure", UNAVAILABLE, "gex-archived-error"],
+    ["absence", ABSENT, "gex-archived-missing"],
+  ])("does not substitute a cached archive for a new %s", async (_label, answer, marker) => {
+    const key = `gex_at:SPY:${DATE}`;
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+    replies[key] = json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 111.11 });
+    await flowGetResult(key);
+    now.mockReturnValue(1_800_000_031_000);
+    replies[key] = answer;
+    await mount();
+    await pickSession(DATE);
+    expect(within(`[data-testid="${marker}"]`)).not.toBeNull();
+    expect(text()).not.toContain("111.11");
+  });
+
+  it("discards a corrected archive that arrives after return to live", async () => {
+    const key = `gex_at:SPY:${DATE}`;
+    replies[key] = { gated: json(200, { ...gex.SPY, asof: `${DATE}T20:15:00Z`, spot_ref: 987.65 }) };
+    await mount();
+    await pickSession(DATE);
+    await pickSession("");
+    await act(async () => { openGate(); });
+    await settle();
+    expect(text()).not.toContain("987.65");
+    expect(text()).toContain("751.71");
   });
 
   it.each([

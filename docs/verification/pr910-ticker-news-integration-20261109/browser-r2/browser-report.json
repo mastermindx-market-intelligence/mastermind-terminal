@@ -1,0 +1,1086 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/ticker-news.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3896",
+      "url": "http://127.0.0.1:3896/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "ticker-news.spec.ts",
+      "file": "ticker-news.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 94910,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:36:04.285Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-628b086ed6070c93ec63",
+          "file": "ticker-news.spec.ts",
+          "line": 367,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15075,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:37:39.506Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-64af3859023f03c131f1",
+          "file": "ticker-news.spec.ts",
+          "line": 459,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 28196,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:37:54.591Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-f595088bf173a4a46ea6",
+          "file": "ticker-news.spec.ts",
+          "line": 491,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6894,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:38:22.797Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-4fca6d3c39e4cdea7ca5",
+          "file": "ticker-news.spec.ts",
+          "line": 561,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9055,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:38:29.698Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-e11912a5d3ffdb96f7ed",
+          "file": "ticker-news.spec.ts",
+          "line": 572,
+          "column": 5
+        },
+        {
+          "title": "editorial views filter before display and keep grouped details in the selected context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7630,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:38:38.761Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-93afc07039f18f7be3ea",
+          "file": "ticker-news.spec.ts",
+          "line": 618,
+          "column": 5
+        },
+        {
+          "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 56602,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:38:46.404Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-74c3dfbfe16d9e177a76",
+          "file": "ticker-news.spec.ts",
+          "line": 663,
+          "column": 5
+        },
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 12-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 368,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 87,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:39:43.739Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 12-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 368,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-6717eaa031a7c28ad5b5",
+          "file": "ticker-news.spec.ts",
+          "line": 367,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop and mobile own unavailable crops.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 460,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 155,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:39:44.191Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop and mobile own unavailable crops.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 460,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-69c804248b1ed4dcfb8c",
+          "file": "ticker-news.spec.ts",
+          "line": 459,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 31229,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:39:44.363Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-d0f611a98a4a0c7d24a1",
+          "file": "ticker-news.spec.ts",
+          "line": 491,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns grouped-source browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 562,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 83,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:40:15.600Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns grouped-source browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 562,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-ee5ba12b13b85cf02ae7",
+          "file": "ticker-news.spec.ts",
+          "line": 561,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns real-shell symbol transition proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 573,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 65,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:40:15.691Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns real-shell symbol transition proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 573,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-79908682fc497f5524c9",
+          "file": "ticker-news.spec.ts",
+          "line": 572,
+          "column": 5
+        },
+        {
+          "title": "editorial views filter before display and keep grouped details in the selected context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4093,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:40:15.761Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-90c6c0d9998cbf3e8bdd",
+          "file": "ticker-news.spec.ts",
+          "line": 618,
+          "column": 5
+        },
+        {
+          "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 63573,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:40:19.861Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-e488d7ec5cc48d640788",
+          "file": "ticker-news.spec.ts",
+          "line": 663,
+          "column": 5
+        },
+        {
+          "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "One controlled project owns the 12-cell screenshot matrix.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 368,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 93,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:41:23.893Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "One controlled project owns the 12-cell screenshot matrix.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 368,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-e4beb319186e2b45317f",
+          "file": "ticker-news.spec.ts",
+          "line": 367,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot renders without rail overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14350,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:41:24.160Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-89a407a8b7a184b9ebd9",
+          "file": "ticker-news.spec.ts",
+          "line": 459,
+          "column": 5
+        },
+        {
+          "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29606,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:41:38.520Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-91efad02e0cd825b16dd",
+          "file": "ticker-news.spec.ts",
+          "line": 491,
+          "column": 5
+        },
+        {
+          "title": "grouped reports expand inside the real rail without leaving ticker context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns grouped-source browser proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 562,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 81,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:42:08.136Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns grouped-source browser proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 562,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-2fdfcecacbf97d48ee65",
+          "file": "ticker-news.spec.ts",
+          "line": 561,
+          "column": 5
+        },
+        {
+          "title": "MSFT grouped detail starts while an Apple story response is still held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Desktop owns real-shell symbol transition proof.",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                    "line": 573,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 75,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:42:08.228Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Desktop owns real-shell symbol transition proof.",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/e2e/ticker-news.spec.ts",
+                        "line": 573,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-f4360c666c70aaf845af",
+          "file": "ticker-news.spec.ts",
+          "line": 572,
+          "column": 5
+        },
+        {
+          "title": "editorial views filter before display and keep grouped details in the selected context",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3721,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:42:08.310Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-f801a7aa3bc56d8c59c4",
+          "file": "ticker-news.spec.ts",
+          "line": 618,
+          "column": 5
+        },
+        {
+          "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 56913,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T17:42:12.040Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ab920a1fe910b8af87cd-6b524c5ebf7647a5af02",
+          "file": "ticker-news.spec.ts",
+          "line": 663,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T17:35:58.507Z",
+    "duration": 430685.16000000003,
+    "expected": 14,
+    "skipped": 7,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,8 +1,8 @@
 {
-  "capturedAtHead": "83bb2536856d1ef601d5a1c99d9c071e87884ef4",
+  "capturedAtHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
   "langStorageKey": "mm.lang",
-  "capturedAt": "2026-10-22T09:12:31.366Z",
-  "port": 3123,
+  "capturedAt": "2026-11-09T11:01:46.200Z",
+  "port": 3197,
   "captures": [
     {
       "dataTheme": "dark",
@@ -14,7 +14,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 132,
-        "y": 805.9,
+        "y": 794.4,
         "width": 614,
         "height": 67
       },
@@ -23,7 +23,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 782,
+        "y": 770,
         "width": 662,
         "height": 115
       },
@@ -42,7 +42,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 132,
-        "y": 805.9,
+        "y": 794.4,
         "width": 614,
         "height": 67
       },
@@ -51,7 +51,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 782,
+        "y": 770,
         "width": 662,
         "height": 115
       },
@@ -70,7 +70,7 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 132,
-        "y": 805.9,
+        "y": 757.9,
         "width": 614,
         "height": 67
       },
@@ -79,7 +79,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 782,
+        "y": 734,
         "width": 662,
         "height": 115
       },
@@ -98,7 +98,7 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 132,
-        "y": 805.9,
+        "y": 757.9,
         "width": 614,
         "height": 67
       },
@@ -107,7 +107,7 @@
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 108,
-        "y": 782,
+        "y": 734,
         "width": 662,
         "height": 115
       },
@@ -126,7 +126,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 12,
-        "y": 547.8,
+        "y": 547.9,
         "width": 366,
         "height": 83.5
       },
@@ -154,7 +154,7 @@
       "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
       "box": {
         "x": 12,
-        "y": 547.8,
+        "y": 547.9,
         "width": 366,
         "height": 83.5
       },
@@ -182,7 +182,7 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 12,
-        "y": 564,
+        "y": 563.6,
         "width": 366,
         "height": 67
       },
@@ -210,7 +210,7 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 12,
-        "y": 564,
+        "y": 563.6,
         "width": 366,
         "height": 67
       },
@@ -232,23 +232,23 @@
   "darkLightIdentical": {
     "1440x900-en": {
       "identical": true,
-      "darkSha": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
-      "lightSha": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b"
+      "darkSha": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005",
+      "lightSha": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005"
     },
     "1440x900-zh": {
       "identical": true,
-      "darkSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
-      "lightSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a"
+      "darkSha": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599",
+      "lightSha": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599"
     },
     "390x844-en": {
       "identical": true,
-      "darkSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
-      "lightSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb"
+      "darkSha": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694",
+      "lightSha": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694"
     },
     "390x844-zh": {
       "identical": true,
-      "darkSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac",
-      "lightSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac"
+      "darkSha": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463",
+      "lightSha": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463"
     }
   }
 }

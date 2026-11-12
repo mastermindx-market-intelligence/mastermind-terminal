@@ -62,6 +62,17 @@ function profile(env = process.env) {
   if (env.TERMINAL_EVIDENCE_FONTS !== undefined && env.TERMINAL_EVIDENCE_FONTS !== fonts.ID) fail("PROFILE_FONTS");
   return { ...(env.TERMINAL_EVIDENCE_FONTS ? { fonts: env.TERMINAL_EVIDENCE_FONTS } : {}), ...(env.TERMINAL_EVIDENCE_COMPILER === "webpack" ? { compiler: "webpack" } : {}), fixture: "terminal-e2e.v1", buildMode: "next-dev", sharedShell: flag("MMX_SHARED_SHELL"), investorShellPreview: flag("MMX_INVESTOR_SHELL_PREVIEW"), theme: "dark" };
 }
+function captureEnvironment(env = process.env) {
+  const compiler = env.TERMINAL_EVIDENCE_COMPILER;
+  if (compiler !== undefined && compiler !== "webpack") fail("CAPTURE_COMPILER_UNSUPPORTED");
+  if (["TURBOPACK", "IS_TURBOPACK_TEST", "NEXT_RSPACK", "NEXT_TEST_USE_RSPACK"].some(name => env[name]))
+    fail("CAPTURE_COMPILER_CONFLICT");
+  if (compiler !== "webpack" && env.IS_WEBPACK_TEST) fail("CAPTURE_COMPILER_UNDECLARED");
+  const prepared = fonts.environment(env);
+  // Next's existing selector keeps both incumbent launchers unchanged.
+  // The installed-Next contract tests bind this declaration to the actual parser.
+  return compiler === "webpack" ? { ...prepared, IS_WEBPACK_TEST: "1" } : { ...prepared };
+}
 function key(packet, project, title, locale) { return `${packet}:${project}:${locale}:${title}`; }
 function requirements(packet) {
   if (packet === "vi") return Object.keys(VIEWPORTS).flatMap(project => TITLES.map((title, i) => ({ key: key(packet, project, title, i === 9 ? "zh" : "en"), packet, project, title, file: "visual-intelligence.spec.ts", locale: i === 9 ? "zh" : "en", viewport: VIEWPORTS[project] })));
@@ -240,4 +251,4 @@ function writeComposition({ repoRoot, id, packet = "pl6", operations, selections
   // Invalid explicit data stays immutable and ineligible; no legacy fallback or replacement.
   return readComposition({ repoRoot, compositionPath: `${PACKETS[packet]}/${id}.composition.json`, expectedProfile: captureProfile, expectedFile: created, expectedParent: d.identity });
 }
-module.exports = { fonts, PACKETS, VIEWPORTS, TITLES, SURFACES, requirements, key, sha, canonical, profile, sourceSnapshot, imageInfo, composeCases, beginOperation, openOperation, writePayload, writeCase, finishOperation, readOperation, readComposition, selectedComposition, writeComposition };
+module.exports = { fonts, PACKETS, VIEWPORTS, TITLES, SURFACES, requirements, key, sha, canonical, profile, captureEnvironment, sourceSnapshot, imageInfo, composeCases, beginOperation, openOperation, writePayload, writeCase, finishOperation, readOperation, readComposition, selectedComposition, writeComposition };

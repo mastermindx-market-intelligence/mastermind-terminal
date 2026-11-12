@@ -1,0 +1,35 @@
+{
+  "schema": "mastermind.fixture_visual_evidence.v1",
+  "environment": "LOCAL_INERT_FIXTURE",
+  "head_before_repair": "021a13f0dcdfd64e3ed55b4faa4831b03ff9d919",
+  "rendered": [
+    "list-1440.png",
+    "list-1440-zh.png",
+    "list-390.png",
+    "list-390-zh.png",
+    "empty-1440.png",
+    "empty-1440-zh.png",
+    "empty-390.png",
+    "empty-390-zh.png"
+  ],
+  "reviewed_pixels": [
+    "list-1440.png",
+    "list-1440-zh.png",
+    "list-390.png",
+    "list-390-zh.png",
+    "empty-1440-zh.png",
+    "empty-390-zh.png"
+  ],
+  "retained_subscription_crops_unchanged": true,
+  "capture_commands": [
+    "CAPTURE_ONLY=list,empty TERMINAL_CROP_PORT=3567 node e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
+    "CAPTURE_ONLY=list TERMINAL_CROP_PORT=3567 node e2e/tools/capture_b_f11_7_recurring_briefs.cjs"
+  ],
+  "source_hashes": {
+    "terminal/components/briefs/BriefsInbox.tsx": "54af0c9368fe9f5748cd246f2480a46afac5d14b34688f9cd3c808f575b5daeb",
+    "terminal/components/briefs/briefs.module.css": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+    "terminal/lib/briefs.ts": "fc218f0b93e06c78698f0da10b73b816e698b08f288e5a8432b38f27fa29d28c"
+  },
+  "live_authentication": false,
+  "sharing_effect": false
+}
