@@ -114,7 +114,9 @@ describe("state round-trip", () => {
     expect(params.get("sector")).toBe("housing");
     expect(params.get("symbol")).toBe("SBUX");
     expect(params.getAll("sel")).toEqual(["SBUX", "HD", "WMT"]);
-    expect(params.get("prophetView")).toBe("setup");
+    // The setup view is implied by `symbol` — the canonical link carries ONE
+    // key set (no `prophetView` alongside the contract keys).
+    expect(params.has("prophetView")).toBe(false);
     expect(params.get("prophetPlan")).toBe("SBUX-BULL-20260702");
     expect(params.get("prophetQ")).toBe("bank");
     expect(params.get("prophetState")).toBe("open_plan");
@@ -125,6 +127,38 @@ describe("state round-trip", () => {
     // The legacy spelling is superseded on canonical, never duplicated.
     expect(params.has("prophetSel")).toBe(false);
     expect(params.get("foo")).toBe("bar");
+  });
+
+  it("the canonical setup link is the contract keys alone — `symbol` IS setup", () => {
+    // The COO's visual pass: `/prophet?tab=sector&symbol=CARR&prophetView=setup`
+    // worked while `…&view=setup` did not, because canonical setup links mixed
+    // the key families. The canonical link now spells ONE family: a symbol is
+    // the setup, a sector is its population, and neither needs a view key.
+    const setupHref = prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "sector", view: "setup", symbol: "CARR" }, "canonical");
+    expect(setupHref).toBe("/prophet?tab=sector&symbol=CARR");
+    const parsed = parseProphetState(url(setupHref).searchParams);
+    expect(parsed.view).toBe("setup");
+    expect(parsed.symbol).toBe("CARR");
+
+    const populationHref = prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "sector", view: "population", group: "housing" }, "canonical");
+    expect(populationHref).toBe("/prophet?tab=sector&sector=housing");
+    expect(parseProphetState(url(populationHref).searchParams).view).toBe("population");
+
+    // The picker with a group still in context is the ONE state the contract
+    // keys cannot express; it keeps the pre-contract wire key (no new key).
+    const pickerHref = prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "sector", view: "overview", group: "housing" }, "canonical");
+    expect(pickerHref).toBe("/prophet?tab=sector&sector=housing&prophetView=overview");
+    expect(parseProphetState(url(pickerHref).searchParams).view).toBe("overview");
+  });
+
+  it("an explicit `prophetView` still wins over the derived view on canonical", () => {
+    // Links minted before this rule (and the picker-with-context state) keep
+    // their meaning: the explicit value is authoritative.
+    expect(parseProphetState(new URLSearchParams("tab=sector&symbol=CARR&prophetView=population")).view).toBe("population");
+    expect(parseProphetState(new URLSearchParams("tab=sector&sector=housing&prophetView=setup")).view).toBe("setup");
+    // A redundant value is scrubbed by the next write, never duplicated.
+    expect(prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "sector", view: "setup", symbol: "CARR" }, "canonical"))
+      .toBe("/prophet?tab=sector&symbol=CARR");
   });
 
   it("a legacy write spells only the prophet* family and never touches the hub tab", () => {

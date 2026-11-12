@@ -11,8 +11,12 @@ async function activeWorkspaceTabFits(page: import("@playwright/test").Page) {
 }
 
 /** The secondary lanes sit behind the More disclosure at ≤640 (M1/M3); above
- * it they are inline. One helper keeps both paths honest. */
+ * it they are inline. One helper keeps both paths honest. The lane bar renders
+ * after the Prophet data settles, so wait for it before deciding which path
+ * applies — at phone widths a hidden tab is not in the accessibility tree, and
+ * a premature check would leave the disclosure closed and the tab unreachable. */
 async function revealOptionsLane(page: import("@playwright/test").Page) {
+  await page.getByTestId("prophet-tab-today").waitFor({ state: "visible", timeout: 30_000 });
   const more = page.getByTestId("prophet-lane-more");
   if (await more.isVisible()) await more.click();
 }
@@ -28,11 +32,16 @@ test("Prophet keeps Plans and Options Alpha separate at every contract viewport"
   await expect.poll(() => activeWorkspaceTabFits(page)).toBe(true);
 
   const macroTab = page.getByRole("tab", { name: /^Plans$/ });
-  const optionsTab = page.getByRole("tab", { name: /Options Alpha/ });
+  // Address the lane by test id, not by role: at ≤640 the selected secondary
+  // lane's disclosure closes, so the tab leaves the accessibility tree while
+  // the More button carries the lane name. The test id survives both states.
+  const optionsTab = page.getByTestId("prophet-tab-options");
   await expect(macroTab).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
+  // Reveal first: at ≤640 the secondary lanes are behind the disclosure, so the
+  // tab only enters the accessibility tree once it is opened (M1/M3).
+  await revealOptionsLane(page);
   await expect(optionsTab).toHaveAttribute("aria-selected", "false");
 
-  await revealOptionsLane(page);
   await optionsTab.click();
   await expect(optionsTab).toHaveAttribute("aria-selected", "true");
   const desk = page.getByTestId("options-alpha-desk");
@@ -156,7 +165,7 @@ test("Options Alpha visibly marks an API-served stale artifact", async ({ page }
 
   await page.goto("/options?tab=prophet");
   await revealOptionsLane(page);
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await page.getByTestId("prophet-tab-options").click();
   const warning = page.getByTestId("options-alpha-stale");
   await expect(warning).toBeVisible({ timeout: 15_000 });
   await expect(warning).toContainText("Cached or aged evidence");

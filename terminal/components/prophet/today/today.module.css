@@ -579,6 +579,12 @@
 @media (max-width: 1100px) {
   .caseGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .heroStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* P1: the leadership table fits its panel at every tablet width. The group
+     name is the flexible column — it may wrap, so the table's minimum width
+     drops below the panel and no inner horizontal scrollbar appears between
+     the phone list mode (≤640) and the desktop table. The numeric columns keep
+     their one-line measure. */
+  .table td.groupCell { white-space: normal; }
 }
 
 /* ── Responsive: mobile (≤640px, SX06/SX08/T2-10) ──────────────────────── */

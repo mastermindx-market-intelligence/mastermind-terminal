@@ -676,9 +676,11 @@ const PROPHET_LEX = {
   todayCaptured:     ["Captured {date}", "采集于 {date}"],
   // SX01 hero: the leading sector's assessment, stated from published fields.
   todayHeroKicker:   ["Market & sector leadership", "市场与行业领涨"],
-  todayHeroAhead:    ["{group} is ahead of the market.", "{group} 跑赢市场。"],
-  todayHeroBehind:   ["{group} is behind the market.", "{group} 跑输市场。"],
-  todayHeroEven:     ["{group} is in line with the market.", "{group} 与市场同步。"],
+  // ZH joins the group name to the predicate with no space (the sentence is
+  // one clause; the English template's space is an English word boundary).
+  todayHeroAhead:    ["{group} is ahead of the market.", "{group}跑赢市场。"],
+  todayHeroBehind:   ["{group} is behind the market.", "{group}跑输市场。"],
+  todayHeroEven:     ["{group} is in line with the market.", "{group}与市场同步。"],
   todayHeroUnavailable: ["The leading sector's relative measure is not published for this reading.", "本次读数未发布领涨行业的相对表现。"],
   todayReturnVsSector: ["Return vs sector", "相对行业收益"],
   todayNotPublished: ["not published", "未发布"],

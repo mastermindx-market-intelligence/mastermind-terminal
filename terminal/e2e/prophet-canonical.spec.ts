@@ -52,7 +52,10 @@ test("sector and symbol round-trip on the canonical keys", async ({ page }) => {
   await withLang(page);
   // Industrials publishes its population AND CARR's own symbol read in the
   // committed fixture (CLX's is not captured), so this proves the real setup.
-  await page.goto("/prophet?tab=sector&sector=us_sector_industrials&prophetView=population");
+  // The canonical link carries ONE key set: `sector` IS the population view —
+  // no `prophetView` rides along (the pre-contract spelling is still read, see
+  // the explicit-view leg at the end).
+  await page.goto("/prophet?tab=sector&sector=us_sector_industrials");
 
   await expect(page.getByTestId("prophet-tab-screener")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
@@ -61,12 +64,19 @@ test("sector and symbol round-trip on the canonical keys", async ({ page }) => {
   await expect(page).toHaveURL(/[?&]tab=sector/);
   await expect(page).toHaveURL(/[?&]sector=us_sector_industrials/);
   await expect(page).toHaveURL(/[?&]symbol=CARR/);
+  // `symbol` IS the setup view: the link mixes no key families.
+  await expect(page).not.toHaveURL(/prophetView=/);
   await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 20_000 });
 
   // Back restores the population view with group and symbol in the address.
   await page.goBack();
   await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
   await expect(page).toHaveURL(/[?&]sector=us_sector_industrials/);
+  await expect(page).not.toHaveURL(/[?&]symbol=/);
+
+  // A link minted before the contract (explicit `prophetView`) still reads.
+  await page.goto("/prophet?tab=sector&sector=us_sector_industrials&prophetView=population");
+  await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 20_000 });
 });
 
 test("`sel` round-trips on Today: toggle, reload keeps it, back removes it", async ({ page }) => {

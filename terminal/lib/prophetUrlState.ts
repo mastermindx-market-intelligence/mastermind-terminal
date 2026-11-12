@@ -13,10 +13,19 @@
  *   `sector`  the selected group id (sector journey / Today focus)
  *   `symbol`  the selected company symbol
  *   `sel`     REPEATABLE: the board's ordered compare-selection symbols
- * (plus the `prophet*` keys that predate the contract — `prophetView`,
- * `prophetPlan`, `prophetQ`, `prophetState`, `prophetOffset`, `prophetFrom` —
- * which stay the wire form for their own dimensions). A NEW key beyond this
- * contract goes through the COO, not this file.
+ * (plus the `prophet*` keys that predate the contract — `prophetPlan`,
+ * `prophetQ`, `prophetState`, `prophetOffset`, `prophetFrom` — which stay the
+ * wire form for their own dimensions). A NEW key beyond this contract goes
+ * through the COO, not this file.
+ *
+ * The sector VIEW is not a separate canonical key: `symbol` IS the company
+ * setup, `sector` IS that group's population, and neither is the picker. A
+ * canonical link therefore carries ONE key set — `tab=sector&symbol=CARR`,
+ * never a canonical/legacy mix — and the reader derives the view from the
+ * contract keys (`impliedSectorView`). `prophetView` is written only for the
+ * one state those keys cannot express (the picker with a group still in
+ * context) and is still READ as an override, so links minted before this rule
+ * keep working. No new key is introduced for it.
  *
  * Legacy `/options?tab=prophet` keeps the original `prophet*` family
  * exclusively (`prophetLane`, `prophetView`, `prophetGroup`, `prophetSymbol`,
@@ -59,6 +68,18 @@ const LEGACY_LANE_ALIASES: Readonly<Record<string, ProphetLane>> = { macro: "pla
  * population (SX04) → setup (SX03). */
 export type ProphetSectorViewMode = "overview" | "population" | "setup";
 export const PROPHET_SECTOR_VIEWS: readonly ProphetSectorViewMode[] = ["overview", "population", "setup"];
+
+/** The sector view the canonical contract keys already imply: a symbol is the
+ * company setup, a group is its member population, neither is the picker.
+ * This is why a canonical link needs no separate view key — the address says
+ * `tab=sector&symbol=CARR`, not `…&prophetView=setup`. The one state the keys
+ * cannot express (the picker with a group still in context) still writes the
+ * existing `prophetView` wire key; no new key is minted. */
+export function impliedSectorView(group: string | null, symbol: string | null): ProphetSectorViewMode {
+  if (symbol !== null) return "setup";
+  if (group !== null) return "population";
+  return "overview";
+}
 
 /** How the two mounts spell the state. Inferred from the URL's path when a
  * caller does not say; see `prophetMountForPathname`. */
@@ -197,9 +218,17 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
   const lane = laneOf(params.get(mount === "canonical" && params.has("tab") ? "tab" : "prophetLane"))
     ?? (mount === "canonical" ? laneOf(params.get("prophetLane")) : null)
     ?? (mount === "canonical" ? DEFAULT_PROPHET_STATE.lane : DEFAULT_PROPHET_STATE_LEGACY.lane);
-  const view = params.get("prophetView");
   const group = mount === "canonical" ? params.get("sector") ?? params.get("prophetGroup") : params.get("prophetGroup");
   const symbol = mount === "canonical" ? params.get("symbol") ?? params.get("prophetSymbol") : params.get("prophetSymbol");
+  const admittedGroup = group !== null && SECTOR_MEMBERS_GROUP_ID.test(group) ? group : null;
+  const admittedSymbol = symbol !== null && SECTOR_MEMBERS_SYMBOL.test(symbol) ? symbol : null;
+  // The view: an explicit `prophetView` (a link minted before the contract, or
+  // the picker-with-context state) always wins; otherwise the canonical mount
+  // derives it from the contract keys, so a canonical link never mixes families.
+  const view = params.get("prophetView");
+  const admittedView = (PROPHET_SECTOR_VIEWS as readonly string[]).includes(view ?? "")
+    ? view as ProphetSectorViewMode
+    : null;
   const plan = params.get("prophetPlan");
   const q = params.get("prophetQ") ?? "";
   const state = params.get("prophetState");
@@ -212,9 +241,9 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
     : params.getAll("prophetSel");
   return {
     lane,
-    view: (PROPHET_SECTOR_VIEWS as readonly string[]).includes(view ?? "") ? view as ProphetSectorViewMode : "overview",
-    group: group !== null && SECTOR_MEMBERS_GROUP_ID.test(group) ? group : null,
-    symbol: symbol !== null && SECTOR_MEMBERS_SYMBOL.test(symbol) ? symbol : null,
+    view: admittedView ?? (mount === "canonical" ? impliedSectorView(admittedGroup, admittedSymbol) : DEFAULT_PROPHET_STATE.view),
+    group: admittedGroup,
+    symbol: admittedSymbol,
     plan: plan !== null && PLAN_ID.test(plan) ? plan : null,
     q: q !== "" && SECTOR_MEMBERS_QUERY.test(q) ? q : "",
     state: state !== null && (PROPHET_MEMBER_STATES as readonly string[]).includes(state) ? state as ProphetMemberState : null,
@@ -283,8 +312,14 @@ export function writeProphetState(url: URL, state: ProphetUrlState, mount?: Prop
     return url.pathname + url.search + url.hash;
   }
   // Canonical: the contract keys first (tab, sector, symbol, repeatable sel),
-  // then the surviving `prophet*` dimensions.
-  if (state.view !== DEFAULT_PROPHET_STATE.view) url.searchParams.set("prophetView", state.view);
+  // then the surviving `prophet*` dimensions. The sector view is NOT written
+  // when the contract keys already imply it — `tab=sector&symbol=CARR` is the
+  // setup link, `tab=sector&sector=housing` the population link — so one link
+  // carries one key set. Only the picker-with-context state (overview while a
+  // group is still selected) needs the existing `prophetView` override; the
+  // reader treats any explicit value as authoritative, so old links keep
+  // working and a stale redundant key is scrubbed on the next write.
+  if (state.view !== impliedSectorView(state.group, state.symbol)) url.searchParams.set("prophetView", state.view);
   else url.searchParams.delete("prophetView");
   if (state.plan !== null) url.searchParams.set("prophetPlan", state.plan);
   else url.searchParams.delete("prophetPlan");
