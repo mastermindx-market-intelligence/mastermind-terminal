@@ -1,10 +1,11 @@
 "use client";
 /**
- * ProphetSectorView — the Prophet × Sector Intelligence lane (SX01–SX04).
- *
- * The reading order (builder card G): context (market vs group) → picker
- * (every group) → population (every member, dated, joined to Prophet) →
- * setup (the real company setup) → sources (both generations' evidence) — and
+ * ProphetSectorView — the Prophet × Sector Intelligence lane (SX01–SX04,
+ * T2-06/T2-07). The reading order: leadership table (every group ranked) →
+ * sector focus (the group against its market, and the panels that would test
+ * the move) → population (every member, dated, joined to Prophet, with the
+ * compare selection) → setup (one company's real setup) / compare (the
+ * selected names side by side) → sources (both generations' evidence) — and
  * the labelled return control restores the exact sector selection the reader
  * departed from, wherever they are in this lane.
  *
@@ -22,7 +23,9 @@ import {
 import { prophetFromReturnHref, type ProphetUrlState } from "@/lib/prophetUrlState";
 import { SectorContextStrip } from "./SectorContextStrip";
 import { SectorGroupPicker } from "./SectorGroupPicker";
-import { SectorMemberPopulation } from "./SectorMemberPopulation";
+import { SectorFocus } from "./SectorFocus";
+import { SectorMemberPopulation, readProphetSelection, toggleProphetSelection } from "./SectorMemberPopulation";
+import { MemberCompare } from "./MemberCompare";
 import { MemberSetup } from "./MemberSetup";
 import { SectorSourcesDisclosure } from "./SectorSourcesDisclosure";
 import { makeProphetSectorT, prophetSectorFill } from "./prophetSectorStrings";
@@ -70,6 +73,8 @@ function useSectorMembersFetch<T extends SectorMembersPayload>(
   return { read, retry };
 }
 
+type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
+
 export function ProphetSectorView({ state, update }: {
   state: ProphetUrlState;
   update: (patch: Partial<ProphetUrlState>) => void;
@@ -77,11 +82,11 @@ export function ProphetSectorView({ state, update }: {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
 
-  // index — every group with coverage counts (picker + overview context).
+  // index — every group with coverage counts (leadership table).
   const indexFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "index" }>>(
     true, () => ({}), () => "index");
-  // group — the full member population (population view; also the deep-linked
-  // overview context when a group is already selected). The key must name
+  // group — the full member population (population view; also the sector
+  // focus's own read when a group is selected in overview). The key must name
   // EVERY input of the request: offset included, or Next/Prev relabels the
   // page without refetching the rows behind it.
   const groupKey = sectorGroupFetchKey({
@@ -91,35 +96,85 @@ export function ProphetSectorView({ state, update }: {
     state.group !== null && state.view !== "setup",
     () => ({ group: state.group ?? undefined, q: state.q || null, state: state.state, offset: state.offset }),
     () => groupKey);
-  // symbol — the Setup join (member_of + prophet state).
-  const symbolFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "symbol" }>>(
+  // symbol — the Setup join (member_of + prophet state)…
+  const symbolFetch = useSectorMembersFetch<SymbolPayload>(
     state.view === "setup" && state.symbol !== null,
     () => ({ symbol: state.symbol ?? undefined }),
     () => `${state.symbol ?? ""}`);
+  // …and the compare view's per-name reads: one bounded fetch per selected
+  // symbol (cap three, unrolled — hooks never ride a callback), each keyed by
+  // its own symbol. The compare view is setup-mode with no symbol — the
+  // selection decides what is fetched.
+  const selection = readProphetSelection(state);
+  const compareActive = state.view === "setup" && state.symbol === null;
+  const cmpFetch0 = useSectorMembersFetch<SymbolPayload>(
+    compareActive && selection.length > 0,
+    () => ({ symbol: selection[0] }),
+    () => `cmp0:${compareActive ? selection[0] ?? "" : ""}`);
+  const cmpFetch1 = useSectorMembersFetch<SymbolPayload>(
+    compareActive && selection.length > 1,
+    () => ({ symbol: selection[1] }),
+    () => `cmp1:${compareActive ? selection[1] ?? "" : ""}`);
+  const cmpFetch2 = useSectorMembersFetch<SymbolPayload>(
+    compareActive && selection.length > 2,
+    () => ({ symbol: selection[2] }),
+    () => `cmp2:${compareActive ? selection[2] ?? "" : ""}`);
+  const compareFetches = [cmpFetch0, cmpFetch1, cmpFetch2];
+  const comparePayloadOf = (symbol: string): SymbolPayload | null => {
+    for (const fetcher of compareFetches) {
+      if (fetcher.read.status === "ready" && fetcher.read.payload.symbol === symbol) {
+        return fetcher.read.payload;
+      }
+    }
+    return null;
+  };
+  const compareReady = compareFetches
+    .map(fetcher => (fetcher.read.status === "ready" ? fetcher.read.payload : null))
+    .find(payload => payload !== null) ?? null;
+
+  // Compare selection: toggled from the population, read tolerantly from the
+  // address. Until the URL codec publishes `sel` (Lane A's file), the patch
+  // rides the hook's React state — same call sites either way.
+  const toggleSelect = (symbol: string) =>
+    update({ sel: toggleProphetSelection(selection, symbol) } as unknown as Partial<ProphetUrlState>);
 
   const pickGroup = (groupId: string) =>
-    update({ view: "population", group: groupId, symbol: null, q: "", state: null, offset: 0 });
+    update({ view: "overview", group: groupId, symbol: null, q: "", state: null, offset: 0 });
   const openMember = (symbol: string, planId: string | null) =>
     update({ view: "setup", symbol, plan: planId });
-  const backToPicker = () =>
+  const backToLeadership = () =>
+    update({ group: null, symbol: null, q: "", state: null, offset: 0 });
+  const backToFocus = () =>
     update({ view: "overview", symbol: null, q: "", state: null, offset: 0 });
   const backToPopulation = () =>
-    update({ view: "population", symbol: null });
+    update({ view: "population", symbol: null, plan: null });
+  const openCompare = () =>
+    update({ view: "setup", symbol: null, plan: null });
 
   const indexReady = indexFetch.read.status === "ready" ? indexFetch.read.payload : null;
   const groupReady = groupFetch.read.status === "ready" ? groupFetch.read.payload : null;
   const symbolReady = symbolFetch.read.status === "ready" ? symbolFetch.read.payload : null;
 
-  // The context strip's group source: the group read in population, the
-  // symbol's own membership in setup, the index descriptor in overview. A
+  // The context group source: the group read in population/focus, the
+  // symbol's own membership in setup, the index descriptor as fallback. A
   // multi-group symbol (CARR sits in Housing AND Industrials) shows the group
   // the reader is investigating, not whichever membership happens to be first.
-  const membershipFor = (memberOf: Extract<SectorMembersPayload, { mode: "symbol" }>["memberOf"]) =>
+  const membershipFor = (memberOf: SymbolPayload["memberOf"]) =>
     memberOf.find(entry => entry.group.id === state.group) ?? memberOf[0];
-  const contextGroup = state.view === "setup"
+  const contextGroup = state.view === "setup" && state.symbol !== null
     ? symbolReady ? membershipFor(symbolReady.memberOf)?.group ?? null : null
     : groupReady?.group ?? (state.group !== null ? indexReady?.groups.find(g => g.id === state.group) ?? null : null);
-  const contextEnvelope = state.view === "setup" ? symbolReady : groupReady ?? indexReady;
+  const contextEnvelope = state.view === "setup"
+    ? (state.symbol !== null ? symbolReady : compareReady ?? indexReady)
+    : groupReady ?? indexReady;
+
+  // The focus's member count: the group read's own counts when ready, else
+  // the index summary's — configured first (that is the roster), served as
+  // the honest fallback, never invented.
+  const focusCounts = groupReady?.counts
+    ?? (state.group !== null ? indexReady?.groups.find(g => g.id === state.group)?.counts ?? null : null);
+  const focusMemberCount = focusCounts !== null ? focusCounts.configured ?? focusCounts.served : null;
+  const focusCompatibility = groupReady?.compatibility ?? indexReady?.compatibility ?? null;
 
   const fetchStateBlock = (read: Read<never>, retry: () => void, testId: string) => {
     if (read.status === "loading") return <p className={styles.stateCopy} data-testid={testId}>{t("loading")}</p>;
@@ -174,23 +229,33 @@ export function ProphetSectorView({ state, update }: {
 
       <div className={styles.laneBody}>
         {state.view === "overview" ? (
-          <>
-            {contextGroup !== null && contextEnvelope !== null ? (
-              <SectorContextStrip group={contextGroup} compatibility={contextEnvelope.compatibility} />
-            ) : (
-              <p className={styles.stateCopy}>{t("contextNoGroup")}</p>
-            )}
-            {indexFetch.read.status === "ready"
+          state.group === null ? (
+            // No group picked: the leadership table orients on its own — every
+            // group with its window return, versus-market and development.
+            indexFetch.read.status === "ready"
               ? <SectorGroupPicker groups={indexFetch.read.payload.groups} totals={indexFetch.read.payload.totals} selected={state.group} onPick={pickGroup} />
-              : fetchStateBlock(indexFetch.read as Read<never>, indexFetch.retry, "prophet-sector-index")}
-          </>
+              : fetchStateBlock(indexFetch.read as Read<never>, indexFetch.retry, "prophet-sector-index")
+          ) : (
+            // A group is picked: its own focus page (SX02). The group read is
+            // the numbers source; the index descriptor is the fallback while
+            // it loads or if the group read cannot serve the descriptor.
+            contextGroup !== null && focusCompatibility !== null
+              ? <SectorFocus
+                  group={contextGroup}
+                  compatibility={focusCompatibility}
+                  memberCount={focusMemberCount}
+                  onOpenPopulation={() => update({ view: "population" })}
+                  onBack={backToLeadership}
+                />
+              : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-focus-group")
+          )
         ) : null}
 
         {state.view === "population" ? (
           <>
             <div className={styles.crumbs}>
-              <button type="button" className={styles.backButton} data-testid="prophet-sector-back-picker" onClick={backToPicker}>
-                ← {t("pickerTitle")}
+              <button type="button" className={styles.backButton} data-testid="prophet-sector-population-back" onClick={backToFocus}>
+                ← {t("backToFocus")}
               </button>
             </div>
             {groupReady !== null && groupReady.group === null ? (
@@ -218,6 +283,9 @@ export function ProphetSectorView({ state, update }: {
                         offset: change.offset !== undefined ? change.offset : state.offset,
                       })}
                       onOpenMember={openMember}
+                      selection={selection}
+                      onToggleSelect={toggleSelect}
+                      onCompare={openCompare}
                     />
                   : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-group")}
               </>
@@ -225,10 +293,33 @@ export function ProphetSectorView({ state, update }: {
           </>
         ) : null}
 
-        {state.view === "setup" ? (
+        {state.view === "setup" && state.symbol !== null ? (
           symbolFetch.read.status === "ready"
             ? <MemberSetup payload={symbolFetch.read.payload} onBack={backToPopulation} originGroupId={state.group} />
             : fetchStateBlock(symbolFetch.read as Read<never>, symbolFetch.retry, "prophet-sector-symbol")
+        ) : null}
+
+        {state.view === "setup" && state.symbol === null ? (
+          selection.length >= 2 ? (
+            <MemberCompare
+              symbols={selection}
+              payloadOf={comparePayloadOf}
+              stateBlock={index => fetchStateBlock(
+                compareFetches[index].read as Read<never>,
+                compareFetches[index].retry,
+                `prophet-sector-compare-${selection[index] ?? index}`,
+              )}
+              onBack={backToPopulation}
+              onOpenMember={openMember}
+            />
+          ) : (
+            <div className={styles.stateCopy} data-testid="prophet-sector-compare-needs-more" role="status">
+              <p>{t("compareNeedsMore")}</p>
+              <button type="button" className={styles.smallButton} onClick={backToPopulation}>
+                {t("compareBack")}
+              </button>
+            </div>
+          )
         ) : null}
       </div>
 

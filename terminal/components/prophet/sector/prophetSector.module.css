@@ -623,3 +623,401 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ── Leadership table (SX01 · G5) ──────────────────────────────────────── */
+/* Same grammar as the member table: the wrap owns horizontal scroll, the
+   table stays a table at every width. Hierarchy from type and spacing — no
+   colored edges; sign ink only on the numbers themselves. */
+.leadershipWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.leadershipTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--text-2);
+}
+.leadershipTable th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  font: 600 9.5px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.leadershipTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line-2);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.leadershipTable tr:last-child td { border-bottom: none; }
+.leadershipTable tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.leadershipSectorCell { white-space: normal; min-width: 150px; }
+.leadershipName {
+  display: block;
+  font: 700 12.5px/1.25 var(--font-ui);
+  color: var(--text);
+}
+.leadershipMembers {
+  display: block;
+  margin-top: 2px;
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.leadershipNum {
+  font: 700 12.5px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.leadershipNumMuted {
+  font: 500 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.leadershipDev { color: var(--text-2); }
+.leadershipAction {
+  min-height: 36px;
+  padding: 8px 10px;
+  margin: -9px 0;
+  border: none;
+  border-radius: var(--r);
+  background: transparent;
+  font: 600 11.5px/1 var(--font-ui);
+  color: var(--link);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.leadershipAction:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+  .leadershipAction { min-height: 44px; }
+}
+.leadershipNote {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Sector focus (SX02 · G4) ──────────────────────────────────────────── */
+.focus {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.focusHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 2px;
+}
+.focusTitle {
+  margin: 0;
+  font: 760 17px/1.2 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.focusIntro {
+  margin: 0;
+  font: 500 12.5px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.focusChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.focusChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.focusActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.focusPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+}
+.focusPanelTitle {
+  margin: 0;
+  font: 700 13.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.focusPanelBody {
+  margin: 0;
+  font: 500 12px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+.focusPanelNote {
+  margin: 0;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+.outlookChip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(214, 158, 46, 0.12);
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--warn);
+}
+.siLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.siLink:hover { border-color: var(--line-3); }
+@media (max-width: 640px) {
+  .siLink { min-height: 44px; }
+}
+
+/* ── Selection tray (SX04 / T2-06 / T2-14 · G6) ────────────────────────── */
+.selectWrap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-right: 8px;
+  cursor: pointer;
+}
+.selectBox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #4d82ff;
+  cursor: pointer;
+}
+.selectionTray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(13, 15, 19, 0.92);
+}
+.selectionCount {
+  font: 700 12px/1 var(--font-ui);
+  color: var(--text);
+  white-space: nowrap;
+}
+.selectionChips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.selectionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.03);
+  font: 700 11.5px/1 var(--font-num);
+  color: var(--text);
+}
+.selectionChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+}
+.selectionChipRemove:hover { color: var(--text); background: rgba(255, 255, 255, 0.12); }
+.selectionNote {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.selectionCap {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--warn);
+}
+.compareButton {
+  min-height: 36px;
+  margin-left: auto;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: rgba(41, 98, 255, 0.88);
+  font: 700 12px/1 var(--font-ui);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast) var(--ease-out);
+}
+.compareButton:hover:not(:disabled) { background: rgba(63, 118, 255, 0.95); }
+.compareButton:disabled { opacity: 0.4; cursor: default; }
+/* At phone width the tray docks to the lane's bottom edge (T2-14): the
+   reader can scroll a long table without losing the compare affordance. */
+@media (max-width: 640px) {
+  .selectionTray {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
+  .compareButton {
+    margin-left: 0;
+    flex: 1;
+    min-height: 44px;
+  }
+  .selectionNote { flex-basis: 100%; }
+}
+
+/* ── Member compare (T2-07 / T2-13 · G7) ───────────────────────────────── */
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.compareHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 2px;
+}
+.compareTitle {
+  margin: 0;
+  font: 760 17px/1.2 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.compareIntro {
+  margin: 0;
+  font: 500 12px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+.compareBanner {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(214, 158, 46, 0.10);
+  font: 600 12px/1.45 var(--font-ui);
+  color: var(--warn);
+}
+.compareGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 10px;
+}
+.compareCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+}
+.compareCardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.compareSymbol {
+  border: none;
+  padding: 0;
+  background: transparent;
+  font: 760 15px/1.2 var(--font-num);
+  color: var(--link);
+  cursor: pointer;
+}
+.compareSymbol:hover { text-decoration: underline; }
+.compareName {
+  font: 500 11.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.compareClocks {
+  margin: 0;
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.compareDetails {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
+}
+.compareDetailLabel {
+  font: 600 9.5px/1.5 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.compareDetailValue {
+  font: 500 12px/1.45 var(--font-ui);
+  color: var(--text-2);
+  min-width: 0;
+}
+.compareUnavailable {
+  color: var(--text-dim);
+}
+.compareChartBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: rgba(5, 7, 12, 0.18);
+}
+.compareEntryChip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: var(--r-pill);
+  background: rgba(214, 158, 46, 0.12);
+  font: 600 10px/1 var(--font-ui);
+  color: var(--warn);
+}
+.compareFooter {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}

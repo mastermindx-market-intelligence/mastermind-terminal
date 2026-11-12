@@ -1,7 +1,8 @@
 "use client";
 /**
- * SectorMemberPopulation (SX04) — the complete dated member population of the
- * selected group, joined to Prophet.
+ * SectorMemberPopulation (SX04 / T2-06 · G6) — the complete dated member
+ * population of the selected group, joined to Prophet, with the compare
+ * selection.
  *
  * Laws:
  *   - EVERY member renders (search filters BEFORE paging; state filter chips
@@ -12,28 +13,75 @@
  *     the owner's reason, translated — never dropped.
  *   - Each member's Prophet state is REPORTED (label + reason for none/
  *     unavailable), never recommended; the row's action opens the Setup.
+ *   - Selection (T2-06): real checkboxes, a tray that names the count with a
+ *     removable chip per name, "Selections stay fixed as you change filters"
+ *     — and selection SURVIVES search/filter/paging because it lives above
+ *     this component, in the lane's state. Compare needs two names, caps at
+ *     three (the cap is stated, never a silent no-op).
+ *   - The per-member performance/research measures the wire does not carry
+ *     are named ONCE under the table (doctrine Law 4), never as per-row null
+ *     spam or an invented number.
  *   - Keyboard navigable: the symbol control is a real button; touch targets
- *     meet 44px; filter chips and paging are buttons.
+ *     meet 44px; filter chips, checkboxes and paging are real controls.
  */
 import { useState } from "react";
 import { useLang } from "@/lib/i18n";
 import {
-  PROPHET_MEMBER_STATES, SECTOR_MEMBERS_QUERY,
+  PROPHET_MEMBER_STATES, SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
   type ProphetMemberState, type SectorMembersPayload,
 } from "@/lib/prophetSectorMembers";
+import type { ProphetUrlState } from "@/lib/prophetUrlState";
 import {
   makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey, prophetSectorFill,
   prophetUnservedReasonKey,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
-export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilter, onOpenMember }: {
+/** The compare surface reads at most three cases side by side (T2-07's two
+ * columns plus the "Add a third" affordance); the cap is honest vocabulary,
+ * not a silent drop. */
+export const PROPHET_COMPARE_CAP = 3;
+
+/** Tolerant read of Lane A's future `sel` key: until the URL codec publishes
+ * it, the selection rides the lane's React state (a refresh drops it — never
+ * an error); once the codec carries `sel`, the same calls persist it with no
+ * change on this side. Invalid or over-cap entries are dropped, never
+ * rendered. */
+export function readProphetSelection(state: ProphetUrlState): string[] {
+  const raw = (state as ProphetUrlState & { sel?: unknown }).sel;
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "string" || !SECTOR_MEMBERS_SYMBOL.test(entry)) continue;
+    if (seen.has(entry) || out.length >= PROPHET_COMPARE_CAP) continue;
+    seen.add(entry);
+    out.push(entry);
+  }
+  return out;
+}
+
+/** Toggle one symbol, appending at the end (the tray's chip order follows the
+ * reader's picking order); at the cap a new pick replaces nothing — the cap
+ * note explains. */
+export function toggleProphetSelection(current: string[], symbol: string): string[] {
+  if (!SECTOR_MEMBERS_SYMBOL.test(symbol)) return current;
+  if (current.includes(symbol)) return current.filter(entry => entry !== symbol);
+  if (current.length >= PROPHET_COMPARE_CAP) return current;
+  return [...current, symbol];
+}
+
+export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilter, onOpenMember,
+  selection, onToggleSelect, onCompare }: {
   payload: Extract<SectorMembersPayload, { mode: "group" }>;
   q: string;
   stateFilter: ProphetMemberState | null;
   offset: number;
   onFilter: (change: { q?: string; state?: ProphetMemberState | null; offset?: number }) => void;
   onOpenMember: (symbol: string, planId: string | null) => void;
+  selection: string[];
+  onToggleSelect: (symbol: string) => void;
+  onCompare: () => void;
 }) {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
@@ -123,12 +171,52 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
         </div>
       </div>
 
+      {selection.length > 0 ? (
+        <div className={styles.selectionTray} data-testid="prophet-sector-selection">
+          <span className={styles.selectionCount}>
+            {prophetSectorFill(t("selectedCount"), { n: selection.length })}
+          </span>
+          <span className={styles.selectionChips}>
+            {selection.map(symbol => (
+              <span key={symbol} className={styles.selectionChip}>
+                {symbol}
+                <button
+                  type="button"
+                  className={styles.selectionChipRemove}
+                  aria-label={prophetSectorFill(t("removeSelectionAria"), { symbol })}
+                  data-testid={`prophet-sector-selection-remove-${symbol}`}
+                  onClick={() => onToggleSelect(symbol)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </span>
+          <span className={styles.selectionNote}>{t("selectionNote")}</span>
+          {selection.length >= PROPHET_COMPARE_CAP ? (
+            <span className={styles.selectionCap}>
+              {prophetSectorFill(t("selectionCapNote"), { n: PROPHET_COMPARE_CAP })}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            className={styles.compareButton}
+            disabled={selection.length < 2}
+            data-testid="prophet-sector-compare-selected"
+            onClick={onCompare}
+          >
+            {t("compareSelected")}
+          </button>
+        </div>
+      ) : null}
+
       {members.length === 0 ? (
         <p className={styles.emptyCopy} data-testid="prophet-sector-population-empty">{t("emptyFiltered")}</p>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.memberTable} data-testid="prophet-sector-member-table">
             <thead><tr>
+              <th scope="col"><span className={styles.a11yLabel}>{t("compareCol")}</span></th>
               <th scope="col">{t("columnSymbol")}</th>
               <th scope="col">{t("columnName")}</th>
               <th scope="col">{t("columnIndustry")}</th>
@@ -138,8 +226,21 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
             <tbody>
               {members.map(member => {
                 const planId = member.prophet.plan?.id ?? null;
+                const isSelected = selection.includes(member.symbol);
                 return (
                   <tr key={member.symbol} className={styles.memberRow}>
+                    <td>
+                      <label className={styles.selectWrap} data-testid={`prophet-sector-select-wrap-${member.symbol}`}>
+                        <input
+                          type="checkbox"
+                          className={styles.selectBox}
+                          checked={isSelected}
+                          aria-label={prophetSectorFill(t("selectAria"), { symbol: member.symbol })}
+                          data-testid={`prophet-sector-select-${member.symbol}`}
+                          onChange={() => onToggleSelect(member.symbol)}
+                        />
+                      </label>
+                    </td>
                     <td className={styles.symbolCell}>
                       {/* The stack lives INSIDE the td: a td with display:flex
                           opts out of table-cell layout, so its row rule drew at
@@ -192,6 +293,13 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
           </table>
         </div>
       )}
+
+      {/* The wire carries no per-member return/versus/breadth/research fields
+          yet (G6): one honest line under the whole table — never per-row null
+          spam, never an invented number. */}
+      <p className={styles.leadershipNote} data-testid="prophet-sector-measures-note">
+        {t("populationMeasuresNote")}
+      </p>
 
       <div className={styles.pagerRow} data-testid="prophet-sector-pager">
         <span className={styles.shownLabel}>

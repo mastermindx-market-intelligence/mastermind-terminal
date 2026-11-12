@@ -104,6 +104,22 @@ export function SectorContextStrip({ group, compatibility }: {
       <p className={compatible ? styles.contextVerdictQuiet : styles.contextVerdict} data-testid="prophet-sector-verdict" role={compatible ? undefined : "status"}>
         {verdict}
       </p>
+      {/* G22 / SX09 #01 — the relative-leader-but-falling case: ahead of the
+          market in pp while the group's own return is negative. Say the
+          advantage plainly and name what it does NOT mean; relative
+          resilience never reads as a green absolute return. */}
+      {ctx.relativePp !== null && ctx.relativePp > 0 && ctx.groupReturnPct !== null && ctx.groupReturnPct < 0 ? (
+        <p className={styles.contextVerdict} data-testid="prophet-sector-relative-lead" role="status">
+          {t("relativeLeadTitle")}{" "}
+          {prophetSectorFill(t("relativeLeadBody"), {
+            sector: pctSigned(ctx.groupReturnPct),
+            market: ctx.marketReturnPct !== null
+              ? pctSigned(ctx.marketReturnPct)
+              : t(contextNullKey(ctx.reasons.market_return_pct)),
+            adv: ctx.relativePp.toFixed(1),
+          })}
+        </p>
+      ) : null}
     </section>
   );
 }
