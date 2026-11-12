@@ -2,23 +2,29 @@
 /**
  * TodayView — the board /prophet opens on (Lane A, gaps G1/G2/G21).
  *
- * Reading order (SX01 / T2-01): the market-to-sector assessment first — the
- * focus group's read against the market with both owners' clocks — then the
- * group's research cases, then the ranked sector leadership table. The signal
- * desk (Plans) stays one tab away; it no longer owns the first screen.
+ * Reading order (SX01 desktop): the market-to-sector assessment of the LEADING
+ * sector first — the top-return group whose population is published — then the
+ * ranked sector leadership table directly under it, then that group's research
+ * cases. At ≤640 the compact composition (SX06/SX08) keeps the assessment and
+ * the first case in the first screen and lets the leadership list follow the
+ * cases (one CSS order swap; DOM order stays assessment → table → cases).
+ * The signal desk (Plans) stays one tab away; it no longer owns the first
+ * screen.
  *
  * Laws:
  *   - The whole board rides ONE index read (mode=index); the cases ride ONE
  *     group read (mode=group) for the focus group. Every panel states its own
  *     single as-of; no number is ever synthesized between reads.
- *   - Focus sector: the `sector` URL key when today's read carries it;
- *     otherwise the group with the most open plans (ties by group return) —
- *     the population read is the published artifact, so a group whose
- *     population is not published is skipped (bounded walk) rather than shown
- *     as an empty list. Production publishes every group; the walk only
- *     matters where some populations are withheld.
+ *   - Focus sector (B1): the `sector` URL key when today's read carries it;
+ *     otherwise the TOP-RETURN group whose population is published. Plan count
+ *     is a reported secondary fact, never the hero's selection rule. The
+ *     population read is the published artifact, so a group whose population is
+ *     not published is skipped (bounded walk) rather than shown as an empty
+ *     list. Production publishes every group; the walk only matters where some
+ *     populations are withheld.
  *   - Nulls render their owner's reason vocabulary; unavailable fields render
  *     their designed quiet absence — never a zero, never an invented number.
+ *   - Negative/positive measures carry semantic ink by meaning (P1).
  *   - Descriptive only. Nothing here sizes, rates or permits a trade.
  *   - The compare selection is the URL's `sel` (Lane A contract) — Today
  *     shows and edits it; it promises no destination beyond the contract.
@@ -38,8 +44,12 @@ import { ResearchCaseCard } from "./ResearchCaseCard";
 import { SectorLeadershipHero } from "./SectorLeadershipHero";
 import styles from "./today.module.css";
 
-type Read<T> = { status: "loading" } | { status: "ready"; payload: T }
-  | ({ status: SectorMembersRead["status"] } & { retryAfterSec?: number | null });
+type Read<T> = ({ status: "loading" } | { status: "ready"; payload: T }
+  | ({ status: SectorMembersRead["status"] } & { retryAfterSec?: number | null }))
+  /** The read key this outcome belongs to: the population walk advances only on
+   * a 404 CONFIRMED for the candidate it is looking at, never on a stale status
+   * left over from the previous candidate. */
+  & { key?: string };
 
 /** One bounded fetch cycle: sequence-guarded, aborted on change, retryable —
  * the same shape the sector lane uses, kept local so the lanes stay
@@ -49,7 +59,7 @@ function useTodayFetch<T extends SectorMembersPayload>(
   query: () => { group?: string; symbol?: string; offset?: number; limit?: number; q?: string | null; state?: ProphetMemberState | null },
   keyOf: () => string,
 ): { read: Read<T>; retry: () => void } {
-  const [read, setRead] = useState<Read<T>>({ status: "loading" });
+  const [read, setRead] = useState<Read<T>>({ status: "loading", key: keyOf() });
   const [attempt, setAttempt] = useState(0);
   const seq = useRef(0);
   const abort = useRef<AbortController | null>(null);
@@ -61,8 +71,9 @@ function useTodayFetch<T extends SectorMembersPayload>(
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
+    const forKey = key;
     void (async () => {
-      setRead({ status: "loading" });
+      setRead({ status: "loading", key: forKey });
       let result: Awaited<ReturnType<typeof fetchProphetSectorMembers>>;
       try {
         result = await fetchProphetSectorMembers({ ...query(), signal: controller.signal });
@@ -72,9 +83,9 @@ function useTodayFetch<T extends SectorMembersPayload>(
         throw error;
       }
       if (mine !== seq.current) return;
-      if (result.status === "ok") setRead({ status: "ready", payload: result.payload as T });
-      else if (result.status === "retry") setRead({ status: "retry", retryAfterSec: result.retryAfterSec });
-      else setRead({ status: result.status } as Read<T>);
+      if (result.status === "ok") setRead({ status: "ready", payload: result.payload as T, key: forKey });
+      else if (result.status === "retry") setRead({ status: "retry", retryAfterSec: result.retryAfterSec, key: forKey });
+      else setRead({ status: result.status, key: forKey } as Read<T>);
     })();
     return () => { controller.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,17 +131,17 @@ export function TodayView({ state, update }: {
   const indexFetch = useTodayFetch<Extract<SectorMembersPayload, { mode: "index" }>>(true, () => ({}), () => "index");
   const indexReady = indexFetch.read.status === "ready" ? indexFetch.read.payload : null;
 
-  // Focus candidates: the URL's `sector` group when today's read carries it;
-  // otherwise groups ranked by open plans, then group return (nulls last).
+  // Focus candidates (B1): groups ranked by group return, nulls last. The hero
+  // is the leading sector — the first candidate whose population is published.
+  // Plan count is reported elsewhere (coverage chips, table column); it never
+  // chooses the hero.
   const candidates = useMemo<Extract<SectorMembersPayload, { mode: "index" }>["groups"]>(() => {
     if (indexReady === null) return [];
     if (state.group !== null) {
       const named = indexReady.groups.filter(g => g.id === state.group);
       if (named.length > 0) return named;
     }
-    return [...indexReady.groups]
-      .sort((a, b) => b.counts.openPlan - a.counts.openPlan || byReturnDesc(a, b))
-      .slice(0, FOCUS_CANDIDATES);
+    return [...indexReady.groups].sort(byReturnDesc).slice(0, FOCUS_CANDIDATES);
   }, [indexReady, state.group]);
 
   // A deep-linked group always wins even when its population is not published
@@ -140,10 +151,11 @@ export function TodayView({ state, update }: {
   useEffect(() => { setWalkIndex(0); }, [state.group]); // eslint-disable-line react-hooks/set-state-in-effect
 
   const focusId = candidates[Math.min(walkIndex, Math.max(candidates.length - 1, 0))]?.id ?? null;
+  const casesKey = `cases|${focusId ?? ""}`;
   const casesFetch = useTodayFetch<Extract<SectorMembersPayload, { mode: "group" }>>(
     focusId !== null,
     () => ({ group: focusId ?? undefined, limit: 100 }),
-    () => `cases|${focusId ?? ""}`,
+    () => casesKey,
   );
   const casesReady = casesFetch.read.status === "ready" ? casesFetch.read.payload : null;
 
@@ -151,12 +163,15 @@ export function TodayView({ state, update }: {
   // (404 unknown_group at the BFF) yields to the next candidate — at most
   // FOCUS_CANDIDATES reads, and only in environments where some populations
   // are withheld; production publishes every group and stops at the first.
+  // The increment requires the 404 to belong to THIS candidate's read key, so a
+  // stale status from the previous step can never skip a published population.
   useEffect(() => {
-    if (state.group === null && casesFetch.read.status === "not_found" && walkIndex < candidates.length - 1) {
+    if (state.group === null && casesFetch.read.status === "not_found"
+      && casesFetch.read.key === casesKey && walkIndex < candidates.length - 1) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- a data-driven state machine: the fetch outcome for candidate N is the external input that selects candidate N+1.
       setWalkIndex(walkIndex + 1);
     }
-  }, [casesFetch.read.status, walkIndex, candidates.length, state.group]);
+  }, [casesFetch.read.status, casesFetch.read.key, casesKey, walkIndex, candidates.length, state.group]);
 
   const focusGroup = focusId !== null && indexReady !== null
     ? indexReady.groups.find(g => g.id === focusId) ?? null
@@ -211,8 +226,11 @@ export function TodayView({ state, update }: {
     return (
       <div className={styles.board} data-testid="prophet-today-board">
         <header className={styles.masthead}>
-          <h2>{t("todayBoardTitle")}</h2>
-          <p>{t("todayDescriptive")}</p>
+          <div>
+            <h2>{t("todayTitle")}</h2>
+            <p className={styles.mastheadSub}>{t("todaySubtitle")}</p>
+          </div>
+          <p className={styles.mastheadMeta}>{t("todayDescriptive")}</p>
         </header>
         {fetchStateBlock(indexFetch.read as Read<never>, indexFetch.retry, "prophet-today-index")}
       </div>
@@ -225,8 +243,13 @@ export function TodayView({ state, update }: {
   return (
     <div className={styles.board} data-testid="prophet-today-board">
       <header className={styles.masthead}>
-        <h2>{t("todayBoardTitle")}</h2>
-        <p>{prophetSectorFill(t("todayCaptured"), { date: indexReady.capturedAt.slice(0, 10) })} · {t("todayDescriptive")}</p>
+        <div>
+          <h2>{t("todayTitle")}</h2>
+          <p className={styles.mastheadSub}>{t("todaySubtitle")}</p>
+        </div>
+        <p className={styles.mastheadMeta}>
+          {prophetSectorFill(t("todayCaptured"), { date: indexReady.capturedAt.slice(0, 10) })} · {t("todayDescriptive")}
+        </p>
       </header>
 
       {focusGroup !== null ? (
@@ -256,6 +279,67 @@ export function TodayView({ state, update }: {
         </div>
       ) : null}
       {selectionFull && state.sel.length > 0 ? <p className={styles.selFull}>{t("todaySelectionFull")}</p> : null}
+
+      {/* B1: the leadership table sits directly under the assessment, BEFORE
+          the cases. At ≤640 the compact composition (SX06/SX08) moves it after
+          the cases with one CSS order swap — the columns become a 44px list. */}
+      <section className={styles.tablePanel} aria-labelledby="prophet-today-table-title" data-testid="prophet-today-leadership">
+        <div className={styles.sectionHead}>
+          <h3 className={styles.sectionTitle} id="prophet-today-table-title">{t("todayLeadershipTitle")}</h3>
+          <span className={styles.sectionBasis}>
+            {prophetSectorFill(t("todayLeadershipBasis"), { date: sectorClock })}
+          </span>
+        </div>
+        <div className={styles.tableScroll}>
+          <table className={styles.table} data-testid="prophet-today-table">
+            <thead>
+              <tr>
+                <th scope="col">{t("colGroup")}</th>
+                <th scope="col">{sectorT("contextGroupReturn")}</th>
+                <th scope="col">{sectorT("contextRelative")}</th>
+                <th scope="col">{sectorT("contextBreadth")}</th>
+                <th scope="col">{t("todayOpenPlans")}</th>
+                <th scope="col">{t("todayEarlyObs")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leadership.map(group => {
+                const ctx = group.context;
+                const name = (lang === "zh" ? group.nameZh || group.name : group.name) || group.id;
+                return (
+                  <tr
+                    key={group.id}
+                    tabIndex={0}
+                    data-testid="prophet-today-leader-row"
+                    aria-label={prophetSectorFill(t("todayGroupRowAria"), { group: name })}
+                    onClick={() => openGroup(group.id)}
+                    onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openGroup(group.id); } }}
+                  >
+                    <td className={styles.groupCell}>{name}</td>
+                    <td className={ctx.groupReturnPct === null ? styles.dimCell : ctx.groupReturnPct > 0 ? styles.numUp : ctx.groupReturnPct < 0 ? styles.numDown : undefined}>
+                      {ctx.groupReturnPct !== null ? pctSigned(ctx.groupReturnPct) : sectorT(contextNullKey(ctx.reasons.group_return_pct))}
+                    </td>
+                    <td className={ctx.relativePp === null ? styles.dimCell : ctx.relativePp > 0 ? styles.numUp : ctx.relativePp < 0 ? styles.numDown : undefined}>
+                      {ctx.relativePp !== null ? ppSigned(ctx.relativePp) : sectorT(contextNullKey(ctx.reasons.relative_pp))}
+                    </td>
+                    <td className={ctx.breadth === null ? styles.dimCell : undefined}>
+                      {ctx.breadth !== null ? `${ctx.breadth.aboveTrend}/${ctx.breadth.measured}` : sectorT(contextNullKey(ctx.reasons.breadth))}
+                    </td>
+                    <td>{group.counts.openPlan}</td>
+                    <td>{group.counts.earlyObservation}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.tableFoot}>
+          <p>{prophetSectorFill(t("todayLeadershipShown"), { shown: leadership.length, total: indexReady.groups.length })}</p>
+          <button type="button" className={styles.linkButton} data-testid="prophet-today-all-groups" onClick={openScreener}>
+            {prophetSectorFill(t("todayLeadershipAll"), { n: indexReady.groups.length })} →
+          </button>
+        </div>
+      </section>
 
       <section aria-labelledby="prophet-today-cases-title">
         <div className={styles.sectionHead}>
@@ -317,64 +401,6 @@ export function TodayView({ state, update }: {
         ) : focusId !== null ? (
           fetchStateBlock(casesFetch.read as Read<never>, casesFetch.retry, "prophet-today-cases")
         ) : null}
-      </section>
-
-      <section className={styles.tablePanel} aria-labelledby="prophet-today-table-title">
-        <div className={styles.sectionHead}>
-          <h3 className={styles.sectionTitle} id="prophet-today-table-title">{t("todayLeadershipTitle")}</h3>
-          <span className={styles.sectionBasis}>
-            {prophetSectorFill(t("todayLeadershipBasis"), { date: sectorClock })}
-          </span>
-        </div>
-        <div className={styles.tableScroll}>
-          <table className={styles.table} data-testid="prophet-today-table">
-            <thead>
-              <tr>
-                <th scope="col">{t("colGroup")}</th>
-                <th scope="col">{sectorT("contextGroupReturn")}</th>
-                <th scope="col">{sectorT("contextRelative")}</th>
-                <th scope="col">{sectorT("contextBreadth")}</th>
-                <th scope="col">{t("todayOpenPlans")}</th>
-                <th scope="col">{t("todayEarlyObs")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leadership.map(group => {
-                const ctx = group.context;
-                const name = (lang === "zh" ? group.nameZh || group.name : group.name) || group.id;
-                return (
-                  <tr
-                    key={group.id}
-                    tabIndex={0}
-                    data-testid="prophet-today-leader-row"
-                    aria-label={prophetSectorFill(t("todayGroupRowAria"), { group: name })}
-                    onClick={() => openGroup(group.id)}
-                    onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openGroup(group.id); } }}
-                  >
-                    <td className={styles.groupCell}>{name}</td>
-                    <td className={ctx.groupReturnPct === null ? styles.dimCell : ctx.groupReturnPct > 0 ? styles.numUp : ctx.groupReturnPct < 0 ? styles.numDown : undefined}>
-                      {ctx.groupReturnPct !== null ? pctSigned(ctx.groupReturnPct) : sectorT(contextNullKey(ctx.reasons.group_return_pct))}
-                    </td>
-                    <td className={ctx.relativePp === null ? styles.dimCell : undefined}>
-                      {ctx.relativePp !== null ? ppSigned(ctx.relativePp) : sectorT(contextNullKey(ctx.reasons.relative_pp))}
-                    </td>
-                    <td className={ctx.breadth === null ? styles.dimCell : undefined}>
-                      {ctx.breadth !== null ? `${ctx.breadth.aboveTrend}/${ctx.breadth.measured}` : sectorT(contextNullKey(ctx.reasons.breadth))}
-                    </td>
-                    <td>{group.counts.openPlan}</td>
-                    <td>{group.counts.earlyObservation}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div className={styles.tableFoot}>
-          <p>{prophetSectorFill(t("todayLeadershipShown"), { shown: leadership.length, total: indexReady.groups.length })}</p>
-          <button type="button" className={styles.linkButton} data-testid="prophet-today-all-groups" onClick={openScreener}>
-            {prophetSectorFill(t("todayLeadershipAll"), { n: indexReady.groups.length })} →
-          </button>
-        </div>
       </section>
     </div>
   );

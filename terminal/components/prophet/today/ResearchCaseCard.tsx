@@ -9,6 +9,10 @@
  *     member render their designed quiet absence ("not stated"), and the card
  *     says plainly that no entry assessment is published — an honest blank,
  *     not a guessed number.
+ *   - "Return vs sector" is carried by the wire for GROUPS only; for a member
+ *     the card shows its designed unavailable label. The research question is
+ *     likewise shown only when the read serves one — nothing is invented in
+ *     its place (M2).
  *   - Two actions only: open the company's setup (the depth lives in the
  *     journey), and add/remove the member from the compare selection (`sel`).
  */
@@ -78,6 +82,15 @@ export function ResearchCaseCard({ member, selected, selectionFull, onToggleComp
         {prophet.openPlanCount > 1 ? (
           <div>{prophetSectorFill(t("todayPlansCount"), { n: prophet.openPlanCount })}</div>
         ) : null}
+      </dl>
+
+      <dl className={styles.caseMeasures}>
+        <div>
+          <dt>{t("todayReturnVsSector")}</dt>
+          <dd data-testid="prophet-today-case-vs-sector" className={styles.caseUnavailable}>
+            {t("todayNotPublished")}
+          </dd>
+        </div>
       </dl>
 
       <p className={styles.caseNote}>{t("todayEntryUnavailable")}</p>

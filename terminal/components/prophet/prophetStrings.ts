@@ -661,15 +661,27 @@ const PROPHET_LEX = {
   // HONESTY: the board is descriptive market-to-sector context. Nulls use the
   // sector lane's shared not-stated vocabulary; nothing recommends a trade.
   tabToday:          ["Today", "今日"],
-  tabTodayCaption:   ["market vs sectors", "市场与行业"],
   tabScreener:       ["Screener", "筛选"],
-  tabScreenerCaption:["groups · members", "行业组 · 成分"],
   lanePlans:         ["Plans", "计划"],
-  lanePlansCaption:  ["factor-engine standouts", "因子引擎精选"],
-  todayBoardTitle:   ["Prophet Today", "预言台今日"],
+  // Lane navigation: three primary lanes ride one row at every width; at
+  // phone widths the two secondary lanes live behind this disclosure.
+  laneMore:          ["More", "更多"],
+  laneMoreAria:      ["More Prophet lanes", "更多预言台分区"],
+  laneNavPrimaryAria:["Prophet lanes", "预言台分区"],
+  // In-body title (P3): the design's Prophet title and subtitle, since the
+  // shell header belongs to shared chrome.
+  todayTitle:        ["Prophet", "预言台"],
+  todaySubtitle:     ["Find leadership. Then find the names.", "找到领涨，再找个股。"],
   todayDescriptive:  ["Descriptive only — not trading guidance", "仅作描述——不构成交易指引"],
   todayCaptured:     ["Captured {date}", "采集于 {date}"],
-  todayFocusLabel:   ["Sector focus", "行业焦点"],
+  // SX01 hero: the leading sector's assessment, stated from published fields.
+  todayHeroKicker:   ["Market & sector leadership", "市场与行业领涨"],
+  todayHeroAhead:    ["{group} is ahead of the market.", "{group} 跑赢市场。"],
+  todayHeroBehind:   ["{group} is behind the market.", "{group} 跑输市场。"],
+  todayHeroEven:     ["{group} is in line with the market.", "{group} 与市场同步。"],
+  todayHeroUnavailable: ["The leading sector's relative measure is not published for this reading.", "本次读数未发布领涨行业的相对表现。"],
+  todayReturnVsSector: ["Return vs sector", "相对行业收益"],
+  todayNotPublished: ["not published", "未发布"],
   todayOpenGroup:    ["Open in Screener", "在筛选台中打开"],
   todayOpenGroupAria:["Open {group}'s member population in the Screener", "在筛选台中打开 {group} 的成分列表"],
   todayOpenPlans:    ["Open plans", "进行中计划"],
@@ -727,6 +739,26 @@ export function makeProphetT(lang: Lang): (key: ProphetKey) => string {
 export function phaseWhy(lang: Lang, phase: string | null | undefined): string | null {
   if (phase === "overtime") return getProphetStr(lang, "phaseOvertimeWhy");
   return null;
+}
+
+/**
+ * The sector owner's phase vocabulary, mapped for both languages (P4). The
+ * wire carries the owner's English label verbatim; this closed map is the ONLY
+ * translation, and an unknown term renders as-is — never an invented
+ * translation.
+ */
+const OWNER_STATE_LABELS: Readonly<Record<string, readonly [string, string]>> = {
+  Peak: ["Peak", "峰值"],
+  Expansion: ["Expansion", "扩张"],
+  Downturn: ["Downturn", "下行"],
+  Trough: ["Trough", "谷底"],
+  Recovery: ["Recovery", "复苏"],
+};
+
+export function ownerStateLabel(lang: Lang, raw: string): string {
+  const entry = OWNER_STATE_LABELS[raw];
+  if (!entry) return raw;
+  return lang === "zh" ? entry[1] : entry[0];
 }
 
 export type { ProphetKey };

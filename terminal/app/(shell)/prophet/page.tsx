@@ -7,11 +7,19 @@ import MemberVerificationUnavailable from "@/components/gates/MemberVerification
 import OptionsPaywall from "@/components/OptionsPaywall";
 import OptionsServiceUnavailable from "@/components/OptionsServiceUnavailable";
 import { getLiveOptionsAccess } from "@/lib/entitlement";
+import { ProphetLanesView } from "@/components/prophet/ProphetLanesView";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const metadata: Metadata = { title:"Prophet · Mastermind" };
 export const viewport: Viewport = { maximumScale:undefined, userScalable:true };
 export default async function ProphetPage() {
+ // E2E fixture seam (mirrors /prophet/evaluation and /portfolio): development +
+ // fixture flag only, so the canonical mount's URL contract (tab/sector/symbol/
+ // sel) has a deterministic browser proof. Production keeps failing closed
+ // through the same shared-shell, member and entitlement reads below.
+ if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
+   return <div className="obs-prophet-lane-shell"><ProphetLanesView /></div>;
+ }
  if (!isSharedShellEnabled(process.env.MMX_SHARED_SHELL)) notFound();
  const member = await readShellMember();
  if (member.state === "unavailable") return <MemberVerificationUnavailable />;

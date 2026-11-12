@@ -3,14 +3,15 @@
  * prophetTodayView.test.tsx — the Today board against the COMMITTED fixture
  * captures, byte-for-byte (public/data/prophet_sector_members_fixture).
  *
- * Laws pinned here (gap G1/G2/G21 acceptance):
- *   - Reading order: assessment → research cases → leadership table (the DOM
- *     order is the reading order).
- *   - The bounded population walk settles on the first candidate with a
- *     PUBLISHED population (the fixtures publish 3 of 49; production publishes
- *     all and stops at the first).
+ * Laws pinned here (gap G1/G2/G21 acceptance, fix order B1/M2/M5/P1/P4):
+ *   - Reading order: assessment → leadership table → research cases (the DOM
+ *     order is the reading order; the ≤640 CSS swap is a composition detail).
+ *   - The hero is the LEADING sector: the top-return group whose population is
+ *     published. The bounded walk settles there (the fixtures publish 3 of 49;
+ *     production publishes all and stops at the first candidate).
  *   - Nulls render the owner's reason ("not produced"), never a zero and never
- *     an invented number; no entry assessment is published for any member.
+ *     an invented number; the owner's phase vocabulary is mapped (P4); the
+ *     member-level "Return vs sector" measure has a designed unavailable label.
  *   - The compare selection is the URL contract's `sel`: chips, count, removal.
  *   - Committed actions call update() with the exact contract patches.
  */
@@ -80,69 +81,72 @@ afterEach(() => {
 });
 
 const text = () => host.textContent ?? "";
-/** The walk skips unpublished populations: Financials…Utilities (ranks 1–6)
- * 404 before us_sector_industrials (rank 7 by open plans) reads. */
-const WALK_404S = 11;
+/** The walk skips unpublished populations: Housing Chain leads the fixture's
+ *  returns but has no published population, so one 404 precedes defensives. */
+const WALK_404S = 1;
 
 describe("Today board — committed-fixture acceptance", () => {
-  it("reads assessment → cases → leadership, in that DOM order", async () => {
+  it("reads assessment → leadership table → cases, in that DOM order", async () => {
     await renderBoard();
     const hero = host.querySelector('[data-testid="prophet-today-hero"]');
-    const cases = host.querySelector('[data-symbol="CARR"]');
     const table = host.querySelector('[data-testid="prophet-today-table"]');
+    const cases = host.querySelector('[data-symbol="CLX"]');
     expect(hero).not.toBeNull();
-    expect(cases).not.toBeNull();
     expect(table).not.toBeNull();
-    expect(hero!.compareDocumentPosition(cases!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(cases!.compareDocumentPosition(table!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(cases).not.toBeNull();
+    expect(hero!.compareDocumentPosition(table!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(table!.compareDocumentPosition(cases!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("settles the focus on the first candidate with a published population", async () => {
+  it("settles the focus on the leading sector with a published population", async () => {
     await renderBoard();
     const groupReads = fixtureFetch.mock.calls
       .map(call => new URL(String(call[0]), "https://terminal.test").searchParams.get("group"))
       .filter(Boolean);
-    // The walk read every higher-open-plan candidate (each unpublished) before
-    // landing the first published one — and STOPPED there.
+    // Housing (top return, unpublished) yields to defensives — and the walk
+    // STOPS there.
     expect(groupReads).toHaveLength(WALK_404S + 1);
-    expect(groupReads![WALK_404S]).toBe("us_sector_industrials");
-    expect(text()).toContain("Industrials (Equal-Weight)");
+    expect(groupReads![0]).toBe("housing");
+    expect(groupReads![WALK_404S]).toBe("defensives");
+    expect(text()).toContain("Defensives");
   });
 
   it("renders the owner's read and reason vocabulary, never invented numbers", async () => {
     await renderBoard();
     const hero = host.querySelector('[data-testid="prophet-today-hero"]')!.textContent ?? "";
-    expect(hero).toContain("Recovery");
-    expect(hero).toContain("+1.1%");
+    // B1: the assessment sentence names the leading sector and its direction.
+    expect(hero).toContain("Defensives is ahead of the market.");
+    // P4: the owner's phase vocabulary is mapped for display.
+    expect(host.querySelector('[data-testid="prophet-today-owner-label"]')!.textContent).toBe("Expansion");
+    expect(hero).toContain("+10.4%");
     expect(hero).toContain("-5.6%");
-    expect(hero).toContain("+6.7 pp");
+    expect(hero).toContain("+16.0 pp");
     // The fixture produces no breadth for ANY group: the owner's reason shows.
     expect(hero).toContain("not produced");
     expect(hero).not.toContain("0/");
-    // Coverage counts are reported facts from the index, not derived here.
-    expect(host.querySelector('[data-testid="prophet-today-open-plans"]')!.textContent).toBe("7");
+    // Coverage counts are reported facts from the index, not derived here, and
+    // plan count is a secondary fact — never the hero's selection rule.
+    expect(host.querySelector('[data-testid="prophet-today-open-plans"]')!.textContent).toBe("6");
     // The mixed-basis verdict, in plain words with both clocks.
     expect(host.querySelector('[data-testid="prophet-today-clocks"]')!.textContent).toContain("2026-11-06");
     expect(host.querySelector('[data-testid="prophet-today-verdict"]')!.textContent).toContain("different sessions");
   });
 
-  it("reports cases without inventing entries, and folds the rest behind Still developing", async () => {
+  it("reports the group's cases without inventing entries, return or questions", async () => {
     await renderBoard();
-    const carr = host.querySelector('[data-testid="prophet-today-case"][data-symbol="CARR"]')!;
-    expect(carr.textContent).toContain("Open plan");
-    expect(carr.textContent).toContain("Long");
-    expect(carr.textContent).toContain("Opened 2026-10-20");
-    expect(carr.textContent).toContain("No entry assessment is published");
-    // 18 case members in the fixture group: 6 shown, 12 named behind the fold.
-    expect(host.querySelectorAll('[data-testid="prophet-today-case"]').length).toBe(18);
-    const fold = host.querySelector('[data-testid="prophet-today-more-cases"]') as HTMLDetailsElement | null;
-    expect(fold).not.toBeNull();
-    expect(fold!.textContent).toContain("12 further cases");
-    expect(fold!.open).toBe(false);
-    // Early observations sit inside the fold, not above it.
-    const adp = host.querySelector('[data-testid="prophet-today-case"][data-symbol="ADP"]')!;
-    expect(adp.textContent).toContain("Early observation");
-    expect(adp.closest("details")).toBe(fold);
+    const clx = host.querySelector('[data-testid="prophet-today-case"][data-symbol="CLX"]')!;
+    expect(clx.textContent).toContain("Open plan");
+    expect(clx.textContent).toContain("Long");
+    expect(clx.textContent).toContain("Opened 2026-10-20");
+    expect(clx.textContent).toContain("No entry assessment is published");
+    // M2: the member-level relative measure is not served — the designed
+    // unavailable label, not a zero and not an invented question.
+    expect(clx.querySelector('[data-testid="prophet-today-case-vs-sector"]')!.textContent).toBe("not published");
+    expect(clx.textContent).toContain("Return vs sector");
+    // Defensives publishes exactly six open plans and no early observations:
+    // every case shows and no fold is invented.
+    expect(host.querySelectorAll('[data-testid="prophet-today-case"]').length).toBe(6);
+    expect(host.querySelector('[data-testid="prophet-today-more-cases"]')).toBeNull();
   });
 
   it("ranks the leadership table by group return with the fixture's leaders first", async () => {
@@ -154,31 +158,34 @@ describe("Today board — committed-fixture acceptance", () => {
     expect(rows[0].textContent).toContain("2"); // open plans count column
     // Nulls in the reason vocabulary, never zeros.
     expect(rows[0].textContent).toContain("not produced");
+    // P1: negative and positive measures carry semantic ink by meaning.
+    const defensivesRow = rows.find(row => row.textContent?.includes("Defensives"))!;
+    expect(defensivesRow.querySelector(".numUp, [class*=numUp]")).not.toBeNull();
   });
 
   it("carries the compare selection as chips with count and removal", async () => {
-    state = { ...state, sel: ["CARR", "GE"] };
+    state = { ...state, sel: ["CLX", "PG"] };
     await renderBoard();
     const strip = host.querySelector('[data-testid="prophet-today-sel"]')!;
-    expect(strip.textContent).toContain("CARR");
-    expect(strip.textContent).toContain("GE");
+    expect(strip.textContent).toContain("CLX");
+    expect(strip.textContent).toContain("PG");
     expect(strip.textContent).toContain("2 of 12 selected");
     await act(async () => {
-      strip.querySelector<HTMLButtonElement>('button[aria-label*="CARR"]')!.click();
+      strip.querySelector<HTMLButtonElement>('button[aria-label*="CLX"]')!.click();
     });
-    expect(patches.at(-1)).toEqual({ sel: ["GE"] });
+    expect(patches.at(-1)).toEqual({ sel: ["PG"] });
   });
 
   it("committed actions speak the contract patches exactly", async () => {
     await renderBoard();
     await act(async () => {
-      (host.querySelector('[data-testid="prophet-today-case"][data-symbol="CARR"] [data-testid="prophet-today-case-setup"]') as HTMLButtonElement).click();
+      (host.querySelector('[data-testid="prophet-today-case"][data-symbol="CLX"] [data-testid="prophet-today-case-setup"]') as HTMLButtonElement).click();
     });
-    expect(patches.at(-1)).toEqual({ lane: "sector", view: "setup", symbol: "CARR", plan: null });
+    expect(patches.at(-1)).toEqual({ lane: "sector", view: "setup", symbol: "CLX", plan: null });
     await act(async () => {
-      (host.querySelector('[data-testid="prophet-today-case"][data-symbol="GE"] [data-testid="prophet-today-case-compare"]') as HTMLButtonElement).click();
+      (host.querySelector('[data-testid="prophet-today-case"][data-symbol="GIS"] [data-testid="prophet-today-case-compare"]') as HTMLButtonElement).click();
     });
-    expect(patches.at(-1)).toEqual({ sel: ["GE"] });
+    expect(patches.at(-1)).toEqual({ sel: ["GIS"] });
     await act(async () => {
       (host.querySelector('[data-testid="prophet-today-leader-row"]') as HTMLTableRowElement).click();
     });

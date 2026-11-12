@@ -20,7 +20,9 @@
  *
  * Legacy `/options?tab=prophet` keeps the original `prophet*` family
  * exclusively (`prophetLane`, `prophetView`, `prophetGroup`, `prophetSymbol`,
- * `prophetPlan`, `prophetQ`, `prophetState`, `prophetOffset`, `prophetFrom`):
+ * `prophetPlan`, `prophetQ`, `prophetState`, `prophetOffset`, `prophetFrom`,
+ * and the REPEATABLE `prophetSel` — the legacy spelling of the contract's
+ * `sel`, so the same compare selection round-trips on either mount):
  * there the bare `tab` key belongs to the Options hub and must never be
  * written by this codec. Old links parse on both mounts — `prophetLane`'s
  * retired `macro` value (the model-plans desk) reads as the `plans` tab, and
@@ -41,7 +43,7 @@ import {
 
 /** Keys this codec owns on the legacy mount (plus the hub's own `tab`). */
 export const PROPHET_URL_KEYS = ["prophetLane", "prophetView", "prophetGroup", "prophetSymbol",
-  "prophetPlan", "prophetQ", "prophetState", "prophetOffset", "prophetFrom"] as const;
+  "prophetPlan", "prophetQ", "prophetState", "prophetOffset", "prophetFrom", "prophetSel"] as const;
 /** The Lane A contract keys this codec owns on the canonical `/prophet` mount. */
 export const PROPHET_TAB_KEYS = ["tab", "sector", "symbol", "sel"] as const;
 
@@ -202,6 +204,12 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
   const q = params.get("prophetQ") ?? "";
   const state = params.get("prophetState");
   const offset = params.get("prophetOffset");
+  // The compare selection is the contract's `sel` on canonical and the
+  // `prophetSel` spelling on legacy; a canonical link that only carries the
+  // legacy spelling still reads (the same precedence the group keys use).
+  const selValues = mount === "canonical" && params.has("sel")
+    ? params.getAll("sel")
+    : params.getAll("prophetSel");
   return {
     lane,
     view: (PROPHET_SECTOR_VIEWS as readonly string[]).includes(view ?? "") ? view as ProphetSectorViewMode : "overview",
@@ -212,7 +220,7 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
     state: state !== null && (PROPHET_MEMBER_STATES as readonly string[]).includes(state) ? state as ProphetMemberState : null,
     offset: offset !== null && /^\d{1,7}$/.test(offset) && Number(offset) <= 1_000_000 ? Number(offset) : 0,
     from: params.getAll(PROPHET_FROM_PARAM).length > 1 ? null : parseProphetFrom(params.get(PROPHET_FROM_PARAM)),
-    sel: mount === "canonical" ? parseProphetSel(params.getAll("sel")) : [],
+    sel: parseProphetSel(selValues),
   };
 }
 
@@ -238,16 +246,44 @@ export function writeProphetState(url: URL, state: ProphetUrlState, mount?: Prop
     url.searchParams.delete("prophetLane");
     url.searchParams.delete("prophetGroup");
     url.searchParams.delete("prophetSymbol");
+    url.searchParams.delete("prophetSel");
   } else {
+    // The legacy family keeps the incumbent key ORDER (lane, view, group,
+    // symbol, plan, …): deep links minted before the contract — the sector
+    // side's Prophet entry among them — are compared as strings, so a
+    // reordered write is a visible change even when the state is identical.
     if (state.lane !== DEFAULT_PROPHET_STATE_LEGACY.lane) url.searchParams.set("prophetLane", state.lane);
     else url.searchParams.delete("prophetLane");
+    if (state.view !== DEFAULT_PROPHET_STATE.view) url.searchParams.set("prophetView", state.view);
+    else url.searchParams.delete("prophetView");
     if (state.group !== null) url.searchParams.set("prophetGroup", state.group);
     else url.searchParams.delete("prophetGroup");
     if (state.symbol !== null) url.searchParams.set("prophetSymbol", state.symbol);
     else url.searchParams.delete("prophetSymbol");
-    // The contract keys never ride the legacy mount, and the hub's own `tab`
+    if (state.plan !== null) url.searchParams.set("prophetPlan", state.plan);
+    else url.searchParams.delete("prophetPlan");
+    if (state.q !== "") url.searchParams.set("prophetQ", state.q);
+    else url.searchParams.delete("prophetQ");
+    if (state.state !== null) url.searchParams.set("prophetState", state.state);
+    else url.searchParams.delete("prophetState");
+    if (state.offset !== 0) url.searchParams.set("prophetOffset", String(state.offset));
+    else url.searchParams.delete("prophetOffset");
+    const from = state.from !== null
+      ? JSON.stringify({ v: state.from.v, kind: state.from.kind, href: state.from.href })
+      : null;
+    if (from !== null && encodeURIComponent(from).length <= PROPHET_FROM_MAX_ENCODED) {
+      url.searchParams.set(PROPHET_FROM_PARAM, from);
+    } else url.searchParams.delete(PROPHET_FROM_PARAM);
+    // The compare selection keeps its own spelling here: repeatable
+    // `prophetSel`, appended last so the older keys keep their positions. The
+    // bare contract keys never ride the legacy mount, and the hub's own `tab`
     // (already `prophet` on this route) is never this codec's to touch.
+    url.searchParams.delete("prophetSel");
+    for (const entry of state.sel) url.searchParams.append("prophetSel", entry);
+    return url.pathname + url.search + url.hash;
   }
+  // Canonical: the contract keys first (tab, sector, symbol, repeatable sel),
+  // then the surviving `prophet*` dimensions.
   if (state.view !== DEFAULT_PROPHET_STATE.view) url.searchParams.set("prophetView", state.view);
   else url.searchParams.delete("prophetView");
   if (state.plan !== null) url.searchParams.set("prophetPlan", state.plan);

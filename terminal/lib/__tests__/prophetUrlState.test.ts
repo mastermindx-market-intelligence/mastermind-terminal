@@ -18,7 +18,8 @@
  *     old links (`prophetLane=macro`, `prophetGroup`, `prophetSymbol`) still
  *     parse on both mounts — `macro` reads as the `plans` tab.
  *   - `sel` parses in order, dedupes, drops unlawful symbols and caps at 12;
- *     legacy carries no `sel`.
+ *     the legacy mount spells the same selection REPEATABLY as `prophetSel`
+ *     (and never writes the bare contract keys).
  *   - Invalid values degrade to defaults, never to an error page.
  *   - Non-prophet params survive a write; the legacy hub `tab=prophet` is
  *     preserved untouched.
@@ -102,12 +103,12 @@ describe("state round-trip", () => {
     expect(roundTrip(FULL_STATE_NO_FROM)).toEqual(FULL_STATE_NO_FROM);
   });
 
-  it("the legacy mount round-trips every field except `sel`, which only canonical carries", () => {
-    expect(roundTrip(FULL_STATE, "legacy")).toEqual({ ...FULL_STATE, sel: [] });
+  it("the legacy mount round-trips every field, the selection as `prophetSel`", () => {
+    expect(roundTrip(FULL_STATE, "legacy")).toEqual(FULL_STATE);
   });
 
   it("a canonical write spells the contract keys and no superseded ones", () => {
-    const written = writeProphetState(url("/prophet"), FULL_STATE_NO_FROM);
+    const written = writeProphetState(url("/prophet?prophetSel=GE&foo=bar"), FULL_STATE_NO_FROM);
     const params = url(written).searchParams;
     expect(params.get("tab")).toBe("sector");
     expect(params.get("sector")).toBe("housing");
@@ -121,6 +122,9 @@ describe("state round-trip", () => {
     expect(params.has("prophetLane")).toBe(false);
     expect(params.has("prophetGroup")).toBe(false);
     expect(params.has("prophetSymbol")).toBe(false);
+    // The legacy spelling is superseded on canonical, never duplicated.
+    expect(params.has("prophetSel")).toBe(false);
+    expect(params.get("foo")).toBe("bar");
   });
 
   it("a legacy write spells only the prophet* family and never touches the hub tab", () => {
@@ -131,6 +135,7 @@ describe("state round-trip", () => {
     expect(params.get("prophetGroup")).toBe("housing");
     expect(params.get("prophetSymbol")).toBe("SBUX");
     expect(params.getAll("sel")).toEqual([]);
+    expect(params.getAll("prophetSel")).toEqual(["SBUX", "HD", "WMT"]);
     expect(params.has("sector")).toBe(false);
     expect(params.has("symbol")).toBe(false);
     expect(params.get("prophetView")).toBe("setup");
@@ -223,8 +228,16 @@ describe("compare selection (`sel`)", () => {
     expect(parsed.sel).toEqual(["SBUX", "HD"]);
   });
 
-  it("the legacy mount parses to no selection", () => {
+  it("the legacy mount reads its own repeatable `prophetSel` spelling", () => {
+    const parsed = parseProphetState(new URLSearchParams("tab=prophet&prophetSel=SBUX&prophetSel=HD&prophetSel=SBUX"), "legacy");
+    expect(parsed.sel).toEqual(["SBUX", "HD"]);
+    // The bare contract key is not the legacy family.
     expect(parseProphetState(new URLSearchParams("sel=SBUX"), "legacy").sel).toEqual([]);
+  });
+
+  it("a canonical URL naming only the legacy spelling still reads it; `sel` wins when both appear", () => {
+    expect(parseProphetState(new URLSearchParams("prophetSel=SBUX&prophetSel=HD")).sel).toEqual(["SBUX", "HD"]);
+    expect(parseProphetState(new URLSearchParams("sel=SBUX&prophetSel=HD")).sel).toEqual(["SBUX"]);
   });
 });
 
@@ -290,7 +303,7 @@ describe("foreign params", () => {
     expect(canonical).toBe("/prophet");
 
     const legacy = writeProphetState(
-      url("/options?tab=prophet&prophetLane=sector&prophetGroup=housing"),
+      url("/options?tab=prophet&prophetLane=sector&prophetGroup=housing&prophetSel=SBUX"),
       DEFAULT_PROPHET_STATE_LEGACY,
       "legacy",
     );
@@ -389,8 +402,8 @@ describe("prophetHref — both mounts parse back to the same state", () => {
   it("legacy mount yields /options?tab=prophet&... and parses to the same state", () => {
     const href = prophetHref(FULL_STATE_NO_FROM, "legacy");
     expect(href.startsWith("/options?tab=prophet&")).toBe(true);
-    expect(parseProphetState(url(href).searchParams, "legacy"))
-      .toEqual({ ...FULL_STATE_NO_FROM, sel: [] });
+    expect(href).toContain("prophetSel=SBUX");
+    expect(parseProphetState(url(href).searchParams, "legacy")).toEqual(FULL_STATE_NO_FROM);
   });
 
   it("the default state yields a bare mount on both routes", () => {

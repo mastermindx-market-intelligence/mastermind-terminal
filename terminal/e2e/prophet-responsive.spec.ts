@@ -10,6 +10,13 @@ async function activeWorkspaceTabFits(page: import("@playwright/test").Page) {
   });
 }
 
+/** The secondary lanes sit behind the More disclosure at ≤640 (M1/M3); above
+ * it they are inline. One helper keeps both paths honest. */
+async function revealOptionsLane(page: import("@playwright/test").Page) {
+  const more = page.getByTestId("prophet-lane-more");
+  if (await more.isVisible()) await more.click();
+}
+
 test("Prophet keeps Plans and Options Alpha separate at every contract viewport", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   await page.goto("/options?tab=prophet");
@@ -25,6 +32,7 @@ test("Prophet keeps Plans and Options Alpha separate at every contract viewport"
   await expect(macroTab).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
   await expect(optionsTab).toHaveAttribute("aria-selected", "false");
 
+  await revealOptionsLane(page);
   await optionsTab.click();
   await expect(optionsTab).toHaveAttribute("aria-selected", "true");
   const desk = page.getByTestId("options-alpha-desk");
@@ -147,6 +155,7 @@ test("Options Alpha visibly marks an API-served stale artifact", async ({ page }
   });
 
   await page.goto("/options?tab=prophet");
+  await revealOptionsLane(page);
   await page.getByRole("tab", { name: /Options Alpha/ }).click();
   const warning = page.getByTestId("options-alpha-stale");
   await expect(warning).toBeVisible({ timeout: 15_000 });
