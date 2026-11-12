@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-12T05:01:23.525717+00:00",
+  "reports": [
+    "final-unit-shard-1-report.json",
+    "final-unit-shard-2-report.json",
+    "diagnostic-unit-shard-3-report.json"
+  ],
+  "test_files": 1287,
+  "tests": 23551,
+  "passed": 23498,
+  "failed": 0,
+  "pending": 50,
+  "todo": 3,
+  "original_shard3_global_error_retained": true,
+  "original_cause_not_proven": true,
+  "all_inputs_unchanged": true,
+  "exclusions": 38
+}

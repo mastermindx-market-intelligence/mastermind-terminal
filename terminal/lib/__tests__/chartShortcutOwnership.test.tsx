@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS } from "@/components/ChartFrameBar";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
@@ -16,7 +16,7 @@ function chart() {
 }
 let host: HTMLDivElement; let root: Root;
 let a: ReturnType<typeof chart>; let b: ReturnType<typeof chart>;
-let changeA: ReturnType<typeof vi.fn>; let changeB: ReturnType<typeof vi.fn>;
+let changeA: Mock<NonNullable<React.ComponentProps<typeof ChartFrameBar>["onSettings"]>>; let changeB: Mock<NonNullable<React.ComponentProps<typeof ChartFrameBar>["onSettings"]>>;
 const settings = { ...DEFAULT_CHART_SETTINGS, mode: EnginePriceScaleMode.Normal, invertScale: false };
 function render(active: number) {
   act(() => root.render(<>

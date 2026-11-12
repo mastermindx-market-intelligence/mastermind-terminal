@@ -1,0 +1,118 @@
+{
+  "schema": "terminal.security-toolchain.proof-manifest.v1",
+  "at": "2026-11-12T05:18:18.821952+00:00",
+  "executionBase": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceDiffSha256": "5f9cd983b41338572c89ed6a201e07866b70c63d4c423f924ae3999a2980df55",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 9123,
+      "sha256": "5f46dd7f3ee26de8d0c8969e877bde541c655c9604fa61bdd55c326c9d11026f"
+    },
+    {
+      "path": "active-inbox-import.json",
+      "bytes": 2353,
+      "sha256": "8e95f735a73d590adb24c807c5ec7f552ec628eb71968feaf5ae264e6583f3f8"
+    },
+    {
+      "path": "cli-compatibility-inventory.json",
+      "bytes": 1019,
+      "sha256": "c66816a1b9f60b5595e842acb5d89c882bc9ad238e5a2f3966f44a15cb1b4a6a"
+    },
+    {
+      "path": "lint-baseline-comparison.json",
+      "bytes": 13003,
+      "sha256": "ad2bb3b6cef524a8a94b3dbedda205a469bac6318e8c8ec17adb21f3d550fc98"
+    },
+    {
+      "path": "npm10-clean-install-result.json",
+      "bytes": 367,
+      "sha256": "acd3cb57cb6afc1fa680a420b2d3467a7bdf76c94d51074cf89bebcfd70f0684"
+    },
+    {
+      "path": "prior-active-inbox/capture.json",
+      "bytes": 12262,
+      "sha256": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f"
+    },
+    {
+      "path": "prior-active-inbox/empty-1440-zh.png",
+      "bytes": 13434,
+      "sha256": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169"
+    },
+    {
+      "path": "prior-active-inbox/empty-1440.png",
+      "bytes": 7944,
+      "sha256": "e6a87fa8c77c285ca41def91c69e69febda07344629b27b3baae3db924843311"
+    },
+    {
+      "path": "prior-active-inbox/empty-390-zh.png",
+      "bytes": 12329,
+      "sha256": "702b1d37709e3edbb1e57dc5e4b1c0ac6101343efce866db07e41a04418ce49a"
+    },
+    {
+      "path": "prior-active-inbox/empty-390.png",
+      "bytes": 7244,
+      "sha256": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449"
+    },
+    {
+      "path": "prior-active-inbox/list-1440-zh.png",
+      "bytes": 36289,
+      "sha256": "6b442a828a0185d2e5ee025332a7c783c69113b7a588694e8b85e1a0e433d301"
+    },
+    {
+      "path": "prior-active-inbox/list-1440.png",
+      "bytes": 22813,
+      "sha256": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7"
+    },
+    {
+      "path": "prior-active-inbox/list-390-zh.png",
+      "bytes": 33835,
+      "sha256": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97"
+    },
+    {
+      "path": "prior-active-inbox/list-390.png",
+      "bytes": 22385,
+      "sha256": "7415df405de5c1dded995f50bed66dc32f12dafb94b9b91a5b9e8c6e84fab5cd"
+    },
+    {
+      "path": "production-build-result.json",
+      "bytes": 13100,
+      "sha256": "985290c15e727d033bd65486c7473d74557313e49278cb8e4ae3c844e5b88213"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 5279,
+      "sha256": "6caac1503aed3fcc1fe0269b9c5a0e03236d9912972bc78249f24b09e881f59b"
+    },
+    {
+      "path": "qualified-final-unit-summary.json",
+      "bytes": 427,
+      "sha256": "23a1e817acb3dd3e84c1aff00113b7813187de030287790844bb317f0b2dd3bf"
+    },
+    {
+      "path": "qualified-lock-audit.json",
+      "bytes": 365,
+      "sha256": "06c7542b80bc8f6cc144e824bf6d3d8cf3b730cd99d28e6517fa96121120d5ae"
+    },
+    {
+      "path": "qualified-lock-summary.json",
+      "bytes": 960,
+      "sha256": "df78d424fdf2997d251fc2c4214379d87d7165d04e237c5dfc1a174cc9f1b1a1"
+    },
+    {
+      "path": "raw-evidence-index.json",
+      "bytes": 25683,
+      "sha256": "c2978d736c6dae6fbd1fba5c4b07a614326e2f6ea4d529d4991a218b0dc34d5a"
+    },
+    {
+      "path": "raw-evidence.tar.gz",
+      "bytes": 2880169,
+      "sha256": "f1286fdef0f9caa90a7d00090d9a3233118ee77874aa4534e56fa64f8af07773"
+    },
+    {
+      "path": "source-readback.json",
+      "bytes": 7728,
+      "sha256": "614a7421e4bdd6b7698109132be3deb22ea0c3e30655806b9d65942341835707"
+    }
+  ]
+}

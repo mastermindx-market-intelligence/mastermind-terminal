@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, type Mock } from "vitest";
 import type { ChartEngine, MarkerSpec, PriceLineHandle, SeriesHandle } from "@/lib/chart-engine";
 import type { Bar, RunResult } from "@/lib/pine-engine";
 import { unsupportedMsg } from "@/lib/pine-engine/runtime";
@@ -31,7 +31,7 @@ function makeBars(n = 5): Bar[] {
   return bars;
 }
 
-type RecPriceLine = { spec: Record<string, unknown>; remove: ReturnType<typeof vi.fn> };
+type RecPriceLine = { spec: Record<string, unknown>; remove: Mock<() => void> };
 type RecSeries = {
   kind: string;
   pane: number;
