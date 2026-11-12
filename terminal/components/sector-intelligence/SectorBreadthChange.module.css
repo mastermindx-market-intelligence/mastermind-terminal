@@ -189,9 +189,12 @@
 .barAxisCompact { position: absolute; top: -3px; left: 50%; width: 1px; height: 14px; background: var(--snb-axis); }
 .barPosCompact { position: absolute; top: 0; left: calc(50% + 1px); height: 8px; border-radius: 2px; background: var(--snb-upbar); }
 .barNegCompact { position: absolute; top: 0; right: 50%; height: 8px; border-radius: 2px; background: var(--snb-downbar); }
-/* B10: a missing change keeps the row rhythm but draws nothing — no bar, no
- * axis, no dash (the axis stroke through the dash read as a "+"). */
-.barMissingCompact { width: 100%; height: 14px; }
+/* E1/E2: a missing change keeps a dash centred where the zero axis would be,
+ * at both widths, and draws NO axis stroke — the stroke through the dash read
+ * as a "+". The dash is the only element in the bar slot. */
+.barMissingWide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.barMissingCompact { display: flex; align-items: center; justify-content: center; width: 100%; height: 14px; }
+.barMissingDash { color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px; }
 .rowLine3 { display: flex; justify-content: space-between; gap: 12px; padding-left: 30px; }
 /* B9: the share label holds one line; the not-ranked copy takes the wrap. */
 .shareNowCompact { flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px;

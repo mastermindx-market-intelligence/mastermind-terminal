@@ -292,11 +292,13 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
             </span>
           </div>
           {r.changePp === null
-            // B10: a missing change draws no bar and no axis — the axis stroke
-            // through the centred dash read as a "+". The dash lives in the
-            // value slot on the line above; this line only keeps the row rhythm.
+            // E1/E2: the missing change dashes the bar slot at both widths, and
+            // the row draws NO axis stroke — the stroke through the dash read as
+            // "+". The dash itself is the only thing in the slot.
             ? <div className={styles.barWrapCompact}>
-              <div className={styles.barMissingCompact} data-testid="sector-breadth-bar-missing" />
+              <div className={styles.barMissingCompact} data-testid="sector-breadth-bar-missing">
+                <span className={`${styles.barMissingDash} ${styles.num}`}>—</span>
+              </div>
             </div>
             : <div className={styles.barWrapCompact}>
               <div className={styles.barTrackCompact}>
@@ -346,10 +348,13 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
           <span className={`${styles.rank} ${styles.num}`} role="cell">{r.rankShown ?? "—"}</span>
           <span className={styles.sector} role="cell">{localName(r.sectorId)}</span>
           {r.changePp === null
-            // B7: the board prints the missing value in the pp column itself,
-            // not as a dash centred over the empty bar slot.
+            // B7/E1: the pp column prints its own dash, and the bar slot carries
+            // a dash centred where the zero axis would be — with no axis stroke.
             ? <span className={styles.changeCell} role="cell" data-testid="sector-breadth-change-cell">
-              <span className={`${styles.value} ${styles.num} ${styles.valueMissing}`}>—</span>
+              <span className={styles.barTrack} data-testid="sector-breadth-bar-missing">
+                <span className={`${styles.barMissingWide} ${styles.barMissingDash} ${styles.num}`}>—</span>
+              </span>
+              <span className={`${styles.value} ${styles.num} ${styles.valueMissing}`} data-testid="sector-breadth-change-value">—</span>
             </span>
             : <span className={styles.changeCell} role="cell" data-testid="sector-breadth-change-cell">
               <span className={styles.barTrack}>
@@ -358,7 +363,7 @@ export default function SectorBreadthChange({ input, nameOf, onViewDataStatus }:
                   ? <span className={styles.barPos} style={{ width: barWidth(r.changePp) }} />
                   : <span className={styles.barNeg} style={{ width: barWidth(r.changePp) }} />}
               </span>
-              <span className={`${styles.value} ${styles.num} ${r.changePp > 0 ? styles.up : r.changePp < 0 ? styles.down : ""}`}>
+              <span className={`${styles.value} ${styles.num} ${r.changePp > 0 ? styles.up : r.changePp < 0 ? styles.down : ""}`} data-testid="sector-breadth-change-value">
                 {fmtPp(r.changePp)}
               </span>
             </span>}

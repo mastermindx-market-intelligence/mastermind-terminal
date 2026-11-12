@@ -409,23 +409,56 @@ describe("design match B1-B12 + ruling 33 W2 (2026-11-12)", () => {
     expect(full.textContent).toContain("Above 200-session now");
   });
 
-  it("B7: a too-few row prints the missing change in the pp column, with no bar", () => {
+  it("B7: a too-few row prints the missing change in the pp column too", () => {
     const h = mount(freshTooFew());
     const cell = rowOf(h, "Energy").querySelector('[data-testid="sector-breadth-change-cell"]') as HTMLElement;
-    expect(cell.textContent).toBe("—");
-    // a dash centred over the empty bar slot would read as a value; the board
-    // draws none there
+    expect(cell.querySelector('[data-testid="sector-breadth-change-value"]')!.textContent).toBe("—");
+    // no bar geometry on the missing row (no inline width)
     expect(cell.querySelectorAll("[style]").length).toBe(0);
   });
 
-  it("B10: the 390 too-few row draws no bar, no axis and no dash on the bar line", () => {
-    mediaCompact = true;
-    const h = mount(freshTooFew());
-    const energy = rowOf(h, "Energy");
-    const spacer = energy.querySelector('[data-testid="sector-breadth-bar-missing"]') as HTMLElement;
-    expect(spacer).not.toBeNull();
-    expect(spacer.childElementCount).toBe(0);
-    expect(spacer.textContent).toBe("");
+  it("E1/E2: the too-few row dashes the bar slot at BOTH widths and draws no axis stroke", () => {
+    for (const compact of [false, true]) {
+      mediaCompact = compact;
+      const where = compact ? "390" : "1440";
+      const h = mount(freshTooFew());
+      const energy = rowOf(h, "Energy");
+      const bar = energy.querySelector('[data-testid="sector-breadth-bar-missing"]') as HTMLElement;
+      expect(bar, `bar slot at ${where}`).not.toBeNull();
+      // part 1: the dash is drawn in the bar slot
+      expect(bar.textContent, `bar-slot dash at ${where}`).toBe("—");
+      // part 2: nothing else in the slot — no axis stroke, which through the
+      // dash read as a "+". The dash span is the slot's only child.
+      expect(bar.childElementCount, `no axis stroke at ${where}`).toBe(1);
+      expect(bar.firstElementChild!.textContent).toBe("—");
+      expect(bar.querySelectorAll("[style]").length).toBe(0);
+      // a ranked row keeps its bar geometry; the removal is per-row, not global
+      expect(rowOf(h, "Utilities").querySelectorAll("[style]").length).toBeGreaterThan(0);
+      if (!compact) {
+        const ranked = rowOf(h, "Utilities").querySelector('[data-testid="sector-breadth-change-cell"]') as HTMLElement;
+        expect(ranked.querySelector('[data-testid="sector-breadth-change-value"]')!.textContent).toBe("+21.4");
+        expect(ranked.querySelectorAll("[style]").length).toBe(1);
+      }
+    }
+  });
+
+  it("E4: fixture ranks are contiguous within the ranked set; the too-few sector is unranked", () => {
+    // The rank is computed by the fixture (synthetic example data), not copied
+    // from a source row: with Energy unranked the ranked set renumbers 1..10.
+    const tooFewWire = sectorBreadthFixtureFreshTooFew.live.latest_week;
+    const wireRanks = tooFewWire.map(r => r.rank_fix_chg_pct_above_200_13w)
+      .filter((r): r is number => r !== null).sort((a, b) => a - b);
+    expect(wireRanks).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(tooFewWire.find(r => r.group === "Energy")!.rank_fix_chg_pct_above_200_13w).toBeNull();
+    expect(tooFewWire.find(r => r.group === "Financials")!.rank_fix_chg_pct_above_200_13w).toBe(5);
+    const input = freshTooFew()!;
+    expect(input.rows.filter(r => r.rank !== null).map(r => r.rank).sort((a, b) => (a as number) - (b as number)))
+      .toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(input.rows.find(r => r.sectorId === "Energy")!.rank).toBeNull();
+    // the full world still ranks the whole eleven
+    const fullRanks = sectorBreadthFixtureFreshFull.live.latest_week.map(r => r.rank_fix_chg_pct_above_200_13w)
+      .filter((r): r is number => r !== null).sort((a, b) => a - b);
+    expect(fullRanks).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   });
 
   it("B11: the boards' curly apostrophes are in the lexicon and the render", () => {

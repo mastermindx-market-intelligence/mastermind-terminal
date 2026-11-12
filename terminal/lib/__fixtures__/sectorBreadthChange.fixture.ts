@@ -19,9 +19,13 @@
  * own n_fixed and never n_members.
  *
  * Every VALUE below is synthetic example data for layout and state tests — it
- * is not a specimen of real market output. The adapter at the bottom is the
- * only bridge from these wire shapes to the module input the sector generation
- * payload will carry later (L1-FO1). No network path reads anything here.
+ * is not a specimen of real market output. Ranks included: they are computed
+ * here over the RANKED set only (contiguous 1..n, the too-few sector
+ * unranked), following the engine's cross_rank rule (duty officer 2026-11-12,
+ * E4); no rank is hand-copied from a source row. The adapter at the bottom is
+ * the only bridge from these wire shapes to the module input the sector
+ * generation payload will carry later (L1-FO1). No network path reads anything
+ * here.
  */
 import type {
   SectorBreadthChangeInput,
@@ -132,15 +136,27 @@ const LIVE_COUNTS_OVERRIDE: Record<string, SectorBreadthLiveWireSectorCounts> = 
 const STALE_RULE =
   "label stale at two or more completed weekly closes behind the latest session";
 
-/** Change → cross-rank (1 = largest increase), as cross_rank(method="min") emits. */
-const RANKS: Record<string, number> = Object.fromEntries(
-  [...SECTOR_BREADTH_FIXTURE_GROUPS]
-    .map(g => [g, FULL_WORLD[g][0]] as const)
-    .sort((a, b) => b[1] - a[1])
-    .map((entry, i) => [entry[0], i + 1]),
-);
+/** Change → cross-rank (1 = largest increase), as cross_rank(method="min") emits.
+ * The rank is computed over the RANKED set only: a group whose like-for-like
+ * set is under ten has no change and no rank, and it does not consume a rank
+ * number. Ranks stay contiguous 1..n (E4: the earlier fixture ranked the full
+ * eleven-group world, so the too-few world read 1,2,3,4,6,…). */
+function ranksFor(rankedGroups: (g: string) => boolean): Record<string, number> {
+  return Object.fromEntries(
+    [...SECTOR_BREADTH_FIXTURE_GROUPS]
+      .filter(g => rankedGroups(g))
+      .map(g => [g, FULL_WORLD[g][0]] as const)
+      .sort((a, b) => b[1] - a[1])
+      .map((entry, i) => [entry[0], i + 1]),
+  );
+}
 
-function liveRow(asOf: string, group: string, ranked: boolean): SectorBreadthLiveWireWeekRow {
+function liveRow(
+  asOf: string,
+  group: string,
+  ranked: boolean,
+  ranks: Record<string, number>,
+): SectorBreadthLiveWireWeekRow {
   const [change, state, run] = FULL_WORLD[group];
   const tooFew = !ranked;
   return {
@@ -148,7 +164,7 @@ function liveRow(asOf: string, group: string, ranked: boolean): SectorBreadthLiv
     group,
     pct_above_200: SHARES_NOW[group],
     fix_chg_pct_above_200_13w: tooFew ? null : change,
-    rank_fix_chg_pct_above_200_13w: tooFew ? null : RANKS[group],
+    rank_fix_chg_pct_above_200_13w: tooFew ? null : ranks[group],
     state_fix_chg_pct_above_200_13w: tooFew ? null : state,
     run_fix_chg_pct_above_200_13w: tooFew ? null : run,
     n_fixed_200_13w: tooFew ? 8 : LIVE_COUNTS_OVERRIDE[group]?.n_fixed_200_13w ?? FULL_WORLD[group][3],
@@ -163,6 +179,7 @@ function liveCounts(group: string, ranked: boolean): SectorBreadthLiveWireSector
 }
 
 function liveWire(asOf: string, rankedGroups: (g: string) => boolean = () => true): SectorBreadthLiveWire {
+  const ranks = ranksFor(rankedGroups);
   return {
     basis: "reconstructed_current_membership",
     basis_note: "fixture: today's members applied to the past",
@@ -174,11 +191,17 @@ function liveWire(asOf: string, rankedGroups: (g: string) => boolean = () => tru
       by_sector: Object.fromEntries(
         SECTOR_BREADTH_FIXTURE_GROUPS.map(g => [g, liveCounts(g, rankedGroups(g))] as const)),
     },
-    latest_week: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => liveRow(asOf, g, rankedGroups(g))),
+    latest_week: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => liveRow(asOf, g, rankedGroups(g), ranks)),
   };
 }
 
-function archiveRow(asOf: string, group: string, ranked: boolean): SectorBreadthArchiveWireRow {
+function archiveRow(
+  asOf: string,
+  group: string,
+  ranked: boolean,
+  ranks: Record<string, number>,
+  nRanked: number,
+): SectorBreadthArchiveWireRow {
   const [change, state, run, members] = FULL_WORLD[group];
   const tooFew = !ranked;
   return {
@@ -188,12 +211,23 @@ function archiveRow(asOf: string, group: string, ranked: boolean): SectorBreadth
     n_has_200: members + 2,
     pct_above_200: SHARES_NOW[group],
     fix_chg_pct_above_200_13w: tooFew ? null : change,
-    rank_fix_chg_pct_above_200_13w: tooFew ? null : RANKS[group],
-    n_ranked_fix_chg_pct_above_200_13w: tooFew ? 10 : 11,
+    rank_fix_chg_pct_above_200_13w: tooFew ? null : ranks[group],
+    n_ranked_fix_chg_pct_above_200_13w: nRanked,
     state_fix_chg_pct_above_200_13w: tooFew ? null : state,
     run_fix_chg_pct_above_200_13w: tooFew ? null : run,
     n_fixed_200_13w: tooFew ? 8 : members,
     lvl_diff_pct_above_200_13w: tooFew ? null : change - 0.4,
+  };
+}
+
+function archiveWire(asOf: string, rankedGroups: (g: string) => boolean = () => true): SectorBreadthArchiveWire {
+  const ranks = ranksFor(rankedGroups);
+  const nRanked = SECTOR_BREADTH_FIXTURE_GROUPS.filter(g => rankedGroups(g)).length;
+  return {
+    as_of: asOf,
+    basis: "reconstructed_current_membership",
+    stale_rule: STALE_RULE,
+    rows: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => archiveRow(asOf, g, rankedGroups(g), ranks, nRanked)),
   };
 }
 
@@ -206,12 +240,7 @@ export interface SectorBreadthFixtureWorld {
 /** Fresh, full: as-of 6 Nov 2026, eleven sectors ranked. */
 export const sectorBreadthFixtureFreshFull: SectorBreadthFixtureWorld = {
   live: liveWire("2026-11-06"),
-  archive: {
-    as_of: "2026-11-06",
-    basis: "reconstructed_current_membership",
-    stale_rule: STALE_RULE,
-    rows: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => archiveRow("2026-11-06", g, true)),
-  },
+  archive: archiveWire("2026-11-06"),
   latestSession: "2026-11-06",
 };
 
@@ -219,12 +248,7 @@ export const sectorBreadthFixtureFreshFull: SectorBreadthFixtureWorld = {
  * share 45.5 and the member count stay (deltas 2, 6, 7). */
 export const sectorBreadthFixtureFreshTooFew: SectorBreadthFixtureWorld = {
   live: liveWire("2026-11-06", g => g !== "Energy"),
-  archive: {
-    as_of: "2026-11-06",
-    basis: "reconstructed_current_membership",
-    stale_rule: STALE_RULE,
-    rows: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => archiveRow("2026-11-06", g, g !== "Energy")),
-  },
+  archive: archiveWire("2026-11-06", g => g !== "Energy"),
   latestSession: "2026-11-06",
 };
 
@@ -232,12 +256,7 @@ export const sectorBreadthFixtureFreshTooFew: SectorBreadthFixtureWorld = {
  * exactly 7 completed weekly closes behind (board S19 scenario). */
 export const sectorBreadthFixtureStale: SectorBreadthFixtureWorld = {
   live: liveWire("2026-09-18"),
-  archive: {
-    as_of: "2026-09-18",
-    basis: "reconstructed_current_membership",
-    stale_rule: STALE_RULE,
-    rows: SECTOR_BREADTH_FIXTURE_GROUPS.map(g => archiveRow("2026-09-18", g, true)),
-  },
+  archive: archiveWire("2026-09-18"),
   latestSession: "2026-11-06",
 };
 
