@@ -23,8 +23,13 @@
  *     spam or an invented number.
  *   - Keyboard navigable: the symbol control is a real button; touch targets
  *     meet 44px; filter chips, checkboxes and paging are real controls.
+ *   - T2-14 card layout at ≤640px: one stacked card per member (symbol + name,
+ *     Prophet state, a ≥44px Compare control, a labelled Open action). Above
+ *     640px the same rows stay a table.
+ *   - Returning from a company case (`prophetSymbol` still in the address)
+ *     highlights that member's row/card and scrolls it into view once.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import {
   PROPHET_MEMBER_STATES, SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
@@ -72,7 +77,7 @@ export function toggleProphetSelection(current: string[], symbol: string): strin
 }
 
 export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilter, onOpenMember,
-  selection, onToggleSelect, onCompare }: {
+  selection, onToggleSelect, onCompare, highlightSymbol }: {
   payload: Extract<SectorMembersPayload, { mode: "group" }>;
   q: string;
   stateFilter: ProphetMemberState | null;
@@ -82,10 +87,27 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
   selection: string[];
   onToggleSelect: (symbol: string) => void;
   onCompare: () => void;
+  /** The member the reader just returned from, when the address still names
+   * one: its row/card is highlighted and scrolled into view once. */
+  highlightSymbol: string | null;
 }) {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
   const [draft, setDraft] = useState(q);
+  const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
+  const scrolledFor = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (highlightSymbol === null) {
+      scrolledFor.current = null;
+      return;
+    }
+    if (scrolledFor.current === highlightSymbol) return;
+    const node = rowRefs.current.get(highlightSymbol);
+    if (node === undefined) return; // not on this page — nothing invented to point at
+    scrolledFor.current = highlightSymbol;
+    node.scrollIntoView({ block: "center" });
+  }, [highlightSymbol, payload.members]);
 
   const { group, counts, members, unserved, page } = payload;
   // The fail-closed read (A1-9) carries group null; the population then renders
@@ -124,7 +146,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
   return (
     <section className={styles.population} data-testid="prophet-sector-population">
       <header className={styles.populationHead}>
-        <h3 className={styles.populationTitle}>{prophetSectorFill(t("populationTitle"), { group: localName })}</h3>
+        <h3 className={styles.populationTitle} data-view-heading tabIndex={-1}>{prophetSectorFill(t("populationTitle"), { group: localName })}</h3>
         <p className={styles.populationCounts} data-testid="prophet-sector-population-counts">
           {prophetSectorFill(t("populationCounts"), {
             served: counts.served,
@@ -227,9 +249,18 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
               {members.map(member => {
                 const planId = member.prophet.plan?.id ?? null;
                 const isSelected = selection.includes(member.symbol);
+                const isHighlighted = highlightSymbol === member.symbol;
                 return (
-                  <tr key={member.symbol} className={styles.memberRow}>
-                    <td>
+                  <tr
+                    key={member.symbol}
+                    className={isHighlighted ? `${styles.memberRow} ${styles.memberRowHighlight}` : styles.memberRow}
+                    data-highlight={isHighlighted ? "true" : undefined}
+                    ref={node => {
+                      if (node !== null) rowRefs.current.set(member.symbol, node);
+                      else rowRefs.current.delete(member.symbol);
+                    }}
+                  >
+                    <td className={styles.selectCell}>
                       <label className={styles.selectWrap} data-testid={`prophet-sector-select-wrap-${member.symbol}`}>
                         <input
                           type="checkbox"
@@ -239,6 +270,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                           data-testid={`prophet-sector-select-${member.symbol}`}
                           onChange={() => onToggleSelect(member.symbol)}
                         />
+                        {/* Card-only visible label: in the phone card the bare
+                            checkbox is ambiguous; the table header already names it. */}
+                        <span className={styles.selectLabel}>{t("compareCol")}</span>
                       </label>
                     </td>
                     <td className={styles.symbolCell}>
@@ -256,6 +290,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                           onClick={() => onOpenMember(member.symbol, planId)}
                         >
                           {member.symbol}
+                          {/* Card-only action label, inside the same control —
+                              one open action, never a duplicate. */}
+                          <span className={styles.cardOpenHint}>{t("cardOpen")} →</span>
                         </button>
                         <span className={styles.setupHint}>{t("openSetup")}</span>
                       </div>
@@ -266,7 +303,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                         <span className={styles.alsoIn}> · {prophetSectorFill(t("alsoIn"), { groups: member.alsoInGroups.length })}</span>
                       ) : null}
                     </td>
-                    <td>{member.industry ?? "—"}</td>
+                    <td className={styles.industryCell}>{member.industry ?? "—"}</td>
                     {/* A2-1: first_known is a LOWER BOUND (stored-snapshot
                         coverage), never a join date — the "at least" wording is
                         the honesty law, not decoration. Space buys one date

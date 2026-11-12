@@ -82,6 +82,37 @@ export function ProphetSectorView({ state, update }: {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
 
+  // ── View-change focus (SX02/T2-06/T2-07) ─────────────────────────────────
+  // A view change replaces the control the reader just used, so focus would be
+  // stranded on a removed node. Each navigation arms this flag; the effect (run
+  // after each render) moves focus onto the new view's heading — which may only
+  // mount once the view's read is ready, so it keeps waiting instead of firing
+  // on the loading block.
+  const pendingFocus = useRef(false);
+  const laneBodyRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!pendingFocus.current) return;
+    const body = laneBodyRef.current;
+    if (body === null) return;
+    const heading = body.querySelector<HTMLElement>("[data-view-heading]");
+    if (heading !== null) {
+      pendingFocus.current = false;
+      heading.focus();
+      return;
+    }
+    // The Setup heading lives in a component this lane does not own; give it
+    // the same programmatic focus contract at runtime rather than duplicating
+    // its visible heading here.
+    const setupHeading = body.querySelector<HTMLElement>('[data-testid="prophet-sector-setup"] h3');
+    if (setupHeading !== null) {
+      pendingFocus.current = false;
+      setupHeading.tabIndex = -1;
+      setupHeading.focus();
+      return;
+    }
+    // Still loading (no heading mounted yet): a later render retries.
+  });
+
   // index — every group with coverage counts (leadership table).
   const indexFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "index" }>>(
     true, () => ({}), () => "index");
@@ -93,7 +124,7 @@ export function ProphetSectorView({ state, update }: {
     group: state.group, q: state.q, state: state.state, offset: state.offset,
   });
   const groupFetch = useSectorMembersFetch<Extract<SectorMembersPayload, { mode: "group" }>>(
-    state.group !== null && state.view !== "setup",
+    state.group !== null && state.view !== "setup" && state.view !== "compare",
     () => ({ group: state.group ?? undefined, q: state.q || null, state: state.state, offset: state.offset }),
     () => groupKey);
   // symbol — the Setup join (member_of + prophet state)…
@@ -103,10 +134,10 @@ export function ProphetSectorView({ state, update }: {
     () => `${state.symbol ?? ""}`);
   // …and the compare view's per-name reads: one bounded fetch per selected
   // symbol (cap three, unrolled — hooks never ride a callback), each keyed by
-  // its own symbol. The compare view is setup-mode with no symbol — the
-  // selection decides what is fetched.
+  // its own symbol. Compare is its own view (`prophetView=compare`) — the
+  // selection decides what is fetched, never a symbol-less setup address.
   const selection = readProphetSelection(state);
-  const compareActive = state.view === "setup" && state.symbol === null;
+  const compareActive = state.view === "compare";
   const cmpFetch0 = useSectorMembersFetch<SymbolPayload>(
     compareActive && selection.length > 0,
     () => ({ symbol: selection[0] }),
@@ -138,18 +169,28 @@ export function ProphetSectorView({ state, update }: {
   const toggleSelect = (symbol: string) =>
     update({ sel: toggleProphetSelection(selection, symbol) } as unknown as Partial<ProphetUrlState>);
 
+  // Every navigation arms the heading focus; filter/selection updates do not.
+  const navigate = (patch: Partial<ProphetUrlState>) => {
+    pendingFocus.current = true;
+    update(patch);
+  };
   const pickGroup = (groupId: string) =>
-    update({ view: "overview", group: groupId, symbol: null, q: "", state: null, offset: 0 });
+    navigate({ view: "overview", group: groupId, symbol: null, q: "", state: null, offset: 0 });
   const openMember = (symbol: string, planId: string | null) =>
-    update({ view: "setup", symbol, plan: planId });
+    navigate({ view: "setup", symbol, plan: planId });
   const backToLeadership = () =>
-    update({ group: null, symbol: null, q: "", state: null, offset: 0 });
+    navigate({ group: null, symbol: null, q: "", state: null, offset: 0 });
   const backToFocus = () =>
-    update({ view: "overview", symbol: null, q: "", state: null, offset: 0 });
+    navigate({ view: "overview", symbol: null, q: "", state: null, offset: 0 });
+  // Returning from a company case keeps the symbol in the address: the
+  // population highlights and scrolls to that member's row/card (T2-06), so the
+  // reader lands where they left. Compare has no symbol of its own.
+  const returnFromSetup = () =>
+    navigate({ view: "population", plan: null });
   const backToPopulation = () =>
-    update({ view: "population", symbol: null, plan: null });
+    navigate({ view: "population", symbol: null, plan: null });
   const openCompare = () =>
-    update({ view: "setup", symbol: null, plan: null });
+    navigate({ view: "compare", symbol: null, plan: null });
 
   const indexReady = indexFetch.read.status === "ready" ? indexFetch.read.payload : null;
   const groupReady = groupFetch.read.status === "ready" ? groupFetch.read.payload : null;
@@ -166,7 +207,13 @@ export function ProphetSectorView({ state, update }: {
     : groupReady?.group ?? (state.group !== null ? indexReady?.groups.find(g => g.id === state.group) ?? null : null);
   const contextEnvelope = state.view === "setup"
     ? (state.symbol !== null ? symbolReady : compareReady ?? indexReady)
+    : state.view === "compare" ? compareReady ?? indexReady
     : groupReady ?? indexReady;
+
+  // A group read that fails closed (group null) is NOT a loading state: the
+  // focus page must drop its numbers, member count and lead line rather than
+  // borrowing them from the index descriptor (SX02 / PROV-26O4).
+  const groupReadFailedClosed = state.group !== null && groupReady !== null && groupReady.group === null;
 
   // The focus's member count: the group read's own counts when ready, else
   // the index summary's — configured first (that is the roster), served as
@@ -227,7 +274,7 @@ export function ProphetSectorView({ state, update }: {
         </header>
       ) : null}
 
-      <div className={styles.laneBody}>
+      <div className={styles.laneBody} ref={laneBodyRef} data-testid="prophet-sector-lane-body">
         {state.view === "overview" ? (
           state.group === null ? (
             // No group picked: the leadership table orients on its own — every
@@ -244,7 +291,8 @@ export function ProphetSectorView({ state, update }: {
                   group={contextGroup}
                   compatibility={focusCompatibility}
                   memberCount={focusMemberCount}
-                  onOpenPopulation={() => update({ view: "population" })}
+                  groupUnavailable={groupReadFailedClosed}
+                  onOpenPopulation={() => navigate({ view: "population" })}
                   onBack={backToLeadership}
                 />
               : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-focus-group")
@@ -286,6 +334,7 @@ export function ProphetSectorView({ state, update }: {
                       selection={selection}
                       onToggleSelect={toggleSelect}
                       onCompare={openCompare}
+                      highlightSymbol={state.symbol}
                     />
                   : fetchStateBlock(groupFetch.read as Read<never>, groupFetch.retry, "prophet-sector-group")}
               </>
@@ -293,13 +342,24 @@ export function ProphetSectorView({ state, update }: {
           </>
         ) : null}
 
-        {state.view === "setup" && state.symbol !== null ? (
-          symbolFetch.read.status === "ready"
-            ? <MemberSetup payload={symbolFetch.read.payload} onBack={backToPopulation} originGroupId={state.group} />
-            : fetchStateBlock(symbolFetch.read as Read<never>, symbolFetch.retry, "prophet-sector-symbol")
+        {state.view === "setup" ? (
+          state.symbol !== null ? (
+            symbolFetch.read.status === "ready"
+              ? <MemberSetup payload={symbolFetch.read.payload} onBack={returnFromSetup} originGroupId={state.group} />
+              : fetchStateBlock(symbolFetch.read as Read<never>, symbolFetch.retry, "prophet-sector-symbol")
+          ) : (
+            // Setup always names a company; an address without one is not a
+            // compare view (that has its own prophetView=compare).
+            <div className={styles.stateCopy} data-testid="prophet-sector-setup-no-symbol" role="status">
+              <p>{t("setupMissingSymbol")}</p>
+              <button type="button" className={styles.smallButton} onClick={backToPopulation}>
+                {t("compareBack")}
+              </button>
+            </div>
+          )
         ) : null}
 
-        {state.view === "setup" && state.symbol === null ? (
+        {state.view === "compare" ? (
           selection.length >= 2 ? (
             <MemberCompare
               symbols={selection}
@@ -312,10 +372,25 @@ export function ProphetSectorView({ state, update }: {
               onBack={backToPopulation}
               onOpenMember={openMember}
             />
-          ) : (
+          ) : selection.length === 1 ? (
             <div className={styles.stateCopy} data-testid="prophet-sector-compare-needs-more" role="status">
               <p>{t("compareNeedsMore")}</p>
               <button type="button" className={styles.smallButton} onClick={backToPopulation}>
+                {t("compareBack")}
+              </button>
+            </div>
+          ) : (
+            // Refresh with compare in the address: the selection currently
+            // rides React state (Lane A's `sel` key is not merged), so it is
+            // gone. Say that — never show an empty comparison.
+            <div className={styles.stateCopy} data-testid="prophet-sector-compare-lost" role="status">
+              <p>{t("compareSelectionLost")}</p>
+              <button
+                type="button"
+                className={styles.smallButton}
+                data-testid="prophet-sector-compare-lost-back"
+                onClick={backToPopulation}
+              >
                 {t("compareBack")}
               </button>
             </div>

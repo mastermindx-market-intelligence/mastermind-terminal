@@ -72,6 +72,7 @@ export const PROPHET_SECTOR_LEX = {
   pagePrev:            ["Previous page", "上一页"],
   pageNext:            ["Next page", "下一页"],
   openSetup:           ["Setup", "研究起点"],
+  cardOpen:            ["Open", "打开"],
   setupAria:           ["Open {symbol} setup", "打开 {symbol} 的研究起点"],
   unservedTitle:       ["Unmeasured members ({n})", "未测量成分（{n} 只）"],
   unservedNote:        ["Group members with no measured row in this read.", "本次读取中没有测量数据的组成员。"],
@@ -97,6 +98,7 @@ export const PROPHET_SECTOR_LEX = {
 
   // ── Company Setup (SX03) ─────────────────────────────────────────────────
   setupTitle:          ["{symbol} setup", "{symbol} 研究起点"],
+  setupMissingSymbol:  ["This address does not name a company. Choose a member in the population.", "该地址未指定公司。请在成分列表中选择。"],
   setupBack:           ["Back to population", "返回成员列表"],
   setupPlanHeading:    ["Prophet plan", "预言台计划"],
   setupPlanMissing:    ["This plan is not in the current board read.", "该计划不在当前计划板读取中。"],
@@ -148,7 +150,9 @@ export const PROPHET_SECTOR_LEX = {
   unavailableYet:      ["Sector context is not available yet.", "行业背景暂未开放。"],
   groupUnavailableMembers: ["The group's member list is not part of this read.", "本次读数不包含该组的成员列表。"],
   unavailableNote:     ["This reading is not published for the Terminal yet — the rest of Prophet keeps working.", "该读数尚未向 Terminal 发布——预言台其余功能不受影响。"],
-  backToGroups:        ["← All groups", "← 全部行业组"],
+  // The visible back controls draw their own "←" (SX02/SX04); these labels must
+  // not carry a second one.
+  backToGroups:        ["All groups", "全部行业组"],
 
   // ── Sector-side member row (SectorPopulationMembers) ────────────────────
   rowProphetColumn:    ["Prophet", "预言台"],
@@ -159,6 +163,13 @@ export const PROPHET_SECTOR_LEX = {
   // ── Leadership table (SX01 · G5) ─────────────────────────────────────────
   leadershipTitle:     ["Where leadership is moving", "行业领导力去向"],
   leadershipIntro:     ["Every group in the current read, ranked by return versus market over the same window.", "当前读数中的全部行业组，按同一窗口内相对市场的收益排序。"],
+  // SX01 hero summary: names the top-ranked group from the SERVED window reads.
+  // Renders only when both the return and the versus-market figure are served.
+  heroKicker:          ["Market & sector leadership", "市场与行业领导力"],
+  heroTitle:           ["{group} leads this read", "{group} 领跑本次读数"],
+  heroBody:            ["{ret} over {n} sessions · {pp} versus the market.", "{n} 个交易日 {ret} · 相对市场 {pp}。"],
+  heroBodyNoWindow:    ["{ret} in this window · {pp} versus the market.", "本窗口 {ret} · 相对市场 {pp}。"],
+  heroNote:            ["Descriptive context — ranked from the served window reads, not a forecast.", "描述性背景——按已服务的窗口读数排序，并非预测。"],
   columnReturn:        ["Window return", "窗口收益"],
   columnVsMarket:      ["Vs market", "相对市场"],
   columnBreadth:       ["Breadth", "宽度"],
@@ -174,11 +185,20 @@ export const PROPHET_SECTOR_LEX = {
   focusFlatIntro:      ["See the group against its market, then test what the members show.", "先看该组与市场的对照，再检验成分股的表现。"],
   focusBenchmarkChip:  ["Benchmark {ticker}", "基准 {ticker}"],
   focusCloseChip:      ["Close {session}", "收盘 {session}"],
-  focusViewMembers:    ["View all {n} members →", "查看全部 {n} 只成分 →"],
-  focusResearchNames:  ["Research these names →", "研究这些成分 →"],
-  backToFocus:         ["← Sector focus", "← 行业聚焦"],
+  focusViewMembers:    ["Research these names →", "研究这些成分 →"],
+  focusOpenPopulation: ["Open the full population →", "打开全部成分 →"],
+  // The fail-closed group read (group null): the numbers, count and lead line
+  // are not served — say so once, in the designed not-served block, and never
+  // borrow them from another read.
+  focusNotServedTitle: ["Group measures not served", "组内指标未服务"],
+  focusNotServedBody:  ["The sector reading for this group was not served in this session. No group return, market return, relative or breadth is shown — nothing is inferred from another source.", "本次会话未提供该组的行业读数。不显示组内收益、市场收益、相对表现或宽度——不从其他来源推断。"],
+  focusDisclaimer:     ["Sector strength is descriptive context. It does not decide entry, size or timing for any name.", "行业强势属于描述性背景，不决定任何名称的入场、仓位或时点。"],
+  backToFocus:         ["Sector focus", "行业聚焦"],
   focusParticipationTitle: ["Leadership and participation", "领导力与参与度"],
   focusChartUnavailable: ["The window series is not published on this wire — this panel stands on the read's own numbers above.", "该数据通道未发布窗口序列——本面板依据上方读数本身的数字。"],
+  // The fail-closed read leaves no numbers above, so the panel must not point
+  // at a reading that was never served.
+  focusChartUnavailableNoRead: ["The window series is not published on this wire, and this group's reading was not served in this session.", "该数据通道未发布窗口序列，本组读数在本次会话中也未提供。"],
   focusChallengeTitle: ["The challenge", "主要考验"],
   focusChallengeUnavailable: ["Issuer concentration is not measured on this wire. A few large issuers can still dominate the group's move.", "该数据通道未测算发行人集中度。少数大型发行人仍可能主导该组走势。"],
   focusChallengeNote:  ["What would change this view, and the evidence sources, live in Sector Intelligence.", "“什么会改变这个判断”与证据来源位于行业情报。"],
@@ -196,6 +216,8 @@ export const PROPHET_SECTOR_LEX = {
   // ── Relative leader, falling price (SX09 #01 · G22) ─────────────────────
   relativeLeadTitle:   ["Ahead of the market. Still falling.", "跑赢市场，仍在下跌。"],
   relativeLeadBody:    ["Sector {sector} · market {market} · advantage {adv} pp. Relative resilience does not turn the absolute return green.", "行业 {sector} · 市场 {market} · 优势 {adv} 个百分点。相对抗跌不会让绝对收益转正。"],
+  relativeLeadAction:  ["Inspect the comparison", "查看对比"],
+  relativeLeadActionAria: ["Open this group's own comparison in Sector Intelligence", "在行业情报中打开该组的对比"],
 
   // ── Member selection + compare (SX04/T2-06, T2-07/T2-13 · G6, G7) ───────
   compareCol:          ["Compare", "对比"],
@@ -206,13 +228,19 @@ export const PROPHET_SECTOR_LEX = {
   selectionCapNote:    ["Up to {n} names can be compared.", "最多可对比 {n} 只名称。"],
   compareSelected:     ["Compare selected ⇅", "对比已选 ⇅"],
   compareNeedsMore:    ["Select at least two names in the population to compare them.", "请在成分列表中至少选择两只名称后再对比。"],
+  // Compare is its own view address. Until the address carries the selection
+  // (Lane A's `sel` key), a reload lands on compare with nothing selected — say
+  // that plainly instead of showing an empty comparison.
+  compareSelectionLost: ["The comparison selection was not kept in this address. Choose names in the population to compare them.", "本地址未保留对比选择。请在成分列表中选择名称后再对比。"],
   populationMeasuresNote: ["Total return, return versus sector, issuer-excluded breadth and each member's research question are not published on this wire yet.", "该数据通道尚未发布按成员的总收益、相对行业收益、剔除发行人宽度及各自的研究问题。"],
   compareTitle:        ["Compare the evidence", "对比证据"],
   compareIntro:        ["Keep each research case, its clock and its next check in view.", "把每个研究案例、其时间基准与下一步核查放在同一视野。"],
   compareBack:         ["← Back to population", "← 返回成分列表"],
   compareAddName:      ["Add a name +", "添加名称 +"],
   compareNoScore:      ["Each case keeps its own clock and basis. No combined score or ranking is assigned.", "每个案例保留各自的时间基准与口径。不给出综合评分或排名。"],
-  compareMixedClocks:  ["These views use different clocks. Compare each on its own; no combined arithmetic.", "这些视图的时间基准不同。请各自对照，不做合并计算。"],
+  // ONE sentence for the mixed-clock case (SX09 #08) — the banner states the
+  // clock difference and the no-combined-arithmetic rule once, not twice.
+  compareMixedClocks:  ["These cases use different clocks — each is compared on its own, with no combined score or ranking assigned.", "这些案例的时间基准不同——各自对照，不给出综合评分或排名。"],
   compareFooter:       ["Returning to the population preserves your selection and filters.", "返回成分列表会保留你的选择与筛选。"],
   compareChartUnavailable: ["{symbol}'s window series is not published on this wire.", "该数据通道未发布 {symbol} 的窗口序列。"],
   compareEntryUnavailable: ["Entry state unavailable", "入场状态不可用"],
@@ -223,6 +251,8 @@ export const PROPHET_SECTOR_LEX = {
   comparePhase:        ["Phase", "阶段"],
   compareOpened:       ["Opened", "开启日"],
   compareStrategy:     ["Strategy", "策略"],
+  compareOpenSetup:    ["Open setup →", "打开研究起点 →"],
+  phaseUnmapped:       ["Phase label not published", "阶段标签未发布"],
 } as const;
 
 export type ProphetSectorKey = keyof typeof PROPHET_SECTOR_LEX;

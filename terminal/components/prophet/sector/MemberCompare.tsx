@@ -21,7 +21,9 @@
  */
 import type { ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
+import type { Lang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
+import { getProphetStr, type ProphetKey } from "../prophetStrings";
 import { PROPHET_COMPARE_CAP } from "./SectorMemberPopulation";
 import {
   makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey,
@@ -30,6 +32,26 @@ import {
 import styles from "./prophetSector.module.css";
 
 type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
+
+/** The Prophet plan phase is the producer's wire enum (`pre_trigger` …); the
+ * reader gets the shared display vocabulary, never the raw slug. An enum this
+ * surface does not know says so rather than printing itself. */
+const PHASE_LABEL_KEY: Record<string, ProphetKey> = {
+  pre_trigger: "phasePretrigger",
+  triggered_pre_t1: "phaseTriggered",
+  at_t1: "phaseAtT1",
+  between_t1_t2: "phaseBetweenT1T2",
+  at_t2: "phaseAtT2",
+  overtime: "phaseOvertime",
+  invalidated: "phaseInvalidated",
+};
+
+function phaseDisplay(lang: Lang, phase: string | null | undefined,
+  notStated: string, unmapped: string): string {
+  if (phase === null || phase === undefined) return notStated;
+  const key = PHASE_LABEL_KEY[phase];
+  return key === undefined ? unmapped : getProphetStr(lang, key);
+}
 
 export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMember }: {
   /** The lane's selection, in picking order; two minimum, three maximum. */
@@ -64,7 +86,7 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
       </div>
 
       <header className={styles.compareHead}>
-        <h3 className={styles.compareTitle}>{t("compareTitle")}</h3>
+        <h3 className={styles.compareTitle} data-view-heading tabIndex={-1}>{t("compareTitle")}</h3>
         <p className={styles.compareIntro}>{t("compareIntro")}</p>
       </header>
 
@@ -79,9 +101,11 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
         ) : null}
       </div>
 
+      {/* ONE banner sentence: the mixed-clock case carries both the clock
+          difference and the no-combined-arithmetic rule in that single line
+          (SX09 #08), rather than repeating the same point twice. */}
       <p className={styles.compareBanner} data-testid="prophet-sector-compare-banner">
-        {t("compareNoScore")}
-        {mixedClocks ? ` ${t("compareMixedClocks")}` : ""}
+        {mixedClocks ? t("compareMixedClocks") : t("compareNoScore")}
       </p>
 
       <div className={styles.compareGrid}>
@@ -121,15 +145,7 @@ function CompareCard({ payload, onOpenMember }: {
   return (
     <article className={styles.compareCard} data-testid={`prophet-sector-compare-card-${symbol}`}>
       <div className={styles.compareCardHead}>
-        <button
-          type="button"
-          className={styles.compareSymbol}
-          aria-label={prophetSectorFill(t("setupAria"), { symbol })}
-          data-testid={`prophet-sector-compare-open-${symbol}`}
-          onClick={() => onOpenMember(symbol, planId)}
-        >
-          {symbol}
-        </button>
+        <h4 className={styles.compareSymbol}>{symbol}</h4>
         <span className={styles.compareName}>
           {member?.name ?? symbol}{member?.industry !== null && member?.industry !== undefined ? ` · ${member.industry}` : ""}
         </span>
@@ -157,8 +173,8 @@ function CompareCard({ payload, onOpenMember }: {
         </dd>
 
         <dt className={styles.compareDetailLabel}>{t("comparePhase")}</dt>
-        <dd className={styles.compareDetailValue}>
-          {plan?.phase ?? t("contextNotStated")}
+        <dd className={styles.compareDetailValue} data-testid={`prophet-sector-compare-phase-${symbol}`}>
+          {phaseDisplay(lang, plan?.phase, t("contextNotStated"), t("phaseUnmapped"))}
         </dd>
 
         <dt className={styles.compareDetailLabel}>{t("compareOpened")}</dt>
@@ -183,6 +199,18 @@ function CompareCard({ payload, onOpenMember }: {
         <p className={styles.focusPanelNote}>{prophetSectorFill(t("compareChartUnavailable"), { symbol })}</p>
       </div>
       <span className={styles.compareEntryChip}>{t("compareEntryUnavailable")}</span>
+
+      {/* T2-07's per-card primary action, labelled with what it opens. One
+          open control per card; the symbol above is its heading. */}
+      <button
+        type="button"
+        className={styles.compareOpenButton}
+        aria-label={prophetSectorFill(t("setupAria"), { symbol })}
+        data-testid={`prophet-sector-compare-open-${symbol}`}
+        onClick={() => onOpenMember(symbol, planId)}
+      >
+        {t("compareOpenSetup")}
+      </button>
     </article>
   );
 }

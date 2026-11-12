@@ -13,6 +13,7 @@
  *   - The owner's own descriptive state label renders verbatim when present.
  *   - No colored container edges; status is text in semantic ink (2026-10-18).
  */
+import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import type {
   SectorGroupContext, SectorGroupDescriptor, SectorMembersCompatibility,
@@ -109,16 +110,28 @@ export function SectorContextStrip({ group, compatibility }: {
           advantage plainly and name what it does NOT mean; relative
           resilience never reads as a green absolute return. */}
       {ctx.relativePp !== null && ctx.relativePp > 0 && ctx.groupReturnPct !== null && ctx.groupReturnPct < 0 ? (
-        <p className={styles.contextVerdict} data-testid="prophet-sector-relative-lead" role="status">
-          {t("relativeLeadTitle")}{" "}
-          {prophetSectorFill(t("relativeLeadBody"), {
-            sector: pctSigned(ctx.groupReturnPct),
-            market: ctx.marketReturnPct !== null
-              ? pctSigned(ctx.marketReturnPct)
-              : t(contextNullKey(ctx.reasons.market_return_pct)),
-            adv: ctx.relativePp.toFixed(1),
-          })}
-        </p>
+        <div className={styles.relativeLead} data-testid="prophet-sector-relative-lead" role="status">
+          <p className={styles.relativeLeadCopy}>
+            {t("relativeLeadTitle")}{" "}
+            {prophetSectorFill(t("relativeLeadBody"), {
+              sector: pctSigned(ctx.groupReturnPct),
+              market: ctx.marketReturnPct !== null
+                ? pctSigned(ctx.marketReturnPct)
+                : t(contextNullKey(ctx.reasons.market_return_pct)),
+              adv: ctx.relativePp.toFixed(1),
+            })}
+          </p>
+          {/* SX09 #01's action: the comparison the sentence points at lives in
+              Sector Intelligence's own group view — a link, never a copy. */}
+          <Link
+            className={styles.relativeLeadAction}
+            href={`/sectors?group=${encodeURIComponent(group.id)}`}
+            data-testid="prophet-sector-relative-lead-inspect"
+            aria-label={t("relativeLeadActionAria")}
+          >
+            {t("relativeLeadAction")}
+          </Link>
+        </div>
       ) : null}
     </section>
   );
