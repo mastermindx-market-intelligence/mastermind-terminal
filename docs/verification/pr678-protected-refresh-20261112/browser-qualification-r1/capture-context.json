@@ -1,0 +1,22 @@
+{
+  "actualGit": {
+    "head": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "headTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "mergeHead": null
+  },
+  "branchHead": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "checkoutCommit": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "checkoutTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "indexTreeAtEnd": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "indexTreeAtStart": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "integratedSourceHeads": [
+    "492a73948a947c3cccc2981e90a5cc227d96385f",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "mergeHead": null,
+  "operation": "terminal-pr678-probability-browser-current-20261112",
+  "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "publishedBasis": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "sourceIdentity": "stable-composed-working-tree"
+}

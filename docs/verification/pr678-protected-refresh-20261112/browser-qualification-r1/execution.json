@@ -1,0 +1,49 @@
+{
+  "completedAt": "2026-11-12T00:48:17.014801+00:00",
+  "context": {
+    "actualGit": {
+      "head": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+      "headTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+      "indexTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+      "mergeHead": null
+    },
+    "branchHead": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "checkoutCommit": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "checkoutTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTreeAtEnd": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTreeAtStart": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "integratedSourceHeads": [
+      "492a73948a947c3cccc2981e90a5cc227d96385f",
+      "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    ],
+    "mergeHead": null,
+    "operation": "terminal-pr678-probability-browser-current-20261112",
+    "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "publishedBasis": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "results": {
+    "expiry": {
+      "artifacts": 37,
+      "lifecycleSha256": "92feea1bbbbde446d69bf24b8e22ce3d8a7ff7ee5e07f5ba92c8204086cef759",
+      "passed": 9,
+      "qualificationSha256": "5b15e42763f287c44514b88212516b41374c14932ee7b62beda15bd984bf4bc9",
+      "seconds": 49.174,
+      "sourceFiles": 3788,
+      "state": "PROBABILITY_BROWSER_STAGE_QUALIFIED"
+    },
+    "joint": {
+      "artifacts": 374,
+      "lifecycleSha256": "664cae8b45a5827627b6cf991f3d66b09ba48a8cbbaba1b12e7f3ce137184754",
+      "passed": 144,
+      "qualificationSha256": "d9eecf57ecfa66346d7e3a44924a727dd0768bf78de327a5b8466339273f3b3e",
+      "seconds": 843.801,
+      "sourceFiles": 3788,
+      "state": "PROBABILITY_BROWSER_STAGE_QUALIFIED"
+    }
+  },
+  "snapshotSha256": "1f0c674caebf15711f3304d01d6fa42fe829c97c08b93e65150377ddb9674413",
+  "sourceFiles": 3788,
+  "startedAt": "2026-11-12T00:33:12.427811+00:00",
+  "state": "BOTH_PROBABILITY_BROWSER_STAGES_QUALIFIED_PENDING_READER_PINS"
+}

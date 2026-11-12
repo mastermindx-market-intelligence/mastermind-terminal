@@ -86,7 +86,7 @@ describe("hosted R5 browser successor", () => {
 
   it("does not accept a predecessor declaration as the current root", () => {
     const root = shadow({ [rootPath("gex")]: readFileSync(join(repo, capture, "prior-roots/gex.EVIDENCE.yml")) });
-    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("R5_CURRENT_ROOT:gex");
+    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("PROBABILITY_CURRENT_ROOT:gex");
   });
 
   it("rejects corruption of the archived logical predecessor root", () => {
@@ -114,5 +114,36 @@ describe("hosted R5 browser successor", () => {
   ])("rejects changed captured bytes without rewriting their digest: %s", path => {
     const root = shadow({ [path]: readFileSync(join(repo, path), "utf8") + "\n" });
     expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("R5_RAW_EXPORT_BYTES:");
+  }, 30_000);
+});
+
+
+describe("probability browser successor boundaries", () => {
+  const current = "terminal/docs/verification/exposure-workspace-20261103/probability-weighting-integration-20261112";
+
+  it("requires new browser proof while retaining strict native-only preflight", () => {
+    const root = shadow({ [current + "/browser-successor.json"]: null });
+    expect(verifyExpiryIntegrationNativePrerequisites(root)).toEqual({
+      state: "NATIVE_ONLY_VALIDATED", currentBrowserQualified: false,
+      gex: { revision: families.gex.revision, descriptorSha256: families.gex.descriptorSha256 },
+      eod: { revision: families.eod.revision, descriptorSha256: families.eod.descriptorSha256 },
+    });
+    expect(() => qualifiedOptionsExposurePacket(root, "eod", crops("eod"))).toThrow(/ENOENT/);
+    expect(() => optionalQualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow(/ENOENT/);
+  }, 30_000);
+
+  it.each(["eod", "gex"] as const)("rejects probability-input drift through the %s current owner", kind => {
+    const path = "terminal/lib/marketStructure.ts";
+    const root = shadow({ [path]: readFileSync(join(repo, path), "utf8") + "\n// isolated probability source drift\n" });
+    expect(verifyExpiryIntegrationNativePrerequisites(root).currentBrowserQualified).toBe(false);
+    expect(() => qualifiedOptionsExposurePacket(root, kind, crops(kind))).toThrow("NO_QUALIFIED_CAPTURE");
+  }, 30_000);
+
+  it("cannot downgrade by restoring both R5 declarations while successor history remains", () => {
+    const root = shadow({
+      [rootPath("eod")]: readFileSync(join(repo, current, "prior-roots/eod.EVIDENCE.yml")),
+      [rootPath("gex")]: readFileSync(join(repo, current, "prior-roots/gex.EVIDENCE.yml")),
+    });
+    expect(() => qualifiedOptionsExposurePacket(root, "gex", crops("gex"))).toThrow("PROBABILITY_CURRENT_ROOT:gex");
   }, 30_000);
 });

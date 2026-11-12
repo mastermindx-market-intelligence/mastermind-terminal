@@ -1,0 +1,129 @@
+{
+  "schema": "terminal_pr678_probability_consumer_checks.v1",
+  "state": "ALL_AFFECTED_CONSUMER_CHECKS_PASSED",
+  "started_at": "2026-11-12T00:51:30.576420+00:00",
+  "source_before": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "ac4584b21b70367abaeccb19d682a5ed6a8a934f201814a47d462f6a027c1b44",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "cf26194bf9dffead3aa9b5ead4bd5bd1d4682bf7141d5de81d8bf0bc76d073ec",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "aba43c20019506368853ff5414f61971dff23d887a4eeba3a81d8b7c32404976",
+    "terminal/lib/marketStructure.ts": "1cd9e4ac8a5bd0897b03c9a1eeda730961bc928b4604085aef68cf50db19d881",
+    "terminal/lib/__tests__/marketStructure.test.ts": "648bac022ca96edbb6b1e1e27bb1ffdaa6689ea1c270f8e81908db75f7379349",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "results": [
+    {
+      "name": "reader-syntax",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--check",
+        "e2e/tools/optionsExposureEvidence.cjs"
+      ],
+      "log": "reader-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "actual-owner-readback",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "-e",
+        "const o=require(\"./e2e/tools/capture_ci_evidence.cjs\"),p=require(\"node:path\"),repo=p.resolve(process.cwd(),\"..\");const out={};for(const k of [\"eod\",\"gex\"]){const x=o[k+\"Packet\"](repo);if(x.selection!==\"qualified\"||x.plan.required||x.plan.changed.length)throw Error(\"OWNER_NOT_QUALIFIED:\"+k);out[k]={selection:x.selection,path:x.path,sha256:x.sha256,capturedAtHead:x.capturedAtHead,captureRevision:x.captureRevision,descriptorSha256:x.descriptorSha256,sources:Object.keys(x.sourceFiles).length,plan:x.plan};}console.log(JSON.stringify(out,null,2));"
+      ],
+      "log": "actual-owner-readback.log",
+      "sha256": "c93b4e12b86af9c36cb9c0ff68b1b96a6af6a371739c88b717c4689664c056e2"
+    },
+    {
+      "name": "affected-consumer-units",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureBrowserReport.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
+      ],
+      "log": "affected-consumer-units.log",
+      "sha256": "6fbfc41feafc8d55d981682d414d13afc706233259e946745cfdaa0869c3b49e"
+    },
+    {
+      "name": "capture-owner-contracts",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--test",
+        "e2e/tools/capture_ci_evidence.test.cjs"
+      ],
+      "log": "capture-owner-contracts.log",
+      "sha256": "f2ea86341eba452678be2eee962abe478ea33499e1109be4d26df8528fabb021"
+    },
+    {
+      "name": "typescript",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "log": "typescript.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "test-lint",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureR5Successor.test.ts"
+      ],
+      "log": "test-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "commonjs-lint",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "--rule",
+        "{\"@typescript-eslint/no-require-imports\":\"off\"}",
+        "e2e/tools/optionsExposureEvidence.cjs"
+      ],
+      "log": "commonjs-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-diff-check",
+      "exit": 0,
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "terminal/e2e/tools/optionsExposureEvidence.cjs",
+        "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "terminal/lib/__tests__/optionsExposureR5Successor.test.ts",
+        "terminal/lib/marketStructure.ts",
+        "terminal/lib/__tests__/marketStructure.test.ts",
+        "terminal/package-lock.json"
+      ],
+      "log": "source-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_after": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "ac4584b21b70367abaeccb19d682a5ed6a8a934f201814a47d462f6a027c1b44",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "cf26194bf9dffead3aa9b5ead4bd5bd1d4682bf7141d5de81d8bf0bc76d073ec",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "aba43c20019506368853ff5414f61971dff23d887a4eeba3a81d8b7c32404976",
+    "terminal/lib/marketStructure.ts": "1cd9e4ac8a5bd0897b03c9a1eeda730961bc928b4604085aef68cf50db19d881",
+    "terminal/lib/__tests__/marketStructure.test.ts": "648bac022ca96edbb6b1e1e27bb1ffdaa6689ea1c270f8e81908db75f7379349",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "source_stable": true,
+  "completed_at": "2026-11-12T00:56:30.427078+00:00"
+}

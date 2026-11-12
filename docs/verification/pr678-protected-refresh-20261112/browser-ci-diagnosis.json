@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-12T01:13:18.541686+00:00",
+  "basis": "GitHub check/job metadata and local source-map comparison; no workflow-log download claim",
+  "captured_sha256": "bd4af47c39979ca72de02b7b741d41dc22938bed7d9722a20e2017c692c07484",
+  "changed_current_browser_input": "terminal/lib/marketStructure.ts",
+  "current_sha256": "1cd9e4ac8a5bd0897b03c9a1eeda730961bc928b4604085aef68cf50db19d881",
+  "failed_jobs": [
+    130879432212,
+    130879432300,
+    130879431897
+  ],
+  "head": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "native_input_changes": 0,
+  "observed_failure": "NO_QUALIFIED_CAPTURE from the retained R5 browser fingerprint",
+  "repair": "new actual 144+9 browser capture with strict unchanged native applicability; no new native capture identity or producer change",
+  "run": 43126261291
+}

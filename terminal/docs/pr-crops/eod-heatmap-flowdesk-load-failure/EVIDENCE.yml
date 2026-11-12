@@ -1,3 +1,15 @@
+# Current browser proof is the probability successor; native capture identities remain immutable.
+exposureProbabilityBrowser20261112:
+  revision: "probability-weighting-integration-20261112"
+  selectedFamily: "eod"
+  descriptorSha256: "8857cb3aa8e5c9b06461764eaaf3a4777222a07b41538d48d49de69b858372c7"
+  eodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  gexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  browserCapturedAtHead: "a1e58b46da592bf03b1279e57cd1aff315946c0c"
+  publishedBasis: "a1e58b46da592bf03b1279e57cd1aff315946c0c"
+  browserQualificationSha256: "d9eecf57ecfa66346d7e3a44924a727dd0768bf78de327a5b8466339273f3b3e"
+  expiryQualificationSha256: "5b15e42763f287c44514b88212516b41374c14932ee7b62beda15bd984bf4bc9"
+
 # Current browser proof is the hosted R5 successor; native capture identities are retained.
 exposureR5Browser20261111:
   revision: "r5-alignment-20261110"

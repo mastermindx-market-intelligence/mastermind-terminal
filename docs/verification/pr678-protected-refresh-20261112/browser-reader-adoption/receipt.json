@@ -1,0 +1,59 @@
+{
+  "at": "2026-11-12T00:50:35.069009+00:00",
+  "before": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929"
+  },
+  "captureContext": {
+    "actualGit": {
+      "head": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+      "headTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+      "indexTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+      "mergeHead": null
+    },
+    "branchHead": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "checkoutCommit": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "checkoutTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTreeAtEnd": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTreeAtStart": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "integratedSourceHeads": [
+      "492a73948a947c3cccc2981e90a5cc227d96385f",
+      "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    ],
+    "mergeHead": null,
+    "operation": "terminal-pr678-probability-browser-current-20261112",
+    "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "publishedBasis": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "captured_browser_records_modified": false,
+  "consumer_map_changes": [],
+  "current_roots": {
+    "eod": "4fe2d7742cbe474d5b9bfd4de8abae1f9eba121a2b9f5c231dfe4b7ac68613b3",
+    "gex": "b9823039047337e1b44bafa29a09275d261ef1b0c536c242992f302190320962"
+  },
+  "native_records_modified": false,
+  "pins": {
+    "PROBABILITY_BROWSER_QUALIFICATION": "d9eecf57ecfa66346d7e3a44924a727dd0768bf78de327a5b8466339273f3b3e",
+    "PROBABILITY_DESCRIPTOR": "8857cb3aa8e5c9b06461764eaaf3a4777222a07b41538d48d49de69b858372c7",
+    "PROBABILITY_EXPIRY_QUALIFICATION": "5b15e42763f287c44514b88212516b41374c14932ee7b62beda15bd984bf4bc9"
+  },
+  "postcapture_source_delta": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": {
+      "after": "ac4584b21b70367abaeccb19d682a5ed6a8a934f201814a47d462f6a027c1b44",
+      "before": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972"
+    },
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": {
+      "after": "cf26194bf9dffead3aa9b5ead4bd5bd1d4682bf7141d5de81d8bf0bc76d073ec",
+      "before": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf"
+    },
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": {
+      "after": "aba43c20019506368853ff5414f61971dff23d887a4eeba3a81d8b7c32404976",
+      "before": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929"
+    }
+  },
+  "schema": "terminal_pr678_probability_browser_adoption.v1",
+  "sourceSnapshotSha256": "1f0c674caebf15711f3304d01d6fa42fe829c97c08b93e65150377ddb9674413",
+  "state": "ACTUAL_BROWSER_PROOF_ADOPTED_PENDING_CONSUMER_CHECKS"
+}
