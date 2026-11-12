@@ -1,0 +1,139 @@
+{
+  "schema": "terminal_pr895_source_export_repair.v1",
+  "originalHead": "a96ef2f8956f3bb15bb532d0e1e130cddb6c34bf",
+  "protectedBase": "e22b5bd49f652b54507a3567856227015032f6e1",
+  "sourceLawPin": "0e1ca7a2d8aa95ac415191d64bd3a39212be39d0",
+  "state": "SOURCE_QUALIFIED_AWAITING_NATURAL_HOSTED_EXPORT",
+  "currentPairQualified": false,
+  "originalCandidatePreimages": {
+    "ops/terminal_source_audit.production.json": "f45ce0574f2e5394fde4ffd6b24d82c3c5a269e9",
+    "terminal/components/eodcontext/DarkPoolMini.tsx": "4085dd1ed30fa1b6e3cef5c2aaf1d8b133c775eb",
+    "terminal/docs/eod-v2-consumer/COMPOSITION_2026-11-05.md": "d7c6ef05b848a4896821edd4ce2dc5798d997dd4",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "6a109af4e72c6d4f2937dc6a75b61d2eef4cbdfd",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "5d8573ee72148934ec283f16aa2210ea39323e57",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "ea1ffe85f623b862f76fbda1b7bb654086b3d051",
+    "terminal/lib/__tests__/eodContext.test.ts": "a62b7ebf3712b3bb5a46842b4579417f675a4c3c",
+    "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx": "ec0d169fa86fda26b1746185b1fa02d9339cf8af",
+    "terminal/lib/eodContext.ts": "e9a9d16fe515455b66e3451ac9f92ca03c7b278b",
+    "terminal/public/data/darkpool_fixture.json": "bec8d5310e640f4e6804d8743349de091ac455ff"
+  },
+  "unchangedOriginalPaths": [
+    "terminal/components/eodcontext/DarkPoolMini.tsx",
+    "terminal/docs/eod-v2-consumer/COMPOSITION_2026-11-05.md",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    "terminal/lib/__tests__/eodContext.test.ts",
+    "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx",
+    "terminal/lib/eodContext.ts",
+    "terminal/public/data/darkpool_fixture.json"
+  ],
+  "dataTreeComposition": {
+    "protectedDataTree": "9ab33afba87ddf6b5793de84989547559a847ad9",
+    "candidateDataTree": "eac595ec082d6495b5616fc56c33b41719a297a2",
+    "frozenFixtureBlob": "bec8d5310e640f4e6804d8743349de091ac455ff",
+    "replacedOnlyPath": "terminal/public/data/darkpool_fixture.json",
+    "entryCount": 136,
+    "policyChangedOnlyDerivedTree": true
+  },
+  "ownedSources": {
+    "ops/terminal_source_audit.production.json": {
+      "gitBlob": "774a46ba95a97c4a645906bced8ff80ae279c86c",
+      "sha256": "3c277ff9b15f4a1dcdc52f04c7ec29d039ae436c78df9fa2840d78e485dc4920",
+      "bytes": 5262
+    },
+    "terminal/components/eodcontext/DarkPoolMini.tsx": {
+      "gitBlob": "4085dd1ed30fa1b6e3cef5c2aaf1d8b133c775eb",
+      "sha256": "08c777d95472849858f69741d569537a8c06aef2256ed66d743000ec9670494b",
+      "bytes": 8921
+    },
+    "terminal/docs/eod-v2-consumer/COMPOSITION_2026-11-05.md": {
+      "gitBlob": "d7c6ef05b848a4896821edd4ce2dc5798d997dd4",
+      "sha256": "e7ac9baead4b1d613c13e4c6383d248d07b50561d1521bad0e1de5e330e827e2",
+      "bytes": 14141
+    },
+    "terminal/e2e/tools/capture_ci_evidence.cjs": {
+      "gitBlob": "889e4bf6b8a16cf2359de02802e48815fc457d53",
+      "sha256": "508dc8683ee4608da352c2cb59f20725fed4dd958387d6d641425ae3530f9ba8",
+      "bytes": 87284
+    },
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": {
+      "gitBlob": "411cd9e98d0d6b4bb14310865ef29e8bd7eca6e1",
+      "sha256": "ae1499adbfa58f7f04d78c77e4bef21db2d53ff6efcdcb43c2ee864b58fbeb56",
+      "bytes": 108775
+    },
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": {
+      "gitBlob": "ea1ffe85f623b862f76fbda1b7bb654086b3d051",
+      "sha256": "58779add7d750abfd4b516855f63797782c66edd93b85bab3f27a0e2fd0e83cc",
+      "bytes": 49637
+    },
+    "terminal/lib/__tests__/eodContext.test.ts": {
+      "gitBlob": "a62b7ebf3712b3bb5a46842b4579417f675a4c3c",
+      "sha256": "567de882f81fbc6ee6e10a58bfa7cfeb2bfa3367367b26241a221c094e0806c0",
+      "bytes": 43912
+    },
+    "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx": {
+      "gitBlob": "ec0d169fa86fda26b1746185b1fa02d9339cf8af",
+      "sha256": "eb1bcad5ca968042fb448b4ae19a52d270e2488fc66008fd919cc4cccebd53d4",
+      "bytes": 13111
+    },
+    "terminal/lib/eodContext.ts": {
+      "gitBlob": "e9a9d16fe515455b66e3451ac9f92ca03c7b278b",
+      "sha256": "1bfbd54676605cdf6211ff52e0f73b1dc42c759db5aded47f3e89a280c14d243",
+      "bytes": 32030
+    },
+    "terminal/public/data/darkpool_fixture.json": {
+      "gitBlob": "bec8d5310e640f4e6804d8743349de091ac455ff",
+      "sha256": "d3c6c95847cc707d6d41fc2bb843898ea3b724d51bc8b4fcf08e405191a1fc1b",
+      "bytes": 341121
+    },
+    ".github/workflows/ci.yml": {
+      "gitBlob": "72705b1faaa165224b57c7146b4ece13beb60152",
+      "sha256": "d5cac5a224dccf7408ef656d751e7c738e78f983fb24f1e82f33f2688555a230",
+      "bytes": 93753
+    },
+    "terminal/e2e/tools/qualify_r5_alignment_browser.py": {
+      "gitBlob": "a0e289ccc00b61faa5b3506cc8a9e8eb2f2ba65d",
+      "sha256": "b8ccb95694c3cba030c9846021b3a09e3671b8e30b4974f90566b82b98f38599",
+      "bytes": 22767
+    },
+    "terminal/e2e/tools/qualify_eod_v2_successor.cjs": {
+      "gitBlob": "f918c07bdfb5b035adf11ece06d1ced6bee6154a",
+      "sha256": "322c31c64d840d4f97139fd237a77c5a8e4bcef8aa9b399f4d464985fed0572b",
+      "bytes": 16085
+    },
+    "terminal/e2e/tools/qualify_eod_v2_browser.py": {
+      "gitBlob": "6d68273de7dc40df6924ab27ad419b5d142ecc68",
+      "sha256": "0d217fb2964b0846fad4d959c72049d9b5ba69710741cb6ceaa5240d7e43da01",
+      "bytes": 10393
+    },
+    "terminal/e2e/tools/qualify_eod_v2_successor.test.cjs": {
+      "gitBlob": "70d4314ce1af852583929636978bcde2ffa3156a",
+      "sha256": "6d3b6b4ef798e8177188f909135305af629cd19d5dd2fe687419ba1a8fba93c3",
+      "bytes": 4538
+    },
+    "terminal/e2e/tools/qualify_eod_v2_browser_test.py": {
+      "gitBlob": "18d31c2f331a37c5d469f1c980d86a9af26f14bf",
+      "sha256": "f950f11484878547245be444e5cd30d970a4d0ec64959a855e878e570c433a88",
+      "bytes": 5089
+    }
+  },
+  "validation": {
+    "nodeContractTests": {
+      "passed": 240,
+      "failed": 0,
+      "log": "node-contract-tests.txt"
+    },
+    "pythonContractTests": {
+      "passed": 6,
+      "failed": 0,
+      "command": "python -m unittest discover -s terminal/e2e/tools -p qualify_eod_v2_browser_test.py"
+    },
+    "syntax": "PASS",
+    "workflowOwnedHookPlacement": "PASS",
+    "gitWhitespace": "PASS"
+  },
+  "release": {
+    "draft": true,
+    "autoMerge": false,
+    "held": true
+  }
+}

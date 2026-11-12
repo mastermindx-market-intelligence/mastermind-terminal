@@ -50,6 +50,63 @@ const legOf = (b: ReturnType<typeof buildCompareStudy>, sym: string) => b.study.
 const seriesOf = (b: ReturnType<typeof buildCompareStudy>, sym: string) => b.series.find((s) => s.symbol === sym)!.data;
 const valueAt = (data: { time: string; value: number }[], t: string) => data.find((p) => p.time === t)?.value;
 
+describe("calendar comparison excludes malformed dates before receipts and matching", () => {
+  const bad = ["bad-date", "2024-02-30", "2023-02-29", "2024-03-01T00:00:00Z", ""];
+  const hostRows = [{ time: "2024-02-23", c: 100 }, { time: "2024-03-01", c: 110 }, { time: "2024-03-08", c: 120 }];
+  const legRows = [{ time: "2024-02-22", c: 200 }, { time: "2024-02-29", c: 220 }, { time: "2024-03-07", c: 240 }];
+  const withNoise = (rows: CmpBar[]): CmpBar[] => [
+    { time: bad[0], c: 999999 }, rows[0],
+    ...bad.slice(1).map((time) => ({ time, c: 999999 })), ...rows.slice(1),
+    { time: "2024-04-31", c: 999999 },
+  ];
+
+  for (const tf of ["W", "2W", "1M", "3M"]) {
+    for (const anchor of [null, "2024-02-23"]) {
+      it(`${tf}: ${anchor ?? "auto"} receipts, anchors, series and digests equal clean input`, () => {
+        const cfg = anchor ? pinned(0, anchor) : defaultCmpCfg(0);
+        const build = (h: CmpBar[], l: CmpBar[]) => buildCompareStudy(input({
+          timeframe: tf, host: { symbol: "AAPL", rows: h, src: "polygon" }, legs: [leg("QQQ", cfg, l)],
+        }));
+        const clean = build(hostRows, legRows);
+        expect(clean.study.host.bars).toBe(3);
+        expect(legOf(clean, "QQQ").points).toBeGreaterThan(0);
+        expect(build(withNoise(hostRows), withNoise(legRows))).toEqual(clean);
+      });
+    }
+
+    it(`${tf}: invalid host and leg dates cannot manufacture a null-key observation`, () => {
+      for (const time of bad) expect(joinKey(tf, time)).toBeNull();
+      const rows = bad.map((time) => ({ time, c: 100 }));
+      const result = buildCompareStudy(input({ timeframe: tf,
+        host: { symbol: "AAPL", rows, src: "polygon" }, legs: [leg("QQQ", defaultCmpCfg(0), rows)],
+      }));
+      expect(result.study.host).toMatchObject({ bars: 0, firstTime: null, lastTime: null });
+      expect(legOf(result, "QQQ")).toMatchObject({ bars: 0, firstTime: null, lastTime: null, status: "withheld", reason: "no_overlap", points: 0, anchor: null });
+      expect(result.series).toEqual([]);
+    });
+
+    it(`${tf}: an impossible date cannot fill a real calendar observation`, () => {
+      const result = buildCompareStudy(input({ timeframe: tf,
+        host: { symbol: "AAPL", rows: [{ time: "2024-02-29", c: 100 }], src: "polygon" },
+        legs: [leg("QQQ", defaultCmpCfg(0), [{ time: "2024-02-30", c: 200 }])],
+      }));
+      expect(legOf(result, "QQQ")).toMatchObject({ bars: 0, reason: "no_overlap", points: 0 });
+      expect(result.series).toEqual([]);
+    });
+  }
+
+  it("retains the existing anchor-date contract and all non-calendar key behavior", () => {
+    expect(isAnchorDate("0000-02-29")).toBe(true);
+    expect(isAnchorDate("0099-01-01")).toBe(true);
+    expect(isAnchorDate("2024-03-02")).toBe(true);
+    for (const date of bad) expect(isAnchorDate(date)).toBe(false);
+    for (const tf of ["D", "2D", "3D", "1h", "unknown"]) {
+      expect(joinKey(tf, "2024-02-29T14:30:00Z")).toBe("2024-02-29T14:30:00Z");
+      expect(joinKey(tf, "bad-date")).toBe("bad-date");
+    }
+  });
+});
+
 // The pre-E08 adapter, reproduced VERBATIM from ChartPanel.rebuildCompare's percent branch (the
 // date join, the first-common base, and the `lv` carry-forward), so the tests below can show what
 // the old behaviour does on the same inputs.

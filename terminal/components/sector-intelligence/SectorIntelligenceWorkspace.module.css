@@ -207,3 +207,17 @@
   .utilityControls { display: flex; width: auto; align-self: flex-start; gap: 8px; }
   .utilityControls > button { justify-self: auto; padding-inline: 12px; }
 }
+
+/* Breadth supplies its own question and date immediately below workspace navigation. */
+.root[data-sector-workspace="breadth"] .header { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
+.root[data-sector-workspace="breadth"] .header .subtitle { display: none; }
+.root[data-sector-workspace="breadth"] .workspaceNavigation { margin-top: 8px; }
+@media (max-width: 560px) {
+  .root[data-sector-workspace="breadth"] .page { padding-top: 8px; }
+  .root[data-sector-workspace="breadth"] .header { display: grid; grid-template-columns: minmax(0,1fr) auto; }
+  .root[data-sector-workspace="breadth"] .header h1 { font-size: 18px; }
+  .root[data-sector-workspace="breadth"] .header .eyebrow { font-size: 9px; margin-bottom: 2px !important; }
+  .root[data-sector-workspace="breadth"] .utilityControls { align-self: center; gap: 4px; }
+  .root[data-sector-workspace="breadth"] .utilityControls > button { padding-inline: 8px; }
+  .root[data-sector-workspace="breadth"] .workspaceNavigation { margin-top: 2px; }
+}

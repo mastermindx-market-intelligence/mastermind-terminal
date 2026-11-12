@@ -1,0 +1,13 @@
+{
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--pretty",
+    "false"
+  ],
+  "startedAt": "2026-11-11T08:01:38.986266+00:00",
+  "seconds": 18.991,
+  "exitCode": 0,
+  "captureSourceSha256": "dba92e525848b71f3137aca37187f3d17d9a6cd0588b85e65381cffc1cace0b0"
+}

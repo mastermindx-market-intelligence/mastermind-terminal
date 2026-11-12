@@ -1,0 +1,7 @@
+{
+  "state": "CURRENT_SOURCE_REPAIR_APPLIED",
+  "base": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "panelBlob": "e8365ed513c043b0adea8bc441d464914306d5d8",
+  "panelSha256": "f7211b83a71591b7d1c8f0ca7b3f265dc5eb8777ec592c73377e039aea68bc03",
+  "reason": "Keep one measured content host mounted across chart/table/empty transitions"
+}

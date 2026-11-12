@@ -107,6 +107,30 @@ unresolved with its consumed claim and original evidence retained; this entrance
 cannot be repeated to force acceptance. Do not delete records, reset phases,
 clear locks, edit receipts or start a quarantined generation manually.
 
+#### An attempt captured under the prior generation's policy
+
+"Unchanged policy" normally means the selected policy digest equals the digest
+the attempt captured. One exact lineage is also admitted: an attempt begun by an
+owner that predates generation-bound bundles (below) captured the digest of the
+policy committed by its **prior** generation, for a target whose own commit
+carries a different policy. Such an attempt always stops unresolved at
+acceptance and could otherwise never be completed.
+
+The recovery entrance admits it only when both hold, read from commit objects in
+the beta canonical repository and never from the working tree:
+
+- the captured `policy_digest` is the canonical digest of
+  `ops/terminal_source_audit.beta.json` at the attempt's recorded `prior_sha`;
+- the selected digest is the canonical digest of that file at the captured
+  target.
+
+Anything else keeps the refusal `recovery cannot change the captured
+policy_digest`. Every other admission condition, the one recovery allowance and
+the full target audit are unchanged. The claim records `recovery_policy_digest`
+and `recovery_policy_basis=prior-generation-policy-capture`; acceptance must then
+present exactly that target policy, and the accepted record keeps the original
+capture as `recovery_captured_policy_digest`. The command is the same one above.
+
 
 ### Bootstrap archive storage and recovery
 
@@ -156,6 +180,33 @@ failure after that point retains the unresolved pending attempt and stops beta;
 it cannot claim that restoring only the build restored its former dependencies.
 A failed first installation follows the existing source-only quarantine rules.
 
+### The audit bundle follows the generation it audits
+
+The installed owner has no audit bundle beside it and selects the one in the
+canonical checkout, `ops/terminal_release_preflight.py`, the profile policy and
+`ops/terminal_audit/`. That checkout moves during a release, and a pinned policy
+digest is only meaningful for the generation whose policy it is. The owner
+therefore takes the bundle for a generation from that generation's commit
+objects, extracts it into a private owner-only directory, admits it through the
+unchanged selector and pins it there:
+
+- the current-generation gate and any restoration audit judge the **prior**
+  accepted generation with the prior generation's bundle;
+- beta acceptance judges the **target** with the bundle the admitted target
+  commit carries, bound before the checkout moves to that target;
+- after a canonical-head mismatch is repaired, the second gate uses the bundle
+  of the accepted generation the checkout was restored to (both profiles).
+
+The execution-time check that the selected policy still has its pinned digest is
+unchanged and still refuses any difference. Durable records continue to name the
+canonical policy path; the private copy exists only for one run and is removed
+with it. A bundle deliberately placed beside the owner is selected first, exactly
+as before, and is never rebound. A generation that does not carry a complete
+bundle refuses instead of falling back to another generation's.
+
+Production never audits after its checkout moves to the target, so its ordinary
+release keeps the bundle of the accepted generation throughout.
+
 ### Adopting a repaired owner while retaining the admitted application
 
 A source-provisioned receipt binds the application target **A** and the original
@@ -174,8 +225,8 @@ exact `ops/terminal-build.sh` artifact through the attended release lane. Verify
 its revision, byte digest and root-owned private staging location. Execute that
 script with `--target beta --bootstrap --target-sha A`. Its directory must contain
 only the script: the existing selector then uses the trusted bundle in
-`/opt/terminal/.gitsrc-beta/ops`, whose policy path and digest must still match the
-original receipt.
+`/opt/terminal/.gitsrc-beta/ops`, bound to target A as described above, whose
+canonical policy path and digest must still match the original receipt.
 
 Do not relocate a complete preflight bundle beside the script. Even identical
 policy bytes at a different path cannot borrow the original source receipt.

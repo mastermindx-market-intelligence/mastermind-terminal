@@ -1,0 +1,240 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "ready / unavailable / stale, no English leaking through"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "stale in zh"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "390-en-stale"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "tap targets are >=44x44 at 820px"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "tap targets are >=44x44 at 390px"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "zero horizontal document overflow at all three widths with the menu open + a row unfolded"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "1440 EN/ZH grouped library, share confirm, and member sees the shared workspace as read-only when the role flag is member"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "w2a-workspaces",
+      "title": "820 EN grouped library tap targets"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/w2a-workspaces.spec.ts",
+    "--project=w2a-workspaces",
+    "--grep",
+    "ready / empty / row-open / renaming / unsupported-rows / name-conflict / stale|ready / unavailable / stale, no English leaking through|stale in zh|390-en-stale|tap targets are >=44x44|zero horizontal document overflow|1440 EN/ZH grouped library, share confirm|820 EN grouped library tap targets",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-style-workspace-states"
+  ],
+  "completedAt": "2026-11-10T04:47:08.032218+00:00",
+  "errors": [],
+  "exit": 0,
+  "expectedAuthoredSkips": 0,
+  "expectedPassed": 9,
+  "generatedWorkspaceCrops": {
+    "terminal/e2e/proof/w2a-workspaces/1440-en-empty.png": {
+      "artifact": "generated-crops/1440-en-empty.png",
+      "priorSha256": "5d7ac53704f2b79126230e8b0999adb21e33ec5c9441a1129d3fb1c35203842d",
+      "sha256": "80f31a7faac4380361daa0b9a6040d3e3dbc23cb31cb957c68ccfed9a6a8f2e4"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-member-read-only.png": {
+      "artifact": "generated-crops/1440-en-member-read-only.png",
+      "priorSha256": null,
+      "sha256": "6995c0a0fa20d75ea99ee7443bbeaaa10232775c8794d9403381675d186d3fb0"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-name-conflict.png": {
+      "artifact": "generated-crops/1440-en-name-conflict.png",
+      "priorSha256": "53fd50ef951492ddfc3758982960e60e013114d92a5824e98b9e8bca1ffc63c4",
+      "sha256": "cdbc9f366e71afaf46525dc24b91849d39c8d6380685211e0f7ccdef9636afca"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-ready.png": {
+      "artifact": "generated-crops/1440-en-ready.png",
+      "priorSha256": "6c28f747f720783caf2514d151a4e6f6a9c4b4dade6e326f8239fdb5927dfb6b",
+      "sha256": "d8dc3a2cd2423fd71a79cb1c1733584cfebf8dbc3aea3918df3c662667e2fa89"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-renaming.png": {
+      "artifact": "generated-crops/1440-en-renaming.png",
+      "priorSha256": "9595559d97a10da5bafcef2b9e3fb1858b9822ddaea1eb481eeb0d94a8ab9e28",
+      "sha256": "73c13a7ae106e1c3e723ce0279b6dffcb9b0dc5c74a12811d549511ca2900c5f"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-row-open.png": {
+      "artifact": "generated-crops/1440-en-row-open.png",
+      "priorSha256": "73f7a9575a14c578e38e0af78af56464871c8fa0a02dbb7cc841aad091bd8b2c",
+      "sha256": "74c6891b99de9172ebe5d6419bcd5d46502a6aa157e0cbe25ca6e75ceb69c39c"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-share-confirm.png": {
+      "artifact": "generated-crops/1440-en-share-confirm.png",
+      "priorSha256": null,
+      "sha256": "97b8cc474de6e7467e235941957d9a0ed09f20741d4c48b12c84ee93d2eca512"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-stale.png": {
+      "artifact": "generated-crops/1440-en-stale.png",
+      "priorSha256": "9f424723bdff78c373aa70d86e03b5194b5427999068471cff3e6b0e48d069e8",
+      "sha256": "6e95dfb9473c2f92e7ea75a30696b7f7d82f61afd36b2e4771efd26e5f62f973"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-team-grouped.png": {
+      "artifact": "generated-crops/1440-en-team-grouped.png",
+      "priorSha256": null,
+      "sha256": "929a9e1a92c1f704205e2bb5bf87af79344be543867358dd2427b50d43d34a5f"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-en-unsupported-rows.png": {
+      "artifact": "generated-crops/1440-en-unsupported-rows.png",
+      "priorSha256": "70898e2a4571c2701caa29b3a00f315e101636d9a2d73d73c8ada0762be7a1f9",
+      "sha256": "6edb8dce91993622d49bf99b25e9957216d3c114fe9990a647d17f682e5cece1"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-zh-ready.png": {
+      "artifact": "generated-crops/1440-zh-ready.png",
+      "priorSha256": "f44c2bef2a56380cbc7460e03f5adddc50a29dde69832cb5a881ed109bd78701",
+      "sha256": "10cc9848be2832e14b4b28503ac3c0c3183a6c6e967afd1e82ac9b77c5c82ca2"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-zh-share-confirm.png": {
+      "artifact": "generated-crops/1440-zh-share-confirm.png",
+      "priorSha256": null,
+      "sha256": "34fa69ebd5970338833a387a95913c779b51aa36d17b7954c806fb82dbd49513"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-zh-stale.png": {
+      "artifact": "generated-crops/1440-zh-stale.png",
+      "priorSha256": "ee51218ac081597abffe77acc82c354867badd5d7583ee188f25b814efd13064",
+      "sha256": "724548bf754f8802198d51d6582bacca7e7e6172a95e3b139d35e631e2c8c182"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-zh-team-grouped.png": {
+      "artifact": "generated-crops/1440-zh-team-grouped.png",
+      "priorSha256": null,
+      "sha256": "96be339f4a19cfee60b9cc8a909be4de9efde93116a3fe324b6483b32e82c890"
+    },
+    "terminal/e2e/proof/w2a-workspaces/1440-zh-unavailable.png": {
+      "artifact": "generated-crops/1440-zh-unavailable.png",
+      "priorSha256": "6cd734bcd93499d44e5aa790ae28b148f46818f1772e3eb057e7faa1b0ff5d3c",
+      "sha256": "d43faf163f50abb04704fbedc438bab77fca1b25e8b44221b38ab069952e12c4"
+    },
+    "terminal/e2e/proof/w2a-workspaces/390-en-stale.png": {
+      "artifact": "generated-crops/390-en-stale.png",
+      "priorSha256": "ef517603fbf6d7b06c600a9ab80e344bd9388fcccbdacdd2c25e8f0415cb7307",
+      "sha256": "9e10a8a0eb698ccfba85547620731e722b1f7bf07829caeb9f8e9ad0ec7dd431"
+    },
+    "terminal/e2e/proof/w2a-workspaces/820-en-team-grouped.png": {
+      "artifact": "generated-crops/820-en-team-grouped.png",
+      "priorSha256": null,
+      "sha256": "21d5fb8c20cae6ae8f59535b9b0e92a9417eccf3d1b558037785659ed51389fb"
+    },
+    "terminal/e2e/proof/w2a-workspaces/820-zh-stale.png": {
+      "artifact": "generated-crops/820-zh-stale.png",
+      "priorSha256": "06255ff08ada338c7041aed8ad1abe0f24f9dbb20633407ca9475a23d130183b",
+      "sha256": "bf0f1dc2b6921ac89c334283bc2292c8895709cf86b912609c8d224260f12bca"
+    }
+  },
+  "investorPreview": 0,
+  "lifecycleSha256": "f58ab46e5ee770ac3c681f9595ababef4e5cd1af31e317a4c96be4eaa3858577",
+  "logSha256": "9040ae8e54292a9f6ea3b5c4e9717cf03ead4df67ebd5ed3e90db77a7065ff6c",
+  "ownedServerStopped": true,
+  "port": 47407,
+  "reportSha256": "ddbaecf048bcd7538b733433e3f601d1bffa04bbc32be54c69ccdc0acabc4c4b",
+  "schema": "terminal_pr1407_style_browser_stage.v1",
+  "seconds": 175.1,
+  "sharedShell": 0,
+  "sourceEntries": 1981,
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourceStable": true,
+  "stage": "workspace-states",
+  "startedAt": "2026-11-10T04:44:12.931018+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 162390.158,
+    "expected": 9,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-10T04:44:13.408Z",
+    "unexpected": 0
+  }
+}

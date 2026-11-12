@@ -1,0 +1,390 @@
+{
+  "families": {
+    "eod": {
+      "inputCount": 32,
+      "inputs": [
+        {
+          "capturedSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+          "currentSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+          "matches": true,
+          "path": "terminal/app/globals.css"
+        },
+        {
+          "capturedSha256": "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420",
+          "currentSha256": "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420",
+          "matches": true,
+          "path": "terminal/components/eodcontext/DarkPoolMini.tsx"
+        },
+        {
+          "capturedSha256": "7be644f8b402b36a0e6bf066a3f0c8bf7e8b4ffc743b6393ac3edf4f94003060",
+          "currentSha256": "7be644f8b402b36a0e6bf066a3f0c8bf7e8b4ffc743b6393ac3edf4f94003060",
+          "matches": true,
+          "path": "terminal/components/eodcontext/EodContextBelt.tsx"
+        },
+        {
+          "capturedSha256": "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4",
+          "currentSha256": "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4",
+          "matches": true,
+          "path": "terminal/components/eodcontext/StructureStrip.tsx"
+        },
+        {
+          "capturedSha256": "314f8302ba75e220ab0ea920a38aa04ddd456f3285fde060f0b71f7694a62c38",
+          "currentSha256": "314f8302ba75e220ab0ea920a38aa04ddd456f3285fde060f0b71f7694a62c38",
+          "matches": true,
+          "path": "terminal/components/eodcontext/eodStrings.ts"
+        },
+        {
+          "capturedSha256": "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0",
+          "currentSha256": "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0",
+          "matches": true,
+          "path": "terminal/components/flowdesk/FlowDeskView.tsx"
+        },
+        {
+          "capturedSha256": "5dab3ea3ebef1bc310cc652ffa5d3fc133161bb13485cb78dde5fe82c9732b65",
+          "currentSha256": "5dab3ea3ebef1bc310cc652ffa5d3fc133161bb13485cb78dde5fe82c9732b65",
+          "matches": true,
+          "path": "terminal/components/flowdesk/FlowFreshnessReceipt.tsx"
+        },
+        {
+          "capturedSha256": "6dbf18a47196cb7090f16f33c6a821767eeb025cef722bbd1704d7c1f425c498",
+          "currentSha256": "6dbf18a47196cb7090f16f33c6a821767eeb025cef722bbd1704d7c1f425c498",
+          "matches": true,
+          "path": "terminal/components/flowdesk/InspectorPane.tsx"
+        },
+        {
+          "capturedSha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+          "currentSha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+          "matches": true,
+          "path": "terminal/components/gexdesk/ExposureWorkspace.module.css"
+        },
+        {
+          "capturedSha256": "b745596b285fecd9022e8201d1c8a5bb223216b2dc75c6fc3677950b7fa0efb0",
+          "currentSha256": "b745596b285fecd9022e8201d1c8a5bb223216b2dc75c6fc3677950b7fa0efb0",
+          "matches": true,
+          "path": "terminal/components/gexdesk/GexDeskView.tsx"
+        },
+        {
+          "capturedSha256": "b7444c35a505ef4ddb9b6ca9a75ac0cb64ba6e11fbb3aaf7f5d79f1aba05502d",
+          "currentSha256": "b7444c35a505ef4ddb9b6ca9a75ac0cb64ba6e11fbb3aaf7f5d79f1aba05502d",
+          "matches": true,
+          "path": "terminal/components/gexdesk/GexSummaryBar.tsx"
+        },
+        {
+          "capturedSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+          "currentSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+          "matches": true,
+          "path": "terminal/components/heatmap/HeatmapView.tsx"
+        },
+        {
+          "capturedSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+          "currentSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+          "matches": true,
+          "path": "terminal/components/options-companion/GexMarketMemory.tsx"
+        },
+        {
+          "capturedSha256": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+          "currentSha256": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+          "matches": true,
+          "path": "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx"
+        },
+        {
+          "capturedSha256": "78cdd7a01ca86251ea80bb0be138917936086262316b4910016971c2b8090d3d",
+          "currentSha256": "78cdd7a01ca86251ea80bb0be138917936086262316b4910016971c2b8090d3d",
+          "matches": true,
+          "path": "terminal/components/researchlab/OptionsResearchLab.tsx"
+        },
+        {
+          "capturedSha256": "b96e50590ae97ecec74090a46707aade804c6977899c29f9aa5ef0a87dea8a6b",
+          "currentSha256": "b96e50590ae97ecec74090a46707aade804c6977899c29f9aa5ef0a87dea8a6b",
+          "matches": true,
+          "path": "terminal/components/researchlab/ResearchQuestionAction.tsx"
+        },
+        {
+          "capturedSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+          "currentSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+          "matches": true,
+          "path": "terminal/components/researchlab/ResearchReportedGammaPanel.tsx"
+        },
+        {
+          "capturedSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+          "currentSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+          "matches": true,
+          "path": "terminal/components/researchlab/researchReportedGamma.ts"
+        },
+        {
+          "capturedSha256": "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
+          "currentSha256": "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
+          "matches": true,
+          "path": "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+        },
+        {
+          "capturedSha256": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+          "currentSha256": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+          "matches": true,
+          "path": "terminal/lib/accountIdentity.ts"
+        },
+        {
+          "capturedSha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+          "currentSha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+          "matches": true,
+          "path": "terminal/lib/dataCache.ts"
+        },
+        {
+          "capturedSha256": "51ca8811e0b1d239dfc4ba8e177baf7336cab81311566d52dca0f8b78290c61b",
+          "currentSha256": "51ca8811e0b1d239dfc4ba8e177baf7336cab81311566d52dca0f8b78290c61b",
+          "matches": true,
+          "path": "terminal/lib/dte.ts"
+        },
+        {
+          "capturedSha256": "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7",
+          "currentSha256": "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7",
+          "matches": true,
+          "path": "terminal/lib/eodContext.ts"
+        },
+        {
+          "capturedSha256": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+          "currentSha256": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+          "matches": true,
+          "path": "terminal/lib/flowdeskStrings.ts"
+        },
+        {
+          "capturedSha256": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+          "currentSha256": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+          "matches": true,
+          "path": "terminal/lib/heatmapStrings.ts"
+        },
+        {
+          "capturedSha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+          "currentSha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+          "matches": true,
+          "path": "terminal/lib/idbJsonStore.ts"
+        },
+        {
+          "capturedSha256": "2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce",
+          "currentSha256": "2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce",
+          "matches": true,
+          "path": "terminal/lib/investigationEvidenceOptions.ts"
+        },
+        {
+          "capturedSha256": "0a5d1f9e37a121c1db4e960fd8897c3d0d741c407ebeaba84a134448c3504c76",
+          "currentSha256": "0a5d1f9e37a121c1db4e960fd8897c3d0d741c407ebeaba84a134448c3504c76",
+          "matches": true,
+          "path": "terminal/lib/investigationEvidenceOptionsSelection.ts"
+        },
+        {
+          "capturedSha256": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+          "currentSha256": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+          "matches": true,
+          "path": "terminal/lib/investigationOptionsReference.ts"
+        },
+        {
+          "capturedSha256": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+          "currentSha256": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+          "matches": true,
+          "path": "terminal/lib/mastermindBrain.ts"
+        },
+        {
+          "capturedSha256": "1c8d763f3a1481b703178a7db1c5903c11bf4871f5d441899a3ae0a6b97b32ec",
+          "currentSha256": "1c8d763f3a1481b703178a7db1c5903c11bf4871f5d441899a3ae0a6b97b32ec",
+          "matches": true,
+          "path": "terminal/lib/matrixAcquisition.ts"
+        },
+        {
+          "capturedSha256": "8623e1984fa0f2a5597de5f3c9adbb73d7a1957c40060a33378feda91a669434",
+          "currentSha256": "8623e1984fa0f2a5597de5f3c9adbb73d7a1957c40060a33378feda91a669434",
+          "matches": true,
+          "path": "terminal/lib/optionsQuestionContext.ts"
+        }
+      ],
+      "sourceRecord": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture-sources-before.json",
+      "sourceRecordSha256": "1b9a01978e2180a6cd2d27a20c7d934a99c46c580d13131000dcae26f7e2f8e2"
+    },
+    "gex": {
+      "inputCount": 29,
+      "inputs": [
+        {
+          "capturedSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+          "currentSha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+          "matches": true,
+          "path": "terminal/app/globals.css"
+        },
+        {
+          "capturedSha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+          "currentSha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+          "matches": true,
+          "path": "terminal/components/gexdesk/ExposureWorkspace.module.css"
+        },
+        {
+          "capturedSha256": "b745596b285fecd9022e8201d1c8a5bb223216b2dc75c6fc3677950b7fa0efb0",
+          "currentSha256": "b745596b285fecd9022e8201d1c8a5bb223216b2dc75c6fc3677950b7fa0efb0",
+          "matches": true,
+          "path": "terminal/components/gexdesk/GexDeskView.tsx"
+        },
+        {
+          "capturedSha256": "b7444c35a505ef4ddb9b6ca9a75ac0cb64ba6e11fbb3aaf7f5d79f1aba05502d",
+          "currentSha256": "b7444c35a505ef4ddb9b6ca9a75ac0cb64ba6e11fbb3aaf7f5d79f1aba05502d",
+          "matches": true,
+          "path": "terminal/components/gexdesk/GexSummaryBar.tsx"
+        },
+        {
+          "capturedSha256": "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a",
+          "currentSha256": "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a",
+          "matches": true,
+          "path": "terminal/components/gexdesk/HeatSeekerCard.tsx"
+        },
+        {
+          "capturedSha256": "67258667b95d40d9d5c97902248381ef8f9b4f286b1666d15c1f22b981ba2740",
+          "currentSha256": "67258667b95d40d9d5c97902248381ef8f9b4f286b1666d15c1f22b981ba2740",
+          "matches": true,
+          "path": "terminal/components/gexdesk/MarketStateCard.tsx"
+        },
+        {
+          "capturedSha256": "274359d0eadce65d0e679a8637523303350ce95df9561a2ab6f5529d9707dd96",
+          "currentSha256": "274359d0eadce65d0e679a8637523303350ce95df9561a2ab6f5529d9707dd96",
+          "matches": true,
+          "path": "terminal/components/gexdesk/StrikeLadder.tsx"
+        },
+        {
+          "capturedSha256": "93d68d7f32322ccabe374bc5cccbbb9367d3481e7ae75a5a35be2ea4673eb6e4",
+          "currentSha256": "93d68d7f32322ccabe374bc5cccbbb9367d3481e7ae75a5a35be2ea4673eb6e4",
+          "matches": true,
+          "path": "terminal/components/gexdesk/gexStrings.ts"
+        },
+        {
+          "capturedSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+          "currentSha256": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+          "matches": true,
+          "path": "terminal/components/heatmap/HeatmapView.tsx"
+        },
+        {
+          "capturedSha256": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+          "currentSha256": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+          "matches": true,
+          "path": "terminal/components/levels/LevelsView.tsx"
+        },
+        {
+          "capturedSha256": "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9",
+          "currentSha256": "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9",
+          "matches": true,
+          "path": "terminal/components/levels/levelsLabels.ts"
+        },
+        {
+          "capturedSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+          "currentSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+          "matches": true,
+          "path": "terminal/components/options-companion/GexMarketMemory.tsx"
+        },
+        {
+          "capturedSha256": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+          "currentSha256": "34cfaa0c9ae7c6546c4d573cb97788733b2668cfd511d2babab52b4fb6395062",
+          "matches": true,
+          "path": "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx"
+        },
+        {
+          "capturedSha256": "78cdd7a01ca86251ea80bb0be138917936086262316b4910016971c2b8090d3d",
+          "currentSha256": "78cdd7a01ca86251ea80bb0be138917936086262316b4910016971c2b8090d3d",
+          "matches": true,
+          "path": "terminal/components/researchlab/OptionsResearchLab.tsx"
+        },
+        {
+          "capturedSha256": "b96e50590ae97ecec74090a46707aade804c6977899c29f9aa5ef0a87dea8a6b",
+          "currentSha256": "b96e50590ae97ecec74090a46707aade804c6977899c29f9aa5ef0a87dea8a6b",
+          "matches": true,
+          "path": "terminal/components/researchlab/ResearchQuestionAction.tsx"
+        },
+        {
+          "capturedSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+          "currentSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+          "matches": true,
+          "path": "terminal/components/researchlab/ResearchReportedGammaPanel.tsx"
+        },
+        {
+          "capturedSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+          "currentSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+          "matches": true,
+          "path": "terminal/components/researchlab/researchReportedGamma.ts"
+        },
+        {
+          "capturedSha256": "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d",
+          "currentSha256": "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d",
+          "matches": true,
+          "path": "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+        },
+        {
+          "capturedSha256": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+          "currentSha256": "84240a1d43343ae57288ca2d72ed8b9d8128e561448a6b0daae51f3441fede1c",
+          "matches": true,
+          "path": "terminal/lib/accountIdentity.ts"
+        },
+        {
+          "capturedSha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+          "currentSha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+          "matches": true,
+          "path": "terminal/lib/dataCache.ts"
+        },
+        {
+          "capturedSha256": "51ca8811e0b1d239dfc4ba8e177baf7336cab81311566d52dca0f8b78290c61b",
+          "currentSha256": "51ca8811e0b1d239dfc4ba8e177baf7336cab81311566d52dca0f8b78290c61b",
+          "matches": true,
+          "path": "terminal/lib/dte.ts"
+        },
+        {
+          "capturedSha256": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+          "currentSha256": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+          "matches": true,
+          "path": "terminal/lib/heatmapStrings.ts"
+        },
+        {
+          "capturedSha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+          "currentSha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+          "matches": true,
+          "path": "terminal/lib/idbJsonStore.ts"
+        },
+        {
+          "capturedSha256": "2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce",
+          "currentSha256": "2cf30690827c3df45b92afe3265460beb87ad21d04ffec01208c8ca8a48f5bce",
+          "matches": true,
+          "path": "terminal/lib/investigationEvidenceOptions.ts"
+        },
+        {
+          "capturedSha256": "0a5d1f9e37a121c1db4e960fd8897c3d0d741c407ebeaba84a134448c3504c76",
+          "currentSha256": "0a5d1f9e37a121c1db4e960fd8897c3d0d741c407ebeaba84a134448c3504c76",
+          "matches": true,
+          "path": "terminal/lib/investigationEvidenceOptionsSelection.ts"
+        },
+        {
+          "capturedSha256": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+          "currentSha256": "9debfdb1465fd7817373b00b4b7eed1ea7059f92d830b2d3ec24b53a6fed25ba",
+          "matches": true,
+          "path": "terminal/lib/investigationOptionsReference.ts"
+        },
+        {
+          "capturedSha256": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+          "currentSha256": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f",
+          "matches": true,
+          "path": "terminal/lib/mastermindBrain.ts"
+        },
+        {
+          "capturedSha256": "1c8d763f3a1481b703178a7db1c5903c11bf4871f5d441899a3ae0a6b97b32ec",
+          "currentSha256": "1c8d763f3a1481b703178a7db1c5903c11bf4871f5d441899a3ae0a6b97b32ec",
+          "matches": true,
+          "path": "terminal/lib/matrixAcquisition.ts"
+        },
+        {
+          "capturedSha256": "8623e1984fa0f2a5597de5f3c9adbb73d7a1957c40060a33378feda91a669434",
+          "currentSha256": "8623e1984fa0f2a5597de5f3c9adbb73d7a1957c40060a33378feda91a669434",
+          "matches": true,
+          "path": "terminal/lib/optionsQuestionContext.ts"
+        }
+      ],
+      "sourceRecord": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110/capture-sources-before.json",
+      "sourceRecordSha256": "43a0c508a0e031cb9aaab4462beec40c6276e0c4a7009bb5aa30a98a7b0aba12"
+    }
+  },
+  "nativeCapturesReplayed": false,
+  "protectedMaster": "f4574a7cf6a13a58215a81e4fbbfbb2667aa3185",
+  "schema": "terminal.pr1427.native-applicability.v1",
+  "sourceHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "sourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "state": "NATIVE_PACKETS_CURRENT_SOURCE_QUALIFIED"
+}

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "startedAt": "2026-11-11T07:37:51.442938+00:00",
+  "seconds": 38.387,
+  "exitCode": 0,
+  "actualNodeVersion": "v26.5.0",
+  "pathAlias": "node@22 resolves to actual v26.5.0; no Node22 version claim"
+}

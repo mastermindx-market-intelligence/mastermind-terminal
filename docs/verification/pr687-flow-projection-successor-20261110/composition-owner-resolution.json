@@ -1,0 +1,9 @@
+{
+  "state": "CURRENT_FEED_OWNERS_AND_ORIGINAL_PROJECTION_COMPOSED",
+  "resolvedConflictBlocks": 2,
+  "count": "Protected held/loading/unavailable/absent branch retained; loaded count follows projectedEvents.",
+  "coverage": "All-loaded coverage retained before projection strip.",
+  "existingBoardsTest": "Protected bytes retained; original unused import removed without changing assertions.",
+  "feedSha256": "a1ac83419d2c36b79e65a3ce43a79d6db58ae4ccb8819abd8111f2008c28f0b8",
+  "repairStatus": "Projection validation/membership and expansion defects remain to be demonstrated and repaired."
+}

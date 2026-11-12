@@ -1,0 +1,12 @@
+{
+  "completed": "2026-11-11T19:22:08.956348+00:00",
+  "rc": 0,
+  "source_unchanged": true,
+  "log_sha256": "caaf8cb453691d40c902cfa5c0d8b94ed10e26dd8fc0b8aedb8db4272a136547",
+  "authored_source_diff_check": {
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "inherited_whitespace_note": "Original whole-merge findings are confined to immutable protected verification logs/patches; preserved byte-for-byte."
+}

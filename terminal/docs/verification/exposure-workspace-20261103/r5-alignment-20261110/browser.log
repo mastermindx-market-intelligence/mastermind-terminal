@@ -1,0 +1,2693 @@
+[warmup] /terminal?symbol=NVDA → 200 in 125ms
+[warmup] /options → 200 in 2287ms
+[warmup] /portfolio → 200 in 893ms
+[warmup] /alerts → 200 in 722ms
+[warmup] /analysis → 200 in 1482ms
+[warmup] /discover → 200 in 2162ms
+[warmup] /admin → 200 in 410ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 324ms
+[warmup] /login → 200 in 130ms
+[warmup] /reset-password → 200 in 419ms
+[warmup] /api/me → 200 in 532ms
+[warmup] /api/watchlist → 200 in 181ms
+[warmup] /api/layouts → 200 in 232ms
+[warmup] /api/watchlist/annotations → 409 in 166ms
+[warmup] 14 routes compiled in 10s
+[fixture-ready] prophet_idx fixture 200 in 602ms
+
+Running 144 tests using 1 worker
+
+  ✓    1 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (3.7s)
+  ✓    2 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (3.1s)
+  ✓    3 [desktop] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (3.0s)
+  ✓    4 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (3.0s)
+  ✓    5 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (2.9s)
+  ✓    6 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (3.0s)
+  ✓    7 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (3.0s)
+  ✓    8 [desktop] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (4.0s)
+  ✓    9 [desktop] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (2.8s)
+  ✓   10 [desktop] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (2.9s)
+  ✓   11 [desktop] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (2.4s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   12 [desktop] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (22.2s)
+  ✓   13 [desktop] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (20.5s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   14 [desktop] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (38.4s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   15 [desktop] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (30.3s)
+  ✓   16 [desktop] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (12.0s)
+  ✓   17 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (3.7s)
+  ✓   18 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (3.7s)
+  ✓   19 [desktop] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (3.8s)
+  ✓   20 [desktop] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (4.7s)
+  ✓   21 [desktop] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (16.2s)
+  ✓   22 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (16.0s)
+  ✓   23 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (16.4s)
+  ✓   24 [desktop] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (14.4s)
+  ✓   25 [desktop] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (21.0s)
+  ✓   26 [desktop] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (3.5s)
+  ✓   27 [desktop] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (4.0s)
+  ✓   28 [desktop] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (9.1s)
+  ✓   29 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (4.0s)
+  ✓   30 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (3.6s)
+  ✓   31 [desktop] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (3.7s)
+  ✓   32 [desktop] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (4.7s)
+  ✓   33 [desktop] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (12.9s)
+  ✓   34 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (12.4s)
+  ✓   35 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (13.2s)
+  ✓   36 [desktop] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (11.8s)
+  ✓   37 [desktop] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (17.6s)
+  ✓   38 [desktop] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (3.5s)
+  ✓   39 [desktop] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (4.0s)
+  ✓   40 [desktop] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (9.2s)
+  ✓   41 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.0s)
+  ✓   42 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.1s)
+  ✓   43 [desktop] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (2.7s)
+  ✓   44 [desktop] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.1s)
+  ✓   45 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (5.9s)
+  ✓   46 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (5.4s)
+  ✓   47 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (6.1s)
+  ✓   48 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (5.7s)
+  ✓   49 [tablet] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (3.2s)
+  ✓   50 [tablet] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (3.1s)
+  ✓   51 [tablet] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (2.8s)
+  ✓   52 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (2.9s)
+  ✓   53 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (3.0s)
+  ✓   54 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (2.9s)
+  ✓   55 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (2.7s)
+  ✓   56 [tablet] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (3.9s)
+  ✓   57 [tablet] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (2.6s)
+  ✓   58 [tablet] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (2.8s)
+  ✓   59 [tablet] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (2.2s)
+  ✓   60 [tablet] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (25.3s)
+  ✓   61 [tablet] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (23.0s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   62 [tablet] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (39.6s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   63 [tablet] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (31.0s)
+  ✓   64 [tablet] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (11.7s)
+  ✓   65 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (3.9s)
+  ✓   66 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (3.9s)
+  ✓   67 [tablet] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (3.8s)
+  ✓   68 [tablet] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (4.3s)
+  ✓   69 [tablet] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (15.5s)
+  ✓   70 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (15.5s)
+  ✓   71 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (15.6s)
+  ✓   72 [tablet] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (14.4s)
+  ✓   73 [tablet] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (16.7s)
+  ✓   74 [tablet] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (3.4s)
+  ✓   75 [tablet] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (4.0s)
+  ✓   76 [tablet] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (8.5s)
+  ✓   77 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (3.9s)
+  ✓   78 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (3.7s)
+  ✓   79 [tablet] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (4.1s)
+  ✓   80 [tablet] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (4.7s)
+  ✓   81 [tablet] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (13.5s)
+  ✓   82 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (13.1s)
+  ✓   83 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (12.7s)
+  ✓   84 [tablet] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (11.1s)
+  ✓   85 [tablet] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (18.2s)
+  ✓   86 [tablet] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (3.5s)
+  ✓   87 [tablet] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (4.2s)
+  ✓   88 [tablet] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (8.4s)
+  ✓   89 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.3s)
+  ✓   90 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.0s)
+  ✓   91 [tablet] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (2.7s)
+  ✓   92 [tablet] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.1s)
+  ✓   93 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (5.5s)
+  ✓   94 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (5.4s)
+  ✓   95 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (5.9s)
+  ✓   96 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (5.4s)
+  ✓   97 [mobile] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (3.3s)
+  ✓   98 [mobile] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (3.0s)
+  ✓   99 [mobile] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (2.9s)
+  ✓  100 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (2.8s)
+  ✓  101 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (2.9s)
+  ✓  102 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (2.7s)
+  ✓  103 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (2.7s)
+  ✓  104 [mobile] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (3.2s)
+  ✓  105 [mobile] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (2.4s)
+  ✓  106 [mobile] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (2.7s)
+  ✓  107 [mobile] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (2.4s)
+  ✓  108 [mobile] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (30.5s)
+  ✓  109 [mobile] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (26.3s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  110 [mobile] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (42.6s)
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async (app/api/billing/gateway.ts:86:22)
+[WebServer]     at async handleProphetObservationRequest (lib/prophetObservationsServer.ts:64:18)
+[WebServer]   84 |     // a second read of mutable cookie storage happens to return. No success
+[WebServer]   85 |     // from a cookie-only session; no second authentication authority.
+[WebServer] > 86 |     const userRead = await supabase.auth.getUser(token);
+[WebServer]      |                      ^
+[WebServer]   87 |     if (userRead.error) {
+[WebServer]   88 |       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
+[WebServer]   89 |     } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async sessionIdentity (app/api/brain/[...path]/route.ts:161:7)
+[WebServer]     at async authHeaders (app/api/brain/[...path]/route.ts:174:20)
+[WebServer]     at async POST (app/api/brain/[...path]/route.ts:264:16)
+[WebServer]   159 |   const {
+[WebServer]   160 |     data: { user },
+[WebServer] > 161 |   } = await supabase.auth.getUser();
+[WebServer]       |       ^
+[WebServer]   162 |   if (!session || !user) return null;
+[WebServer]   163 |   return { token: session.access_token, principal: user.id };
+[WebServer]   164 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async POST (app/api/collect/route.ts:57:32)
+[WebServer]   55 |   try {
+[WebServer]   56 |     const supabase = await createClient();
+[WebServer] > 57 |     const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                                ^
+[WebServer]   58 |     user_id = user?.id ?? null;
+[WebServer]   59 |   } catch {}
+[WebServer]   60 | {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] TypeError: fetch failed
+[WebServer]     at async resolveDb (app/api/teams/route.ts:26:30)
+[WebServer]     at async GET (app/api/teams/route.ts:48:19)
+[WebServer]   24 | async function resolveDb(): Promise<{ db: TenancyDb; userId: string } | null> {
+[WebServer]   25 |   const supabase = await createClient();
+[WebServer] > 26 |   const { data: { user } } = await supabase.auth.getUser();
+[WebServer]      |                              ^
+[WebServer]   27 |   if (!user) return null;
+[WebServer]   28 |   return { db: supabase as unknown as TenancyDb, userId: user.id };
+[WebServer]   29 | } {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at ignore-listed frames {
+[WebServer]     errno: -111,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  111 [mobile] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (29.6s)
+  ✓  112 [mobile] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (11.5s)
+  ✓  113 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (3.7s)
+  ✓  114 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (3.5s)
+  ✓  115 [mobile] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (3.5s)
+  ✓  116 [mobile] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (4.3s)
+  ✓  117 [mobile] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (17.2s)
+  ✓  118 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (16.7s)
+  ✓  119 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (16.2s)
+  ✓  120 [mobile] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (15.1s)
+  ✓  121 [mobile] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (22.5s)
+  ✓  122 [mobile] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (3.6s)
+  ✓  123 [mobile] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (3.9s)
+  ✓  124 [mobile] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (7.6s)
+  ✓  125 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (3.4s)
+  ✓  126 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (3.3s)
+  ✓  127 [mobile] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (3.4s)
+  ✓  128 [mobile] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (3.9s)
+  ✓  129 [mobile] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (14.7s)
+  ✓  130 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (14.3s)
+  ✓  131 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (12.2s)
+  ✓  132 [mobile] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (12.2s)
+  ✓  133 [mobile] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (13.1s)
+  ✓  134 [mobile] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (3.4s)
+  ✓  135 [mobile] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (3.7s)
+  ✓  136 [mobile] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (7.5s)
+  ✓  137 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (2.9s)
+  ✓  138 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (2.9s)
+  ✓  139 [mobile] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (2.5s)
+  ✓  140 [mobile] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (2.8s)
+  ✓  141 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (4.8s)
+  ✓  142 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (4.7s)
+  ✓  143 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (4.4s)
+  ✓  144 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (4.5s)
+
+  144 passed (21.0m)

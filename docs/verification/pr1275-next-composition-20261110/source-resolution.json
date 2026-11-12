@@ -1,0 +1,27 @@
+{
+  "state": "COMPOSED_AND_FULL_TREE_VERIFIED",
+  "head": "6ddc6b49695ef98e6a10bcd6bf41af39f36b8b34",
+  "protected": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "common": "533778d2928cfc64d79faa52ddd9bb7b760debb7",
+  "unequalOverlaps": [
+    "terminal/lib/__tests__/productionTypeProject.test.ts",
+    "terminal/next.config.ts"
+  ],
+  "tree": "38a4df7b21280409adeebe8eabe715965fd23d1c",
+  "postimages": {
+    "terminal/next.config.ts": {
+      "blob": "71069181428ef3af6ac567a15878703ab0398069",
+      "sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+    },
+    "terminal/lib/__tests__/productionTypeProject.test.ts": {
+      "blob": "eb6e2c7e5ffff90c631e5d5a740073a2d2cbaa68",
+      "sha256": "ddc3baa3d191d310a79eb62bb8ec468b50ba5008f21d65db18071dd1d378a901"
+    }
+  },
+  "protectedPackageBlobs": {
+    "terminal/package.json": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+    "terminal/package-lock.json": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b"
+  },
+  "candidateDeltaFromProtected": 178,
+  "nonOwnedPostimagesPreserved": true
+}

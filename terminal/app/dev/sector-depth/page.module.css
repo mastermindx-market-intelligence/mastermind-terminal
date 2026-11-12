@@ -1,0 +1,98 @@
+/* DEV HARNESS chrome only — the depth components carry their own modules. */
+
+.page {
+  min-height: 100vh;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 18px 80px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.2px;
+}
+
+.barNote {
+  flex-basis: 100%;
+  margin: 0 0 10px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.ctls {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+.h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.synBadge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-ctl);
+  color: var(--text-2);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.navlogBox {
+  margin-top: 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel);
+}
+
+.navlog {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+  font-family: var(--font-num);
+  font-size: 11.5px;
+}
+
+.navlog li {
+  margin: 2px 0;
+}

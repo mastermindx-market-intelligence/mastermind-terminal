@@ -1,0 +1,32 @@
+{
+  "runs": [
+    {
+      "phase": "postimage",
+      "theme": "dark",
+      "shellVariant": "default-shell",
+      "startedAt": "2026-11-11T07:56:20.449437+00:00",
+      "port": 55181,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/issue1201-inspector-empty-capture.spec.ts",
+        "--project=desktop",
+        "--workers=1",
+        "--retries=0",
+        "--max-failures=1",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts"
+      ],
+      "cssSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+      "captureSourceSha256": "e0d3bc5f97bdea97ca02c623501e9a5170815b9ad10b642c96526183249be308",
+      "exitCode": 1,
+      "seconds": 84.787,
+      "completedAt": "2026-11-11T07:57:45.238936+00:00",
+      "sourceStable": true,
+      "portClosedAfterOwnerReturn": true
+    }
+  ],
+  "ownedTemporarySpecRemoved": true,
+  "cssSha256": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06"
+}

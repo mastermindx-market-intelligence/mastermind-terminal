@@ -27,10 +27,12 @@ Output shape:
   }
 
 The write is ATOMIC (tmp file + os.replace in the same directory). Two reasons,
-both real: a reader must never see a half-written index, and the deploy stages
-public/data as a HARDLINK farm (`cp -al` in ops/terminal-build.sh) — an in-place
-truncating write from the staged build would have written through the shared
-inode into the LIVE coverage.json. os.replace leaves the other link untouched.
+both real: a reader must never see a half-written index, and the BETA deploy
+stages public/data as a HARDLINK farm (`cp -al` in ops/terminal-build.sh) — an
+in-place truncating write from a hardlinked stage would write through the shared
+inode into the other tree's coverage.json. os.replace leaves the other link
+untouched. (Production stages only the git-tracked fixtures since #1442; keep the
+atomic write regardless.)
 
 Usage:
   python scripts/build_data_coverage.py [--data-dir terminal/public/data]

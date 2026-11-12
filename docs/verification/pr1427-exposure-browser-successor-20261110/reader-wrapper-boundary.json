@@ -1,0 +1,13 @@
+{
+  "boundary": "Incorrect initial absence assertion after the completed browser stages generated next-env.d.ts",
+  "continuation": "Only unexecuted checks; preserve and restore actual present generated-file preimage",
+  "eslintStarted": false,
+  "focusedExitCode": 0,
+  "focusedPassed": 137,
+  "focusedReplayed": false,
+  "outerExitObserved": 1,
+  "preimageSha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+  "typegenStarted": false,
+  "typescriptStarted": false,
+  "wrapperPid": 11999
+}

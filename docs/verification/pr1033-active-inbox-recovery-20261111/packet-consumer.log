@@ -1,0 +1,28 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1033/terminal
+
+ ❯ lib/__tests__/f11_7RecurringBriefsEvidence.test.ts (6 tests | 1 failed) 12ms
+   × B-F11-7 current inbox proof and preserved historical subscription packet > requires an independently qualified current eight-view inbox packet 4ms
+     → ENOENT: no such file or directory, lstat '/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/docs/pr-crops/b-f11-7-active-inbox'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/f11_7RecurringBriefsEvidence.test.ts > B-F11-7 current inbox proof and preserved historical subscription packet > requires an independently qualified current eight-view inbox packet
+Error: ENOENT: no such file or directory, lstat '/workspace/scratch/c334c7e44c00/terminal-pr1033/terminal/docs/pr-crops/b-f11-7-active-inbox'
+ ❯ Module.readInboxPacket e2e/tools/briefs_inbox_capture_contract.cjs:122:16
+    120| 
+    121| function readInboxPacket(repo, directory = join(repo, PACKET_PATH)) {
+    122|   assert.equal(realpathSync(directory), resolve(directory), "Symlink p…
+       |                ^
+    123|   assert.deepEqual(readdirSync(directory).sort(), [MANIFEST, ...SHOTS.…
+    124|     "Only the complete current inbox packet may be selected");
+ ❯ lib/__tests__/f11_7RecurringBriefsEvidence.test.ts:87:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  02:06:30
+   Duration  347ms (transform 49ms, setup 0ms, collect 61ms, tests 12ms, environment 0ms, prepare 56ms)
+

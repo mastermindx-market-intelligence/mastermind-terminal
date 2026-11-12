@@ -1,0 +1,219 @@
+{
+  "sourceHead": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "protectedBase": "ea8630f1b059dea7c57eae1a844db9f8b9201b97",
+  "state": "SOURCE_QUALIFIED_WITH_UNCHANGED_CJS_BASELINE",
+  "steps": [
+    {
+      "name": "eslint-commonjs-protected",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "--stdin",
+        "--stdin-filename",
+        "e2e/tools/qualify_sector_discovery.cjs",
+        "--format",
+        "json"
+      ],
+      "pid": 32442,
+      "exit": 1,
+      "seconds": 5.317,
+      "stdoutSha256": "ddf3fac030644c6dc6f4b322575762ffb13342e08e672b718f9a6c98bf76c2d6",
+      "remainingGroup": false
+    },
+    {
+      "name": "eslint-commonjs-candidate",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "--stdin",
+        "--stdin-filename",
+        "e2e/tools/qualify_sector_discovery.cjs",
+        "--format",
+        "json"
+      ],
+      "pid": 32810,
+      "exit": 1,
+      "seconds": 1.849,
+      "stdoutSha256": "eb72e30161b5c779c264c225ee54025611c41b9f97482509307a1a7ccf34875f",
+      "remainingGroup": false
+    },
+    {
+      "name": "affected-typescript-eslint",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/sector-intelligence/BreadthRotationGroups.tsx",
+        "components/sector-intelligence/BreadthSectorDetail.tsx",
+        "components/sector-intelligence/SectorBreadthBoard.tsx",
+        "components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "e2e/sector-breadth.spec.ts",
+        "lib/__tests__/sectorBreadth.test.ts",
+        "lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "lib/__tests__/sectorDepthReturn.test.ts",
+        "lib/__tests__/sectorNativeJobs.test.ts",
+        "lib/__tests__/sectorPortfolioContext.test.ts",
+        "lib/sectorBreadth.ts",
+        "lib/sectorIntelligence.ts"
+      ],
+      "pid": 32982,
+      "exit": 0,
+      "seconds": 6.327,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "remainingGroup": false
+    },
+    {
+      "name": "commonjs-syntax",
+      "argv": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "--check",
+        "e2e/tools/qualify_sector_discovery.cjs"
+      ],
+      "pid": 33338,
+      "exit": 0,
+      "seconds": 0.065,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "remainingGroup": false
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "-C",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1232-breadth-current-web4",
+        "diff",
+        "--check",
+        "ea8630f1b059dea7c57eae1a844db9f8b9201b97",
+        "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd"
+      ],
+      "pid": 33345,
+      "exit": 0,
+      "seconds": 0.094,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "remainingGroup": false
+    }
+  ],
+  "protectedDiagnostics": [
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 12,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 30
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 39,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 59
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 70,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 92
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 103,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 132
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 6,
+      "column": 38,
+      "nodeType": "CallExpression",
+      "endLine": 6,
+      "endColumn": 65
+    }
+  ],
+  "candidateDiagnostics": [
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 12,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 30
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 39,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 59
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 70,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 92
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 5,
+      "column": 103,
+      "nodeType": "CallExpression",
+      "endLine": 5,
+      "endColumn": 132
+    },
+    {
+      "ruleId": "@typescript-eslint/no-require-imports",
+      "severity": 2,
+      "message": "A `require()` style import is forbidden.",
+      "line": 6,
+      "column": 38,
+      "nodeType": "CallExpression",
+      "endLine": 6,
+      "endColumn": 65
+    }
+  ],
+  "diagnosticsIdentical": true,
+  "affectedTsFiles": [
+    "components/sector-intelligence/BreadthRotationGroups.tsx",
+    "components/sector-intelligence/BreadthSectorDetail.tsx",
+    "components/sector-intelligence/SectorBreadthBoard.tsx",
+    "components/sector-intelligence/SectorCentralDiscovery.tsx",
+    "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+    "e2e/sector-breadth.spec.ts",
+    "lib/__tests__/sectorBreadth.test.ts",
+    "lib/__tests__/sectorCentralDiscovery.test.tsx",
+    "lib/__tests__/sectorDepthReturn.test.ts",
+    "lib/__tests__/sectorNativeJobs.test.ts",
+    "lib/__tests__/sectorPortfolioContext.test.ts",
+    "lib/sectorBreadth.ts",
+    "lib/sectorIntelligence.ts"
+  ],
+  "headAfter": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "trackedStatusAfter": "",
+  "finishedAt": "2026-11-10T16:01:42.018810+00:00"
+}

@@ -1,0 +1,2599 @@
+{
+  "schema": "terminal.axis_tick_precision_readonly_advisory.v1",
+  "read_at": "2026-11-11T23:12:26.303329+00:00",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-axis-tick-precision-20261111-c3",
+  "owned_base": "bec1e44956e628b271c49a0494c975efb89e9ae7",
+  "law_pin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "target_paths": [
+    "terminal/components/charts/svgChart.ts",
+    "terminal/lib/__tests__/svgChart.test.ts",
+    "terminal/app/dev/sector-cycles/page.tsx",
+    "terminal/e2e/sector-cycle-lens.spec.ts",
+    "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx"
+  ],
+  "open_pr_count": 73,
+  "metadata_pageInfo": {
+    "hasNextPage": false,
+    "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0wOS0xN1QyMDo0OTozNlrPAAAAAQ_3nOc="
+  },
+  "full_changed_path_inventories": [
+    {
+      "number": 1472,
+      "head": "145c7e6f49b876d724f53c72b1f929ddf27623ad",
+      "file_count": 2,
+      "paths": [
+        "terminal/app/api/sector-intelligence/route.ts",
+        "terminal/lib/__tests__/sectorOwnerGateway.test.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 707,
+      "head": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+      "file_count": 7,
+      "paths": [
+        "docs/TERMINAL_WARM_REFRESH_2026-09-21.md",
+        "terminal/docs/pr-crops/warm-symbol-picker-20260921/EVIDENCE.json",
+        "terminal/docs/pr-crops/warm-symbol-picker-20260921/cached-while-refreshing.png",
+        "terminal/docs/pr-crops/warm-symbol-picker-20260921/corrected-after-refresh.png",
+        "terminal/e2e/warm-symbol-picker.spec.ts",
+        "terminal/lib/__tests__/dataCacheWarmRefresh.test.ts",
+        "terminal/lib/dataCache.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 678,
+      "head": "492a73948a947c3cccc2981e90a5cc227d96385f",
+      "file_count": 17,
+      "paths": [
+        "ops/terminal_source_audit.beta.json",
+        "ops/terminal_source_audit.production.json",
+        "terminal/components/gexdesk/ExpiryBars.tsx",
+        "terminal/components/gexdesk/ExposureExpiryDrawer.tsx",
+        "terminal/components/gexdesk/gexStrings.ts",
+        "terminal/e2e/exposure-expiry-greeks.spec.ts",
+        "terminal/e2e/gex-expiry-greeks.spec.ts",
+        "terminal/e2e/responsive.spec.ts",
+        "terminal/lib/__tests__/expirySourceToView.test.tsx",
+        "terminal/lib/__tests__/expiryTermStructure.test.ts",
+        "terminal/lib/__tests__/fixtures/expiry-support-legacy-produced.json",
+        "terminal/lib/__tests__/fixtures/expiry-support-produced.json",
+        "terminal/lib/__tests__/gexExpiryPopulation.test.tsx",
+        "terminal/lib/__tests__/marketStructure.test.ts",
+        "terminal/lib/expiryTermStructure.ts",
+        "terminal/lib/marketStructure.ts",
+        "terminal/public/data/gex_fixture.json"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 496,
+      "head": "aab0f93e009b6bc1b28faf848fc4d0edd4f9c239",
+      "file_count": 84,
+      "paths": [
+        "docs/verification/pr496-compare-bound-20261111/README.md",
+        "docs/verification/pr496-compare-bound-20261111/evidence-inventory.json",
+        "docs/verification/pr496-compare-bound-20261111/raw-evidence.tar.gz",
+        "docs/verification/pr496-compare-bound-20261111/receipt.json",
+        "docs/verification/pr496-drawing-bound-20261111/README.md",
+        "docs/verification/pr496-drawing-bound-20261111/blob-size-reconciliation.json",
+        "docs/verification/pr496-drawing-bound-20261111/evidence-inventory.json",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-001",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-002",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-003",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-004",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-005",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-006",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-007",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-008",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-009",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-010",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-011",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-012",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-013",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-014",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-015",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-016",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-017",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-018",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-019",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-020",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-021",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-022",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-023",
+        "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.chunk-024",
+        "docs/verification/pr496-drawing-bound-20261111/receipt.json",
+        "docs/verification/pr496-receipt-classification-20261111/README.md",
+        "docs/verification/pr496-receipt-classification-20261111/acquisition-readback.json",
+        "docs/verification/pr496-receipt-classification-20261111/checks.json",
+        "docs/verification/pr496-receipt-classification-20261111/dependencies-intent.json",
+        "docs/verification/pr496-receipt-classification-20261111/dependencies-result.json",
+        "docs/verification/pr496-receipt-classification-20261111/dependencies.log",
+        "docs/verification/pr496-receipt-classification-20261111/focused.json",
+        "docs/verification/pr496-receipt-classification-20261111/focused.log",
+        "docs/verification/pr496-receipt-classification-20261111/lint.json",
+        "docs/verification/pr496-receipt-classification-20261111/lint.log",
+        "docs/verification/pr496-receipt-classification-20261111/preservation.json",
+        "docs/verification/pr496-receipt-classification-20261111/qualification.json",
+        "docs/verification/pr496-receipt-classification-20261111/regression-before.json",
+        "docs/verification/pr496-receipt-classification-20261111/regression-before.log",
+        "docs/verification/pr496-receipt-classification-20261111/regression-intent.json",
+        "docs/verification/pr496-receipt-classification-20261111/repair-intent.json",
+        "docs/verification/pr496-receipt-classification-20261111/repair-result.json",
+        "docs/verification/pr496-receipt-classification-20261111/source.diff",
+        "docs/verification/pr496-receipt-classification-20261111/typecheck.json",
+        "docs/verification/pr496-receipt-classification-20261111/typecheck.log",
+        "docs/verification/pr496-toolbar-integration-20261111/README.md",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-execution.json",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-recovery-command.json",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-recovery-environment.json",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-recovery-execution.json",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-recovery-report.json.gz",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-recovery.log",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-report.json.gz",
+        "docs/verification/pr496-toolbar-integration-20261111/browser-source-before.json.gz",
+        "docs/verification/pr496-toolbar-integration-20261111/browser.log.gz",
+        "docs/verification/pr496-toolbar-integration-20261111/captures/1440-en-ready.png",
+        "docs/verification/pr496-toolbar-integration-20261111/captures/390-en-hub-entry.png",
+        "docs/verification/pr496-toolbar-integration-20261111/captures/390-en-ready.png",
+        "docs/verification/pr496-toolbar-integration-20261111/captures/390-zh-row-open.png",
+        "docs/verification/pr496-toolbar-integration-20261111/captures/820-en-row-open.png",
+        "docs/verification/pr496-toolbar-integration-20261111/case-outcomes.json",
+        "docs/verification/pr496-toolbar-integration-20261111/checks-initial.json",
+        "docs/verification/pr496-toolbar-integration-20261111/chromium-install-owned-cache.log",
+        "docs/verification/pr496-toolbar-integration-20261111/diff-against-protected.log",
+        "docs/verification/pr496-toolbar-integration-20261111/receipt.json",
+        "docs/verification/pr496-toolbar-integration-20261111/scoped-lint.log",
+        "docs/verification/pr496-toolbar-integration-20261111/toolbar-units.log",
+        "docs/verification/pr496-toolbar-integration-20261111/typecheck.log",
+        "docs/verification/pr496-toolbar-integration-20261111/typegen.log",
+        "terminal/e2e/compare-anchor.spec.ts",
+        "terminal/e2e/drawing-professional-editing.spec.ts",
+        "terminal/e2e/layout-integrity.spec.ts",
+        "terminal/e2e/terminalToolbar.ts",
+        "terminal/e2e/w2a-workspaces.spec.ts",
+        "terminal/lib/__tests__/terminalToolbarDeadline.test.ts",
+        "terminal/lib/__tests__/useAdaptiveToolbar.test.ts",
+        "terminal/lib/useAdaptiveToolbar.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 814,
+      "head": "32182ed3e5da89020a52c52fef920cab1178d96c",
+      "file_count": 27,
+      "paths": [
+        "docs/RETURNS_CALENDAR_DATA_CONTRACT_2026-10-04.md",
+        "docs/RETURNS_STUDY_V2_SPEC_2026-10-05.md",
+        "terminal/app/api/intraday/route.ts",
+        "terminal/components/ReturnsCalendar.tsx",
+        "terminal/components/ReturnsPreview.tsx",
+        "terminal/components/ReturnsStudy.module.css",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/components/fin/MegaPane.tsx",
+        "terminal/components/fin/ResearchWorkspaceNav.tsx",
+        "terminal/components/fin/finPageFamilies.ts",
+        "terminal/components/fin/finPages.ts",
+        "terminal/components/returnsStyles.ts",
+        "terminal/e2e/shell-mode.spec.ts",
+        "terminal/lib/__tests__/returnsCalendar.test.ts",
+        "terminal/lib/__tests__/returnsCalendarDateStudy.test.ts",
+        "terminal/lib/__tests__/returnsCalendarDaytime.test.ts",
+        "terminal/lib/__tests__/returnsCalendarFinite.test.ts",
+        "terminal/lib/__tests__/returnsCalendarRoute.test.ts",
+        "terminal/lib/__tests__/returnsCalendarStore.test.ts",
+        "terminal/lib/__tests__/returnsCalendarStudy.test.ts",
+        "terminal/lib/__tests__/returnsCalendarView.test.tsx",
+        "terminal/lib/commandPaletteLex.ts",
+        "terminal/lib/intradayDaytimeCache.ts",
+        "terminal/lib/intradaySources.ts",
+        "terminal/lib/intradayStore.ts",
+        "terminal/lib/returnsCalendar.ts",
+        "terminal/lib/returnsCalendarStudy.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1290,
+      "head": "4a28a2db2a6e5b1bb7e7d754b2c416ccc07b3f11",
+      "file_count": 25,
+      "paths": [
+        "scripts/migration_merge_group.py",
+        "supabase/migrations/0049_brief_sharing_requests.sql",
+        "supabase/migrations/README.md",
+        "supabase/migrations/RESERVATIONS.json",
+        "terminal/app/(shell)/briefs/[deliveryId]/sharing/page.tsx",
+        "terminal/app/api/briefs/deliveries/[deliveryId]/sharing-request/route.ts",
+        "terminal/app/api/briefs/deliveries/[deliveryId]/sharing/route.ts",
+        "terminal/app/api/briefs/sharing-requests/native/route.ts",
+        "terminal/app/api/briefs/sharing-requests/route.ts",
+        "terminal/components/briefs/BriefSharingRequestIssuer.tsx",
+        "terminal/components/briefs/BriefSharingRequestReview.tsx",
+        "terminal/components/briefs/BriefSharingReview.tsx",
+        "terminal/lib/__tests__/BriefSharingRequestReview.test.tsx",
+        "terminal/lib/__tests__/BriefSharingReview.test.tsx",
+        "terminal/lib/__tests__/briefDeliverySharingPage.test.tsx",
+        "terminal/lib/__tests__/briefSharingRequestsNative.test.ts",
+        "terminal/lib/__tests__/briefSharingRequestsRoute.test.ts",
+        "terminal/lib/__tests__/fixtures/brief-sharing-request-feed.json",
+        "terminal/lib/__tests__/fixtures/brief-sharing-request-record.json",
+        "terminal/lib/briefDeliverySharingServer.ts",
+        "terminal/lib/briefSharingRequests.ts",
+        "terminal/lib/briefSharingRequestsServer.ts",
+        "tests/test_brief_sharing_request_acl_postgres.py",
+        "tests/test_brief_sharing_requests_postgres.py",
+        "tests/test_migration_merge_group_diagnostics.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 668,
+      "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+      "file_count": 54,
+      "paths": [
+        "docs/verification/pr668-date-recovery-20261111/README.md",
+        "docs/verification/pr668-date-recovery-20261111/after.log.gz",
+        "docs/verification/pr668-date-recovery-20261111/authored-fixtures.json",
+        "docs/verification/pr668-date-recovery-20261111/before.log.gz",
+        "docs/verification/pr668-date-recovery-20261111/checks.json",
+        "docs/verification/pr668-date-recovery-20261111/qualify-authored-fixtures.cjs",
+        "docs/verification/pr668-date-recovery-20261111/reference.json",
+        "docs/verification/pr668-date-recovery-20261111/retained-normalizer-reference.md.gz",
+        "docs/verification/pr668-date-recovery-20261111/scoped-eslint.log",
+        "docs/verification/pr668-date-recovery-20261111/source-preservation.json",
+        "docs/verification/pr668-date-recovery-20261111/strict-typecheck.log",
+        "docs/verification/pr668-row-count-recovery-20261111/README.md",
+        "docs/verification/pr668-row-count-recovery-20261111/authored-fixture-qualification.json",
+        "docs/verification/pr668-row-count-recovery-20261111/checks.json",
+        "docs/verification/pr668-row-count-recovery-20261111/original-source-regressions.log",
+        "docs/verification/pr668-row-count-recovery-20261111/repaired-source-tests.log",
+        "docs/verification/pr668-row-count-recovery-20261111/scoped-eslint.log",
+        "docs/verification/pr668-row-count-recovery-20261111/scoped-typecheck.log",
+        "docs/verification/pr668-row-count-recovery-20261111/verify-authored-fixtures.cjs",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/README.md",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/after.log.gz",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/authored-fixtures.json",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/before.log.gz",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/checks.json",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/producer-contract-binding.json",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/qualify-authored-fixtures.cjs",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/scoped-eslint.log",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/source-preservation.json",
+        "docs/verification/pr668-source-benchmark-recovery-20261111/strict-typecheck.log",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/README.md",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/after.log.gz",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/authored-fixtures.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/before.log.gz",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/checks.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/extract-numeric-controls.cjs",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/numeric-controls.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/producer-contract-binding.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/qualify-authored-fixtures.cjs",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/qualify-numeric-controls.py",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/scoped-eslint.log",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/source-preservation.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/strict-typecheck-config.json",
+        "docs/verification/pr668-statistic-invariants-recovery-20261111/strict-typecheck.log",
+        "terminal/app/api/flow/stream/route.ts",
+        "terminal/components/prophet/ProphetPerfPanel.module.css",
+        "terminal/components/prophet/ProphetPerfPanel.tsx",
+        "terminal/components/prophet/ProphetView.tsx",
+        "terminal/components/prophet/prophetPerfStrings.ts",
+        "terminal/components/prophet/prophetPerfTypes.ts",
+        "terminal/e2e/prophet-perf-responsive.spec.ts",
+        "terminal/lib/__tests__/flowStreamRouteBoundary.test.ts",
+        "terminal/lib/__tests__/prophetPerf.test.ts",
+        "terminal/lib/flowSource.ts",
+        "terminal/test-fixtures/prophet_perf_fixture.json"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1464,
+      "head": "c9de6f9449be895f21bfc8056e4505adc2cb10c1",
+      "file_count": 8,
+      "paths": [
+        ".github/workflows/ci.yml",
+        "terminal/lib/__tests__/plainLanguageGuardCi.test.ts",
+        "terminal/scripts/ci/evidence-lock-suites.sh",
+        "tests/test_ci_browser_setup.py",
+        "tests/test_ci_e2e_scope.py",
+        "tests/test_ci_e2e_shards.py",
+        "tests/test_ci_supersession.py",
+        "tests/test_merge_group_fast_lane_contract.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 662,
+      "head": "e1b8cddd73fe4cb337761e66bdcc02c542e88115",
+      "file_count": 21,
+      "paths": [
+        ".github/workflows/ci.yml",
+        "terminal/app/api/briefs/deliveries/route.ts",
+        "terminal/app/api/briefs/subscriptions/route.ts",
+        "terminal/components/alerts/AlertsCockpit.tsx",
+        "terminal/components/alerts/AnswerLine.tsx",
+        "terminal/components/alerts/alerts.module.css",
+        "terminal/components/briefs/BriefSubscribeControls.tsx",
+        "terminal/components/briefs/BriefsInbox.tsx",
+        "terminal/components/briefs/briefs.module.css",
+        "terminal/e2e/briefs-inbox.spec.ts",
+        "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+        "terminal/lib/__tests__/BriefsInbox.deliveryOwnership.test.tsx",
+        "terminal/lib/__tests__/BriefsInbox.test.tsx",
+        "terminal/lib/__tests__/briefsBody.test.ts",
+        "terminal/lib/__tests__/briefsCopy.test.ts",
+        "terminal/lib/__tests__/briefsRoute.test.ts",
+        "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts",
+        "terminal/lib/briefTargetNamesServer.ts",
+        "terminal/lib/briefs.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 575,
+      "head": "fc0ae8f691247ffd7e6298be6c852f2840d7d006",
+      "file_count": 13,
+      "paths": [
+        "docs/trading-lab/PT1_NOTEBOOK.md",
+        "terminal/app/api/theses/lab/route.ts",
+        "terminal/app/trading-lab/page.tsx",
+        "terminal/lib/__tests__/thesisLabHarness.test.ts",
+        "terminal/lib/__tests__/thesisLabRoute.test.ts",
+        "terminal/lib/thesisLabTransport.d.mts",
+        "terminal/lib/thesisLabTransport.mjs",
+        "terminal/public/trading-lab/client.mjs",
+        "terminal/public/trading-lab/index.html",
+        "terminal/public/trading-lab/lab.css",
+        "terminal/public/trading-lab/ui.mjs",
+        "terminal/scripts/test_thesis_lab.mjs",
+        "terminal/scripts/test_thesis_lab_ui.mjs"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 733,
+      "head": "a69018769b1534ffdfe5a93917f71c86a630879c",
+      "file_count": 23,
+      "paths": [
+        "docs/verification/pr733-marker-readiness-recovery-20261111/README.md",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/accepted-marker-helpers.ts.txt",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/checks.json",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/eslint.log",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/helper-regression.cjs",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/helper-regression.log",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/initial-typecheck-setup.log",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/isolated-typecheck.log",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/original-marker-helpers.ts.txt",
+        "docs/verification/pr733-marker-readiness-recovery-20261111/source-composition.json",
+        "terminal/components/ChartPane.tsx",
+        "terminal/components/PrecisionEntryStrip.module.css",
+        "terminal/components/PrecisionEntryStrip.tsx",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/components/mobile/AnalysisHubSheet.tsx",
+        "terminal/e2e/marker-tooltip.spec.ts",
+        "terminal/e2e/mobile-chart-hub-upgrade.spec.ts",
+        "terminal/e2e/terminal-chrome-responsive.spec.ts",
+        "terminal/lib/__tests__/precisionEntry.test.ts",
+        "terminal/lib/__tests__/precisionEntryStrip.test.tsx",
+        "terminal/lib/__tests__/precisionIntel.test.ts",
+        "terminal/lib/precisionEntry.ts",
+        "terminal/lib/precisionIntel.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1032,
+      "head": "f40fc47538dd91403d3a1aa7c32f44a6f9ef8e00",
+      "file_count": 88,
+      "paths": [
+        ".github/workflows/ci.yml",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/components/fin/MegaPane.tsx",
+        "terminal/components/workspaces/AnalysisWorkspace.tsx",
+        "terminal/docs/pr-crops/company-intelligence-private-host/COMPOSITION_2026-11-05.md",
+        "terminal/docs/pr-crops/company-intelligence-private-host/README.md",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-1440-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-390-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/analysis-820-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-1440-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-390-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/chart-820-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-1440-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-390-zh-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-en-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-en-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-en-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-en-light.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-zh-dark.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-zh-dark.png",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-zh-light.json",
+        "terminal/docs/pr-crops/company-intelligence-private-host/dossier-820-zh-light.png",
+        "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs",
+        "terminal/e2e/company-intelligence-private-host.spec.ts",
+        "terminal/e2e/fixtures/companyIntelligencePrivateHost.ts",
+        "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+        "terminal/e2e/tools/capture_pl6_batch1.cjs",
+        "terminal/e2e/tools/visualEvidenceSources.json",
+        "terminal/lib/__tests__/CompanyIntelligencePrivateHost.test.tsx",
+        "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1064,
+      "head": "11443c2c030b61f1a378fe510a4149154e9d48f6",
+      "file_count": 54,
+      "paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/e2e-prodbuild-canary.yml",
+        "docs/recovery/terminal-pr1064-20261111.md",
+        "terminal/components/ChartPanel.tsx",
+        "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs",
+        "terminal/e2e/helpers/nativeChartGeometry.ts",
+        "terminal/e2e/helpers/timedPointerDrag.ts",
+        "terminal/e2e/large-trades.spec.ts",
+        "terminal/e2e/marker-tooltip.spec.ts",
+        "terminal/e2e/mobile-chart-chrome.spec.ts",
+        "terminal/e2e/suite-lazy-compute.spec.ts",
+        "terminal/e2e/tools/capture_pl6_batch1.cjs",
+        "terminal/lib/__tests__/chartEngineBrowserStorage.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasC02.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasKinetic.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasModelF11.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasPatch3Model.test.ts",
+        "terminal/lib/__tests__/chartEngineCanvasPatch3Paint.test.ts",
+        "terminal/lib/__tests__/chartEngineCrosshairLabels.test.ts",
+        "terminal/lib/__tests__/chartEngineDrawingBridge.test.ts",
+        "terminal/lib/__tests__/chartEngineDrawings.test.ts",
+        "terminal/lib/__tests__/chartEngineGapDrawing.test.ts",
+        "terminal/lib/__tests__/chartEngineGapDrawingAnchor.test.ts",
+        "terminal/lib/__tests__/chartEngineGapPanes.test.ts",
+        "terminal/lib/__tests__/chartEngineInput.test.ts",
+        "terminal/lib/__tests__/chartEngineInputHitRegions.test.ts",
+        "terminal/lib/__tests__/chartEngineMountSelect.test.ts",
+        "terminal/lib/__tests__/chartEnginePerfTimeScale.test.ts",
+        "terminal/lib/__tests__/chartEngineSelect.test.ts",
+        "terminal/lib/__tests__/chartEngineSeparators.test.ts",
+        "terminal/lib/__tests__/chartEngineTelemetry.test.ts",
+        "terminal/lib/__tests__/chartEngineTimeAxisOwner.test.ts",
+        "terminal/lib/__tests__/chartEngineUnionTimeScale.test.ts",
+        "terminal/lib/__tests__/chartEngineWitness4Followups.test.ts",
+        "terminal/lib/__tests__/mobileSheetKeepMounted.test.tsx",
+        "terminal/lib/__tests__/paneSyncFocus.test.ts",
+        "terminal/lib/__tests__/sessionShadingEngine.test.ts",
+        "terminal/lib/chart-engine/api.ts",
+        "terminal/lib/chart-engine/browserStorage.ts",
+        "terminal/lib/chart-engine/canvas/dom.ts",
+        "terminal/lib/chart-engine/canvas/frame.ts",
+        "terminal/lib/chart-engine/canvas/index.ts",
+        "terminal/lib/chart-engine/canvas/input.ts",
+        "terminal/lib/chart-engine/canvas/inputBridge.ts",
+        "terminal/lib/chart-engine/canvas/model.ts",
+        "terminal/lib/chart-engine/canvas/modelTime.ts",
+        "terminal/lib/chart-engine/drawingBridge.ts",
+        "terminal/lib/chart-engine/select.ts",
+        "terminal/lib/chart-engine/telemetry.ts",
+        "terminal/lib/paneSync.ts",
+        "terminal/lib/sessionShading.ts",
+        "terminal/lib/sessionShadingEngine.ts",
+        "tests/test_ci_browser_setup.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1458,
+      "head": "d3e7ba61f7021d65571b9bcde279409168f4173d",
+      "file_count": 6,
+      "paths": [
+        "docs/verification/issue609-copy-20261111/README.md",
+        "docs/verification/issue609-copy-20261111/checks.json",
+        "docs/verification/issue609-copy-20261111/disclosure-units.log",
+        "docs/verification/issue609-copy-20261111/receipt.json",
+        "terminal/components/heatmap/HeatmapView.tsx",
+        "terminal/lib/__tests__/heatmapCapDisclosure.test.tsx"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1468,
+      "head": "86c87774ae5a236afdcab0d2dfd5b88c3e219beb",
+      "file_count": 10,
+      "paths": [
+        ".github/workflows/ci.yml",
+        "terminal/e2e/tools/capture_ci_evidence.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+        "terminal/e2e/tools/capture_visual_evidence.cjs",
+        "terminal/e2e/tools/capture_visual_evidence.test.cjs",
+        "terminal/e2e/tools/visualEvidence.test.cjs",
+        "tests/test_ci_browser_setup.py",
+        "tests/test_ci_e2e_scope.py",
+        "tests/test_ci_supersession.py",
+        "tests/test_merge_group_fast_lane_contract.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1249,
+      "head": "abe704f1f1519cc904881fba401a720467049bde",
+      "file_count": 18,
+      "paths": [
+        "terminal/components/sector-intelligence/SectorBasketCompare.tsx",
+        "terminal/components/sector-intelligence/SectorCycleLens.module.css",
+        "terminal/components/sector-intelligence/SectorCycleLens.tsx",
+        "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/README.md",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-320-en-cycle.png",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-390-zh-cycle.png",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-390-zh-themes.png",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/receipt.json",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/terminal-1440-en-cycle.png",
+        "terminal/docs/pr-crops/sector-native-cycles-20261103/terminal-1440-en-themes.png",
+        "terminal/e2e/sector-cycle-lens.spec.ts",
+        "terminal/e2e/tools/qualify_sector_cycle_owner.cjs",
+        "terminal/lib/__tests__/sectorCycleBaskets.test.ts",
+        "terminal/lib/__tests__/sectorCycleSnapshot.test.ts",
+        "terminal/lib/sectorCycleBaskets.ts",
+        "terminal/lib/sectorCycleSnapshot.ts",
+        "terminal/lib/sectorIntelligenceLex.ts"
+      ],
+      "overlap": [
+        "terminal/e2e/sector-cycle-lens.spec.ts"
+      ]
+    },
+    {
+      "number": 1041,
+      "head": "cb16934abfa160b31ea120c32b8ba22dec06273c",
+      "file_count": 17,
+      "paths": [
+        "docs/ANALYSIS_NAV_COMPOSITION_2026-11-05.md",
+        "docs/ANALYSIS_NAV_R4_PAPER_MIGRATION_2026-10-17.md",
+        "terminal/app/analysis-nav-vnext.css",
+        "terminal/components/fin/MegaPane.tsx",
+        "terminal/components/fin/ResearchWorkspaceNav.tsx",
+        "terminal/components/workspaces/AnalysisWorkspace.tsx",
+        "terminal/e2e/analysis-nav-vnext.spec.ts",
+        "terminal/e2e/command-palette.spec.ts",
+        "terminal/e2e/market-ontology-context.spec.ts",
+        "terminal/e2e/megapane-touch-back.spec.ts",
+        "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+        "terminal/e2e/tools/capture_pl6_batch1.cjs",
+        "terminal/e2e/tools/visualEvidenceSources.json",
+        "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+        "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "terminal/lib/__tests__/megaPaneFundamentalLoading.test.tsx",
+        "terminal/lib/__tests__/researchWorkspaceNavFocusOwner.test.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1210,
+      "head": "5b99f88ef9c3c2cc994145a5cf753cc2133da815",
+      "file_count": 10,
+      "paths": [
+        "terminal/components/news/TickerNewsPanel.module.css",
+        "terminal/components/news/TickerNewsPanel.tsx",
+        "terminal/e2e/news-catchup.spec.ts",
+        "terminal/e2e/news-flow-responsive.spec.ts",
+        "terminal/e2e/ticker-news.spec.ts",
+        "terminal/lib/__tests__/newsCatchupPanel.test.tsx",
+        "terminal/lib/__tests__/newsFlowStrip.test.tsx",
+        "terminal/lib/__tests__/tickerNewsA11y.test.tsx",
+        "terminal/lib/__tests__/tickerNewsEditorial.test.tsx",
+        "terminal/lib/__tests__/tickerNewsPanel.test.tsx"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1425,
+      "head": "270227382adeabc638d817ccb31a00051f417d3f",
+      "file_count": 8,
+      "paths": [
+        "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
+        "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql",
+        "supabase/migrations/README.md",
+        "supabase/migrations/RESERVATIONS.json",
+        "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json",
+        "terminal/lib/__tests__/investigationSectorAdmissionMigrationContract.test.ts",
+        "terminal/lib/__tests__/investigationV3MigrationContract.test.ts",
+        "tests/test_investigation_postgres.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1410,
+      "head": "c12b0966cfbf44b9133f25e66cd7c6aed1a97729",
+      "file_count": 5,
+      "paths": [
+        "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
+        "supabase/migrations/README.md",
+        "supabase/migrations/RESERVATIONS.json",
+        "terminal/lib/__tests__/investigationSectorAdmissionMigrationContract.test.ts",
+        "tests/test_investigation_postgres.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 661,
+      "head": "edea69ef044c2581bf38a463d1956cf72295e2ab",
+      "file_count": 5,
+      "paths": [
+        "docs/OPTIONS_WORKBENCH_SCENARIO_OVERLAY_PREP_2026-09-19.md",
+        "terminal/lib/__tests__/scenarioContourPrimitive.test.ts",
+        "terminal/lib/__tests__/surfaceScenarioOverlay.test.ts",
+        "terminal/lib/scenarioContourPrimitive.ts",
+        "terminal/lib/surfaceScenarioOverlay.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1188,
+      "head": "4ca11cfe6e921f8adec2ee31dd950b37838e6d8d",
+      "file_count": 13,
+      "paths": [
+        "docs/verification/pr1188-current-protected-recovery-20261111/README.md",
+        "docs/verification/pr1188-current-protected-recovery-20261111/focused-95.log",
+        "docs/verification/pr1188-current-protected-recovery-20261111/lint.log",
+        "docs/verification/pr1188-current-protected-recovery-20261111/mount-negative.log",
+        "docs/verification/pr1188-current-protected-recovery-20261111/presentation-final.log",
+        "docs/verification/pr1188-current-protected-recovery-20261111/receipt.json",
+        "docs/verification/pr1188-current-protected-recovery-20261111/route-types.log",
+        "docs/verification/pr1188-current-protected-recovery-20261111/typecheck.log",
+        "terminal/components/chrome/shared-shell/SharedShellRuntime.tsx",
+        "terminal/lib/__tests__/sharedShellLazyCatalog.test.tsx",
+        "terminal/lib/__tests__/sharedShellLazyPortal.test.tsx",
+        "terminal/lib/__tests__/sharedShellPublicPresentation.test.tsx",
+        "terminal/lib/__tests__/sharedShellSearchIntent.test.tsx"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 606,
+      "head": "6f6067a450b958fac6fe0d3f58335edc431145ec",
+      "file_count": 24,
+      "paths": [
+        "docs/research/MARKET_SNIPER_CHART_UPGRADE_CONTINUATION_2026-09-17.md",
+        "docs/research/REVERSAL_RECLAIM_WORKSPACE_PROOF_2026-09-17.md",
+        "docs/superpowers/plans/2026-09-17-reversal-reclaim-workspace.md",
+        "terminal/components/ChartWorkflowCard.module.css",
+        "terminal/components/ChartWorkflowCard.tsx",
+        "terminal/components/IndicatorsModal.tsx",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-chart-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-chart-zh.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-workflow-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/desktop-reclaim-workflow-zh.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/manifest.json",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-chart-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-chart-zh.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-workflow-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/mobile-reclaim-workflow-zh.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-chart-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-chart-zh.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-workflow-en.png",
+        "terminal/docs/pr-crops/chart-reclaim-workspace-20260917/tablet-reclaim-workflow-zh.png",
+        "terminal/e2e/chart-workflow-preset.spec.ts",
+        "terminal/lib/__tests__/chartWorkflowPreset.test.ts",
+        "terminal/lib/__tests__/chartWorkflowUndoFocus.test.tsx",
+        "terminal/lib/suites/presets.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1230,
+      "head": "c11ddd0982d281c0e99bf0597367ce1f104335af",
+      "file_count": 2,
+      "paths": [
+        "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md",
+        "terminal/docs/DISLOCATIONS_WORKSPACE_DESIGN_V2.html"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 779,
+      "head": "02dfdc8cdaedb8250a3d67df54158de5300268e4",
+      "file_count": 65,
+      "paths": [
+        "docs/MTF_MOMENTUM_CONFLUENCE_ARCHITECTURE_2026-10-01.md",
+        "docs/MTF_RESEARCH_EVALUATION_2026-10-02.md",
+        "docs/MTF_RESEARCH_PERFORMANCE_2026-10-02.json",
+        "docs/research/MTF_ENTRY_STATE_DEVELOPMENT_2026-10-02.md",
+        "docs/research/mtf-artifact-pilot-2026-10-02/README.md",
+        "docs/research/mtf-artifact-pilot-2026-10-02/calendar-full-request.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/calendar-swing-request.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/data-verification.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/original-runner.py",
+        "docs/research/mtf-artifact-pilot-2026-10-02/panel-source-manifest.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/source-manifest.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/summary.json",
+        "docs/research/mtf-artifact-pilot-2026-10-02/validation.json",
+        "docs/research/mtf-owner-history-2026-10-02/README.md",
+        "docs/research/mtf-owner-history-2026-10-02/REVIEW_ADJUDICATION.md",
+        "ingest/compare_mtf.py",
+        "ingest/research_mtf.py",
+        "signal_layer/mtf_confluence.py",
+        "signal_layer/mtf_evaluation.py",
+        "signal_layer/mtf_experiments.py",
+        "signal_layer/mtf_panel.py",
+        "signal_layer/mtf_robustness.py",
+        "signal_layer/mtf_screener.py",
+        "terminal/components/ChartPanel.tsx",
+        "terminal/components/IndicatorSettings.tsx",
+        "terminal/components/IndicatorsModal.tsx",
+        "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+        "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+        "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+        "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+        "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+        "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+        "terminal/e2e/live-bar-sync.spec.ts",
+        "terminal/e2e/mtf-confluence-pane.spec.ts",
+        "terminal/e2e/mtf-raw-panes.spec.ts",
+        "terminal/lib/__tests__/liveBarProjection.test.ts",
+        "terminal/lib/__tests__/mtfMomentum.test.ts",
+        "terminal/lib/__tests__/mtfMomentumGolden.test.ts",
+        "terminal/lib/__tests__/mtfPaneProjection.test.ts",
+        "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "terminal/lib/indicators.ts",
+        "terminal/lib/liveBarProjection.ts",
+        "terminal/lib/mtfMomentum.ts",
+        "terminal/lib/mtfPaneCopy.ts",
+        "terminal/lib/mtfPaneProjection.ts",
+        "tests/mtf_momentum_golden.json",
+        "tests/test_compare_mtf.py",
+        "tests/test_mtf_calendar.py",
+        "tests/test_mtf_confluence.py",
+        "tests/test_mtf_context_trigger.py",
+        "tests/test_mtf_evaluation.py",
+        "tests/test_mtf_experiments.py",
+        "tests/test_mtf_panel.py",
+        "tests/test_mtf_repository_history.py",
+        "tests/test_mtf_research_cli.py",
+        "tests/test_mtf_review_regressions.py",
+        "tests/test_mtf_robustness.py",
+        "tests/test_mtf_screener.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 895,
+      "head": "a96ef2f8956f3bb15bb532d0e1e130cddb6c34bf",
+      "file_count": 10,
+      "paths": [
+        "ops/terminal_source_audit.production.json",
+        "terminal/components/eodcontext/DarkPoolMini.tsx",
+        "terminal/docs/eod-v2-consumer/COMPOSITION_2026-11-05.md",
+        "terminal/e2e/tools/capture_ci_evidence.cjs",
+        "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+        "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+        "terminal/lib/__tests__/eodContext.test.ts",
+        "terminal/lib/__tests__/eodContextBeltLoadFailureState.test.tsx",
+        "terminal/lib/eodContext.ts",
+        "terminal/public/data/darkpool_fixture.json"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1216,
+      "head": "09f2f30edcedb001a1e5a08a2d4c875ef0316bd5",
+      "file_count": 42,
+      "paths": [
+        "terminal/app/api/portfolio-brief/route.ts",
+        "terminal/components/PortfolioBriefPanel.tsx",
+        "terminal/components/PortfolioView.tsx",
+        "terminal/docs/verification/portfolio-brief-context-20261102/COMPOSITION_2026-11-05.md",
+        "terminal/docs/verification/portfolio-brief-context-20261102/PLAN.md",
+        "terminal/docs/verification/portfolio-brief-context-20261102/README.md",
+        "terminal/docs/verification/portfolio-brief-context-20261102/baseline/baseline-ff7d-context-free-brief-accepted.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/baseline/baseline-ff7d-playwright.txt",
+        "terminal/docs/verification/portfolio-brief-context-20261102/baseline/baseline-ff7d-stale-brief-still-shown.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-en-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-en-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-en-unavailable.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-zh-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-zh-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/desktop-zh-unavailable.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-en-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-en-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-en-unavailable.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-zh-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-zh-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/mobile-zh-unavailable.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-en-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-en-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-en-unavailable.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-zh-bound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-zh-rebound.png",
+        "terminal/docs/verification/portfolio-brief-context-20261102/browser/tablet-zh-unavailable.png",
+        "terminal/e2e/portfolio-brief-context.spec.ts",
+        "terminal/e2e/portfolio-positions.spec.ts",
+        "terminal/lib/__tests__/fixtures/portfolio-brief-context/README.md",
+        "terminal/lib/__tests__/fixtures/portfolio-brief-context/adversarial_rows.json",
+        "terminal/lib/__tests__/fixtures/portfolio-brief-context/projection_cases.json",
+        "terminal/lib/__tests__/fixtures/portfolio-brief-context/witness_book.json",
+        "terminal/lib/__tests__/fixtures/portfolio-brief-context/witness_empty.json",
+        "terminal/lib/__tests__/portfolioBriefContext.test.ts",
+        "terminal/lib/__tests__/portfolioBriefLeadingDecimal.test.ts",
+        "terminal/lib/__tests__/portfolioBriefPanelRetry.test.tsx",
+        "terminal/lib/__tests__/portfolioBriefProxy.test.ts",
+        "terminal/lib/__tests__/portfolioBriefSnapshotLifecycle.test.tsx",
+        "terminal/lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+        "terminal/lib/portfolioBrief.ts",
+        "terminal/lib/portfolioBriefContext.server.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 729,
+      "head": "b9c1c4d01fa518117506f85c392b37bec5c7a225",
+      "file_count": 2,
+      "paths": [
+        "terminal/components/TerminalShell.tsx",
+        "terminal/e2e/terminal-chrome-responsive.spec.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 799,
+      "head": "24df9d8e4d8ab20fd58c2fa9343632d62bc09d8b",
+      "file_count": 10,
+      "paths": [
+        "terminal/components/statistics/OptionsStatisticsView.module.css",
+        "terminal/components/statistics/OptionsStatisticsView.tsx",
+        "terminal/components/workspaces/OptionsWorkspace.tsx",
+        "terminal/e2e/options-deeplink.spec.ts",
+        "terminal/e2e/options-ia-responsive.spec.ts",
+        "terminal/e2e/options-statistics.spec.ts",
+        "terminal/lib/__tests__/optionsStatistics.test.ts",
+        "terminal/lib/__tests__/optionsStatisticsView.test.tsx",
+        "terminal/lib/optionsIa.ts",
+        "terminal/lib/optionsStatistics.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1415,
+      "head": "06dd0af83c7e58a8896b1874cd8e1a7b14e4bd17",
+      "file_count": 2,
+      "paths": [
+        ".github/workflows/vps-main-deploy.yml",
+        "tests/test_vps_main_deploy_workflow.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 781,
+      "head": "fdbdd2c733173dc787994e4f7f23286bf3141cc6",
+      "file_count": 17,
+      "paths": [
+        "terminal/components/OptionsHubView.tsx",
+        "terminal/components/chrome/WorkspaceTabs.tsx",
+        "terminal/components/options/OptionsWorkflowGuide.tsx",
+        "terminal/components/plan/PayoffLab.module.css",
+        "terminal/components/plan/PayoffLab.tsx",
+        "terminal/components/workspaces/OptionsWorkspace.tsx",
+        "terminal/e2e/options-payoff-lab.spec.ts",
+        "terminal/e2e/options-workflow-guide.spec.ts",
+        "terminal/e2e/tools/capture_pl6_batch1.cjs",
+        "terminal/e2e/tools/visualEvidenceSources.json",
+        "terminal/lib/__tests__/optionsIa.test.ts",
+        "terminal/lib/__tests__/optionsPayoff.numeric.test.ts",
+        "terminal/lib/__tests__/optionsPayoff.test.ts",
+        "terminal/lib/__tests__/optionsWorkflowPlan.test.tsx",
+        "terminal/lib/__tests__/payoffLabView.test.tsx",
+        "terminal/lib/optionsIa.ts",
+        "terminal/lib/optionsPayoff.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1223,
+      "head": "e34862900a09bfbcf124397ffe0db02a4f509a49",
+      "file_count": 16,
+      "paths": [
+        ".github/scripts/selfhosted_canary_inputs.sh",
+        ".github/workflows/ci.yml",
+        ".github/workflows/selfhosted-e2e-canary.yml",
+        "docs/CI_SHARD_NATIVE_QUALIFICATION.md",
+        "terminal/e2e/chart-engine-accessibility.spec.ts",
+        "terminal/e2e/mobile-chart-chrome.spec.ts",
+        "terminal/e2e/mobile-chart-touch-upgrade.spec.ts",
+        "terminal/e2e/onboarding-signin-completion.spec.ts",
+        "terminal/e2e/pine-chart-engine.spec.ts",
+        "terminal/e2e/search-accessibility.spec.ts",
+        "terminal/e2e/tools/visualEvidence.node-unit.cjs",
+        "terminal/playwright.config.ts",
+        "tests/test_ci_e2e_shards.py",
+        "tests/test_ci_visual_evidence_contract.py",
+        "tests/test_merge_group_fast_lane_contract.py",
+        "tests/test_selfhosted_canary_workflow.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 896,
+      "head": "1a312d37bd47d9079bd01918979407281ef44d12",
+      "file_count": 92,
+      "paths": [
+        "docs/verification/pr896-collisions-integration-20261109/README.md",
+        "docs/verification/pr896-collisions-integration-20261109/capture-full-r2.py",
+        "docs/verification/pr896-collisions-integration-20261109/capture-full.py",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r1/execution.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r1/source-after.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r1/source-before.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r2/execution.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r2/source-after.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r2/source-before.json",
+        "docs/verification/pr896-collisions-integration-20261109/capture-r2/supervision.json",
+        "docs/verification/pr896-collisions-integration-20261109/checks-r1/execution.json",
+        "docs/verification/pr896-collisions-integration-20261109/checks-r1/lint-scope-classification.json",
+        "docs/verification/pr896-collisions-integration-20261109/checks-r1/producer-baseline-lint.json",
+        "docs/verification/pr896-collisions-integration-20261109/checks-r1/reader.json",
+        "docs/verification/pr896-collisions-integration-20261109/dependencies.json",
+        "docs/verification/pr896-collisions-integration-20261109/diff-check.json",
+        "docs/verification/pr896-collisions-integration-20261109/lifecycle-integration.json",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/EVIDENCE.yml",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-degraded-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-degraded-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-degraded-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-degraded-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-never-ran-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-never-ran-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-never-ran-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/suite-never-ran-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/unresolved-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/unresolved-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/unresolved-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/unresolved-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/watching-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/watching-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/watching-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/pre-lifecycle-packet/watching-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/preparation.json",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/EVIDENCE.yml",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-degraded-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-degraded-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-degraded-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-degraded-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-never-ran-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-never-ran-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-never-ran-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/suite-never-ran-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/unresolved-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/unresolved-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/unresolved-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/unresolved-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/watching-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/watching-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/watching-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-master/watching-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/EVIDENCE.yml",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-degraded-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-degraded-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-degraded-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-degraded-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-never-ran-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-never-ran-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-never-ran-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/suite-never-ran-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/unresolved-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/unresolved-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/unresolved-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/unresolved-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/watching-1440-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/watching-1440.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/watching-390-zh.png",
+        "docs/verification/pr896-collisions-integration-20261109/prior-pr/watching-390.png",
+        "docs/verification/pr896-collisions-integration-20261109/qualification.json",
+        "docs/verification/pr896-collisions-integration-20261109/supervise-full.cjs",
+        "docs/verification/pr896-collisions-integration-20261109/validate-checks.py",
+        "docs/verification/pr896-collisions-integration-20261109/visual-review.json",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390-zh.png",
+        "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png",
+        "terminal/e2e/tools/capture_b_f08_b5_3_collisions.cjs",
+        "terminal/lib/__tests__/b_f08_b5_3CollisionsEvidence.test.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1352,
+      "head": "4894d61af59ad18cc2663f917c93e628f471105b",
+      "file_count": 2,
+      "paths": [
+        "terminal/lib/__tests__/optionsNavigationRecovery.test.ts",
+        "terminal/lib/navigationRecovery.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 639,
+      "head": "5a04c16e0bd432cb669e795c83b9eaaf8d159cae",
+      "file_count": 18,
+      "paths": [
+        "terminal/app/globals.css",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/docs/pr-crops/b-f11-4-research-views/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-f12-8-team-roles/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-f12-9-team-ownership-transfer/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-f12-b5-3-account-completeness/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-f13-5-personal-accuracy/EVIDENCE.yml",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/EVIDENCE.yml",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/desktop-dark-en-drag.png",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/desktop-dark-zh-drag.png",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/desktop-light-en-drag.png",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/mobile-dark-zh-shell.png",
+        "terminal/docs/pr-crops/watchlist-group-drag-20260918/tablet-dark-en-shell.png",
+        "terminal/e2e/tools/capture_watchlist_group_drag.cjs",
+        "terminal/e2e/watchlist-bulk-actions.spec.ts",
+        "terminal/lib/__tests__/watchlistSelection.test.ts",
+        "terminal/lib/i18n.tsx",
+        "terminal/lib/watchlistSections.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 574,
+      "head": "7fa41c7e3c42a28c779b50bd69af0fe43275cecf",
+      "file_count": 7,
+      "paths": [
+        "terminal/app/observatory.css",
+        "terminal/components/prophet/ProphetView.tsx",
+        "terminal/components/prophet/prophetStrings.ts",
+        "terminal/e2e/prophet-intake-receipts.spec.ts",
+        "terminal/lib/__tests__/prophetIntakeReceipts.test.ts",
+        "terminal/lib/__tests__/prophetIntakeReceiptsMounted.test.tsx",
+        "terminal/test-fixtures/prophet_intake_receipts_fixture.json"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1339,
+      "head": "7ded5375caf0aa595ca740bf0df36b175471192e",
+      "file_count": 25,
+      "paths": [
+        "terminal/app/api/sector-intelligence/route.ts",
+        "terminal/components/PortfolioSectorContext.tsx",
+        "terminal/components/PortfolioWorkspace.tsx",
+        "terminal/components/sector-intelligence/SectorGenerationQualification.tsx",
+        "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "terminal/e2e/fixtures/sector-company-v3.ts",
+        "terminal/e2e/options-r1-w1-crops.spec.ts",
+        "terminal/e2e/rotation-relative-trend.spec.ts",
+        "terminal/e2e/rotation-risk-context.spec.ts",
+        "terminal/e2e/sector-feed-refresh.spec.ts",
+        "terminal/e2e/sector-leadership-dossier.spec.ts",
+        "terminal/e2e/sector-native-generation.spec.ts",
+        "terminal/e2e/sector-portfolio-continuity.spec.ts",
+        "terminal/lib/__tests__/fixtures/sectorNativeGeneration.ts",
+        "terminal/lib/__tests__/fixtures/sector_generation.captured.preview.v1.json",
+        "terminal/lib/__tests__/fixtures/sector_generation.captured.preview.v1.provenance.md",
+        "terminal/lib/__tests__/portfolioSectorContext.test.tsx",
+        "terminal/lib/__tests__/portfolioWorkspaceSectorContext.test.tsx",
+        "terminal/lib/__tests__/sectorNativeGeneration.test.ts",
+        "terminal/lib/__tests__/sectorOwnerEnvelope.test.ts",
+        "terminal/lib/__tests__/sectorOwnerGateway.test.ts",
+        "terminal/lib/__tests__/sectorWorkspaceRefresh.test.tsx",
+        "terminal/lib/sectorIntelligence.ts",
+        "terminal/lib/sectorIntelligenceLex.ts",
+        "terminal/lib/sectorNativeGeneration.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 778,
+      "head": "88f2919a5c2222bcf05f452f2549b9af180dcae6",
+      "file_count": 39,
+      "paths": [
+        "docs/SAVED_VIEW_DATABASE_RELEASE.md",
+        "scripts/verify_saved_view_database.py",
+        "supabase/migrations/0035_saved_view_guard.sql",
+        "supabase/migrations/README.md",
+        "supabase/migrations/RESERVATIONS.json",
+        "terminal/app/(shell)/analysis/page.tsx",
+        "terminal/app/api/thesis-saved-views/route.ts",
+        "terminal/components/workspaces/ThesisWorkspace.tsx",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/EVIDENCE.json",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/README.md",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-recovered-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-recovered-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-saved-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-saved-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-unknown-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/desktop-unknown-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-recovered-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-recovered-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-saved-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-saved-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-unknown-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/mobile-unknown-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-recovered-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-recovered-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-saved-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-saved-zh.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-unknown-en.png",
+        "terminal/docs/pr-crops/heatmap-save-integrity-r13/tablet-unknown-zh.png",
+        "terminal/e2e/saved-views-integrity.spec.ts",
+        "terminal/e2e/thesis-workspace.spec.ts",
+        "terminal/lib/__tests__/ThesisWorkspaceLensRail.test.tsx",
+        "terminal/lib/__tests__/savedViewV2.test.ts",
+        "terminal/lib/__tests__/savedViews.test.ts",
+        "terminal/lib/__tests__/thesisSavedViewsRoute.test.ts",
+        "terminal/lib/i18n.tsx",
+        "terminal/lib/savedViewClient.ts",
+        "terminal/lib/savedViewContract.ts",
+        "terminal/lib/savedViews.ts",
+        "terminal/lib/watchlistsFixtureDb.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1276,
+      "head": "d02a49631724a6ef48ce507914396921d218ad03",
+      "file_count": 53,
+      "paths": [
+        "terminal/components/chrome/shared-shell/LegacyPageHost.tsx",
+        "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+        "terminal/components/chrome/shared-shell/ShellSearch.tsx",
+        "terminal/components/chrome/shared-shell/shared-shell.css",
+        "terminal/docs/pr-crops/f01-ci-widget-fixture-20261104/README.md",
+        "terminal/docs/pr-crops/f01-ci-widget-fixture-20261104/RESULTS.json",
+        "terminal/docs/pr-crops/f01-ci-widget-fixture-20261104/TRACE_READBACK.json",
+        "terminal/docs/pr-crops/f01-ci-widget-fixture-20261104/raw-reports.zip",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/BASELINE_DIAGNOSTICS.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/ENVIRONMENT.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/OWNER_1244_COMPOSITION.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/README.md",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/RESULTS.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/SOURCE_CHECKS.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/SOURCE_INPUTS.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/category-focus-320.png",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/raw-evidence-manifest.json",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/raw-evidence.zip",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/short-320-zh-light.png",
+        "terminal/docs/pr-crops/f01-directory-focus-correction-20261104/shortcut-focus-desktop.png",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/BROWSER_CASES.json",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/README.md",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/RESULTS.json",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/SOURCE_INPUTS.json",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/desktop-retained.png",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/mobile-retained.png",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/raw-reports.zip",
+        "terminal/docs/pr-crops/f01-directory-gesture-20261104/tablet-retained.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/BROWSER_CASES.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/ENVIRONMENT.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/OWNER_1244_COMPOSITION.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/PACKAGE_MANIFEST.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/README.md",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/RESULTS.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/SOURCE_CHECKS.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/SOURCE_INPUTS.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/facet-desktop-dark-en.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/facet-mobile-dark-en.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/facet-short-last-destination.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/facet-short-light-zh.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/facet-tablet-dark-en.png",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/raw-reports-manifest.json",
+        "terminal/docs/pr-crops/f01-directory-options-facet-20261104/raw-reports.zip",
+        "terminal/docs/pr-crops/f01-r06-history-20261104/README.md",
+        "terminal/docs/pr-crops/f01-r06-history-20261104/RESULTS.json",
+        "terminal/docs/pr-crops/f01-r06-history-20261104/capture-r06.cjs",
+        "terminal/docs/pr-crops/f01-r06-history-20261104/controlled-child.cjs",
+        "terminal/e2e/shared-shell-directory-hardening.spec.ts",
+        "terminal/e2e/thesis-workspace.spec.ts",
+        "terminal/lib/__tests__/f01OptionsPageAccessStates.test.tsx",
+        "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
+        "terminal/lib/sharedShellCopy.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 640,
+      "head": "df440cac848ffbb973ed6100579f0603ca3c5e19",
+      "file_count": 20,
+      "paths": [
+        "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/composition/composition-verification.json",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/composition/owner-pack.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/composition/typecheck.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/contract-red.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/current-master-owner-pack.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/current-master-typecheck.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/live-provenance-semantic-green.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/live-provenance-semantic-red.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/owner-pack-v2.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/owner-pack.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/pit-green.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/pit-red.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/typecheck-v2.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/typecheck.log",
+        "docs/evidence/options-workbench-r2-scenario-terminal-contract-20260918/verification.json",
+        "terminal/lib/__tests__/scenarioSurfaceContract.test.ts",
+        "terminal/lib/__tests__/surfaceScenarioComposition.test.ts",
+        "terminal/lib/scenarioSurfaceContract.ts",
+        "terminal/lib/surfaceScenarioComposition.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1281,
+      "head": "9c5ee4ef71e5e6ccadcc70a9810c5ba67c70b859",
+      "file_count": 28,
+      "paths": [
+        "terminal/components/workspaces/RSPivotRotationMonitor.tsx",
+        "terminal/components/workspaces/RSPivotWatchPreview.tsx",
+        "terminal/docs/rotation-regime/r2/README.md",
+        "terminal/docs/rotation-regime/r2/desktop-en.png",
+        "terminal/docs/rotation-regime/r2/desktop-zh.png",
+        "terminal/docs/rotation-regime/r2/light/README.md",
+        "terminal/docs/rotation-regime/r2/light/desktop-en-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/desktop-en-preview.png",
+        "terminal/docs/rotation-regime/r2/light/desktop-zh-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/desktop-zh-preview.png",
+        "terminal/docs/rotation-regime/r2/light/manifest.json",
+        "terminal/docs/rotation-regime/r2/light/mobile-en-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/mobile-en-preview.png",
+        "terminal/docs/rotation-regime/r2/light/mobile-zh-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/mobile-zh-preview.png",
+        "terminal/docs/rotation-regime/r2/light/tablet-en-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/tablet-en-preview.png",
+        "terminal/docs/rotation-regime/r2/light/tablet-zh-missing-spy.png",
+        "terminal/docs/rotation-regime/r2/light/tablet-zh-preview.png",
+        "terminal/docs/rotation-regime/r2/mobile-en.png",
+        "terminal/docs/rotation-regime/r2/mobile-zh.png",
+        "terminal/docs/rotation-regime/r2/tablet-en.png",
+        "terminal/docs/rotation-regime/r2/tablet-zh.png",
+        "terminal/e2e/rotation-monitor.spec.ts",
+        "terminal/lib/__tests__/pivotWatchPreview.test.ts",
+        "terminal/lib/__tests__/rotationPivotPreview.test.ts",
+        "terminal/lib/pivotWatchPreview.ts",
+        "terminal/lib/rotationPivotPreview.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 638,
+      "head": "7084d52a632a8362fc0fcfda68251a34ddb90051",
+      "file_count": 9,
+      "paths": [
+        "terminal/components/ChartPanel.tsx",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+        "terminal/e2e/ribbon-heikin-geometry.spec.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 887,
+      "head": "550a4a1add467c341baf0c18e520ff73632c2099",
+      "file_count": 1,
+      "paths": [
+        "terminal/e2e/replay-fallback-horizon.spec.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1251,
+      "head": "4dedfaa92bc3fb9510fdb9734156f4c1592fe1f4",
+      "file_count": 6,
+      "paths": [
+        ".github/workflows/ci.yml",
+        "AGENTS.md",
+        "docs/FAST_DELIVERY_POLICY.md",
+        "scripts/ci_fast_lane.py",
+        "terminal/AGENTS.md",
+        "tests/test_ci_fast_lane.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1239,
+      "head": "09d2decdf0762b1b29d93a4d41468da4320f9da5",
+      "file_count": 7,
+      "paths": [
+        "docs/verification/options-flow-company-search-20261103/desktop-en.png",
+        "docs/verification/options-flow-company-search-20261103/mobile-en.png",
+        "docs/verification/options-flow-company-search-20261103/tablet-zh.png",
+        "terminal/components/OptionsHubView.tsx",
+        "terminal/e2e/options-ticker-root-catalog.spec.ts",
+        "terminal/lib/__tests__/liveFlowRootCatalog.test.ts",
+        "terminal/lib/liveFlowRootCatalog.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 686,
+      "head": "450850ec2933290d6a8e86db35e8c59cfc8843c1",
+      "file_count": 13,
+      "paths": [
+        "docs/superpowers/plans/2026-09-20-intraday-options-root-catalog-consumer.md",
+        "docs/superpowers/specs/2026-09-20-intraday-options-root-catalog-consumer-design.md",
+        "ops/terminal_source_audit.production.json",
+        "terminal/components/OptionsHubView.tsx",
+        "terminal/components/gexdesk/GexDeskView.tsx",
+        "terminal/components/msc/PositioningView.tsx",
+        "terminal/components/structure/StructureView.tsx",
+        "terminal/components/vol/VolView.tsx",
+        "terminal/e2e/options-ticker-root-catalog.spec.ts",
+        "terminal/lib/__tests__/liveFlowRootCatalog.test.ts",
+        "terminal/lib/flowStream.ts",
+        "terminal/lib/liveFlowRootCatalog.ts",
+        "terminal/public/data/flow_fixture.json"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1151,
+      "head": "c0e2d4b3034bf1565001d75d2c69c7ca3e35ba43",
+      "file_count": 9,
+      "paths": [
+        "terminal/app/api/flow/route.ts",
+        "terminal/app/api/flow/stream/route.ts",
+        "terminal/lib/__tests__/fixtures/matrixDisplayASGIWire.json",
+        "terminal/lib/__tests__/flowMatrixExactDeliveryBoundary.test.ts",
+        "terminal/lib/__tests__/matrixDisplayCapture.test.ts",
+        "terminal/lib/__tests__/matrixDisplayTransport.test.ts",
+        "terminal/lib/matrixDisplayCapture.ts",
+        "terminal/lib/matrixDisplayTransport.ts",
+        "terminal/lib/matrixReadBoundary.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 1195,
+      "head": "9a27e9feb1a221c35d2837b9e2030e005a00bb23",
+      "file_count": 87,
+      "paths": [
+        "terminal/components/OptionsHubView.tsx",
+        "terminal/components/options/OptionsTapeSavedViews.tsx",
+        "terminal/components/options/OptionsTapeViewLink.module.css",
+        "terminal/components/options/OptionsTapeViewLink.tsx",
+        "terminal/components/options/optionsTapeViewStrings.ts",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/desktop-group-results-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/desktop-group-results-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/desktop-group-selection-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/desktop-group-selection-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/evidence-lock-recapture.json",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/language-evidence-recapture.json",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/mobile-group-results-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/mobile-group-results-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/mobile-group-selection-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/mobile-group-selection-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/tablet-group-results-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/tablet-group-results-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/tablet-group-selection-en.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/tablet-group-selection-zh.png",
+        "terminal/docs/evidence/options-tape-filter-groups-20261031/verification.json",
+        "terminal/docs/options-tape-filter-groups.md",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-0f8cd82e5d4bc245843916285d6c10fb.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-5fb36fd42dbf29bcb562d53fa45f701b.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-5fb36fd42dbf29bcb562d53fa45f701b.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-86d84cab75217bdefb7397a6e4bb1f13.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-86d84cab75217bdefb7397a6e4bb1f13.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-eb3ce40c99712bf3225af0f136c81df2.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--case-eb3ce40c99712bf3225af0f136c81df2.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--operation.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--report.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-copy-pl6-20261031--start.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-0f8cd82e5d4bc245843916285d6c10fb.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-5fb36fd42dbf29bcb562d53fa45f701b.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-5fb36fd42dbf29bcb562d53fa45f701b.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-86d84cab75217bdefb7397a6e4bb1f13.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-86d84cab75217bdefb7397a6e4bb1f13.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-eb3ce40c99712bf3225af0f136c81df2.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--case-eb3ce40c99712bf3225af0f136c81df2.png",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--operation.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--report.json",
+        "terminal/docs/pr-crops/b-pl-6-batch-1/r4-tape-pl6-20261031--start.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/desktop-context.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/mobile-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-7381784ee89146a99c2d47e0857cd8db.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-7381784ee89146a99c2d47e0857cd8db.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-997b1cb667944d5f31aa982480cd6617.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-997b1cb667944d5f31aa982480cd6617.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-c99d1d4f435e2af686e0b59fcd647ea9.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-c99d1d4f435e2af686e0b59fcd647ea9.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-ee02b323aeba2da6a7cfcfdec67e90b2.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-fa58e0493f7e0c95bf2f5b4b64e83204.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--case-fa58e0493f7e0c95bf2f5b4b64e83204.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--operation.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--raw-report.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--report.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-copy-vi-20261031--start.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-7381784ee89146a99c2d47e0857cd8db.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-7381784ee89146a99c2d47e0857cd8db.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-997b1cb667944d5f31aa982480cd6617.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-997b1cb667944d5f31aa982480cd6617.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-c99d1d4f435e2af686e0b59fcd647ea9.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-c99d1d4f435e2af686e0b59fcd647ea9.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-ee02b323aeba2da6a7cfcfdec67e90b2.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-fa58e0493f7e0c95bf2f5b4b64e83204.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--case-fa58e0493f7e0c95bf2f5b4b64e83204.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--operation.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--raw-report.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--report.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/r4-tape-vi-20261031--start.json",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context-zh.png",
+        "terminal/docs/pr-crops/terminal-visual-intelligence/tablet-context.png",
+        "terminal/e2e/options-tape-filter-groups.spec.ts",
+        "terminal/lib/__tests__/optionsTapeFilterGroups.test.ts",
+        "terminal/lib/__tests__/optionsTapeSavedViews.test.ts",
+        "terminal/lib/optionsTapeFilterGroups.ts",
+        "terminal/lib/optionsTapeSavedViews.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 731,
+      "head": "26b4f047a7420827f09cd2b0be443b66e2793234",
+      "file_count": 7,
+      "paths": [
+        "terminal/components/PrecisionEntryStrip.module.css",
+        "terminal/components/PrecisionEntryStrip.tsx",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/e2e/terminal-chrome-responsive.spec.ts",
+        "terminal/lib/__tests__/precisionEntryStrip.test.tsx",
+        "terminal/lib/__tests__/precisionIntel.test.ts",
+        "terminal/lib/precisionIntel.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 928,
+      "head": "2d77865cfb2358a9513d458bf11c9409d0466941",
+      "file_count": 32,
+      "paths": [
+        "docs/factor-atlas-preview/R6_EVIDENCE_LIMITATIONS.md",
+        "docs/factor-atlas-preview/README.md",
+        "docs/factor-atlas-preview/S5_TERMINAL_PRODUCT_CENSUS.md",
+        "docs/factor-atlas-preview/browser-proof.json",
+        "docs/factor-atlas-preview/evidence/R6_VERIFICATION_BOUNDARY.json",
+        "docs/factor-atlas-preview/next-shell-browser-proof.json",
+        "docs/factor-atlas-preview/preview-entry.tsx",
+        "docs/factor-atlas-preview/prove-shell.mjs",
+        "docs/factor-atlas-preview/prove.mjs",
+        "docs/factor-atlas-preview/screenshots/chromium-1440-dark-en-catalog.png",
+        "docs/factor-atlas-preview/screenshots/chromium-1440-dark-en-compare.png",
+        "docs/factor-atlas-preview/screenshots/chromium-1440-light-en.png",
+        "docs/factor-atlas-preview/screenshots/chromium-390-dark-en.png",
+        "docs/factor-atlas-preview/screenshots/next-shell/chromium-1440-dark-en.png",
+        "docs/factor-atlas-preview/screenshots/next-shell/chromium-390-dark-en.png",
+        "docs/factor-atlas-preview/screenshots/next-shell/chromium-390-light-zh.png",
+        "docs/factor-atlas-preview/screenshots/webkit-390-light-zh.png",
+        "docs/factor-atlas-preview/screenshots/webkit-820-light-zh.png",
+        "docs/factor-atlas-preview/serve.mjs",
+        "docs/factor-atlas-preview/verification.json",
+        "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx",
+        "terminal/components/factor-atlas/FactorHistoryPreview.module.css",
+        "terminal/components/factor-atlas/FactorHistoryPreview.tsx",
+        "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx",
+        "terminal/lib/__tests__/factorAtlasDiagnostics.test.ts",
+        "terminal/lib/__tests__/factorAtlasHistory.test.ts",
+        "terminal/lib/__tests__/factorAtlasLocation.test.ts",
+        "terminal/lib/__tests__/factorAtlasLocationDOM.test.tsx",
+        "terminal/lib/__tests__/factorAtlasPreview.test.tsx",
+        "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json",
+        "terminal/lib/factorAtlasHistory.ts",
+        "terminal/lib/factorAtlasLocation.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 844,
+      "head": "0f86118185b90da4e65c52a7098e29acef4b5be0",
+      "file_count": 7,
+      "paths": [
+        "docs/research/RS_PULLBACK_SOURCE_RETENTION_2026-10-07.md",
+        "docs/research/RS_PULLBACK_V3_R11_INTEGRATION_2026-10-13.json",
+        "docs/research/RS_PULLBACK_V3_R11_INTEGRATION_2026-10-13.md",
+        "ingest/backfill_intraday.py",
+        "ingest/intraday_capture.py",
+        "terminal/e2e/pane-sync-time-axis.spec.ts",
+        "tests/test_intraday_capture.py"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 868,
+      "head": "e199c9e5357427a2da4722e5ef3e2da326a6d0bd",
+      "file_count": 5,
+      "paths": [
+        "terminal/components/prophet/SelectionCohortCard.tsx",
+        "terminal/components/prophet/prophetStrings.ts",
+        "terminal/lib/__tests__/SelectionCohortCard.test.tsx",
+        "terminal/lib/__tests__/selectionCohort.test.ts",
+        "terminal/lib/selectionCohort.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 821,
+      "head": "0e6c64bd6ca8965aab524a2bb4b8c8dd5ec4a1df",
+      "file_count": 6,
+      "paths": [
+        "terminal/lib/__tests__/p2BrainWidgetContextAgreement.test.ts",
+        "terminal/lib/__tests__/semanticContext.test.ts",
+        "terminal/lib/__tests__/useChartBusContext.test.tsx",
+        "terminal/lib/semanticContext.ts",
+        "terminal/lib/semanticContextAdapters.ts",
+        "terminal/lib/useChartBus.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 852,
+      "head": "0c911cd174202b68c2a897cc39be11843dc37c5d",
+      "file_count": 4,
+      "paths": [
+        "docs/repairs/2026-10-08-copilot-risk-wiring.patch",
+        "terminal/lib/__tests__/marketRiskContext.test.ts",
+        "terminal/lib/__tests__/marketRiskPipeline.test.ts",
+        "terminal/lib/marketRiskContext.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 732,
+      "head": "89f5c1c268f448974d5ae259537106f15db84fb2",
+      "file_count": 9,
+      "paths": [
+        "terminal/components/PrecisionEntryStrip.module.css",
+        "terminal/components/PrecisionEntryStrip.tsx",
+        "terminal/components/TerminalShell.tsx",
+        "terminal/e2e/terminal-chrome-responsive.spec.ts",
+        "terminal/lib/__tests__/precisionEntry.test.ts",
+        "terminal/lib/__tests__/precisionEntryStrip.test.tsx",
+        "terminal/lib/__tests__/precisionIntel.test.ts",
+        "terminal/lib/precisionEntry.ts",
+        "terminal/lib/precisionIntel.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 607,
+      "head": "6e96c8b2d033a7bd4727e6d84a681c280a723288",
+      "file_count": 7,
+      "paths": [
+        "docs/superpowers/plans/2026-09-17-rsi-price-links.md",
+        "terminal/lib/__tests__/indicatorCanvasProjection.test.ts",
+        "terminal/lib/__tests__/rsiPriceLinks.test.ts",
+        "terminal/lib/indicator-canvas/host.ts",
+        "terminal/lib/indicator-canvas/types.ts",
+        "terminal/lib/suites/rsix/rsiDivergence.meta.ts",
+        "terminal/lib/suites/rsix/rsiDivergence.ts"
+      ],
+      "overlap": []
+    },
+    {
+      "number": 604,
+      "head": "312a67b136f77eefe479536dbcfef89b7ecb043f",
+      "file_count": 6,
+      "paths": [
+        "docs/superpowers/plans/2026-09-17-chart-reclaim-a2-position-geometry.md",
+        "terminal/components/ChartPanel.tsx",
+        "terminal/e2e/position-opportunity.spec.ts",
+        "terminal/lib/__tests__/positionOpportunity.test.ts",
+        "terminal/lib/drawing-engine/settings.ts",
+        "terminal/lib/i18n.tsx"
+      ],
+      "overlap": []
+    }
+  ],
+  "large_pr_exact_head_base_target_vectors": [
+    {
+      "number": 1270,
+      "head": "6eb1cdead3c4bc97fb62d232c30129cbfcb70cef",
+      "base": "568fa505afb068900424fe4db0da67587d46a114",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": {
+            "oid": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f"
+          },
+          "base": {
+            "oid": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f"
+          }
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": {
+            "oid": "8cf0fbe65cec334a30b65b2b76eeb06d383ee799"
+          },
+          "base": {
+            "oid": "8cf0fbe65cec334a30b65b2b76eeb06d383ee799"
+          }
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          },
+          "base": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          }
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1048,
+      "head": "4ffab199156516d94a5a3a2d7e860fa342813eb2",
+      "base": "568fa505afb068900424fe4db0da67587d46a114",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": {
+            "oid": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f"
+          },
+          "base": {
+            "oid": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f"
+          }
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": {
+            "oid": "8cf0fbe65cec334a30b65b2b76eeb06d383ee799"
+          },
+          "base": {
+            "oid": "8cf0fbe65cec334a30b65b2b76eeb06d383ee799"
+          }
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          },
+          "base": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          }
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1022,
+      "head": "14080f78fa2bf0187e06577caa134eae12dbcf1b",
+      "base": "fb72315fa9fd8c0d0c058632fdef7b91ec20d53f",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1266,
+      "head": "46782b0f767aae8400e320d9c57b85dbf16738e8",
+      "base": "f528a219cc5d73e94e058575e3df83d689632bf9",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1312,
+      "head": "e931e69ab8a2acb7138cb99846e022baf94a94d9",
+      "base": "b38d93c2cc8d05f9f5c29598a3691304330ffee6",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1084,
+      "head": "a12a04d9d5aed270d8307a6141d0a66847116caf",
+      "base": "d2de347b266a81ae307cab34c5027dfd4ff95d4e",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": {
+            "oid": "d80cf21f9978f15407a815a90304c5be3cb07ddd"
+          },
+          "base": {
+            "oid": "d80cf21f9978f15407a815a90304c5be3cb07ddd"
+          }
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": {
+            "oid": "4fa0e2f5797486f8df96d21d42bd898de46ea257"
+          },
+          "base": {
+            "oid": "4fa0e2f5797486f8df96d21d42bd898de46ea257"
+          }
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": {
+            "oid": "20f19d0772105cbf91083e1ac6d395f87a379106"
+          },
+          "base": {
+            "oid": "20f19d0772105cbf91083e1ac6d395f87a379106"
+          }
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 796,
+      "head": "0dfb1d8f73f82ebd83a5f57918ed4d0cdf5cec1b",
+      "base": "d9128b500fb434e3548574e89b25a2a85053f3d7",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 718,
+      "head": "ca9c31fb18f6896d0aa14e696a8b5f4427ce0991",
+      "base": "d366205c45c6e6585bb0cc83f8d022b3617345ff",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": {
+            "oid": "ea6c0eb5ba9856b5193fc39d0b8883630fff3e8c"
+          },
+          "base": {
+            "oid": "ea6c0eb5ba9856b5193fc39d0b8883630fff3e8c"
+          }
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": {
+            "oid": "ab2b03cdaf0ee6ff9f7bffa4f677a280236ed9a1"
+          },
+          "base": {
+            "oid": "ab2b03cdaf0ee6ff9f7bffa4f677a280236ed9a1"
+          }
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          },
+          "base": {
+            "oid": "39791ae7cb7af992dd5b5a6dfe96423630a19a6f"
+          }
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 702,
+      "head": "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+      "base": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 761,
+      "head": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+      "base": "729a781acdb639f9e8ef9aaaba043c7624b6ceda",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1248,
+      "head": "1b2d4da5e784063c7c0c2b1a1c8f9394b1c0c0b2",
+      "base": "03af393ce05c12282003a3919cc473c032264922",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1268,
+      "head": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+      "base": "03af393ce05c12282003a3919cc473c032264922",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1291,
+      "head": "d3a2c8c5e4bfd8567ef6d5cbf1726940a852424d",
+      "base": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 804,
+      "head": "27df56d997df0ae94a17b6b8e2d14867431bb394",
+      "base": "729a781acdb639f9e8ef9aaaba043c7624b6ceda",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 1043,
+      "head": "be69d3c7881d454638313d9671920c850673f595",
+      "base": "e8a25a2024ef722f02cb764b839f374b5f78f44a",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    },
+    {
+      "number": 857,
+      "head": "95dcde542a6af3fb70b421c3c5f508ef0455c6fb",
+      "base": "f03aa5d019f1894210a7c6e40b8825ae28015198",
+      "targets": [
+        {
+          "path": "terminal/components/charts/svgChart.ts",
+          "head": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          },
+          "base": {
+            "oid": "35c845d79f84d952511165f14a03efe884581945"
+          }
+        },
+        {
+          "path": "terminal/lib/__tests__/svgChart.test.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/app/dev/sector-cycles/page.tsx",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "head": null,
+          "base": null
+        },
+        {
+          "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+          "head": null,
+          "base": null
+        }
+      ],
+      "all_equal": true
+    }
+  ],
+  "large_pr_method_limit": "Compared the five exact target blobs at each immutable head and its returned PR base. This is not an exhaustive changed-file listing for the 16 large PRs and does not prove absence of unpublished host writers.",
+  "pr1249": {
+    "number": 1249,
+    "title": "Sector Intelligence: native sector cycles and same-close theme comparison for Discover and Beta",
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249",
+    "headRefOid": "abe704f1f1519cc904881fba401a720467049bde",
+    "headRefName": "sol/web-sector-native-cycle-history-20261103-c3",
+    "baseRefOid": "3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9",
+    "isDraft": true,
+    "updatedAt": "2026-11-11T14:23:59Z",
+    "mergeStateStatus": "UNKNOWN",
+    "body": "## PR-duty status — 2026-11-11\n\n**Partly delivered; original acceptance remains open.** [#1413](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1413) merged this PR's donor readers and measured chart repair as `d0578d1237a818e554d2ac52dc54e371f02c2770`. Do not commission the obsolete fixed-SVG repair again. [#1429](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1429) merged the native Signals integration on **2026-11-10 at 22:25:09 UTC** as `f89d5b295fa9ef0d35f04f2c3d9c099321b3dee9`, from final head `fcc993e8b8971c8e1306d45fc611d8c435bb97dc`. Preserve that delivered integration; do not create a second Signals mount. This merge completes that source dependency without closing the residual original acceptance below.\n\nThe original direct/History and same-close basket journeys, joined route/data/identity acceptance, and current chart transition/precision cases are not all established. The [source-linked reconciliation and concrete residuals](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6775303344) distinguish delivered source from remaining work. Draft and auto-merge-off are retained; no release or live gate was cleared. Tests described below are historical feature-source proof, not proof of the current joined routes.\n\n## Original feature scope and historical proof\n\nPart of [Macro Sector Intelligence #7646](https://github.com/mastermindx-market-intelligence/macro/issues/7646#issuecomment-6596457041). Original workspace `sector-native-cycle-history-20261103-c3`, based on protected `3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9`. Sibling [Shared Shell #1244](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1244) mounts the same native component; this PR does not change its route, flag or identity boundary.\n\n**User change:** Open **Sector cycles** directly or open a sector's History tab. The published cycle phase, price-basis position (0–100), 200-day trend, rolling 21/63-session returns relative to SPY, date scrubber, chart/table alternative, retrospective turns and phase-grouped navigation replace the unconditional disconnected message. **Compare themes** exposes two equal-weight source baskets by basket ID, not their proxy ETF. Compare returns, members, coverage and stale names on one close. EN and Chinese, light/dark, keyboard and narrow screens. Calculation details are not persistent explanatory paragraphs. Cash-flow attribution, intraday velocity, timing forecasts and trade authority are not claimed.\n\n**Data:** reuses the incumbent authenticated `history` and `sector` reader. No new feed, proxy credential, mutable user store, polling schedule or scoring model. Refused/different identities, mismatched dates, duplicate IDs, invalid inputs and stale/partial observations are handled without fabricating values. [Macro basis contract](https://github.com/mastermindx-market-intelligence/macro/blob/5dafc6c931bbbd29c2ba6914b7cc25c100fd793e/research/sector_completion_20261021/B04_METRIC_DEFINITIONS.md). Macro producer #9917's partial release is not claimed as wholesale native parity. Research/Watches, point-in-time reconstruction and the broader programme retain their existing owners and gates.\n\n**Tests on feature source `67a66883`:** 460 sector tests passed (including 9 new owner/data cases); Discover browser journeys passed with both languages on desktop/tablet/phone; added-lines plain-copy check, scoped ESLint and TypeScript passed locally. Joined-shell owner-data browser proof is a separate verification step, not claimed by these tests. Non-author review, hosted CI, protected releases, and signed-in production plus next-natural-publication proof required; not merged, deployed or globally accepted.",
+    "author": {
+      "login": "mastermindx-3"
+    },
+    "labels": {
+      "nodes": [],
+      "pageInfo": {
+        "hasNextPage": false
+      }
+    },
+    "autoMergeRequest": null,
+    "mergeQueueEntry": null,
+    "comments": {
+      "nodes": [
+        {
+          "id": "IC_kwDOTOzwKM8AAAABjQJPIQ",
+          "databaseId": 6660706081,
+          "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6660706081",
+          "createdAt": "2026-11-05T14:36:54Z",
+          "updatedAt": "2026-11-05T14:36:54Z",
+          "author": {
+            "login": "mastermindx-3"
+          },
+          "body": "## Source repair required — bounded chart brief; no worker admitted\n\nThe Chairman's PR sweep found a concrete source blocker in exact head `abe704f1f1519cc904881fba401a720467049bde`. Keep this original PR Draft/unarmed. This is an author-side triage record, not self-approval or a release.\n\n### Actual defect and current composition\n\n`terminal/components/sector-intelligence/SectorCycleLens.tsx` (blob `9128ae6914de03a136a73d8a05ae926a121a7bb5`) uses fixed600×132 SVG geometry, preserveAspectRatio=none, hand-built domains/ticks and a compulsory symmetric zero-centred domain. Protected [terminal/AGENTS.md](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/50713efda7cbd06c60b6dce2f88b31cea5c005a2/terminal/AGENTS.md), blob `a73f18dfbf52ff9189a1f2627663a81b595b8559`, expressly requires measured pixel-space charts and forbids that stretching pattern. This is a source-contract violation, not a newly reproduced browser incident.\n\nThe bounded full-source judgment found clean current composition: native preview `70dae58ea54aee93cecc44391df0f0b4f09d7d9f`, parents [protected `50713efda7cbd06c60b6dce2f88b31cea5c005a2`, source `abe704f…`], tree `0a019a2d33ef9528cec3e53643ad2aa1f1162edc`,18paths/+1582/-7. Seventeen postimages are exact; the remaining Workspace preserves all feature hunks with current surrounding ownership/access/refresh behavior. This is not newly executed integration proof.\n\nExisting Ingest failure125757386328/run41587780475 is precisely OPEN_PR_STATE_STALE for migration0047/#1222. Protected ledger already records merged SHA3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9, production-applied false/date null. Ordinary current-base integration would consume that correction, but cannot solve the independent chart defect. Do not waive the red check or label a ledger-only refresh source-complete.\n\n### Original custody/status boundary\n\nThe original operation/workspace is `sector-native-cycle-history-20261103-c3`, branch `sol/web-sector-native-cycle-history-20261103-c3`. Its root/session, managed-workspace path, lease, publisher and cleanup receipts were not established by the available PR record. Empty comments/reviews did not prove host writer absence.\n\nThe native coordinator's one typed original-operation read was:\n`mcp__codex_apps__studio_direct___c3_personal__studio_direct_c3_personal_studio_git_publish_status`\nwith `{\"operation_id\":\"sector-native-cycle-history-20261103-c3\",\"repository\":\"terminal\"}`.\n\nIt returned:\n`{\"schema\":\"mastermind.studio_git_tool_error.v1\",\"status\":\"REFUSED\",\"effect_state\":\"NOT_APPLIED\",\"code\":\"TYPED_GIT_PRECHECK_REFUSED\",\"error_code\":\"INVALID_ARGUMENT\"}`.\n\nNo opaque receipt or more specific cause was returned. That action stopped: no changed-argument retry, cross-tool/account replay or alternate publisher. This is a refused publication-status precheck, **not EFFECT_UNKNOWN, not proof of an active/absent writer, and not a worker/admission denial**.\n\nRead-only Fabric capabilities separately succeeded: adapter available, AUTO placement, no cross-provider fallback; worker admission/START remain UNPROBED. No request, job, grant, reservation, workspace, source effect or background runner was created. The existing #729 EFFECT_UNKNOWN run/lease remains wholly separate and untouched.\n\n### Reviewable proposed repair — NOT COMMISSIONED\n\nUse one C1_ROUTINE_BOUNDED / fix_build paid leaf through the existing Fabric and conserved-root budget, only after materially qualified original custody and actual admission. Triage root `01a1a7fb-3b89-756f-ba72-ccf9cfa7b034` identifies this sweep; **it is not evidence of the original #1249 operation's root**. Suggested run `terminal1249-measured-chart-repair-20261105-c3` is unsubmitted. Verify the immediate assigning identity before supplying any parent_id; metadata is not authentication. Proposed behavioral budget:45minutes/two meaningful local repair cycles, not an asserted machine grant.\n\nAllowed repair paths:\n- SectorCycleLens.tsx, current blob9128ae6914de03a136a73d8a05ae926a121a7bb5;\n- SectorCycleLens.module.css, a54e3470bf055fbf2fa989a34eafbd43399e911b;\n- e2e/sector-cycle-lens.spec.ts,0dc78a3e0d10846b9517210b5369967e10970a16.\n\nPreserve the other15 current-preview postimages, including Workspace ec9488220783c740548e17a520f46dd78acfd937. If expressly included in the actual grant, append bounded repair proof/whole-chart fixture images under the existing sector-native-cycles-20261103 evidence carrier; preserve and date the historical artifacts.\n\nUse the actual incumbent helper [components/charts/svgChart.ts](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/50713efda7cbd06c60b6dce2f88b31cea5c005a2/terminal/components/charts/svgChart.ts), blob35c845d79f84d952511165f14a03efe884581945: useChartWidth, niceTicks, padDomain, thinLabels, fmtTick and MIN_CHART_H. **thinByPixelGap is not an exported API**; thinLabels implements the law's pixel-gap requirement. Do not invent another helper/library.\n\nMeasure the actual drawing box with one SVG unit per CSS pixel and a stable measured wrapper. Remove stretching/permanent synthetic600-width scaling. Derive a finite padded domain, preserving legitimate zero and negative relative returns; do not apply a positive-price filter to relative returns or force symmetric zero. Preserve date cursor and greater-than-four-calendar-day gaps. Generate/format ticks from the actual step and thin sorted mapped positions. Account for the helper's240px minimum and the current separate40px axis+6px gap at320px. fmtTick caps at two decimals, so importing it alone does not prove distinct labels for narrow domains.\n\n### Meaningful proof and return\n\nExtend the existing fixture-based E2E spec to show an actual old-source geometry failure and repaired success. Check SVG/viewBox dimensions within1px at1440/820/390/320px, already-mounted resize, no stretch/overflow, positive/negative/mixed/flat/narrow domains, irregular dates, finite in-bounds geometry, distinct noncrowded labels and preserved cursor/gaps. Retain EN/dark, ZH/light, chart/table, keyboard date selection, sector navigation/Back and access-loss clearing. Source-string tests alone do not establish geometry.\n\nRun unchanged snapshot/basket data tests, focused lint/typecheck and the governed responsive projects from the qualified original workspace using its owner-allocated test server. Use existing package scripts/config; report exact commands and outcomes. No joined-shell harness, production authentication/data, #1244 refused evidence-publication replay, route/flag/registry change, helper-library rewrite, CI policy change, SQL application or deployment.\n\nReturn actual head/tree/parents, complete changed/preserved blob vector, discriminator and focused proof, source continuity/publication/readback and cleanup receipts. Preserve original branch/PR with expected-old fences; no rebase/force/replacement publisher. Worker performs no review, Ready, labels, queue, merge or sibling effects. Root3 is this PR's author and cannot self-approve/self-merge.\n\n#1244 mount/registry and Macro#10639 protected-registry dependency, #1270 security work, historical controlled-browser evidence, signed-in production/next-natural-publication acceptance and broader sector programme remain separate. The brief is ready; original custody and actual worker admission are still unestablished."
+        },
+        {
+          "id": "IC_kwDOTOzwKM8AAAABk9bssA",
+          "databaseId": 6775303344,
+          "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6775303344",
+          "createdAt": "2026-11-10T18:09:58Z",
+          "updatedAt": "2026-11-10T18:09:58Z",
+          "author": {
+            "login": "mastermidx4"
+          },
+          "body": "## Partial-delivery reconciliation — protected donor integration and remaining acceptance\n\nPR duty readback on 2026-11-10; original head remains `abe704f1f1519cc904881fba401a720467049bde`, Draft, auto-merge off. This updates the status of the [2026-11-05 repair brief](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6660706081); it does not replay that brief's refused typed publication-status action or claim a new worker admission.\n\n### Already delivered: do not reconstruct the obsolete donor repair\n\n[#1413](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1413) explicitly integrated this PR's donor readers and merged on 2026-11-10 at 12:27:45 UTC as `d0578d1237a818e554d2ac52dc54e371f02c2770`. Its single Cycles controller and measured `CycleChartPanel` replace the donor's fixed 600×132 stretched SVG. The previous instruction to commission that original fixed-SVG repair is therefore superseded by protected delivery. The original #1249 acceptance is only partly delivered; this PR is not being closed as wholly superseded.\n\nThe existing integration carrier [#1429 at `36c2f865b64d1d0f4a6b3e359409a36bccd3cad8`](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1429) already mounts `SectorCycleLens` in the native dossier Signals tab and passes the existing history/events feeds. Preserve that carrier and its source ownership; do not create a competing second mount. Its PR body still names an older head, so this reconciliation uses the actual current commit's source, not that stale body identity.\n\n### Remaining acceptance and concrete source findings\n\n1. The original direct Sector cycles / sector History journey and two distinct equal-weight baskets at the same close are not established by this integration. Current [native dossier source](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/36c2f865b64d1d0f4a6b3e359409a36bccd3cad8/terminal/components/sector-intelligence/SectorNativeDossier.tsx) supplies an honest unavailable deep cycles feed and `publicationId: null`; its History tab remains a placeholder. The [legacy workspace History path](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/36c2f865b64d1d0f4a6b3e359409a36bccd3cad8/terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx) also remains a placeholder. The [controller](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/36c2f865b64d1d0f4a6b3e359409a36bccd3cad8/terminal/components/sector-intelligence/SectorCycleLens.tsx) admits baskets only in deep mode with the baskets family; the legacy mount alone does not prove the promised basket comparison.\n\n2. A remaining measured-wrapper lifecycle gap is visible in [current CycleChartPanel](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/36c2f865b64d1d0f4a6b3e359409a36bccd3cad8/terminal/components/sector-intelligence/cycles/CycleChartPanel.tsx): `wrapRef` is attached only in the nonempty chart branch. The protected [useChartWidth helper](https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/b5afc7eca5c37b3e2eee25871b764807203957a6/terminal/components/charts/svgChart.ts) observes the element once for the stable ref. Empty/table-to-chart and chart-to-table-to-chart transitions can therefore leave the current element unobserved. This is a source-derived finding, not a newly executed browser failure. A stable measured wrapper plus an actual transition-and-resize discriminator is still needed.\n\n3. Narrow-domain tick labels remain a source-derived gap: the same shared `fmtTick` caps precision at two decimals. Distinct ticks such as 0.001, 0.0015 and 0.002 all display as 0.00. Any bounded repair must preserve the shared domain/tick owner, negative values, zero, cursor and date gaps while making narrow-domain labels distinct; importing the helper alone did not prove that case.\n\nJoined acceptance must still cover the actual `/discover?tab=sectors` and `/sectors` paths, navigation/Back, subject/day/access/generation mismatches, the two basket IDs and same-close member/coverage values, and responsive EN/dark + ZH/light behavior including 320px stress and access loss. Historical fixture screenshots and #1413's accepted dev harness remain historical evidence, not current joined or signed-in production proof.\n\nNo source branch, labels, Ready state, auto-merge, queue, migration, account, provider or production state was changed by this reconciliation. The original release/live acceptance controls and the active #1429/#1431 integrations remain in place. The useful next source work is the bounded residual above on the current integration, with existing carrier ownership preserved—not another implementation of the already merged donor chart."
+        },
+        {
+          "id": "IC_kwDOTOzwKM8AAAABlTdPgQ",
+          "databaseId": 6798397313,
+          "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1249#issuecomment-6798397313",
+          "createdAt": "2026-11-11T14:23:59Z",
+          "updatedAt": "2026-11-11T14:23:59Z",
+          "author": {
+            "login": "mastermindx-3"
+          },
+          "body": "Current-protected residual repair is published in **#1467**, exact head `4dd2770f1032b419ed0a67fdc5b1489a66f64f68`, under operation `terminal-cycle-width-support-20261111-c3` and [Mastermind #2028](https://github.com/mastermindx-market-intelligence/Mastermind/issues/2028).\n\nThe chart now retains its measured host through table and empty-state transitions. The old-source control reproduces a 340 px width mismatch; the repaired final matrix passes **12/12** cases across desktop/tablet/mobile and EN dark/ZH light, with zero retries, skips, or flakes. Visual inspection also exposed and repaired the dev harness's light-selector activation, with actual paint assertions.\n\n[Complete source/proof brief](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1467). Native auto-merge was enabled at 2026-11-11T14:20:40Z and is waiting for required checks; no merge is claimed.\n\nThis follow-up addresses the current-source observer residual recorded in comment6775303344. #1249's original branch, Draft status, historical publication refusal, and broader science/precision/basket/release scope retain their existing custody."
+        }
+      ],
+      "pageInfo": {
+        "hasPreviousPage": false,
+        "startCursor": "Y3Vyc29yOnYyOpHPAAAAAY0CTyE="
+      }
+    },
+    "files": {
+      "nodes": [
+        {
+          "path": "terminal/components/sector-intelligence/SectorBasketCompare.tsx",
+          "additions": 117,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/components/sector-intelligence/SectorCycleLens.module.css",
+          "additions": 360,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/components/sector-intelligence/SectorCycleLens.tsx",
+          "additions": 329,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+          "additions": 15,
+          "deletions": 7,
+          "changeType": "MODIFIED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/README.md",
+          "additions": 15,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-320-en-cycle.png",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-390-zh-cycle.png",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/beta-390-zh-themes.png",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/receipt.json",
+          "additions": 137,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/terminal-1440-en-cycle.png",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/docs/pr-crops/sector-native-cycles-20261103/terminal-1440-en-themes.png",
+          "additions": 0,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+          "additions": 114,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/e2e/tools/qualify_sector_cycle_owner.cjs",
+          "additions": 177,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/lib/__tests__/sectorCycleBaskets.test.ts",
+          "additions": 55,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/lib/__tests__/sectorCycleSnapshot.test.ts",
+          "additions": 115,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/lib/sectorCycleBaskets.ts",
+          "additions": 63,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/lib/sectorCycleSnapshot.ts",
+          "additions": 83,
+          "deletions": 0,
+          "changeType": "ADDED"
+        },
+        {
+          "path": "terminal/lib/sectorIntelligenceLex.ts",
+          "additions": 2,
+          "deletions": 0,
+          "changeType": "MODIFIED"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "endCursor": "MTg"
+      },
+      "totalCount": 18
+    }
+  },
+  "raw_integrity": [
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-00.json",
+      "bytes": 17477,
+      "sha256": "ef1d5d3a833a90359313f39c34aa5e8aef9cf37656b64a1df5a984b0f4e4f9a4",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-01.json",
+      "bytes": 17646,
+      "sha256": "14ee436d1580a8c3239bacd3011fe1767a5ecd4dd9aee0ab15e5a47e5ec7099f",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-02.json",
+      "bytes": 7048,
+      "sha256": "e6f7b31e3d4033b778bda9e10f3aeeec264c7fc25d56cb258750eb47ca01e4df",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-03.json",
+      "bytes": 11758,
+      "sha256": "b2771d0915a97201de88630e975b283e16673b3339da14c2d4eca64dd03e5e04",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-04.json",
+      "bytes": 22253,
+      "sha256": "f83f0c0365f985f40ae14963bb190153c2003cee22268d94afe5095d4e7a7edc",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-05.json",
+      "bytes": 14683,
+      "sha256": "22ceb8da5440f26b19a66bb6e77855383612bfa51d199fc7cff53fa12e3e9fae",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-06.json",
+      "bytes": 5839,
+      "sha256": "9634349e4baf3070f56f9c54bfb1efe756dc36802522b47a8f536932bc1b0b5c",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/small-07.json",
+      "bytes": 503,
+      "sha256": "c93cb8c1381dcdc120a582814c4fbbd9b69bb126db5127628257fd7c533b0a7d",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/large-00.json",
+      "bytes": 1585,
+      "sha256": "e79315ab6b2f6e1aa1799e19477810e75b81afab3e43af6c5cb5050d57be60c7",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/large-01.json",
+      "bytes": 1565,
+      "sha256": "31a467e4dd847d4df8b38ba959f2dacc43fb00ae4603c06b1eb5ee915af1be79",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/large-02.json",
+      "bytes": 1013,
+      "sha256": "00b636c44885f3a8e7ea23fe194177e9e3180339d39b3a8de8d04ff4976b6d17",
+      "matches_receipt": true
+    },
+    {
+      "path": "/tmp/terminal-axis-overlap-review-20261111T230226Z/large-03.json",
+      "bytes": 1013,
+      "sha256": "65907daae67aa2374a952f90bd29f069206e7e883fe0dabe2ed91e5bd03f5e0b",
+      "matches_receipt": true
+    }
+  ],
+  "findings": {
+    "exact_published_overlap": [
+      {
+        "number": 1249,
+        "head": "abe704f1f1519cc904881fba401a720467049bde",
+        "paths": [
+          "terminal/e2e/sector-cycle-lens.spec.ts"
+        ]
+      }
+    ],
+    "other_large_target_deltas": [],
+    "fullscreen_cause": "Unconditional mounted child returns null while closed; stable-ref width effect attaches before element exists and has no open dependency. Height observer does depend on open. CSS width:100% expands rendering while viewBox/width attributes remain fallback320.",
+    "hook_advice": "Optional active=true third parameter, early effect return when inactive, deps [ref,active], fullscreen passes props.open; retain positive width check, >=1px threshold, 240 minimum and disconnect cleanup.",
+    "formatter_static_advice": "No concrete blocker identified in the reviewed bounded 0..100 step-fitting implementation; finite/invalid guards, fractional-strike tolerance, quantum<=gap guard and shortest-string extreme fallback preserve numeric distinctions. Root owns execution and current final diff.",
+    "ci_inclusion": "vitest lib/__tests__/**/*.test.ts include; new test has none of the capture-lock markers; ci.yml uses native --shard=matrix.shard/3 excluding only that inventory; required Terminal aggregate depends on and requires all unit shards.",
+    "advisory_only": true,
+    "no_source_edits_tests_capture_admission": true
+  }
+}

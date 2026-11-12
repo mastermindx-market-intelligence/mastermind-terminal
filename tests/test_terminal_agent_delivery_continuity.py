@@ -16,7 +16,7 @@ ROOT_GUARDS = (
     "original managed workspace",
     "proven pre-effect technical failure",
     "only on material same-carrier recovery evidence",
-    "An explicit safety/permission denial ends retries of that effect",
+    "Confirmed protected access restrictions apply only to their operation",
     "EFFECT_UNKNOWN",
     "reconciled on its original carrier before retry",
     "Do not force, create a replacement branch",
@@ -27,7 +27,7 @@ NESTED_GUARDS = (
     "complete the next genuinely independent authorized source, test, integration or browser-proof action",
     "An issue, reviewer request, green local tests or blocker report is not completion",
     "original managed branch",
-    "never retry an explicit safety/permission denial",
+    "classify refused writes as access/validation/transport before deciding recovery",
     "reconcile EFFECT_UNKNOWN on the same carrier",
     "Do not claim a pushed remote branch when publication did not occur",
     "Auth/session paths require a fresh authenticated/incognito journey",
@@ -91,3 +91,10 @@ def test_nested_workspace_instruction_does_not_order_raw_git_worktree():
     guide = _read("terminal/AGENTS.md")
     assert "ALWAYS `git worktree add`" not in guide
     assert "Do not create a second worktree" in guide
+
+def test_technical_refusal_language_does_not_regress_to_blanket_stop():
+    root, nested = _read("AGENTS.md"), _read("terminal/AGENTS.md")
+    assert "An explicit safety/permission denial ends retries" not in root
+    assert "never retry an explicit safety/permission denial" not in nested
+    assert "Confirmed protected access restrictions apply only to their operation" in root
+    assert "classify refused writes as access/validation/transport" in nested

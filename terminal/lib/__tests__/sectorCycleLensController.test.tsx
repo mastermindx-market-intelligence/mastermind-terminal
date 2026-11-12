@@ -115,9 +115,61 @@ const historyPayload = () => ({
       rs_21d: +((i - 4) * 1.5).toFixed(2),
       rs_63d: +((i - 4) * 0.8 - k).toFixed(2),
     })),
-    turns: [{ date: DATES[0], k: "trough" as const, major: true, provisional: false, mag_pct: null }],
+    turns: [
+      // SP11: the pivot is DATES[0]; it became knowable only at confirmation
+      // (confirmed_at). The two sectors confirm the SAME pivot on DIFFERENT
+      // days — per-series keying must keep each series' own date (B2).
+      {
+        date: DATES[0],
+        k: "trough" as const,
+        major: true,
+        provisional: false,
+        mag_pct: null,
+        confirmed_at: id === "xlk" ? DATES[1] : DATES[2],
+      },
+    ],
   })),
 });
+
+/* v1.1: the lane-8 producer output exactly (engine/sector_heads.py
+ * @d70025383c2d). head_capabilities() emits status "withheld" for every
+ * head; `withdraw()` writes "withheld" plus a caller-supplied reason code —
+ * here adverse_tail is withdrawn via withdraw(block, "adverse_tail",
+ * "parity_lost"), the REAL output shape (no withdrawn status, no
+ * withdrawn_asof; an unmapped reason renders the generic line). */
+const headsWire = () => {
+  const head = (reason: string, disposition = "QUALIFIED_RESEARCH", reasons: string[] = []) => ({
+    status: "withheld",
+    reason_code: reason,
+    research_disposition: disposition,
+    research_reasons: reasons,
+    evidence: { protocol: "p.md", report_ref: "r.json", results_doc: "d.md" },
+    target: "what this head measures",
+    horizon_sessions: 20,
+    market: "US",
+  });
+  return {
+    schema: "sector_cycles.forecast_heads.v1",
+    observed_cycles: "shown",
+    protocol: "p.md",
+    report_ref: "r.json",
+    heads: {
+      remaining_return_distribution: head(
+        "research_withheld_failed",
+        "WITHHELD_FAILED",
+        ["skill_ci90_includes_or_below_zero", "fails_bh_fdr_q0.10"],
+      ),
+      adverse_tail: head("parity_lost"),
+      target_before_invalidation: head("live_state_not_protocol_epoch"),
+      transition_time: head("live_state_not_protocol_epoch"),
+    },
+    may_rank: false,
+    may_gate: false,
+    may_size: false,
+    may_trade: false,
+    may_escalate: false,
+  };
+};
 
 const generation = {
   accessGeneration: "ag-1",
@@ -559,6 +611,98 @@ describe("cycles controller: R5 device and access states", () => {
     expect(document.querySelector('[data-testid="cycle-phase-rail"]')).not.toBeNull();
     // Deep-only view state is gone with the refused overlay.
     expect(lens.handle.current!.captureView()).toBeNull();
+    lens.unmount();
+  });
+});
+
+describe("cycles controller: v1.1 per-head forecast capabilities (lane 8 wire)", () => {
+  it("renders each head's own verdict; one withdrawn head hides no sibling and no observed fact (SP10)", () => {
+    const data = deepCycles();
+    (data.sectors[0] as unknown as Record<string, unknown>).forecast_heads = headsWire();
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    const card = document.querySelector('[data-testid="cycle-forecast-heads"]');
+    expect(card).not.toBeNull();
+    // Four independent rows, canonical order — never one shared verdict.
+    const rows = Array.from(card!.querySelectorAll("[data-head]"));
+    expect(rows.map((r) => r.getAttribute("data-head"))).toEqual([
+      "remaining_return_distribution",
+      "adverse_tail",
+      "target_before_invalidation",
+      "transition_time",
+    ]);
+    // The withdraw() shape: still "withheld", with the caller's unmapped
+    // reason rendering the generic line — never a Withdrawn/Qualified state
+    // (neither exists on the wire).
+    expect(
+      card!.querySelector('[data-head="adverse_tail"]')!.textContent,
+    ).toContain("Withheld for an unstated reason");
+    expect(card!.textContent).not.toContain("Withdrawn");
+    expect(card!.textContent).not.toContain("Qualified");
+    // Each withheld head carries its OWN published reason line.
+    expect(card!.textContent).toContain("the research test failed this forecast");
+    expect(card!.textContent).toContain("does not match the research protocol");
+    expect(card!.textContent).toContain("20 completed sessions");
+    // N3: the leg-direction note rides the target head only.
+    expect(
+      card!.querySelector('[data-head="target_before_invalidation"]')!.textContent,
+    ).toContain("Leg-direction fact");
+    expect(
+      card!.querySelector('[data-head="transition_time"]')!.textContent,
+    ).not.toContain("Leg-direction fact");
+    // No number for a withheld or withdrawn head: no estimate, no percent.
+    expect(card!.textContent).not.toContain("%");
+    // The withdrawn head's siblings AND the observed Cycles facts both remain.
+    expect(card!.textContent).toContain("Withheld");
+    expect(document.querySelector('[data-testid="cycle-phase-rail"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="cycle-hero"]')).not.toBeNull();
+    expect(document.querySelector('[data-testid="cycle-leg-timeline"]')).not.toBeNull();
+    lens.unmount();
+  });
+
+  it("a record without the block renders the honest absent line, never an inferred verdict", () => {
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    const card = document.querySelector('[data-testid="cycle-forecast-heads"]');
+    expect(card).not.toBeNull();
+    expect(card!.textContent).toContain("No forecast capability block is attached");
+    expect(card!.textContent).not.toContain("Withdrawn");
+    lens.unmount();
+  });
+
+  it("keeps the pivot date and the first-known date distinct, per series (SP11/B2)", () => {
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    const turns = document.querySelector('[data-testid="cycle-turns"]');
+    expect(turns).not.toBeNull();
+    // Both facts are shown for the same turn, as two different dates —
+    // XLK's OWN confirmation date, never XLF's different one for the same
+    // pivot date (per-series keying, B2).
+    expect(turns!.textContent).toContain(DATES[0]);
+    expect(turns!.textContent).toContain(`first known ${DATES[1]}`);
+    expect(turns!.textContent).not.toContain(`first known ${DATES[2]}`);
+    expect(turns!.textContent).toContain("Turn dates are pivot dates");
+    lens.unmount();
+  });
+
+  it("renders honest session-count windows, never calendar-month relabelling", () => {
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    const select = document.querySelector('[data-testid="cycle-chart-panel"] select');
+    expect(select).not.toBeNull();
+    expect(select!.textContent).toContain("21 sessions");
+    expect(select!.textContent).toContain("63 sessions");
+    expect(select!.textContent).toContain("252 sessions");
+    expect(select!.textContent).not.toContain("1 month");
+    expect(select!.textContent).not.toContain("1 year");
     lens.unmount();
   });
 });

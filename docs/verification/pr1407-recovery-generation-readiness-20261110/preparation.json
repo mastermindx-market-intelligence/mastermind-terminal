@@ -1,0 +1,14 @@
+{
+  "afterSha256": "defd7adfc6560a24c5a5ced9277012a587014e30c3a683d32b99a3e71189b5c4",
+  "beforeSha256": "4690f61b00419b604a7a2db49ed7a690a22cb17696085f4bc221748f823a4c1f",
+  "changes": "Replacement iframe generation readiness before INIT/READY",
+  "packageLockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "pr": 1407,
+  "publishedParent": "075f470ba78cc35e5dc2279222466835146d970a",
+  "runtimeCopy": "APFS clone of existing matching dependencies; no package installation",
+  "runtimeSource": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal",
+  "schema": "terminal_pr_test_readiness_preparation.v1",
+  "state": "PREPARED",
+  "target": "terminal/e2e/shared-shell-refinement.spec.ts",
+  "validationHead": "32dd9f4540046573b0facf8701780d36cc3e3ab7"
+}

@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
 const { EventEmitter } = require("node:events");
+const { runShard, runFanIn, SHARDS, capturePorts, captureDeadlineMs } = require("./capture_ci_evidence.cjs");
 const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, eodPacket, nativeDefinition, nativeSources, verifyNativeHistory, superviseNative } = require("./capture_ci_evidence.cjs");
 
 const { LAYOUT_FILES, EXPECTED_FILES, assertCompletePacket, assertCaptureNavigation, cropBox } = require("./capture_pl6_batch2.cjs");
@@ -109,7 +110,7 @@ function nativeSpawn(f, change) {
       if (family === "gex" && change.nativeSecondMutatesFirstSource) fs.appendFileSync(path.join(f.repoRoot, f.nativeFixture.eod.definition.producer.LAYOUT_FILES[1]), "changed after first qualification");
       if (family === "gex" && change.nativeSecondMutatesFirstImage) fs.writeFileSync(path.join(f.nativeFixture.eod.directory, f.nativeFixture.eod.definition.files[0]), "SYNTHETICPNG:changed after first qualification");
       if (family === "gex" && change.nativeSecondMutatesComposition) fs.appendFileSync(path.join(f.repoRoot,
-        `terminal/docs/pr-crops/b-pl-6-batch-1/ci-${f.env.GITHUB_RUN_ID}-${f.env.GITHUB_RUN_ATTEMPT}-current.composition.json`), "changed");
+        `terminal/docs/pr-crops/b-pl-6-batch-1/ci-${f.env.GITHUB_RUN_ID}-current.composition.json`), "changed");
       const completion = `wrote ${definition.count} crops + EVIDENCE.yml (head ${"a".repeat(40)})\n`;
       if (!change.nativeMissingCompletion) fs.writeSync(options.stdio[1], completion);
       if (change.nativeDuplicateCompletion) fs.writeSync(options.stdio[1], completion);
@@ -131,15 +132,24 @@ function fixture(t, change = {}) {
   const ids = operationIds(env), calls = [], inputs = [], nativeCalls = [];
   const diagnostics = path.join(env.RUNNER_TEMP, "terminal-ci-evidence");
   const profile = { fixture: "terminal-e2e.v1", buildMode: "next-dev", sharedShell: "0", investorShellPreview: "0", theme: "dark" };
-  const requirements = packet => Array.from({ length: packet === "pl6" ? 20 : 30 }, (_, n) => ({ packet, key: `${packet}:${n}` }));
+  // VI keys carry their real viewport project so the fan-in can route each to its shard.
+  const requirements = packet => Array.from({ length: packet === "pl6" ? 20 : 30 }, (_, n) => ({ packet, key: `${packet}:${n}`,
+    ...(packet === "vi" ? { project: ["desktop", "tablet", "mobile"][Math.floor(n / 10)] } : {}) }));
+  const projectOf = Object.fromEntries(requirements("vi").map(c => [c.key, c.project]));
+  // Synthetic operation records derived from the actual references and selections.
+  const opsFrom = input => input.operations.map(ref => {
+    const id = path.basename(ref.path).replace(/--operation\.json$/, ""), packet = ref.path.includes("b-pl-6-batch-1") ? "pl6" : "vi";
+    const chosen = input.selections.filter(s => s.operationId === id);
+    return { id, packet, cases: packet === "pl6" ? Array(change.pl6Count ?? 24).fill({})
+      : chosen.map(s => ({ key: s.key, execution: { project: change.wrongProject?.[s.key] || projectOf[s.key] } })) };
+  });
   const evidence = {
     PACKETS: { pl6: "terminal/docs/pr-crops/b-pl-6-batch-1", vi: "terminal/docs/pr-crops/terminal-visual-intelligence" },
     readComposition(input) {
       assert.equal(input.compositionPath, `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`);
       assert.deepEqual(input.expectedProfile, profile);
       if (change.nativeCompositionReferencedBytes) throw new Error("CI_EVIDENCE_REFERENCED_BYTES_CHANGED");
-      return { id: ids.composition, cases: Array(50).fill({}), operations: ["pl6", "vi"].map(packet => ({
-        id: ids[packet], packet, cases: Array(packet === "pl6" ? 24 : 30).fill({}) })) };
+      return { id: ids.composition, cases: Array(50).fill({}), operations: opsFrom(inputs[inputs.length - 1]) };
     },
     profile: () => profile, requirements, canonical: JSON.stringify,
     writeComposition(input) {
@@ -152,16 +162,14 @@ function fixture(t, change = {}) {
       fs.writeFileSync(path.join(dir, `${input.id}.composition.json`),
         JSON.stringify(record) + (change.compositionBytesMismatch ? "\n" : ""));
       // The incumbent writer returns the fully validated composition, without a path/digest.
-      return { id: input.id, cases: Array(change.selectedCount ?? 50).fill({}),
-        operations: ["pl6", "vi"].map(packet => ({ id: ids[packet], packet,
-          cases: Array(packet === "pl6" ? (change.pl6Count ?? 24) : 30).fill({}) })) };
+      return { id: input.id, cases: Array(change.selectedCount ?? 50).fill({}), operations: opsFrom(input) };
     },
   };
   let checkoutReads = 0;
   const checkout = () => ({ actualCheckout: { commit: change.nativeCheckoutDrift && nativeCalls.length > 0 && ++checkoutReads > 0 ? "c".repeat(40) : "a".repeat(40), tree: "b".repeat(40) },
     githubEvent: { sha: "c".repeat(40), pullRequestBase: "d".repeat(40), pullRequestHead: "e".repeat(40) } });
   const spawn = (command, args, options) => {
-    const packet = args[0].includes("batch2") ? "batch2" : calls.length === 0 ? "pl6" : "vi";
+    const packet = args[0].includes("batch2") ? "batch2" : args[0].includes("capture_pl6_batch1") ? "pl6" : "vi";
     calls.push({ command, args, options });
     fs.writeSync(options.stdio[2], "original child diagnostic\n");
     if (packet === "batch2") {
@@ -181,8 +189,18 @@ function fixture(t, change = {}) {
       if (change.batch2DuplicateCompletion) fs.writeSync(options.stdio[1], completion);
       return { status: change.batch2Status ?? 0, signal: change.batch2Signal ?? null, error: change.batch2Error };
     }
-    const ref = { visualEvidence: `${evidence.PACKETS[packet]}/${ids[packet]}--operation.json`,
-      sha256: "f".repeat(64), actualCases: packet === "pl6" ? 24 : 30, ...change.ref };
+    const opId = packet === "vi" && args.includes("--id") ? args[args.indexOf("--id") + 1] : ids[packet];
+    const sharded = args.includes("--project");
+    const ref = { visualEvidence: `${evidence.PACKETS[packet]}/${opId}--operation.json`,
+      sha256: "f".repeat(64), actualCases: packet === "pl6" ? 24 : sharded ? 10 : 30, ...change.ref };
+    if (change.writeOperations) {
+      // Shard runs need actual operation bytes on disk: each shard's delta must carry them.
+      const body = Buffer.from(`synthetic operation ${opId}`);
+      write(ref.visualEvidence.replace(/--operation\.json$/, "--start.json"), `synthetic start ${opId}`);
+      write(ref.visualEvidence, body); ref.sha256 = hash(body);
+      if (change.viStray && packet === "vi") write(`${evidence.PACKETS.vi}/stray.png`, "stray");
+      if (change.viOverwrite && packet === "vi") write(`${evidence.PACKETS.vi}/EVIDENCE.yml`, "rewritten shared manifest");
+    }
     if (!change.missing) fs.writeSync(options.stdio[1], JSON.stringify(ref) + "\n");
     if (change.ambiguous) fs.writeSync(options.stdio[1], JSON.stringify(ref) + "\n");
     if (packet === "vi" && change.clearOutput) {
@@ -254,10 +272,11 @@ function fixture(t, change = {}) {
       throw new Error("PNG_INVALID");
     return { sha256: hash(bytes), width: 10, height: 10 };
   };
-  const legacyCalls = [];
+  const legacyCalls = [], legacyPorts = [];
   const spawnLegacy = (_command, args, options) => {
     const definition = packets.find(packet => packet.script === args[0]);
     legacyCalls.push(definition.packet);
+    legacyPorts.push(options.env.TERMINAL_CROP_PORT);
     const child = new EventEmitter(); child.pid = 424242;
     queueMicrotask(() => {
       child.emit("message", { legacyCaptureServer: { captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID, phase: "started", pid: 424243, pgid: 424243 } });
@@ -294,7 +313,8 @@ function fixture(t, change = {}) {
   const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy, spawnNative });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
+  const spawns = { spawn: combinedSpawn, spawnLegacy, spawnNative };
+  return { spawns, write, evidence, repoRoot, env, ids, calls, legacyCalls, legacyPorts, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
     eodDirectory, eodManifest, eodPrior, nativeCalls, nativeFixture };
 }
 
@@ -444,9 +464,12 @@ test("capture filtering and prior composition are refused before child execution
   }
 });
 
-test("stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite", async t => {
+test("stable per-run IDs refuse invalid values and duplicate invocation cannot overwrite", async t => {
   const f = fixture(t); assert.deepEqual(operationIds(f.env), operationIds({ ...f.env }));
-  assert.notEqual(operationIds({ ...f.env, GITHUB_RUN_ATTEMPT: "3" }).pl6, f.ids.pl6);
+  // The attempt is deliberately NOT part of any id: a rerun of the same run
+  // must compose with the artifacts its succeeded shards already retained.
+  assert.equal(operationIds({ ...f.env, GITHUB_RUN_ATTEMPT: "3" }).pl6, f.ids.pl6);
+  assert.notEqual(operationIds({ ...f.env, GITHUB_RUN_ID: "41600914409" }).pl6, f.ids.pl6);
   assert.throws(() => operationIds({ ...f.env, GITHUB_RUN_ID: "1\nx=2" }), /CI_EVIDENCE_ID/);
   await f.invoke(); const before = f.diagnostic(); await assert.rejects(f.invoke, /EEXIST/); assert.deepEqual(f.diagnostic(), before);
 });
@@ -1301,6 +1324,215 @@ test('native: server permission refusal leaves reconciliation unresolved and sen
   const result = await pending;
   assert.equal(result.closed, true); assert.equal(result.serverSettled, false); assert.equal(result.error.code, 'EPERM');
   assert.deepEqual(signals, [[-424243, 0]]);
+});
+
+
+// ---- Fan-out: one runner per capture shard, one fan-in that composes on one checkout ----
+// Each shard and the fan-in get their own fresh synthetic checkout of the same tree
+// (same commit/tree identity), exactly like separate runners checking out one SHA.
+async function fannedOut(t, { shardChange = {}, fanChange = {} } = {}) {
+  const shards = {};
+  for (const shard of SHARDS) {
+    const f = fixture(t, { writeOperations: true, ...(shardChange[shard] || {}) });
+    const r = await runShard(shard, { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+      spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy });
+    shards[shard] = { f, r, bundle: path.join(f.env.RUNNER_TEMP, "terminal-ci-evidence-bundle") };
+  }
+  const fan = fixture(t, { writeOperations: true, ...fanChange });
+  const staging = path.join(fan.env.RUNNER_TEMP, "terminal-ci-evidence-shards");
+  fs.mkdirSync(staging, { recursive: true });
+  for (const shard of SHARDS) fs.cpSync(shards[shard].bundle, path.join(staging, shard), { recursive: true });
+  const receiptPath = shard => path.join(staging, shard, "receipt.json");
+  const receipt = shard => JSON.parse(fs.readFileSync(receiptPath(shard)));
+  const rewrite = (shard, edit) => { const r = receipt(shard); edit(r); fs.writeFileSync(receiptPath(shard), JSON.stringify(r)); };
+  const invoke = () => runFanIn({ repoRoot: fan.repoRoot, env: fan.env, evidence: fan.evidence, checkout: fan.checkout,
+    spawnNative: fan.spawns.spawnNative });
+  const fanRecord = () => JSON.parse(fs.readFileSync(path.join(fan.diagnostics, `${fan.ids.prefix}.json`)));
+  return { shards, fan, staging, receipt, rewrite, invoke, fanRecord };
+}
+
+test("fan-out: four shards compose all30 VI cases exactly once, each from its own viewport operation", async t => {
+  const x = await fannedOut(t), r = await x.invoke();
+  assert.equal(r.state, "SELECTED"); assert.equal(r.composition.selectedCases, 50);
+  const input = x.fan.inputs[0], ids = x.fan.ids;
+  const viIds = ["desktop", "tablet", "mobile"].map(project => `${ids.vi}-${project}`);
+  assert.deepEqual(input.operations.map(ref => path.basename(ref.path)),
+    [ids.pl6, ...viIds].map(id => `${id}--operation.json`));
+  const vi = input.selections.filter(s => viIds.includes(s.operationId));
+  assert.equal(vi.length, 30);
+  assert.equal(new Set(vi.map(s => s.key)).size, 30, "every VI case exactly once");
+  for (const [n, project] of ["desktop", "tablet", "mobile"].entries()) {
+    const own = vi.filter(s => s.operationId === viIds[n]);
+    assert.equal(own.length, 10);
+    assert.ok(own.every(s => Number(s.key.split(":")[1]) >= n * 10 && Number(s.key.split(":")[1]) < n * 10 + 10), project);
+  }
+  assert.equal(input.selections.filter(s => s.operationId === ids.pl6).length, 20);
+  // The applied operation bytes are exactly the shard's retained bytes.
+  for (const shard of SHARDS) {
+    const ref = x.receipt(shard).reference;
+    assert.equal(hash(fs.readFileSync(path.join(x.fan.repoRoot, ref.path))), ref.sha256);
+  }
+  assert.equal(x.fan.selected(), `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${r.composition.path}\n`);
+  assert.equal(x.fan.nativeCalls.length, 0, "current native packets are qualified, not recaptured");
+});
+
+test("fan-out: a VI shard runs one project and its delta is only its own new operation files", async t => {
+  const x = await fannedOut(t);
+  for (const project of ["desktop", "tablet", "mobile"]) {
+    const { f } = x.shards["vi-" + project], id = `${f.ids.vi}-${project}`;
+    assert.deepEqual(f.calls.map(c => c.args), [["e2e/tools/capture_visual_evidence.cjs", "--id", id, "--port", "3537", "--project", project]]);
+    const delta = x.receipt("vi-" + project).delta;
+    assert.ok(Object.keys(delta).length >= 2);
+    for (const [name, change] of Object.entries(delta)) {
+      assert.ok(name.startsWith(`terminal/docs/pr-crops/terminal-visual-intelligence/${id}--`), name);
+      assert.equal(change.before, null);
+    }
+  }
+  assert.deepEqual(x.shards.pl6.f.calls.map(c => c.args), [["e2e/tools/capture_pl6_batch1.cjs"]]);
+});
+
+test("capture ports stay literal without a runner name and derive disjoint sets from one", () => {
+  assert.deepEqual(capturePorts({}), { pl6: "3536", vi: "3537", batch2: "3538", pine: "3571", batch3: "3572" });
+  const laneSlot = capturePorts({ RUNNER_NAME: "runner-slot-7" });
+  const hosted = capturePorts({ RUNNER_NAME: "github-actions-runner-abc123" });
+  assert.deepEqual(capturePorts({ RUNNER_NAME: "runner-slot-7" }), laneSlot, "same name, same ports");
+  const bands = [[3050, 3300], [3530, 3610], [31990, 32100]];
+  for (const ports of [laneSlot, hosted]) {
+    const numbers = Object.values(ports).map(Number);
+    assert.equal(new Set(numbers).size, 5, "the five capture ports are disjoint");
+    for (const port of numbers) {
+      // Below the Linux ephemeral range: an outbound allocation could
+      // otherwise race a listener's bind inside it.
+      assert.ok(port >= 1024 && port < 32768, `${port} in range`);
+      for (const [low, high] of bands) assert.ok(port < low || port > high, `${port} inside reserved band ${low}-${high}`);
+    }
+  }
+  const all = [...Object.values(laneSlot), ...Object.values(hosted)];
+  assert.equal(new Set(all).size, 10, "two concurrent legs never share a port");
+});
+
+test("each capture shard passes its runner-derived ports to every capture child", async t => {
+  const f = fixture(t, { writeOperations: true, legacyStale: true });
+  f.env.RUNNER_NAME = "runner-slot-7";
+  const ports = capturePorts(f.env);
+  await runShard("pl6", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy });
+  assert.equal(f.calls.find(c => c.args[0].includes("capture_pl6_batch1")).options.env.TERMINAL_CROP_PORT, ports.pl6);
+  assert.deepEqual(f.legacyPorts, [ports.pine, ports.batch3], "legacy qualification uses the same derived set");
+
+  const g = fixture(t, { writeOperations: true });
+  g.env.RUNNER_NAME = "github-actions-runner-xyz";
+  await runShard("vi-mobile", { repoRoot: g.repoRoot, env: g.env, evidence: g.evidence, checkout: g.checkout,
+    spawn: g.spawns.spawn });
+  const args = g.calls.find(c => c.args.includes("--project")).args;
+  assert.equal(args[args.indexOf("--port") + 1], capturePorts(g.env).vi);
+  assert.notEqual(capturePorts(g.env).vi, ports.vi, "co-located legs get different dev ports");
+});
+
+test("the capture deadline follows the workflow budget and rejects malformed values", () => {
+  for (const [env, expected] of [[{ CI_CAPTURE_BUDGET_MINUTES: "5" }, 5], [{}, 54]]) {
+    const before = Date.now(), deadline = captureDeadlineMs(env, 54);
+    assert.ok(deadline >= before + expected * 60_000 && deadline <= Date.now() + expected * 60_000 + 100);
+  }
+  for (const bad of ["zero", "0", "-3", "601", "1.5", "5min", "0x10", "1e2", "1_0"]) {
+    const env = { CI_CAPTURE_BUDGET_MINUTES: bad };
+    assert.throws(() => captureDeadlineMs(env, 54), /CI_CAPTURE_BUDGET_MINUTES/, bad);
+  }
+});
+
+test("a shard's budget below its legacy qualification margin refuses before any legacy child", async t => {
+  // CI_CAPTURE_BUDGET_MINUTES=1 leaves 60s - 90s settle margin < 0, so the
+  // tool's own budget error fires immediately instead of the runner killing
+  // the 55-minute step mid-write.
+  const f = fixture(t, { writeOperations: true, legacyStale: true });
+  f.env.CI_CAPTURE_BUDGET_MINUTES = "1";
+  await assert.rejects(runShard("pl6", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy }), /CI_CAPTURE_BUDGET_EXHAUSTED/);
+  assert.deepEqual(f.legacyCalls, [], "refused before any legacy child spawns");
+});
+
+test("a successful rerun's shard set composes: the run id is identity, the attempt is diagnostic", async t => {
+  const x = await fannedOut(t);
+  assert.equal(x.fan.env.GITHUB_RUN_ATTEMPT, "2");
+  // "Re-run failed jobs": the shards these receipts came from succeeded on
+  // attempt 1 while the fan-in now runs on attempt 2.
+  for (const shard of SHARDS) x.rewrite(shard, r => { r.runAttempt = "1"; });
+  const r = await x.invoke();
+  assert.equal(r.state, "SELECTED");
+  assert.equal(x.fan.selected().startsWith("TERMINAL_EVIDENCE_MODE=records"), true);
+});
+
+for (const [name, mutate, error] of [
+  ["a missing shard", x => fs.rmSync(path.join(x.staging, "vi-tablet"), { recursive: true }), /CI_SHARD_SET/],
+  ["an extra shard", x => fs.cpSync(path.join(x.staging, "vi-desktop"), path.join(x.staging, "vi-other"), { recursive: true }), /CI_SHARD_SET/],
+  ["a duplicate shard standing in for another", x => {
+    fs.rmSync(path.join(x.staging, "vi-tablet"), { recursive: true });
+    fs.cpSync(path.join(x.staging, "vi-desktop"), path.join(x.staging, "vi-tablet"), { recursive: true });
+  }, /CI_SHARD_IDENTITY/],
+  ["a relabelled duplicate operation", x => x.rewrite("vi-tablet", r => {
+    const desktop = x.receipt("vi-desktop"); Object.assign(r, { reference: desktop.reference, operationId: desktop.operationId });
+  }), /CI_SHARD_OPERATION/],
+  ["a foreign commit", x => x.rewrite("vi-mobile", r => { r.checkout.commit = "c".repeat(40); }), /CI_SHARD_CHECKOUT/],
+  ["a foreign tree", x => x.rewrite("pl6", r => { r.checkout.tree = "c".repeat(40); }), /CI_SHARD_CHECKOUT/],
+  ["a foreign run", x => x.rewrite("vi-desktop", r => { r.runId = "41600914409"; }), /CI_SHARD_RUN/],
+  ["a different capture profile", x => x.rewrite("vi-desktop", r => { r.profile.sharedShell = "1"; }), /CI_SHARD_PROFILE/],
+  ["a byte changed after its receipt", x => {
+    const ref = x.receipt("vi-mobile").reference; fs.appendFileSync(path.join(x.staging, "vi-mobile", "files", ref.path), "x");
+  }, /CI_SHARD_BYTES/],
+  ["an unlisted retained file", x => {
+    const target = path.join(x.staging, "pl6", "files", "terminal/docs/pr-crops/b-pl-6-batch-1/smuggled.png");
+    fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, "smuggled");
+  }, /CI_SHARD_BYTES/],
+  ["a VI delta outside its own operation", x => x.rewrite("vi-desktop", r => {
+    r.delta["terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml"] = { before: "a".repeat(64), after: null };
+  }), /CI_SHARD_DELTA_SCOPE/],
+  ["a VI delta that rewrites an existing byte", x => x.rewrite("vi-desktop", r => {
+    const name = r.reference.path; r.delta[name].before = "a".repeat(64);
+  }), /CI_SHARD_DELTA_SCOPE/],
+  ["a base that differs from this checkout", x => {
+    const ref = x.receipt("vi-tablet").reference; x.fan.write(ref.path, "already present on the fan-in checkout");
+  }, /CI_SHARD_BASE/],
+]) test(`fan-in refuses ${name} before selecting records`, async t => {
+  const x = await fannedOut(t); mutate(x);
+  const applied = ref => fs.existsSync(path.join(x.fan.repoRoot, ref.path));
+  await assert.rejects(x.invoke, error);
+  assert.equal(x.fan.selected(), ""); assert.equal(x.fanRecord().state, "FAILED");
+  assert.equal(x.fan.inputs.length, 0, "no composition is written");
+  if (!/BASE/.test(String(error))) for (const shard of ["pl6", "vi-desktop"]) assert.equal(applied(x.receipt(shard).reference), false);
+});
+
+test("fan-in refuses a viewport operation that carries another project's case", async t => {
+  const x = await fannedOut(t, { fanChange: { wrongProject: { "vi:0": "tablet" } } });
+  await assert.rejects(x.invoke, /CI_EVIDENCE_COMPOSITION/);
+  assert.equal(x.fan.selected(), "");
+});
+
+test("a VI shard that writes outside its own operation fails and retains no receipt", async t => {
+  const f = fixture(t, { writeOperations: true, viStray: true });
+  await assert.rejects(runShard("vi-desktop", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy }), /CI_SHARD_DELTA_SCOPE/);
+  assert.equal(fs.existsSync(path.join(f.env.RUNNER_TEMP, "terminal-ci-evidence-bundle", "receipt.json")), false);
+});
+
+test("a VI shard must execute exactly its10 project cases", async t => {
+  const f = fixture(t, { writeOperations: true, ref: { actualCases: 30 } });
+  await assert.rejects(runShard("vi-mobile", { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+    spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy }), /CI_EVIDENCE_REFERENCE/);
+});
+
+test("shards refuse unknown names, capture filters and a preselected composition", async t => {
+  for (const [shard, envChange, error] of [["vi-watch", {}, /CI_SHARD_NAME/], ["pl6", { CAPTURE_ONLY: "ChartChrome" }, /CAPTURE_FILTER/],
+    ["vi-desktop", { TERMINAL_EVIDENCE_COMPOSITION: "x.composition.json" }, /PRESELECTED/]]) {
+    const f = fixture(t, { writeOperations: true }); Object.assign(f.env, envChange);
+    await assert.rejects(runShard(shard, { repoRoot: f.repoRoot, env: f.env, evidence: f.evidence, checkout: f.checkout,
+      spawn: f.spawns.spawn, spawnLegacy: f.spawns.spawnLegacy }), error);
+    assert.equal(f.calls.length, 0);
+  }
+});
+
+test("the single-process path is unchanged: two operations, 24 + 30 cases", async t => {
+  const f = fixture(t), r = await f.invoke();
+  assert.equal(f.inputs[0].operations.length, 2); assert.equal(r.state, "SELECTED");
 });
 
 test("the complete EOD packet retains21 states at three widths in both languages", () => {

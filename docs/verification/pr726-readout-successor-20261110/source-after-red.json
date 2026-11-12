@@ -1,0 +1,10 @@
+{
+  "terminal/components/PrecisionEntryStrip.module.css": "16667427c6db9383339e782136811ccbe07d105784ccd2e460d989087b801c36",
+  "terminal/components/PrecisionEntryStrip.tsx": "8d7f2a3a790afa0bc9c6a38f740aad5d7e544b8d9aa13ac4da59d772adb6e928",
+  "terminal/lib/__tests__/precisionEntryReadout.test.ts": "ae18e2c4513a558cb2f7309bc6e4c4a33fccdd315bc8739d7dd88c231a18f121",
+  "terminal/lib/__tests__/precisionEntryStrip.test.tsx": "c7ec2450a1dd99303c1df5619e946af75e74a75785efc9e56deb6024a3618380",
+  "terminal/lib/precisionEntryReadout.ts": "86e700b920faae8a5afab4bd42d1514543375db41297ec00d620fefcd4318bb0",
+  "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+  "terminal/vitest.config.ts": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64"
+}

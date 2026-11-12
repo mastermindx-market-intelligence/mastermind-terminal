@@ -1,0 +1,319 @@
+{
+  "state": "QUALIFIED_FOR_EXACT_HEAD_CI",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "tree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "routingTests": 33,
+  "driftContractTests": 22,
+  "readerTests": 5,
+  "captureCases": 6,
+  "sourceInputs": [
+    {
+      "gitBlob": "8241031207d86137318b36689984836244eaca3c",
+      "path": ".github/scripts/selfhosted_canary_inputs.sh",
+      "sha256": "e373ca54d7bddf23f82cf50681a65b621b75ffa5f26b097734aa99cdb8947f3b"
+    },
+    {
+      "gitBlob": "63fed28111509aed3bc440f916e75931912a97bd",
+      "path": ".github/workflows/ci.yml",
+      "sha256": "5fb3e02deb5bace82faa8fd311595af0b4aca282e76d46e14db0d7473311d077"
+    },
+    {
+      "gitBlob": "0133c4fb37fd665aae085aca94f555c4347e28ed",
+      "path": "scripts/ci_e2e_scope.py",
+      "sha256": "c2701981c030d0445df09adc5c04a33d8ce0cfc54714a9b24096784a8528418c"
+    },
+    {
+      "gitBlob": "2ba4029c7b5c5bd34cb973262a127929f8d603ef",
+      "path": "terminal/app/(shell)/analysis/page.tsx",
+      "sha256": "27d8262657bac94bf5b6991723a63c060d6e0924f742be10c82cf3ba23bec9ad"
+    },
+    {
+      "gitBlob": "53314124e579fdb800011aeee891e1c8ef4eb40f",
+      "path": "terminal/app/(shell)/layout.tsx",
+      "sha256": "7206e216f07e0e4371777bfff860f851fac6da356225601b3dbb6a0affc9bf95"
+    },
+    {
+      "gitBlob": "5cbd196413a294e1e55ade438262170b08142ffc",
+      "path": "terminal/app/company-intelligence.css",
+      "sha256": "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed"
+    },
+    {
+      "gitBlob": "9cc20eec3c370078aaf0a095632d53dd09d536e3",
+      "path": "terminal/components/fin/EvidenceRail.css",
+      "sha256": "522a1ec2eb44dd15abacf8d90455122efad3aa292579ba16e4a117328c448d8b"
+    },
+    {
+      "gitBlob": "077aa8d133e17e9ecf1bf844ae6eac5befd5a5fb",
+      "path": "terminal/components/fin/EvidenceRail.tsx",
+      "sha256": "7ee9993e3b86fef30f07a83b8a4c5c00578269aa84f9af1b68f815ba5442890d"
+    },
+    {
+      "gitBlob": "4335eebeb616138a55b1724b74e18d117e2e0586",
+      "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+      "sha256": "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036"
+    },
+    {
+      "gitBlob": "05883986a6dbf2c89ff3c3cd8c2442642eb871cf",
+      "path": "terminal/components/workspaces/ResearchWorkspace.module.css",
+      "sha256": "c343ce325707567dabeb9373fcc6c0db15df9247f5a718320a2df23d2a34137c"
+    },
+    {
+      "gitBlob": "9357eb9fc5835ba2141047f2b004e682e358826c",
+      "path": "terminal/components/workspaces/ResearchWorkspace.tsx",
+      "sha256": "bb1c9120dcce251620d8896f623d11f37295b1770002f4525c219d8aefd9c61b"
+    },
+    {
+      "gitBlob": "8a086f53af1ded498f74d7deae0580c54de78e67",
+      "path": "terminal/e2e/portfolio-workspace.spec.ts",
+      "sha256": "e4bd624ed69ab2ccbb180ce6c0434cc987c5cdb50edbf8b19555c8ee25a591e2"
+    },
+    {
+      "gitBlob": "64db6796786a706e9ae110c5e059eb8417613cb6",
+      "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+      "sha256": "3418c7f8d8604c83ea88befb4c4fba5c8893f1ba31f58f5dc42295ee845eccf6"
+    },
+    {
+      "gitBlob": "4e42163a5739c593c1a764b1f86c066613d66fbf",
+      "path": "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "sha256": "61a21792500e20adfe8ff7e6f402d6b10b7233fdd16442e7db15711e34ed8f0f"
+    },
+    {
+      "gitBlob": "85b1c1cbb1978b1a5d2fc9172ede91f18e599ff9",
+      "path": "terminal/e2e/tools/diagnose_f11_mobile_zh.cjs",
+      "sha256": "f4393e09705504d2eaef95eb10d6b75b5cb34b50f95dfdae53c199cbaba9b97a"
+    },
+    {
+      "gitBlob": "c766a05d9f0f2bbd49eb27fbbb78c7e947a03b02",
+      "path": "terminal/e2e/tools/f11_owned_server.cjs",
+      "sha256": "229fd69538d3582083b98522423b25c2f7869473fe57582a9d501404ac7f60eb"
+    },
+    {
+      "gitBlob": "5c8a0d04eb0b0064d2a1d31f1776e8c971a5f228",
+      "path": "terminal/e2e/tools/f11_owned_server.test.cjs",
+      "sha256": "e20a0f6909f42ce6513390e39f9d6b6073af2dfe78141be90133fb47684aaf93"
+    },
+    {
+      "gitBlob": "956b69d1003d7b3c39bd3a531466b3b3e2ae18d4",
+      "path": "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+      "sha256": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c"
+    },
+    {
+      "gitBlob": "c8b0cad3ebcb22b7b04956436da69f5837d20bbf",
+      "path": "terminal/e2e/tools/f11_provider_closed_policy.test.cjs",
+      "sha256": "2432f275411a7402bdf0a5427811a9585d5d278a9caad506d9d940b1fb74d931"
+    },
+    {
+      "gitBlob": "66ad182353b1f02c1c0a1eaeab69782618afa481",
+      "path": "terminal/e2e/tools/f11_script_metadata.cjs",
+      "sha256": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19"
+    },
+    {
+      "gitBlob": "c413df48ad4bb791589ca88f6fb4a967752b4ac5",
+      "path": "terminal/e2e/tools/f11_script_metadata.test.cjs",
+      "sha256": "57fc9278d9fce1d30b71c8d272535fef7a9f62910cbc04f1f517a988de92cba3"
+    },
+    {
+      "gitBlob": "9e1e998e782bb8fd03d2b645a3cfd5114dc41eac",
+      "path": "terminal/lib/__tests__/CompanyIntelligenceNativeResults.test.tsx",
+      "sha256": "47d3a15be12a0c362fba96e6513eb0f947022094cca3afdc98f417b6d1e6736b"
+    },
+    {
+      "gitBlob": "4c0846a11011c1863c7c3d448aa39cbf82be7d66",
+      "path": "terminal/lib/__tests__/CompanyRetainedSelection.test.tsx",
+      "sha256": "9e4518be32d5e011d87df06d723920525b6ccfa1dfcfae550534e7e939d66b7d"
+    },
+    {
+      "gitBlob": "4e8db127caf23ebe19e1fb1043f7df4fae40c201",
+      "path": "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+      "sha256": "877e55ae586973ae52425121080292cd164a38bedfb729d1c50ccc248d957177"
+    },
+    {
+      "gitBlob": "99d97137d05700271da20d5516412a20e42d73f6",
+      "path": "terminal/lib/__tests__/companyBriefWatchpointMeaning.test.tsx",
+      "sha256": "0370a66ac573e5451e254ded713f0e78ca7a4d72147edc8415cdbbdafc48de6c"
+    },
+    {
+      "gitBlob": "1db6bd24e17604da933d03b9c240b7159dbf068e",
+      "path": "terminal/lib/__tests__/productionTypeProject.test.ts",
+      "sha256": "2a6e57b229e108e4e33006b0d14392cac6fdbf31d42b74dd9ff2c9f65b7e2d76"
+    },
+    {
+      "gitBlob": "857fff1a3962465b95802c412e15bd985d676490",
+      "path": "terminal/lib/__tests__/readingWorkspaces.test.tsx",
+      "sha256": "283e7ba2ebc119bf5e0f4e78305c5597a8d8dcd42aab883f12afe06f3a8517e9"
+    },
+    {
+      "gitBlob": "9248ec3d69829c60b558b5d361a899c5036ba9fc",
+      "path": "terminal/lib/__tests__/researchLibrary.test.ts",
+      "sha256": "8f35f3e313a7a48361f9e1a1945406ef02358f99cf844b41a4020aace5722273"
+    },
+    {
+      "gitBlob": "2e31dda670c4a9e2323df47383bebace39ee2488",
+      "path": "terminal/lib/__tests__/researchOutline.test.ts",
+      "sha256": "783d32dabecbedd80fb119416d238cb44d28ac55061f2f4c00e2f792c34b1560"
+    },
+    {
+      "gitBlob": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+      "path": "terminal/lib/i18n.tsx",
+      "sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    {
+      "gitBlob": "fab994e9fb1c82d2d7d75b0ab4994c6b7272b327",
+      "path": "terminal/lib/shared-shell/readingPayloads.ts",
+      "sha256": "952b699f272923ae1ab1457ac6b6b4cc59e7755c8e8212b6e3565deaf06e65f8"
+    },
+    {
+      "gitBlob": "7e1614ef0a71ac5cdcb120fbef36c714a68b3fd4",
+      "path": "terminal/lib/shared-shell/researchLibrary.ts",
+      "sha256": "9f7792888aeedd1fe3c65443b61fb563973fa4850ee45e46e5781de7c9b09568"
+    },
+    {
+      "gitBlob": "a10c59d9913df24bc7f5cc30a42c15222941789a",
+      "path": "terminal/lib/shared-shell/researchOutline.ts",
+      "sha256": "eadf5c0d02abd4fb606cc8fcb5106a1d0d05990d0f85daf2cca6bddb581701c9"
+    },
+    {
+      "gitBlob": "9a689c104f8d29dc24c68b4157bfe3c14742c5af",
+      "path": "terminal/lib/supabase/middleware.ts",
+      "sha256": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26"
+    },
+    {
+      "gitBlob": "910dae036ba4546936fcf071303581f3f6e79461",
+      "path": "terminal/next.config.ts",
+      "sha256": "b43bf4eedb6973a478bb8025f7f246951362b916ded7ffd1e27e96f89e0105db"
+    },
+    {
+      "gitBlob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+      "path": "terminal/package-lock.json",
+      "sha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+    },
+    {
+      "gitBlob": "bc5afb085c0c8a34b23b96a59a34bb21bfb8d487",
+      "path": "terminal/tsconfig.f11.json",
+      "sha256": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63"
+    },
+    {
+      "gitBlob": "3a13f90a773b0facb675bf5b1a8239c8f33d36f5",
+      "path": "terminal/tsconfig.json",
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3"
+    },
+    {
+      "gitBlob": "9223d3b74fe08b730ac3248ac580f629636640f3",
+      "path": "tests/test_ci_browser_setup.py",
+      "sha256": "0113b8b25aaf0c547984408c471b53b2d89f3e0474489cf370b30865d80c4027"
+    },
+    {
+      "gitBlob": "e653660eaa30f7f6293f1609f40fd1109f2b49bc",
+      "path": "tests/test_ci_e2e_scope.py",
+      "sha256": "b0f0e5341927a6d552b163af12ddaf9e962619acd204baf8cd4c424267eda71e"
+    },
+    {
+      "gitBlob": "41f66a254c442bbabbbc4bf89819d5ed1b38cabb",
+      "path": "tests/test_ci_e2e_shards.py",
+      "sha256": "a7a33f710a699317e2351cce9d4e93147215316725c1924023d678bf13af6e02"
+    },
+    {
+      "gitBlob": "310620f00466f1c09b3bc255aaea2ebfae8e72ec",
+      "path": "tests/test_merge_group_fast_lane_contract.py",
+      "sha256": "f5de6e2ddb4665b9e392b39a2e2e90f79f2cd862798789136c6b8b06668679e0"
+    },
+    {
+      "gitBlob": "181438f8a82727cf7cf695a917f8969101e9d050",
+      "path": "tests/test_selfhosted_canary_workflow.py",
+      "sha256": "f24b5e9228c5fe1f900c0d9ce2577f9607d5afb3883a9e8cb86864f774624fe7"
+    }
+  ],
+  "fixtureBindings": 15,
+  "captureReplayed": false,
+  "originalObserverExit": "NOT_OBSERVED",
+  "at": "2026-11-10T14:21:09.173823+00:00",
+  "changedFromPriorInputs": [
+    ".github/workflows/ci.yml",
+    "terminal/app/(shell)/analysis/page.tsx",
+    "terminal/next.config.ts",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "fixtureSources": {
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "3418c7f8d8604c83ea88befb4c4fba5c8893f1ba31f58f5dc42295ee845eccf6",
+    "terminal/e2e/tools/f11_provider_closed_policy.cjs": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
+    "terminal/e2e/tools/f11_owned_server.cjs": "229fd69538d3582083b98522423b25c2f7869473fe57582a9d501404ac7f60eb",
+    "terminal/e2e/tools/f11_script_metadata.cjs": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19",
+    "terminal/tsconfig.f11.json": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63",
+    "terminal/tsconfig.json": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+    "terminal/next.config.ts": "b43bf4eedb6973a478bb8025f7f246951362b916ded7ffd1e27e96f89e0105db",
+    "terminal/package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+    "terminal/app/(shell)/analysis/page.tsx": "27d8262657bac94bf5b6991723a63c060d6e0924f742be10c82cf3ba23bec9ad",
+    "terminal/app/(shell)/layout.tsx": "7206e216f07e0e4371777bfff860f851fac6da356225601b3dbb6a0affc9bf95",
+    "terminal/lib/supabase/middleware.ts": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26",
+    ".github/workflows/ci.yml": "5fb3e02deb5bace82faa8fd311595af0b4aca282e76d46e14db0d7473311d077",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036",
+    "terminal/app/company-intelligence.css": "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "changedFixtureBindings": [
+    "terminal/next.config.ts",
+    "terminal/app/(shell)/analysis/page.tsx",
+    ".github/workflows/ci.yml"
+  ],
+  "images": [
+    {
+      "file": "desktop-en.png",
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "bytes": 72928,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    },
+    {
+      "file": "desktop-zh.png",
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "gitBlob": "e33505e525d33207a8c8f9af05876a02d23e788c",
+      "bytes": 72865,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    },
+    {
+      "file": "tablet-en.png",
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "bytes": 35568,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    },
+    {
+      "file": "tablet-zh.png",
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "bytes": 34375,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    },
+    {
+      "file": "mobile-en.png",
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "bytes": 21970,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    },
+    {
+      "file": "mobile-zh.png",
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "bytes": 22687,
+      "viewed": true,
+      "sameAsPrior": true,
+      "finding": "Shown header, navigation and natural unavailable state are legible; no observed clipping, overlap or blur."
+    }
+  ],
+  "originalProducerExit": 0,
+  "completionObserverExit": 0,
+  "sourceIntegrationReceipt": "source-integration.json",
+  "postCaptureReceipt": "post-capture-reconciliation.json",
+  "designPin": "0267bf8fffc083cd048504bdb5c8e775025d6396"
+}

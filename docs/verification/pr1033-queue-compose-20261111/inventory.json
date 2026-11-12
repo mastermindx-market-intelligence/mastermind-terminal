@@ -1,0 +1,52 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 2398,
+    "sha256": "159fc05ba62546e33e26b2c483cdc8e38287bff3f00cbd9dfdb4e58c196faeb9"
+  },
+  {
+    "path": "merge-intent.json",
+    "bytes": 389,
+    "sha256": "8643b6e664eb78ead7eb81b1b1645ad0c4843fccc129299e4e3ff89bf84828b5"
+  },
+  {
+    "path": "merge-readback.json",
+    "bytes": 60701,
+    "sha256": "02bb22876f212b9fbcc270d66e3ffbb4c4abe72e63007b5277f6141b78d75362"
+  },
+  {
+    "path": "merge.stderr.log",
+    "bytes": 220,
+    "sha256": "8cef96736913936c654d2c590c77196b24ba68e6a5540496c1d62eb91803e3a6"
+  },
+  {
+    "path": "merge.stdout.log",
+    "bytes": 167,
+    "sha256": "944fdd4384180efad98a2a7db8f44fd93eaf9cee370a69ffbf18f6b8341d4a1a"
+  },
+  {
+    "path": "resolution.json",
+    "bytes": 731,
+    "sha256": "eaf22e59fc70e257db207df83665e99cb4525371c715110aba00d0481b281fa6"
+  },
+  {
+    "path": "source-readback.json",
+    "bytes": 8706,
+    "sha256": "6880cb8b6337dd19fc6013397eed09117a915215075db8cc73ec3d3381a22896"
+  },
+  {
+    "path": "tests.json",
+    "bytes": 400,
+    "sha256": "eff25f8051079133427b5b4532a01f3491ad8e895ea97bdc51795c24dbb916c0"
+  },
+  {
+    "path": "tests.log",
+    "bytes": 99,
+    "sha256": "3e4dbfca57d6ec9bd9e1a8a73ec98167996385001cfdd6f0363c8a69b3a2522f"
+  },
+  {
+    "path": "whole-merge-whitespace.log",
+    "bytes": 38697,
+    "sha256": "74df821027a3c1d72976fd3b058149fc3bd1aff6bfe4bb561224b25e87cc9ed4"
+  }
+]

@@ -17,12 +17,12 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 16
+    assert len(scope.FULL_MATRIX) == 17
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
         *(f"desktop-{i}" for i in range(1, 7)),
         *(f"tablet-{i}" for i in range(1, 5)),
         *(f"mobile-{i}" for i in range(1, 6)),
-        "serial",
+        "serial", "serial-standalone",
     }
     assert all(item["specs"] == "" for item in scope.FULL_MATRIX)
     assert [x["shard"] for x in scope.FOCUSED_MATRIX] == [
@@ -33,6 +33,17 @@ def test_full_and_focused_shard_contracts():
         for name in scope.SCREENER_SPECS:
             assert name in item["specs"].split()
             assert (ROOT / "terminal" / name).is_file(), name
+
+
+def test_shared_screener_layout_covers_all_contract_viewports():
+    assert [row["projects"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert [row["shard"] for row in scope.SCREENER_LAYOUT_MATRIX] == [
+        "screener-desktop", "screener-tablet", "screener-mobile"
+    ]
+    assert all(row["specs"].split() == list(scope.SCREENER_SPECS)
+               for row in scope.SCREENER_LAYOUT_MATRIX)
 
 
 @pytest.mark.parametrize("path", sorted(scope.SCOPED_PATHS))
@@ -133,7 +144,14 @@ def test_dynamic_matrix_output_can_be_parsed(monkeypatch, tmp_path):
     scope.main()
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
+    assert [row["shard"] for row in expected_prod] == [
+        "prodbuild-desktop-1", "prodbuild-desktop-2",
+        "prodbuild-tablet-1", "prodbuild-mobile-1",
+    ]
 
 
 def test_required_check_never_launders_skipped_or_failed_scope():
@@ -141,18 +159,31 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     aggregate = jobs["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"}
+    assert set(aggregate["needs"]) == {
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-f11-evidence",
+        "terminal-typecheck", "terminal-unit-shards", "terminal-e2e",
+        "terminal-e2e-build", "terminal-e2e-prodbuild",
+    }
     run = next(step["run"] for step in aggregate["steps"]
                if step["name"] == "Assert all event-required Terminal checks passed")
-    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E"]:
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-f11-evidence:$F11",
+                "terminal-typecheck:$TYPECHECK",
+                "terminal-unit-shards:$UNITS", "terminal-e2e:$E2E",
+                "terminal-e2e-build:$BUILD", "terminal-e2e-prodbuild:$PRODBUILD"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
-    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope", "terminal-evidence-capture"]
+    assert jobs["terminal-evidence-capture"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-evidence-capture"]["if"] == jobs["terminal-unit"]["if"]
+    assert jobs["terminal-typecheck"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-f11-evidence"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-f11-evidence"]["if"] == jobs["terminal-unit"]["if"]
+    assert jobs["terminal-unit-shards"]["needs"] == ["pr_scope", "e2e-scope"]
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
-    # Full audited PR matrix or safe focused subset; native merge_group must
-    # not duplicate the separately proven browser work.
-    docs = ("github.event_name == 'pull_request' && "
-            "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs'")
+    # Full audited PR matrix or safe focused subset; a native merge group
+    # skips the full dev matrix but requires the production-build browser lane.
+    docs = ("needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' "
+            "&& (github.event_name == 'pull_request' || github.event_name == 'merge_group')")
     assert jobs["terminal-unit"]["if"] == (
         "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
     )
@@ -166,13 +197,20 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     )
     assert jobs["e2e-scope"]["steps"][0]["with"]["fetch-depth"] == 2
     assert "ci_e2e_scope.py" in jobs["e2e-scope"]["steps"][-1]["run"]
-    for step in jobs["terminal-unit"]["steps"]:
-        if step.get("name") in ("Prepare Chromium for original mock captures",
-                                "Capture and validate evidence on this checkout"):
-            assert step["if"] == (
-                "github.event_name != 'merge_group' || "
-                "steps.evidence_plan.outputs.capture == 'true'"
-            )
+    by_name = {step["name"]: step for step in jobs["terminal-unit"]["steps"] if "name" in step}
+    condition = (
+        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    )
+    assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
+    # The E18 and active-inbox captures are unconditional browser captures in
+    # this job, so Chromium installs on every event; F11 has its own browser job.
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
+    f11_steps = {step["name"]: step for step in jobs["terminal-f11-evidence"]["steps"] if "name" in step}
+    for name in ("Prepare Chromium for the F11 capture",
+                 "Capture provider-closed F11 theses entry on this checkout"):
+        assert "if" not in f11_steps[name]
+        assert not f11_steps[name].get("continue-on-error", False)
     command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
                    if "test:e2e:responsive" in step.get("run", ""))
     assert "${{ matrix.projects }}" in command
@@ -217,14 +255,15 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
     merge_sha = call("rev-parse", "HEAD")
     monkeypatch.chdir(repo)
     assert scope.select("pull_request", MERGE_REF, merge_sha, head_sha) == (
-        "focused", "reviewed_screener_presentation_or_tests"
+        "focused", "reviewed_screener_shared_layout"
     )
     assert scope.select("merge_group", MERGE_REF, merge_sha, head_sha)[0] == "full"
 
 
 def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
                                            tamper_with_selector=False, delete_css=False,
-                                           base_selector_source=None, expected_exit=0):
+                                           base_selector_source=None, expected_exit=0,
+                                           modified_paths=None):
     """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
     import os
 
@@ -242,6 +281,12 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     css = repo / "terminal" / "components" / "screener" / "CrossMarketStrip.module.css"
     css.parent.mkdir(parents=True)
     css.write_text(".x { padding: 1px; }\n")
+    if modified_paths is None:
+        modified_paths = ("terminal/components/screener/CrossMarketStrip.module.css",)
+    for relative in modified_paths:
+        source = repo / relative
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("baseline source\n")
     (repo / "README.md").write_text("root\n")
     if install_base_selector:
         script = repo / "scripts" / "ci_e2e_scope.py"
@@ -254,7 +299,8 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     if delete_css:
         css.unlink()
     else:
-        css.write_text(".x { padding: 2px; }\n")
+        for relative in modified_paths:
+            (repo / relative).write_text("modified source\n")
     if tamper_with_selector:
         assert install_base_selector
         # Candidate script deliberately lies; immutable protected script must
@@ -289,6 +335,9 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
         assert output.read_text() == ""
         return None, None, result.stderr
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    if fields["mode"] == "focused":
+        assert json.loads(fields["prodbuild_matrix"]) == {"include": []}
+        assert fields["prodbuild_count"] == "0"
     return fields["mode"], json.loads(fields["matrix"])["include"], result.stdout
 
 
@@ -301,13 +350,61 @@ def test_real_workflow_bootstrap_cannot_use_new_unprotected_selector(tmp_path):
     assert "immutable protected selector unavailable" in stdout
 
 
-def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path):
+@pytest.mark.parametrize("path", [
+    "terminal/components/screener/fundamentalScreen.module.css",
+    "terminal/components/screener/CrossMarketStrip.module.css",
+    "terminal/components/screener/TechnicalScreenBar.module.css",
+])
+def test_real_workflow_uses_protected_selector_for_scoped_css(tmp_path, path):
     mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
-        tmp_path, install_base_selector=True
+        tmp_path, install_base_selector=True, modified_paths=(path,)
+    )
+    assert mode == "focused"
+    assert [row["projects"] for row in matrix] == [
+        "--project=desktop", "--project=tablet", "--project=mobile"
+    ]
+    assert "reviewed_screener_shared_layout" in stdout
+
+
+@pytest.mark.parametrize("path", [f"terminal/{name}" for name in scope.SCREENER_SPECS])
+def test_real_workflow_keeps_spec_only_changes_narrow(tmp_path, path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(path,)
     )
     assert mode == "focused"
     assert matrix == scope.FOCUSED_MATRIX
     assert "reviewed_screener_presentation_or_tests" in stdout
+
+
+@pytest.mark.parametrize("other,expected_mode", [
+    ("terminal/e2e/screener-cross-market.spec.ts", "focused"),
+    ("terminal/app/globals.css", "full"),
+])
+def test_real_workflow_shared_css_mixed_diff_preserves_scope(tmp_path, other, expected_mode):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, modified_paths=(
+            "terminal/components/screener/CrossMarketStrip.module.css", other,
+        ),
+    )
+    assert mode == expected_mode
+    if expected_mode == "focused":
+        assert matrix == scope.SCREENER_LAYOUT_MATRIX
+        assert "reviewed_screener_shared_layout" in stdout
+    else:
+        assert matrix == scope.FULL_MATRIX
+        assert "unknown_or_elevated_path" in stdout
+
+
+def test_unrecognized_focused_classification_falls_back_to_full(monkeypatch, tmp_path):
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setattr(scope, "select", lambda *args: ("focused", "unknown_reason"))
+    monkeypatch.setattr(scope, "ALLOWLIST_PATH", tmp_path / "no-allowlist")
+    scope.main()
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert fields["mode"] == "full"
+    assert fields["reason"] == "unrecognized_focused_reason"
+    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
 
 
 def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
@@ -318,6 +415,66 @@ def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
     assert matrix == scope.FULL_MATRIX
     assert "unknown_or_elevated_path" in stdout
 
+
+
+def _legacy_full_serial_matrix():
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if row["shard"] not in ("serial", "serial-standalone")]
+    rows.append({
+        "shard": "serial",
+        "projects": " ".join(f"--project={project}" for project in (
+            "company-intelligence-desktop", "company-intelligence-tablet",
+            "company-intelligence-mobile", "terminal-chrome-intermediate",
+            "w2a-workspaces",
+        )),
+        "specs": "",
+    })
+    return rows
+
+
+def test_real_workflow_splits_old_protected_serial_output_without_running_candidate(tmp_path):
+    old = _legacy_full_serial_matrix()
+    extra = {"shard": "future-owner", "projects": "--project=future-owner",
+             "specs": "", "owner_metadata": {"preserve": True}}
+    old.append(extra)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [extra]
+    assert "split protected full serial row" in stdout
+
+
+@pytest.mark.parametrize("variant", [
+    "focused", "already-split", "filtered", "metadata", "duplicate",
+    "extra-serial", "overlapping-project", "custom-projects",
+])
+def test_real_workflow_preserves_other_protected_serial_topologies(tmp_path, variant):
+    old = _legacy_full_serial_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    serial = next(row for row in old if row["shard"] == "serial")
+    if variant == "already-split":
+        old = [dict(row) for row in scope.FULL_MATRIX]
+    elif variant == "filtered":
+        serial["specs"] = "e2e/future.spec.ts"
+    elif variant == "metadata":
+        serial["owner_metadata"] = "preserve"
+    elif variant == "duplicate":
+        old.append(dict(serial))
+    elif variant == "extra-serial":
+        old.append({"shard": "serial-standalone", "projects": "--project=future-owner", "specs": ""})
+    elif variant == "overlapping-project":
+        old.append({"shard": "future-company", "projects": "--project=company-intelligence-desktop", "specs": ""})
+    elif variant == "custom-projects":
+        serial["projects"] += " --project=future-owner"
+    actual_mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+    assert "split protected full serial row" not in stdout
 
 def _legacy_full_tablet_matrix():
     # Model the immutable protected selector that the first repaired PR run
@@ -507,7 +664,10 @@ def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch)
     assert result.returncode == 0, (result.stdout, result.stderr)
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
-    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+    expected_dev, expected_prod = scope.split_lanes(scope.FULL_MATRIX, scope.read_prodbuild_allowlist())
+    assert json.loads(fields["matrix"]) == {"include": expected_dev}
+    assert json.loads(fields["prodbuild_matrix"]) == {"include": expected_prod}
+    assert fields["prodbuild_count"] == "4"
 
 
 @pytest.mark.parametrize("status", ["A", "D", "T", "R100", "M100"])
@@ -558,7 +718,11 @@ def _execute_required_aggregate(**overrides):
     env = {
         **os.environ,
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "E2E": "success", **overrides,
+        "SCOPE": "success", "UNIT": "success", "F11": "success", "TYPECHECK": "success",
+        "UNITS": "success", "E2E": "success",
+        # The production-build lane of an ordinary full run: built, four shards.
+        "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
+        **overrides,
     }
     return subprocess.run(
         ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
@@ -573,6 +737,17 @@ def _execute_required_aggregate(**overrides):
 def test_qualified_docs_pr_can_skip_each_test_job(unit, e2e):
     result = _execute_required_aggregate(PR_MODE="docs", UNIT=unit, E2E=e2e)
     assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize("lane", ["UNIT", "F11", "TYPECHECK", "UNITS", "E2E"])
+def test_qualified_docs_pr_can_skip_each_split_lane(lane):
+    # The split typecheck/unit-shard lanes earn the same docs-only skip as the
+    # evidence lane; any non-success result still fails the required context.
+    result = _execute_required_aggregate(PR_MODE="docs", **{lane: "skipped"})
+    assert result.returncode == 0, result.stdout
+    for status in ("failure", "cancelled", ""):
+        result = _execute_required_aggregate(PR_MODE="docs", **{lane: status})
+        assert result.returncode != 0, (lane, status, result.stdout)
 
 
 @pytest.mark.parametrize("pr_scope,mode", [
@@ -612,15 +787,29 @@ def test_docs_qualification_never_excuses_a_failed_or_cancelled_test(status, job
     assert result.returncode != 0, result.stdout
 
 
-def test_native_merge_group_keeps_only_its_accepted_browser_skip():
+def test_native_merge_group_keeps_only_its_development_matrix_skip():
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
     )
     assert result.returncode == 0, result.stdout
+    for status in ("failure", "cancelled", "skipped", ""):
+        result = _execute_required_aggregate(
+            EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
+            BUILD="skipped", PRODBUILD=status, PRODBUILD_COUNT="4",
+        )
+        assert result.returncode != 0, (status, result.stdout)
+    # A whole merge group CAN earn the docs exemption, but only from a
+    # successful classifier: an unqualified pr_scope keeps every skip unlawful.
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_MODE="docs", UNIT="skipped", E2E="skipped",
     )
-    assert result.returncode != 0, result.stdout
+    assert result.returncode == 0, result.stdout
+    for status in ("failure", "skipped", "cancelled", ""):
+        result = _execute_required_aggregate(
+            EVENT="merge_group", PR_SCOPE=status, PR_MODE="docs",
+            UNIT="skipped", E2E="skipped", BUILD="skipped", PRODBUILD="skipped",
+        )
+        assert result.returncode != 0, (status, result.stdout)
 
 
 @pytest.mark.parametrize("event", ["workflow_dispatch", "schedule", "push"])

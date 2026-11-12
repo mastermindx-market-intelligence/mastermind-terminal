@@ -30,7 +30,8 @@ case "$shard" in
   mobile-3) projects="--project=mobile --shard=3/5" ;;
   mobile-4) projects="--project=mobile --shard=4/5" ;;
   mobile-5) projects="--project=mobile --shard=5/5" ;;
-  serial) projects="--project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --project=terminal-chrome-intermediate --project=w2a-workspaces" ;;
+  serial) projects="--project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile" ;;
+  serial-standalone) projects="--project=terminal-chrome-intermediate --project=w2a-workspaces" ;;
   *)
     printf '::error::CANARY_SHARD must be a ci.yml terminal-e2e shard label; rejected %q\n' "$shard" >&2
     exit 2

@@ -1,0 +1,92 @@
+{
+  "accepted_dependency_blobs": {
+    "terminal/components/fin/TranscriptDrawer.tsx": "999070fa1b4053d44b0bc5c77704ec59b894a114",
+    "tests/test_trusted_migration_ownership.py": "f05ff0062e7629d67e9864e30ceb3db50b3b748a"
+  },
+  "accepted_protected": "568fa505afb068900424fe4db0da67587d46a114",
+  "admission": "Existing auto and merge-on-green/merge-blocked labels preserved; new natural CI and native queue remain owed.",
+  "at": "2026-11-11T19:25:09.038035+00:00",
+  "authored_source_paths": [
+    ".github/workflows/ci.yml",
+    "terminal/scripts/ci/plan-evidence-capture.cjs",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "checks": {
+    "failed": 0,
+    "node_passed": 391,
+    "python_passed": 105,
+    "source_unchanged": true
+  },
+  "expected_head": "9ff2b500ed55d42b16ba77de00f11395422b6ad3",
+  "files": {
+    "checks-intent.json": {
+      "bytes": 2235,
+      "sha256": "6beca49e88cc12f20bf8282911fd731fbb04b98a5d3964e08d842ea159cefa04"
+    },
+    "checks-result.json": {
+      "bytes": 79020,
+      "sha256": "6e71224f68ecbc75fdefb96365d98e70910019f753c04beb7e5f0d14bdab8325"
+    },
+    "ff-intent.json": {
+      "bytes": 167,
+      "sha256": "5a52d760518cbb1eff147d3a5608ebc6f47f3f7b142a87ceb287b12a5e6adf42"
+    },
+    "ff-result.json": {
+      "bytes": 447,
+      "sha256": "3f0293802af90f2bcb05e493abd7afa49173ddc715f5a5e60d7b6b13db22b61e"
+    },
+    "intent.json": {
+      "bytes": 1178,
+      "sha256": "ef68befb6f23112d997886ef410e6ea206e108289b8789c96c91c1b5bbb34016"
+    },
+    "merge-intent.json": {
+      "bytes": 304,
+      "sha256": "157ebfcd7d2070208e0347ad5102e9d40f1a5b9249d4f3bacf3afeca337216f1"
+    },
+    "merge-result.json": {
+      "bytes": 2436,
+      "sha256": "f8ac07c42b05d192ee567e7e77628f3de5cf3ab88ffa947b0e7675b4160499ad"
+    },
+    "node-physical-intent.json": {
+      "bytes": 1644,
+      "sha256": "be9b6e510694e34852eac38c48be8e877642ede90386904daa3c386654327ea1"
+    },
+    "node-physical-result.json": {
+      "bytes": 416,
+      "sha256": "983abd720781b5dda5ec73d027a7208e4a9d8f2cb3fe96f6ac5a6968bfc2eab3"
+    },
+    "node-physical.log": {
+      "bytes": 84652,
+      "sha256": "caaf8cb453691d40c902cfa5c0d8b94ed10e26dd8fc0b8aedb8db4272a136547"
+    },
+    "node.log": {
+      "bytes": 92477,
+      "sha256": "59175e1867321a9ad201273e98f677728a0d02b7cebb3ccddea05ce57b57902d"
+    },
+    "protected-relative-source.diff": {
+      "bytes": 10343,
+      "sha256": "b5f5942f57e9a1b76edaa2a36dfc42f1ed2d4b2a406b433632f780d4056677d6"
+    },
+    "python.log": {
+      "bytes": 180,
+      "sha256": "0a513da159b64d09a1413a6ace9ad6466da36acd2e08f4ba3c5f4440fec4ffc8"
+    }
+  },
+  "operation": "terminal-evidence-path-file-support-20261111-c3",
+  "original_negative": {
+    "cause": "Darwin /tmp resolves to /private/tmp; strict packet reader refused fixture paths before assertions. Physical TMPDIR corrected the invocation with source and symlink guards unchanged.",
+    "node_failed": 4,
+    "node_passed": 387,
+    "python_passed": 105
+  },
+  "prior_ci_run": 43058456105,
+  "prior_source_only_tree": "fc38ca9296b7f4ab0a3f2d1557d7bf6221b44274",
+  "source_blobs": {
+    ".github/workflows/ci.yml": "a913227d4ad13cf85df93c08a5163c2ed3fd81af",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "6a26c677b0245e8b319a45893ed7aad2f3e8975f",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "157700eda07c4dc4ca013de9f25ecfd4b90f9a2c",
+    "tests/test_merge_group_fast_lane_contract.py": "5a6733f2ccdae92eb894d706989bf7e0c15e8a0c"
+  },
+  "source_branch": "sol/web-terminal-evidence-path-file-support-20261111-c3"
+}

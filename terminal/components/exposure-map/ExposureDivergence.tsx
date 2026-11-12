@@ -17,8 +17,9 @@ const stamp = (t: number | null) => t == null ? "—" : `${new Date(t * 1000).to
 
 /** Snapshot reads through existing bar owners; no quote subscription, store, alert, or backtest. */
 export type ExposureAverage = { label: string; price: number; observedAt: number };
-export default function ExposureDivergence({ root, timeframe, onTimeframe, inspectorHost, onAverages }: {
+export default function ExposureDivergence({ root, timeframe, onTimeframe, inspectorHost, gammaLevelSide, onAverages }: {
   root: string; timeframe: string; onTimeframe: (tf: ExposureTimeframe) => void; inspectorHost: HTMLElement | null;
+  gammaLevelSide: "above" | "below" | null;
   onAverages?: (root: string, values: ExposureAverage[]) => void;
 }) {
   const { lang } = useLang(); const zh = lang === "zh"; const t = exposureMapT(lang);
@@ -101,6 +102,13 @@ export default function ExposureDivergence({ root, timeframe, onTimeframe, inspe
   const states = zh ? { none: "无已确认背离", insufficient: "历史不足", stale: "数据过时", confirmed: "已确认" } : { none: "No confirmed divergence", insufficient: "Insufficient history", stale: "Stale bars", confirmed: "Confirmed" };
   const directions = new Set(rows.flatMap(({ result }) => result?.state === "confirmed" && result.event ? [result.event.kind.toLowerCase().includes("bull") ? "bull" : "bear"] : []));
   const selectedResult = rows.find(row => row.tf === timeframe)?.result;
+  const shortTermEvent = timeframe !== "D" && timeframe !== "W" && selectedResult?.state === "confirmed"
+    ? selectedResult.event
+    : null;
+  const bullish = shortTermEvent?.kind === "bull" || shortTermEvent?.kind === "hiddenBull";
+  const levelConflict = shortTermEvent && gammaLevelSide === (bullish ? "below" : "above")
+    ? t(bullish ? "bullishDivergenceGammaBelow" : "bearishDivergenceGammaAbove")
+    : null;
   const stateLabel = (result: typeof selectedResult) => result?.event ? kinds[result.event.kind]
     : result ? states[result.state] : t("unavailable2");
   const profile = `${EXPOSURE_RSI_PROFILE.id} · ${t(hidden ? "regularAndHidden" : "regularOnly")}`;
@@ -117,10 +125,12 @@ export default function ExposureDivergence({ root, timeframe, onTimeframe, inspe
       </button>;
     })}</div>
     <small className={styles.momentumProfile}>{profile}</small>
+    {levelConflict && <p className={styles.warning}>{levelConflict}</p>}
     {inspectorHost && createPortal(<section className={styles.momentumDetail}>
       <span className={styles.eyebrow}>{t("confirmedMomentum")}</span>
       <h4>{root} · {timeframe}</h4>
       <strong>{stateLabel(selectedResult)}</strong>
+      {levelConflict && <p className={styles.note}>{levelConflict}</p>}
       <dl><dt>{t("momentumProfile")}</dt><dd>RSI({EXPOSURE_RSI_PROFILE.period}) · {t("pivotWing")} {EXPOSURE_RSI_PROFILE.wing} · {t("maxSpan")} {EXPOSURE_RSI_PROFILE.maxSpan}<br />{profile}</dd>
         <dt>{t("latestClose")}</dt><dd>{stamp(selectedResult?.latestClose ?? null)}{selectedResult?.shortened && t("shortenedSession")}</dd>
         {selectedResult?.event && <><dt>{t("oscillatorPivot")}</dt><dd>{timeframe === "D" || timeframe === "W"
