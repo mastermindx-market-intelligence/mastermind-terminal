@@ -13,7 +13,7 @@
  * @vitest-environment jsdom
  */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { createRoot, type Root } from "react-dom/client";
 import { act, useEffect, useState } from "react";
 import DrawingSidebar, { type DrawingSidebarProps } from "@/components/DrawingSidebar";
@@ -44,7 +44,7 @@ beforeAll(() => {
 
 type Harness = {
   accept: boolean;
-  onPinned: ReturnType<typeof vi.fn>;
+  onPinned: Mock<NonNullable<DrawingSidebarProps["onPinned"]>>;
   setTool: (tool: DrawKind | null) => void;
 };
 

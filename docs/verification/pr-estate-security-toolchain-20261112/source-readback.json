@@ -1,0 +1,154 @@
+{
+  "schema": "terminal.security-toolchain.source-readback.v1",
+  "at": "2026-11-12T05:18:18.821952+00:00",
+  "head": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "branch": "sol/web-terminal-pr-estate-security-toolchain-20261112-c3",
+  "trackedDiffSha256": "5f9cd983b41338572c89ed6a201e07866b70c63d4c423f924ae3999a2980df55",
+  "newConsumerSha256": "3482d34f75b737d8f8f2454a69dddf38f7034b9c7c4317590e5e51e0fd715915",
+  "trackedChangedPaths": [
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/capture.json",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-1440-zh.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-1440.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-390-zh.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-390.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-1440-zh.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-1440.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-390-zh.png",
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-390.png",
+    "terminal/docs/specimens/news-flow.html",
+    "terminal/lib/__tests__/BriefSharingReview.test.tsx",
+    "terminal/lib/__tests__/__snapshots__/prophetOriginationDisclosure.test.ts.snap",
+    "terminal/lib/__tests__/accountLifecycleRoutes.test.ts",
+    "terminal/lib/__tests__/alertsMutationRaces.test.tsx",
+    "terminal/lib/__tests__/analysisSectionHeadings.test.tsx",
+    "terminal/lib/__tests__/brainOpenIntent.test.ts",
+    "terminal/lib/__tests__/chartEngineGapLifecycle.test.ts",
+    "terminal/lib/__tests__/chartEnginePaneIdentity.test.ts",
+    "terminal/lib/__tests__/chartEnginePineRendering.test.ts",
+    "terminal/lib/__tests__/chartShortcutOwnership.test.tsx",
+    "terminal/lib/__tests__/drawingSidebarAcceptedTool.test.tsx",
+    "terminal/lib/__tests__/errorReturnRecovery.test.tsx",
+    "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx",
+    "terminal/lib/__tests__/fixtures/sectorNativeDossierDrivers.master.v1.html",
+    "terminal/lib/__tests__/flowScoreBoundary.test.ts",
+    "terminal/lib/__tests__/indicatorSettingsAccessibility.test.tsx",
+    "terminal/lib/__tests__/onboardingSigninCompletion.test.tsx",
+    "terminal/lib/__tests__/optionsChartReturn.test.tsx",
+    "terminal/lib/__tests__/optionsCompanionReceipts.test.tsx",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "terminal/lib/__tests__/optionsScopeExact.test.tsx",
+    "terminal/lib/__tests__/pineTimeClose.test.ts",
+    "terminal/lib/__tests__/portfolioTreasuryHistory.test.ts",
+    "terminal/lib/__tests__/sectorCycleLensController.test.tsx",
+    "terminal/lib/__tests__/todayBreadthRecovery.test.tsx",
+    "terminal/lib/__tests__/todayResearchAttention.test.tsx",
+    "terminal/lib/__tests__/todaySinceLastVisit.test.tsx",
+    "terminal/lib/__tests__/todayWatchAttention.test.tsx",
+    "terminal/package-lock.json",
+    "terminal/package.json",
+    "terminal/vitest.config.ts"
+  ],
+  "preservedHistoricalInputs": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/EVIDENCE.yml",
+      "sha256": "763412350de378e1d371909b1d7ec7a8e19a0c199f315ffb84011da6801b22c9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440-zh.png",
+      "sha256": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440.png",
+      "sha256": "6bdfe384d60d8a3758db42339d7a913ac19ca8eef5423d63f826b5204c8510b1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390-zh.png",
+      "sha256": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390.png",
+      "sha256": "9c9a93438e065b83f61e75315ddfff4337b3f27431ec9e973b7727873c34f7ea"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440-zh.png",
+      "sha256": "ad18a92d785f353d1ffa7e268d34d42c684706e991d5fba8673b1267d4b46340"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440.png",
+      "sha256": "922fb39845d183d1e807a7597fc75775c9e2e02ab1c4ba7507db30df85fe287c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390-zh.png",
+      "sha256": "b6d29a5215c981c1784019804336ee023770235cc212eef212c940b3d81f0584"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390.png",
+      "sha256": "17a7b332ec48689e19ec002b7e4a66c6775d4db9365034f4599d2ae0051de490"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440-zh.png",
+      "sha256": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440.png",
+      "sha256": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390-zh.png",
+      "sha256": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390.png",
+      "sha256": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/.gitignore",
+      "sha256": "a67dbaaa0498be22b9259e7506ade72b3523a52d90a2278438eb15269bcf4bc4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/app/layout.tsx",
+      "sha256": "c199bd0855daf88fa7f274248efeeed01f4222813830fc671c1a8a0575b7408e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/app/research/page.tsx",
+      "sha256": "7ef153c6413b6ed9516b1a2b37f44529a5e3966b661d2fb912e28d425d7d0f06"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/app/today/page.tsx",
+      "sha256": "57a5b8e94f2de8921f288eb66481d4e79da7f162acded0a25109b08f12c7c29c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/inactive.tsx",
+      "sha256": "4cf3c8cc06ea4fc7eca9c6a43a895e87ee8e7c8ff1a0dec3c075e30cf80410a9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/next.config.mjs",
+      "sha256": "a4e0bad16c194d558d888c58cebf757f4b5d069b5c8d19243cf85d67e24b9658"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/onboarding.tsx",
+      "sha256": "a0493eeced57fe07290688c39f888edf9c75120807fbf404a2590cc1c2ec2251"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/package.json",
+      "sha256": "a338bb5dc7255f724ec3b46846c440dc87b71eac20fe17e712af6b4db4f6e8fb"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/postcss.config.mjs",
+      "sha256": "cc8f514ba7fda07a2e2828670c99e34275f314b350628d8c2ab39e68e50bf9f8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/sdk.ts",
+      "sha256": "e262d3875558e0d8374066c991f325836bed5967ac3af1861d40601027a8f315"
+    },
+    {
+      "path": "terminal/docs/pr-crops/shared-shell-today-priority-20261102/next-fixture/tsconfig.json",
+      "sha256": "6f55a7f3d1639416dd707f38b742935d5d4500a6e9e8bf4b88b4a1f857bb094b"
+    }
+  ],
+  "rawArchiveMembers": 155,
+  "rawArchiveUncompressedBytes": 22719365,
+  "rawArchiveBytes": 2880169,
+  "rawArchiveSha256": "f1286fdef0f9caa90a7d00090d9a3233118ee77874aa4534e56fa64f8af07773",
+  "testsRerunForPackaging": false
+}

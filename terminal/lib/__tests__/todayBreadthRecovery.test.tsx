@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import TodayBreadthReading from "@/components/workspaces/TodayBreadthReading";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -12,7 +12,7 @@ const A = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
 type Held = { url: string; init: RequestInit; resolve: (value: Response) => void; reject: (error: Error) => void };
 let held: Held[]; let root: Root; let host: HTMLDivElement;
-let scope: { current: AbortController }; let ended: ReturnType<typeof vi.fn>;
+let scope: { current: AbortController }; let ended: Mock<() => void>;
 async function flush() { for (let i = 0; i < 4; i++) await act(async () => { await Promise.resolve(); }); }
 async function mount(ownerKey = A, enabled = true) {
   await act(async () => root.render(<TodayBreadthReading ownerKey={ownerKey} scope={scope} enabled={enabled} onUnauthenticated={ended} />)); await flush();

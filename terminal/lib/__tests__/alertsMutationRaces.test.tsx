@@ -4,7 +4,7 @@
 // snapshots; changing server state at release time would hide the DELETE race.
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi, type Mock } from "vitest";
 import { ExistingAlertsPanel, NewAlertPanel } from "@/components/AlertsView";
 import { LangProvider } from "@/lib/i18n";
 import { ALERTS_CHANGED_EVENT } from "@/lib/alertsView";
@@ -25,13 +25,13 @@ describe("F08 mutation/read and draft races", () => {
   let server: Row[];
   let reads: Read[];
   let writes: Write[];
-  let changed: ReturnType<typeof vi.fn>;
+  let changed: Mock<EventListener>;
   const flush = () => act(async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); });
 
   beforeEach(() => {
     container = document.createElement("div"); document.body.appendChild(container);
     server = [row("a", "NVDA"), row("b", "MSFT")]; reads = []; writes = [];
-    changed = vi.fn(); window.addEventListener(ALERTS_CHANGED_EVENT, changed);
+    changed = vi.fn<EventListener>(); window.addEventListener(ALERTS_CHANGED_EVENT, changed);
     vi.stubGlobal("fetch", vi.fn((input: unknown, init?: RequestInit) => {
       const url = String(input), method = init?.method ?? "GET";
       if (url === "/api/alerts" && method === "GET") {

@@ -1,0 +1,922 @@
+{
+  "schema": "terminal.current-hosted-evidence-qualification.v1",
+  "qualifiedAt": "2026-11-12T06:06:37.778Z",
+  "run": 43160725037,
+  "attempt": 1,
+  "head": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+  "actualCheckout": {
+    "commit": "35d6b1f9305b445949f1c49512bfe3bce0ac3460",
+    "tree": "c081f4aceea804c8ef66b09935a8d365d9587779"
+  },
+  "unitArtifact": {
+    "id": 13919181267,
+    "sha256": "84d54fc54801bb8998d4c67b85b5c005827398a5e28569b0812529402a063407",
+    "bytes": 42855075
+  },
+  "f11": {
+    "fixtureSha256": "e3f23963c22812a52a05120b084959dc3e109bb6a31de21ad7163e502b2bbc20",
+    "capturedAtHead": "35d6b1f9305b445949f1c49512bfe3bce0ac3460",
+    "sources": {
+      "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "3418c7f8d8604c83ea88befb4c4fba5c8893f1ba31f58f5dc42295ee845eccf6",
+      "terminal/e2e/tools/f11_provider_closed_policy.cjs": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
+      "terminal/e2e/tools/f11_owned_server.cjs": "e48dcc5a8b34dc27bf948e770bf8bc527b1763bd90d1ccdf2a9e23275ffee854",
+      "terminal/e2e/tools/f11_script_metadata.cjs": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19",
+      "terminal/tsconfig.f11.json": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63",
+      "terminal/tsconfig.json": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+      "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+      "terminal/package-lock.json": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e",
+      "terminal/app/(shell)/analysis/page.tsx": "27d8262657bac94bf5b6991723a63c060d6e0924f742be10c82cf3ba23bec9ad",
+      "terminal/app/(shell)/layout.tsx": "7206e216f07e0e4371777bfff860f851fac6da356225601b3dbb6a0affc9bf95",
+      "terminal/lib/supabase/middleware.ts": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26",
+      ".github/workflows/ci.yml": "cb5243b2a8cac83ef7a5ec2410d541d9680e98d9222b17b33cbb31d1aa2f2b38",
+      "terminal/components/workspaces/AnalysisWorkspace.tsx": "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036",
+      "terminal/app/company-intelligence.css": "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed",
+      "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    "captureProfile": {
+      "server": {
+        "command": "next dev --webpack",
+        "mode": "development",
+        "reactDebugChannel": false,
+        "providerClosedChild": true,
+        "freshServerPerImage": true,
+        "distDir": ".next/f11",
+        "tsconfigPath": "tsconfig.f11.json"
+      },
+      "publicScriptObservation": {
+        "bodyAwaitBeforeFulfill": true,
+        "byteShaMimeEncoding": true,
+        "browserDeliveryEvents": true
+      },
+      "node": "v20.20.2",
+      "next": "16.4.6",
+      "playwright": "1.61.1",
+      "browser": {
+        "version": "149.0.7827.55",
+        "revision": "1228",
+        "launch": {
+          "headless": true
+        },
+        "serviceWorkers": "block",
+        "freshContextPerImage": true,
+        "freshBrowserPerImage": true
+      }
+    },
+    "serverSettlement": {
+      "cases": [
+        {
+          "file": "desktop-en.png",
+          "pid": 10504,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        },
+        {
+          "file": "desktop-zh.png",
+          "pid": 10639,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        },
+        {
+          "file": "tablet-en.png",
+          "pid": 10774,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        },
+        {
+          "file": "tablet-zh.png",
+          "pid": 10971,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        },
+        {
+          "file": "mobile-en.png",
+          "pid": 11111,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        },
+        {
+          "file": "mobile-zh.png",
+          "pid": 11249,
+          "closeObserved": true,
+          "processGroupAbsent": true,
+          "exitSuccess": "NOT_ASSERTED"
+        }
+      ],
+      "allClosed": true,
+      "allGroupsAbsent": true
+    },
+    "generatedTypes": {
+      "cases": [
+        {
+          "file": "desktop-en.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        },
+        {
+          "file": "desktop-zh.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        },
+        {
+          "file": "tablet-en.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        },
+        {
+          "file": "tablet-zh.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        },
+        {
+          "file": "mobile-en.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        },
+        {
+          "file": "mobile-zh.png",
+          "compilerNamespace": ".next/f11/dev",
+          "defaultCompilerNamespaceSelected": false,
+          "nextEnvPreimage": {
+            "bytes": 296,
+            "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+          },
+          "nextEnvRestored": true,
+          "trackedTsconfigsUnchanged": true
+        }
+      ],
+      "allRestored": true
+    },
+    "images": [
+      {
+        "file": "desktop-en.png",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "lang": "en",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "inline",
+        "image": {
+          "bytes": 65060,
+          "sha256": "1c80c0efb987e4e868bd858bf929685175a883b6bb65bec59a1137cf51d1799e"
+        }
+      },
+      {
+        "file": "desktop-zh.png",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "lang": "zh",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "inline",
+        "image": {
+          "bytes": 72049,
+          "sha256": "93b0a1aec5c6bfaf8585789823f879dc398e449da7d96dfe67730bbb4b423373"
+        }
+      },
+      {
+        "file": "tablet-en.png",
+        "viewport": {
+          "width": 820,
+          "height": 1180
+        },
+        "lang": "en",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "inline",
+        "image": {
+          "bytes": 30727,
+          "sha256": "3f6fd04d056b4f02f7c4416c8eb496a1e2d8423033e0d40ded712f6dac466cc2"
+        }
+      },
+      {
+        "file": "tablet-zh.png",
+        "viewport": {
+          "width": 820,
+          "height": 1180
+        },
+        "lang": "zh",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "inline",
+        "image": {
+          "bytes": 35350,
+          "sha256": "6857e9f6d381758a32bf615fc176462dba6363c7d6a735ecf005a326cc96909d"
+        }
+      },
+      {
+        "file": "mobile-en.png",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "lang": "en",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "compact-research-actions",
+        "captureDisclosure": "closed",
+        "image": {
+          "bytes": 19806,
+          "sha256": "5520df9a1d074a29665bbc9868055bfac39adf454b76a9e1191b330be5077d11"
+        }
+      },
+      {
+        "file": "mobile-zh.png",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "lang": "zh",
+        "href": "/analysis?view=theses&symbol=NVDA",
+        "entryPresentation": "compact-research-actions",
+        "captureDisclosure": "closed",
+        "image": {
+          "bytes": 23375,
+          "sha256": "bc5ccaf49f8d1b0db83c918feef62d986b6749bb0a0fb1bf56765ce19e8e1958"
+        }
+      }
+    ],
+    "sourceCount": 15,
+    "orderedCases": 6,
+    "allCurrentSourceAndCapturedGitBindings": true,
+    "visualReview": {
+      "reviewer": "assigned-root",
+      "files": [
+        "desktop-en.png",
+        "desktop-zh.png",
+        "tablet-en.png",
+        "tablet-zh.png",
+        "mobile-en.png",
+        "mobile-zh.png"
+      ],
+      "result": "All six original EN/ZH PNGs inspected: legible research context and explicit unavailable fundamentals; desktop/tablet theses controls are inline, mobile preserves its closed 44px compact disclosure. The receipt separately records observed theses-entry targets. No live data, account, authenticated or installed acceptance."
+    },
+    "scope": "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
+    "committedLegacyPacketDisposition": "Preserved. Existing reader's three layout/lexicon pins are unchanged; current-package FIXTURE and six PNGs are retained as original CI evidence."
+  },
+  "composition": {
+    "id": "ci-43160725037-1-current",
+    "sha256": "52923524039451052b4bd0b617e189f8faff0a36f2b76618e91b1063b7752356",
+    "profile": {
+      "buildMode": "next-dev",
+      "fixture": "terminal-e2e.v1",
+      "investorShellPreview": "0",
+      "sharedShell": "0",
+      "theme": "dark"
+    },
+    "operations": [
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--operation.json",
+        "sha256": "060d9151fdd714f193ba573590fb7931cd0e19e753430a5e38079c28348d109f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--operation.json",
+        "sha256": "a2ff47225f0c4eb23352baf161ee8a05f6b136bf0e38ef08124caab1beb3dd04"
+      }
+    ],
+    "operationCases": [
+      {
+        "id": "ci-43160725037-1-pl6",
+        "packet": "pl6",
+        "cases": 24
+      },
+      {
+        "id": "ci-43160725037-1-vi",
+        "packet": "vi",
+        "cases": 30
+      }
+    ],
+    "selectedCases": 50,
+    "sourceFiles": 2154,
+    "sourceSnapshotSha256": "402029974f5a26571e0ce38ca541047e5c2eaaad1815e3993726f4fc048874f4",
+    "sourceBindings": "Unmodified sourceSnapshot and composeCases agree with original operations. All mapped paths are tracked; no working diff or captured merge delta overlaps the map.",
+    "evidenceBytesRead": 5146458,
+    "budgetBytes": 268435456,
+    "artifactMembers": [
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-current.composition.json",
+        "bytes": 6700,
+        "sha256": "52923524039451052b4bd0b617e189f8faff0a36f2b76618e91b1063b7752356"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-04addfb3086ee5fc6cec19d7edce782d.json",
+        "bytes": 357,
+        "sha256": "d6bc54d0ccc94b3bbe7629d1e3bff4c7654ba13e17d9f7f6f6697eddeec164e0"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-04addfb3086ee5fc6cec19d7edce782d.png",
+        "bytes": 2728,
+        "sha256": "0cf488b13de656741470dc0780e4644767f018b0cce97632b59cf7a623289944"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-07e2cfc90a9073025110d053565ab1f1.json",
+        "bytes": 357,
+        "sha256": "c7de469ea78e59925841b298df2cf255115c3821a7d4e9a111bd60e979d63bc8"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-07e2cfc90a9073025110d053565ab1f1.png",
+        "bytes": 4257,
+        "sha256": "564a65b3df156a614286dbc1fc295ff86c84af1980f30a08cf2ed50553ec0183"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-0c8e9d6aff8d5736bb1fd70c908322f0.json",
+        "bytes": 353,
+        "sha256": "fd4e58d00c9db859d1354226d0051688afa08c8f228579de506499ac95952a25"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-0c8e9d6aff8d5736bb1fd70c908322f0.png",
+        "bytes": 28030,
+        "sha256": "3d8aa6492d8ecc1c113c0339b57faae9c4789b1097c26217b9ecbc8c83455660"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-0f8cd82e5d4bc245843916285d6c10fb.json",
+        "bytes": 356,
+        "sha256": "aae381045c2fbd3791640851afd299b1d1e9b9ec51d121700e78d1ba34177487"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+        "bytes": 29095,
+        "sha256": "ed056a49cfbb244816b2030dcebb84b0fbaf41f0cd0d3796b7a1c9702197287b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-1b437e9aeca88e97b0bb7237f2b13008.json",
+        "bytes": 355,
+        "sha256": "7f3d886abe8911d5bcd12c72349d16d3001867f0ba98a907cd5ad79dfbb2688b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-1b437e9aeca88e97b0bb7237f2b13008.png",
+        "bytes": 3920,
+        "sha256": "5d13fb363ec8acced97d0330226a78ed528adb66d4992544798b5e2b75494d2e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-255ec3283a27e181db0817d2c01dfb16.json",
+        "bytes": 358,
+        "sha256": "7d5352e99afa8569af2304c13f6491ed1a30209bdae7f0b43f8e8c7b100816ff"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-255ec3283a27e181db0817d2c01dfb16.png",
+        "bytes": 4425,
+        "sha256": "e9bf9abf2adffcb1fa99f26f92f6bf71357ab233f7a1c39d35da2c70b7406ad7"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-5fb36fd42dbf29bcb562d53fa45f701b.json",
+        "bytes": 360,
+        "sha256": "b5887dc521ea5bd6a43ee42c73ebd901dc1a875c32882d77accb3fa8b3c9976a"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-5fb36fd42dbf29bcb562d53fa45f701b.png",
+        "bytes": 40999,
+        "sha256": "3ecbd1897a9ed8a0cc4cd52ac7337a0001d729dd2f509692f34c9772318cfc38"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-730e269fd8c27611b9d4a4a826661962.json",
+        "bytes": 353,
+        "sha256": "086f207948ed77a215ec035d08880d2fd1ed085511a8c127f5468ecd8613c732"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-730e269fd8c27611b9d4a4a826661962.png",
+        "bytes": 8719,
+        "sha256": "c90b6deed2651204297b975de2c95f12d4f9f6161ea1974be880767170e8759d"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-741dec1dad034ca0365ee19c92657fe0.json",
+        "bytes": 354,
+        "sha256": "ae24b01ddc6423e07944f81260d37cabf6413c2729c1769009704614c357fe27"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-741dec1dad034ca0365ee19c92657fe0.png",
+        "bytes": 4449,
+        "sha256": "7f2fa7e67f6a3b3a4453e524cceebc3ab505a93ce469ed7dedcbbc6cf47b7657"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-7edc7e560f142c5c64b99cb4e57321a6.json",
+        "bytes": 353,
+        "sha256": "cab36d7df5c4786b357788c517d94afd4b58e683ce37e62e97dc5711e2a8d2da"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-7edc7e560f142c5c64b99cb4e57321a6.png",
+        "bytes": 25658,
+        "sha256": "2ce58217fa6ef4a6144b0a08cb3f137f1acc25723ea81c9d4a2896a512583b93"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-7fe4b91e8150dd5927a80a781e701979.json",
+        "bytes": 361,
+        "sha256": "30dcdc64416468d280c3487a996f38ae65d7ed49ac71e8af2ed77dfc5c7676db"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-7fe4b91e8150dd5927a80a781e701979.png",
+        "bytes": 34092,
+        "sha256": "c96ff641d8f7f9bb1854619dd21754af5deb2b4c8931554c6b3da5968f237399"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-86d84cab75217bdefb7397a6e4bb1f13.json",
+        "bytes": 360,
+        "sha256": "6bdafadf109ceb9393c5fd187a180771a14069e9d971bcfb859021780eee8c3d"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-86d84cab75217bdefb7397a6e4bb1f13.png",
+        "bytes": 35409,
+        "sha256": "d433171245a70d49c9f057c2c5fdb1106b8de156ae22ee190605fcc88544ae5f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-8f1fd056c184ac80ec99f851da4c2b10.json",
+        "bytes": 361,
+        "sha256": "d76d268af6f63d23532c50a445fb42e751533b7d41d14ebfe7a37ef1d70bc30e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-8f1fd056c184ac80ec99f851da4c2b10.png",
+        "bytes": 33051,
+        "sha256": "2bbfe0762fc7b329b49a1b09ba8f49a0b9d30c163703bf03b7328cb22bb34537"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-94a2b3daa0f7bc7e15df133e0820a9de.json",
+        "bytes": 356,
+        "sha256": "7eb149e7b04af0d3fb8b09ae78dd57d8184b6e15d7ef3d73c7fe7ac5d56425fa"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-94a2b3daa0f7bc7e15df133e0820a9de.png",
+        "bytes": 25552,
+        "sha256": "2cba69905c721c33a1166dfe0b6d522e312046ff6ba0765904579b1400a1feef"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a3d6163e7647a3819f4f640072706940.json",
+        "bytes": 357,
+        "sha256": "6407b43e45223cdf8cac503dc21eac07af86cb5cb5c9ad2e9505dfa6481d1bc3"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a3d6163e7647a3819f4f640072706940.png",
+        "bytes": 30157,
+        "sha256": "2e75663c26a855116890caf0a831384e7e7cd485802b37eb024aa46dbc9bf759"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a6dc838bc1a5d9faac32fc11a6913459.json",
+        "bytes": 358,
+        "sha256": "b5f8318f3ac2e39ae0e7ee0b2b71c8cb6f84ac4be384dd50b3982976268a3310"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a6dc838bc1a5d9faac32fc11a6913459.png",
+        "bytes": 4425,
+        "sha256": "e9bf9abf2adffcb1fa99f26f92f6bf71357ab233f7a1c39d35da2c70b7406ad7"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a7849cb7aa686b4eae34a7f017604085.json",
+        "bytes": 362,
+        "sha256": "58d6399396500bb9345df69907de3284b202a22db16701a50328a37147da8c1c"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-a7849cb7aa686b4eae34a7f017604085.png",
+        "bytes": 16851,
+        "sha256": "bf61540732db757184a2a5986a00257b3d0be03d93b7c2bc85659261db6a79b4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b0452f6e3cc32be3b2fb9004b3710471.json",
+        "bytes": 362,
+        "sha256": "d8fa697e21f74e9a4c823d4b5f6ce3b591d392f02ed8aa5e9149e4d8e1795876"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b0452f6e3cc32be3b2fb9004b3710471.png",
+        "bytes": 15619,
+        "sha256": "219db4378b8b75e68087a4953f8ca2aef5b983174ffcadf453fa189be66831b5"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b631422c828fbbe9a4bedec4493bf1ce.json",
+        "bytes": 355,
+        "sha256": "2c471804733dbc30973e2245831a1aa7483f48bc62646be0629fe9440b0f99cf"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b631422c828fbbe9a4bedec4493bf1ce.png",
+        "bytes": 3751,
+        "sha256": "c6a4f88f9868db7e6f712a9036ef9b2f5a9b86479218cdc1337fd946036f9504"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b818e1c97c464cce33b12755b6f48ce5.json",
+        "bytes": 353,
+        "sha256": "7799eced46e34b8d5cc3d506e0f914da5e4a9849d20979fc9d1989bb25d37dfa"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b818e1c97c464cce33b12755b6f48ce5.png",
+        "bytes": 8720,
+        "sha256": "e1427c5ff32c8dc8ea5ae17f681bb06fd94721f640c11944b5e088130f77dec2"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b8c74cee03549413614169b0cb04779e.json",
+        "bytes": 357,
+        "sha256": "86fcaabf30de00d5a98f1a4281b0635761bf43535c2336a7e26339d9bd59cd15"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-b8c74cee03549413614169b0cb04779e.png",
+        "bytes": 22336,
+        "sha256": "f4202fe79805fd8ebcee39b33c9ac03027e16edc8dcbd08be921fd658a004123"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-cac7a4ce892500a765cf336895df845f.json",
+        "bytes": 354,
+        "sha256": "cc803a12289c5f817baf455470deb3dd557671f651639f392408d9b0a404c7af"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-cac7a4ce892500a765cf336895df845f.png",
+        "bytes": 2750,
+        "sha256": "f06ba7300dd3918718b34c74b4e5594c2bda073f77ef94adab236f1dd085ca06"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-eb3ce40c99712bf3225af0f136c81df2.json",
+        "bytes": 356,
+        "sha256": "a54cacd4b84d8fa0b2e0802ed37d40a52dcf4804140a529fe91fc806cfe9e904"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-eb3ce40c99712bf3225af0f136c81df2.png",
+        "bytes": 25670,
+        "sha256": "648807f6b2728fdd430414377fb2c83fbee17db085777431f4350c928c679bf5"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-f90c2121bf5db3dde5301abec80c74ce.json",
+        "bytes": 356,
+        "sha256": "2e5a7e3bff649452c36b751e344ae303a24172946820856d41bd2b556ea3971a"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--case-f90c2121bf5db3dde5301abec80c74ce.png",
+        "bytes": 22187,
+        "sha256": "f4a21ecb5331ea81dc08af36e7471e20621c79db829c39ee003b016af04cce51"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--operation.json",
+        "bytes": 255737,
+        "sha256": "060d9151fdd714f193ba573590fb7931cd0e19e753430a5e38079c28348d109f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--report.json",
+        "bytes": 7488,
+        "sha256": "9819b466070f7e63925dbb55198d9ea4af47d338f784870f3cef60db00740781"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43160725037-1-pl6--start.json",
+        "bytes": 242995,
+        "sha256": "b767ec7685b99d3298fde24a882c283a3c33ce57247150761837e175e121cd50"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-159abab5953db78cbf0e335ae2dbd333.json",
+        "bytes": 422,
+        "sha256": "90ebfa86a8e946fd5145eaac8bc49da5fdcae5c0c3c4abb7e845c00a6595225c"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-159abab5953db78cbf0e335ae2dbd333.png",
+        "bytes": 78200,
+        "sha256": "67c368b3e99b3857d070b433d110b8cc9f66bee1ee86ee1f404afcc4f1550f2c"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-53cc0be0cb059acb425c9b097eb41e52.json",
+        "bytes": 420,
+        "sha256": "e7da51f1bd92081f2e026f2cb3c717a0d84f1b5c3a8d3dc2c98b870e2a932e00"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-53cc0be0cb059acb425c9b097eb41e52.png",
+        "bytes": 106590,
+        "sha256": "ec59b8cd56d413842f04b4a6c7d5c68ede02a59536e9ebd05cf26a7c563eb024"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-54a5d4536a5ea7682a2777c60f1ec76c.json",
+        "bytes": 407,
+        "sha256": "282a5a4bb7c6aaa5aa5c458d7a294e1c7cea2af7dba6da9768f0d4f36af4e179"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-54a5d4536a5ea7682a2777c60f1ec76c.png",
+        "bytes": 42889,
+        "sha256": "280f5c35653790e7c8ee673637084473afb0f2c2f1fa55f93122d2970458a491"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-57f50012ee54e428f678d31608ec796c.json",
+        "bytes": 410,
+        "sha256": "e234e75ab1e5cfc38ab69b47ef0b7b8bd1e1db6a0afbc63c1b4a5bd6e9b21932"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-57f50012ee54e428f678d31608ec796c.png",
+        "bytes": 97265,
+        "sha256": "032c418c8c8901769a2252ae4b6d1f646d159fe335bbab8c141fcda5242a86b1"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-584ca6762b7dfdce2e79d2bb3da9a8b6.json",
+        "bytes": 426,
+        "sha256": "532871642be34a66d5587585e4f4ea651d9d97e6dcd3424f88ce0debf946841b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-584ca6762b7dfdce2e79d2bb3da9a8b6.png",
+        "bytes": 38575,
+        "sha256": "99eef791ea1ebffdd68ab66ac0a7c9bb36da267521f652ac3642fa6daac9f8ac"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-58870fa09dc75518cb053931b826776d.json",
+        "bytes": 417,
+        "sha256": "4ef0685fb2bc83efeefb4bdc40ff5a6b9843526ee05347fc535537ba17db7218"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-58870fa09dc75518cb053931b826776d.png",
+        "bytes": 45466,
+        "sha256": "a6b756060948ab10887d9c01fc8d0cf0c12ab483d88e597db2009f10e1645658"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-5e7a8108f22fb594056b49bb54208fe2.json",
+        "bytes": 421,
+        "sha256": "0b3bb257a2d31057508584d73df6ddfaa6b5f127e8e16b99a976fe3e391c35d4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-5e7a8108f22fb594056b49bb54208fe2.png",
+        "bytes": 194943,
+        "sha256": "ebf0fe120720a3ee24f54773ba18d85b031ec2eceecac06012d07b343b2a4fc5"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-7381784ee89146a99c2d47e0857cd8db.json",
+        "bytes": 419,
+        "sha256": "6a3011d5afe24c0852b442733e9f404400a7697562df05fcd5d995c46d46473d"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-7381784ee89146a99c2d47e0857cd8db.png",
+        "bytes": 83673,
+        "sha256": "40674589a762fe37c11e945d2893c568757a132556481743115429e962319961"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-7418bfe5f4b34f8b1e620bca81d74227.json",
+        "bytes": 423,
+        "sha256": "a06ebc474101bbe6f51d0de4fc9c61feac8294c59df352e2083def9daa7091e6"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-7418bfe5f4b34f8b1e620bca81d74227.png",
+        "bytes": 79396,
+        "sha256": "2131e8310efc7df5da80b6e609715668d313222a2c6af67f0d8a8622425ffdbd"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-76bdb3b1834eb668f50b9faa0dffa4d7.json",
+        "bytes": 411,
+        "sha256": "9606c708f0cb868d54f8b4c408bc2ac7d1c8302c5ec7109036db1b0e1af4304b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-76bdb3b1834eb668f50b9faa0dffa4d7.png",
+        "bytes": 173170,
+        "sha256": "73b135f515cab3b28af05b940e0de02044c22d17665a3a136df7a05de7ef73b2"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-77303ca13d340692afa531a6c8fcd106.json",
+        "bytes": 407,
+        "sha256": "e2403762b836c31d38a1b27be580ac51d5745d8fe84572fa39004dea1161e4ac"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-77303ca13d340692afa531a6c8fcd106.png",
+        "bytes": 61069,
+        "sha256": "933fe9b8434a87f08f4b870ca6613c693b327d4d0cba1e1708e393e692288dcd"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-896b04c4e3d0ee979bd3fbb64d38c4ed.json",
+        "bytes": 430,
+        "sha256": "387da833ab25f23dfb766893a45c985f2e666cbae5e1700f1d6a6c98269a6a94"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-896b04c4e3d0ee979bd3fbb64d38c4ed.png",
+        "bytes": 223965,
+        "sha256": "e17bfb8e7fe0538ec727ed773767074d56546b99d94687adba068de515da3a0e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-8e2065bf6fe2f9bf4c90e6de619b6dd5.json",
+        "bytes": 427,
+        "sha256": "a771118243318e59b380f9008dd5cb00c5d628b846d293789fba764e21751ce8"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-8e2065bf6fe2f9bf4c90e6de619b6dd5.png",
+        "bytes": 236817,
+        "sha256": "af8f52e10c66055b34d89b118e395acaa8fdadadcbc4c9eeb7417eb7127066b9"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-93c41da7b1b4973d7512abb0589e6c1d.json",
+        "bytes": 429,
+        "sha256": "ba2e4d901e7abc8c9a83073d111f15285debe83ef7cda96869ba32b44cfbb4a4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-93c41da7b1b4973d7512abb0589e6c1d.png",
+        "bytes": 59719,
+        "sha256": "3d8ace5016ea7447c71a45c9288ec132360cf3413f7831052800dd69ae0b27d4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9636e3f10bba50fe5d16e00dd9454ac5.json",
+        "bytes": 431,
+        "sha256": "f0ab82b7cf3aa659a75e10ca17f4cac0e2863354b41d4359dd7c21e9aec76b74"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9636e3f10bba50fe5d16e00dd9454ac5.png",
+        "bytes": 235836,
+        "sha256": "bb147f84d168ab3bc549db70ad35b65438c8aa247a2d2916330a92b8b0b751d4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9800ec87df92a8a8033af70f64b0b533.json",
+        "bytes": 427,
+        "sha256": "1ffa414aef53289d74128f5ddd55028c5a420deffb88fd66a24bca6afa0d6cae"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9800ec87df92a8a8033af70f64b0b533.png",
+        "bytes": 39072,
+        "sha256": "1545bb55fc3eaf4b3d23148349f3ca0832aee443b78498468af174d9ce15b13e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-997b1cb667944d5f31aa982480cd6617.json",
+        "bytes": 416,
+        "sha256": "34c98adfe749f2a067986dda7d08ae0fb7b51460f6306d25f1985202136df665"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-997b1cb667944d5f31aa982480cd6617.png",
+        "bytes": 52938,
+        "sha256": "8e94c478a8d1ad7f7e07cbc2ad875509f602dab28d6ab7db177be696e746b76a"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-99c769aa41fd202646c6883b11245d02.json",
+        "bytes": 411,
+        "sha256": "d5861f9c60389fed7251e0aabbb3c5ebe92b4759ddf2dad598485fdde6663208"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-99c769aa41fd202646c6883b11245d02.png",
+        "bytes": 126625,
+        "sha256": "4cc2d77adeeded429cfbfec60cdf7e1c886a63308a39b16faf5de785ab185bf5"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9a553bea1770b3188c46148aa9342634.json",
+        "bytes": 426,
+        "sha256": "0df66a89959c626357598c2b1eb021a907847f6711d1cef21170ac63ce46b784"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-9a553bea1770b3188c46148aa9342634.png",
+        "bytes": 239696,
+        "sha256": "0b486b287a85c3c22fdee23f76f59509628ac86e60fb2187837e6828339acc32"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-a0674dd4291617ea3c3e1a64a9fa6825.json",
+        "bytes": 438,
+        "sha256": "939752e15533d3ddba9ba6dc3c8e8912e58daf185aab0697ffc2e6ae808f55c4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-a0674dd4291617ea3c3e1a64a9fa6825.png",
+        "bytes": 136853,
+        "sha256": "480f8bfe1e43be3b2e8b2fd9b0577268d9a2cc2f0dc9dd2c3d6565627717eff5"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-bb8d9471b3493cb1fda6df36a7fe50f3.json",
+        "bytes": 425,
+        "sha256": "cb680bd06bf04b74baeb5b248c39df8698b7461b737652876069bdf23823aea3"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-bb8d9471b3493cb1fda6df36a7fe50f3.png",
+        "bytes": 133692,
+        "sha256": "5afc4e190558f6d22d772e9637643b1ff90fa1032cb067c5b6654df8c5564a0b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-bfc2f94264a28a47ca04854cce1ec02c.json",
+        "bytes": 430,
+        "sha256": "e4f7c5b00a401e61c5afea024b2620153816a057c7116f8ab9ad3449fcd6d311"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-bfc2f94264a28a47ca04854cce1ec02c.png",
+        "bytes": 62514,
+        "sha256": "b7a13e1e49d93a1edfdbe039ca65032a388eeeda6a6cb66d00973c87783e120e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-c99d1d4f435e2af686e0b59fcd647ea9.json",
+        "bytes": 421,
+        "sha256": "cee7a517d3cb29f67c72e93a30f8b07503852fa378589825e554b37ded869141"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-c99d1d4f435e2af686e0b59fcd647ea9.png",
+        "bytes": 65994,
+        "sha256": "048cdb613253d22f6a1efbc4bd0c084e907597da1d3faa143b9dfbd928a61a5a"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-d611c46a10fe6543c46d01a231dd71dc.json",
+        "bytes": 439,
+        "sha256": "bd42eaa765f17372cb1066c602350a1206c21da665cb011342e69bd3de628beb"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-d611c46a10fe6543c46d01a231dd71dc.png",
+        "bytes": 237406,
+        "sha256": "5d735bdf55cf339982cfb62a1c1da22943f08d4c31c30d137008c8ae7d3ea22c"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-d93f534302dbadfaa5a6fd8be666e555.json",
+        "bytes": 410,
+        "sha256": "fd0250bf0af63ee555031d164b9a231d5c1f228fe98b91999758f68428d6c5ee"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-d93f534302dbadfaa5a6fd8be666e555.png",
+        "bytes": 54210,
+        "sha256": "6229e99ee01c95b7e2c33252f2e7e69b8c01bdca1873ee47fda245dd7a90a93b"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-e455feaa139bc26e4b2840ab8c1f465c.json",
+        "bytes": 435,
+        "sha256": "2befbd98e2c4c578e4ff15f5e5608e58bf9e9e0ae48ecf91078bcbde333259f2"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-e455feaa139bc26e4b2840ab8c1f465c.png",
+        "bytes": 78590,
+        "sha256": "5ad71e87ca6a6108a138a421cc3c439ce16c8f5237fca2e13c2817500bac1c65"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-e55ae2bac60ce21249e910116733aadc.json",
+        "bytes": 426,
+        "sha256": "ac6878ce4bd788b6b9c4c72f52e91c461d92f335124069755636248f2937178e"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-e55ae2bac60ce21249e910116733aadc.png",
+        "bytes": 135539,
+        "sha256": "764563e00d4269e06848e1b80d2161cd27db43ad696a86f66bd8ed94d6966450"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+        "bytes": 420,
+        "sha256": "0b5d962d52c2c0fcb399febcbe6064075cf5179ab71478f0e501c9121f18c535"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+        "bytes": 250121,
+        "sha256": "372f269d7ba61885bde4d3d77db3862545efb2d8dccfd4ae91ff7da7953099c0"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-ee02b323aeba2da6a7cfcfdec67e90b2.json",
+        "bytes": 422,
+        "sha256": "6951fcd1124409116a35094f8e161be9f9a8b2b6b0c9fe2b531e5b1c3aa6dabf"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+        "bytes": 244882,
+        "sha256": "8f4a5dc4d14ad51238b96a340923191b79f84dcf1a9551376cae8170ffd45a03"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-fa58e0493f7e0c95bf2f5b4b64e83204.json",
+        "bytes": 418,
+        "sha256": "d843bb6b73740fa4ce650d53f3233c4478d95eeba0c53628df760ed5ba2deaba"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--case-fa58e0493f7e0c95bf2f5b4b64e83204.png",
+        "bytes": 42877,
+        "sha256": "c592422746c31aa8a0a7f9220fd7cf846b99a6fa770b27ade6a5981b0322ba7f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--operation.json",
+        "bytes": 262959,
+        "sha256": "a2ff47225f0c4eb23352baf161ee8a05f6b136bf0e38ef08124caab1beb3dd04"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--raw-report.json",
+        "bytes": 14926,
+        "sha256": "c171422c3905f298bf8746902ba21f14c3b091c81ae50756fa1ca789ba58d965"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--report.json",
+        "bytes": 14926,
+        "sha256": "c171422c3905f298bf8746902ba21f14c3b091c81ae50756fa1ca789ba58d965"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43160725037-1-vi--start.json",
+        "bytes": 242993,
+        "sha256": "b5c736bceb33c8e5b005e9d6c3725a5a21a5cf47cdef912090cab960971aa46d"
+      }
+    ],
+    "visualAcceptance": false,
+    "readers": [
+      "readOperation",
+      "sourceSnapshot",
+      "composeCases",
+      "requirements",
+      "imageInfo"
+    ],
+    "readerSha256": "e32d5d46490265b6ae934fb29e2b291667f51464080f22115c88d659aac1cebd",
+    "captureOrCompositionWrites": false
+  },
+  "productionAcceptance": false
+}

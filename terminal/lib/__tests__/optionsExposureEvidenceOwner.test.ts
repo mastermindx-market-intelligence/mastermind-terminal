@@ -6,6 +6,10 @@ import { dirname, join, relative } from "node:path";
 import { qualifiedOptionsExposurePacket, requireIntegrationExecution, requireOptionsIntegrationBrowserCases, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet } from "./helpers/optionsExposureEvidence";
 
 const REPO = join(__dirname, "../../..");
+// These cases validate real historical images and full paired evidence chains.
+// Vitest 4 enforces elapsed time for synchronous callbacks; retain complete
+// validation under a finite integration budget without caching or skipping bytes.
+const EVIDENCE_OWNER_TIMEOUT_MS = 15_000;
 type OwnedPacket = {
   selection?: string; path: string; sha256: string; descriptorSha256?: string;
   captureRevision?: string; capturedAtHead: string | null;
@@ -63,7 +67,7 @@ describe("shadow evidence repositories", () => {
 
 
 describe("current EOD owner and native reader", () => {
-  it("selects the same qualified manifest and preserves its actual capture identity", () => {
+  it("selects the same qualified manifest and preserves its actual capture identity", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const packet = owner.eodPacket(REPO);
     expect(packet.selection).toBe("qualified");
@@ -82,13 +86,13 @@ describe("current EOD owner and native reader", () => {
   for (const file of ["terminal/components/flowdesk/FlowFreshnessReceipt.tsx", "terminal/components/flowdesk/InspectorPane.tsx",
     "terminal/components/gexdesk/GexSummaryBar.tsx", "terminal/lib/dte.ts",
     "terminal/e2e/exposure-partial-totals.spec.ts", "terminal/public/data/gex_fixture.json"]) {
-    it("refuses reuse after mounted desk source drift: " + file, () => {
+    it("refuses reuse after mounted desk source drift: " + file, { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n// isolated source drift\n" });
       expect(() => owner.eodPacket(root)).toThrow(/NO_QUALIFIED_CAPTURE/);
     });
   }
 
-  it("refuses a corrupted selected image through the actual owner", () => {
+  it("refuses a corrupted selected image through the actual owner", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const file = relative(REPO, join(selected.cropDir, "chainheat-retried-390.png"));
     const bytes = Buffer.from(readFileSync(join(REPO, file)));
@@ -97,14 +101,14 @@ describe("current EOD owner and native reader", () => {
     expect(() => owner.eodPacket(root)).toThrow(/INTEGRATION_NATIVE_IMAGE/);
   });
 
-  it("refuses a changed descriptor rather than recapturing over history", () => {
+  it("refuses a changed descriptor rather than recapturing over history", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const file = relative(REPO, join(dirname(dirname(selected.evidence)), "native-packet.json"));
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n" });
     expect(() => owner.eodPacket(root)).toThrow(/INTEGRATION_PACKET_DIGEST/);
   });
 
-  it("refuses a removed declaration even when the historical root remains a valid raw manifest", () => {
+  it("refuses a removed declaration even when the historical root remains a valid raw manifest", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const file = "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml";
     const text = readFileSync(join(REPO, file), "utf8");
     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") + 2) });
@@ -113,18 +117,18 @@ describe("current EOD owner and native reader", () => {
 });
 
 describe("paired Options integration proof", () => {
-  it("refuses a mixed current family declaration", () => {
+  it("refuses a mixed current family declaration", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml";
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("options-integration-20261109", "ui-copy-integration-20261109") });
     expect(() => owner.eodPacket(root)).toThrow(/R5_CURRENT_ROOT:gex/);
   });
-  it("refuses a complete-image receipt with an incomplete frame matrix", () => {
+  it("refuses a complete-image receipt with an incomplete frame matrix", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const execution = structuredClone(selected.execution!);
     execution.frames.pop();
     expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "options-integration")).toThrow(/INTEGRATION_FRAME_SET/);
   });
-  it("refuses a current receipt without settled native-server proof", () => {
+  it("refuses a current receipt without settled native-server proof", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     const execution = structuredClone(selected.execution!);
     execution.nativeSupervisor!.serverReportedStopped = false;
@@ -151,7 +155,7 @@ describe("expiry integration with retained EOD identity", () => {
   const journey = () => JSON.parse(readFileSync(join(browserDir, "expiry-journeys/qualification.json"), "utf8"));
   const execution = () => JSON.parse(readFileSync(join(nativeDir, "capture-execution.json"), "utf8"));
 
-  it("selects the fresh GEX packet through the shared owner without relabeling EOD", () => {
+  it("selects the fresh GEX packet through the shared owner without relabeling EOD", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "gex", gexCrops);
     const packet = owner.gexPacket(REPO);
     expect(packet.selection).toBe("qualified");
@@ -169,13 +173,13 @@ describe("expiry integration with retained EOD identity", () => {
   for (const file of ["terminal/components/gexdesk/ExpiryBars.tsx",
     "terminal/components/gexdesk/ExposureExpiryDrawer.tsx", "terminal/lib/expiryTermStructure.ts",
     "terminal/e2e/exposure-expiry-greeks.spec.ts", "terminal/e2e/responsive.spec.ts"]) {
-    it("refuses retained EOD when expiry consumer proof drifts: " + file, () => {
+    it("refuses retained EOD when expiry consumer proof drifts: " + file, { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n// isolated expiry source drift\n" });
       expect(() => owner.eodPacket(root)).toThrow(/NO_QUALIFIED_CAPTURE/);
     });
   }
 
-  it("keeps validating the prior Options GEX descriptor", () => {
+  it("keeps validating the prior Options GEX descriptor", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/native-packet.json";
     const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n" });
     expect(() => owner.eodPacket(root)).toThrow(/OPTIONS_INTEGRATION_PACKET_DIGEST:gex/);
@@ -192,7 +196,7 @@ describe("expiry integration with retained EOD identity", () => {
     expect(() => requireIntegrationExecution(prior, "gex", gexCrops, "expiry-greeks-integration")).toThrow(/INTEGRATION_CAPTURE_IDENTITY/);
   });
 
-  it("refuses to assign the fresh GEX identity to EOD", () => {
+  it("refuses to assign the fresh GEX identity to EOD", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
     expect(() => requireIntegrationExecution(selected.execution!, "eod", owner.EOD_CROPS, "expiry-greeks-integration")).toThrow(/EXPIRY_INTEGRATION_RETAINS_EOD_IDENTITY/);
   });
@@ -283,13 +287,13 @@ describe("momentum browser successor with retained native evidence", () => {
   });
 
   for (const family of ["eod", "gex"] as const) {
-    it("refuses changed momentum runtime source through the " + family + " owner", () => {
+    it("refuses changed momentum runtime source through the " + family + " owner", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const root = shadowRepo({ [component]: readFileSync(join(REPO, component), "utf8") + "\n// isolated momentum drift\n" });
       expect(() => family === "eod" ? owner.eodPacket(root) : owner.gexPacket(root)).toThrow(/NO_QUALIFIED_CAPTURE/);
     });
   }
 
-  it("cannot downgrade by removing both successor declarations", () => {
+  it("cannot downgrade by removing both successor declarations", { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
     const overrides = Object.fromEntries(["eod", "gex"].map(family => [
       "terminal/docs/pr-crops/" + (family === "eod" ? "eod-heatmap-flowdesk-load-failure" : "gex-levels-heatmap-load-failure") + "/EVIDENCE.yml",
       readFileSync(join(REPO, current, "prior-roots", family + ".EVIDENCE.yml")),
@@ -309,7 +313,7 @@ describe("momentum browser successor with retained native evidence", () => {
     ["lifecycle.json", "BROWSER_SUCCESSOR_LIFECYCLE:joint"],
     ["expiry-journeys/lifecycle.json", "BROWSER_SUCCESSOR_LIFECYCLE:expiry"],
   ]) {
-    it("refuses corrupt successor payload: " + file, () => {
+    it("refuses corrupt successor payload: " + file, { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const path = current + "/" + file;
       const root = shadowRepo({ [path]: readFileSync(join(REPO, path), "utf8") + "\n" });
       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));
@@ -320,7 +324,7 @@ describe("momentum browser successor with retained native evidence", () => {
     ["", "INTEGRATION_BROWSER_ARTIFACT"],
     ["/expiry-journeys", "EXPIRY_INTEGRATION_JOURNEY_ARTIFACT"],
   ]) {
-    it("binds actual new screenshot bytes: " + (stage || "joint"), () => {
+    it("binds actual new screenshot bytes: " + (stage || "joint"), { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const execution = json(current + stage + "/browser-execution.json");
       const image = Object.keys(execution.artifactFiles).find(path => path.endsWith(".png"));
       expect(image).toBeDefined();
@@ -336,7 +340,7 @@ describe("momentum browser successor with retained native evidence", () => {
     ["browser-report.json", "INTEGRATION_BROWSER_FILE:browser-report.json"],
     ["expiry-journeys/browser-report.json", "EXPIRY_INTEGRATION_JOURNEY_FILE:browser-report.json"],
   ]) {
-    it("still validates historical browser payload: " + file, () => {
+    it("still validates historical browser payload: " + file, { timeout: EVIDENCE_OWNER_TIMEOUT_MS }, () => {
       const path = historical + "/" + file;
       const root = shadowRepo({ [path]: readFileSync(join(REPO, path), "utf8") + "\n" });
       expect(() => owner.eodPacket(root)).toThrow(new RegExp(code));

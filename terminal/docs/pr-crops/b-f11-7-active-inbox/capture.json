@@ -7,10 +7,10 @@
   "productionAcceptance": false,
   "captureFlag": "TERMINAL_E2E_FIXTURE",
   "mechanism": "playwright-locator-screenshot",
-  "capturedAt": "2026-11-12T07:50:30.277Z",
+  "capturedAt": "2026-11-12T11:44:12.420Z",
   "checkout": {
-    "commit": "9acf9c245ccb481beb6886046dd084c275d09dce",
-    "tree": "bdd7ee699fdb6cfc8d0cafafd3302f55926a30e8"
+    "commit": "c31abf59eb92a8cce34e684886ec8eb2b0b118eb",
+    "tree": "302048a326fb8e7d66e62fd7596c31818c417832"
   },
   "sources": {
     "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
@@ -26,8 +26,8 @@
     "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
     "terminal/e2e/tools/capture_ci_evidence.cjs": "a0c24294d0334b30f99e2dc446c1b5f933b193c9508dcfb1e1008a69ff443d77",
     "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
-    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
-    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+    "terminal/package.json": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf",
+    "terminal/package-lock.json": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e"
   },
   "runtime": {
     "node": "v26.5.0",
@@ -63,7 +63,7 @@
       "image": {
         "width": 1340,
         "height": 255,
-        "sha256": "abffaf707c1f358c3cabc5295eb4a2dae34b2244f8d84f172832da3f1eebe499"
+        "sha256": "889b97c83e5e3f8c5d3eff98ccd9595ac799206f049cb7abcbcba4c5ab963eca"
       },
       "proof": {
         "settled": true,
@@ -180,7 +180,7 @@
       "image": {
         "width": 350,
         "height": 310,
-        "sha256": "02bdd5f562ccc0c2e417acd6bd9530d6b028284c68fc04bf8b3b1dc313131e32"
+        "sha256": "e3500dfad084dcb15130aca6d4c00d916c264aa5da7246ea74e28fe8171a0639"
       },
       "proof": {
         "settled": true,
@@ -336,7 +336,7 @@
       "image": {
         "width": 350,
         "height": 115,
-        "sha256": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7"
+        "sha256": "5da97b38e2ff4ea5c6c0f340325697be11251ca331327db03f896b57789412d3"
       },
       "proof": {
         "settled": true,

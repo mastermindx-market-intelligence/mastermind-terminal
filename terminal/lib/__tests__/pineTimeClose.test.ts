@@ -2,9 +2,7 @@
 // (and the engine's own `timeClose`), with `timeClose` winning when both exist.
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { runPine, type Bar } from "../pine-engine";
 import { NA } from "../pine-engine/builtins";
 import { barsToColumns, columnsToBars, parseSessionStampMs, sessionWeekOpenDate } from "../pine-engine/host-shared";
@@ -261,24 +259,34 @@ plot(request.security(syminfo.tickerid, "W", close), "x")
 });
 
 function parseStampChild(tz: string, stamp: string): number {
-  const dir = mkdtempSync(join(process.env.TMPDIR || tmpdir(), "pine-tz-"));
-  const file = join(dir, "probe.ts");
-  const helper = resolve(__dirname, "../pine-engine/host-shared.ts");
-  writeFileSync(
-    file,
-    `import { parseSessionStampMs } from ${JSON.stringify(helper)};\nconst ms = parseSessionStampMs(${JSON.stringify(stamp)});\nconsole.log(Number.isFinite(ms) ? String(ms) : "na");\n`,
-  );
-  try {
-    const r = spawnSync("npx", ["vite-node", file], {
-      encoding: "utf8",
-      cwd: resolve(__dirname, "../.."),
-      env: { ...process.env, TZ: tz },
-      timeout: 60_000,
-    });
-    if (r.status !== 0) throw new Error(r.stderr || r.stdout || `vite-node exit ${r.status}`);
-    const line = r.stdout.trim().split("\n").pop()!;
-    return line === "na" ? Number.NaN : Number(line);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  // Use the declared Vite runtime in each fresh TZ process. Vitest 4 no longer
+  // installs vite-node; npx resolution would make this depend on another runner.
+  const script = `
+import { createServer } from "vite";
+const server = await createServer({
+  configFile: false,
+  appType: "custom",
+  server: { middlewareMode: true, watch: null, ws: false },
+});
+try {
+  const { parseSessionStampMs } = await server.ssrLoadModule("/lib/pine-engine/host-shared.ts");
+  const ms = parseSessionStampMs(${JSON.stringify(stamp)});
+  console.log(Number.isFinite(ms) ? String(ms) : "na");
+} finally {
+  await server.close();
+}
+`;
+  const r = spawnSync(process.execPath, ["--input-type=module", "--eval", script], {
+    encoding: "utf8",
+    cwd: resolve(__dirname, "../.."),
+    env: { ...process.env, TZ: tz },
+    timeout: 60_000,
+  });
+  if (r.error) throw r.error;
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout || `Vite SSR child exit ${r.status}`);
+  const line = r.stdout.trim();
+  if (line === "na") return Number.NaN;
+  const value = Number(line);
+  if (!line || !Number.isFinite(value)) throw new Error(`Invalid session-stamp child output: ${line}`);
+  return value;
 }

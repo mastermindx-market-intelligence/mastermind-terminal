@@ -23,7 +23,7 @@
 // reports its pane's NEW position. This file exercises the same contract
 // against the live adapters.
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 
 // @vitest-environment jsdom
 // (both adapters need a DOM — LWC creates a real chart; the canvas engine
@@ -40,7 +40,7 @@ type FakeP = {
   __series: FakeS[];
   __stretch: { value: number };
   __height: { value: number };
-  paneIndex: ReturnType<typeof vi.fn>;
+  paneIndex: Mock<() => number>;
   getSeries: ReturnType<typeof vi.fn>;
   getHeight: ReturnType<typeof vi.fn>;
   setHeight: ReturnType<typeof vi.fn>;

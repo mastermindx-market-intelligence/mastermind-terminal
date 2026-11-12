@@ -1,0 +1,19 @@
+{
+  "at": "2026-11-12T06:00:50.688059+00:00",
+  "headBeforeImport": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+  "captureCheckout": {
+    "commit": "35d6b1f9305b445949f1c49512bfe3bce0ac3460",
+    "tree": "c081f4aceea804c8ef66b09935a8d365d9587779",
+    "parents": []
+  },
+  "importedImages": 10,
+  "manifestSha256": "c6688f56e9b326457ff854b6e291bf84807ae618848b768731281c2f485f35de",
+  "priorFiles": 11,
+  "siblingPacketsPreserved": [
+    "ticker-news-cn-hk",
+    "ticker-news-editorial-quality",
+    "ticker-news-editorial-views",
+    "ticker-news-recovery"
+  ],
+  "proof": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/docs/verification/pr-estate-security-toolchain-20261112/current-hosted-evidence-43160725037"
+}

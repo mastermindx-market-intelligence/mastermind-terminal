@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import StepAccount from "@/components/onboarding/StepAccount";
 
 const auth = vi.hoisted(() => ({ signin: vi.fn(), signup: vi.fn(), refresh: vi.fn(), navigate: vi.fn() }));
@@ -16,10 +16,10 @@ vi.mock("@/components/onboarding/oauth", () => ({ startGoogleOAuth: vi.fn() }));
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root;
 let host: HTMLDivElement;
-let signedIn: ReturnType<typeof vi.fn>;
-let advance: ReturnType<typeof vi.fn>;
-let set: ReturnType<typeof vi.fn>;
-let switchMode: ReturnType<typeof vi.fn>;
+let signedIn: Mock<NonNullable<React.ComponentProps<typeof StepAccount>["onSignedIn"]>>;
+let advance: Mock<NonNullable<React.ComponentProps<typeof StepAccount>["onAdvance"]>>;
+let set: Mock<NonNullable<React.ComponentProps<typeof StepAccount>["set"]>>;
+let switchMode: Mock<NonNullable<React.ComponentProps<typeof StepAccount>["onModeSwitch"]>>;
 
 function mount(mode: "signin" | "signup" = "signin") {
   act(() => root.render(<StepAccount

@@ -1,0 +1,14 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.12 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/terminal[39m
+
+ [32m✓[39m lib/__tests__/tickerNewsEvidence.test.ts[2m > [22mticker-news evidence lock is EVIDENCE.yml[2m > [22mEVIDENCE.yml records a sha256 for every locked source[32m 2[2mms[22m[39m
+ [32m✓[39m lib/__tests__/tickerNewsEvidence.test.ts[2m > [22mticker-news evidence lock is EVIDENCE.yml[2m > [22meach layoutFiles sha256 matches the file on disk[32m 1[2mms[22m[39m
+ [32m✓[39m lib/__tests__/tickerNewsEvidence.test.ts[2m > [22mticker-news evidence lock is EVIDENCE.yml[2m > [22mevery crop is non-empty, has a crops row and matches its recorded sha256[32m 1[2mms[22m[39m
+ [32m✓[39m lib/__tests__/tickerNewsEvidence.test.ts[2m > [22mticker-news evidence lock is EVIDENCE.yml[2m > [22mdeclares the capture head and each crop's viewport, language and state[32m 1[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 23:01:07
+[2m   Duration [22m 209ms[2m (transform 61ms, setup 0ms, import 71ms, tests 6ms, environment 0ms)[22m
+
+JSON report written to /private/tmp/terminal-pr1481-current-evidence-20261112-c3/ticker-strict-tests.json
