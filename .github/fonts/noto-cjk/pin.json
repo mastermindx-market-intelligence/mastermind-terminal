@@ -1,0 +1,30 @@
+{
+  "schema": "terminal.cjk-font-pin.v1",
+  "repository": "notofonts/noto-cjk",
+  "release": "Sans2.004",
+  "commit": "523d033d6cb47f4a80c58a35753646f5c3608a78",
+  "path": "Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+  "url": "https://raw.githubusercontent.com/notofonts/noto-cjk/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf",
+  "fileName": "NotoSansCJKsc-Regular.otf",
+  "family": "Noto Sans CJK SC",
+  "postScriptName": "NotoSansCJKsc-Regular",
+  "bytes": 16437364,
+  "gitBlobSha": "dc15562470b4f842321894787a0d066879ccff8b",
+  "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+  "requiredText": "新闻暂时不可用。重试全部精选来源研判公司公告财报业绩市场香港中國新聞",
+  "copyright": "© 2014-2021 Adobe (http://www.adobe.com/).",
+  "license": {
+    "id": "OFL-1.1",
+    "path": ".github/fonts/noto-cjk/OFL.txt",
+    "upstreamPath": "LICENSE",
+    "gitBlobSha": "d952d62c065f3f35fb83a173496e90b21525aef3",
+    "bytes": 4301
+  },
+  "checksumProvenance": {
+    "commit": "f8d157532fbfaeda587e826d4cd5b21a49186f7c",
+    "path": "_manifest/spdx_2.2/manifest.spdx.json",
+    "gitBlobSha": "68b3684f0d0a5a66b962db989962cb183f45a39e",
+    "SPDXID": "SPDXRef-File-Sans-OTF-SimplifiedChinese-NotoSansCJKsc-Regular.otf",
+    "sameFontGitBlobVerified": true
+  }
+}

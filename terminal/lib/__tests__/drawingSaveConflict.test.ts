@@ -111,6 +111,16 @@ describe("drawing save conflict copy", () => {
     expect(drawingSaveIssueFromLoadPark("conflict", "legacy")).toBe("legacy");
     expect(drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("conflict"), "en", t)).toBe(t("drawingSaveConflict"));
 
+    for (const reason of ["preload", "overlap", "conflict", "too_many"] as const) {
+      for (const rejection of ["owner_conflict", "save_rejected"] as const) {
+        const issue = drawingSaveIssueFromLoadPark(reason, rejection);
+        expect(issue).toBe(rejection);
+        expect(drawingSaveIssueChoices(issue, true)).toEqual([]);
+      }
+    }
+    for (const recoverable of ["conflict", "superseded", "payload_mismatch"]) {
+      expect(drawingSaveIssueFromLoadPark("too_many", recoverable)).toBe("too_many");
+    }
     expect(drawingSaveIssueFromLoadPark("too_many")).toBe("too_many");
     expect(drawingSaveIssueOffersReplace("too_many")).toBe(false);
     const tooManyEn = drawingSaveRecoveryMessage("too_many", "en", t);

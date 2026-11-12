@@ -119,7 +119,7 @@ export async function PUT(req: Request) {
   }
   if (raw.drawings.length > MAX_DRAWINGS_PER_SYMBOL) return NextResponse.json({ ok: false }, { status: 413 });
   const drawings = parsePersistedDrawings(raw.drawings);
-  if (!drawings) return NextResponse.json({ ok: false, error: "Invalid user drawing geometry" }, { status: 422 });
+  if (!drawings) return NextResponse.json({ ok: false, error: "Invalid drawing geometry or provenance" }, { status: 422 });
   if (!supabase) {
     return NextResponse.json({ ok: true, operationId: raw.operationId, revision: crypto.randomUUID(),
       idempotentReplay: false, superseded: false, count: drawings.length, schemaVersion: 1 });

@@ -1,53 +1,57 @@
-# Complete original ticker-news capture: 14 passed, 7 authored project skips, no failures/flakes/retries.
-# Qualified unmodified artifact 13880173297 from CI 43018161734, original serial job 130514839227.
-# Actual runner: self-hosted ubuntu0-e2e-3; schema name does not imply GitHub-hosted execution.
-# Proof: docs/verification/pr1403-ticker-after1407-import-20261111/qualification.json
-# Prior packet retained at original source head and in the additive proof/prior directory.
-# Browser viewport sizes and element PNG dimensions are distinct.
-capturedAtHead: 204cdbc6f806b52fad93232dd8aa0b82ea9d3e3d
+# Qualified complete packet import from natural CI43148549019, attempt1, serial job130952441106.
+# 14 passing cases; 7 authored project skips; zero failures, flakes, or retries.
+# All ten PNGs were freshly produced after recorded image removal in the original capture.
+# Actual capture tree: 594ece7ef8582a8c19c7b19436f92f3669734eaa
+# Independently resolved GitHub parents: 2c00073fa0c0449fa626f06d33af0ace478f6f2c 9de98df6ac071eb7ee3006ee09a8996158a6647f
+# Raw shallow receipt parents remain []; resolved parents are recorded separately.
+# All 21 source inputs match the published head, including Watchlist settings and pinned CJK inputs.
+# Five original native CJK glyph witnesses passed unchanged validators; all ten PNGs visually reviewed.
+# Source, raw report, font witnesses, prior packet, and principal review: docs/verification/pr1048-current-ticker-import-20261112/
+# Panel crops: viewport labels describe browser viewports, not PNG dimensions.
+capturedAtHead: f256b35982f9340bfd815941c8c3e40deca6f0f1
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: 623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb
+    sha256: 86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: live-feed
-    sha256: de91b52f5a7dfeae5e149d812d21afed7ce69e6f11512aeaf01a0eb97d54e5e3
+    sha256: 8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9
   - file: desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
     state: live-feed
-    sha256: 05fa414585cc4344cbf331d034e666f9b53baae536aaad7b214c85f455f5b9b1
+    sha256: 1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244
   - file: tablet-en-dark.png
     viewport: 820x1180
     lang: en
     state: live-feed
-    sha256: 8dfafe5d85dc21c96eba188aafae74bf93e40e3ae5530e99f9848ba160a4c5fd
+    sha256: b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f
   - file: tablet-zh-dark.png
     viewport: 820x1180
     lang: zh
     state: live-feed
-    sha256: b1d6553ac8d5b33194e0df38610b571e36324a4202510421737e26cfb9eb8bfa
+    sha256: e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3
   - file: mobile-en-dark.png
     viewport: 390x844
     lang: en
     state: live-feed
-    sha256: 76de39d18a3df8a7fe5e2fb33265a8721256b020d7370dae6516541b6b4e2452
+    sha256: 1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602
   - file: mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: live-feed
-    sha256: 6c02582628415fa14a238c4736dc5190669988aa95ddb71bf542fa6fe5fba4ee
+    sha256: 88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717
   - file: unavailable-desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae
+    sha256: 6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh

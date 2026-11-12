@@ -1,0 +1,77 @@
+{
+  "parent": "2818dde6af422095eb3ffe36ddd485e9128e9b3c",
+  "protectedInput": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 69807,
+      "sha256": "c18b03f73cce496c7d599338693d5706edac35fea54b8d9b2fa294432abad13d",
+      "git_blob": "eb63c2134608258ebb835935290c8826e667d48b"
+    },
+    {
+      "path": ".github/scripts/terminal_hosted_apt.py",
+      "bytes": 5492,
+      "sha256": "685bc09465a149859b2e79f9caf35655d097960bb1f8d4885891bc443444691b",
+      "git_blob": "76f598c1c643f20c4fbd6bcac6d1634ce2a49457"
+    },
+    {
+      "path": ".github/scripts/terminal_hosted_apt.test.cjs",
+      "bytes": 2184,
+      "sha256": "6e40304f0f4c2bdeba6431bd4ba9da9c8cf1cbee0efea6e65a2580157dfbce6e",
+      "git_blob": "461fc6d48f0fbbc6312ae3f99f7dbacd03acd91a"
+    },
+    {
+      "path": "tests/test_ci_hosted_apt.py",
+      "bytes": 7950,
+      "sha256": "07679a9a72dd1effb8aa9e33627e3f594723cc14c72a968f97e29da1c8de3455",
+      "git_blob": "a1b970d94478837e1188809fa0041d2602550071"
+    }
+  ],
+  "python": {
+    "distinctPassed": 262,
+    "first": "249 passed;1 missing sparse-checkout runbook fixture",
+    "recovery": "Hydrated exact tracked runbook; isolated original failing case passed",
+    "commands": [
+      "python -m pytest tests/test_ci_hosted_apt.py tests/test_ci_browser_setup.py tests/test_ci_e2e_selfhosted_lane.py tests/test_ci_e2e_shards.py -q",
+      "python -m pytest tests/test_ci_e2e_selfhosted_lane.py::test_runbook_names_the_variable_labels_slots_and_rollback -q"
+    ],
+    "pytest": "8.4.2",
+    "PyYAML": "6.0.3",
+    "finalOwnerCasesPassed": 42,
+    "additionalCases": 12,
+    "finalOwnerCommand": "python -m pytest tests/test_ci_hosted_apt.py -q"
+  },
+  "installedPlaywrightConsumer": {
+    "version": "1.61.1",
+    "passed": 4,
+    "skipped": 0,
+    "command": "node --test .github/scripts/terminal_hosted_apt.test.cjs",
+    "cases": [
+      "complete dependency set",
+      "APT exit0 with missing FreeFont fails",
+      "APT exit0 with missing Japanese font fails",
+      "APT error fails"
+    ],
+    "transport": "Only apt-get substituted; no package install, network, server or browser",
+    "packageMembership": "Actual APT argv must include both fonts and libnss3"
+  },
+  "diffCheck": {
+    "authoredSourceAndProseExit": 0,
+    "rawPytestWhitespacePreserved": 3,
+    "rawLog": "python-contracts.log"
+  },
+  "localBrowserLaunched": false,
+  "originalSetupFailure": {
+    "run": 43051248413,
+    "jobs": [
+      130629286997,
+      130629287146,
+      130631165055
+    ],
+    "phase": "cache-hit Chromium dependency install",
+    "symptom": "mirror+file resolves to azure.archive.ubuntu.com; DNS failure while installing font packages; timeout124",
+    "productTestsExecutedInThoseJobs": false
+  },
+  "naturalCurrentHeadProof": "PENDING; fresh source-triggered hosted CI required",
+  "sourceIdentity": "Validate original descriptor and named path device/inode, regular type, root owner, single link before write and after readback; verify exact content preimage"
+}

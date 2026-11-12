@@ -1,0 +1,471 @@
+{
+  "source_law_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "parent": "6b57fe90b7606e414b28dae4e4c736a50618341b",
+  "protected": "74c007125129090cc762f2bc4b1b152123326444",
+  "merge_base": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "unchanged_original_postimages": [
+    {
+      "path": "docs/verification/pr1048-paced-queue-20261111/README.md",
+      "git_blob": "4c8847e64fc3f9ba8f141e1727a29478faff3c2e"
+    },
+    {
+      "path": "docs/verification/pr1048-paced-queue-20261111/checks.json",
+      "git_blob": "6dbc221f0f152340e8f9365bebbdd145e7dceedd"
+    },
+    {
+      "path": "docs/verification/pr1048-paced-queue-20261111/focused-tests.log",
+      "git_blob": "b22325e7908da1411bfb5fb659b7bd132e66f38d"
+    },
+    {
+      "path": "docs/verification/pr1048-paced-queue-20261111/hosted-trace-evidence.json",
+      "git_blob": "3fbb1cd050c18c5f914244d0c3c986cf254ac960"
+    },
+    {
+      "path": "supabase/migrations/0050_chart_ai_drawing_workspace.sql",
+      "git_blob": "8ac3dad198d8e44c7e37c6741092a138f66287c0"
+    },
+    {
+      "path": "supabase/migrations/README.md",
+      "git_blob": "3cd4edd527adef72ba4174824e24954a394345c5"
+    },
+    {
+      "path": "supabase/migrations/RESERVATIONS.json",
+      "git_blob": "d378d8fea76e31149b2202c21676e33ea7517903"
+    },
+    {
+      "path": "terminal/app/api/drawings/route.ts",
+      "git_blob": "e1584161eaf8e24bd545d3fd2849249a70ee3dc2"
+    },
+    {
+      "path": "terminal/components/AiLayerPanel.module.css",
+      "git_blob": "e2b19c581108eb4668a258958c2d0c8ca8bec402"
+    },
+    {
+      "path": "terminal/components/AiLayerPanel.tsx",
+      "git_blob": "755da384d269b083a2ed5369cf0a1097b15231db"
+    },
+    {
+      "path": "terminal/components/BrainWidget.tsx",
+      "git_blob": "8f7497d919dfa0b055c2d4c85c7866f3690271bb"
+    },
+    {
+      "path": "terminal/components/ChartOverlays.tsx",
+      "git_blob": "050818cd4956e2c8eed976487b90fd5fad9c1b5d"
+    },
+    {
+      "path": "terminal/components/workspaces/ThesisWorkspace.tsx",
+      "git_blob": "e87e0a29d4c2f80e0f7d85c557db514050f0665a"
+    },
+    {
+      "path": "terminal/docs/chart-ai-drawing-workspace/COMPOSITION_2026-11-05.md",
+      "git_blob": "5344a28c86e499a345a0d57e480dfc4adb78a1d9"
+    },
+    {
+      "path": "terminal/docs/chart-ai-drawing-workspace/DELIVERY_MASTERPLAN_2026-11-02.md",
+      "git_blob": "5e28aa024c85af51a0456ff41e09fab9b2a1888f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/README.md",
+      "git_blob": "871dc68e1fc2dc42d6d0006d526ed102d376350a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/browser-report.json.gz",
+      "git_blob": "822b90911d1438d9a4b4678e6b97bd56580ecbb9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-en-composition.mirrors.json.gz",
+      "git_blob": "2d0f22e97ac13b7c41ed140d049b70282dde4236"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-en-composition.png",
+      "git_blob": "98fc006ac0eae9772acc6d2cbe970d6194998694"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-en-individual-controls.mirrors.json.gz",
+      "git_blob": "2d0f22e97ac13b7c41ed140d049b70282dde4236"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-en-individual-controls.png",
+      "git_blob": "20408d37006150f1e3d7992340b35e8184a6e3d0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-log-fibonacci.mirrors.json.gz",
+      "git_blob": "24fa00419e2468a32db5b3508b96db7ad995a04d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-log-fibonacci.png",
+      "git_blob": "73894866f1f21b938e9edd0841eed3b863ade096"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-normal-pace-cancellation.mirrors.json.gz",
+      "git_blob": "b28198eb923e734a4b0150e96543153619962e34"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-normal-pace-cancellation.png",
+      "git_blob": "208693a1361a6b49e0ab54e2dd4a30b842f38764"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-template-and-independent-rsi.mirrors.json.gz",
+      "git_blob": "7c550238f339523b82c2cf9b00f69dfef4abb43f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-template-and-independent-rsi.png",
+      "git_blob": "009caea021ba92272773c48fc72f9d7ff03be1c1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-zh-composition.mirrors.json.gz",
+      "git_blob": "750e7740857e2f05dea72f701247e572a8ad240d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-zh-composition.png",
+      "git_blob": "420fdceeef24112c402d075893dd5f77f135c110"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-zh-individual-controls.mirrors.json.gz",
+      "git_blob": "750e7740857e2f05dea72f701247e572a8ad240d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/desktop-zh-individual-controls.png",
+      "git_blob": "003177fdb00f176ddb2ecec4e623bf9d7c1f8147"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/manifest.json",
+      "git_blob": "21517506fd470dc3e9724a77ad0b561d0388e323"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-en-composition.mirrors.json.gz",
+      "git_blob": "b9fdbc063807aa8c6bad3e25dc0d0657cd4f19d8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-en-composition.png",
+      "git_blob": "87504bfb2909fa3688bb7b3518a48b55d6c5d3ac"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-en-individual-controls.mirrors.json.gz",
+      "git_blob": "b9fdbc063807aa8c6bad3e25dc0d0657cd4f19d8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-en-individual-controls.png",
+      "git_blob": "364c4cb4ae7663bcb09e3d1ca8c1f5bcc120fe34"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-zh-composition.mirrors.json.gz",
+      "git_blob": "8313f4c75e9fc9da16690f43687b78aef55ca332"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-zh-composition.png",
+      "git_blob": "f8d62a7d55620ca9180e8698b843f72654b68e75"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-zh-individual-controls.mirrors.json.gz",
+      "git_blob": "8313f4c75e9fc9da16690f43687b78aef55ca332"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/mobile-zh-individual-controls.png",
+      "git_blob": "78e953ca5b85ed1e435f6d6f6d9f51dd06e19c49"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/README.md",
+      "git_blob": "fd9ccd38dac8cfbea4a8738b71565c6654c70307"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/desktop-native-Backspace-deleted.png",
+      "git_blob": "ea866320660b88bbf12ecf4c587f90927aa4f085"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/desktop-native-Delete-deleted.png",
+      "git_blob": "eb7f5a585686b696675bbefe856995b9ce460fe0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/desktop-native-inspector-deleted.png",
+      "git_blob": "4c57790ad80916d392cade3a340d61c6fe7a19d0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/integration-unit.log.gz",
+      "git_blob": "a0222056be3dfd8789fa48805155b777ac115a54"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/manifest.json",
+      "git_blob": "86924fb9a1f79f89b667ad037f828277c2602bf0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/mobile-native-inspector-deleted.png",
+      "git_blob": "48cc14d1db51f30018fb91d6c1a20a82b64cef00"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/native-delete-browser.json.gz",
+      "git_blob": "e5d7ad450535a7f7f8d5195d0865ab8ef52f0505"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/recovery-20261020/tablet-native-inspector-deleted.png",
+      "git_blob": "2890d8b3ea857104c518f01ba2247ec7e4eb18af"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-en-composition.mirrors.json.gz",
+      "git_blob": "9b3251dcc7abba07642b6dc7ba48a197155fddb7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-en-composition.png",
+      "git_blob": "21800efcb665b8133f6bdf3da4e11b20487f41c3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-en-individual-controls.mirrors.json.gz",
+      "git_blob": "9b3251dcc7abba07642b6dc7ba48a197155fddb7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-en-individual-controls.png",
+      "git_blob": "6b3122901327928e700299143b17d5421cf5b4f5"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-zh-composition.mirrors.json.gz",
+      "git_blob": "b82056a39cd8b3399c6abdf66754c951432e2e2f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-zh-composition.png",
+      "git_blob": "50ad0bdfad342b24e9a7bd11434f2a9eb2a1c99f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-zh-individual-controls.mirrors.json.gz",
+      "git_blob": "b82056a39cd8b3399c6abdf66754c951432e2e2f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/chart-ai-drawing-workspace-20261018/tablet-zh-individual-controls.png",
+      "git_blob": "db75eef366fbb315816989341532288bdb330d5b"
+    },
+    {
+      "path": "terminal/e2e/brain-drawing-workspace.spec.ts",
+      "git_blob": "0ecef6d69545c493f6486377a675ae0560fbd2cb"
+    },
+    {
+      "path": "terminal/e2e/command-palette-review.spec.ts",
+      "git_blob": "e6e85b287a1295178a3cb7b47251038f9d4723a1"
+    },
+    {
+      "path": "terminal/e2e/overnight-refresh.spec.ts",
+      "git_blob": "3e7f063124daead58c6a72d03f522edf834f4943"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_5_thesis_proposals.cjs",
+      "git_blob": "e6a99daeba432f1ea73937520c1dc20b5fe25398"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f13_6_claim_form.cjs",
+      "git_blob": "41a723ef06f621e6d55a37f5fe522e4699367469"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_conductor_fit_badge_zh.cjs",
+      "git_blob": "17bacdfbf374ae5b1feecfcf23129f448967237d"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_f11_4_research_views.cjs",
+      "git_blob": "1ddd12cbe8bdfa879826202d814af8861c0f790e"
+    },
+    {
+      "path": "terminal/lib/__tests__/aiLayerPanel.test.tsx",
+      "git_blob": "f06ee8f6b5d569d208bc7875fb374353cbf7839d"
+    },
+    {
+      "path": "terminal/lib/__tests__/brainWidgetChartPreparation.test.tsx",
+      "git_blob": "f50709cc35617a02910466e196c581a841b9bf75"
+    },
+    {
+      "path": "terminal/lib/__tests__/brainWidgetRebinding.test.ts",
+      "git_blob": "6836128b279b1c3c75343121259e02df743f643d"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartAiLayer.test.ts",
+      "git_blob": "97fa6a968840b50d230eefc1afca04856bb51960"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartBusNativeSuites.test.ts",
+      "git_blob": "ce1fe86a013104df6e883dba4b5baed8270c0bea"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartCommandContinuation.test.tsx",
+      "git_blob": "7221c608afa8c9abdd19467e6a23b448da95e5f3"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartCommandInputBoundary.test.ts",
+      "git_blob": "8e33b8d6bb53f57cd0bb59cd800d166a706164f1"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartIndicatorCapabilities.test.ts",
+      "git_blob": "abc9574a1914d13528dd99d381ceb7c132bd25d0"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartIndicatorVisibility.test.tsx",
+      "git_blob": "6d8d871f4c12c47a3eb2a8345a0f76e4bd272100"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartNativeDrawingTools.test.ts",
+      "git_blob": "95cecc6d7995f013803250564fb4a0b0186428bc"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartStatePayload.test.ts",
+      "git_blob": "7e749c912d3853324bd3d2843873786864cbc980"
+    },
+    {
+      "path": "terminal/lib/__tests__/drawingAiPersistence.test.ts",
+      "git_blob": "a144f6cde5c61149e3dfcfedaee2bdcee8aaa8d3"
+    },
+    {
+      "path": "terminal/lib/__tests__/drawingAiPersistenceContract.test.ts",
+      "git_blob": "fc748f0732c8d68ecc63b10b5d5fea2c083648bb"
+    },
+    {
+      "path": "terminal/lib/__tests__/drawingSaveConflict.test.ts",
+      "git_blob": "bc98ef81a2fbc3a41adcc43d2b69fa38dfdd45ac"
+    },
+    {
+      "path": "terminal/lib/__tests__/drawingsApi.test.ts",
+      "git_blob": "4e8812582629c0a70679185f6c8edd71e5ecf7e5"
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/chartBusOwner.ts",
+      "git_blob": "b9b6a47fbadfbbd5106fc302af67f89d4b04e0c3"
+    },
+    {
+      "path": "terminal/lib/__tests__/thesisOntologyReopen.test.tsx",
+      "git_blob": "c0cc91e7108f3e795974807661bb8bc1cdbad2bd"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusContext.test.tsx",
+      "git_blob": "86a782b2a493a5a0071d34b8c8cd44b4d4b05dfb"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusDelivery.test.tsx",
+      "git_blob": "749372e2e97f9c4bb14da733f80b03352d88d2bc"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusDrawingOwner.test.tsx",
+      "git_blob": "e8e319d3e68356c7e346d09af89a1b2bb2b99444"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusPaneContexts.test.ts",
+      "git_blob": "51552aa242739c084d517419674930f26797e0d9"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusRebinding.test.tsx",
+      "git_blob": "b659f2879a2c8218df04e12d8c211265342fd871"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusStateMirror.test.tsx",
+      "git_blob": "cc94d42a7cd3b90fe29b49155784c8e5f6a92b31"
+    },
+    {
+      "path": "terminal/lib/__tests__/useChartBusTargeting.test.tsx",
+      "git_blob": "89b0cf69591f90a18ce6155d6c02f7b0b2f1e9d3"
+    },
+    {
+      "path": "terminal/lib/chartAiCopy.ts",
+      "git_blob": "2bf1c27c1656428a8dd72384f978800ccc82f5ef"
+    },
+    {
+      "path": "terminal/lib/chartAiLayer.ts",
+      "git_blob": "dc1c549f90d23f4bb094bb48be23f340df916cbd"
+    },
+    {
+      "path": "terminal/lib/chartBus.ts",
+      "git_blob": "adf40b596bba10d148e564d7c78d65cc0d6bd7e5"
+    },
+    {
+      "path": "terminal/lib/chartDrawingTools.ts",
+      "git_blob": "34fe8df7ea2fa56fa52ff66d345e81b6a0e7f7f7"
+    },
+    {
+      "path": "terminal/lib/chartIndicatorParams.ts",
+      "git_blob": "65bbfec19e690a8606dd4481bbdce4a5d37bf17c"
+    },
+    {
+      "path": "terminal/lib/chartStatePayload.ts",
+      "git_blob": "28540eb2049ba43bb798880a8e3971291ac1a0ca"
+    },
+    {
+      "path": "terminal/lib/drawing-engine/geometry.ts",
+      "git_blob": "ead56d2016ac8ad540c574928f7b22f650f3ff2a"
+    },
+    {
+      "path": "terminal/lib/drawing-engine/settings.ts",
+      "git_blob": "573b7db537e98be9ea0e939db40842c4822ce26a"
+    },
+    {
+      "path": "terminal/lib/drawingAiPersistence.ts",
+      "git_blob": "1d6eee8a050227d9540d356ce39b3c9a84158ff5"
+    },
+    {
+      "path": "terminal/lib/drawingOutbox.ts",
+      "git_blob": "be7be7532e7986dab5166479ca54f72d8eeee824"
+    },
+    {
+      "path": "terminal/lib/drawingPersistence.ts",
+      "git_blob": "484a743fbc0494c21f1a992311db9987cbb279b8"
+    },
+    {
+      "path": "terminal/lib/drawingSaveConflict.ts",
+      "git_blob": "5234b046255571f668deb1e4ef7dab8ddaf32ef4"
+    },
+    {
+      "path": "terminal/lib/mastermindBrain.ts",
+      "git_blob": "ed3f68c323daf2b03433a90cc820a9a833d79407"
+    },
+    {
+      "path": "terminal/lib/useChartBus.ts",
+      "git_blob": "73c626781c46509face34fbcc70a15f920954ce9"
+    },
+    {
+      "path": "tests/test_chart_ai_drawings_postgres.py",
+      "git_blob": "123b930ff6785164c93971fd839263c263294592"
+    }
+  ],
+  "clean_integrated_chart_files": {
+    "terminal/components/ChartPane.tsx": "21516f7f5abd2c180e0bf77f8c08d40f73a491ab",
+    "terminal/components/ChartPanel.tsx": "8c2ef3911488d6a6ea5f95800083a1cb80d7455b",
+    "terminal/components/TerminalShell.tsx": "26ac658202b8688c99b693314890baf9b97f3d04"
+  },
+  "resolved_exporter_files": [
+    "terminal/e2e/tools/capture_ci_evidence.cjs",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs"
+  ],
+  "legacy_inventory": {
+    "pine": 30,
+    "batch3": 20,
+    "claims": 12,
+    "research": 20,
+    "proposals": 8,
+    "conductor": 6
+  },
+  "legacy_total": 96,
+  "separate_pl6_vi_selected_cases": 50,
+  "checks": {
+    "owner_contracts_passed": 269,
+    "affected_product_tests_passed": 503,
+    "affected_test_files": 27,
+    "typescript_diagnostics": 0,
+    "default_cjs_lint_errors": 22,
+    "default_cjs_lint_warnings": 4,
+    "all_cjs_diagnostic_lines_in_existing_parent": true,
+    "pacing_spec_lint_findings": 0,
+    "plain_language": {
+      "scanned_files": 498,
+      "blocking": 0,
+      "legacyReported": 5,
+      "waived": 0
+    }
+  },
+  "evidence_manifests_preserved": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+      "git_blob": "25b8ff0209803e5997a5cf6daf9813658b971ddc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "git_blob": "563f7222c95499fb3ffb6c25c873344da0463253"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml",
+      "git_blob": "fad08d1cf117558f54401a4295c5bdde0be4daec"
+    }
+  ],
+  "no_browser_execution": "No local browser run or old M2 cleanup replay. Natural current-head CI and genuine evidence import remain required.",
+  "holds": "Keep merge-blocked, SQL0050 reservation/apply hold, paired Macro/provider acceptance and production constraints. No self-approval, direct merge, auto-enrollment or deployment."
+}

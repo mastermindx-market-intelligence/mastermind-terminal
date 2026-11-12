@@ -1,0 +1,888 @@
+{
+  "artifactId": 13880393951,
+  "zipBytes": 13693235,
+  "zipSha256": "c0df8c712ea4e80c5e52cf03f15cd794fe71480b3631e4e6a0bb3a5697ea5e5d",
+  "uniqueMembers": 175,
+  "fileMembers": 175,
+  "crcVerified": true,
+  "safeRelativePaths": true,
+  "noSymlinks": true,
+  "extractedBytesMatchArchive": true,
+  "files": {
+    "company-intelligence-AAPL--0f984-rs-while-v1-is-still-parked-company-intelligence-desktop/company-intelligence-desktop-aapl-v2-without-v1.png": {
+      "bytes": 129598,
+      "sha256": "5fb4d45a2d02f88471de6f0138b6f841c170a4a145d7e3295a7de48cd63bc75f",
+      "crc32": "58285b75"
+    },
+    "company-intelligence-AAPL--25cbd-le-not-a-live-current-event-company-intelligence-mobile/company-intelligence-mobile-aapl-stale.png": {
+      "bytes": 56315,
+      "sha256": "487815347500e3ff425bf61c05f705e1dea6063b0c2b000fe0932eea628a6b13",
+      "crc32": "999825f2"
+    },
+    "company-intelligence-AAPL--25cbd-le-not-a-live-current-event-company-intelligence-desktop/company-intelligence-desktop-aapl-stale.png": {
+      "bytes": 126636,
+      "sha256": "83cc816630764604e3b9a4f4985901cf6a1a159ee2ed2596e0b218c01ebead31",
+      "crc32": "5f60866d"
+    },
+    "company-intelligence-AAPL--25cbd-le-not-a-live-current-event-company-intelligence-tablet/company-intelligence-tablet-aapl-stale.png": {
+      "bytes": 89572,
+      "sha256": "f9cc5816759e920eeca823be94c784d0d7ea76d7cd246fcde40aeb2eee15037e",
+      "crc32": "45a9794e"
+    },
+    "company-intelligence-AAPL--413ae-in-Chinese-without-overflow-company-intelligence-mobile/mobile-aapl-event-workspace-zh.png": {
+      "bytes": 78731,
+      "sha256": "a818a581345051f7b98eab09b081778bae95d1566e647b1bf49372b28894c5f1",
+      "crc32": "8509df57"
+    },
+    "company-intelligence-AAPL--71285-inese-at-desktop-and-mobile-company-intelligence-desktop/company-intelligence-desktop-aapl-qa-zh.png": {
+      "bytes": 177951,
+      "sha256": "d14009e11da52afe2f8c23fbfa63397525a35aeb490dbee2a578b4f884a912b5",
+      "crc32": "1c9d8762"
+    },
+    "company-intelligence-AAPL--71285-inese-at-desktop-and-mobile-company-intelligence-mobile/company-intelligence-mobile-aapl-qa-zh.png": {
+      "bytes": 69422,
+      "sha256": "10c9cd91188a7fadf23642c517eb5dfabfaeb2c4d1fff5c2d25b8bc051c60a2e",
+      "crc32": "3537bbae"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-brief.png": {
+      "bytes": 129598,
+      "sha256": "5fb4d45a2d02f88471de6f0138b6f841c170a4a145d7e3295a7de48cd63bc75f",
+      "crc32": "58285b75"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-event-workspace.png": {
+      "bytes": 176995,
+      "sha256": "9936d343bc34348ca4f4dd9bd6175623200f961bc32b74606cac1ce07923202c",
+      "crc32": "d129975b"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-qa-empty.png": {
+      "bytes": 138407,
+      "sha256": "024c23b510c0623a7fa38b5b9b0ed54fa13de5fa40663448174293c1e3c42fe3",
+      "crc32": "90878085"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-results.png": {
+      "bytes": 147162,
+      "sha256": "42930fae8fa4edd6313693cf12351d2d091a8161383c8c8ca42fc8a8b5add0b1",
+      "crc32": "eddab35f"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-revenue-receipt.png": {
+      "bytes": 178200,
+      "sha256": "3f4ce17d52ec53d0700beeef919576731d0bf1f3cbea3da7129f4b24ad194dc1",
+      "crc32": "f57fdda2"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-sources.png": {
+      "bytes": 147751,
+      "sha256": "90897410560b8513db2c0ecb77eba47110c4d6acb09b86f122dcef24b814505d",
+      "crc32": "9be82b8b"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-desktop/company-intelligence-desktop-aapl-transcript.png": {
+      "bytes": 176353,
+      "sha256": "b89e58e20e03bff91c394dc6e962454e66f822402b21a5c5082b9c3a3196948d",
+      "crc32": "534a7569"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-brief.png": {
+      "bytes": 55459,
+      "sha256": "cb6d4a7cf442a08821c707491fd342989f076cececcb401e53ee3c3144cb8635",
+      "crc32": "81f729af"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-event-workspace.png": {
+      "bytes": 86228,
+      "sha256": "225473541af7ceeec00b51cf88df0f24c1facf83a6a0aeacba1e4925a43b7210",
+      "crc32": "14a34836"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-qa-empty.png": {
+      "bytes": 65428,
+      "sha256": "ac4e3f669c02aace0c8904bfceb0f75c29997d802228fad77944a9b4079f27c1",
+      "crc32": "fdeea584"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-results.png": {
+      "bytes": 76032,
+      "sha256": "3ccba8b0c8305779f85330680bb1ce3b470c99fccad2ce2916c3df962e7ba1e0",
+      "crc32": "5f65007a"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-revenue-receipt.png": {
+      "bytes": 44146,
+      "sha256": "53ea0164a5852c72710fc1ea3d3444b31bba0929bd2d57426f8ed2133475926f",
+      "crc32": "7b01cc90"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-sources.png": {
+      "bytes": 73909,
+      "sha256": "2d374ef4e1b51c19c76402c2ca97b962d73c5af0964d82a08badde20855d9651",
+      "crc32": "5a57757b"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-mobile/company-intelligence-mobile-aapl-transcript.png": {
+      "bytes": 85894,
+      "sha256": "2852a0c202be890909291d46da3faf843d086ef9593d9d753aaba0bd2d7d203e",
+      "crc32": "9e9ef6d5"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-event-workspace.png": {
+      "bytes": 208345,
+      "sha256": "195f558b3187a6c68632373bd98f65ed2ab0d4bc11d67c30d682b61f6391f87c",
+      "crc32": "de01857a"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-brief.png": {
+      "bytes": 88379,
+      "sha256": "35e2a28e2f08fcb195f850978404a62f7282c9efbdd387ad546018c9f84e9f4c",
+      "crc32": "a9e08f78"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-qa-empty.png": {
+      "bytes": 151266,
+      "sha256": "2bb1909fb5f752668d27521462f060843821cfa60a9e994450409391b16c752f",
+      "crc32": "c7521c02"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-results.png": {
+      "bytes": 189053,
+      "sha256": "ec562bebc8edb2ed4d2686ec14a9a402f2cc723a2ea25dfcb8240c4a17555fc9",
+      "crc32": "d16c1d34"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-revenue-receipt.png": {
+      "bytes": 157209,
+      "sha256": "1ad1cead19c2a1df1bfcaf5e8e983c05424086acc95a3c418130e12ae66b39bb",
+      "crc32": "ae3fe085"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-sources.png": {
+      "bytes": 121763,
+      "sha256": "af47c729a6e7b9d8c48f3622def98b7814c1d6b66ae863e915303b7f48baba51",
+      "crc32": "bd9eacb5"
+    },
+    "company-intelligence-AAPL--da9ed-d-FY2026-Q3-event-workspace-company-intelligence-tablet/company-intelligence-tablet-aapl-transcript.png": {
+      "bytes": 208012,
+      "sha256": "903110e035bdfc5f656cabe6877b5dbbfc0c477f1846cacda245612c26a1e89a",
+      "crc32": "a1a5bff6"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-desktop/company-intelligence-desktop-aapl-qa-expanded.png": {
+      "bytes": 159269,
+      "sha256": "46a6f1a372320f8ca27df7639a689c174c6fef59eea4d9147c2f00bf0815a09b",
+      "crc32": "da2dff7e"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-desktop/company-intelligence-desktop-aapl-qa-transcript.png": {
+      "bytes": 201240,
+      "sha256": "27601470f54b98c0041ff52b58c6133c84981b799b4ab5ad582aab250c721fac",
+      "crc32": "ed044c01"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-mobile/company-intelligence-mobile-aapl-qa-expanded.png": {
+      "bytes": 59215,
+      "sha256": "2491669ea6e86b391327634314541f2b830946c4963560fe23846275052fb979",
+      "crc32": "a8ab2729"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-mobile/company-intelligence-mobile-aapl-qa-transcript.png": {
+      "bytes": 54061,
+      "sha256": "96e74e85113f55db89802a52b555106f57cc5d6309b3c6bd27fca6d1239f94eb",
+      "crc32": "a62e5d77"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-tablet/company-intelligence-tablet-aapl-qa-expanded.png": {
+      "bytes": 171090,
+      "sha256": "d3c38c1682b5f16b632b5b0edb4488467d9ade9157b32a60733df691e7e8686a",
+      "crc32": "b91492a5"
+    },
+    "company-intelligence-AAPL--e6c77-he-exact-transcript-segment-company-intelligence-tablet/company-intelligence-tablet-aapl-qa-transcript.png": {
+      "bytes": 210389,
+      "sha256": "1f7c609908c56a28bb154b93696c44f619c220714aa344c2c0f7a5c066a97520",
+      "crc32": "023b1ac3"
+    },
+    "company-intelligence-AAPL--ecebc-thout-inventing-a-topic-map-company-intelligence-desktop/company-intelligence-desktop-aapl-call-qa.png": {
+      "bytes": 233159,
+      "sha256": "e18b8b46dc459356b11396225349974a86ffa72b06dc6bf1a77f82de8a2a49f6",
+      "crc32": "a7a2f163"
+    },
+    "company-intelligence-AAPL--ecebc-thout-inventing-a-topic-map-company-intelligence-mobile/company-intelligence-mobile-aapl-call-qa.png": {
+      "bytes": 54061,
+      "sha256": "8b752665537293be46b56071d59b89ec75fe92fdfd39098debcb6e9b783d67df",
+      "crc32": "ebfb3d4f"
+    },
+    "company-intelligence-AAPL--ecebc-thout-inventing-a-topic-map-company-intelligence-tablet/company-intelligence-tablet-aapl-call-qa.png": {
+      "bytes": 214826,
+      "sha256": "1c9b405575b5451be54f0082da842dd2e394539e2bcb572c2bf7ee291737db3b",
+      "crc32": "4e699cb3"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-desktop/company-intelligence-desktop-company-institutional-context.png": {
+      "bytes": 350196,
+      "sha256": "977d1b11147136d919ad15e6d481a32f3f6cab8d6ea16e48334db294271dfbbb",
+      "crc32": "62236918"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-desktop/company-intelligence-desktop-company-intelligence.png": {
+      "bytes": 91138,
+      "sha256": "d743722bec1d0301d030794602a465ed98195570052cc5b2a345e6425cc7d8e7",
+      "crc32": "5356cea3"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-desktop/company-intelligence-desktop-company-theme-context.png": {
+      "bytes": 136244,
+      "sha256": "5e1e9dc938e6516db1a862fdfa1e03fb80f88189b690dc8aab22320a2b49b77f",
+      "crc32": "4fffa07c"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-mobile/company-intelligence-mobile-company-institutional-context.png": {
+      "bytes": 96151,
+      "sha256": "a1cb240358c0ee04b631a1cdbd886190d7460ab7487cc813a94795d2bf5e722e",
+      "crc32": "5a3f9551"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-mobile/company-intelligence-mobile-company-intelligence.png": {
+      "bytes": 44690,
+      "sha256": "d1671199366675c2a4848839e73cf6b63540ee84109c61de02035f19dd49e70b",
+      "crc32": "6e918707"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-mobile/company-intelligence-mobile-company-theme-context.png": {
+      "bytes": 57060,
+      "sha256": "c29792abb1c535b60978ec44a18c238728b6fd2f14dc4561cad1519c1d13734b",
+      "crc32": "a8600610"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-tablet/company-intelligence-tablet-company-institutional-context.png": {
+      "bytes": 284869,
+      "sha256": "c7c7cc74fe484a9b4a1dbdf366b76f99959b586ec7cfc221bf50b11d806ad049",
+      "crc32": "018c7fe3"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-tablet/company-intelligence-tablet-company-intelligence.png": {
+      "bytes": 55277,
+      "sha256": "3716b7ec721f6e9f6647f7958fa0dc30ba24e0b0e2b6ba8bd1fdfc8b72b4560f",
+      "crc32": "13c9d663"
+    },
+    "company-intelligence-Compa-2289e-vidence-workflow-responsive-company-intelligence-tablet/company-intelligence-tablet-company-theme-context.png": {
+      "bytes": 93160,
+      "sha256": "12eec0b83fa7561a1a5f74f39f53a5132b1d3967642246c73fa9e6914436becd",
+      "crc32": "ab7c0a0b"
+    },
+    "company-intelligence-Compa-a8ce2--mobile-workflow-in-Chinese-company-intelligence-mobile/mobile-company-intelligence-zh.png": {
+      "bytes": 61926,
+      "sha256": "a4bbdcddc87f49b6b06401e7ea2f16d5bd96a3604fa77a38d068ec680c474196",
+      "crc32": "d23e34cf"
+    },
+    "company-intelligence-Owner-27954-ut-claiming-total-ownership-company-intelligence-desktop/company-intelligence-desktop-ownership-institutional.png": {
+      "bytes": 308349,
+      "sha256": "599a989a02099fdeec7821bb5267f8e78c6a34005f1a3abf3098f21d057eef5c",
+      "crc32": "4aebced8"
+    },
+    "company-intelligence-Owner-27954-ut-claiming-total-ownership-company-intelligence-mobile/company-intelligence-mobile-ownership-institutional.png": {
+      "bytes": 136717,
+      "sha256": "5bf540105653d966e7993dee85d10f0dc0e98597eb937a72a34746696412b115",
+      "crc32": "2f3c333a"
+    },
+    "company-intelligence-Owner-27954-ut-claiming-total-ownership-company-intelligence-tablet/company-intelligence-tablet-ownership-institutional.png": {
+      "bytes": 246257,
+      "sha256": "0762e88bf911add86d3bf0aedaaa085d7051eb48abb314ade99d2c7bdab605d1",
+      "crc32": "2f171afb"
+    },
+    "company-intelligence-liter-799df-local-revision-verified-BFF-company-intelligence-desktop/transcript-search-compare-company-intelligence-desktop.png": {
+      "bytes": 289771,
+      "sha256": "40577180dc05e53bb49c780e564a758083cc84f51a1d25a4667c05ce9ae193a2",
+      "crc32": "128db512"
+    },
+    "company-intelligence-liter-799df-local-revision-verified-BFF-company-intelligence-mobile/transcript-search-compare-company-intelligence-mobile.png": {
+      "bytes": 96380,
+      "sha256": "22c1c7bf82d6bbd0c76be969a239f18568536f9d8ce05475af321b38d9446b96",
+      "crc32": "88ab6a47"
+    },
+    "company-intelligence-liter-799df-local-revision-verified-BFF-company-intelligence-tablet/transcript-search-compare-company-intelligence-tablet.png": {
+      "bytes": 249046,
+      "sha256": "c1d8186ddb966857ee4759f406e2a8c6a036a7b516d7dd402bffd09e1cc5b471",
+      "crc32": "11af7f71"
+    },
+    "investor-shell-preview/investor-shell-preview-dir-e38dc-ithout-replacing-the-drawer-mobile/mobile-market-overview-320.png": {
+      "bytes": 16573,
+      "sha256": "837659017cde23d43c95e9fddfc9b748c3667d7db589414f0662f86edb0d86d1",
+      "crc32": "0905ebf2"
+    },
+    "investor-shell-preview/investor-shell-preview-dir-e38dc-ithout-replacing-the-drawer-mobile/mobile-market-overview-390.png": {
+      "bytes": 16989,
+      "sha256": "d45ec2ba3412b821f6d9cdd624e752eac6505dcb63bb95a66acfc28b51069b7d",
+      "crc32": "97a885d2"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-desktop/analysis-compact.png": {
+      "bytes": 35230,
+      "sha256": "3c7c83d09892e7d5c89f097093a5e21a0945ad892ec8179ef6626cce23419c20",
+      "crc32": "c7e453cd"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-desktop/analysis-desktop.png": {
+      "bytes": 47263,
+      "sha256": "43fdc2fba0eaed5bd4777b65fa4402162c857a8340bf1a53c3a5fe6407c51e5e",
+      "crc32": "dd6b053c"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-mobile/analysis-mobile.png": {
+      "bytes": 22023,
+      "sha256": "37b57c5c76194eed56035088147c408ea2b8e23ab3531cc5ddeb4c905d0c6b04",
+      "crc32": "57603f75"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-tablet/analysis-tablet.png": {
+      "bytes": 34767,
+      "sha256": "3e80ab1c59258fdbd1274f98c239efe1ec5fcbc130671bf85a0a9c63029c2d44",
+      "crc32": "b52021b8"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-desktop/discover-compact.png": {
+      "bytes": 123433,
+      "sha256": "4ce25f86d5cece857e04a8b84418b4a292d2134b778b297abc9928c75a75dc87",
+      "crc32": "2f89c8d5"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-desktop/discover-desktop.png": {
+      "bytes": 136226,
+      "sha256": "217cad49b6967bba79fda3a59e6038ad819beb2c02c81e7ef0a96b3884584069",
+      "crc32": "42c0b487"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile/discover-mobile.png": {
+      "bytes": 52200,
+      "sha256": "cd2bcc6b7777c8c2997cbfdbd55e393be7f6254ded7ec582c7096150bd18a6a4",
+      "crc32": "d6a27ea6"
+    },
+    "investor-shell-preview/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-tablet/discover-tablet.png": {
+      "bytes": 126753,
+      "sha256": "40db7f614bcb711c2801e36418f763730f4385e26feda4655f82d9bfe8e72032",
+      "crc32": "4bac0a9f"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-18065-abels-remain-readable-in-zh-desktop/navigation-zh-desktop.png": {
+      "bytes": 49398,
+      "sha256": "e735e51a34f74c80885433df51203e50c1d69cb925025e8e081900b96040722b",
+      "crc32": "bf324248"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-18065-abels-remain-readable-in-zh-mobile/navigation-zh-mobile.png": {
+      "bytes": 18692,
+      "sha256": "f4a4544ced1b92783d4c57d77682987e68796b796635389bceec1276d3f8f4d6",
+      "crc32": "54b1bc70"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-18065-abels-remain-readable-in-zh-tablet/navigation-zh-tablet.png": {
+      "bytes": 18826,
+      "sha256": "5825337a79a964d1f572cc4b745c8c24db3c1c7d1e66a8c0bf873f268633ebd2",
+      "crc32": "aa514770"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-c27db-abels-remain-readable-in-en-mobile/navigation-en-mobile.png": {
+      "bytes": 16573,
+      "sha256": "837659017cde23d43c95e9fddfc9b748c3667d7db589414f0662f86edb0d86d1",
+      "crc32": "0905ebf2"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-c27db-abels-remain-readable-in-en-desktop/navigation-en-desktop.png": {
+      "bytes": 46546,
+      "sha256": "6f88d4dcefddac908125c5ac2df306753faad33e7ba13b8c4eaefcadaa1db146",
+      "crc32": "7814f17d"
+    },
+    "investor-shell-preview/investor-shell-preview-pre-c27db-abels-remain-readable-in-en-tablet/navigation-en-tablet.png": {
+      "bytes": 16707,
+      "sha256": "b0ea388ed2d23a13f0db2c0d9c8adf06c48bcd4f4e2fa3e670fc3ff60f824061",
+      "crc32": "f3849379"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--desktop/discover-heatmap-en-desktop.png": {
+      "bytes": 108943,
+      "sha256": "e67415bbe4a6508e1ce2dbe49985b51ce3b5f9dd3433a6d110d784352c336c61",
+      "crc32": "951b36e7"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--mobile/discover-heatmap-en-mobile.png": {
+      "bytes": 124693,
+      "sha256": "aced27f0f7165ebb9bc21433d489f538ad6060547905e55fa243bad1949f2aae",
+      "crc32": "763f039c"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--desktop/discover-rs-pivot-en-desktop.png": {
+      "bytes": 101952,
+      "sha256": "1e8d08d4bfb3c591cd2d58b4d613bcc53f20f4e94526a4008d07cc9849b29b78",
+      "crc32": "f5ef261f"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--mobile/discover-rs-pivot-en-mobile.png": {
+      "bytes": 57665,
+      "sha256": "6317d6b114fc2f4aab28aee017eebacb6306023a2b1a340cae20bcd30cd6240b",
+      "crc32": "5585f465"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--tablet/discover-heatmap-en-tablet.png": {
+      "bytes": 161568,
+      "sha256": "3d272018f30c2e3da1b51c64785ae2a21d81eadbb1a0891d3ee6a6a873463c76",
+      "crc32": "9c5c838c"
+    },
+    "shared-shell-refinement/discover-focus-continuity--88d75--with-the-selected-task-en--tablet/discover-rs-pivot-en-tablet.png": {
+      "bytes": 71621,
+      "sha256": "369d1565351ed8a3e5c90e025bfbba8bfe9c7511845491c2690f006c2d6c1a31",
+      "crc32": "82f2e815"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--desktop/discover-heatmap-zh-desktop.png": {
+      "bytes": 202310,
+      "sha256": "009f53c935f8af236ba5d48a54b83776230cf0749fb906d8066bfc9967cb7759",
+      "crc32": "9032b278"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--desktop/discover-rs-pivot-zh-desktop.png": {
+      "bytes": 143444,
+      "sha256": "231558eac61f977ddb1aa8eb513a98bda2a778a6fee05a6d0d4ff23ada68a451",
+      "crc32": "2338cbf6"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--mobile/discover-heatmap-zh-mobile.png": {
+      "bytes": 133381,
+      "sha256": "88439de1966844bffd7ca922c9c970acc7d70a44cfbf2aaac7bf06b73bc4b6ff",
+      "crc32": "8edd7a30"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--mobile/discover-rs-pivot-zh-mobile.png": {
+      "bytes": 98730,
+      "sha256": "e9eb7bbb64626b5550cc3f993658d0be25d893ff8901acecb78d37f433b58922",
+      "crc32": "fae7771a"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--tablet/discover-heatmap-zh-tablet.png": {
+      "bytes": 174475,
+      "sha256": "03fe2368e93d012ddffbfb4518cec00d0b873582fd691436a7c3736dc8562d7d",
+      "crc32": "20888bf3"
+    },
+    "shared-shell-refinement/discover-focus-continuity--94088--with-the-selected-task-zh--tablet/discover-rs-pivot-zh-tablet.png": {
+      "bytes": 107797,
+      "sha256": "3507b4e15c1b76daaf354ca131a1a6ac5ca3afdb5e0f0e1c045e309edfd4c255",
+      "crc32": "24fb757f"
+    },
+    "shared-shell-refinement/shared-shell-refinement-Pa-7351b-d-a-readable-company-search-desktop/discover-dark-en.png": {
+      "bytes": 112105,
+      "sha256": "134c1c92c5ab7c0ec1f225c2879efcb5e2113c15c1c9f0756e51e38838cd7e16",
+      "crc32": "3664a00b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-Pa-7351b-d-a-readable-company-search-mobile/discover-dark-en.png": {
+      "bytes": 46579,
+      "sha256": "4a2fb52fa90553031a5183e86ac0d158bb6954fe66b86c43b25835be2d8de9b0",
+      "crc32": "db644325"
+    },
+    "shared-shell-refinement/shared-shell-refinement-Pa-7351b-d-a-readable-company-search-tablet/discover-dark-en.png": {
+      "bytes": 71229,
+      "sha256": "3b0bb8312d79049171b88bde394bb9b099b438365d0a40c5ac533778b616eefa",
+      "crc32": "ead14a2b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-SS-6b1da-keyboard-focus-at-320px-en--mobile/ss12-company-recovery-en.png": {
+      "bytes": 33937,
+      "sha256": "00f52604036f18027c37abdd9bf089ef6e635029bb9c2185a4318cf74eb590a3",
+      "crc32": "f02f10f6"
+    },
+    "shared-shell-refinement/shared-shell-refinement-SS-e3ca8-keyboard-focus-at-320px-zh--mobile/ss12-company-recovery-zh.png": {
+      "bytes": 43385,
+      "sha256": "715dc1d4cb1cee62a8e1177023a758f46aeefc6aedab187a7dff66def114252d",
+      "crc32": "f1e7a382"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-desktop/tools-public-learn-back-restored.png": {
+      "bytes": 104176,
+      "sha256": "3ebaa78e6e1705fdd24ed8e66b6331a0727c81e7a47915bf45cceaf08b1b78d7",
+      "crc32": "1b4cf466"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-desktop/tools-public-learn-destination.png": {
+      "bytes": 79219,
+      "sha256": "cb87972ebae4ead092cb4c815352459ada180d3d81fbe2126025ffc1f5e445f1",
+      "crc32": "5a5c442e"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-mobile/tools-public-learn-back-restored.png": {
+      "bytes": 49622,
+      "sha256": "5a3f77dff2e04fba6aebb6802f6d2b5c84680e4bde88ae4fe4c36f7d0ed0c1bf",
+      "crc32": "3d643dbc"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-mobile/tools-public-learn-destination.png": {
+      "bytes": 51984,
+      "sha256": "c9e4c8c6ab8e3474cd0e7b897c6e67d13fa65fa71f3e01bc08868a31fb010d91",
+      "crc32": "de142454"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-desktop/tools-selected-public-learn.png": {
+      "bytes": 103815,
+      "sha256": "9efb71274f08d94c1860ad4e10ad820b964c97175de2f7f90aa891efb9096ce4",
+      "crc32": "d5a421c7"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-mobile/tools-selected-public-learn.png": {
+      "bytes": 49092,
+      "sha256": "01d1d32f472e344076a7ec2a0767a560d74b765f759a135ebad18f15c6bdada2",
+      "crc32": "e55b514b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-tablet/tools-public-learn-back-restored.png": {
+      "bytes": 54226,
+      "sha256": "49d119beeee42377a41c957f9b875bdcca2f87f2f728b28324ec4466c8365741",
+      "crc32": "f25820aa"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-tablet/tools-public-learn-destination.png": {
+      "bytes": 87589,
+      "sha256": "3e7facee777d9b54e637614190d6aea166c87732dc7816628f37fb025b2eb1cb",
+      "crc32": "75d8df1a"
+    },
+    "shared-shell-refinement/shared-shell-refinement-To-14af9-s-query-scope-and-selection-tablet/tools-selected-public-learn.png": {
+      "bytes": 53732,
+      "sha256": "78ec3bff6e34af232cde7aec51f8ad0fabeae934e3a40cfd8f3d552274eb1645",
+      "crc32": "d444daa4"
+    },
+    "shared-shell-refinement/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-desktop/company-search-selection.png": {
+      "bytes": 103168,
+      "sha256": "d50e5028bcd3a65ef22acacca267a27b282c813a3e1cf55bfaee82d4fb975c1d",
+      "crc32": "9cf3c67b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-tablet/company-search-selection.png": {
+      "bytes": 54551,
+      "sha256": "e7ec1675a5724b8981f88f9bf2b6cb68e46ab98855c7d18c04c6df79ea9a2ae6",
+      "crc32": "146332ee"
+    },
+    "shared-shell-refinement/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-mobile/company-search-selection.png": {
+      "bytes": 53620,
+      "sha256": "f3ffc36421b7c5c612edc43fb3ef4808a018217c7a718c1f34ab5a9444bb5715",
+      "crc32": "a9aa36a0"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-desktop/status-workspace-recovered.png": {
+      "bytes": 45104,
+      "sha256": "b6b4ead9feced5139256498bd762c0baa3cd9846c0015b1635ab4f4ac038bd2a",
+      "crc32": "c0123526"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-mobile/status-unavailable-retry.png": {
+      "bytes": 16819,
+      "sha256": "2c4be587c6da29ce59371a296f54dd3e8e2008660b77c4d68c358f79ae554b6d",
+      "crc32": "48b95702"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-desktop/status-unavailable-retry.png": {
+      "bytes": 53588,
+      "sha256": "345301bf87dd400cd1d692bdbb2b5b4756b42daeb1feb61863767acfa9dc6a22",
+      "crc32": "c861a352"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-mobile/status-workspace-recovered.png": {
+      "bytes": 8444,
+      "sha256": "212d21f3d164f3be0b9cb8e96a03989699b07fcbc107a29c89fc3b44f580ab00",
+      "crc32": "8ee35cc9"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-tablet/status-unavailable-retry.png": {
+      "bytes": 21407,
+      "sha256": "589113bed1b348eeb2b52afab2af85d882d600aa27c53a2a048c31116d0445e5",
+      "crc32": "63d43f59"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-41a0b-without-reloading-the-shell-tablet/status-workspace-recovered.png": {
+      "bytes": 12634,
+      "sha256": "0b2a77e50314826ec116363d0f4ea672cb14c428570eab7c252bd05aaef0f133",
+      "crc32": "7369d597"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-320x480.png": {
+      "bytes": 16178,
+      "sha256": "c449666b19eb23a3efdcd3e9047735aae454b1067b64f1e90771b9a0265de6ea",
+      "crc32": "751ef887"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-568x320.png": {
+      "bytes": 17530,
+      "sha256": "61681fbd97244a9f78e1d14f666ae17418a1eead9d2c65ced2d0ece45d7cd4a2",
+      "crc32": "2eeaf565"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-light-zh.png": {
+      "bytes": 54116,
+      "sha256": "b0dd8dde2a439b8d85d54b7a1e0080cd10680ce01b3522725d4a45e34951efc9",
+      "crc32": "1d2da561"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-mobile/workspace-recovery-light-zh.png": {
+      "bytes": 18700,
+      "sha256": "d497e86f7dc95541eb45245897774511847462f94d8b099d31c3148a9616694d",
+      "crc32": "e37d45fa"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/workspace-recovery-light-zh.png": {
+      "bytes": 23485,
+      "sha256": "f1e9774f2eeacbdf00bce4b7e7201d5644043749ec9773da6780782e106ae6ed",
+      "crc32": "3d60d096"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-desktop/workspace-recovery-dark-en.png": {
+      "bytes": 53588,
+      "sha256": "345301bf87dd400cd1d692bdbb2b5b4756b42daeb1feb61863767acfa9dc6a22",
+      "crc32": "c861a352"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-mobile/workspace-recovery-dark-en.png": {
+      "bytes": 16819,
+      "sha256": "2c4be587c6da29ce59371a296f54dd3e8e2008660b77c4d68c358f79ae554b6d",
+      "crc32": "48b95702"
+    },
+    "shared-shell-refinement/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-tablet/workspace-recovery-dark-en.png": {
+      "bytes": 21407,
+      "sha256": "589113bed1b348eeb2b52afab2af85d882d600aa27c53a2a048c31116d0445e5",
+      "crc32": "63d43f59"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-desktop/directory-light-zh.png": {
+      "bytes": 154954,
+      "sha256": "fa531a23a8c52551124aca6599d082ec92f2bf809900a21a249929401a2862b9",
+      "crc32": "2dd77c6f"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-desktop/discover-light-en.png": {
+      "bytes": 113024,
+      "sha256": "d1434c131f22f322a910ad067d0936aae8d1baceba5c28e6174ad91e890b21c5",
+      "crc32": "736d1e1e"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-desktop/discover-light-zh.png": {
+      "bytes": 141511,
+      "sha256": "33cc10a13e898e3377f0208a436eebb44f6bc11ae33ec5ce93f89e2f64c37be5",
+      "crc32": "3c88111b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-mobile/directory-light-zh.png": {
+      "bytes": 42847,
+      "sha256": "95797cd01e6cad38244dd74f91b02b8e07b69797a27b45a5f710dbd4dab12868",
+      "crc32": "8f3b9f95"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-mobile/discover-light-en.png": {
+      "bytes": 46530,
+      "sha256": "b8e8594a9421ab4b3b310e4d49feae61259d3476295b9433e326485e8b85566b",
+      "crc32": "15d27cea"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-mobile/discover-light-zh.png": {
+      "bytes": 63454,
+      "sha256": "e29a244c6deeb789455b2bc078ef29b1e00568a2bad3cc699488a8bd56f5bca0",
+      "crc32": "1e361589"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-tablet/directory-light-zh.png": {
+      "bytes": 62708,
+      "sha256": "e11f9eadb668e7540e76044c51cc072c79c838797a38ce06b4b93bf7918c44b5",
+      "crc32": "cf29bd0f"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-tablet/discover-light-zh.png": {
+      "bytes": 92549,
+      "sha256": "efd58f8833091c32f2eaa5bd8ebbbcd39d105c19425ca6b92b7653fe4b86817e",
+      "crc32": "7da934da"
+    },
+    "shared-shell-refinement/shared-shell-refinement-li-3b6c4-through-the-tools-directory-tablet/discover-light-en.png": {
+      "bytes": 72249,
+      "sha256": "44b3076779550bd3d097c6972b9413284c5c2047e4ccf496128e3db1f0e0e4b2",
+      "crc32": "a81d1df6"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-320-dark-en.png": {
+      "bytes": 41203,
+      "sha256": "bd3b7ac4d2273925fbeda3a68dd3db90fa0529bb10e7a3a3a19ccc2bbb2b5f63",
+      "crc32": "a60e9adc"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-320-light-zh.png": {
+      "bytes": 62975,
+      "sha256": "f1bb9cc6856db56a807d6dabd425a98770db7ff4eaabfb62d77dc155d1e59fa1",
+      "crc32": "a457c23c"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-390-dark-en.png": {
+      "bytes": 46589,
+      "sha256": "973b04147816ab1362dc0f99c9e23ae8f88ddeb1d56aee29cbc5c5c07b54b4c7",
+      "crc32": "017ff065"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-390-light-zh.png": {
+      "bytes": 64135,
+      "sha256": "3b52c15f1897924edb9fb314573fa5805e96c00eefb74cb4b507abfe5ad6cab7",
+      "crc32": "e7b3a245"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-641-dark-en.png": {
+      "bytes": 54296,
+      "sha256": "69ccf0665b781bd7491166b5339743462e5f068ad56e2252644148a33436fcb8",
+      "crc32": "b7c9fa37"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-641-light-zh.png": {
+      "bytes": 70773,
+      "sha256": "c403f2433b6cdf6bae6fdf18839b4b3e589c33a49257c19a4c13ae957e2e0655",
+      "crc32": "f43f88c2"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-820-dark-en.png": {
+      "bytes": 54128,
+      "sha256": "2749ee61a4e9baabc3bd2e46a48ce4668ac8a5d95d6dfc6a0c7b871fc6e29f9e",
+      "crc32": "1675529b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-820-light-zh.png": {
+      "bytes": 72033,
+      "sha256": "f12e70c2f35c7fdd35f926ca5638300a304a32bedb5c2ef0622ab0f10ddee934",
+      "crc32": "6df26114"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-860-dark-en.png": {
+      "bytes": 53961,
+      "sha256": "d8771d52e91bba3a48d2b3e170f238a8932a0daed321853d3d96b91bcf038545",
+      "crc32": "76d2caa7"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/chrome-860-light-zh.png": {
+      "bytes": 72022,
+      "sha256": "50920c69e1ee8f0c991cfdf5326774ef611f25f2bc1a5399165941dbbf6eb3ee",
+      "crc32": "71419d5c"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-320-dark-en.png": {
+      "bytes": 54395,
+      "sha256": "3b549a47fe239dedfd0ddb9716747c25bbc182d827a8bed2816869a90c0324f2",
+      "crc32": "2efd4180"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-320-light-zh.png": {
+      "bytes": 39925,
+      "sha256": "2d48029f46d118f2e4e173f6e4d1a6bc90fd7b910c4447fa11aa30761aa1b792",
+      "crc32": "8e5ce703"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-390-light-zh.png": {
+      "bytes": 40683,
+      "sha256": "70e2da1faafb1635201fe3d10308bd3971c978405a4b3b1ce4b5b228b219cc67",
+      "crc32": "85bbad81"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-390-dark-en.png": {
+      "bytes": 55808,
+      "sha256": "bc195d5c3bbe98676d70ab32ffd2533abf1b085b2cfcaa060525b009484cd777",
+      "crc32": "8256df46"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-641-dark-en.png": {
+      "bytes": 49850,
+      "sha256": "523105a03df8e66cffac75df512ffa131e80843af5fb3d45a2e46749a03f48f2",
+      "crc32": "39044b9a"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-641-light-zh.png": {
+      "bytes": 41562,
+      "sha256": "09330e904a1c9323d5b54625c32874b31f2f34e42bf0d757188b9417787547f3",
+      "crc32": "5b252d0f"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-820-dark-en.png": {
+      "bytes": 51243,
+      "sha256": "46c70fc944fa460de0dffd716581cba95b8b449f331b4649d9e74feabe3028cb",
+      "crc32": "5f7e8862"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-820-light-zh.png": {
+      "bytes": 42618,
+      "sha256": "dcf6c4d48de850bcace3c1191abe42cba4b5c5995efc797201aaba4620b77500",
+      "crc32": "7f7f377a"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-860-dark-en.png": {
+      "bytes": 51229,
+      "sha256": "340eb357b6b4d170bc3e8d7b414c59f90fd5189f5fd1d4b5e6e41e25faa66ec7",
+      "crc32": "f6eacc12"
+    },
+    "shared-shell-refinement/shared-shell-refinement-ph-32c37-ages-and-dismisses-by-touch-mobile/phone-scope-320-dark-en.png": {
+      "bytes": 54395,
+      "sha256": "3b549a47fe239dedfd0ddb9716747c25bbc182d827a8bed2816869a90c0324f2",
+      "crc32": "2efd4180"
+    },
+    "shared-shell-refinement/shared-shell-refinement-mo-281a2-t-320px-and-contract-widths-desktop/search-860-light-zh.png": {
+      "bytes": 42399,
+      "sha256": "8c4191d548fd095dba338b9733f2f15adc9c01e7ee89e55f1c44bb161f02f0fa",
+      "crc32": "9790aa7e"
+    },
+    "shared-shell-refinement/shared-shell-refinement-ph-32c37-ages-and-dismisses-by-touch-mobile/phone-scope-320-light-zh.png": {
+      "bytes": 39925,
+      "sha256": "2d48029f46d118f2e4e173f6e4d1a6bc90fd7b910c4447fa11aa30761aa1b792",
+      "crc32": "8e5ce703"
+    },
+    "shared-shell-refinement/shared-shell-refinement-ph-32c37-ages-and-dismisses-by-touch-mobile/phone-scope-dark-en.png": {
+      "bytes": 55965,
+      "sha256": "e642bfd6bc0b3951ea47c87fddc4d5793e4ae7a046a75a5618e9dd9588dd2f74",
+      "crc32": "7f11123b"
+    },
+    "shared-shell-refinement/shared-shell-refinement-ph-32c37-ages-and-dismisses-by-touch-mobile/phone-scope-light-zh.png": {
+      "bytes": 40683,
+      "sha256": "70e2da1faafb1635201fe3d10308bd3971c978405a4b3b1ce4b5b228b219cc67",
+      "crc32": "85bbad81"
+    },
+    "ticker-news-current/capture.json": {
+      "bytes": 160609,
+      "sha256": "8686db8cc5a517c028252e0a099685e27ec55e180ba5b3ade5998d4ca2384464",
+      "crc32": "2af630a1"
+    },
+    "ticker-news-current/crops/desktop-en-dark.png": {
+      "bytes": 40244,
+      "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9",
+      "crc32": "8ee389f9"
+    },
+    "ticker-news-current/crops/desktop-zh-dark.png": {
+      "bytes": 47714,
+      "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244",
+      "crc32": "b66fa5fe"
+    },
+    "ticker-news-current/crops/mobile-en-dark.png": {
+      "bytes": 41627,
+      "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602",
+      "crc32": "357cc320"
+    },
+    "ticker-news-current/crops/mobile-zh-dark.png": {
+      "bytes": 50116,
+      "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717",
+      "crc32": "0f50d972"
+    },
+    "ticker-news-current/crops/tablet-en-dark.png": {
+      "bytes": 38520,
+      "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f",
+      "crc32": "015d0a38"
+    },
+    "ticker-news-current/crops/tablet-zh-dark.png": {
+      "bytes": 47543,
+      "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3",
+      "crc32": "11c9fa59"
+    },
+    "ticker-news-current/crops/unavailable-desktop-en-dark.png": {
+      "bytes": 8773,
+      "sha256": "414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9",
+      "crc32": "0cf28b41"
+    },
+    "ticker-news-current/crops/unavailable-desktop-zh-dark.png": {
+      "bytes": 8706,
+      "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e",
+      "crc32": "6bfa09ab"
+    },
+    "ticker-news-current/crops/unavailable-mobile-en-dark.png": {
+      "bytes": 6855,
+      "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+      "crc32": "b2c6d606"
+    },
+    "ticker-news-current/crops/unavailable-mobile-zh-dark.png": {
+      "bytes": 6861,
+      "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9",
+      "crc32": "537f8976"
+    },
+    "ticker-news-current/font-witnesses/desktop-zh-dark.png.json": {
+      "bytes": 503,
+      "sha256": "4b710c23809392390d4ea784c29dc49b97c9f9d762e4061b338c4bcc609bf36d",
+      "crc32": "a464499f"
+    },
+    "ticker-news-current/font-witnesses/mobile-zh-dark.png.json": {
+      "bytes": 504,
+      "sha256": "cd95d44e0035bd470806d496a930ced8502079ae9f2796b5762e77f5eddc891f",
+      "crc32": "5e2f849b"
+    },
+    "ticker-news-current/font-witnesses/tablet-zh-dark.png.json": {
+      "bytes": 504,
+      "sha256": "3417998572c9e5be3faf21b829e56702906d305f2bdac1e92f2c66fa9b2acffe",
+      "crc32": "1b5c842b"
+    },
+    "ticker-news-current/font-witnesses/unavailable-desktop-zh-dark.png.json": {
+      "bytes": 529,
+      "sha256": "38c7884e556610d2570e6ef0d7debf821e4cf26612705c846faa7f3cb3a1ce67",
+      "crc32": "a0a0644c"
+    },
+    "ticker-news-current/font-witnesses/unavailable-mobile-zh-dark.png.json": {
+      "bytes": 533,
+      "sha256": "1496ed8872e8dadf6eeb70f89a544650c1bf2a4a7c562768566abfa3de434d15",
+      "crc32": "53c1f17b"
+    },
+    "ticker-news-current/images-cleared.json": {
+      "bytes": 458,
+      "sha256": "e7af6ad3a6aa36e2eb95e4d8f7ef945dafc6ea28dbd43e48cb114436627ac2c1",
+      "crc32": "44ad2a4c"
+    },
+    "ticker-news-current/prepared.json": {
+      "bytes": 149026,
+      "sha256": "c5692ebd81128494cc239b2e9485b7cfb0c4a2d21cc1307e876133d1156cb9a0",
+      "crc32": "0c219a2c"
+    },
+    "ticker-news-current/prior/EVIDENCE.yml": {
+      "bytes": 2960,
+      "sha256": "5e85344159652ac23cfc17e3542e0d02225cc97965f9505df9ef085df85374db",
+      "crc32": "502a0c5e"
+    },
+    "ticker-news-current/prior/desktop-en-dark.png": {
+      "bytes": 52359,
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+      "crc32": "6288caaa"
+    },
+    "ticker-news-current/prior/desktop-zh-dark.png": {
+      "bytes": 51972,
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+      "crc32": "88e6c66c"
+    },
+    "ticker-news-current/prior/mobile-en-dark.png": {
+      "bytes": 52998,
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "crc32": "a2676591"
+    },
+    "ticker-news-current/prior/mobile-zh-dark.png": {
+      "bytes": 53955,
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "crc32": "0c8a4d82"
+    },
+    "ticker-news-current/prior/tablet-en-dark.png": {
+      "bytes": 54550,
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "crc32": "630d9aef"
+    },
+    "ticker-news-current/prior/tablet-zh-dark.png": {
+      "bytes": 55964,
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "crc32": "3d5d9b06"
+    },
+    "ticker-news-current/prior/unavailable-desktop-en-dark.png": {
+      "bytes": 10065,
+      "sha256": "570371304d3d8f57d7314f8af18fd2e0040e7e14c37720e09621395665f4ed01",
+      "crc32": "aec38c28"
+    },
+    "ticker-news-current/prior/unavailable-desktop-zh-dark.png": {
+      "bytes": 8590,
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+      "crc32": "6797b815"
+    },
+    "ticker-news-current/prior/unavailable-mobile-en-dark.png": {
+      "bytes": 8131,
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+      "crc32": "9e5b1b20"
+    },
+    "ticker-news-current/prior/unavailable-mobile-zh-dark.png": {
+      "bytes": 6792,
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792",
+      "crc32": "82ae1e20"
+    },
+    "ticker-news-current/report.json": {
+      "bytes": 981698,
+      "sha256": "258f49c4173628af397656ea64c12f1719063d9fecd4824a25a41029ad3b67c0",
+      "crc32": "86862a46"
+    }
+  }
+}

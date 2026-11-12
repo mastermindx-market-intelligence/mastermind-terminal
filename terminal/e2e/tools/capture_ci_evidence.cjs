@@ -74,16 +74,20 @@ function archivePacket(repoRoot, relative, destination) {
 
 function legacyPackets() {
   return [
-    ["pine", "pine-boot-pending-state", "capture_pine_boot_pending.cjs", "3571"],
+    ["pine", "pine-boot-pending-state", "capture_pine_boot_pending.cjs", "3571", 12 * 60_000],
     ["batch3", "b-pl-6-batch-3", "capture_pl6_batch3.cjs", "3572"],
-  ].map(([packet, directory, script, port]) => {
+    ["claims", "b-f13-6-claim-form", "capture_b_f13_6_claim_form.cjs", "3556"],
+    ["research", "b-f11-4-research-views", "capture_f11_4_research_views.cjs", "3547"],
+    ["proposals", "b-f11-5-thesis-proposals", "capture_b_f11_5_thesis_proposals.cjs", "3564"],
+    ["conductor", "conductor-fit-badge-zh", "capture_conductor_fit_badge_zh.cjs", "3563"],
+  ].map(([packet, directory, script, port, deadlineMs = 8 * 60_000]) => {
     const producer = require("./" + script); // Import-safe; --checkout-only never loads producers.
     return { packet, directory: "terminal/docs/pr-crops/" + directory, script: "e2e/tools/" + script, port,
       sources: producer.LAYOUT_FILES, files: producer.FILES,
       controls: [CONTROL, "terminal/e2e/tools/" + script, "terminal/next.config.ts"],
-      // Pine includes ~192 seconds of deliberate boot waiting; batch3 uses the
-      // existing eight-minute child budget. Both obey the unchanged overall deadline.
-      deadlineMs: (packet === "pine" ? 12 : 8) * 60_000 };
+      // Pine includes ~192 seconds of deliberate boot waiting. Other producers
+      // retain eight-minute child budgets within the unchanged overall deadline.
+      deadlineMs };
   });
 }
 
@@ -159,6 +163,8 @@ async function qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLe
     if (!required) continue;
     const { packet, directory, script } = definition, captureId = `${ids.prefix}-${packet}`;
     state.prior = archivePacket(repoRoot, directory, path.join(diagnostics, captureId + ".prior"));
+    const beforeProtected = Object.fromEntries(Object.entries(state.prior.files).filter(([name]) => packet === "conductor" && name.startsWith("before/")));
+    if (packet === "conductor" && Object.keys(beforeProtected).length === 0) throw new Error("CI_LEGACY_HISTORY_MISSING");
     const child = { packet, command: [process.execPath, script], state: "RUNNING",
       stdoutPath: path.join(diagnostics, captureId + ".stdout.log"), stderrPath: path.join(diagnostics, captureId + ".stderr.log") };
     record.children.push(child); save();
@@ -181,6 +187,8 @@ async function qualifyLegacyPackets({ repoRoot, env, evidence, checkout, spawnLe
     if (!same(checkout(repoRoot, env).actualCheckout, record.actualCheckout)
         || !sameMap(sourceDigests(repoRoot, definition.sources), state.sources)
         || !sameMap(sourceDigests(repoRoot, definition.controls), state.controls)) throw new Error("CI_LEGACY_SOURCE_CHANGED");
+    const afterProtected = Object.fromEntries(Object.entries(state.returned.files).filter(([name]) => packet === "conductor" && name.startsWith("before/")));
+    if (!same(beforeProtected, afterProtected)) throw new Error("CI_LEGACY_HISTORY_CHANGED");
     const after = readLegacyPacket(repoRoot, definition);
     const receipt = readReceipt(boundedFile(diagnostics, path.basename(child.stdoutPath), 16 * 1024 * 1024).toString("utf8"), "legacyEvidence");
     if (receipt.packet !== packet || after.head !== record.actualCheckout.commit || !sameMap(after.layout, state.sources))

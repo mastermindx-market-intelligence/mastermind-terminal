@@ -1,0 +1,235 @@
+{
+  "schema": "ticker-news.import-qualification.v1",
+  "sourceHead": "313dc83716c4883a3adfbcf36c9595f6faeda14c",
+  "captureCheckout": "4cb7939ef02404c6f1bc31613846118784805d0d",
+  "captureTree": "85a004c02ce32b98848f7077f4407ec5005577cf",
+  "captureParents": [
+    "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+    "313dc83716c4883a3adfbcf36c9595f6faeda14c"
+  ],
+  "run": 42999100681,
+  "job": 130452699293,
+  "artifact": {
+    "id": 13847198144,
+    "name": "responsive-qa-42999100681-serial",
+    "size_in_bytes": 13431081,
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13847198144",
+    "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13847198144/zip",
+    "expired": false,
+    "created_at": "2026-11-11T10:32:03Z",
+    "expires_at": "2027-02-09T09:54:26Z",
+    "updated_at": "2026-11-11T10:32:03Z",
+    "digest": "sha256:eae4ee79ba62a888dd0bb3f8420b61f584ebe8d9c594292c1db4b9b0dc561193",
+    "workflow_run": {
+      "id": 42999100681,
+      "repository_id": 1290596392,
+      "head_repository_id": 1290596392,
+      "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+      "head_sha": "313dc83716c4883a3adfbcf36c9595f6faeda14c"
+    }
+  },
+  "reportSha256": "98f07fde598836ef5d0c26401e6efb398ea09a4d821102122ce1e097efeb6529",
+  "sourceCount": 16,
+  "sources": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "6148ca725d1ddc66657b1cde1c1df5abad0f7bd76dc347bd29fb0971132fb90c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "cases": {
+    "passed": 14,
+    "authoredProjectSkips": 7,
+    "failed": 0,
+    "flaky": 0,
+    "retries": 0
+  },
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "bd9813662c8006dd444036a725dae689aeb3750f881be04e23b8f8d1c1ad7ed8"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "cb33f9bd3f3a7388407bce9891ef06f63defddfce3eafaaff0f19b0e215e7e96"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 655,
+        "sha256": "bd6e335b4df4ebd2affa8000038033e5958fb244be89fa39bbcb24e61bf8ae57"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "ebea24870d259112a37493ea24b5ace11be55ae5c05a25b7e69eae1c74fb5de9"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "f679e488b100a6443fed8307f9f8ba54cf471172ea21bc04c1cfc8b774bbfe0f"
+      }
+    }
+  ],
+  "priorPacketFiles": 11,
+  "otherPacketFilesVerified": 118,
+  "visualInspection": {
+    "method": "Reuse the assigned principal’s completed inspection of all ten exact PNG byte identities from the accepted #1403 packet; all current image hashes/dimensions and full decoded PNGs match.",
+    "priorQualification": "docs/verification/pr1403-ticker-hosted-import-20261111/qualification.json",
+    "priorCommit": "3d1599516656c7727f11e6db732457adb10a5471",
+    "priorArtifact": 13840948455,
+    "inspectedFiles": [
+      "desktop-en-dark.png",
+      "desktop-zh-dark.png",
+      "tablet-en-dark.png",
+      "tablet-zh-dark.png",
+      "mobile-en-dark.png",
+      "mobile-zh-dark.png",
+      "unavailable-desktop-en-dark.png",
+      "unavailable-desktop-zh-dark.png",
+      "unavailable-mobile-en-dark.png",
+      "unavailable-mobile-zh-dark.png"
+    ],
+    "observations": "All ten unmodified PNGs viewed. Header, filters, article metadata and review actions are readable; responsive wrapping stays inside the panel. Unavailable states show readable localized text and Retry. English fixture story titles remain English in the Chinese interface, as authored.",
+    "scope": "Fixture-backed panel crops, not a live-provider or production acceptance claim.",
+    "currentCaptureFreshness": "All current PNG paths were cleared before this run; the current report and lifecycle independently qualify this capture. No prior bytes are substituted as a new capture."
+  },
+  "preflight": {
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "rawCaptureReceiptUnmodified": true
+}

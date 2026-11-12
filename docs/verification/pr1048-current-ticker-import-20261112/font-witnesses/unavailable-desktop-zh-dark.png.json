@@ -1,0 +1,21 @@
+{
+  "schema": "ticker-news.cjk-glyph-witness.v1",
+  "file": "unavailable-desktop-zh-dark.png",
+  "observedAt": "2026-11-12T03:37:21.502Z",
+  "text": "新闻暂时不可用。",
+  "bounds": {
+    "x": 1103,
+    "y": 225,
+    "width": 314,
+    "height": 16.671875
+  },
+  "fonts": [
+    {
+      "familyName": "Noto Sans CJK SC",
+      "postScriptName": "NotoSansCJKsc-Regular",
+      "isCustomFont": false,
+      "glyphCount": 8
+    }
+  ],
+  "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c"
+}

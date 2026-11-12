@@ -10,7 +10,8 @@ import {
   type ChartCommandTarget,
   type IndicatorSpec,
 } from "../chartBus";
-import { useChartBus, type ChartBus, type ChartBusHost } from "../useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -39,7 +40,7 @@ function patchCommand(seq = 1, targetOverride: Partial<ChartCommandTarget> = {})
     target: target(targetOverride),
     args: {
       mode: "patch",
-      indicators: [{ name: "rsi", params: { len: 21 } }],
+      indicators: [{ name: "rsi", params: { length: 21 } }],
     },
   };
 }
@@ -103,8 +104,8 @@ describe("useChartBus targeted edits", () => {
       bars: [],
       capabilities: { tfs: ["D", "W"], indicators: ["ema", "rsi"] },
       sessionIndicators: [
-        { name: "ema", params: { len: 20 } },
-        { name: "rsi", params: { len: 14 } },
+        { name: "ema", params: { ma1Len: 20 } },
+        { name: "rsi", params: { length: 14 } },
       ],
       currentTf: opts.tf ?? "D",
       activePaneId: opts.pane ?? 0,
@@ -141,8 +142,8 @@ describe("useChartBus targeted edits", () => {
     act(() => bus!.dispatchV2(patchCommand()));
     expect(applied).toHaveLength(1);
     expect(applied[0]).toEqual([
-      { name: "ema", params: { len: 20 } },
-      { name: "rsi", params: { len: 21 } },
+      { name: "ema", params: { ma1Len: 20 } },
+      { name: "rsi", params: { length: 21 } },
     ]);
 
     await act(async () => { await vi.advanceTimersByTimeAsync(100); });
@@ -261,4 +262,89 @@ describe("useChartBus targeted edits", () => {
       error: "command_target_transition_pending",
     }));
   });
+
+  async function seedCompoundAiChannel() {
+    await act(async () => {
+      bus!.dispatchV2({
+        on: true, v: 2, batch_id: "native-delete-seed", seq: 0,
+        op: "draw.channel", id: "ai_native_delete", target: target(),
+        args: {
+          u1: { t: 1721606400, p: 110 }, u2: { t: 1721692800, p: 120 },
+          l1: { t: 1721606400, p: 100 }, l2: { t: 1721692800, p: 110 },
+        },
+      });
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+    fetchMock.mockClear();
+  }
+
+  it("commits an exact AI child removal through the owner, with no synthetic ACK", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+    let changed = false;
+    await act(async () => { changed = bus!.legend.editObjects(["ai_native_delete_u"], "remove"); });
+    expect(changed).toBe(true);
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+    const posted = fetchMock.mock.calls.map(
+      call => JSON.parse(String((call[1] as RequestInit).body)));
+    expect(posted.at(-1).session.drawings.map((o: { id: string }) => o.id))
+      .toEqual(["ai_native_delete_l"]);
+    expect(posted.flatMap(body => body.acks ?? [])).toEqual([]);
+  });
+
+  it("rejects a mixed missing+valid selection atomically with unchanged AI collection", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const before = bus!.legend.objects;
+    await act(async () => {
+      expect(bus!.legend.editObjects(["ai_native_delete_u", "ai_missing"], "remove")).toBe(false);
+    });
+    expect(bus!.legend.objects).toBe(before);
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+  });
+
+  it.each([
+    { symbol: "AAPL" },
+    { tf: "W" },
+    { pane: 1 },
+  ])("retires editor authority after an away/back scope transition: %j", async (change) => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const retired = bus!.legend.editObjects;
+    await mount(makeHost(change));
+    await mount(makeHost());
+    await act(async () => {
+      expect(retired(["ai_native_delete_u"], "remove")).toBe(false);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual([
+      "ai_native_delete_u", "ai_native_delete_l",
+    ]);
+    await act(async () => {
+      expect(bus!.legend.editObjects(["ai_native_delete_u"], "remove")).toBe(true);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+  });
+
+  it("preserves an editor across same-scope host and settings-revision rerenders", async () => {
+    await mount(makeHost());
+    await clearInitialMirror();
+    await seedCompoundAiChannel();
+    const bound = bus!.legend.editObjects;
+    await mount(makeHost({ revision: 2 }));
+    await act(async () => {
+      expect(bound(["ai_native_delete_u"], "remove")).toBe(true);
+    });
+    expect(bus!.aiDrawingsFor("NVDA").map(o => o.id)).toEqual(["ai_native_delete_l"]);
+  });
+
+
 });

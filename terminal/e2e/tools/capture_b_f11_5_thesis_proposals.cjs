@@ -14,11 +14,12 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { startLegacyServer, waitLegacyServer, settleLegacyServer, reportLegacyServer,
+  emitLegacyReceipt, captureRefusal } = require("./capture_ci_evidence.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -46,7 +47,6 @@ const SHOTS = [
   { viewport: "mobile", lang: "zh", populated: true, file: "mobile-zh-populated.png" },
 ];
 
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -60,68 +60,8 @@ function layoutFilesBlock() {
   return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/analysis?view=theses&symbol=${SYM}`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
-
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -277,7 +217,6 @@ async function openPanel(page, lang, viewport, populated) {
     await page.getByTestId("thesis-proposals-empty").waitFor({ state: "visible", timeout: 15_000 });
   }
   await page.getByTestId("thesis-amendment-panel").evaluate((el) => el.scrollIntoView({ block: "start" }));
-  await stripDevOverlay(page);
 }
 
 async function shoot(page, file) {
@@ -288,11 +227,15 @@ async function shoot(page, file) {
 }
 
 async function main() {
+  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && (process.env.CAPTURE_ONLY || "").trim()) throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
+  const { chromium } = require("@playwright/test");
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = startLegacyServer(ROOT, PORT);
   const files = [];
   try {
-    await waitForServer(180_000);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, `${BASE}/analysis?view=theses`, 180_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const shot of SHOTS) {
@@ -311,6 +254,7 @@ async function main() {
           files.push(shot.file);
           console.log("ok");
         } catch (err) {
+          if (captureRefusal(err)) throw err;
           console.log(`FAIL ${err && err.message ? err.message : err}`);
           try {
             await page.screenshot({ path: join(OUT, `FAIL-${shot.file}`), fullPage: false });
@@ -324,7 +268,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   const evidence = [
@@ -352,10 +296,13 @@ async function main() {
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
   writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
+  emitLegacyReceipt({ packet: "proposals", outputDir: OUT, files, capturedAtHead });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+
+module.exports = { assertNoNextIndicator, LAYOUT_FILES, FILES: SHOTS.map(shot => shot.file), VIEWPORTS };

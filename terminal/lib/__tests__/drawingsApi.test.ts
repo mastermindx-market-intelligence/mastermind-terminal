@@ -8,6 +8,8 @@ import { DRAWING_OWNER_HEADER, parseDrawingSaveReceipt, parseDrawingSnapshot } f
 import { MAX_DRAWING_PAYLOAD_BYTES } from "@/lib/drawings";
 import { FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
+import { AI_DRAWING_SCHEMA, storeAiDrawing } from "@/lib/drawingAiPersistence";
+import type { AiObject } from "@/lib/chartBus";
 const operationId="11111111-1111-4111-8111-111111111111";
 const revision="22222222-2222-4222-8222-222222222222";
 const drawing={id:"user-line",schemaVersion:1,source:"user",kind:"hline",points:[{t:"2026-01-01",p:100}]};
@@ -15,6 +17,34 @@ const request=(body:unknown)=>new Request("https://example.test/api/drawings",{m
 const read=(owner?:string,url="https://example.test/api/drawings?symbol=NVDA")=>new Request(url,owner===undefined?{}:{headers:{[DRAWING_OWNER_HEADER]:owner}});
 beforeEach(()=>{vi.clearAllMocks();db.auth.getUser.mockResolvedValue({data:{user:{id:"owner",email:"owner@example.com"}}});});
 describe("transactional drawing API",()=>{
+ it("forwards only the installed snapshot capability and refuses unsupported mixed reads",async()=>{
+  const ai=storeAiDrawing({id:"ai_line",command_id:"ai_line",source:"ai",by:"ai",auto:true,
+   op:"draw.hline",batch_id:"saved",seq:0,kind:"hline",points:[{t:"1700000000",p:101}]} as AiObject,false);
+  for(const capability of [undefined,"chart.ai_drawing.v999",AI_DRAWING_SCHEMA]){
+   db.rpc.mockResolvedValue({data:{drawings:[drawing,ai],revision,schemaVersion:1,
+    aiDrawingSchema:capability,metadata:{secret:"internal"}},error:null});
+   const response=await GET(read("account:owner"));
+   if(capability===AI_DRAWING_SCHEMA){
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({drawings:[drawing,ai],revision,schemaVersion:1,aiDrawingSchema:AI_DRAWING_SCHEMA});
+   }else{
+    expect(response.status).toBe(503);
+    expect(await response.json()).not.toHaveProperty("drawings");
+   }
+  }
+ });
+ it("passes a valid mixed replacement unchanged through the incumbent owner/CAS RPC",async()=>{
+  const ai=storeAiDrawing({id:"ai_child",command_id:"ai_parent",source:"ai",by:"ai",auto:true,
+   op:"draw.hline",batch_id:"saved",seq:0,kind:"hline",points:[{t:"1700000000",p:101}]} as AiObject,false);
+  db.rpc.mockResolvedValue({data:{ok:true,revision,idempotentReplay:false,superseded:false},error:null});
+  const drawings=[drawing,ai];
+  const response=await PUT(request({symbol:"NVDA",drawings,expectedRevision:null,operationId}));
+  expect(response.status).toBe(200);
+  expect(db.rpc).toHaveBeenCalledWith("replace_drawings_collection",{
+   p_symbol:"NVDA",p_drawings:drawings,p_expected_revision:null,p_operation_id:operationId,
+  });
+  expect(parseDrawingSaveReceipt(await response.json(),{operationId,expectedRevision:null,drawings} as Parameters<typeof parseDrawingSaveReceipt>[1])).not.toBeNull();
+ });
  it("returns the observed snapshot token and no internal operation metadata",async()=>{
   db.rpc.mockResolvedValue({data:{drawings:[drawing],revision:"legacy:"+"a".repeat(64),schemaVersion:1,metadata:{secret:"internal"}},error:null});
   const response=await GET(new Request("https://example.test/api/drawings?symbol=NVDA"));

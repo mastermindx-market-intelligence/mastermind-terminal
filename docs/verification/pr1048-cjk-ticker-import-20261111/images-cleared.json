@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-11-11T18:03:24.521Z",
+  "absent": [
+    "desktop-en-dark.png",
+    "desktop-zh-dark.png",
+    "tablet-en-dark.png",
+    "tablet-zh-dark.png",
+    "mobile-en-dark.png",
+    "mobile-zh-dark.png",
+    "unavailable-desktop-en-dark.png",
+    "unavailable-desktop-zh-dark.png",
+    "unavailable-mobile-en-dark.png",
+    "unavailable-mobile-zh-dark.png"
+  ],
+  "manifest": "5e85344159652ac23cfc17e3542e0d02225cc97965f9505df9ef085df85374db"
+}

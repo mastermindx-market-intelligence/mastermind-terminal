@@ -1,0 +1,7 @@
+{
+  "nonLogDiffCheck": "PASS",
+  "fullDiffCheckExit": 2,
+  "onlyDiagnostic": "docs/verification/pr1048-active-inbox-import-20261112/focused-unit.log:11: new blank line at EOF.",
+  "rawLogPreserved": true,
+  "reason": "The exact successful Vitest stdout ends with its original blank line; raw verification evidence is preserved byte-for-byte."
+}

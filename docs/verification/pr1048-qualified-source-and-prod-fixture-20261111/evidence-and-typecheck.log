@@ -1,0 +1,57 @@
+$ ./node_modules/.bin/vitest run lib/__tests__/optionsExposureEvidence.test.ts lib/__tests__/optionsExposureEvidenceOwner.test.ts
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1048/terminal
+
+ ✓ lib/__tests__/optionsExposureEvidence.test.ts (54 tests) 442ms
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests) 22012ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 1958ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 442ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 533ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 480ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 428ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 579ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 842ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 1030ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 728ms
+   ✓ paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 720ms
+   ✓ paired Options integration proof > refuses a current receipt without settled native-server proof 678ms
+   ✓ expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD 1421ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 672ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 858ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 700ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 679ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 927ms
+   ✓ expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD 680ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner 554ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner 748ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json 550ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json 549ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json 594ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json 746ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json 570ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json 576ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint 745ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys 682ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json 595ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json 699ms
+
+ Test Files  2 passed (2)
+      Tests  114 passed (114)
+   Start at  03:40:33
+   Duration  22.89s (transform 174ms, setup 0ms, collect 243ms, tests 22.45s, environment 0ms, prepare 348ms)
+
+
+exit=0
+$ ./node_modules/.bin/tsc --noEmit --incremental false
+
+exit=0
+$ ./node_modules/.bin/eslint lib/chartStatePreparation.ts lib/__tests__/brainWidgetChartPreparation.test.tsx e2e/command-palette-review.spec.ts
+
+/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/e2e/command-palette-review.spec.ts
+  119:9  error  React Hook "useLang" is called in function "boot" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+
+✖ 1 problem (1 error, 0 warnings)
+
+
+exit=1

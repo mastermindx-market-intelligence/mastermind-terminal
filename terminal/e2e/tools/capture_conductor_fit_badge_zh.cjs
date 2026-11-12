@@ -22,11 +22,13 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium, expect } = require("@playwright/test");
+const { startLegacyServer, waitLegacyServer, settleLegacyServer, reportLegacyServer,
+  emitLegacyReceipt, captureRefusal } = require("./capture_ci_evidence.cjs");
+let expect;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -50,7 +52,6 @@ const VIEWPORTS = [
 ];
 const DEMO_ROWS = 7; // the /dev/theater script: set_tf, 2 trendlines, zone, fib, 2 labels
 
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -68,59 +69,6 @@ function cropName(width, lang) {
   return `rail-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/dev/theater`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
-
 async function newPage(browser, vp, lang) {
   const context = await browser.newContext({
     viewport: { width: vp.width, height: vp.height },
@@ -132,8 +80,13 @@ async function newPage(browser, vp, lang) {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyLocale = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyLocale();
+    else document.addEventListener("DOMContentLoaded", applyLocale, { once: true });
+
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -150,14 +103,7 @@ async function ensureLang(page, lang) {
   }, lang);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -250,7 +196,6 @@ async function captureRail(page, lang, outPath) {
   });
   if (!step2Visible) throw new Error("the step-2 chip is not fully inside the rail body");
 
-  await stripDevOverlay(page);
   await cropBox(page, await page.locator(".cmx-rail").first().boundingBox(), outPath, 8);
   const plate = (await page.locator(".cmx-plate.show .cmx-cap").first().textContent().catch(() => "")) || "";
   if (!plate.includes(done)) throw new Error(`the done plate closed before the crop finished (${plate || "no plate"})`);
@@ -260,12 +205,17 @@ async function captureRail(page, lang, outPath) {
 }
 
 async function main() {
+  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && (process.env.CAPTURE_ONLY || "").trim()) throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
+  const { chromium, expect: playwrightExpect } = require("@playwright/test");
+  expect = playwrightExpect;
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = startLegacyServer(ROOT, PORT);
   const chipText = {};
   let failed = 0;
   try {
-    await waitForServer(240_000);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, `${BASE}/dev/theater`, 240_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const vp of VIEWPORTS) {
@@ -278,6 +228,7 @@ async function main() {
             await assertNoNextIndicator(page, file);
             console.log(`ok ${JSON.stringify(chipText[file])}`);
           } catch (err) {
+            if (captureRefusal(err)) throw err;
             failed += 1;
             console.log(`FAIL ${err && err.message ? err.message : err}`);
             try {
@@ -292,7 +243,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
   if (failed) {
     console.log(`${failed} crop(s) failed; EVIDENCE.yml not written`);
@@ -331,11 +282,14 @@ async function main() {
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  emitLegacyReceipt({ packet: "conductor", outputDir: OUT, files, capturedAtHead });
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+
+module.exports = { assertNoNextIndicator, LAYOUT_FILES, FILES: VIEWPORTS.flatMap(vp => ["en", "zh"].map(lang => cropName(vp.width, lang))), VIEWPORTS };

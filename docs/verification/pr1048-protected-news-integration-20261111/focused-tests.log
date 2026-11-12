@@ -1,0 +1,14 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1048-b6/terminal
+
+ ✓ lib/__tests__/layoutRenameFocus.test.tsx (25 tests) 445ms
+ ✓ lib/__tests__/chartCommandContinuation.test.tsx (21 tests) 66ms
+ ✓ lib/__tests__/useChartBusDrawingOwner.test.tsx (10 tests) 77ms
+ ✓ lib/__tests__/useChartBusStateMirror.test.tsx (16 tests) 168ms
+ ✓ lib/__tests__/drawingSidebarReadiness.test.tsx (6 tests) 295ms
+
+ Test Files  5 passed (5)
+      Tests  78 passed (78)
+   Start at  10:33:00
+   Duration  3.02s (transform 1.67s, setup 0ms, collect 5.55s, tests 1.05s, environment 3.60s, prepare 754ms)

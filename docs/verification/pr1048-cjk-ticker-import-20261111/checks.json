@@ -1,0 +1,11 @@
+{
+  "schema": "ticker-news.import-checks.v1",
+  "existingConsumer": "terminal/lib/__tests__/tickerNewsEvidence.test.ts",
+  "command": "node node_modules/vitest/vitest.mjs run lib/__tests__/tickerNewsEvidence.test.ts --maxWorkers=1 --minWorkers=1",
+  "casesPassed": 4,
+  "casesFailed": 0,
+  "consumerSourceChanged": false,
+  "sourceChangeRelativeToCapture": false,
+  "browserExecution": "No local browser execution; actual natural hosted capture qualified separately.",
+  "successorCiRequired": true
+}

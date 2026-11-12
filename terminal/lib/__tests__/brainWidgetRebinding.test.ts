@@ -78,6 +78,7 @@ describe("BrainWidget CFG singleton rebinds across mount -> unmount -> remount (
 
     const w = window as unknown as MastermindBrainHost;
     expect(w.MM_BRAIN_CFG).toBeDefined();
+    const retired = { ...w.MM_BRAIN_CFG } as Partial<Pick<Props, "onCommand" | "onAnnotate" | "onAuthRequired" | "getAiContext">>;
 
     // Unmount instance #1 — the write-through effects' cleanups relinquish the singleton's keys
     // (each checks it still holds THIS instance's own closure before clearing it).
@@ -100,6 +101,13 @@ describe("BrainWidget CFG singleton rebinds across mount -> unmount -> remount (
     // still in the DOM (never removed on unmount) — proving the fix lives entirely in the
     // per-callback write-through effects, not a reset of the install effect's guard.
     expect(document.querySelectorAll('script[src*="mm_brain.js"]').length).toBe(1);
+
+    // Actual retained singleton aliases must be inert after their owner retires.
+    retired.onCommand?.({});
+    retired.onAnnotate?.({});
+    retired.onAuthRequired?.();
+    expect(retired.getAiContext?.()).toBeUndefined();
+    expect(calls).toEqual([]);
 
     const cfg = w.MM_BRAIN_CFG as Record<string, any>;
     cfg.onCommand({});

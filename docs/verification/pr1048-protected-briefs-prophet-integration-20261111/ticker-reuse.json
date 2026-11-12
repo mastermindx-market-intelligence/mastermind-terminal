@@ -1,0 +1,196 @@
+{
+  "schema": "terminal.ticker-exact-input-reuse.v1",
+  "publicationParent": "17f34f7bc8c790fab990f09ffcd6a6737782134c",
+  "composedSourceTree": "f73626a9724880d887ae61f55be67f7915d4661d",
+  "acceptedCaptureCheckout": {
+    "commit": "6e68720fd643316e44e1d6be04e67058a467874a",
+    "tree": "87bc6058ae47febba38f9f7c1150517fbbeba585",
+    "parents": []
+  },
+  "acceptedReceipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1048#issuecomment-6804148295",
+  "all19SourcesEqualAcceptedCapture": true,
+  "sourceBindings": {
+    "terminal/components/news/TickerNewsPanel.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7ff805873a4926a5e8b28ac27bf6012457524019",
+      "sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+    },
+    "terminal/components/news/TickerNewsPanel.module.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4df463f632a5a404254f4e7141de0694b387e1c6",
+      "sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358"
+    },
+    "terminal/components/TerminalShell.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc8660d1cfc8b65fe545ae4bdea85ebfba447752",
+      "sha256": "8d4d458c2743f90a738e42e74274045c32b107d46feda5122eaa79c782428187"
+    },
+    "terminal/app/globals.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+      "sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    },
+    "terminal/lib/i18n.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+      "sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "767c6f33c2df40a0cd4904ce02e66f8a157a9b01",
+      "sha256": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d"
+    },
+    "terminal/e2e/ticker-news.spec.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8459df6364fa8775f4b1f4b29e5fd16a6cefc128",
+      "sha256": "b88ce51b0760d5294f77df4a558f0890efe3496040313af5078c9daa60761ca0"
+    },
+    "terminal/e2e/watchlistStore.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f910cca4775192812b216dd7b16e7e80fafca1b3",
+      "sha256": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2"
+    },
+    "terminal/e2e/presentationControls.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5823f75873bf3d92714420f9676a5271e1d430c3",
+      "sha256": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34"
+    },
+    "terminal/e2e/globalSetup.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fa4bf9cecb5c7012e6279df59e19d38ca1303f93",
+      "sha256": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+    },
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ba12fab7dcbb30734fc22646c4b6620e36ba45eb",
+      "sha256": "e7f1dbb056336ea75265966573d6320254056ee0fb2de9380c84e1075f140f8e"
+    },
+    "terminal/playwright.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525"
+    },
+    "terminal/docs/specimens/news-flow.light.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f37db58a3b007ce040eaa74f44076c8b6712eb8f",
+      "sha256": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8"
+    },
+    "terminal/next.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "71069181428ef3af6ac567a15878703ab0398069",
+      "sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+    },
+    "terminal/package.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "df2e635a0abab248c90e33e3f89bd1f2581f6376",
+      "sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf"
+    },
+    "terminal/package-lock.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "43172affa9516ddcbd6e8f7a59bb54888baa7e3b",
+      "sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+    },
+    ".github/scripts/terminal_cjk_font.py": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7615897f604c781fac578781d1f80ec48957903e",
+      "sha256": "e7aaa1b2d1b964dda9c9ae7f31e0ce29f265a37c0970bcaff28176e8eeab4ad4"
+    },
+    ".github/fonts/noto-cjk/pin.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a7374c0f4644af55cae2cdbaf6acad2564da351f",
+      "sha256": "2550632b58b37cb388bb0b522c25001d5d6af3be4cf713df0bf160ba3c30338f"
+    },
+    ".github/fonts/noto-cjk/OFL.txt": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d952d62c065f3f35fb83a173496e90b21525aef3",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    }
+  },
+  "completeSelectedPacketExact": true,
+  "selectedPacket": {
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "67f8b85d6b0ecc5a0f9ee88cd96295fcceb60b66"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "068eca4706b720309f5740c53ce753d1f1c2591e"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4cf659ecf8c7ae13de26f5e5918096bbcaf2ae35"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e72196d5c8fef06b31b94efdc920c586c9bf896c"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "00c7437cfc8e79c65634cdf8284ff5c3d34f5edd"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "95574e57bc371ac3052ef51f290a84ef73cf84a6"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "592739c1694faf934d1f74fc4e6794942305d90e"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eab00d9e3afb93de4bf6a726e912323b9ab95b51"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5796b1118f10b35f6920f0722576631b3a1019e2"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a5eceb236f12658857fb84662fe3c31f763c36"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d13a54ed5b23a2a0fce4f68febf8e7f382cb09e7"
+    }
+  },
+  "unchangedEvidenceReader": {
+    "terminal/lib/__tests__/tickerNewsEvidence.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bad46f97cc821a56b1be48ec7c888d17e9b88aa9"
+    }
+  },
+  "capturedAtHeadRestamped": false,
+  "newBrowserOrProducerExecuted": false,
+  "fullCurrentCompositionCiAcceptance": false
+}

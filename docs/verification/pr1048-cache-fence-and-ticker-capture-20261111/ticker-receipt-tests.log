@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: accepts the exact full matrix with only its seven authored skips
+ok 1 - accepts the exact full matrix with only its seven authored skips
+  ---
+  duration_ms: 3.037438
+  type: 'test'
+  ...
+# Subtest: rejects runner error
+ok 2 - rejects runner error
+  ---
+  duration_ms: 1.218673
+  type: 'test'
+  ...
+# Subtest: rejects more than one worker
+ok 3 - rejects more than one worker
+  ---
+  duration_ms: 0.324157
+  type: 'test'
+  ...
+# Subtest: rejects stale report
+ok 4 - rejects stale report
+  ---
+  duration_ms: 0.207432
+  type: 'test'
+  ...
+# Subtest: rejects invalid report time
+ok 5 - rejects invalid report time
+  ---
+  duration_ms: 0.156265
+  type: 'test'
+  ...
+# Subtest: rejects zero duration
+ok 6 - rejects zero duration
+  ---
+  duration_ms: 4.269641
+  type: 'test'
+  ...
+# Subtest: rejects missing passed case
+ok 7 - rejects missing passed case
+  ---
+  duration_ms: 0.379991
+  type: 'test'
+  ...
+# Subtest: rejects extra skip
+ok 8 - rejects extra skip
+  ---
+  duration_ms: 3.595638
+  type: 'test'
+  ...
+# Subtest: rejects unexpected failure
+ok 9 - rejects unexpected failure
+  ---
+  duration_ms: 0.447062
+  type: 'test'
+  ...
+# Subtest: rejects flaky result
+ok 10 - rejects flaky result
+  ---
+  duration_ms: 0.482937
+  type: 'test'
+  ...
+# Subtest: rejects wrong spec
+ok 11 - rejects wrong spec
+  ---
+  duration_ms: 0.431399
+  type: 'test'
+  ...
+# Subtest: rejects non-ok spec
+ok 12 - rejects non-ok spec
+  ---
+  duration_ms: 0.279951
+  type: 'test'
+  ...
+# Subtest: rejects missing project case with forged totals
+ok 13 - rejects missing project case with forged totals
+  ---
+  duration_ms: 0.464169
+  type: 'test'
+  ...
+# Subtest: rejects duplicate case with forged totals
+ok 14 - rejects duplicate case with forged totals
+  ---
+  duration_ms: 0.356806
+  type: 'test'
+  ...
+# Subtest: rejects unknown case title
+ok 15 - rejects unknown case title
+  ---
+  duration_ms: 0.329836
+  type: 'test'
+  ...
+# Subtest: rejects unknown project
+ok 16 - rejects unknown project
+  ---
+  duration_ms: 0.378109
+  type: 'test'
+  ...
+# Subtest: rejects passed case newly skipped
+ok 17 - rejects passed case newly skipped
+  ---
+  duration_ms: 2.499219
+  type: 'test'
+  ...
+# Subtest: rejects authored skip unexpectedly executed
+ok 18 - rejects authored skip unexpectedly executed
+  ---
+  duration_ms: 0.195504
+  type: 'test'
+  ...
+# Subtest: rejects expected failure exemption
+ok 19 - rejects expected failure exemption
+  ---
+  duration_ms: 0.162995
+  type: 'test'
+  ...
+# Subtest: rejects retried pass
+ok 20 - rejects retried pass
+  ---
+  duration_ms: 0.155904
+  type: 'test'
+  ...
+# Subtest: rejects multiple attempts
+ok 21 - rejects multiple attempts
+  ---
+  duration_ms: 0.429345
+  type: 'test'
+  ...
+# Subtest: rejects missing attempt
+ok 22 - rejects missing attempt
+  ---
+  duration_ms: 0.176856
+  type: 'test'
+  ...
+# Subtest: rejects failed result hidden by totals
+ok 23 - rejects failed result hidden by totals
+  ---
+  duration_ms: 0.148783
+  type: 'test'
+  ...
+# Subtest: rejects result errors
+ok 24 - rejects result errors
+  ---
+  duration_ms: 0.358559
+  type: 'test'
+  ...
+# Subtest: rejects result error field
+ok 25 - rejects result error field
+  ---
+  duration_ms: 0.663147
+  type: 'test'
+  ...
+# Subtest: decodes all ten synthetic crops and keeps viewport separate from crop size
+ok 26 - decodes all ten synthetic crops and keeps viewport separate from crop size
+  ---
+  duration_ms: 3.394875
+  type: 'test'
+  ...
+# Subtest: rejects an incomplete crop packet
+ok 27 - rejects an incomplete crop packet
+  ---
+  duration_ms: 0.297988
+  type: 'test'
+  ...
+# Subtest: rejects an extra crop
+ok 28 - rejects an extra crop
+  ---
+  duration_ms: 0.21916
+  type: 'test'
+  ...
+# Subtest: rejects duplicate crop names
+ok 29 - rejects duplicate crop names
+  ---
+  duration_ms: 0.260873
+  type: 'test'
+  ...
+# Subtest: rejects a path outside the packet
+ok 30 - rejects a path outside the packet
+  ---
+  duration_ms: 0.174282
+  type: 'test'
+  ...
+# Subtest: rejects a PNG header without complete image data
+ok 31 - rejects a PNG header without complete image data
+  ---
+  duration_ms: 0.16577
+  type: 'test'
+  ...
+# Subtest: rejects a corrupt image CRC
+ok 32 - rejects a corrupt image CRC
+  ---
+  duration_ms: 0.250617
+  type: 'test'
+  ...
+# Subtest: rejects a crop wider than its viewport
+ok 33 - rejects a crop wider than its viewport
+  ---
+  duration_ms: 4.079695
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 182.674493

@@ -1,0 +1,69 @@
+{
+  "startedAt": "2026-11-12T02:59:39.046429+00:00",
+  "head": "4ffab199156516d94a5a3a2d7e860fa342813eb2",
+  "tree": "01143905d2933d5d4504bb5060033db74f1fd14d",
+  "artifactId": 13890390476,
+  "workflowRun": 43088893028,
+  "workflowAttempt": 1,
+  "artifactSha256": "c9877931c8fc22a7bd87e3bbf9e1e54ee7fa8be0e1586f17ff1109e9fc9fcf56",
+  "captureIdentity": {
+    "commit": "0d86ec458ae5589a02257305842f37d5b8584d6c",
+    "tree": "01143905d2933d5d4504bb5060033db74f1fd14d"
+  },
+  "capturedAt": "2026-11-11T19:41:37.944Z",
+  "sourceHashes": {
+    "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
+    "terminal/components/briefs/briefs.module.css": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+    "terminal/lib/briefs.ts": "6860c360d83679033d06aa22f425fa541b6e6a5fa18fce534970a9cf64f748de",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/alerts/AlertsCockpitMount.tsx": "a1b1d475fdd7b74b9ff73c119c6a3f4836522166a4f3aa1d4ab90f55e95aa8b6",
+    "terminal/app/(shell)/alerts/page.tsx": "ffedd63f63a67a484c0584595d007e8ad8698aed504f0fdb81659acf3477cd7c",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": "07766cfee2d7f04fabfcf06f8cbdf303acca104e8d61d34e44f0d9d49fc31ba1",
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "8ccd243530405efc60cc77c3c136b8546d7db255a6a1253d313328a6cac6481b",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "preservedHistoricalAndScope": {
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390-zh.png": "dfb115f56f4a67839308376049547a809c1a77653024ced719c2d85546ce7e77",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/EVIDENCE.yml": "763412350de378e1d371909b1d7ec7a8e19a0c199f315ffb84011da6801b22c9",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440.png": "922fb39845d183d1e807a7597fc75775c9e2e02ab1c4ba7507db30df85fe287c",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440-zh.png": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390-zh.png": "b6d29a5215c981c1784019804336ee023770235cc212eef212c940b3d81f0584",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390.png": "17a7b332ec48689e19ec002b7e4a66c6775d4db9365034f4599d2ae0051de490",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390-zh.png": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440-zh.png": "7bdd861c7a33a75a01380ac489734eee8021d4606d43fc0d5dd25b12677df8c9",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440-zh.png": "ad18a92d785f353d1ffa7e268d34d42c684706e991d5fba8673b1267d4b46340",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390.png": "9c9a93438e065b83f61e75315ddfff4337b3f27431ec9e973b7727873c34f7ea",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-390.png": "b42fee240a9f6b0aedbd90942247c07a151374b56918074eb7a27e19e061cbb6",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440.png": "6bdfe384d60d8a3758db42339d7a913ac19ca8eef5423d63f826b5204c8510b1",
+    "terminal/docs/pr-crops/b-f11-7-recurring-briefs/subscribe-1440.png": "9d97100b8fc874a7f514775f5f597bfdb483a21d1780120ea26ce2beda173c91",
+    "terminal/docs/briefs-explicit-language/RECURRING_INBOX_SCOPE_2026-11-11.json": "3713c3df315dcf40824c4275069bd3e128d5b61a58d6974284dd9936cf748214"
+  },
+  "originalActivePacket": {
+    "list-1440.png": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7",
+    "empty-1440-zh.png": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169",
+    "list-390-zh.png": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97",
+    "list-390.png": "7415df405de5c1dded995f50bed66dc32f12dafb94b9b91a5b9e8c6e84fab5cd",
+    "empty-390-zh.png": "702b1d37709e3edbb1e57dc5e4b1c0ac6101343efce866db07e41a04418ce49a",
+    "capture.json": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+    "list-1440-zh.png": "6b442a828a0185d2e5ee025332a7c783c69113b7a588694e8b85e1a0e433d301",
+    "empty-390.png": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449",
+    "empty-1440.png": "e6a87fa8c77c285ca41def91c69e69febda07344629b27b3baae3db924843311"
+  },
+  "installOrder": [
+    "empty-1440-zh.png",
+    "empty-1440.png",
+    "empty-390-zh.png",
+    "empty-390.png",
+    "list-1440-zh.png",
+    "list-1440.png",
+    "list-390-zh.png",
+    "list-390.png",
+    "capture.json"
+  ]
+}

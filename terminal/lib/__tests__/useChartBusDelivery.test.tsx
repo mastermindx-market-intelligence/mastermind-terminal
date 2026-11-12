@@ -3,7 +3,8 @@
 import React, { act, useLayoutEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useChartBus, type ChartBus, type ChartBusHost } from "../useChartBus";
+import { type ChartBus } from "../useChartBus";
+import { useTestChartBus as useChartBus, type TestChartBusHost as ChartBusHost } from "./fixtures/chartBusOwner";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 function Harness({ host, take }: { host: ChartBusHost; take: (bus: ChartBus) => void }) {

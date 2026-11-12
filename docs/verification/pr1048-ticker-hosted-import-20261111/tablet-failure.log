@@ -1,0 +1,47 @@
+1) [tablet] › e2e/brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en %0A    Error: expect(received).toBeGreaterThan(expected)%0A%0A    Expected: > 0%0A    Received:   0%0A%0A    Call Log:%0A    - Timeout 15000ms exceeded while waiting on the predicate%0A%0A      233 |     await expect(srRow).toBeVisible({ timeout: 15_000 });%0A      234 |     const levels = page.locator('svg g[clip-path^="url(#ic-price-clip-"] > line');%0A    > 235 |     await expect.poll(() => levels.count(), { timeout: 15_000 }).toBeGreaterThan(0);%0A          |                                                                  ^%0A      236 |     if (testInfo.project.name === "desktop") await srRow.hover();%0A      237 |     else await srRow.locator(".lg-name").click();%0A      238 |     await srRow.locator("button.eye").click();%0A        at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/brain-drawing-workspace.spec.ts:235:66
+2026-11-11T10:07:49.5316359Z ##[error]  1) [tablet] › e2e/brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+    Call Log:
+    - Timeout 15000ms exceeded while waiting on the predicate
+
+      233 |     await expect(srRow).toBeVisible({ timeout: 15_000 });
+      234 |     const levels = page.locator('svg g[clip-path^="url(#ic-price-clip-"] > line');
+    > 235 |     await expect.poll(() => levels.count(), { timeout: 15_000 }).toBeGreaterThan(0);
+          |                                                                  ^
+      236 |     if (testInfo.project.name === "desktop") await srRow.hover();
+      237 |     else await srRow.locator(".lg-name").click();
+      238 |     await srRow.locator("button.eye").click();
+        at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/brain-drawing-workspace.spec.ts:235:66
+2026-11-11T10:07:49.5331044Z ##[error]  1) [tablet] › e2e/brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en 
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+    Error: expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+    Call Log:
+    - Timeout 15000ms exceeded while waiting on the predicate
+
+      233 |     await expect(srRow).toBeVisible({ timeout: 15_000 });
+      234 |     const levels = page.locator('svg g[clip-path^="url(#ic-price-clip-"] > line');
+    > 235 |     await expect.poll(() => levels.count(), { timeout: 15_000 }).toBeGreaterThan(0);
+          |                                                                  ^
+      236 |     if (testInfo.project.name === "desktop") await srRow.hover();
+      237 |     else await srRow.locator(".lg-name").click();
+      238 |     await srRow.locator("button.eye").click();
+        at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/brain-drawing-workspace.spec.ts:235:66
+2026-11-11T10:08:47.0091068Z ××F::error file=terminal/e2e/brain-drawing-workspace.spec.ts,title=[tablet] › e2e/brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh,line=235,col=66::  2) [tablet] › e2e/brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh %0A    Error: expect(received).toBeGreaterThan(expected)%0A%0A    Expected: > 0%0A    Received:   0%0A%0A    Call Log:%0A    - Timeout 15000ms exceeded while waiting on the predicate%0A%0A      233 |     await expect(srRow).toBeVisible({ timeout: 15_000 
+
+2026-11-11T10:28:10.4688759Z ##[notice]  2 failed
+  118 skipped
+  210 passed (23.2m)
+2026-11-11T10:28:10.4760002Z   2 failed
+2026-11-11T10:28:10.4762178Z   118 skipped
+2026-11-11T10:28:10.4762370Z   210 passed (23.2m)

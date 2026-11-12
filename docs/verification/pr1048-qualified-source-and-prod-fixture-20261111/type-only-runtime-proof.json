@@ -1,0 +1,27 @@
+{
+  "typeScript": "5.9.3",
+  "parentTree": "427d23cc398912c7d960758933fd1359301bad6d",
+  "checks": [
+    {
+      "path": "terminal/lib/mastermindBrain.ts",
+      "emittedRuntimeUnchanged": true,
+      "sha256": "b77737a625d1d6297de0543d242ae72cc30a6e67a871f665cf3c53b25f94485b"
+    },
+    {
+      "path": "terminal/components/BrainWidget.tsx",
+      "emittedRuntimeUnchanged": true,
+      "sha256": "94814fd6692eff3e39266dca2e1c10ec23fe56a113c0476d5a8ddf5d15fe0dc6"
+    },
+    {
+      "path": "terminal/lib/useChartBus.ts",
+      "emittedRuntimeUnchanged": true,
+      "sha256": "ceabf18de124fc05b09449a8751e7761e37027e2fe1c9d45d05673ae901b399e"
+    },
+    {
+      "path": "terminal/lib/__tests__/brainWidgetChartPreparation.test.tsx",
+      "emittedRuntimeUnchanged": true,
+      "sha256": "cf5f380c9b5459517476f39e106d9e023e44d9641038ad021c446fd30ec85195"
+    }
+  ],
+  "sharedSourceRestored": "f0b8cf82b9bb38f21cb31cf8b9d68e0bf583a6b7dd9b823859c83d8285a1ef9f"
+}

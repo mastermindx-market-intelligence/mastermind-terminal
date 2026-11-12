@@ -1,0 +1,348 @@
+{
+  "qualifiedAt": "2026-11-12T04:00:51.034Z",
+  "classification": "RETAINED_HOSTED_ARTIFACT_SOURCE_AND_CONTENT_QUALIFIED",
+  "qualified": true,
+  "head": "9de98df6ac071eb7ee3006ee09a8996158a6647f",
+  "checkout": {
+    "commit": "f256b35982f9340bfd815941c8c3e40deca6f0f1",
+    "tree": "594ece7ef8582a8c19c7b19436f92f3669734eaa",
+    "parents": []
+  },
+  "actualGitHubParents": [
+    "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+    "9de98df6ac071eb7ee3006ee09a8996158a6647f"
+  ],
+  "workflow": {
+    "repository": "mastermindx-market-intelligence/mastermind-terminal",
+    "run": "43148549019",
+    "attempt": "1",
+    "job": "terminal-e2e",
+    "event": "pull_request",
+    "head": "9de98df6ac071eb7ee3006ee09a8996158a6647f",
+    "base": "2c00073fa0c0449fa626f06d33af0ace478f6f2c"
+  },
+  "sourceCount": 21,
+  "cases": 21,
+  "passed": 14,
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 655,
+        "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9"
+      }
+    }
+  ],
+  "witnesses": [
+    {
+      "schema": "ticker-news.cjk-glyph-witness.v1",
+      "file": "desktop-zh-dark.png",
+      "observedAt": "2026-11-12T03:35:56.994Z",
+      "text": "新闻",
+      "bounds": {
+        "x": 1100,
+        "y": 174.25,
+        "width": 23.390625,
+        "height": 11.5
+      },
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Regular",
+          "isCustomFont": false,
+          "glyphCount": 2
+        }
+      ],
+      "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c",
+      "witnessFile": "desktop-zh-dark.png.json",
+      "sha256": "f19181c7d0612117df6531e2d18a7d79414fd0f2ac670d2c59211b1b429ed4ad"
+    },
+    {
+      "schema": "ticker-news.cjk-glyph-witness.v1",
+      "file": "tablet-zh-dark.png",
+      "observedAt": "2026-11-12T03:36:33.018Z",
+      "text": "新闻",
+      "bounds": {
+        "x": 11,
+        "y": 640.578125,
+        "width": 23.390625,
+        "height": 11.5
+      },
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Regular",
+          "isCustomFont": false,
+          "glyphCount": 2
+        }
+      ],
+      "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c",
+      "witnessFile": "tablet-zh-dark.png.json",
+      "sha256": "b0aa8fc6f852731c0cbb5250bbe841beb8c08d6dbdf34436dc9c07bcd4481146"
+    },
+    {
+      "schema": "ticker-news.cjk-glyph-witness.v1",
+      "file": "mobile-zh-dark.png",
+      "observedAt": "2026-11-12T03:37:04.487Z",
+      "text": "新闻",
+      "bounds": {
+        "x": 11,
+        "y": 215.015625,
+        "width": 23.390625,
+        "height": 11.5
+      },
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Regular",
+          "isCustomFont": false,
+          "glyphCount": 2
+        }
+      ],
+      "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c",
+      "witnessFile": "mobile-zh-dark.png.json",
+      "sha256": "24ed3e8b6a3f6f28df67f1f821429e57509b7ebae1bbe7d0ac95ea3f0aaf47e7"
+    },
+    {
+      "schema": "ticker-news.cjk-glyph-witness.v1",
+      "file": "unavailable-desktop-zh-dark.png",
+      "observedAt": "2026-11-12T03:37:21.502Z",
+      "text": "新闻暂时不可用。",
+      "bounds": {
+        "x": 1103,
+        "y": 225,
+        "width": 314,
+        "height": 16.671875
+      },
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Regular",
+          "isCustomFont": false,
+          "glyphCount": 8
+        }
+      ],
+      "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c",
+      "witnessFile": "unavailable-desktop-zh-dark.png.json",
+      "sha256": "2988c80f7e5a78e2872f3b4a453bea9f9040da7f0af455a8051584052fadd623"
+    },
+    {
+      "schema": "ticker-news.cjk-glyph-witness.v1",
+      "file": "unavailable-mobile-zh-dark.png",
+      "observedAt": "2026-11-12T03:41:08.348Z",
+      "text": "新闻暂时不可用。",
+      "bounds": {
+        "x": 14,
+        "y": 735.765625,
+        "width": 362,
+        "height": 16.671875
+      },
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Regular",
+          "isCustomFont": false,
+          "glyphCount": 8
+        }
+      ],
+      "fontReceiptSha256": "f8ca748e0b1f3c0c6077f247c39dd6290e4085b1dc8c72d8a427452881bb7b5c",
+      "witnessFile": "unavailable-mobile-zh-dark.png.json",
+      "sha256": "c49bbbc30133fb753514495752513fca7e1f4ae22582885bf016f9fd7e8eac70"
+    }
+  ],
+  "sourceHashes": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3",
+    "terminal/components/WatchlistDisplaySettings.tsx": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "terminal/components/WatchlistDisplaySettings.module.css": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "b88ce51b0760d5294f77df4a558f0890efe3496040313af5078c9daa60761ca0",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    ".github/scripts/terminal_cjk_font.py": "e7aaa1b2d1b964dda9c9ae7f31e0ce29f265a37c0970bcaff28176e8eeab4ad4",
+    ".github/fonts/noto-cjk/pin.json": "2550632b58b37cb388bb0b522c25001d5d6af3be4cf713df0bf160ba3c30338f",
+    ".github/fonts/noto-cjk/OFL.txt": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+  },
+  "rawHashes": {
+    "capture.json": "ecc1f4b1df96ac6e8796a3033e7221123c5307f0f5641401199500f91fe8cf23",
+    "prepared.json": "e83be4518141108d98f2c38e2521cc686c9a3de54a228557f90039667ebd3a7a",
+    "images-cleared.json": "43e97a22942180d7484047e03e4bfd0ebe710c780f74739a6a53cc701637154c",
+    "report.json": "00baa61969230ae2eeecf3f475353c0791260d1850b73e4a7537556b822c2e02"
+  },
+  "priorInventory": {
+    "desktop-en-dark.png": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9",
+    "desktop-zh-dark.png": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244",
+    "EVIDENCE.yml": "3a9376c9db3d5dd4cdf7d5f6fb756f65775c7e04ab829411e5629ffbb902aa9f",
+    "mobile-en-dark.png": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602",
+    "mobile-zh-dark.png": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717",
+    "tablet-en-dark.png": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f",
+    "tablet-zh-dark.png": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3",
+    "unavailable-desktop-en-dark.png": "414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9",
+    "unavailable-desktop-zh-dark.png": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e",
+    "unavailable-mobile-en-dark.png": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+    "unavailable-mobile-zh-dark.png": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9"
+  },
+  "preflight": {
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "rawAcceptance": {
+    "producerActivation": false,
+    "productionAcceptance": false,
+    "visualAcceptance": false
+  },
+  "visualReview": "PENDING_ROOT_IMAGE_REVIEW",
+  "limitations": [
+    "Raw shallow parents remain unchanged; independently resolved GitHub parents recorded separately.",
+    "Hosted private font/config files are described by original runtime receipt and witnesses; not claimed as uploaded binaries.",
+    "No lifecycle re-execution or local hosted-environment impersonation."
+  ]
+}

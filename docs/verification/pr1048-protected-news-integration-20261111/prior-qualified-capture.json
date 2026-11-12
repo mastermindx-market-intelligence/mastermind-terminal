@@ -1,0 +1,314 @@
+{
+  "pr": 1048,
+  "head": "8a285627fd0bc9fcbf10f16f45e2040c54000cc8",
+  "run": 43006062635,
+  "allJobsSuccess": 29,
+  "unitJob": 130474156553,
+  "unitPassed": 23365,
+  "unitSkipped": 50,
+  "unitTodo": 3,
+  "artifact": {
+    "id": 13848819883,
+    "name": "unit-evidence-43006062635-1",
+    "bytes": 44237982,
+    "sha256": "6768e702bfa79e709bf61b8ac6d02ed521cebeeac54ff4d02576eefda4e009f2",
+    "members": 1174,
+    "expiresAt": "2027-02-09T10:43:57Z"
+  },
+  "source": {
+    "actualCheckout": {
+      "commit": "0116b8ae1e20b9e1e225a174e36e4ad3215ceefb",
+      "tree": "5f300c731275e8f6b9d6a69fb9a9997f35e0fbd2"
+    },
+    "canonicalParents": [
+      "088e70ab65a521e42d804de4b2a5d9de95b49ffa",
+      "8a285627fd0bc9fcbf10f16f45e2040c54000cc8"
+    ],
+    "eventBaseObservedSeparately": "74c007125129090cc762f2bc4b1b152123326444",
+    "sourceFiles": 2125,
+    "gitDerivedSourceMembershipMatchesBothOperations": true,
+    "sourceHashesMatchActualGitBlobs": true,
+    "sourceMapSha256": "9ffd46b1188be01aaf4e89956dd8b0773643bff4ef72d9d60dfc2ac1c2231b75",
+    "composition": {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43006062635-1-current.composition.json",
+      "sha256": "dd3b85ded7569a5c77af02e7a026646768647ecee25f7ba38ca165725b330c19",
+      "selectedCases": 50
+    },
+    "nativeReuse": {
+      "acceptedComparisonHead": "313dc83716c4883a3adfbcf36c9595f6faeda14c",
+      "fullNativeProofSubtreesAndControlsUnchanged": true,
+      "sourcesAndSelectedManifestHashesMatchActualCheckout": true,
+      "gexIsPriorQualifiedReuseNotFreshArtifact": true
+    }
+  },
+  "reader": {
+    "actualCheckout": {
+      "commit": "0116b8ae1e20b9e1e225a174e36e4ad3215ceefb",
+      "tree": "5f300c731275e8f6b9d6a69fb9a9997f35e0fbd2"
+    },
+    "sourceFiles": 2125,
+    "compositionId": "ci-43006062635-1-current",
+    "profile": {
+      "fixture": "terminal-e2e.v1",
+      "buildMode": "next-dev",
+      "sharedShell": "0",
+      "investorShellPreview": "0",
+      "theme": "dark"
+    },
+    "operations": [
+      {
+        "id": "ci-43006062635-1-pl6",
+        "packet": "pl6",
+        "passedCases": 24,
+        "retries": 0,
+        "decodedAndBoundImages": 24
+      },
+      {
+        "id": "ci-43006062635-1-vi",
+        "packet": "vi",
+        "passedCases": 30,
+        "retries": 0,
+        "decodedAndBoundImages": 30
+      }
+    ],
+    "selectedCases": {
+      "pl6": 20,
+      "vi": 30
+    },
+    "legacy": {
+      "pine": {
+        "images": 30,
+        "sources": 6,
+        "controls": 3,
+        "manifestSha256": "4992810c0a3bb5308b5210877ab913febe9dbb3efe25be400be300265b89863e",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-pine.prior",
+          "members": 31,
+          "mapSha256": "cd4ef2877292e3df108920f446a93f8fca3342573e3b126dd4f24ebf4427df6c"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-pine.returned",
+          "members": 31,
+          "mapSha256": "c6d51d784f5141da31536a544168c9cbbe440e93afc268772ba12613b84711cd"
+        }
+      },
+      "batch3": {
+        "images": 20,
+        "sources": 16,
+        "controls": 3,
+        "manifestSha256": "724183533e9013a7467b35bc87c41bec16d79c80882c336fb66719d03ec0de72",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-batch3.prior",
+          "members": 40,
+          "mapSha256": "c09ea5e5f93b0d019d156b7feb9a9c099899817fcd4a25e44eca9bea07cba2b4"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-batch3.returned",
+          "members": 40,
+          "mapSha256": "873c8196bc63a49424076361d66bc638f22d1d00e7711a04e76b2578962f6319"
+        }
+      },
+      "claims": {
+        "images": 12,
+        "sources": 4,
+        "controls": 3,
+        "manifestSha256": "351cdb5c44b5789eda4da8089e35f387707f7ab90ad8ed4f85c65dbd6adb5c4f",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-claims.prior",
+          "members": 13,
+          "mapSha256": "d6f9f1316869874faea3605b99ebfdd151b67b0b47fe9e9b1f673c9baf562e44"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-claims.returned",
+          "members": 13,
+          "mapSha256": "4f13fd1c81b74f34cb67f682108062e65695adaa834e570bf75546a7500e9278"
+        }
+      },
+      "research": {
+        "images": 20,
+        "sources": 6,
+        "controls": 3,
+        "manifestSha256": "d1cc69e82d642744f8624d18dee8cec8b87e5d4d9adc7266333deef23042e0f8",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-research.prior",
+          "members": 23,
+          "mapSha256": "71590f4c15a9e5ac5f530a9cf326bf24859b572dadf925f04af07ac4e93080e5"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-research.returned",
+          "members": 23,
+          "mapSha256": "ae900f4052d25f84da341635c31da296118ee4ae5e40d9a092cf92dec5ce4b03"
+        }
+      },
+      "proposals": {
+        "images": 8,
+        "sources": 3,
+        "controls": 3,
+        "manifestSha256": "704a082b133f3fc47ff5f141de1e24a58963c867bce905ca590dc5ae65aaf784",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-proposals.prior",
+          "members": 9,
+          "mapSha256": "5c93487a36202551066199ca6647536cab3efd178e0a058d110e2edae583faa8"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-proposals.returned",
+          "members": 9,
+          "mapSha256": "c4df53b67c19676c1468b5a38dc2c88f352cd8bedb59bef7d030bf0e59db0a77"
+        }
+      },
+      "conductor": {
+        "images": 6,
+        "sources": 6,
+        "controls": 3,
+        "manifestSha256": "13638efd6fc6b111d50c1aa1618832568df793e3cf5518a34ab39692f7d7bcd6",
+        "rootArtifact": {
+          "members": 0,
+          "complete": false
+        },
+        "prior": {
+          "path": "ci-diagnostics/ci-43006062635-1-conductor.prior",
+          "members": 18,
+          "mapSha256": "e9c5e529b121fe9986bdee2e8e24a58974b2f54bf20567a8df26e784c5ccc366"
+        },
+        "returned": {
+          "path": "ci-diagnostics/ci-43006062635-1-conductor.returned",
+          "members": 18,
+          "mapSha256": "40c5fae516988fbf461eec99e1a356688b85e434b0264669aa5acb3f1a4ec477"
+        }
+      }
+    },
+    "optionsAxis": {
+      "images": 5,
+      "sources": 4,
+      "controls": 4,
+      "rootArtifact": {
+        "members": 6,
+        "complete": false
+      },
+      "prior": {
+        "path": "ci-diagnostics/ci-43006062635-1-options.prior",
+        "members": 10,
+        "mapSha256": "96f485d76f187ee540ef7e2d6b1aadf1073aad68eca9cbbed0b91c2a53488e33"
+      },
+      "returned": {
+        "path": "ci-diagnostics/ci-43006062635-1-options.returned",
+        "members": 10,
+        "mapSha256": "88a4506837d89eb3f155f68be35aebae8a669390b06138c2c1af32827b163ab0"
+      }
+    },
+    "childrenClosedOrReturned": true,
+    "readerUnchanged": true,
+    "newBrowserExecuted": false,
+    "nativeReuse": {
+      "acceptedComparisonHead": "313dc83716c4883a3adfbcf36c9595f6faeda14c",
+      "fullNativeProofSubtreesAndControlsUnchanged": true,
+      "sourcesAndSelectedManifestHashesMatchActualCheckout": true,
+      "gexIsPriorQualifiedReuseNotFreshArtifact": true
+    }
+  },
+  "priorGit": {
+    "pine": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 31
+    },
+    "batch3": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 40
+    },
+    "claims": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 13
+    },
+    "research": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 23
+    },
+    "proposals": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 9
+    },
+    "conductor": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 18
+    },
+    "optionsAxis": {
+      "completeGitMembership": true,
+      "allPriorBytesEqualActualCheckout": true,
+      "members": 10
+    }
+  },
+  "visualInspection": {
+    "sampleCount": 6,
+    "samples": [
+      {
+        "packet": "pl6",
+        "title": "capture AnalysisWorkspace",
+        "project": "desktop",
+        "locale": "en",
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43006062635-1-pl6--case-b0452f6e3cc32be3b2fb9004b3710471.png"
+      },
+      {
+        "packet": "pl6",
+        "title": "capture AnalysisWorkspace",
+        "project": "mobile",
+        "locale": "zh",
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-43006062635-1-pl6--case-255ec3283a27e181db0817d2c01dfb16.png"
+      },
+      {
+        "packet": "vi",
+        "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+        "project": "desktop",
+        "locale": "en",
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43006062635-1-vi--case-ee02b323aeba2da6a7cfcfdec67e90b2.png"
+      },
+      {
+        "packet": "vi",
+        "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+        "project": "mobile",
+        "locale": "zh",
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-43006062635-1-vi--case-997b1cb667944d5f31aa982480cd6617.png"
+      },
+      {
+        "packet": "optionsAxis",
+        "title": "desktop",
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png"
+      },
+      {
+        "packet": "optionsAxis",
+        "title": "mobile",
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png"
+      }
+    ],
+    "scope": "PL6 narrow Analysis chrome crops; desktop VI chart/context; mobile ZH context; desktop/mobile options axis labels. No broad production or all-image visual claim."
+  },
+  "fullDecodedFreshPNGCount": 155,
+  "priorAndReturnedMembersEach": 144,
+  "productionAcceptance": false,
+  "migrationApplied": false
+}

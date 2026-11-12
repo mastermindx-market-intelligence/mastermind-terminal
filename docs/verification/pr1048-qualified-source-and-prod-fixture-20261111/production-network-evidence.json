@@ -1,0 +1,76 @@
+{
+  "artifact": 13839059301,
+  "zipSha256": "45d01ac058e094c3cd476f691da37dfcb31b7451460674be6b3bd1540bdacc43",
+  "traces": [
+    {
+      "trace": "command-palette-review-en--11a87--and-step-the-review-itself-desktop/trace.zip",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=SPY",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        }
+      ]
+    },
+    {
+      "trace": "command-palette-review-zh--4733c--and-step-the-review-itself-desktop/trace.zip",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=SPY",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        },
+        {
+          "url": "http://127.0.0.1:3108/api/drawings?symbol=NVDA",
+          "method": "GET",
+          "status": 401,
+          "body": "{\"error\":\"Authentication required\"}"
+        }
+      ]
+    }
+  ]
+}

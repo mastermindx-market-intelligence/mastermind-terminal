@@ -226,6 +226,7 @@ function fixture(t, change = {}) {
   for (const definition of packets) {
     write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, change.legacyStale === true || change.legacyStale === definition.packet));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
+    if (definition.packet === "conductor") write(definition.directory + "/before/BEFORE.yml", "unaltered historical chips");
   }
   const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
     const captures = optionsFiles.map(file => {
@@ -262,6 +263,7 @@ function fixture(t, change = {}) {
       write(definition.directory + "/EVIDENCE.yml", packetManifest(definition));
       for (const file of definition.files) write(definition.directory + "/" + file, "fresh synthetic image " + file);
       if (change.mutateLegacySource) write(definition.sources[0], "changed during capture");
+      if (change.mutateHistory && definition.packet === "conductor") write(definition.directory + "/before/BEFORE.yml", "rewritten history");
       const receipt = { packet: definition.packet, captureId: options.env.TERMINAL_LEGACY_CAPTURE_ID,
         capturedAtHead: "a".repeat(40), manifestSha256: sourceHash(definition.directory + "/EVIDENCE.yml"),
         files: definition.files.map(file => ({ file, sha256: sourceHash(definition.directory + "/" + file) })) };
@@ -474,9 +476,13 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("stale Pine and batch3 packets run all50 cases and preserve complete prior bytes", async t => {
+test("stale legacy packets run all96 cases, preserve prior bytes and leave validation with native readers", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["pine", "batch3"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "batch3", "claims", "research", "proposals", "conductor"]);
+  assert.deepEqual(f.packets.map(({ packet, files, deadlineMs }) => [packet, files.length, deadlineMs]), [
+    ["pine", 30, 12 * 60_000], ["batch3", 20, 8 * 60_000], ["claims", 12, 8 * 60_000],
+    ["research", 20, 8 * 60_000], ["proposals", 8, 8 * 60_000], ["conductor", 6, 8 * 60_000],
+  ]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -489,7 +495,9 @@ test("stale Pine and batch3 packets run all50 cases and preserve complete prior 
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 50);
+  assert.equal(cases, 96);
+  const conductor = result.legacyPackets.conductor;
+  assert.deepEqual(conductor.prior.files["before/BEFORE.yml"], conductor.returned.files["before/BEFORE.yml"]);
 });
 
 test("batch3-only source drift recaptures all20 files while Pine is reused", async t => {
@@ -517,7 +525,7 @@ test("current packets preserve their old capture identity and do not launch repl
   assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
 });
 
-for (const packetName of ["pine", "batch3"]) for (const [name, change, expected] of [
+for (const packetName of ["pine", "batch3", "claims", "research", "proposals", "conductor"]) for (const [name, change, expected] of [
   ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
   ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
   ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
@@ -533,6 +541,18 @@ for (const packetName of ["pine", "batch3"]) for (const [name, change, expected]
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
   assert.deepEqual(f.legacyCalls, [packetName]);
+});
+
+test("Conductor historical packet mutation retains diagnostics and refuses selection", async t => {
+  const f = fixture(t, { legacyStale: "conductor", mutateHistory: true });
+  await assert.rejects(f.invoke, /HISTORY_CHANGED/);
+  assert.equal(f.selected(), "");
+  assert.equal(f.diagnostic().state, "FAILED");
+  assert.deepEqual(f.legacyCalls, ["conductor"]);
+  const packet = f.diagnostic().legacyPackets.conductor;
+  assert.ok(fs.existsSync(packet.prior.path));
+  assert.ok(fs.existsSync(packet.returned.path));
+  assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {

@@ -1,0 +1,240 @@
+{
+  "schema": "ticker-news.import-qualification.v1",
+  "sourceHead": "4eee35f4945cb82365e63e72b8d8fa0cb73c8022",
+  "captureCheckout": "5530a2cb6e79db7e1b8426ea38dfee64f9b6e134",
+  "captureTree": "40b540b7eb71e10311e5dde86c80eac9dbd6a8b5",
+  "captureParents": [
+    "b418e924c734ad5f457aab1b783cacb75dd5a109",
+    "4eee35f4945cb82365e63e72b8d8fa0cb73c8022"
+  ],
+  "rawReceiptParents": [],
+  "eventBaseObservedSeparately": "b418e924c734ad5f457aab1b783cacb75dd5a109",
+  "run": 43058589661,
+  "attempt": 1,
+  "job": 130657667008,
+  "artifact": {
+    "id": 13873869731,
+    "name": "responsive-qa-43058589661-serial",
+    "size_in_bytes": 11846652,
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13873869731",
+    "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13873869731/zip",
+    "expired": false,
+    "created_at": "2026-11-11T17:02:37Z",
+    "expires_at": "2027-02-09T16:27:58Z",
+    "updated_at": "2026-11-11T17:02:37Z",
+    "digest": "sha256:fe77aa0a715cb0d4a4ccac305efe39791089b8bf07778ee177f9275c485e8e3d",
+    "workflow_run": {
+      "id": 43058589661,
+      "repository_id": 1290596392,
+      "head_repository_id": 1290596392,
+      "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+      "head_sha": "4eee35f4945cb82365e63e72b8d8fa0cb73c8022"
+    }
+  },
+  "reportSha256": "a19f8f5623db464cf8d2378aab011ea4f1e5799045a58993e3e871a529abcd19",
+  "sourceCount": 16,
+  "sources": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "8d4d458c2743f90a738e42e74274045c32b107d46feda5122eaa79c782428187",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "6148ca725d1ddc66657b1cde1c1df5abad0f7bd76dc347bd29fb0971132fb90c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "canonicalSourceAndPacketBindings": 145,
+  "cases": {
+    "passed": 14,
+    "authoredProjectSkips": 7,
+    "failed": 0,
+    "flaky": 0,
+    "retries": 0
+  },
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe3d94a490816ac7c2026e2f9a97e2e98eb6f233c48c554b75989f6ac0fff074"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "f6d5bad787673d49acf090137a94e0a4dbcdee3cc3491cc39e17a894d7ffb666"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 605,
+        "sha256": "2c86030bb0f3c33b861569162da1f737d87c7d860d91557e676144014c503a11"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "c327132d531d02b007ccf78ce25c95365802bc085c58211341b910b5ca4ed40e"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "b497feb6d46c1c6dd346aa8080d24f1816206eddb39724cdddc66c7123e30681"
+      }
+    }
+  ],
+  "priorPacketFiles": 11,
+  "otherPacketFilesVerified": 118,
+  "runtime": {
+    "node": "v20.20.2",
+    "next": "16.4.6",
+    "playwright": "1.61.1",
+    "configuredChromium": [
+      {
+        "name": "chromium",
+        "revision": "1228",
+        "installByDefault": true,
+        "browserVersion": "149.0.7827.55",
+        "title": "Chrome for Testing"
+      },
+      {
+        "name": "chromium-headless-shell",
+        "revision": "1228",
+        "installByDefault": true,
+        "browserVersion": "149.0.7827.55",
+        "title": "Chrome Headless Shell"
+      }
+    ]
+  },
+  "preflight": {
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "rawCaptureReceiptUnmodified": true,
+  "visualInspection": "Pending principal image inspection before publication",
+  "producerActivation": false,
+  "productionAcceptance": false
+}

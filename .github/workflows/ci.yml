@@ -430,6 +430,10 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Prepare pinned CJK font for browser proof
+        timeout-minutes: 3
+        working-directory: terminal
+        run: timeout --signal=TERM --kill-after=15s 120s python3 -I ../.github/scripts/terminal_cjk_font.py --install
       - name: Capture current-source E18 alert-management evidence
         timeout-minutes: 8
         env:
@@ -807,7 +811,7 @@ jobs:
                  npx playwright install chromium; }
       # Browser caches do not include system fonts/libraries on fresh hosted runners, so
       # try --with-deps first; if apt is unreachable, keep the cached browser and let a
-      # missing library fail the tests visibly (no visual baselines depend on fonts).
+      # missing library fail the tests visibly. The separate CJK step verifies fonts.
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         timeout-minutes: 6
@@ -818,6 +822,10 @@ jobs:
           else
             npx playwright install chromium
           fi
+      - name: Prepare pinned CJK font for browser proof
+        timeout-minutes: 3
+        working-directory: terminal
+        run: timeout --signal=TERM --kill-after=15s 120s python3 -I ../.github/scripts/terminal_cjk_font.py --install
       - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
@@ -1036,6 +1044,10 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps failed or stalled on a cache hit; the cached browser is kept and the run proceeds (missing system libraries fail the tests visibly)"; timeout --signal=TERM --kill-after=15s 60s npx playwright install chromium; }
+      - name: Prepare pinned CJK font for browser proof
+        timeout-minutes: 3
+        working-directory: terminal
+        run: timeout --signal=TERM --kill-after=15s 120s python3 -I ../.github/scripts/terminal_cjk_font.py --install
       - name: Download production build artifact (this run only)
         id: prodbuild_artifact
         uses: actions/download-artifact@v4

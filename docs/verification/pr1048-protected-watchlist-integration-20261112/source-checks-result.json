@@ -1,0 +1,22 @@
+[
+  {
+    "phase": "synthetic-owner-contracts",
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/ticker_news_capture_receipt.test.cjs",
+      "e2e/tools/briefs_inbox_capture_contract.test.cjs",
+      "e2e/tools/capture_ci_evidence.test.cjs",
+      "e2e/tools/capture_visual_evidence.test.cjs",
+      "scripts/ci/plan-evidence-capture.test.cjs",
+      "e2e/tools/sharedShellSafeReporter.test.cjs",
+      "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+      "e2e/tools/f11_provider_closed_policy.test.cjs"
+    ],
+    "startedAt": "2026-11-12T03:12:18.597139+00:00",
+    "finishedAt": "2026-11-12T03:13:38.631470+00:00",
+    "elapsedSeconds": 80.033,
+    "exitCode": 1,
+    "logSha256": "62eab4de288586de4265536005a5171035577e580a8d1c4d984ee1112e79b8ea"
+  }
+]

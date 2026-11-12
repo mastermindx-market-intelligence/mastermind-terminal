@@ -1,0 +1,44 @@
+Listing tests:
+  [desktop] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+  [desktop] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+  [desktop] › brain-drawing-workspace.spec.ts:385:7 › native AI inspector removes only the selected child and persists across reload
+  [desktop] › brain-drawing-workspace.spec.ts:385:7 › native AI Delete removes only the selected child and persists across reload
+  [desktop] › brain-drawing-workspace.spec.ts:385:7 › native AI Backspace removes only the selected child and persists across reload
+  [desktop] › brain-drawing-workspace.spec.ts:467:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+  [desktop] › brain-drawing-workspace.spec.ts:495:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+  [desktop] › brain-drawing-workspace.spec.ts:510:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+  [desktop] › brain-drawing-workspace.spec.ts:561:5 › human undo and redo preserve the latest AI drawing edits
+  [desktop] › brain-drawing-workspace.spec.ts:607:7 › a rejected human undo preserves history until AI capacity is freed
+  [desktop] › brain-drawing-workspace.spec.ts:607:7 › a rejected human redo preserves history until AI capacity is freed
+  [desktop] › brain-drawing-workspace.spec.ts:674:5 › a read without installed AI persistence keeps human drawings and refuses an AI mutation
+  [desktop] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after failed save acknowledgement
+  [desktop] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after legacy save acknowledgement
+  [tablet] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+  [tablet] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+  [tablet] › brain-drawing-workspace.spec.ts:385:7 › native AI inspector removes only the selected child and persists across reload
+  [tablet] › brain-drawing-workspace.spec.ts:385:7 › native AI Delete removes only the selected child and persists across reload
+  [tablet] › brain-drawing-workspace.spec.ts:385:7 › native AI Backspace removes only the selected child and persists across reload
+  [tablet] › brain-drawing-workspace.spec.ts:467:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+  [tablet] › brain-drawing-workspace.spec.ts:495:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+  [tablet] › brain-drawing-workspace.spec.ts:510:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+  [tablet] › brain-drawing-workspace.spec.ts:561:5 › human undo and redo preserve the latest AI drawing edits
+  [tablet] › brain-drawing-workspace.spec.ts:607:7 › a rejected human undo preserves history until AI capacity is freed
+  [tablet] › brain-drawing-workspace.spec.ts:607:7 › a rejected human redo preserves history until AI capacity is freed
+  [tablet] › brain-drawing-workspace.spec.ts:674:5 › a read without installed AI persistence keeps human drawings and refuses an AI mutation
+  [tablet] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after failed save acknowledgement
+  [tablet] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after legacy save acknowledgement
+  [mobile] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — en
+  [mobile] › brain-drawing-workspace.spec.ts:225:7 › AI drawing workspace composes, reveals indicators and manages individual elements — zh
+  [mobile] › brain-drawing-workspace.spec.ts:385:7 › native AI inspector removes only the selected child and persists across reload
+  [mobile] › brain-drawing-workspace.spec.ts:385:7 › native AI Delete removes only the selected child and persists across reload
+  [mobile] › brain-drawing-workspace.spec.ts:385:7 › native AI Backspace removes only the selected child and persists across reload
+  [mobile] › brain-drawing-workspace.spec.ts:467:5 › normal-motion queue completes 24 drawings and cancellation preserves the applied prefix
+  [mobile] › brain-drawing-workspace.spec.ts:495:5 › Fibonacci extension retains raw-price arithmetic on a logarithmic display
+  [mobile] › brain-drawing-workspace.spec.ts:510:5 › template studies survive an unrelated AI edit and an exact second-RSI edit changes its calculation
+  [mobile] › brain-drawing-workspace.spec.ts:561:5 › human undo and redo preserve the latest AI drawing edits
+  [mobile] › brain-drawing-workspace.spec.ts:607:7 › a rejected human undo preserves history until AI capacity is freed
+  [mobile] › brain-drawing-workspace.spec.ts:607:7 › a rejected human redo preserves history until AI capacity is freed
+  [mobile] › brain-drawing-workspace.spec.ts:674:5 › a read without installed AI persistence keeps human drawings and refuses an AI mutation
+  [mobile] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after failed save acknowledgement
+  [mobile] › brain-drawing-workspace.spec.ts:689:7 › AI drawing recovery survives reload after legacy save acknowledgement
+Total: 42 tests in 1 file

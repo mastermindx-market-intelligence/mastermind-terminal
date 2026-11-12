@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -537,10 +538,16 @@ function historyPosition(state: unknown): number | null {
 
 function historyState(position: number): Record<string, unknown> {
   const current = window.history.state;
-  return {
+  const next: Record<string, unknown> = {
     ...(current && typeof current === "object" && !Array.isArray(current) ? current : {}),
     [HISTORY_POSITION_KEY]: position,
   };
+  // Next adds fresh router state through its public history path. Replaying its
+  // private markers would bypass that path and leave its URL behind selection.
+  delete next.__NA;
+  delete next._N;
+  delete next.__PRIVATE_NEXTJS_INTERNALS_TREE;
+  return next;
 }
 
 function subscribeThesisLocation(changed: () => void) {
@@ -551,6 +558,7 @@ const thesisLocation = () => window.location.href;
 const serverThesisLocation = () => "";
 
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
+  const routerSearch = useSearchParams()?.toString() ?? "";
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
@@ -740,6 +748,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
+    // A retired request cannot keep the new owner's recovery controls busy.
+    setSaving(false);
     return () => {
       detailRequest.current += 1;
       listRequest.current += 1;
@@ -1530,33 +1540,32 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
   }, [copy.confirmDiscard, isDirty, pending]);
 
-  const loadList = useCallback(async () => {
-    // Clearing rows on an owner change is insufficient: an earlier request can
-    // finish afterwards. Keep successes, decoding and failures on this read's
-    // generation, including an A→B→A owner change or a newer same-owner refresh.
-    const token = ++listRequest.current;
+  const loadList = useCallback(async (token = ++listRequest.current) => {
+    if (token !== listRequest.current) return;
     try {
       const response = await fetch("/api/theses", { cache: "no-store" });
       if (token !== listRequest.current) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
-        setListState("unavailable");
+        setListState(current => current === "session_expired" ? current : "unavailable");
         setMobilePane("list");
         return;
       }
       const payload = await response.json();
       if (token !== listRequest.current) return;
       if (!Array.isArray(payload.theses)) {
-        setListState("unavailable");
+        setListState(current => current === "session_expired" ? current : "unavailable");
         setMobilePane("list");
         return;
       }
       setTheses(payload.theses);
       setTruncated(payload.truncated === true);
-      setListState("ready");
+      // An unrelated successful list read cannot undo a terminal auth outcome.
+      // Only the existing owner reset clears that state.
+      setListState(current => current === "session_expired" ? current : "ready");
     } catch {
       if (token !== listRequest.current) return;
-      setListState("unavailable");
+      setListState(current => current === "session_expired" ? current : "unavailable");
       setMobilePane("list");
     }
   }, []);
@@ -1638,6 +1647,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const response = await fetch(`/api/theses?id=${encodeURIComponent(id)}`, { cache: "no-store" });
       if (token !== detailRequest.current) return;
       if (response.status === 401) {
+        listRequest.current += 1;
         settleMarketOntologyContext(id, contextCandidate, null);
         setListState("session_expired");
         setDetailState("idle");
@@ -1733,7 +1743,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (invalidLink) return;
     // Start external synchronization in a microtask: the effect itself performs no synchronous
     // React state transition, and both loaders update only after their first network boundary.
-    void Promise.resolve().then(() => loadList());
+    // Claim before scheduling so a retired owner's microtask cannot acquire a
+    // fresh generation after cleanup.
+    const listToken = ++listRequest.current;
+    void Promise.resolve().then(() => loadList(listToken));
     void Promise.resolve().then(() => loadSavedViews());
     // A lazy workspace can mount after a quick Back/Forward has already changed
     // the browser route. Reconcile that route rather than missing the earlier popstate.
@@ -1953,21 +1966,31 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
+  const reconcileHistoryLocation = useEffectEvent(() => {
+    // A synthetic reconciliation must not consume a real restoration event or
+    // retry a terminal auth failure. Read current committed state and URL here,
+    // after the queued callback runs, without prompting about dirty work.
+    if (pending || isDirty || restoringPop.current || listState === "session_expired"
+        || window.location.pathname !== "/analysis") return;
+    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+    if (currentRoute.kind !== "theses") return;
+    const routeId = currentRoute.thesisId ?? null;
+    if (routeId !== selectedId || (routeId !== null && detailState === "idle")) {
+      handleHistoryPop(new PopStateEvent("popstate", { state: window.history.state }));
+    }
+  });
+
   useEffect(() => {
     let active = true;
-    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
-    if (window.location.pathname === "/analysis" && currentRoute.kind === "theses"
-      && (currentRoute.thesisId ?? null) !== selectedId && !pending && !isDirty) {
-      // A popstate can land while React replaces a lazy workspace. Reconcile after
-      // subscribing, so a missed event cannot leave the view on a different record.
-      void Promise.resolve().then(() => {
-        if (active) handleHistoryPop(new PopStateEvent("popstate", { state: window.history.state }));
-      });
-    }
+    // Both subscriptions invalidate this check. Next may privately replace a
+    // URL without a second popstate; only the current browser URL is authority.
+    void Promise.resolve().then(() => {
+      if (active) reconcileHistoryLocation();
+    });
     return () => {
       active = false;
     };
-  }, [browserLocation, copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
+  }, [browserLocation, routerSearch, detailState, isDirty, listState, pending, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
     if (key === "statement") statementEditRevision.current += 1;
@@ -2016,13 +2039,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return true;
   }, [copy.carrierUnavailable]);
 
-  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending) => {
+  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending, requestToken: number) => {
+    if (requestToken !== detailRequest.current) return;
     let payload: Record<string, unknown>;
     try {
       const decoded = await response.json();
+      if (requestToken !== detailRequest.current) return;
       if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("non-object response");
       payload = decoded as Record<string, unknown>;
     } catch {
+      if (requestToken !== detailRequest.current) return;
       setSaving(false);
       setMessage(copy.ambiguous);
       return;
@@ -2034,6 +2060,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
     if (response.status === 401) {
       if (exactObjectKeys(payload, ["error"]) && payload.error === "unauthenticated") {
+        listRequest.current += 1;
         setListState("session_expired");
       } else {
         setMessage(copy.ambiguous);
@@ -2095,19 +2122,29 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     } else {
       url.searchParams.delete("symbol");
     }
+    // Claim the confirmed detail before publishing its route or yielding to the
+    // list read. History catch-up must not reopen our own idle transition and
+    // erase the receipt. A later navigation/owner retirement keeps its generation.
+    const detailToken = ++detailRequest.current;
     // A successful write returns to its new current version, even if the URL
     // did not change. Do not restore the old inspection on the following read.
     window.history.replaceState(withThesisInspection(window.history.state, null), "", window.location.href);
     setInspectedVersion(null);
-    writeRoute(url, "replace");
     setSelectedId(id);
+    setDetailState("loading");
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
+    writeRoute(url, "replace");
     await loadList();
-    await loadDetail(id);
+    if (detailToken !== detailRequest.current) return;
+    await loadDetail(id, detailToken);
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
+    if (pendingMutation.ownerKey !== ownerKey) return;
+    // Keep every response boundary on the originating detail/owner generation.
+    // Its pending bytes remain recoverable if that generation retires.
+    const requestToken = detailRequest.current;
     if (!storePending(pendingMutation)) {
       setSaving(false);
       setCarrierBlocked(true);
@@ -2122,12 +2159,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         headers: { "content-type": "application/json" },
         body: pendingMutation.serializedBody,
       });
-      await consumeResponse(response, pendingMutation);
+      if (requestToken !== detailRequest.current) return;
+      await consumeResponse(response, pendingMutation, requestToken);
     } catch {
+      if (requestToken !== detailRequest.current) return;
       setSaving(false);
       setMessage(copy.ambiguous);
     }
-  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable]);
+  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable, ownerKey]);
 
   const submit = useCallback((action: ThesisAction) => {
     if (action !== "create" && action !== "revise" && substantiveDirty) {
@@ -2675,6 +2714,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
           <section className={styles.editorPane} data-testid="thesis-detail-pane">
             <button type="button" className={styles.mobileBack} disabled={carrierLocked} onClick={backToList}>{copy.backToList}</button>
+            {message && <p className={styles.message} role="status">{message}</p>}
             {detailState === "loading" ? <div className={styles.centerState} role="status"><p>{copy.loading}</p></div>
               : detailState === "not_found" ? <div className={styles.centerState} role="status" data-testid="thesis-not-found"><span className={styles.stateMark}>?</span><h1>{copy.notFound}</h1><p>{copy.notFoundBody}</p></div>
                 : detailState === "unavailable" ? <div className={styles.centerState} role="status"><span className={styles.stateMark}>!</span><h1>{copy.unavailable}</h1><p>{copy.unavailableBody}</p>{selectedId && <button onClick={() => beginDetailLoad(selectedId)}>{copy.retry}</button>}</div>
@@ -2691,7 +2731,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </p>
                     )}
                     {conflict && <div className={styles.conflict} role="alert" data-testid="thesis-conflict"><div><strong>{copy.conflict}</strong><p>{copy.conflictBody} {copy.current}: {copy.version} {conflict.currentVersion} · {statusLabel(conflict.lifecycleState, copy)}</p></div><div><button onClick={reloadAfterConflict}>{copy.reload}</button><button onClick={() => void copyDraft()}>{copy.copyDraft}</button></div></div>}
-                    {message && <p className={styles.message} role="status">{message}</p>}
                     {isDirty && !pending && <div className={styles.dirtyDraft} role="status" data-testid="thesis-dirty-draft"><div><strong>{copy.unsaved}</strong><p>{copy.unsavedBody}</p></div><button type="button" onClick={() => void copyDraft()}>{copy.copyDraft}</button></div>}
                     {pendingQueue.length > 0 && <section className={styles.dirtyDraft} data-testid="thesis-pending-recovery">
                       <div><strong>{copy.pendingRecoveries}: {pendingQueue.length}</strong></div>

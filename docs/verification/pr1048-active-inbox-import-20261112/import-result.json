@@ -1,0 +1,62 @@
+{
+  "finishedAt": "2026-11-12T02:59:39.306465+00:00",
+  "baselineFailure": [
+    "node:assert:150",
+    "  throw new AssertionError(obj);",
+    "  ^",
+    "",
+    "AssertionError [ERR_ASSERTION]: terminal/e2e/tools/capture_ci_evidence.cjs changed without a current capture",
+    "+ actual - expected",
+    "",
+    "+ '856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4'",
+    "- '8ccd243530405efc60cc77c3c136b8546d7db255a6a1253d313328a6cac6481b'",
+    "",
+    "    at validateInboxPacket (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:83:12)",
+    "    at Object.readInboxPacket (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:134:10)"
+  ],
+  "stagedRead": {
+    "schema": "briefs.active-inbox.capture.v1",
+    "checkout": {
+      "commit": "0d86ec458ae5589a02257305842f37d5b8584d6c",
+      "tree": "01143905d2933d5d4504bb5060033db74f1fd14d"
+    },
+    "capturedAt": "2026-11-11T19:41:37.944Z",
+    "sources": 15,
+    "cases": 8,
+    "cleanup": {
+      "contextsClosed": 8,
+      "browserClosed": true,
+      "serverSettled": true
+    }
+  },
+  "installedRead": {
+    "schema": "briefs.active-inbox.capture.v1",
+    "checkout": {
+      "commit": "0d86ec458ae5589a02257305842f37d5b8584d6c",
+      "tree": "01143905d2933d5d4504bb5060033db74f1fd14d"
+    },
+    "capturedAt": "2026-11-11T19:41:37.944Z",
+    "sources": 15,
+    "cases": 8,
+    "cleanup": {
+      "contextsClosed": 8,
+      "browserClosed": true,
+      "serverSettled": true
+    }
+  },
+  "installedFiles": {
+    "capture.json": "ccb6a5f19cb6498016ca986555488dc9a988896b5f3e6abcbd18fdab32013b04",
+    "empty-1440-zh.png": "f950adf74fceff653bad429346cc9ddf8b66f66464e1f12605650155028e92ec",
+    "empty-1440.png": "31c018bbe847001809c4b2aa4573541b00ffe37afd49519f542b002ea935349d",
+    "empty-390-zh.png": "7115a6ff96c70444e2260895ff44bfe14fdcb236a9e12eea3aefa7ea59bd7bf3",
+    "empty-390.png": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449",
+    "list-1440-zh.png": "c1eb1af4dce92a4248b2d76b84664d496f45000fea363c103f9797df48790e17",
+    "list-1440.png": "9f3ff4a2f935b7bfdacab972926f3f139bb6a4b375341bda361d4db8bdc849ce",
+    "list-390-zh.png": "830b37c668f043e2ddf364f850fdb5908bc6a1bf07cae2e46b290df015ce44d9",
+    "list-390.png": "68069792c2d9059bfeeb33a2c17a8ea523b9716f6853b58141c2e82778663a6f"
+  },
+  "preservedFileCount": 14,
+  "sourceUnchangedCount": 15,
+  "producerActivation": false,
+  "productionAcceptance": false
+}

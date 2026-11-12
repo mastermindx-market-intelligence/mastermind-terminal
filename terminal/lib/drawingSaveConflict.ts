@@ -96,6 +96,7 @@ export function drawingSaveIssueFromLoadPark(
   reason: "preload" | "overlap" | "conflict" | "too_many",
   blocked?: string,
 ): string {
+  if (blocked === "owner_conflict" || blocked === "save_rejected") return blocked;
   if (reason === "preload") return "preload";
   if (reason === "too_many") return "too_many";
   return blocked ?? "conflict";

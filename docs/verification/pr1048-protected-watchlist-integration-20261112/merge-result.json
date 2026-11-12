@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-11-12T03:01:38.204356+00:00",
+  "head": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "protected": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "mergeBase": "568fa505afb068900424fe4db0da67587d46a114",
+  "command": [
+    "git",
+    "merge",
+    "--no-commit",
+    "--no-ff",
+    "2c00073fa0c0449fa626f06d33af0ace478f6f2c"
+  ],
+  "finishedAt": "2026-11-12T03:01:40.002228+00:00",
+  "exitCode": 1,
+  "stdout": "Auto-merging .github/workflows/ci.yml\nCONFLICT (content): Merge conflict in .github/workflows/ci.yml\nAuto-merging terminal/components/TerminalShell.tsx\nAuto-merging terminal/docs/pr-crops/ticker-news/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/EVIDENCE.yml\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/desktop-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/mobile-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/tablet-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)\nAuto-merging terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png\nAuto-merging terminal/e2e/tools/ticker_news_capture_receipt.cjs\nCONFLICT (add/add): Merge conflict in terminal/e2e/tools/ticker_news_capture_receipt.cjs\nAuto-merging terminal/e2e/tools/ticker_news_capture_receipt.test.cjs\nCONFLICT (add/add): Merge conflict in terminal/e2e/tools/ticker_news_capture_receipt.test.cjs\nAuto-merging tests/test_ci_e2e_shards.py\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "stderr": "",
+  "actualHead": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "unmerged": [
+    ".github/workflows/ci.yml",
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs"
+  ],
+  "logSha256": "44b0342ac8876d76da8b46dfb4bce469f1abcd6009ca61b38caa22d0a83fc37d"
+}

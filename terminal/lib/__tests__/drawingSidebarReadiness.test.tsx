@@ -170,9 +170,10 @@ describe("drawing controls follow the shell's real owner and load readiness", ()
 
   it("fences the transitional old-owner cache and ignores the stale owner's rejection", async () => {
     await mount();
+    expect(observations.at(-1)).toMatchObject({ owner: "account:owner-a", hasCache: true, disabled: false });
     await mount({ userId: "owner-b" });
     expect(observations.find(row => row.owner === "account:owner-b" && row.hydratedOwner === "account:owner-a"))
-      .toMatchObject({ hasCache: true, disabled: true });
+      .toMatchObject({ hasCache: false, cacheLength: 0, disabled: true });
     expect(requests).toHaveLength(2);
     expect(requests[1]).toMatchObject({ owner: "account:owner-b", settled: false });
     expect(observations.at(-1)).toMatchObject({ owner: "account:owner-b", hydratedOwner: "account:owner-b", hasCache: true, disabled: false });

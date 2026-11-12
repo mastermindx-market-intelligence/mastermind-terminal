@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { IND_ORDER } from "../indicators";
+import { translate, type IndicatorSpec } from "../chartBus";
 import * as native from "../chartIndicatorParams";
 import { getSuiteMeta, SUITE_ORDER, suiteDefaults } from "../suites/meta";
 
@@ -86,5 +88,75 @@ describe("native indicator capability descriptions", () => {
       expect(packet.omitted_modules).toContain("structure/sr");
       expect(packet.modules.some((m: any) => m.id === "structure/sr")).toBe(false);
     } finally { module.label = original; }
+  });
+});
+
+describe("built-in settings describe the values the renderer actually consumes", () => {
+  it("names real RSI and moving-average inputs and keeps instance identity separate from type", () => {
+    const packet = native.describeBuiltinIndicatorCapabilities(["ema", "rsi", "rsi__pair01"])!;
+    expect(packet.instances).toContainEqual({ name: "rsi__pair01", type: "rsi" });
+    expect(packet.types.filter(row => row.name === "rsi")).toHaveLength(1);
+    expect(packet.types.find(row => row.name === "rsi")?.parameters.length).toEqual({
+      type: "number", default: 14, minimum: 2, maximum: 100,
+    });
+    expect(packet.types.find(row => row.name === "ema")?.parameters.ma1Len.default).toBe(20);
+    expect(packet.types.find(row => row.name === "rsi")?.parameters).not.toHaveProperty("len");
+  });
+  it("accepts actual scalar controls, including false and translucent colors", () => {
+    const params = { length: 21, showLevels: false, col: "rgba(77,130,255,0.5)", width: 1.2 };
+    expect(native.readBuiltinIndicatorParams("rsi", params)).toEqual({ ok: true, params });
+    expect(native.readBuiltinIndicatorParams("rsi__pair01", { length: 7 })).toEqual({ ok: true, params: { length: 7 } });
+    expect(native.readBuiltinIndicatorParams("ema", { ma1Len: 37, ma2On: false }).ok).toBe(true);
+  });
+  it.each([
+    { len: 21 }, { period: 21 }, { length: 1 }, { length: 101 }, { length: "21" },
+    { length: NaN }, { length: Infinity }, { showLevels: 0 }, { col: "not a color" },
+    { col: "rgba(300,0,0,0.5)" }, { col: "rgba(10,20,30,2)" }, { col: "url(https://example.com)" },
+  ])("refuses an unknown, ignored or malformed requested setting: %j", params => {
+    expect(native.readBuiltinIndicatorParams("rsi", params).ok).toBe(false);
+  });
+  it("does not evaluate accessors or accept prototype keys", () => {
+    let called = false;
+    const params = Object.defineProperty({}, "length", { enumerable: true, get() { called = true; return 21; } });
+    expect(native.readBuiltinIndicatorParams("rsi", params).ok).toBe(false);
+    expect(called).toBe(false);
+    expect(native.readBuiltinIndicatorParams("rsi", JSON.parse('{"__proto__":21}')).ok).toBe(false);
+  });
+  it("uses the same metadata for every advertised default and honors its own byte bound", () => {
+    for (const key of IND_ORDER) {
+      const packet = native.describeBuiltinIndicatorCapabilities([key])!;
+      expect(new TextEncoder().encode(JSON.stringify(packet)).byteLength).toBeLessThanOrEqual(4096);
+      for (const row of packet.types) for (const [name, schema] of Object.entries(row.parameters))
+        expect(native.readBuiltinIndicatorParams(key, { [name]: schema.default }).ok, key + "." + name).toBe(true);
+    }
+    const packet = native.describeBuiltinIndicatorCapabilities(IND_ORDER)!;
+    expect(new TextEncoder().encode(JSON.stringify(packet)).byteLength).toBeLessThanOrEqual(4096);
+    expect([...packet.types.map(row => row.name), ...packet.omitted_types].sort()).toEqual([...IND_ORDER].sort());
+  });
+  it("rejects a typo atomically in both patch and replacement while preserving old unmentioned data", () => {
+    const current: IndicatorSpec[] = [{ name: "rsi", params: { length: 14, legacyNote: "keep" } }, { name: "rsi__pair01", params: { length: 7 } }];
+    const caps = { tfs: ["D"], indicators: ["rsi", "rsi__pair01", "bb"] };
+    for (const mode of ["patch", "replace"]) {
+      const result = translate({ on: true, v: 2, batch_id: "bad-setting", seq: 0, op: "chart.set_indicators",
+        args: { mode, indicators: [{ name: "bb", params: { length: 25 } }, { name: "rsi", params: { len: 21 } }] } }, caps, current);
+      expect(result).toMatchObject({ ok: false, error: "unknown_indicator_setting" });
+      expect(result).not.toHaveProperty("setIndicators");
+    }
+    const result = translate({ on: true, v: 2, batch_id: "good-setting", seq: 0, op: "chart.set_indicators",
+      args: { mode: "patch", indicators: [{ name: "rsi", params: { length: 21 } }] } }, caps, current);
+    expect(result).toMatchObject({ ok: true, setIndicators: [
+      { name: "rsi", params: { length: 21, legacyNote: "keep" } }, current[1],
+    ] });
+    expect(current[0].params?.length).toBe(14);
+  });
+  it("refuses adding a primary that would displace a rendered sibling, and permits an explicit slot removal", () => {
+    const current = ["aaaa", "bbbb", "cccc", "dddd"].map(token => ({ name: "rsi__" + token, params: { length: 7 } }));
+    const caps = { tfs: ["D"], indicators: ["rsi", ...current.map(spec => spec.name)] };
+    const command = { on: true as const, v: 2 as const, batch_id: "slots", seq: 0, op: "chart.set_indicators" as const,
+      args: { mode: "patch", indicators: [{ name: "rsi", params: { length: 21 } }] } };
+    expect(translate(command, caps, current)).toMatchObject({ ok: false, error: "indicator_instance_limit" });
+    expect(translate({ ...command, args: { ...command.args, remove: ["rsi__dddd"] } }, caps, current)).toMatchObject({
+      ok: true, setIndicators: [...current.slice(0, 3), { name: "rsi", params: { length: 21 } }],
+    });
   });
 });

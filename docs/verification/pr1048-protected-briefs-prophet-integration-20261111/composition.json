@@ -1,0 +1,917 @@
+{
+  "schema": "terminal.protected-source-composition.v1",
+  "originalHead": "17f34f7bc8c790fab990f09ffcd6a6737782134c",
+  "protectedHead": "568fa505afb068900424fe4db0da67587d46a114",
+  "commonBase": "e45912628c85a7632e70cb3915b3ce626e1c905c",
+  "orderedPublicationParents": [
+    "17f34f7bc8c790fab990f09ffcd6a6737782134c",
+    "568fa505afb068900424fe4db0da67587d46a114"
+  ],
+  "automaticMergeTree": "4d11e0ca468cf8f641718959bb574c4b94fda3f2",
+  "composedSourceTreeBeforeProof": "f73626a9724880d887ae61f55be67f7915d4661d",
+  "originalChangedPaths": 271,
+  "protectedChangedPaths": 179,
+  "conflictPaths": [
+    ".github/workflows/ci.yml"
+  ],
+  "resolution": "Keep the protected briefs contract, all six incumbent synthetic tests, and the original ticker receipt contract in the same command.",
+  "allOtherAutomaticMergeEntriesPreserved": true,
+  "preservedNonconflictingEntries": 25229,
+  "protectedPaths": {
+    ".github/workflows/ci.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b28a161793ab70e1ec6a0874962123626175caab"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "11d2adff9644ad56a7f83e664d42323dd9ad0ca0"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/checks.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "26dee29cb51a5ff3bc693399c275741e51676a9c"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/ci-contracts.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "736b9115629b762ff691f5ad8a994dfe5757b12b"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/contract-tests.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4ee56d17bd1d58dd97634f9e1e518ffd9562e16f"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/eslint-final.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/npm-ci.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3ccf7bb98d19c90fefd78dae99a019c84bca2583"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/owner-tests.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e0f5d14f417c5707ea3f7d81d5a36c966cee42da"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/packet-consumer.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b134979bda230dfcae4b45ab149d36ddbad841d7"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/plain-language.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eb3ebb32e56b061ec35f10d452cda984384330de"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/preservation.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e12fdf87fd2b8cd698b31a3c71a20669af7dd6a1"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/route-types.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b"
+    },
+    "docs/verification/pr1033-active-inbox-recovery-20261111/typecheck.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "docs/verification/pr1033-active-inbox-selector-repair-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2e76c16b5b1940391c3e8879e9bd5824b0888b9a"
+    },
+    "docs/verification/pr1033-active-inbox-selector-repair-20261111/capture-proof.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3e3859d1d4458437f4c0a5a77b00d620d50e3e2b"
+    },
+    "docs/verification/pr1033-active-inbox-selector-repair-20261111/lint.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "docs/verification/pr1033-active-inbox-selector-repair-20261111/receipt.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e05aecb5d4d316ff9780a7eb1c8d84c0800b3e39"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a2b8700fec70d4ee232e9028bc3062b27c45da23"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/artifact.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aec2f996c3b53830a0c650a97e58ec298bc748d7"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/canonical-checkout.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c0efa3db9c62c1de60a2d0226bb4dcca65729a04"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/capture-proof.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ac6f880103d99ee6770f628dbfc33fcdd48ba05c"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/hosted-consumer.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "64748a00873419f96b7288430d75dc4dad219f3e"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/import-consumer.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "249ff6c467532f801122783618dea8da32b3c68d"
+    },
+    "docs/verification/pr1033-inbox-hosted-import-20261111/qualification.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8be1f6a7f898f223acf1b114a56965e1bfa9fa91"
+    },
+    "docs/verification/pr1033-inbox-init-script-repair-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9cced23562cffd5667befa2c9a54e96e14e097c9"
+    },
+    "docs/verification/pr1033-inbox-init-script-repair-20261111/before.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c57dc781dbe0bf508d534cc9db695977b94092af"
+    },
+    "docs/verification/pr1033-inbox-init-script-repair-20261111/failed-hosted-capture.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f7b055af8d2245ed54fe81bf6c4b02f6b7e14dee"
+    },
+    "docs/verification/pr1033-inbox-init-script-repair-20261111/focused-checks.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8655a372f790f18da71a57e5ffb1d547eaccba8a"
+    },
+    "docs/verification/pr1033-inbox-init-script-repair-20261111/receipt.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "29ab54f36a9c2269fabb8659a9c5324cc16409c3"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "411f6c37356218a857912af70b99ae30070948f1"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/before-validator.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "23e150f7e5ac48a690b1680af7e1270e9a87ad0e"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/failed-hosted-capture.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "58f7cba9baebead90625d9e101abbd2de8314ee7"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/focused-checks.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "591d87b64d4b11f3bb111f9eedd1a039cc050dfe"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/lint.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/receipt.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c671a016b60ce5ff9a42f5e87cb7159396fa6b0c"
+    },
+    "docs/verification/pr1033-inbox-raster-contract-20261111/unpromoted-packet.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "50ee2ed37ba86a7e596d04b7273aa4df9997f22e"
+    },
+    "docs/verification/pr1033-inbox-scroll-settlement-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c6e64569f098c6de3d1cd8142bf917bc923b5b75"
+    },
+    "docs/verification/pr1033-inbox-scroll-settlement-20261111/failed-hosted-capture.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6be7cbba80f776374b4aac363f651e02a55ae040"
+    },
+    "docs/verification/pr1033-inbox-scroll-settlement-20261111/focused-checks.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b295cb92a7d27d4707492bd96f1f9f6367a6962"
+    },
+    "docs/verification/pr1033-inbox-scroll-settlement-20261111/receipt.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "056af2385ddfafaa7702186f12b8ca8910e57a66"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "18d3b832136fb937bc91a434303db2c1efb7d337"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/inventory.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "83f1d6749ece593f238082f7437801771df55f80"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/merge-intent.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "89acf33fd9450c3454b6e56b963bf76b13f2e952"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/merge-readback.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74823296329097b4f5c2ab95b47f87e3847dd0e8"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/merge.stderr.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "efd6dd583fb5866cdaa99f0eacb8e2d83d13187a"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/merge.stdout.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "99040568ec5528e10eb1796a951ebad2cc31ad08"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/resolution.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a44d984902a9ded52bda90a921fc07bd1d65badf"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/source-readback.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "21416cd0dd46d032c01d7a911e47738ac958f7c2"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/tests.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b032f26007c1dcc37dd686c6b18c7ff9cffc06b"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/tests.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2b4993210adc57c8c2c578867acd35819ead9190"
+    },
+    "docs/verification/pr1033-queue-compose-20261111/whole-merge-whitespace.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "af04c49fb00f63fd3efd9ac543c8a5ab45745441"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4a13a995b08ac0568d4a45e81464d187a97d25c8"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/browser-collection.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b610b127e295d7c0951b18bc73380cd37e1faa83"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/changed-file-lint.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/focused-tests.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a13093d7ff864e46b28eafee9265ac9a1e124e41"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/hosted-failure-excerpt.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ffe60c69913793885f89fec389b560fbfa97cc8e"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/negative-original-source.log": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4059c44cad1f81bdb2b5291bcb9ef94372ad1ff2"
+    },
+    "docs/verification/pr1033-transcript-focus-20261111/receipt.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "12911b5295547820a34680928ba9a12f759bc99c"
+    },
+    "ops/terminal_source_audit.beta.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f98b6e237afffc4743e9ebc8d2613dee288866be"
+    },
+    "ops/terminal_source_audit.production.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d406b291d6b77b3bc33c3c2eebaa09af6db6f15"
+    },
+    "terminal/AGENTS.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ebabdd29592da367b36494ebab6429748535590"
+    },
+    "terminal/app/(shell)/prophet/evaluation/page.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f02af7b1e2897139ebd538581e4c82d51b1ee9f3"
+    },
+    "terminal/app/api/briefs/deliveries/route.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2985035d3a4d93e5ce9ed32d653ab9791e100e58"
+    },
+    "terminal/app/api/prophet/beta-evaluation/route.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b1063f2a097a8329e78241b7a3097a22aadbdc40"
+    },
+    "terminal/app/api/prophet/sector-members/route.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "674dbc2ec6649f5351aa79ef6eebcdf55b249046"
+    },
+    "terminal/app/observatory.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f92e0618a7283e7af912f416d123982f6c891400"
+    },
+    "terminal/components/briefs/BriefsInbox.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3bef51189042879d12968f2f75a662cda97e7aa1"
+    },
+    "terminal/components/chrome/AppShell.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "abdd5832f2d9186db9e8a2858f14473527dec733"
+    },
+    "terminal/components/fin/TranscriptDrawer.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "999070fa1b4053d44b0bc5c77704ec59b894a114"
+    },
+    "terminal/components/prophet/ProphetLanesView.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3117d392d5e151b7b2051d68d5d5a97b8e12952a"
+    },
+    "terminal/components/prophet/ProphetView.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b0169b92814953a64df59168b08485628ec522b0"
+    },
+    "terminal/components/prophet/evaluation/EvaluationPanels.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "78cb829a4b9c8c94f9c3c5427f4fb8f33ab29eac"
+    },
+    "terminal/components/prophet/evaluation/ProphetEvaluationView.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d4e2bfa6bcf7522598df718383c3d794070d5b8f"
+    },
+    "terminal/components/prophet/evaluation/evaluationCharts.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cd688957522a59bdd094395a475d0bd40367674c"
+    },
+    "terminal/components/prophet/evaluation/prophetEvaluation.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ab948b473995308ff592ff88a75d6ce57698cc9f"
+    },
+    "terminal/components/prophet/sector/MemberSetup.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "27e3618ce13042f24e71c917747b169953ac3301"
+    },
+    "terminal/components/prophet/sector/ProphetSectorView.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6c5c797fee0bd7fecad30b96574083b1582b831a"
+    },
+    "terminal/components/prophet/sector/SectorContextStrip.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "38415102de55b09b30f02c065b4fc458aa48c493"
+    },
+    "terminal/components/prophet/sector/SectorGroupPicker.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d7775e3824eec80d40747cb0a50065eb9c2dc1b"
+    },
+    "terminal/components/prophet/sector/SectorMemberPopulation.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "28c1391d3b05bcff67dbb063c3cd0afe44df5937"
+    },
+    "terminal/components/prophet/sector/SectorSourcesDisclosure.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dddc9a40e91992fb7d6ba7a37518882a8e2d2bad"
+    },
+    "terminal/components/prophet/sector/prophetSector.module.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "632f4d5a14cd3aad6ded03ab8ab042f0b6c9116f"
+    },
+    "terminal/components/prophet/sector/prophetSectorStrings.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "189d64d933a97658d9c895dcdcbe15a4980cd271"
+    },
+    "terminal/components/prophet/useProphetUrlState.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e30252cf35abbc73dd1fd399186ee4963d3e245"
+    },
+    "terminal/components/sector-intelligence/SectorNative.module.css": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ea11a111c9fe455205a2147a996a13a773c4cddb"
+    },
+    "terminal/components/sector-intelligence/SectorPopulationMembers.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4558a86d09c3270c563065fb2bb5e92f201377dc"
+    },
+    "terminal/docs/briefs-explicit-language/COMPOSITION_2026-11-05.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "206c050ff480074a709f8a2d2d5c8b4d40b12b94"
+    },
+    "terminal/docs/briefs-explicit-language/RECURRING_INBOX_SCOPE_2026-11-11.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2a2e1fe93d971f7234e76244d5d43b6c4fcbb759"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/capture.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8cdf6b8d93b838165c296a291207e93ad3f1a1e2"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-1440-zh.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cd54bee2812b211084177b92673fee0ed50a5b08"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-1440.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c9a319c7e1daab4f216ad4b98c699f6f8422d937"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-390-zh.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "32c011005e29b5e768fffb04233ac30a46f3dbff"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/empty-390.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eebaa766a04c1f21523a12b6998302872177f064"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-1440-zh.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "83e9eebbd1979f11a6425cac3c98a8c6db4cc9ce"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-1440.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6b4a87cefd686ee082e0cfaa6360e297aa1266ca"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-390-zh.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4c617e86ec0393b41cf6c30a60c09c63b81165e3"
+    },
+    "terminal/docs/pr-crops/b-f11-7-active-inbox/list-390.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "94bfd594e83e797142e58dfaca1d249fb0dfe45c"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "528faaf1b27c064012741302630e2dcbb64d19ac"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "330d77c35d0ffe5ed4737dfea22937539401b048"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dca6a3208a6bb59728c4f88813361d93c959be3c"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "089b9132510503b9b3e4ce9a3c1a6ee0db1047c7"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cccbe465e7c5a2c74397dd126fbecb93ef398e37"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-390-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7202edcca198cf60806b0713bf8b5257c7551c7f"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-390-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ec405b8327eff40951ec8e0aebfda6ae8d1dc608"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-390-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "17fe4e5aa808bd5c3a73889dd8fec1d4468b96c0"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-390-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "acb9ba9f832cc8db2a86ce742f7cc1daca061fb0"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-820-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8dc99126b8d9b6d1447b919a3ad4dc8bb837f4ec"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-820-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b52d5ce85fb6b73401fe50ed26043aa8485cfe51"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-820-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4423f097de6226ac1331a753dcc91eec27c606fd"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/partial-820-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "45882be255056c5fe9427409afc1ecca9a435f27"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "65684e99d432bc3e6bef3516955b2b88a8ddf18d"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d1f571b14b99d989ffd09acf14e249ab89c114e"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc27226258e2c0b19845028d9f6fcf351261951e"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5cb457c5afc1301a8b56788dd5ad097c377d50ca"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3e16841ae8716254259f6307c5c2ef317826e588"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4ff4fa68439355459c427fe1aa4340b53412ccd8"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "69652c05c4d16be572ab7ce6782b15d5768007f9"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c4d1a3a676752142054f1260d1ad7f007ecc3825"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-en-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1188537a5ae605f7ffb533e6bbc40784da1580d9"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ccb773eb5489e919313b9c83c55d6adbc9c91ba7"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-zh-dark.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6c7f4755f17db6ace419c9d88370cd6d184705d9"
+    },
+    "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d874e1bf047404f1de4703e19110910069bed65"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/EVIDENCE.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "70f9eba4c051f61e27eb36c487551a96b235c5d2"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-en-closed-unavailable.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ee25ada801cd2eebb6cabf796377c35e5328f0d"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-en-closed.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ede98f91942b34e4948c3e03cdef68853f94c22"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-en-open.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e62eb448159c259d1b55d0460987beb6b9acba8a"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-en-page-open.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0d099ecbcdb033120907982785c342cbc16e9f73"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-zh-closed.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "74a9838d40047f031a37fbc259b23a4a947f28bf"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/desktop-zh-open.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c2787a458fd32d08d48362be3d5f4f41dfd42ba8"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-en-empty.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "086699992e7ff2232044ae54998b8b35c100762f"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-en-ready.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1c6f53d3c6d3ba812143208c8ef3026aa13e39df"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-en-unavailable.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "48d335ebc7c829c51c4b3f43412b7db4e64a9559"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-zh-empty.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "65a601d82f95cf23c1b444ee1604f5974376b889"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-zh-ready.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9101eae3ae66d26dc3fac3f74aae27a0e0565c63"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/mobile-zh-unavailable.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "37f1bf75328d8e488ec766230e5d3e15c00061fb"
+    },
+    "terminal/docs/pr-crops/gmi-gate8-cohort-card/tablet-en-ready.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ff42ffca4ea840d07a61153fbe60db2b88c41ed7"
+    },
+    "terminal/e2e/briefs-inbox.spec.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1223b1770e47136990f661a3a267dc11cf08697"
+    },
+    "terminal/e2e/prophet-evaluation.spec.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f73619efcfd05e82ce14e1a1c2aa73af5e2d1f68"
+    },
+    "terminal/e2e/prophet-sector-journey.spec.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b77771789febfee490459e1c2371fb72e0f9e4ae"
+    },
+    "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a4484f993c7f4b921298d2365be5d5d8bec6ede0"
+    },
+    "terminal/e2e/tools/briefs_inbox_capture_contract.test.cjs": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c12671b655c70dd327df7cd8d937d9b0d00ad6d9"
+    },
+    "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5ff6f4fc2b6bb491f316a9ad8e549e1c356d38f0"
+    },
+    "terminal/lib/__tests__/BriefsInbox.deliveryOwnership.test.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d0a7597b44bb51c4ca1059919249b08804a29c2c"
+    },
+    "terminal/lib/__tests__/BriefsInbox.test.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "73c1b03fa04b868b3880f5e36871266f94bf8c6a"
+    },
+    "terminal/lib/__tests__/briefsBody.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bad34fd715b03705f5048daefec0ddd9944ad57b"
+    },
+    "terminal/lib/__tests__/briefsRoute.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "27787d5a17eda41fccc0fd683194f2b907e67461"
+    },
+    "terminal/lib/__tests__/f11_7RecurringBriefsEvidence.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81108e3a0930a113c2fe75eeff2e77546127dafe"
+    },
+    "terminal/lib/__tests__/fixtureSeam.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dfb9eac28ed0091d53dd8c7bc2ac3a4527cc8947"
+    },
+    "terminal/lib/__tests__/prophetBetaEvaluation.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "007af90b23ac1ecc8e77cb1bb402c2e35d3cafc6"
+    },
+    "terminal/lib/__tests__/prophetBetaEvaluationRoutes.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "66fa89e561dd6e24b70f357c29647103a4e18a80"
+    },
+    "terminal/lib/__tests__/prophetEvaluationFormat.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6239046291d36a3ac8dc45fe6148c616128ab809"
+    },
+    "terminal/lib/__tests__/prophetPopulationFilters.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bc231b4635df78fc889da51ef6776bd98248ef95"
+    },
+    "terminal/lib/__tests__/prophetSectorMembers.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3bc7c01e8e5c8134eb52d0891cf43bde09953fe3"
+    },
+    "terminal/lib/__tests__/prophetSectorMembersFixture.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7d0d16fadd011925c9cd32e05ce035544ce2ab34"
+    },
+    "terminal/lib/__tests__/prophetSectorMembersServer.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5f762ca45f1d149f0d0a260e928644b8a9e49c3a"
+    },
+    "terminal/lib/__tests__/prophetUrlState.test.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2ccadf8c40af5ad206df648432c9bc27421e8cc2"
+    },
+    "terminal/lib/__tests__/sectorPopulationMembers.test.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9c426330e709d23aabc6600e19a410b8e665e9b8"
+    },
+    "terminal/lib/__tests__/transcriptDrawerFocus.test.tsx": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f95627362a1c7920320bcb0316630c82adf9c377"
+    },
+    "terminal/lib/briefs.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7cb140ef02f01108b51737e6341c69c1a8893142"
+    },
+    "terminal/lib/fixtureSeam.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "730604b896ec21fddb2e8ec2b89f1a1b79a755fa"
+    },
+    "terminal/lib/prophetBetaEvaluation.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e12deb3ace17ceace7a745c0290709cd80d7a1d2"
+    },
+    "terminal/lib/prophetBetaEvaluationFormat.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dc235e9a80009ba5b3dd41773601da84079b7465"
+    },
+    "terminal/lib/prophetBetaEvaluationServer.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "79e47223e3e014a964b5be14ef4c81ef96987c6d"
+    },
+    "terminal/lib/prophetEvaluationStrings.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ae3af4048cbbab640b8bee94a1ca08b1af6eeeef"
+    },
+    "terminal/lib/prophetPopulationFilters.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b480c9a5f79a16112fe4332c2e4781789aecf795"
+    },
+    "terminal/lib/prophetSectorMembers.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc9a5b4b6a8f99f50aceb286ba3e3b1fe48ec5d1"
+    },
+    "terminal/lib/prophetSectorMembersFixture.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "aa5accc0a5ecc1488d73c493c1cf65d741d7aeeb"
+    },
+    "terminal/lib/prophetSectorMembersServer.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "beb438edb6568e241a8f766d745d48f403f1c784"
+    },
+    "terminal/lib/prophetUrlState.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fb6156ad092c40a4c0af1332c684e9302c627e58"
+    },
+    "terminal/lib/sharedShellCopy.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "502d3cfdd8758e1a63d9d2b7b1b27344391fbf6e"
+    },
+    "terminal/playwright.prodbuild.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fab03a2260375a8f424cb1d8ed7cb6154e9615ee"
+    },
+    "terminal/public/data/prophet_beta_evaluation_fixture.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8ba36687c6921cd896e173d7440ee531f9189846"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/group_defensives.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "88e228a5fd26b4d31bacee8585db7202206c1af2"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/group_memory_storage.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "69b5d404320f07f2b7a39a22734069d80e321dbf"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/group_us_sector_industrials.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d41c9d5803d6aaae5f55c3af99220fd2379f6fc"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/index.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8273c969218a1fa37cfd8b0a486e6a74a5e5d85"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/symbol_ADP.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b35575d0b59c4be4942bf15bf3f4fbb6d7ac00eb"
+    },
+    "terminal/public/data/prophet_sector_members_fixture/symbol_CARR.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2095d60f21ce53d2e3e095564fcfff9f638b107c"
+    },
+    "tests/test_ci_briefs_inbox_capture.py": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7862bb4f3780e012d1cd3b4fa08874ac32272da9"
+    }
+  }
+}

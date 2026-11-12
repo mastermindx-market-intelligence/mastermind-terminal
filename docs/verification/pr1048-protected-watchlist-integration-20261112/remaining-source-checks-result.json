@@ -1,0 +1,60 @@
+{
+  "head": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceBefore": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3"
+  },
+  "pythonNativeFontBoundary": "Original suite:189 passed, one real-Fontconfig integration fails because its fixed /etc/fonts/fonts.conf does not exist on this Darwin carrier. No source/test change or host-system installation. Actual Ubuntu CI remains required.",
+  "phases": [
+    {
+      "phase": "watchlist-unit",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "lib/__tests__/watchlistDisplaySettings.test.tsx",
+        "lib/__tests__/watchlistSettings.test.ts"
+      ],
+      "startedAt": "2026-11-12T03:24:53.165148+00:00",
+      "finishedAt": "2026-11-12T03:24:57.706649+00:00",
+      "seconds": 4.541,
+      "exitCode": 0,
+      "logSha256": "f7469f6894fd272a54ba5951c92368e4a6d386cb5a43b43f2c236f3c199cd236"
+    },
+    {
+      "phase": "next-typegen",
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "startedAt": "2026-11-12T03:24:57.712478+00:00",
+      "finishedAt": "2026-11-12T03:25:02.333666+00:00",
+      "seconds": 4.621,
+      "exitCode": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "phase": "full-typescript",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "startedAt": "2026-11-12T03:25:02.339280+00:00",
+      "finishedAt": "2026-11-12T03:27:19.181068+00:00",
+      "seconds": 136.842,
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sourceAfter": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3"
+  }
+}

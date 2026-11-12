@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal[39m
+
+ [32m✓[39m lib/__tests__/f11_7RecurringBriefsEvidence.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 75[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 19:59:57
+[2m   Duration [22m 1.39s[2m (transform 38ms, setup 0ms, collect 87ms, tests 75ms, environment 0ms, prepare 668ms)[22m
+

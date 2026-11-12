@@ -44,6 +44,8 @@ const SOURCES = [
   "terminal/e2e/tools/ticker_news_capture_receipt.cjs", "terminal/playwright.config.ts",
   "terminal/docs/specimens/news-flow.light.css", "terminal/next.config.ts",
   "terminal/package.json", "terminal/package-lock.json",
+  ".github/scripts/terminal_cjk_font.py", ".github/fonts/noto-cjk/pin.json",
+  ".github/fonts/noto-cjk/OFL.txt",
 ];
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 function regularBytes(path) {
@@ -88,7 +90,9 @@ function runtime() {
   const lock = JSON.parse(regularBytes(join(ROOT, "package-lock.json")));
   const result = { node: process.version, next: version("next"), playwright: version("@playwright/test"),
     configuredChromium: JSON.parse(readFileSync(join(ROOT, "node_modules/playwright-core/browsers.json"), "utf8"))
-      .browsers.filter(row => row.name === "chromium" || row.name === "chromium-headless-shell") };
+      .browsers.filter(row => row.name === "chromium" || row.name === "chromium-headless-shell"),
+    cjkFont: JSON.parse(execFileSync("python3", ["-I", join(REPO, ".github/scripts/terminal_cjk_font.py"), "--verify"],
+      { cwd: REPO, encoding: "utf8", timeout: 30_000, maxBuffer: 2 * 1024 * 1024 })) };
   assert.equal(result.next, lock.packages["node_modules/next"].version);
   assert.equal(result.playwright, lock.packages["node_modules/@playwright/test"].version);
   return result;
@@ -103,7 +107,9 @@ function executionEnvironment() {
   const port = Number(process.env.TERMINAL_E2E_PORT);
   assert.ok(Number.isInteger(port) && port > 0 && port <= 65535);
   return { CI: "1", TERMINAL_CROPS: "1", TERMINAL_TICKER_NEWS_CAPTURE_PACKET: "ticker-news",
-    TERMINAL_E2E_PORT: String(port), PLAYWRIGHT_JSON_OUTPUT_NAME: REPORT };
+    TERMINAL_E2E_PORT: String(port), PLAYWRIGHT_JSON_OUTPUT_NAME: REPORT,
+    FONTCONFIG_FILE: process.env.FONTCONFIG_FILE,
+    TERMINAL_CJK_FONT_RECEIPT: process.env.TERMINAL_CJK_FONT_RECEIPT };
 }
 function portClosed(port) {
   return new Promise(resolvePromise => {
@@ -163,6 +169,34 @@ function validateImages(readImage, names) {
       image: { width: png.width, height: png.height, sha256: sha256(bytes) } };
   });
 }
+function validateFontWitnesses(readWitness, names, font, startedAt, completedAt) {
+  const shots = SHOTS.filter(shot => shot.lang === "zh");
+  assert.deepEqual([...names].sort(), shots.map(shot => shot.file + ".json").sort());
+  assert.equal(font.schema, "terminal.cjk-font-runtime.v1");
+  assert.match(font.receiptSha256, /^[0-9a-f]{64}$/);
+  return shots.map(shot => {
+    const file = shot.file + ".json", bytes = readWitness(file), witness = JSON.parse(bytes);
+    assert.equal(witness.schema, "ticker-news.cjk-glyph-witness.v1");
+    assert.equal(witness.file, shot.file);
+    assert.equal(witness.fontReceiptSha256, font.receiptSha256);
+    assert.ok(Date.parse(witness.observedAt) >= Date.parse(startedAt)
+      && Date.parse(witness.observedAt) <= Date.parse(completedAt), "CJK glyph witness is outside this capture");
+    assert.equal(witness.text, shot.state === "live-feed" ? "新闻" : "新闻暂时不可用。");
+    const points = [...witness.text].map(char => char.codePointAt(0));
+    for (const point of points) assert.ok(font.resolvedFace.charsetRanges.some(([low, high]) =>
+      low <= point && point <= high), "Selected face lacks a visible Chinese glyph");
+    const viewport = VIEWPORTS[shot.viewport], box = witness.bounds;
+    assert.ok([box.x, box.y, box.width, box.height].every(Number.isFinite));
+    assert.ok(box.x >= 0 && box.y >= 0 && box.width > 0 && box.height > 0);
+    assert.ok(box.x + box.width <= viewport.width + 1 && box.y + box.height <= viewport.height + 1,
+      "Chinese witness is outside the actual viewport");
+    assert.ok(witness.fonts.some(face => face.familyName === font.resolvedFace.family
+      && face.postScriptName === font.resolvedFace.postScriptName && face.isCustomFont === false
+      && Number.isInteger(face.glyphCount) && face.glyphCount >= points.length),
+    "Visible Chinese text did not render with the pinned native CJK face");
+    return { ...witness, witnessFile: file, sha256: sha256(bytes) };
+  });
+}
 async function prepare() {
   const env = executionEnvironment();
   assert.equal(await portClosed(Number(env.TERMINAL_E2E_PORT)), true, "Existing lane port is occupied; do not reuse or kill it");
@@ -220,6 +254,9 @@ async function verify() {
   const cases = validateReport(JSON.parse(reportBytes), prepared.startedAt);
   const names = readdirSync(packet).filter(file => file !== "EVIDENCE.yml");
   const images = validateImages(file => regularBytes(join(packet, file)), names);
+  const fontWitnessDirectory = join(directory, "font-witnesses");
+  const cjkGlyphWitnesses = validateFontWitnesses(file => regularBytes(join(fontWitnessDirectory, file)),
+    readdirSync(fontWitnessDirectory), prepared.runtime.cjkFont, prepared.startedAt, new Date().toISOString());
   for (const shot of SHOTS) assert.ok(statSync(join(packet, shot.file)).mtimeMs >= Date.parse(prepared.startedAt), "Stale crop: " + shot.file);
   const portIsClosed = await portClosed(Number(prepared.environment.TERMINAL_E2E_PORT));
   const devLockFilePresent = existsSync(join(ROOT, ".next/dev/lock"));
@@ -228,13 +265,14 @@ async function verify() {
   for (const shot of SHOTS) copyFileSync(join(packet, shot.file), join(directory, "crops", shot.file));
   assert.deepEqual(validateImages(file => regularBytes(join(directory, "crops", file)), readdirSync(join(directory, "crops"))), images);
   const receipt = { ...prepared, qualified: true, completedAt: new Date().toISOString(),
-    reportSha256: sha256(reportBytes), cases, images, lifecycle: { playwrightReturned: true, portIsClosed, devLockFilePresent },
+    reportSha256: sha256(reportBytes), cases, images, cjkGlyphWitnesses,
+    lifecycle: { playwrightReturned: true, portIsClosed, devLockFilePresent },
     manifestDisposition: "Prior manifest preserved; fresh images require a qualified artifact import before new source locks are committed." };
   writeFileSync(join(directory, "capture.json"), JSON.stringify(receipt, null, 2) + "\n");
-  console.log("Qualified ticker-news capture: 14 passed, 7 authored skips, 0 failures/flakes/retries; 10 fresh PNGs. Manifest unchanged.");
+  console.log("Qualified ticker-news capture: 14 passed, 7 authored skips, 0 failures/flakes/retries; 10 fresh PNGs and 5 native CJK glyph witnesses. Manifest unchanged.");
 }
 
-module.exports = { TITLES, SHOTS, SOURCES, VIEWPORTS, sha256, regularBytes, validateReport, validateImages };
+module.exports = { TITLES, SHOTS, SOURCES, VIEWPORTS, sha256, regularBytes, validateReport, validateImages, validateFontWitnesses };
 if (require.main === module) {
   const mode = process.argv[2];
   assert.equal(process.argv.length, 3, "Use --prepare or --verify");

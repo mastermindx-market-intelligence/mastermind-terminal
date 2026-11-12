@@ -1,0 +1,6 @@
+{
+  "at": "2026-11-12T04:02:48.881371+00:00",
+  "first_execution": "Stopped in local importer before any packet write due to reading image.sha256 instead of the existing image.image.sha256 schema.",
+  "effects": "Proof raw/prior files written; all11 original packet files verified unchanged before corrected continuation.",
+  "consumer_or_producer_changes": false
+}

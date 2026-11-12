@@ -1,0 +1,21 @@
+{
+  "schema": "ticker-news.cjk-glyph-witness.v1",
+  "file": "desktop-zh-dark.png",
+  "observedAt": "2026-11-11T18:04:35.245Z",
+  "text": "新闻",
+  "bounds": {
+    "x": 1100,
+    "y": 174.25,
+    "width": 23.390625,
+    "height": 11.5
+  },
+  "fonts": [
+    {
+      "familyName": "Noto Sans CJK SC",
+      "postScriptName": "NotoSansCJKsc-Regular",
+      "isCustomFont": false,
+      "glyphCount": 2
+    }
+  ],
+  "fontReceiptSha256": "0b37845484778917211646c819cc1798476c54cec6f62d3992fa50a63c6d4e1b"
+}

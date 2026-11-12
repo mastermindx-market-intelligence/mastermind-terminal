@@ -1,0 +1,163 @@
+{
+  "method": "GitHub natural-run metadata plus canonical fetch_workflow_run_jobs list for the same run; upload log separately binds the artifact ID.",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "run": {
+    "id": 43058589661,
+    "head_sha": "4eee35f4945cb82365e63e72b8d8fa0cb73c8022",
+    "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+    "event": "pull_request",
+    "run_attempt": 1,
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43058589661",
+    "statusAtRead": "in_progress"
+  },
+  "job": {
+    "id": 130657667008,
+    "name": "Terminal e2e serial (shard)",
+    "status": "completed",
+    "conclusion": "success",
+    "run_id": 43058589661,
+    "logs_url": null,
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2
+      },
+      {
+        "name": "Bind lane workers and ports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4
+      },
+      {
+        "name": "Run npm ci",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5
+      },
+      {
+        "name": "Run npx next typegen",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6
+      },
+      {
+        "name": "Resolve Playwright version",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7
+      },
+      {
+        "name": "Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8
+      },
+      {
+        "name": "Install Playwright browsers (apt bounded, browser-only fallback)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9
+      },
+      {
+        "name": "Ensure browser present on cache hit",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10
+      },
+      {
+        "name": "Run npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers=\"$TERMINAL_E2E_WORKERS\"",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11
+      },
+      {
+        "name": "Capture current ticker News evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12
+      },
+      {
+        "name": "Qualify investor shell opt-in",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13
+      },
+      {
+        "name": "Qualify Shared Shell beta presentation",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14
+      },
+      {
+        "name": "Validate bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15
+      },
+      {
+        "name": "Retain bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16
+      },
+      {
+        "name": "Qualify Intelligence native beta routes (fixture browser)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17
+      },
+      {
+        "name": "Upload Intelligence fixture-browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18
+      },
+      {
+        "name": "Upload responsive QA screenshots",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19
+      },
+      {
+        "name": "Post Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 36
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 37
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39
+      }
+    ]
+  },
+  "artifactId": 13873869731
+}
+

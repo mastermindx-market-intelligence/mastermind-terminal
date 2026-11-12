@@ -86,14 +86,28 @@ export function prepareChartStatePayload(
   try {
     if (fits()) return result();
 
+    // Configuration descriptions are subordinate to applied receipts and observations.
+    for (const key of ["builtin_parameters", "native_parameters"]) {
+      const capabilities = session.capabilities;
+      if (object(capabilities) && capabilities[key] != null) {
+        session.capabilities = { ...capabilities, [key]: {
+          status: "unavailable", reason: "chart_state_budget",
+        } };
+        omittedFields.push(`capabilities.${key}`);
+        if (fits()) return result();
+      }
+    }
+
     if (originalDrawings.length) {
       // Every roster row still names its original object and owner. Only the wire
       // projection loses detail; no drawing reducer or user store is touched.
       const roster = originalDrawings.map((row) => {
         if (!object(row)) return {};
         const out: Record<string, unknown> = {};
-        for (const key of ["id", "by", "op", "kind"])
+        for (const key of ["id", "by", "op", "kind", "command_id", "batch_id"])
           if (typeof row[key] === "string") out[key] = row[key];
+        if (typeof row.hidden === "boolean") out.hidden = row.hidden;
+        if (typeof row.seq === "number" && Number.isSafeInteger(row.seq)) out.seq = row.seq;
         return out;
       });
       session.drawings = roster;
@@ -102,15 +116,7 @@ export function prepareChartStatePayload(
       if (fits()) return result();
     }
 
-    const capabilities = session.capabilities;
-    if (object(capabilities) && capabilities.native_parameters != null) {
-      // Keep supported ops, exact-target contract and configured study identities.
-      session.capabilities = { ...capabilities, native_parameters: {
-        status: "unavailable", reason: "chart_state_budget",
-      } };
-      omittedFields.push("capabilities.native_parameters");
-      if (fits()) return result();
-    }
+
 
     if (drawingCoverage) {
       const roster = session.drawings as unknown[];

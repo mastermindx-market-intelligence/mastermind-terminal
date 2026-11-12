@@ -1,0 +1,46 @@
+........................................................................ [ 37%]
+........................................................................ [ 75%]
+.........................................F....                           [100%]
+=================================== FAILURES ===================================
+_ test_real_fontconfig_uses_the_private_copy_even_when_the_family_already_exists _
+
+rig = namespace(pin={'fileName': 'Fixture.ttf', 'family': 'DejaVu Sans', 'postScriptName': 'DejaVuSans', 'bytes': 757076, 's...at 0x1079bb3d0>, original_which=<function which at 0x10596fed0>, original_run=<function run_fontconfig at 0x10798f3d0>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107363e00>
+
+    @pytest.mark.skipif(not all(shutil.which(x) for x in ["fc-cache", "fc-query", "fc-match"]),
+                        reason="Optional real Fontconfig integration requires its native CLI")
+    def test_real_fontconfig_uses_the_private_copy_even_when_the_family_already_exists(rig, monkeypatch):
+        pattern = subprocess.check_output(["fc-match", "--format", "%{file}\n%{family[0]}\n%{postscriptname}\n",
+                                           "DejaVu Sans:style=Book"], text=True).splitlines()
+        source, family, postscript = pattern
+        if family != "DejaVu Sans":
+            pytest.skip("Optional native test requires the existing libre DejaVu Sans fixture")
+        data = Path(source).read_bytes()
+        rig.pin.update(bytes=len(data), sha256=font.sha256(data), gitBlobSha=font.git_blob_sha(data),
+                       family=family, postScriptName=postscript, requiredText="ABC123", fileName="Fixture.ttf")
+        monkeypatch.setattr(font.urllib.request, "urlopen", lambda *args, **kwargs: io.BytesIO(data))
+        monkeypatch.setattr(font, "run_fontconfig", rig.original_run)
+        monkeypatch.setattr(font.shutil, "which", rig.original_which)
+        rig.env["FONTCONFIG_FILE"] = "/etc/fonts/fonts.conf"
+>       result = font.install(rig.env)
+                 ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ci_cjk_font.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.github/scripts/terminal_cjk_font.py:189: in install
+    base = Path(env.get("FONTCONFIG_FILE") or "/etc/fonts/fonts.conf").resolve(strict=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:938: in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+filename = '/etc/fonts/fonts.conf', strict = True
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/private/etc/fonts'
+
+<frozen posixpath>:457: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_ci_cjk_font.py::test_real_fontconfig_uses_the_private_copy_even_when_the_family_already_exists
+1 failed, 189 passed in 31.42s

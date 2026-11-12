@@ -1,0 +1,97 @@
+{
+  "schema": "mastermind.pr-repair-qualification.v1",
+  "pr": 1048,
+  "parent": "e368f26cae72668bea6911aff92c7e84a7c04ffd",
+  "baseTree": "8b7360f618bdc212f525f943200c2a38864aeb7d",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "sourceProtectedPin": "74c007125129090cc762f2bc4b1b152123326444",
+  "ownedPaths": [
+    ".github/workflows/ci.yml",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs",
+    "tests/test_ci_ticker_news_capture.py",
+    "tests/test_ci_e2e_shards.py",
+    "terminal/lib/__tests__/drawingSidebarReadiness.test.tsx"
+  ],
+  "postimageSha256": {
+    ".github/workflows/ci.yml": "42a457240fbe7eb8c7a39f0ad9c5a6c402ea1dcd4bf738a7d53babbf9badc3c8",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "6148ca725d1ddc66657b1cde1c1df5abad0f7bd76dc347bd29fb0971132fb90c",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "d5a24505bcbb5bf304d25ae5dc4cb646ab33279da2fb32b39ab551587c5ee52e",
+    "tests/test_ci_ticker_news_capture.py": "3c36f934b71eed01ea8a3a0a5f65f9bddb9e614c83c7aff1959fc3f3463d9f95",
+    "tests/test_ci_e2e_shards.py": "6f5c89dd1870b4a0eac720861ba89727d1ab69826eadfe9dc4bbc98d9d8822c1",
+    "terminal/lib/__tests__/drawingSidebarReadiness.test.tsx": "41dfbbd38e94bab3d5d6669c9df5119feda18639534b356169b7e53be2df5d1b"
+  },
+  "unchangedSourceAndEvidence": {
+    "terminal/components/TerminalShell.tsx": "d947b118b60a3cf7075f5c7045f4ed89a1747ca87fa39220ddd11895c4700660",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/command-palette-review.spec.ts": "4ca90ecebd3a90b7e307c3c3a569e90274d5242eef3b47da4eaff42d5dc2b6d4",
+    "terminal/lib/__tests__/tickerNewsEvidence.test.ts": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "8ccd243530405efc60cc77c3c136b8546d7db255a6a1253d313328a6cac6481b",
+    "terminal/e2e/tools/visualEvidence.cjs": "e32d5d46490265b6ae934fb29e2b291667f51464080f22115c88d659aac1cebd",
+    "terminal/e2e/tools/visualEvidenceFs.py": "455533ab4c811a6d3876188231c3189fd9b3ef1fcf77a6910597ae19a448af2f",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "c8f50a3e05c95cb9e1a2ba0ffc47fc122c0a6826a66c172b67f82cb697df7e32",
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859",
+    "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml": "a237a30a20e10e5c2416a52384694af7786e83fbd1d951eec775c8c1b0b68b44",
+    "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml": "eb9d0bd8c2fa52565a61f103b3855d4bc21d6a7d43fa3808e86df2d02173108e",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml": "c79c65aa41562ba6ed2696b91bea89b9ede85ea1c85466ffe544049ab8f270be"
+  },
+  "failureOrigin": {
+    "runId": 42989799627,
+    "unitJobId": 130420100557,
+    "actualCheckout": "09495282c9812bea04155fe37bbf27f1fea7a3a9",
+    "actualTree": "f1d1ed2638e4fcc63db02b9385d1061afe80d8cf",
+    "canonicalParents": [
+      "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+      "e368f26cae72668bea6911aff92c7e84a7c04ffd"
+    ],
+    "unitResults": {
+      "passed": 23272,
+      "failed": 2,
+      "skipped": 50,
+      "todo": 3
+    },
+    "artifactId": 13842602361,
+    "artifactSha256": "c266dba6d5c2d7d875ccc34036a123a712857c699dccce5abc3c89bb7af76910",
+    "artifactDisposition": "historical capture: adding the observer changes the recursive v2 source closure"
+  },
+  "localChecks": {
+    "drawingReadinessPassed": 6,
+    "passiveEffectNegativeControl": {
+      "failed": 1,
+      "skipped": 5,
+      "reason": "stale owner A cache remained visible during B/A transition",
+      "productRestored": true
+    },
+    "tickerReceiptTestsPassed": 33,
+    "ciContractsPassed": 281,
+    "changedFileLintExit": 0,
+    "observerSyntaxExit": 0,
+    "fullTypecheck": "prior e368 source accepted; not repeated for this assertion/JS/workflow followup"
+  },
+  "tickerCapture": {
+    "sourceCount": 16,
+    "matrixImages": 10,
+    "executedCases": 14,
+    "authoredSkips": 7,
+    "workers": 1,
+    "retries": 0,
+    "sameSerialLane": true,
+    "sameArtifactOwner": true,
+    "unavailableWatchlistInputs": [
+      "terminal/components/WatchlistDisplaySettings.tsx",
+      "terminal/components/WatchlistDisplaySettings.module.css"
+    ],
+    "watchlistOmissionReason": "both paths absent from this branch and not imported by its shell/spec/helpers",
+    "committedPacketChanged": false,
+    "newCaptureRequired": true
+  },
+  "newNaturalCIRequired": true,
+  "productionAccepted": false,
+  "activationAccepted": false,
+  "holds": [
+    "SQL0050/coordinated Macro/provider behavior",
+    "ordinary-model target/ACK/persistence acceptance",
+    "historical M2 cleanup EPERM",
+    "actual merge/release admission controls"
+  ]
+}

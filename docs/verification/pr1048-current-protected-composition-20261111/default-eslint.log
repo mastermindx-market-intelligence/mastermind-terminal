@@ -1,0 +1,33 @@
+
+/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/e2e/tools/capture_ci_evidence.cjs
+     4:12  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+     5:14  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+     6:16  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+     7:56  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+    84:22  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+   493:20  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+   519:54  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+   696:60  warning  'before' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   788:54  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+   971:44  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+  1007:30  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+  1038:16  error    A `require()` style import is forbidden      @typescript-eslint/no-require-imports
+
+/workspace/scratch/c334c7e44c00/terminal-pr1048/terminal/e2e/tools/capture_ci_evidence.test.cjs
+     2:14   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     3:16   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     4:12   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     5:12   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     6:14   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     7:24   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     8:26   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+     9:142  warning  'EOD_PACKET' is assigned a value but never used    @typescript-eslint/no-unused-vars
+     9:154  warning  'EOD_PRODUCER' is assigned a value but never used  @typescript-eslint/no-unused-vars
+     9:186  warning  'EOD_CROPS' is assigned a value but never used     @typescript-eslint/no-unused-vars
+     9:282  error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+    11:98   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+   589:22   error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+  1323:1    error    A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+
+✖ 26 problems (22 errors, 4 warnings)
+

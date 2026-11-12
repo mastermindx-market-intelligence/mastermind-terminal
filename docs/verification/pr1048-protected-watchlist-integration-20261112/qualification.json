@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-11-12T03:28:46.738096+00:00",
+  "headBefore": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceIndexBeforeProof": "95796f0c70060fccf9ac57db60bae752a773c920",
+  "resolvedSourceHashes": {
+    ".github/workflows/ci.yml": "cb29df425cc236d03637a00d931c17230c17f5907de3f85565d6e121a5b069de",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "56cd30bb49057a23353f61a65107256cfb14bdcc4b83d1762822fadae120f732",
+    "terminal/e2e/tools/ticker_news_capture_receipt.test.cjs": "5fcaad5a75681cfc36d5e7d10130f64a3417543f53bc62b11d585eb3eb24a88f",
+    "terminal/components/TerminalShell.tsx": "86cf0fa566bed449c4ff429f753e394a7e6487ee94d1bf83233b9fdb43d4b1f3"
+  },
+  "syntheticDistinctCases": 475,
+  "syntheticInitialPassed": 471,
+  "canonicalTempRerunPassed": 49,
+  "pythonPassed": 189,
+  "pythonNativeConfigurationFailure": 1,
+  "watchlistUnitPassed": 14,
+  "typegenPassed": true,
+  "typescriptPassed": true,
+  "freshTickerArtifactRequired": true,
+  "mergeBlocked": true,
+  "autoMergeRequested": false,
+  "producerActivation": false,
+  "productionAcceptance": false
+}

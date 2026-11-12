@@ -1,0 +1,32 @@
+Auto-merging .github/workflows/ci.yml
+CONFLICT (content): Merge conflict in .github/workflows/ci.yml
+Auto-merging terminal/components/TerminalShell.tsx
+Auto-merging terminal/docs/pr-crops/ticker-news/EVIDENCE.yml
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/EVIDENCE.yml
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/desktop-en-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-en-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/mobile-en-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-en-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/tablet-en-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-en-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png
+warning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png (HEAD vs. 2c00073fa0c0449fa626f06d33af0ace478f6f2c)
+Auto-merging terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png
+CONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png
+Auto-merging terminal/e2e/tools/ticker_news_capture_receipt.cjs
+CONFLICT (add/add): Merge conflict in terminal/e2e/tools/ticker_news_capture_receipt.cjs
+Auto-merging terminal/e2e/tools/ticker_news_capture_receipt.test.cjs
+CONFLICT (add/add): Merge conflict in terminal/e2e/tools/ticker_news_capture_receipt.test.cjs
+Auto-merging tests/test_ci_e2e_shards.py
+Automatic merge failed; fix conflicts and then commit the result.

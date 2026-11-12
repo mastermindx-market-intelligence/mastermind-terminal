@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-11-12T03:01:38.204356+00:00",
+  "head": "e0620d287c80b87eb9fc54f1f227f70c27559976",
+  "protected": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "mergeBase": "568fa505afb068900424fe4db0da67587d46a114",
+  "command": [
+    "git",
+    "merge",
+    "--no-commit",
+    "--no-ff",
+    "2c00073fa0c0449fa626f06d33af0ace478f6f2c"
+  ]
+}

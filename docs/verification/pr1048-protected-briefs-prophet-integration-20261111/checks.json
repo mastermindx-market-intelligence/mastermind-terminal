@@ -1,0 +1,35 @@
+{
+  "schema": "terminal.ci-workflow-union-checks.v1",
+  "workflowSha256": "9ceb207b3bdaae93c85f6c10fb3d378d9953782005567f8ee8409b20d80e5d44",
+  "syntheticTestFiles": [
+    "e2e/tools/briefs_inbox_capture_contract.test.cjs",
+    "e2e/tools/capture_ci_evidence.test.cjs",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "scripts/ci/plan-evidence-capture.test.cjs",
+    "e2e/tools/sharedShellSafeReporter.test.cjs",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "e2e/tools/f11_provider_closed_policy.test.cjs",
+    "e2e/tools/ticker_news_capture_receipt.test.cjs"
+  ],
+  "nodeCasesPassed": 429,
+  "nodeCasesFailed": 0,
+  "pythonDistinctContracts": 426,
+  "initialPythonPassed": 423,
+  "initialSparseCheckoutCompletenessFailures": 3,
+  "failedCasesAfterExactCanonicalMaterializationPassed": 3,
+  "workflowUnchangedDuringMaterialization": true,
+  "pinnedFontSteps": 3,
+  "fontBeforeE18AndActiveInbox": true,
+  "protectedActiveInboxCaptureAndUploadRetained": true,
+  "originalSerialTickerCaptureRetained": true,
+  "canaryBytesUnchanged": true,
+  "manualDispatchOrReleaseEffect": false,
+  "parentUnitQualificationReceipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1048#issuecomment-6805104905",
+  "parentWholeCiStillPendingAtPreparation": true,
+  "parentFinalCiBeforePublication": {
+    "run": 43078977926,
+    "head": "17f34f7bc8c790fab990f09ffcd6a6737782134c",
+    "conclusion": "success",
+    "jobs": 33
+  }
+}

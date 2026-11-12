@@ -61,6 +61,19 @@ export function fibonacciSettings(meta: Drawing["meta"]): FibonacciSettings {
   return { levels, reverse: source?.fibReverse === true, labels };
 }
 
+/** Raw-price arithmetic is independent of the chart's linear/log display projection.
+ * A trend extension uses A→B as its move and C as its zero level; a retracement uses A/B.
+ */
+export function fibonacciPriceLevels(kind: "fib" | "fibtrend", points: readonly Pt[], settings: FibonacciSettings) {
+  const [a, b, c] = points;
+  if (!a || !b || (kind === "fibtrend" && !c)) return [];
+  const start = kind === "fibtrend" ? c.p : settings.reverse ? b.p : a.p;
+  const move = (b.p - a.p) * (settings.reverse ? -1 : 1);
+  return settings.levels.filter(level => level.visible).map(level => ({
+    ratio: level.value, color: level.color, price: start + move * level.value,
+  }));
+}
+
 export type PositionRiskMode = "percent" | "money";
 export type PositionSettings = {
   accountSize: number;

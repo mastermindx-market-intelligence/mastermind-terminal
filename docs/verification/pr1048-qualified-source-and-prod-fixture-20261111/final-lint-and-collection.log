@@ -1,0 +1,10 @@
+$ ./node_modules/.bin/eslint lib/chartStatePreparation.ts lib/__tests__/brainWidgetChartPreparation.test.tsx e2e/command-palette-review.spec.ts
+
+exit=0
+$ ./node_modules/.bin/playwright test e2e/command-palette-review.spec.ts --list --project=desktop
+Listing tests:
+  [desktop] › command-palette-review.spec.ts:180:7 › en: the palette's review rows name the frozen neighbours and step the review itself
+  [desktop] › command-palette-review.spec.ts:180:7 › zh: the palette's review rows name the frozen neighbours and step the review itself
+Total: 2 tests in 1 file
+
+exit=0

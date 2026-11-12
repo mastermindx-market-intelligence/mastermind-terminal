@@ -1,0 +1,37 @@
+........................................................................ [ 28%]
+........F............................................................... [ 57%]
+........................................................................ [ 86%]
+..................................                                       [100%]
+=================================== FAILURES ===================================
+__________ test_runbook_names_the_variable_labels_slots_and_rollback ___________
+
+    def test_runbook_names_the_variable_labels_slots_and_rollback() -> None:
+>       text = RUNBOOK.read_text(encoding="utf-8")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_ci_e2e_selfhosted_lane.py:233: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/c334c7e44c00/terminal-pr1048-b6/docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/c334c7e44c00/terminal-pr1048-b6/docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_ci_e2e_selfhosted_lane.py::test_runbook_names_the_variable_labels_slots_and_rollback
+1 failed, 249 passed in 14.37s

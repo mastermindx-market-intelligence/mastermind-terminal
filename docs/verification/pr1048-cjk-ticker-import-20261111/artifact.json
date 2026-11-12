@@ -1,0 +1,19 @@
+{
+  "id": 13880393951,
+  "name": "responsive-qa-43073040314-serial",
+  "size_in_bytes": 13693235,
+  "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13880393951",
+  "archive_download_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/artifacts/13880393951/zip",
+  "expired": false,
+  "created_at": "2026-11-11T18:17:05Z",
+  "expires_at": "2027-02-09T17:57:01Z",
+  "updated_at": "2026-11-11T18:17:05Z",
+  "digest": "sha256:c0df8c712ea4e80c5e52cf03f15cd794fe71480b3631e4e6a0bb3a5697ea5e5d",
+  "workflow_run": {
+    "id": 43073040314,
+    "repository_id": 1290596392,
+    "head_repository_id": 1290596392,
+    "head_branch": "sol/web-chart-ai-drawing-workspace-20261018-c4-001",
+    "head_sha": "55d087c30f9b011d5dfd6cbcfe5596be306dab74"
+  }
+}

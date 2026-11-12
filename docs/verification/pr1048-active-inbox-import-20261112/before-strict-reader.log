@@ -1,0 +1,29 @@
+node:assert:150
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: terminal/e2e/tools/capture_ci_evidence.cjs changed without a current capture
++ actual - expected
+
++ '856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4'
+- '8ccd243530405efc60cc77c3c136b8546d7db255a6a1253d313328a6cac6481b'
+
+    at validateInboxPacket (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:83:12)
+    at Object.readInboxPacket (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:134:10)
+    at [eval]:1:44
+    at runScriptInThisContext (node:internal/vm:209:10)
+    at node:internal/process/execution:446:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:444:60)
+    at evalFunction (node:internal/process/execution:279:30)
+    at evalTypeScript (node:internal/process/execution:291:3)
+    at node:internal/main/eval_string:74:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4',
+  expected: '8ccd243530405efc60cc77c3c136b8546d7db255a6a1253d313328a6cac6481b',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.4

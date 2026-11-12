@@ -1,0 +1,142 @@
+{
+  "schema": "pr1048.active-inbox.import-proof.v1",
+  "headBefore": "4ffab199156516d94a5a3a2d7e860fa342813eb2",
+  "createdAt": "2026-11-12T03:00:44.945206+00:00",
+  "files": [
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/README.md",
+      "bytes": 2868,
+      "sha256": "6e1b956b1b35debbad57036b75bfe547c3463cb8d8a1576393c7b3763a60c271"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/before-strict-reader.log",
+      "bytes": 1352,
+      "sha256": "3418f66a5eb7df41dd68c66496374be7f765f6d1e7537ee997ae6e1271a63e3c"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/dependency-install-intent.json",
+      "bytes": 343,
+      "sha256": "d609956693434c8fab507e1d83d3aae07082e50522d8de7183c5cebcd87bddaa"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/dependency-install-result.json",
+      "bytes": 548,
+      "sha256": "f68367c5b1ebcac02daab5956e0b592975f01344954d126398f1a32cd6b2e932"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/dependency-install.log",
+      "bytes": 149,
+      "sha256": "fff4e29cc5848909135c2712f5981d29e34e4f8f4e301fc142d39dc65c9353b5"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/diff-qualification.json",
+      "bytes": 345,
+      "sha256": "fb368d3b00da596d8a1bdd602cca0b1fe57ea7d49e784a144fd15d880fa43d4b"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/focused-unit-result.json",
+      "bytes": 371,
+      "sha256": "4d10d05c7024ce6ccb437359976fc09bb7f364ef65cb0726e0d91905510dda18"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/focused-unit.log",
+      "bytes": 732,
+      "sha256": "ad76b1ef0a43df9fe6022de9be48802226bc9c1992c4ce39947e274f0b4a84cf"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/capture.json",
+      "bytes": 12262,
+      "sha256": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/empty-1440-zh.png",
+      "bytes": 13434,
+      "sha256": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/empty-1440.png",
+      "bytes": 7944,
+      "sha256": "e6a87fa8c77c285ca41def91c69e69febda07344629b27b3baae3db924843311"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/empty-390-zh.png",
+      "bytes": 12329,
+      "sha256": "702b1d37709e3edbb1e57dc5e4b1c0ac6101343efce866db07e41a04418ce49a"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/empty-390.png",
+      "bytes": 7244,
+      "sha256": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/list-1440-zh.png",
+      "bytes": 36289,
+      "sha256": "6b442a828a0185d2e5ee025332a7c783c69113b7a588694e8b85e1a0e433d301"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/list-1440.png",
+      "bytes": 22813,
+      "sha256": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/list-390-zh.png",
+      "bytes": 33835,
+      "sha256": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/historical-active-inbox/list-390.png",
+      "bytes": 22385,
+      "sha256": "7415df405de5c1dded995f50bed66dc32f12dafb94b9b91a5b9e8c6e84fab5cd"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/import-intent.json",
+      "bytes": 5302,
+      "sha256": "e619d21baa4d6b4bf69d3cc1903395dddcf90a75efbd339f320ee730cb5a7a83"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/import-result.json",
+      "bytes": 2626,
+      "sha256": "2649dad414e99a09d7236b659f0c2bba82dc4bbb667709c5ceaea2f8d68a9581"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/installed-strict-reader.log",
+      "bytes": 295,
+      "sha256": "2e1c28677c94693e544e87ab95744a24464a9b4b7cdb6142a5d5ee034935ff4d"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/original-ci-artifact/capture-commit-github-readback.json",
+      "bytes": 3055,
+      "sha256": "e4c631b62bcfbc1658179b39df94c71f4d08836b2628f01bbe552aee884a1e59"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/original-ci-artifact/capture-proof.json",
+      "bytes": 11944,
+      "sha256": "54223fa6041a49bae54e766f42f04d5ddefddd069ee665b43c8cc317c70d33db"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/original-ci-artifact/checkout.json",
+      "bytes": 647,
+      "sha256": "cc4f3a5b8ad1301bf720218a74f6ed2c2a82155c0949ea6831e5d0fea63a4531"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/original-ci-artifact/producer-capture.json",
+      "bytes": 12262,
+      "sha256": "ccb6a5f19cb6498016ca986555488dc9a988896b5f3e6abcbd18fdab32013b04"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/staged-strict-reader-symlink-path-failure.log",
+      "bytes": 1092,
+      "sha256": "5e6f8d527cc30d104614e9ce4fd5f9c3530e1d2a1a45949ff2b884404e59fd14"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/staged-strict-reader.log",
+      "bytes": 295,
+      "sha256": "2e1c28677c94693e544e87ab95744a24464a9b4b7cdb6142a5d5ee034935ff4d"
+    },
+    {
+      "path": "docs/verification/pr1048-active-inbox-import-20261112/visual-review.json",
+      "bytes": 675,
+      "sha256": "ea2eec187e764db5890be6ab5b4695e30a4056c3d931b7bf5ce1b3f3de37e4e3"
+    }
+  ]
+}

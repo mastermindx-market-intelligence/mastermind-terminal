@@ -1,0 +1,35 @@
+{
+  "recorded_at": "2026-11-11T06:34:44.858620+00:00",
+  "parent": "573bf3d336bc6708b45e2b338899145dfe866261",
+  "spec_sha256": "91f43098a321fab51f2886830fadab1c41c938c053d77c097e08079fbca95bee",
+  "node_version": "v24.22.1",
+  "checks": [
+    {
+      "command": "vitest run lib/__tests__/chartBus.test.ts lib/__tests__/conductor.test.ts lib/__tests__/chartQueueStopScope.test.ts lib/__tests__/chartCommandContinuation.test.tsx",
+      "exit_code": 0,
+      "files_passed": 4,
+      "tests_passed": 90
+    },
+    {
+      "command": "node --max-old-space-size=6144 node_modules/typescript/bin/tsc --noEmit --incremental false",
+      "exit_code": 0,
+      "diagnostics": 0
+    },
+    {
+      "command": "eslint e2e/brain-drawing-workspace.spec.ts",
+      "exit_code": 0,
+      "diagnostics": 0
+    },
+    {
+      "command": "playwright test e2e/brain-drawing-workspace.spec.ts --project=desktop --grep 'normal-motion queue' --list",
+      "exit_code": 0,
+      "selected_tests": 1,
+      "execution": false
+    }
+  ],
+  "setup_notes": [
+    "Initial default-heap TypeScript attempt exhausted the JavaScript heap; 6144 MiB completed after required sparse-checkout inputs were hydrated. No source type error was waived.",
+    "An attempted local browser baseline was stopped by Chromium process-singleton socket EPERM before a test body ran. No browser launch retry or alternative browser was used. Hosted traces from the existing exact-head run supply the failure diagnosis."
+  ],
+  "new_browser_proof": "Pending natural hosted CI; no local browser pass is claimed."
+}

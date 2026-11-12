@@ -1,0 +1,18 @@
+{
+  "head": "4ffab199156516d94a5a3a2d7e860fa342813eb2",
+  "tree": "01143905d2933d5d4504bb5060033db74f1fd14d",
+  "startedAt": "2026-11-12T02:56:59.253740+00:00",
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "node": "v22.23.4",
+  "lockSha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "finishedAt": "2026-11-12T02:57:22.873441+00:00",
+  "elapsedSeconds": 23.372,
+  "exitCode": 0,
+  "logSha256": "fff4e29cc5848909135c2712f5981d29e34e4f8f4e301fc142d39dc65c9353b5",
+  "lockUnchanged": true
+}

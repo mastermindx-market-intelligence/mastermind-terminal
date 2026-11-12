@@ -13,11 +13,12 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { basename, join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { startLegacyServer, waitLegacyServer, settleLegacyServer, reportLegacyServer,
+  emitLegacyReceipt, captureRefusal } = require("./capture_ci_evidence.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -41,7 +42,6 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: REPO, encoding: "utf8" }).trim();
@@ -57,59 +57,6 @@ function layoutFilesBlock() {
 
 function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
-}
-
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
 function subject(symbol) {
@@ -186,26 +133,16 @@ async function openList(page, width, lang) {
   await page.waitForTimeout(300);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
-// Round-2 review of PR #546 (Opus MAJOR 4): this used to call stripDevOverlay() FIRST
-// and then count, so the count was 0 by construction and the throw was unreachable —
-// and it ran after the PNG had already been written. Count on the pre-strip DOM, and
-// let shootPane() run it before the screenshot, so a present bubble fails the capture.
+// Count the actual DOM before recording the pane; never remove an overlay to pass.
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(250);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n})`);
 }
 
-/** Assert first, then strip, then shoot. */
+/** Assert the real DOM, then capture it. */
 async function shootPane(page, outPath) {
   await assertNoNextIndicator(page, basename(outPath));
-  await stripDevOverlay(page);
   await cropPane(page, outPath);
 }
 
@@ -237,8 +174,13 @@ async function withStore(browser, width, lang, storeKey, run, extraCookies = [])
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.setAttribute("data-lang", l);
+    const applyLocale = () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-lang", l);
+    };
+    if (document.documentElement) applyLocale();
+    else document.addEventListener("DOMContentLoaded", applyLocale, { once: true });
+
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -376,12 +318,16 @@ function manifestFiles(captured) {
 }
 
 async function main() {
+  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && (process.env.CAPTURE_ONLY || "").trim()) throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
+  const { chromium } = require("@playwright/test");
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = startLegacyServer(ROOT, PORT);
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, `${BASE}/terminal?symbol=SPY`, 180_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const width of [1440, 390]) {
@@ -422,6 +368,7 @@ async function main() {
               files.push(file);
               console.log("ok");
             } catch (err) {
+              if (captureRefusal(err)) throw err;
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
             }
@@ -432,7 +379,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   const evidence = [
@@ -488,11 +435,14 @@ async function main() {
     return;
   }
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  emitLegacyReceipt({ packet: "research", outputDir: OUT, files, capturedAtHead });
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+
+module.exports = { assertNoNextIndicator, LAYOUT_FILES, FILES: [1440, 390].flatMap(width => ["en", "zh"].flatMap(lang => ["empty", "named-views", "save-flow", "window-closed", ...(width === 1440 ? ["view-subject-empty", "unavailable"] : [])].map(surface => cropName(surface, width, lang)))), VIEWPORTS };

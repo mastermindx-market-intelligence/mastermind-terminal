@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "command": [
+    "npx",
+    "vitest",
+    "run",
+    "lib/__tests__/tickerNewsEvidence.test.ts"
+  ],
+  "observedAt": "2026-11-12T04:02:51.351788+00:00",
+  "source_unchanged": true
+}

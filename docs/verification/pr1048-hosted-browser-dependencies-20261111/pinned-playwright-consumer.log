@@ -1,0 +1,12 @@
+✔ real Playwright dependency dry-run: complete dependencies (643.393784ms)
+✔ real Playwright dependency dry-run: missing FreeFont (653.439636ms)
+✔ real Playwright dependency dry-run: missing Japanese font (969.52633ms)
+✔ real Playwright dependency dry-run: APT failure (674.351259ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3088.079041

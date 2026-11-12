@@ -76,12 +76,14 @@ describe("bounded chart-state mirror", () => {
     expect(body.session.mirror_coverage.basis).toBe("transport_projection_not_chart_deletion");
     expect(result.sizeUpperBound).toBeLessThanOrEqual(4096);
   });
-  it("retains native capability and target identity when large parameter documentation is withheld", () => {
+  it.each(["native_parameters", "builtin_parameters"])("retains target identity when %s documentation is withheld", key => {
     const original = input();
-    (original.session.capabilities as any).native_parameters = { documentation: "设置".repeat(10000) };
+    (original.session.capabilities as any)[key] = { documentation: "设置".repeat(10000) };
     const body = JSON.parse(prepared(original).text);
     expect(body.session.capabilities.command_target).toEqual((original.session.capabilities as any).command_target);
-    expect(body.session.capabilities.native_parameters.status).toBe("unavailable");
+    expect(body.session.capabilities[key]).toEqual({ status: "unavailable", reason: "chart_state_budget" });
+    expect(body.session.mirror_coverage.omitted_fields).toContain(`capabilities.${key}`);
+    expect(body.acks).toEqual(original.acks);
     expect(body.session.indicators).toEqual(original.session.indicators);
     expect(body.origin_id).toBe(original.origin_id);
     expect(body.context_revision).toBe(3);
@@ -136,4 +138,19 @@ describe("bounded chart-state mirror", () => {
     expect(prepareChartStatePayload(original)).toEqual({ ok: false, reason: "chart_state_not_serializable" });
     expect(original.acks).toEqual([ack(0)]);
   });
+});
+
+it("withholds parameter descriptions before stripping seven useful drawing constructions", () => {
+  const original = input();
+  original.session.drawings = Array.from({ length: 7 }, (_, i) => ({
+    id: "ai_" + i, by: "ai", kind: "fibtrend", args: { points: [
+      { t: 1700000000, p: 100 }, { t: 1700100000, p: 110 }, { t: 1700200000, p: 105 },
+    ] },
+  }));
+  (original.session.capabilities as Record<string, unknown>).builtin_parameters = { docs: "x".repeat(12000) };
+  const body = JSON.parse(prepared(original, 6000).text);
+  expect(body.session.drawings).toEqual(original.session.drawings);
+  expect(body.session.capabilities.builtin_parameters).toEqual({ status: "unavailable", reason: "chart_state_budget" });
+  expect(body.acks).toEqual(original.acks);
+  expect(original.session.capabilities).not.toHaveProperty("builtin_parameters.status");
 });

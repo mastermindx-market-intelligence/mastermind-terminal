@@ -1,0 +1,159 @@
+{
+  "reviewedAt": "2026-11-12T04:02:05.316608+00:00",
+  "reviewer": "assigned principal SELF_REVIEWED",
+  "basis": "All ten original artifact PNGs displayed and inspected in this attended session; existing pure validators decoded and hashed each PNG.",
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "1addb27523a1116f2f0c77839281a0328907a7815ca638f51d60e5ff49157244"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "e6ce02e89fbfae555482624667213f76728dcaf932175bae6c923331ced189e3"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 655,
+        "sha256": "88db088cf47915913b90a4274a0a4e2a7551bbaf131408ecf73ba19039925717"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9"
+      }
+    }
+  ],
+  "observations": [
+    "Desktop, tablet, and mobile EN/ZH feed states retain visible headline, source, counts, filters, and review actions.",
+    "Five Chinese states render legible CJK glyphs, consistent with five retained native font witnesses; no missing-glyph boxes observed.",
+    "Desktop/mobile EN/ZH unavailable states show clear temporary-unavailability copy and visible retry affordance.",
+    "Panel screenshots preserve their actual dimensions; viewport labels are the original browser contract, not claimed full-page image dimensions."
+  ],
+  "assessment": "ACCEPTED_FOR_CURRENT_SOURCE_FIXTURE_PACKET_IMPORT",
+  "limits": [
+    "Synthetic editorial fixtures are not a live-news or authenticated production claim.",
+    "Product, SQL, provider, model-target, and release holds remain separate.",
+    "Raw capture visualAcceptance/productionAcceptance/producerActivation remain false."
+  ]
+}

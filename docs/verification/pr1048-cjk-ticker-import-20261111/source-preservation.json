@@ -1,0 +1,43 @@
+{
+  "schema": "ticker-news.import-preservation.v1",
+  "sourceHead": "55d087c30f9b011d5dfd6cbcfe5596be306dab74",
+  "protectedParent": "e45912628c85a7632e70cb3915b3ce626e1c905c",
+  "actualCaptureCheckout": "6e68720fd643316e44e1d6be04e67058a467874a",
+  "actualCaptureTree": "87bc6058ae47febba38f9f7c1150517fbbeba585",
+  "publicationParents": [
+    "55d087c30f9b011d5dfd6cbcfe5596be306dab74",
+    "e45912628c85a7632e70cb3915b3ce626e1c905c"
+  ],
+  "sourceFiles": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "8d4d458c2743f90a738e42e74274045c32b107d46feda5122eaa79c782428187",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "b88ce51b0760d5294f77df4a558f0890efe3496040313af5078c9daa60761ca0",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "e7f1dbb056336ea75265966573d6320254056ee0fb2de9380c84e1075f140f8e",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    ".github/scripts/terminal_cjk_font.py": "e7aaa1b2d1b964dda9c9ae7f31e0ce29f265a37c0970bcaff28176e8eeab4ad4",
+    ".github/fonts/noto-cjk/pin.json": "2550632b58b37cb388bb0b522c25001d5d6af3be4cf713df0bf160ba3c30338f",
+    ".github/fonts/noto-cjk/OFL.txt": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+  },
+  "sourceFilesUnchanged": 19,
+  "otherPacketFilesUnchanged": 118,
+  "priorPacketFilesPreserved": 11,
+  "selectedPacketFiles": 11,
+  "allOtherPathsMustMatchActualCaptureTree": true,
+  "additionalAllowedPaths": [
+    "docs/verification/pr1048-cjk-ticker-import-20261111/"
+  ],
+  "runtimeSourceChangeInImport": false,
+  "workflowChangeRelativeToActualCapture": false,
+  "rawReceiptsUnchanged": true
+}

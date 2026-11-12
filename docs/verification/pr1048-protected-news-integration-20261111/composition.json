@@ -1,0 +1,140 @@
+{
+  "head": "8a285627fd0bc9fcbf10f16f45e2040c54000cc8",
+  "protected": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "mergeBase": "74c007125129090cc762f2bc4b1b152123326444",
+  "automaticPreview": "0b8d4d6bcb1dd25e47ad9099b3c3b716caf19190",
+  "resolvedSourceTree": "17159b3584fdd4f0f072d09178d5aca0f3d94c9c",
+  "originalChangedPaths": 172,
+  "exactOriginalPostimagesPreserved": 160,
+  "changedOriginalPostimages": [
+    "terminal/components/TerminalShell.tsx",
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png"
+  ],
+  "protectedTickerPacket": {
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "678e136ab564b12b6eb285c0810f21eec628a9c5"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b00c2e8537c5bf61d704c49ac67f1ec270c95ae"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ac228c0f6cfdf9378150a1eec31bfdae10dbc3ae"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "57456c351835f9360c217666a4a227b59316d988"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75f1f2aa1b05eb16fa25f1ebb58f78d3be9acbf2"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7bcff2eff82320397e513c4abb831f59590415fe"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5b9e018df27c719458300ef62ca5ea24e0144c7e"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "735246889963d3d2dfbd66366d38fd59b858ee31"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a010ec2ea1c81ac24abdafa09519c41acbbc18ae"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "49618f4b0171eb5a5af9814a24be5415ac5ea700"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2b319893ee9011bdcb66f5e8a0415e0ca50b1743"
+    }
+  },
+  "archivedOriginalTickerPacket": {
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "736afa8f17cf0a10b4ba6bb1a12ca8e178aac023"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "068eca4706b720309f5740c53ce753d1f1c2591e"
+    },
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "457495ba7e14209f19561c08cf6f368fe6e1aea4"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e72196d5c8fef06b31b94efdc920c586c9bf896c"
+    },
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "73b1a0ea869cc1d4fc92122ab42b4793d572b032"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "95574e57bc371ac3052ef51f290a84ef73cf84a6"
+    },
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f87008e2b518e7a015934883bab68e568e49ebd3"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d6ecc814bd37be77bd935fa67b76f95e0f9ec960"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "319b2a23f1704ff1d1a0cf5b89a928f46c625ac9"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "06a5eceb236f12658857fb84662fe3c31f763c36"
+    },
+    "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f832691a896faa8c54501214559fbd73b468234a"
+    }
+  },
+  "applicationComposition": "TerminalShell automatic merge adds protected LayoutMenu phoneSheet style; all other feature postimages exact",
+  "freshTickerCaptureRequired": true,
+  "priorQualificationReceipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1048#issuecomment-6799841522"
+}
