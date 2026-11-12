@@ -105,6 +105,12 @@ test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang
   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
 
   await page.getByRole("button", { name: t("greekVannaFull"), exact: true }).click();
+  if (testInfo.project.name === "mobile") {
+    const disclosure = page.locator("details").filter({
+      has: page.getByRole("group", { name: t("viewAria"), exact: true, includeHidden: true }),
+    });
+    await disclosure.locator(":scope > summary").click();
+  }
   await page.getByRole("button", { name: t("viewByExpiry"), exact: true }).click();
 
   // The existing expiry bar view must consume the enriched by_expiry fields rather

@@ -1,0 +1,22 @@
+{
+  "cacheDeleted": false,
+  "cells": 6,
+  "command": [
+    "node",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs"
+  ],
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T10:47:25.838104+00:00",
+  "logSha256": "be5872099f0969f63fa5d2f8c0aa599488e5707231c9afc4c67f71fd87544f12",
+  "nextLockAbsent": true,
+  "observedInputs": 3516,
+  "port": 34226,
+  "portClosed": true,
+  "qualificationPassed": true,
+  "repair": "fixture-development-persistent-cache-isolation",
+  "seconds": 36.319,
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T10:46:49.519339+00:00",
+  "variant": "pr1422-next-r4"
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "mastermind.pr1403.next-lock-observation.v1",
+  "parent": "0ffd9b15a1e6806fbacf1cbc08e0213ecf4b1996",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "protectedSource": "74c007125129090cc762f2bc4b1b152123326444",
+  "runtime": {
+    "next": "16.4.6",
+    "playwright": "1.61.1"
+  },
+  "installedSourceSha256": {
+    "next/dist/build/lockfile.js": "7d86e7311f9cbb944413f7c7b6c20ce4b8eadac195c9c59cb9c5c2fd9b199239",
+    "next/dist/build/lockfile.d.ts": "2899aa1c2a237f2ebc1dd17fcd9ff9a6c9d54a11273a7ff6d5a3ad79063a1d81",
+    "playwright/lib/runner/index.js": "42772378ebad5d2387726d02d377721112edbdde99d495c1259855ddb701b08e",
+    "playwright-core/lib/coreBundle.js": "6be5c2ea035554e9b184b1dbc7aa5e7f1fb428dd1b5c202022858dcfae9bee27"
+  },
+  "workflowRun": 42983220225,
+  "failedSerialJob": 130398635185,
+  "observedFailure": "Existing Next dev lock at prepare line169 after ordinary serial suite passed",
+  "correction": "Observe devLockFilePresent at prepare and verify without interpreting file existence as advisory-lock ownership. Continue requiring an unoccupied lane port and successful incumbent Playwright return, exact case/report/source/image validation.",
+  "validation": {
+    "nodeReceiptTests": 33,
+    "workflowContractTests": 1,
+    "nodeSyntax": "passed",
+    "affectedEslint": "passed"
+  },
+  "newLocalBrowserExecution": false,
+  "newProcessOwner": false,
+  "cleanupMutation": false,
+  "sourceLockRestamp": false,
+  "visualAcceptance": false,
+  "productionAcceptance": false
+}

@@ -97,6 +97,55 @@ async function mount() {
 async function remount() { act(() => root!.unmount()); host.remove(); root = null; await mount(); }
 
 describe("Screener device-local preset acknowledgements", () => {
+  it.each(["en", "zh"] as const)("keeps the %s draft through focus movement and saves from its visible action", async lang => {
+    locale.lang = lang; await mount(); beginSave(lang === "zh" ? "趋势观察" : "Trend watch");
+    const draft = input(); const saveAction = button(lang === "zh" ? "保存" : "Save");
+    act(() => { saveAction.focus(); });
+    expect(input()).toBe(draft); expect(writes).toHaveLength(0);
+    expect(saveAction.closest('[role="group"]')!.contains(draft)).toBe(true);
+    click(saveAction);
+    expect(names()).toEqual([lang === "zh" ? "趋势观察" : "Trend watch"]);
+    expect(writes).toHaveLength(1); expect(input()).toBeNull();
+    expect(document.activeElement).toBe(button(lang === "zh" ? "+ 保存" : "+ Save"));
+  });
+
+  it("cancels deliberately and returns focus without writing an unfinished draft", async () => {
+    await mount(); beginSave("Unfinished");
+    const cancel = button("Cancel"); act(() => cancel.focus()); click(cancel);
+    expect(input()).toBeNull(); expect(writes).toHaveLength(0);
+    expect(document.activeElement).toBe(button("+ Save"));
+  });
+
+  it("preserves a draft when focus leaves the editor and keeps the new focus owner", async () => {
+    await mount(); beginSave("Continue later");
+    const outside = host.querySelector<HTMLInputElement>(".scr2-search")!;
+    act(() => outside.focus());
+    expect(input().value).toBe("Continue later"); expect(writes).toHaveLength(0);
+    expect(document.activeElement).toBe(outside);
+    click(button("Cancel")); expect(document.activeElement).toBe(outside);
+  });
+
+  it("does not save or cancel while an IME owns Enter or Escape", async () => {
+    await mount(); beginSave("趋势观察");
+    for (const event of [
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, isComposing: true }),
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, isComposing: true }),
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true, keyCode: 229 }),
+    ]) act(() => { input().dispatchEvent(event); });
+    expect(writes).toHaveLength(0); expect(input().value).toBe("趋势观察");
+    key(input(), "Enter"); expect(names()).toEqual(["趋势观察"]); expect(writes).toHaveLength(1);
+  });
+
+  it("keeps focus on the retained draft when a visible Save action fails", async () => {
+    await mount(); beginSave("Keep this draft"); writeDenied = true;
+    const saveAction = button("Save"); act(() => saveAction.focus()); click(saveAction);
+    expect(document.activeElement).toBe(input()); expect(input().readOnly).toBe(true);
+    expect(input().value).toBe("Keep this draft"); expect(writes).toHaveLength(1);
+    writeDenied = false; const retry = button("Retry"); act(() => retry.focus()); click(retry);
+    expect(names()).toEqual(["Keep this draft"]); expect(writes).toHaveLength(2);
+    expect(document.activeElement).toBe(button("+ Save"));
+  });
+
   it("keeps A and B's draft on denied Save, then retries exactly once and survives remount", async () => {
     seed([preset("A")]); const original = raw(); await mount(); writeDenied = true;
     save("B");

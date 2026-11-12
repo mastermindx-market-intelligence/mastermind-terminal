@@ -1,0 +1,12 @@
+unpromoted capture directory /tmp/mmx-capture_b_f08_8_invalidation-hUCER3
+[dev] - Network:       http://127.0.0.1:34231
+✓ Ready in 1200ms
+capture desktop-en-condition.png ... ok {"requestedViewport":{"width":1440,"height":900},"clip":{"x":91,"y":489,"width":883,"height":400},"panel":{"x":107,"y":505.53125,"width":850.6875,"height":366.9375},"clippedBy":[]}
+capture desktop-en-typed-null.png ... ok {"requestedViewport":{"width":1440,"height":900},"clip":{"x":91,"y":489,"width":883,"height":400},"panel":{"x":107,"y":505.53125,"width":850.6875,"height":366.9375},"clippedBy":[]}
+capture desktop-zh-condition.png ... ok {"requestedViewport":{"width":1440,"height":900},"clip":{"x":91,"y":538,"width":883,"height":351},"panel":{"x":107,"y":554.03125,"width":850.6875,"height":318.4375},"clippedBy":[]}
+capture desktop-zh-typed-null.png ... ok {"requestedViewport":{"width":1440,"height":900},"clip":{"x":91,"y":538,"width":883,"height":351},"panel":{"x":107,"y":554.03125,"width":850.6875,"height":318.4375},"clippedBy":[]}
+capture mobile-en-condition.png ... ok {"requestedViewport":{"width":390,"height":844},"clip":{"x":23,"y":976,"width":344,"height":547},"panel":{"x":33,"y":986.59375,"width":324,"height":525.9375},"clippedBy":[]}
+capture mobile-en-typed-null.png ... ok {"requestedViewport":{"width":390,"height":844},"clip":{"x":23,"y":976,"width":344,"height":547},"panel":{"x":33,"y":986.59375,"width":324,"height":525.9375},"clippedBy":[]}
+capture mobile-zh-condition.png ... ok {"requestedViewport":{"width":390,"height":844},"clip":{"x":23,"y":976,"width":344,"height":478},"panel":{"x":33,"y":986.59375,"width":324,"height":456.8125},"clippedBy":[]}
+capture mobile-zh-typed-null.png ... ok {"requestedViewport":{"width":390,"height":844},"clip":{"x":23,"y":976,"width":344,"height":494},"panel":{"x":33,"y":986.59375,"width":324,"height":473.3125},"clippedBy":[]}
+wrote 8 qualified crops + EVIDENCE.yml (head 1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df)

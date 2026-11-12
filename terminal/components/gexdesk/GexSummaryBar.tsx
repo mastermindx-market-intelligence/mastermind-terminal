@@ -34,6 +34,8 @@ interface GexSummaryBarProps {
   lens?: ExpiryLens;
   /** Σ of the active lens across covered strikes, $mn. null → lens has no data. */
   lensNetMn?: number | null;
+  /** Display-grid arithmetic does not certify the upstream book. */
+  lensReportedOnly?: boolean;
   /** How many of the ladder's own strikes the lens actually covers, out of the total —
    *  the scoped Net GEX swaps STRIKE UNIVERSE as well as unit/store, and the chip must
    *  disclose that, not just the expiry it's scoped to. */
@@ -102,6 +104,7 @@ export function GexSummaryBar({
   putOI,
   lens,
   lensNetMn = null,
+  lensReportedOnly = false,
   lensCoveredStrikes = null,
   lensTotalStrikes = null,
   lang,
@@ -164,7 +167,7 @@ export function GexSummaryBar({
     <div style={BAR_OUTER} data-tut="gex-summary">
       {/* 1. Net GEX — hero metric, scoped by the active expiry lens */}
       <MetricCell
-        label={t("sumNetGex")}
+        label={scoped && lensReportedOnly ? t("sumReportedGex") : t("sumNetGex")}
         tag={lensTag}
         tagTip={netGexTip}
         value={netGexStr}

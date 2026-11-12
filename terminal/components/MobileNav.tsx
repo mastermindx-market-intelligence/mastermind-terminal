@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useId, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { TOP, Glyph as NavGlyph } from "@/components/AppNav";
@@ -9,7 +10,7 @@ import SettingsButton from "@/components/settings/SettingsButton";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
-import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
 import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
@@ -65,6 +66,8 @@ export interface MobileNavProps {
   /** Retained for call-site compatibility; the drawer no longer special-cases the
    *  fundamentals pane (Analyst is gone from the nav). */
   isTerminal?: boolean;
+  /** Disable viewport prefetch; warm sibling workspaces only on explicit intent. */
+  intentPrefetch?: boolean;
 }
 
 export default function MobileNav({
@@ -79,9 +82,11 @@ export default function MobileNav({
   onOpenCommandPalette,
   commandPaletteLabel,
   isTerminal: _isTerminal = false,
+  intentPrefetch = false,
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
   const navPath = usePathname();
+  const router = useRouter();
   const t = useSharedShellT();
   // Carries the company you are looking at through the drawer — see lib/navSymbol. This drawer
   // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
@@ -97,6 +102,7 @@ export default function MobileNav({
   const derivedKey = activeKeyProp ?? (sharedShell ? sharedShellActiveKey(navPath) : (
     navPath.startsWith("/analysis") ? "analysis"
     : navPath.startsWith("/discover") ? "discover"
+    : navPath.startsWith("/dislocations") ? "dislocations"
     : navPath.startsWith("/options") ? "options"
     : navPath.startsWith("/scripts") ? "scripts"
     : navPath.startsWith("/alerts") ? "alerts"
@@ -185,21 +191,11 @@ export default function MobileNav({
           >
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
-              {SHARED_SHELL_NAV.map((it) => {
-                const on = it.k === derivedKey;
-                return (
-                  <Link
-                    key={it.k}
-                    href={navHref(it, activeSymbol, navPath)}
-                    className={on ? "on" : ""}
-                    aria-current={on ? navPath === it.href ? "page" : "location" : undefined}
-                    onClick={closeDrawer}
-                  >
-                    <NavGlyph k={it.k} />
-                    {t(it.k, it.label)}
-                  </Link>
-                );
-              })}
+              {/* The beta primary navigation owns this list. Preserve upstream's
+                  exact-route versus workspace-location accessibility in that owner. */}
+              <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
+                activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
+                renderGlyph={key => <NavGlyph k={key} />} />
               <span className="m-nav-sect">{t("shellMarkets")}</span>
               {SHARED_SHELL_MARKETS.map((mk) => (
                 <Link
@@ -246,10 +242,16 @@ export default function MobileNav({
             <nav className="m-nav">
               {TOP.map((it) => {
                 const on = it.k === derivedKey;
+                const href = navHref(it, activeSymbol, navPath);
+                const prefetchOnIntent = intentPrefetch ? () => router.prefetch(href) : undefined;
                 return (
                   <Link
                     key={it.k}
-                    href={navHref(it, activeSymbol, navPath)}
+                    href={href}
+                    prefetch={intentPrefetch ? false : undefined}
+                    onMouseEnter={prefetchOnIntent}
+                    onFocus={prefetchOnIntent}
+                    onTouchStart={prefetchOnIntent}
                     className={on ? "on" : ""}
                     aria-current={on ? "page" : undefined}
                     onClick={closeDrawer}

@@ -1,0 +1,9 @@
+{
+  "state": "REGRESSION_STAGED",
+  "at": "2026-11-05T10:42:10.271944+00:00",
+  "fixture_source_hashes": {
+    "original": "94794d7172931d4f45b34d54dfe104083e5c581fda0470a973f252b0638b9d7e",
+    "preview": "c3cdb23766b8fa6cc69a04209f2eeef945728108cf14946a779b431ac1402de5"
+  },
+  "runtime_changed": false
+}

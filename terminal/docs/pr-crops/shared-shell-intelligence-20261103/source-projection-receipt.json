@@ -1,0 +1,161 @@
+{
+  "proof": "pinned-source projection, not live authenticated transport",
+  "prophet": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "commit": "aba2ddcfe4cb90e4d2106c4a02de3ccb306f0551",
+    "path": "site/prophet/index.json",
+    "bytes": 11898398,
+    "sha256": "2bb3eda0886ddf1c6065d7e25e063548ea2d27239981f36af49abc04f3a98b68",
+    "summaryBytes": 561,
+    "summary": {
+      "schema": "mmx.intelligence.prophet.v1",
+      "publishedAt": "2026-11-02",
+      "sourceAsOf": "2026-10-30",
+      "sourceUnknown": false,
+      "sourceDelayed": false,
+      "mixedVintage": false,
+      "stale": false,
+      "openCount": 367,
+      "previewLimit": 3,
+      "plans": [
+        {
+          "id": "RIO-BULL-20260731",
+          "symbol": "RIO",
+          "phase": "pre_trigger",
+          "priceAsOf": "2026-08-07",
+          "planAsOf": "2026-08-09"
+        },
+        {
+          "id": "NVDA-BULL-20260917",
+          "symbol": "NVDA",
+          "phase": "triggered_pre_t1",
+          "priceAsOf": "2026-09-25",
+          "planAsOf": "2026-09-26"
+        },
+        {
+          "id": "BHP-BULL-20260805",
+          "symbol": "BHP",
+          "phase": "pre_trigger",
+          "priceAsOf": "2026-08-10",
+          "planAsOf": "2026-08-10"
+        }
+      ]
+    }
+  },
+  "cycles": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "commit": "aba2ddcfe4cb90e4d2106c4a02de3ccb306f0551",
+    "path": "site/sectordata/sector_cycles.json",
+    "bytes": 1905873,
+    "sha256": "3de058e423ba0cd441f90f36d9dcc7517a4f5092367f68d17aad650a3c98aae0",
+    "summaryBytes": 1510,
+    "summary": {
+      "schema": "mmx.intelligence.cycles.v1",
+      "sourceAsOf": "2026-10-30",
+      "stale": false,
+      "benchmark": "SPY",
+      "coverage": 11,
+      "rows": [
+        {
+          "id": "xlk",
+          "ticker": "XLK",
+          "name": "Technology",
+          "nameZh": "科技",
+          "phase": "Downturn",
+          "position": 41,
+          "model": "published"
+        },
+        {
+          "id": "xlc",
+          "ticker": "XLC",
+          "name": "Communication Services",
+          "nameZh": "通讯服务",
+          "phase": "Trough",
+          "position": 6,
+          "model": "published"
+        },
+        {
+          "id": "xly",
+          "ticker": "XLY",
+          "name": "Consumer Discretionary",
+          "nameZh": "非必需消费",
+          "phase": "Recovery",
+          "position": 24.8,
+          "model": "published"
+        },
+        {
+          "id": "xlf",
+          "ticker": "XLF",
+          "name": "Financials",
+          "nameZh": "金融",
+          "phase": "Downturn",
+          "position": 56.5,
+          "model": "published"
+        },
+        {
+          "id": "xli",
+          "ticker": "XLI",
+          "name": "Industrials",
+          "nameZh": "工业",
+          "phase": "Trough",
+          "position": 1.2,
+          "model": "published"
+        },
+        {
+          "id": "xlb",
+          "ticker": "XLB",
+          "name": "Materials",
+          "nameZh": "原材料",
+          "phase": "Recovery",
+          "position": 28.9,
+          "model": "published"
+        },
+        {
+          "id": "xle",
+          "ticker": "XLE",
+          "name": "Energy",
+          "nameZh": "能源",
+          "phase": "Expansion",
+          "position": 71.5,
+          "model": "published"
+        },
+        {
+          "id": "xlv",
+          "ticker": "XLV",
+          "name": "Health Care",
+          "nameZh": "医疗保健",
+          "phase": "Expansion",
+          "position": 93.2,
+          "model": "published"
+        },
+        {
+          "id": "xlp",
+          "ticker": "XLP",
+          "name": "Consumer Staples",
+          "nameZh": "必需消费",
+          "phase": "Expansion",
+          "position": 55.8,
+          "model": "published"
+        },
+        {
+          "id": "xlu",
+          "ticker": "XLU",
+          "name": "Utilities",
+          "nameZh": "公用事业",
+          "phase": "Recovery",
+          "position": 26.1,
+          "model": "published"
+        },
+        {
+          "id": "xlre",
+          "ticker": "XLRE",
+          "name": "Real Estate",
+          "nameZh": "房地产",
+          "phase": "Recovery",
+          "position": 24,
+          "model": "published"
+        }
+      ]
+    }
+  }
+}

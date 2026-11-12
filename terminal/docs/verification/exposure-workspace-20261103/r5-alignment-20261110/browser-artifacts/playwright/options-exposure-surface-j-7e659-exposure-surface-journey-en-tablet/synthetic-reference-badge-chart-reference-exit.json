@@ -1,0 +1,21 @@
+{
+  "text": "Dated snapshot 2026-10-19 103.00",
+  "badge": {
+    "x": 601,
+    "y": 225,
+    "width": 218,
+    "height": 17
+  },
+  "control": {
+    "x": 771,
+    "y": 150,
+    "width": 40,
+    "height": 40
+  },
+  "readout": {
+    "x": 0,
+    "y": 146,
+    "width": 740,
+    "height": 48
+  }
+}

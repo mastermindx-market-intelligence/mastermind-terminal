@@ -1359,12 +1359,23 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
 });
 
 test("the context-bar theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
+  const openTheses = async (label: string) => {
+    if ((page.viewportSize()?.width ?? 1440) <= 640) {
+      await page.locator(".analysis-context-actions > summary").click();
+      const link = page.locator(".analysis-context-actions-menu").getByRole("link", { name: label });
+      await expect(link).toBeVisible();
+      await link.click();
+    } else {
+      const link = page.getByRole("link", { name: label });
+      await expect(link).toBeVisible();
+      await link.click();
+    }
+  };
   // EN
   await prepare(page, testInfo, baseURL);
   await page.goto("/analysis?symbol=NVDA");
   await expect(page.getByTestId("thesis-workspace")).toBeHidden();
-  await expect(page.getByRole("link", { name: "Your theses on NVDA" })).toBeVisible();
-  await page.getByLabel("Your theses on NVDA").click();
+  await openTheses("Your theses on NVDA");
   await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
   await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
   await page.getByRole("button", { name: "New thesis" }).click();
@@ -1374,8 +1385,7 @@ test("the context-bar theses link opens the thesis workspace with the symbol pre
   await prepare(page, testInfo, baseURL, true);
   await page.goto("/analysis?symbol=NVDA");
   await expect(page.getByTestId("thesis-workspace")).toBeHidden();
-  await expect(page.getByRole("link", { name: "你的研究论点：NVDA" })).toBeVisible();
-  await page.getByLabel("你的研究论点：NVDA").click();
+  await openTheses("你的研究论点：NVDA");
   await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
   await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
   await page.getByRole("button", { name: "新建论点" }).click();

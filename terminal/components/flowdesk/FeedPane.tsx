@@ -15,6 +15,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
 } from "react";
 import { FlowCard } from "./FlowCard";
+import { FlowProjectionStrip } from "./FlowProjectionStrip";
 import { FiltersPanel, DEFAULT_FILTERS } from "./FiltersPanel";
 import type { BadgeFlag, DetectionFlag, FlowFilters } from "./FiltersPanel";
 import { FlowCoverageLine } from "./PrintInspector";
@@ -26,6 +27,11 @@ import { compareTape, feedEvents, flowCoverage } from "@/lib/flowPrintInspector"
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { FlowFreshnessReceipt } from "./FlowFreshnessReceipt";
 import { useT } from "@/lib/i18n";
+import {
+  buildFlowProjection,
+  selectFlowProjectionBucket,
+  type FlowProjectionIntervalMinutes,
+} from "@/lib/flowProjection";
 
 // ── Re-export shared types so FlowCard / FiltersPanel import from one place ──
 
@@ -439,6 +445,8 @@ export function FeedPane({
 
   // FiltersPanel open/close
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [projectionInterval, setProjectionInterval] = useState<FlowProjectionIntervalMinutes>(15);
+  const [projectionBucketKey, setProjectionBucketKey] = useState<string | null>(null);
 
   // ── Card expansion (v7b) ───────────────────────────────────────────────────
   // Expansion lives HERE, not inside FlowCard.
@@ -633,12 +641,34 @@ export function FeedPane({
     return events;
   }, [feed, loadedEvents, enrich, search, effectiveFilters, preset, sort]);
 
+  const flowProjection = useMemo(
+    () => buildFlowProjection(filtered, projectionInterval),
+    [filtered, projectionInterval],
+  );
+  const projectionBucket = useMemo(
+    () => flowProjection.buckets.find((bucket) => bucket.key === projectionBucketKey) ?? null,
+    [flowProjection, projectionBucketKey],
+  );
+  const projectedEvents = useMemo(
+    () => selectFlowProjectionBucket(filtered, projectionBucket),
+    [filtered, projectionBucket],
+  );
+
+  useEffect(() => {
+    if (projectionBucketKey && !projectionBucket) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- discard a vanished feed selection and its transient UI
+      setProjectionBucketKey(null);
+      setVisibleCount(PAGE_SIZE);
+      setExpandedId(null);
+    }
+  }, [projectionBucket, projectionBucketKey]);
+
   // (Placed after `filtered` — the deps array evaluates at render time, so
   // referencing it above the declaration is a TDZ ReferenceError.)
   // Wire IntersectionObserver to sentinel so scrolling to the bottom auto-loads
   // the next page without requiring a button click.
   // deps=[filtered.length, visibleCount]: the sentinel div only exists in the DOM
-  // when filtered.length > visibleCount (line 566). At mount, feed is null so
+  // when projectedEvents.length > visibleCount (line 566). At mount, feed is null so
   // filtered.length === 0 and the sentinel is absent; sentinelRef.current is null
   // and a mount-only effect would return early without ever attaching the IO.
   // Re-running when filtered.length or visibleCount changes ensures the IO is
@@ -656,7 +686,7 @@ export function FeedPane({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [filtered.length, visibleCount]);
+  }, [projectedEvents.length, visibleCount]);
 
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -679,7 +709,7 @@ export function FeedPane({
           ) : (
             <>
               <span style={{ color: "var(--signal)", fontWeight: 700 }}>
-                {filtered.length}
+                {projectedEvents.length}
               </span>{" "}
               {zh ? "信号" : "SIGNALS"}
             </>
@@ -775,6 +805,26 @@ export function FeedPane({
           desk has none (the list carries the held state and its reason). */}
       {feed !== null && <FlowCoverageLine coverage={coverage} lang={lang} />}
 
+      {feed !== null && filtered.length > 0 && (
+        <FlowProjectionStrip
+          projection={flowProjection}
+          selectedKey={projectionBucketKey}
+          interval={projectionInterval}
+          lang={lang}
+          onSelect={(key) => {
+            setProjectionBucketKey(key);
+            setVisibleCount(PAGE_SIZE);
+            setExpandedId(null);
+          }}
+          onInterval={(minutes) => {
+            setProjectionInterval(minutes);
+            setProjectionBucketKey(null);
+            setVisibleCount(PAGE_SIZE);
+            setExpandedId(null);
+          }}
+        />
+      )}
+
       {/* ── Feed list ── */}
       <div className="obs-fd-list obs-scroll" data-tut="flow-feed">
         {/* A read that did not land is not "still loading": unavailable is a load
@@ -823,7 +873,7 @@ export function FeedPane({
         )}
 
         {/* Cards — capped to visibleCount; sentinel triggers Load-more */}
-        {filtered.slice(0, visibleCount).map((ev) => (
+        {projectedEvents.slice(0, visibleCount).map((ev) => (
           <FlowCard
             key={ev.id}
             ev={ev}
@@ -837,7 +887,7 @@ export function FeedPane({
         ))}
 
         {/* Load-more sentinel — only shown when more cards exist beyond the cap */}
-        {filtered.length > visibleCount && (
+        {projectedEvents.length > visibleCount && (
           <div
             ref={sentinelRef}
             style={LOAD_MORE_STYLE}
@@ -850,8 +900,8 @@ export function FeedPane({
               onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
             >
               {zh
-                ? `加载更多 — 已显示 ${visibleCount} / ${filtered.length}`
-                : `Load more — showing ${visibleCount} of ${filtered.length}`}
+                ? `加载更多 — 已显示 ${visibleCount} / ${projectedEvents.length}`
+                : `Load more — showing ${visibleCount} of ${projectedEvents.length}`}
             </button>
           </div>
         )}

@@ -26,8 +26,8 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toMatch(/(?:regimeLabel|plainRegime)\(/);
   });
 
-  it("StockAnalysis.tsx: no raw trust/regime/macro chips; helpers present", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: no raw trust/regime/macro chips; helpers present", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     expect(src).not.toContain("|| glance.regime");
     expect(src).not.toContain("cap(dec?.trust_tier)");
     expect(src).not.toContain("{macro.duration_en}");
@@ -66,15 +66,15 @@ describe("plain-language call sites — leaky fallbacks gone", () => {
     expect(src).toContain("verdictLabel(");
   });
 
-  it("StockAnalysis.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: AnalystGauge ratingVerdict uses lang, never hardcoded English", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     const line = lineContaining(src, "ratingVerdict(", "ratingVerdict call");
     expect(line).not.toMatch(/ratingVerdict\([^)]*,\s*false\s*\)/);
     expect(line).toMatch(/lang\s*===\s*["']zh["']/);
   });
 
-  it("StockAnalysis.tsx: entry chip tries urgency then falls through to status", () => {
-    const src = readOwned("StockAnalysis.tsx");
+  it("StockAnalysisImpl.tsx: entry chip tries urgency then falls through to status", () => {
+    const src = readOwned("StockAnalysisImpl.tsx");
     const line = lineContaining(src, "entryStatusLabel(", "entry chip");
     expect(line).not.toContain("entry.urgency || entry.status");
     expect(line).toMatch(/entryStatusLabel\(\s*entry\.urgency/);
@@ -348,7 +348,7 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain('k="xCreatedWith"');
   });
 
-  it("capture_pl6_batch3.cjs strips the Next indicator before the screenshot", () => {
+  it("capture_pl6_batch3.cjs verifies indicator absence without hiding or trimming the rendered UI", () => {
     const src = readFileSync(join(__dirname, "../../e2e/tools/capture_pl6_batch3.cjs"), "utf8");
     const cropStart = src.indexOf("async function cropBox");
     const cropEnd = src.indexOf("async function cropLocator");
@@ -357,8 +357,9 @@ describe("plain-language call sites — batch 3", () => {
     const cropBox = src.slice(cropStart, cropEnd);
     expect(cropBox).toContain("assertNoNextIndicator");
     expect(cropBox.indexOf("assertNoNextIndicator")).toBeLessThan(cropBox.indexOf("page.screenshot"));
-    expect(cropBox).toContain("AlertDetail-390");
-    expect(cropBox).toContain("trimBottom");
+    expect(src).not.toContain("trimBottom");
+    expect(src).not.toContain("MutationObserver");
+    expect(src).not.toContain("display: none");
     expect(src).toContain("heatmap-price-only-tile.json");
     expect(src).toContain("installHeatmapPriceOnlyFixture");
     const desk = src.slice(src.indexOf("async function captureFlowDesk"), src.indexOf("async function installAlertFixtures"));

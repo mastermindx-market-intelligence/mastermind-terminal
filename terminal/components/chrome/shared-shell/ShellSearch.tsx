@@ -25,8 +25,13 @@ export default function ShellSearch({ open, onOpenChange }: {
   const draft = useRef<SharedSearchResume | null>(null);
   const closedQuery = useRef<string | null>(null);
   const ownedOpening = useRef(false);
+  const historyRestoredOpening = useRef(false);
   useEffect(() => {
-    if (!open) { ownedOpening.current = false; return; }
+    if (!open) {
+      ownedOpening.current = false;
+      historyRestoredOpening.current = false;
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- activation follows the existing controlled company command.
     setActivated(true);
     // Toolbar and Back keep their explicit scope; the incumbent external company
@@ -37,6 +42,7 @@ export default function ShellSearch({ open, onOpenChange }: {
   const rememberDraft = useCallback((next: SharedSearchResume) => { draft.current = next; }, []);
   const committing = useRef(false);
   const changeOpen = (next: boolean) => {
+    historyRestoredOpening.current = false;
     if (next) { ownedOpening.current = true; committing.current = false; if (draft.current) setScopedResume(draft.current); }
     if (!next && !committing.current) {
       // Save before the next dialog mount reports its initial empty render.
@@ -51,16 +57,25 @@ export default function ShellSearch({ open, onOpenChange }: {
     onOpenChange(next);
   };
   useEffect(() => {
-    const restore = () => {
+    const restore = (event?: PopStateEvent) => {
       const marker = window.history.state?.[COMPANY_SEARCH_HISTORY_KEY];
       if (marker?.scope === "tools" && marker.href === window.location.href && typeof marker.query === "string" && marker.query.length <= 160 && typeof marker.selected === "string") {
         ownedOpening.current = true;
+        historyRestoredOpening.current = true;
         setScopedResume({ scope: "tools", query: marker.query, selected: marker.selected });
         committing.current = false; onOpenChange(true); return;
       }
       const selection = readCompanySearchSelection({ symbol: marker?.symbol, query: marker?.query });
-      if (!selection || marker.href !== window.location.href) return;
+      if (!selection || marker.href !== window.location.href) {
+        if (event && historyRestoredOpening.current) {
+          historyRestoredOpening.current = false;
+          // Traversal closes the dialog without retiring the origin marker.
+          onOpenChange(false);
+        }
+        return;
+      }
       ownedOpening.current = true;
+      historyRestoredOpening.current = true;
       committing.current = false;
       setResume(selection);
       setScopedResume({ scope: "companies", query: selection.query, selected: selection.symbol });

@@ -1,0 +1,2434 @@
+{
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/EVIDENCE.before.yml": {
+    "sha256": "aa03e7e65e155f9addb167232fbc50e3b71e8380eb07fedde1f82e47ae10c91c",
+    "bytes": 86379
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/EVIDENCE.protected.yml": {
+    "sha256": "42c027968aeafbe179333d691e5727ef76523f9775becad3b2002dc0139b05da",
+    "bytes": 39227
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/capture-receipt.json": {
+    "sha256": "7b74bfcc4c4e11c8505f0e661cdd65a782802a8e07e69d0fa9c6ea6bab252939",
+    "bytes": 16837
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/capture.log": {
+    "sha256": "be4f6f81e944b811e8c7189e84e9272a68b2604c6187f038e0bc1794d037534f",
+    "bytes": 6454
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-1440-zh.png": {
+    "sha256": "e7951cd67d4481b202c7b610d3ba4519f9affcec662d0f9510430a09b145b9e9",
+    "bytes": 7500
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-1440.png": {
+    "sha256": "5364d2c3dc50a4d582488911177119c88d1923378c7303cc584ab93b35787f32",
+    "bytes": 6718
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-390-zh.png": {
+    "sha256": "043086fa988c7c69d97edf8b614f7e06e75d0e12dcbd0394b29665fbc50cd3c3",
+    "bytes": 5216
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-390.png": {
+    "sha256": "cbd502a079a79fc1d143ec9034d73d1c6e676245e5a80b9b4fc6df26f9def0f9",
+    "bytes": 4682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-820-zh.png": {
+    "sha256": "043086fa988c7c69d97edf8b614f7e06e75d0e12dcbd0394b29665fbc50cd3c3",
+    "bytes": 5216
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-absent-820.png": {
+    "sha256": "cbd502a079a79fc1d143ec9034d73d1c6e676245e5a80b9b4fc6df26f9def0f9",
+    "bytes": 4682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-1440-zh.png": {
+    "sha256": "8a117fab7d18d959daf10fcdc29cf6167ab3a7bd1456cfccd7a7c16a55e274cc",
+    "bytes": 67462
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-1440.png": {
+    "sha256": "0a2af585c22c87a61870e2ff8dd515c598e7ba182ab1d981bda1351d88134b69",
+    "bytes": 52605
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-390-zh.png": {
+    "sha256": "5c8f0c6ceb8680b7f8f6a68b171589128824a71b9001b8a0a3e863a9a2fdf4e0",
+    "bytes": 40682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-390.png": {
+    "sha256": "9cc9f34032a62bdf6b69f2df6b806b3765c0197ea392deaa6aab3cb06b170f10",
+    "bytes": 34616
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-820-zh.png": {
+    "sha256": "bf99ff4940b0e26794ec1c9e76c2eec28ec36dbb0fb21e19bd4b0a7af4b030dd",
+    "bytes": 40525
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-refresh-failed-820.png": {
+    "sha256": "725d1a6e43c61ccb3c1f2ef07f5f7ec108aba041d9a330fcfb6f5f821a9248d4",
+    "bytes": 34543
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-1440-zh.png": {
+    "sha256": "83d25c6636d33f62a63fcb32e2fb88229ae5ec8773a62f4c3f85449567d6bda5",
+    "bytes": 62215
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-1440.png": {
+    "sha256": "b67a10ecf6ce328ddf7d1c0e7993071f6a1e27473c68d92171a193be53edbc0b",
+    "bytes": 55571
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-390-zh.png": {
+    "sha256": "40787c816b536120418386327fb998168452320f72b1bc364e323e04efdc7653",
+    "bytes": 44036
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-390.png": {
+    "sha256": "bf4fc673c65f966a1110bd08ba959d54d521c90bd66c0e7084abe3447b11155b",
+    "bytes": 34893
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-820-zh.png": {
+    "sha256": "987a90c323cab5db5dd6113e57d701c13ef75f29c75d7122cd0dd7c158dd314e",
+    "bytes": 44026
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-retried-820.png": {
+    "sha256": "71dde0280d7fdedb2f0d4f7b9dbb44e0bcfcf71f9d16d3d926df0dfa1b93f2b1",
+    "bytes": 34787
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-1440-zh.png": {
+    "sha256": "4b0b309798904ebaddb10ea0d35781063110146a1d1d4c005dca790fd70f88f1",
+    "bytes": 12859
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-1440.png": {
+    "sha256": "768eae94d2adf6af8e4f1b4d6c41f56c517d6db66e2b80b72e35f1d5207f589b",
+    "bytes": 10666
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-390-zh.png": {
+    "sha256": "2db7da0349a7f493e69d2cea4de0517d7e0fce108ba43c6525ea1ab42de169ed",
+    "bytes": 10655
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-390.png": {
+    "sha256": "dec3448cdcae83d3248317da7aef9e43b2c9eeae32ae79bd6219a208f81f208d",
+    "bytes": 8591
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-820-zh.png": {
+    "sha256": "ed02526c272648fd6e2e3a178b76c50084cf537fd0dd072f5ad54d9149698a95",
+    "bytes": 10639
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/chainheat-unavailable-820.png": {
+    "sha256": "e818f1a63c81831f726e6433bee18ea5219b9e73a457b5b484b5d42c9ce1e6bd",
+    "bytes": 8591
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-1440-zh.png": {
+    "sha256": "daf8a96e6e37657bd6c7976acf8c0e9c44760d8a0ae6fd6cebbbe4a1ce442bf3",
+    "bytes": 8337
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-1440.png": {
+    "sha256": "d1f6f46fd29c8760a4fb08fa4db3e52d18cdfa096b265083f0b5a7bd45551a67",
+    "bytes": 8330
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-390-zh.png": {
+    "sha256": "222f799793e6d1689a7e69d9253aacf600357ae6662e6914aa81ed978295e028",
+    "bytes": 8400
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-390.png": {
+    "sha256": "9c843f89b7ec24da331c4e41d4e2cf12d45a643fd126f5630350598681eb63dd",
+    "bytes": 8376
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-820-zh.png": {
+    "sha256": "8628b49a502eab2a9c7215fcc5d5afc2da6e2632a477396b600524edb482c4fe",
+    "bytes": 8628
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-absent-820.png": {
+    "sha256": "8829fa42cb31423d2f0e8294a05f3739a1e51ad077c9f0625064b627ecba5bab",
+    "bytes": 8588
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-1440-zh.png": {
+    "sha256": "7cf1f87b73afdf57ca21cda4715312ca7149cefa66ad897ab2d99c3d40e948bf",
+    "bytes": 12687
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-1440.png": {
+    "sha256": "1b2aae1e12cd791b9041b4953fb4b4c7eb057a66c225dcec3def649f4db97e70",
+    "bytes": 10055
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-390-zh.png": {
+    "sha256": "52df8cda77b88b3ea3d8e61a1a9eb1a6e93ffffc28104a54337eac8bc5ed0ef0",
+    "bytes": 12772
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-390.png": {
+    "sha256": "70ff9122dc7844d3116b8ddb4202d74664f69ad527abf524fd7a5f9af7271374",
+    "bytes": 10131
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-820-zh.png": {
+    "sha256": "9d68b0fb851c69fa5a044f37348a046b62c5cf20e72f0778d73f96d7770776cb",
+    "bytes": 11846
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-retried-820.png": {
+    "sha256": "036b36fdeea3bdd0a064a1fec724cc59c1f2b0663645ee7c76ebacd045e9d857",
+    "bytes": 9227
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-1440-zh.png": {
+    "sha256": "76b9cc51e6251ebeed78d8b1b778092a4d155e0467f43874f2d891a5688a122a",
+    "bytes": 9646
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-1440.png": {
+    "sha256": "47295f94721d803093d1ec7d29261c8c5b547007be300758d9bd912286a1c3db",
+    "bytes": 9370
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-390-zh.png": {
+    "sha256": "93453e7ea40e533371fe1297ca32c3d269ca5dab5546090da54777793ed217ea",
+    "bytes": 9751
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-390.png": {
+    "sha256": "bccbabae74ef8dc593adf0454c4fd6c4c03588becd86f9edcbfc633a565f43f2",
+    "bytes": 9328
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-820-zh.png": {
+    "sha256": "46a7dfeb258b38edacfedcfe08bff3c08f129c8ca8e6da4c4f11faa7b3f1937b",
+    "bytes": 10079
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-darkpool-unavailable-820.png": {
+    "sha256": "80cc7f6a9124570f722ba13e96fa5af6ed8b4a583de3d1bd1308788d8807b8fd",
+    "bytes": 9604
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-1440-zh.png": {
+    "sha256": "8776209aef870d9273295f072884fe500b53949c8cfaf7596cc5a18ae8ddccf0",
+    "bytes": 26373
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-1440.png": {
+    "sha256": "4fefb88a72bffc4aae9e287a91b0d4e7bb8beb53996ece22d0606d9501f55f9a",
+    "bytes": 23434
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-390-zh.png": {
+    "sha256": "222a0b6371b6b9afb9a3865c2a7ae8f672cc4a006c4b6d5c96c024efb2158f0e",
+    "bytes": 29626
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-390.png": {
+    "sha256": "2bd54469a3dc9f7b59fa5748c2f2be5b6be1bf3010717dd5dd6cc4158fa55c39",
+    "bytes": 27064
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-820-zh.png": {
+    "sha256": "3a4e061991f5ca9c2f1253c3f5a47b7826711492378480ee5727d3437a4d61ed",
+    "bytes": 27932
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-absent-820.png": {
+    "sha256": "cca707e02ebf4505a5a147cd4639a6d4bc697dc7061c50a03b9a20f88d8507c4",
+    "bytes": 23912
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-1440-zh.png": {
+    "sha256": "7b8dc312b908ad55144b382286b7df9c2f9ea72d72c2f8b3aa90609c11bfdbfd",
+    "bytes": 34302
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-1440.png": {
+    "sha256": "648f2591e82f3db7fe83cf5625de7d4e20ffa068f491f5b09e0461b7cfe83a40",
+    "bytes": 29271
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-390-zh.png": {
+    "sha256": "d9b6cb7f74ae8a004dfacbdea2a5fa9899c23f0f7bb0c85b4baf14a9998bb91f",
+    "bytes": 37395
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-390.png": {
+    "sha256": "dd3d03891b03de67e99469597dbc80c3df76e41e72887491ae9e0eee5559ef26",
+    "bytes": 32722
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-820-zh.png": {
+    "sha256": "bb6290e1589e4dab640460eaabe112a74c51f92475f8bfb43a6f6daef0ca3d0b",
+    "bytes": 35571
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-partial-820.png": {
+    "sha256": "d4b46d74f6b01310e35d2fb2fe93636ea94a64b4c2b30fc6acd909b70a23945d",
+    "bytes": 29262
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-1440-zh.png": {
+    "sha256": "37be7176a6c8e724beb9882f09538e252682157f0e061743254dd3d589b79717",
+    "bytes": 33989
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-1440.png": {
+    "sha256": "fb4e75f5c519bb294327f82b81b4f96e5e7b18ca584ca59d39389b238a69db5e",
+    "bytes": 30103
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-390-zh.png": {
+    "sha256": "122ed9b89b4869d829de496b1497f22492f6a9bc006f09ad77ecbdf2a4eb3d6e",
+    "bytes": 35728
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-390.png": {
+    "sha256": "1cdbf9cac680bbdd3a58d637b09a85c5c265a32520a5a205f48106e03b90e95a",
+    "bytes": 32119
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-820-zh.png": {
+    "sha256": "4fd6e725932bb06b6e7909bb7aa290c5ee741ee11f3b85ae58d9dcfd11aaa188",
+    "bytes": 32830
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-retried-820.png": {
+    "sha256": "a70854aab0907f23b061729599d95f6512e9ff77040f4650d8c1a17f9d46f1e4",
+    "bytes": 29319
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-1440-zh.png": {
+    "sha256": "8b240d9bfcb52b32365f780eae3147a9c1844e81d231adcf6f9f4fc1c98291d8",
+    "bytes": 26320
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-1440.png": {
+    "sha256": "0f2c556d1346308bd63dcaa9a3278fe1ad23ff1edfb7b349909551311fe6b0ed",
+    "bytes": 22923
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-390-zh.png": {
+    "sha256": "375b61004290b6731e479a1660542b3f3cb79a7374ff871491151a125437ccfc",
+    "bytes": 24936
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-390.png": {
+    "sha256": "3e8539105d04a7c1862f24d0e3cadb9f6f38a4eedf10cd41c9cd262aab979711",
+    "bytes": 23254
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-820-zh.png": {
+    "sha256": "e1e84ea7a53445eb3d5f83e1586deb7187c1ee15eea2d41b021b38c067bb60ea",
+    "bytes": 27585
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/eod-structure-unavailable-820.png": {
+    "sha256": "eb4d081f6e61008bd2e30b1c01fb83a03eeefcdf1d9a9445b181b7478934af8c",
+    "bytes": 23944
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-1440-zh.png": {
+    "sha256": "9c9430d8d7cc449241371ba5cfb8800f0eec420aef27f27336a09f8c95352eab",
+    "bytes": 56218
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-1440.png": {
+    "sha256": "83e883057e333977e45049f51fb3563100042b9d95d87eef9455d601b430f5f7",
+    "bytes": 51833
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-390-zh.png": {
+    "sha256": "464e6754351e53ef410c9c9031797e9b4c8b56b5723d6ea5db4335fb067d8cb0",
+    "bytes": 44681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-390.png": {
+    "sha256": "2028252a54fbf6c9385f46d87191f415992f34a38b0f25370cf130b123138d4b",
+    "bytes": 39277
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-820-zh.png": {
+    "sha256": "e921c9d71c2e2cf3f12e2c1fe6bf39d747c99b11e4f32b526a1389149176b966",
+    "bytes": 55217
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-absent-820.png": {
+    "sha256": "55721c751c4b011b3c523d2768b78c31e6792dcf6ea1f7b4f8079d108b04da33",
+    "bytes": 50525
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-1440-zh.png": {
+    "sha256": "0bfc47838f65c2baa4b801d31b5c255db9435e0bf035694ebfcf8bb3ecdd757f",
+    "bytes": 57386
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-1440.png": {
+    "sha256": "562ee5fd41adefbfe667f01b6746d5dde76ae18d75e51345b2fb7b39b0e8a5ac",
+    "bytes": 52532
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-390-zh.png": {
+    "sha256": "b1b361432feda798ec3dbac39bfb4d3184e5aaaa52586f4b3e0bde595146ef0b",
+    "bytes": 45826
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-390.png": {
+    "sha256": "34771d0368e1e404ff9796d19f4bd08831f51247a67bbd38ff50d6e79a2195cb",
+    "bytes": 39993
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-820-zh.png": {
+    "sha256": "ae8afabda5eb08d696975e3f63b439424ae1ea00bbb452ae8e2e0f7bd987f74a",
+    "bytes": 56383
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-auth-820.png": {
+    "sha256": "d531cf37ba3939e630dea6ff5df772661b820082001d276722684e1608abd682",
+    "bytes": 51269
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-failed-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-refresh-refused-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-1440-zh.png": {
+    "sha256": "db14a9844d6ef2b3165f7410a40a2027f785930a90f1e6b9a6040b8c381c17cb",
+    "bytes": 57681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-1440.png": {
+    "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+    "bytes": 52403
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-390-zh.png": {
+    "sha256": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "bytes": 45682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-390.png": {
+    "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+    "bytes": 40220
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-820-zh.png": {
+    "sha256": "802a6fcd2ef6ec62b5f9d6a77bded119d67aacbb9d1b95a8d4c17de1bf328b63",
+    "bytes": 44143
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-persisted-retried-820.png": {
+    "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+    "bytes": 38424
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-refresh-failed-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-1440-zh.png": {
+    "sha256": "db14a9844d6ef2b3165f7410a40a2027f785930a90f1e6b9a6040b8c381c17cb",
+    "bytes": 57681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-1440.png": {
+    "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+    "bytes": 52403
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-390-zh.png": {
+    "sha256": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "bytes": 45682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-390.png": {
+    "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+    "bytes": 40220
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-820-zh.png": {
+    "sha256": "802a6fcd2ef6ec62b5f9d6a77bded119d67aacbb9d1b95a8d4c17de1bf328b63",
+    "bytes": 44143
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-retried-820.png": {
+    "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+    "bytes": 38424
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-1440-zh.png": {
+    "sha256": "56148541c2f412c95e287bca770678d089fd6be2312a61635f4d95897d60c0f6",
+    "bytes": 64542
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-1440.png": {
+    "sha256": "218cfdc673da261975aa2ecaf2d77daf2f9d034a0e37dc36e4d69273836e1653",
+    "bytes": 58349
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-390-zh.png": {
+    "sha256": "864cd64392d1cf834528f2ef1c1a913332795b453bdc2050dd5a15ab95ef2039",
+    "bytes": 49858
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-390.png": {
+    "sha256": "17e6e28099c6503103d345e89a96e53d328d4e05bb2b9441f0782a5a61e8604d",
+    "bytes": 43043
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-820-zh.png": {
+    "sha256": "b5bffd88231b141bafd6098d92951e1967ab44ad1155621344f751736d88ae9f",
+    "bytes": 60408
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-flow-unavailable-820.png": {
+    "sha256": "174f139c390f61b603a4919f7bb183e9a8f4d463a405f7e12dc7e939c40e4ecb",
+    "bytes": 54161
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-1440-zh.png": {
+    "sha256": "1913c2c221b6f7e1b01cd217710cf2fae96af8ed0b0977e8223b04d7bd47f3cc",
+    "bytes": 16407
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-1440.png": {
+    "sha256": "22df829040403f2ad2e2d5ea72359981a36bb035dce1f19698a05fb027f92940",
+    "bytes": 16197
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-390-zh.png": {
+    "sha256": "8ee6953ff6d3178ec328cf5467bc6d6768a6ecea010d58b1730536200117c24c",
+    "bytes": 13765
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-390.png": {
+    "sha256": "1e91ea54237cfea413a02e6eacfedab43dcca00c76aa5240a7f29d79b97e5e07",
+    "bytes": 12340
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-820-zh.png": {
+    "sha256": "f95e796f5e42f52e1b5c02fcb65e1251d98acab9cbb8e79642b6012d8fae4d98",
+    "bytes": 13404
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-live-failed-820.png": {
+    "sha256": "fe8b4ba17002350081fd1cf5f828725af550bc0c3f206431a119233a9c7b2d10",
+    "bytes": 13439
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-1440-zh.png": {
+    "sha256": "c645f253f2dee48bf124a8bad568f28bdb5b5586b0c65f9bbb9a80eaac15d727",
+    "bytes": 40353
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-1440.png": {
+    "sha256": "f74c703cd4138d0ec8547c7cbacaf184a4254d6efd15cf4edb205637d03ada0f",
+    "bytes": 34375
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-390-zh.png": {
+    "sha256": "c6eeb173dd87d00c172c41f5e9790a6f61ed2ced9cba811a10d787cee0aa9d5c",
+    "bytes": 28684
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-390.png": {
+    "sha256": "7b7ce7a64e109aa60a9d7ac353daff944ed523d47f7d5a9fb128abe4b28fffa5",
+    "bytes": 23875
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-820-zh.png": {
+    "sha256": "5a9dc3f901286745089e117e824345cc056e2164506a1f3324a79d59c8e41ba3",
+    "bytes": 34396
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-no-match-820.png": {
+    "sha256": "f7e6d5a6ed7c40e3a44f42bf89702802e4ef6e5215ddb1bf02fdf8d4a5013c4f",
+    "bytes": 27742
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/prior-root-sha256.json": {
+    "sha256": "eae49945986e6328b174529f8497ccfedcd36b505a798107a7a10c084db476d2",
+    "bytes": 13416
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/promotion.json": {
+    "sha256": "23b398fac59e42fb165fed1a08990e708e16dea2d708b01e3d298594af3f2672",
+    "bytes": 394
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/protected-root-sha256.json": {
+    "sha256": "cc89fe0b66198e8b7863dbe22e87d668db89ee1d7e1e39c9d1c6bcab1f4244b0",
+    "bytes": 13416
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/EVIDENCE.yml": {
+    "sha256": "83b7a54f7def760363e747e876d77bc8a9f53a5d0e79766ea3754858d5d9aafe",
+    "bytes": 31851
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-1440-zh.png": {
+    "sha256": "8dacee7fb56be55580ef5bbb4e5ca02f35b0dd1dfb0907446e39fcb1ebc0843f",
+    "bytes": 6863
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-1440.png": {
+    "sha256": "7c370c4e5775063f0354b7eb9423060bd738eb991aebae95d9a651df2012a6ba",
+    "bytes": 6174
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-390-zh.png": {
+    "sha256": "01ab77d753d62ccc584102c1f58e3e12dad3a2a4a49e6e196c36d8ca88e37ee4",
+    "bytes": 5231
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-390.png": {
+    "sha256": "cbd502a079a79fc1d143ec9034d73d1c6e676245e5a80b9b4fc6df26f9def0f9",
+    "bytes": 4682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-820-zh.png": {
+    "sha256": "01ab77d753d62ccc584102c1f58e3e12dad3a2a4a49e6e196c36d8ca88e37ee4",
+    "bytes": 5231
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-absent-820.png": {
+    "sha256": "cbd502a079a79fc1d143ec9034d73d1c6e676245e5a80b9b4fc6df26f9def0f9",
+    "bytes": 4682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-1440-zh.png": {
+    "sha256": "1217e96ef2e33b3d5c72a6ebd2df2c0c9f815f0af760e626a1bad8359c30de74",
+    "bytes": 67111
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-1440.png": {
+    "sha256": "c534790b5fc556772bf83a0f160bf076b8322c5deb4b9e97d9dc53c1881702e2",
+    "bytes": 52163
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-390-zh.png": {
+    "sha256": "99194ef0e0c509e8050b30fbef47d8aeadffd35b733a89e19ac0ad89bc421496",
+    "bytes": 40779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-390.png": {
+    "sha256": "919f0c7afb9c6abdbe0b189007e044c2e4c740410f8c19395b81b0fa6a7faf7d",
+    "bytes": 34674
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-820-zh.png": {
+    "sha256": "a5a8552fd5327159e370f6007ede807fa3b8056de42a38f6d3097fa97b72daaf",
+    "bytes": 40658
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-refresh-failed-820.png": {
+    "sha256": "492132959b869ca081c652f89d28962ffc99455f2d1dd9a31da3055bee163939",
+    "bytes": 34596
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-1440-zh.png": {
+    "sha256": "10bede2c3f61f888c5a24777e8eed07cdaa5872175ad06d7cba79f839844f777",
+    "bytes": 61647
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-1440.png": {
+    "sha256": "5e35e504393e7e60b97dfb81bb8ef4f0f6e6d209102cbac3ba9d3c8f14668384",
+    "bytes": 55098
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-390-zh.png": {
+    "sha256": "75caaec98395088f4ca5a302d306f3bbf17afddb086e88043bb49457d212ee0b",
+    "bytes": 44135
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-390.png": {
+    "sha256": "2cbc8f9f19c1c657cf6ccaf63c434b5670494b459c0316ff0dc3860465696e8c",
+    "bytes": 34946
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-820-zh.png": {
+    "sha256": "3413aaab3cd2e477f62cca67ff781d5a81113a2f929ce09208eb7c27f2417f45",
+    "bytes": 44176
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-retried-820.png": {
+    "sha256": "1261565263f7529e1b8a123a19498f720361237f4ede80a1624085c14e52892a",
+    "bytes": 34833
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-1440-zh.png": {
+    "sha256": "689412f424c3388ed87c12ff66168c61d845e99baeecb814dff10b001b759d3b",
+    "bytes": 12231
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-1440.png": {
+    "sha256": "bb129330511b3ac6a30277c6831fd58cdc10e21bd782f60cec00c37afe3b9d39",
+    "bytes": 10144
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-390-zh.png": {
+    "sha256": "18ecbb3c259db8df614723b121b244a97e394663203f8796a0efe4f88f6b6eb9",
+    "bytes": 10670
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-390.png": {
+    "sha256": "3787ffd17527a8fd7ff85fd24544a04da775a67f6305afb27031fae0b3a92033",
+    "bytes": 8607
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-820-zh.png": {
+    "sha256": "9cc732e9ea51c9dd8efb9cb633b02bf0a57258352c7d0a916b57bc5dd09420e6",
+    "bytes": 10656
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/chainheat-unavailable-820.png": {
+    "sha256": "5ddb30a3afacac9ea454e107524b27fcced0d71b42b3000d66444a11fe1f2732",
+    "bytes": 8606
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-1440-zh.png": {
+    "sha256": "30edc57e84aa0651dd787d9af5626467e3b7af6c1df1ced5d96a5add570577f3",
+    "bytes": 8337
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-1440.png": {
+    "sha256": "ab63bebd01f08eccf365b07440cf84dd306ac90adf76a6b1c59d165643fb337b",
+    "bytes": 8330
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-390-zh.png": {
+    "sha256": "222f799793e6d1689a7e69d9253aacf600357ae6662e6914aa81ed978295e028",
+    "bytes": 8400
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-390.png": {
+    "sha256": "8e21d0e8b3c00a5e9b43cabb82e9b58764971f6c70aed4cb1745d500e0ac622e",
+    "bytes": 8378
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-820-zh.png": {
+    "sha256": "abc3e863fc8fcd3445c00c0d32aed5fd5d0e363d8d8027a2e0544963ca802898",
+    "bytes": 8841
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-absent-820.png": {
+    "sha256": "7647402830951d6f16b9e226f256bc048fedd0b99b40905b1e1082b5992ab873",
+    "bytes": 8806
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-1440-zh.png": {
+    "sha256": "a64a10ccfaa3bcc12a8e6d9da2dc59d407253dbefda2c946d98606924326d4de",
+    "bytes": 12689
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-1440.png": {
+    "sha256": "e7b4a4dc5dda135431ae85655134be4151a2838104319343a7b62bb6771df2d4",
+    "bytes": 10055
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-390-zh.png": {
+    "sha256": "52df8cda77b88b3ea3d8e61a1a9eb1a6e93ffffc28104a54337eac8bc5ed0ef0",
+    "bytes": 12772
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-390.png": {
+    "sha256": "a79f1417330def7632a86ce7eb9120a328af4d3aff398dd3c90a1052a7ed3202",
+    "bytes": 10129
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-820-zh.png": {
+    "sha256": "ed4e688b98c0139b8bc07a239122c7d1decbcbad0bada90ad9d822bbd252cd7d",
+    "bytes": 13059
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-retried-820.png": {
+    "sha256": "ab192ed9df31fd84ca617e37f2306e6257b5dd0670db55eb161fa405dd1495b4",
+    "bytes": 10167
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-1440-zh.png": {
+    "sha256": "a2692a79a883506cbe18a4fc16782ceda2af1f664faae13e0daf378c0a6f6ee7",
+    "bytes": 9648
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-1440.png": {
+    "sha256": "04385280d04ce1a30cfee7fddf39bb7cde07e76dd72a81ed628d4bad796b63f9",
+    "bytes": 9372
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-390-zh.png": {
+    "sha256": "91d7a03d369ce99fe5001f6f666e509f8d08e37108295c893520707fbca67a0e",
+    "bytes": 9751
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-390.png": {
+    "sha256": "270e2be2ec611b1006fb3683f17280e53ea15f341b9b550cda182c3c1bcbea6a",
+    "bytes": 9332
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-820-zh.png": {
+    "sha256": "07f391c6babe9740ee83f062cc7eddf110a9d650687cf697db0525983b260f7a",
+    "bytes": 10314
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-darkpool-unavailable-820.png": {
+    "sha256": "639162ad244761bae6c67880e290c0d093925450ebf0a13b33ba957d40e2f0c6",
+    "bytes": 9839
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-1440-zh.png": {
+    "sha256": "ec36e52987da389baef8cd0204e78c714a8c33433b370f1b8cea2c56fcf9c37d",
+    "bytes": 31729
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-1440.png": {
+    "sha256": "0936590b9d144fcc73a8cfe2910d6daaadffe68e5ce2c9836a1ca4b979870262",
+    "bytes": 28027
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-390-zh.png": {
+    "sha256": "5cced195fcda1153d2589d306192b548ba3e954d53ad4a7fd63401d7c74db7df",
+    "bytes": 28801
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-390.png": {
+    "sha256": "282d709329dad0745839f89a4b980eeff31bacac4bda8fe107ce551044cc3df5",
+    "bytes": 27927
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-820-zh.png": {
+    "sha256": "5e5ec0970f31ef7f403e2fba8bd517871fca1123d105d9cb01af04c4b21896ef",
+    "bytes": 28481
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-absent-820.png": {
+    "sha256": "caeb8f5df9929b870d3b489d726847c9edfe2f01a33dbade185bf288a0ad254a",
+    "bytes": 24947
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-1440-zh.png": {
+    "sha256": "c84e9d52a9917eaad7bb63ee02e6cae8dc06641654f3631250767a494cf6c630",
+    "bytes": 39672
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-1440.png": {
+    "sha256": "a6d6d80e0cebff9f3dee7a11c836ca30ce6274bb304263eba29872354f0a7d69",
+    "bytes": 33782
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-390-zh.png": {
+    "sha256": "40f91d2077b77672a2579fb5d7edb6e5c866fe23f2c072a232bafd293d83f8dd",
+    "bytes": 36541
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-390.png": {
+    "sha256": "30ed958d65acef1e77bdfead17858e36d0ad8b5b41d416277ac6b480d8fc6655",
+    "bytes": 33600
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-820-zh.png": {
+    "sha256": "2cad935a39b05328a8278ff5c8ee8167ce6b717186da31586f7c385ed9f428ce",
+    "bytes": 36149
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-partial-820.png": {
+    "sha256": "b887f8a81b2ddfd9b1834a716dcdfa3d84e847a24d697be4f97d357a3ff55370",
+    "bytes": 30388
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-1440-zh.png": {
+    "sha256": "61dad42bed7e1b1d9482c841efd4b75033913232e2e01548a2538251cc41d510",
+    "bytes": 38058
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-1440.png": {
+    "sha256": "42fe18b045af6837840beb7f9eb1b7754f204fec1f8b590a99697bb124a4b951",
+    "bytes": 34246
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-390-zh.png": {
+    "sha256": "a900fef2c16c4207fa18753b259d34c0074ba4ac968ea31ae85f184c0cb2a507",
+    "bytes": 34884
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-390.png": {
+    "sha256": "5fe025d2c6b423937a382ef6e37118ae8d50a150079c9d9063df7424e4ed2590",
+    "bytes": 32986
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-820-zh.png": {
+    "sha256": "7bb86f2b57805c5a5e9b4364a967e371a8e81538db1b7aa8370006c62ca12bb8",
+    "bytes": 33948
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-retried-820.png": {
+    "sha256": "97c846836d8db2b13d94f8f78dfb55858f12f65cb6858cc6c4bdce5d2a2ce71a",
+    "bytes": 30813
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-1440-zh.png": {
+    "sha256": "8b240d9bfcb52b32365f780eae3147a9c1844e81d231adcf6f9f4fc1c98291d8",
+    "bytes": 26320
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-1440.png": {
+    "sha256": "0f2c556d1346308bd63dcaa9a3278fe1ad23ff1edfb7b349909551311fe6b0ed",
+    "bytes": 22923
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-390-zh.png": {
+    "sha256": "375b61004290b6731e479a1660542b3f3cb79a7374ff871491151a125437ccfc",
+    "bytes": 24936
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-390.png": {
+    "sha256": "3e8539105d04a7c1862f24d0e3cadb9f6f38a4eedf10cd41c9cd262aab979711",
+    "bytes": 23254
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-820-zh.png": {
+    "sha256": "60cfee266f10a428a7ca29dbdf94f445cf405b1bf3f6f814578469ca848aabd3",
+    "bytes": 27587
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/eod-structure-unavailable-820.png": {
+    "sha256": "a51368cb74db622b5b3af42aa27dbdd222a5bbab84c414319d1533ab9e022186",
+    "bytes": 23946
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-1440-zh.png": {
+    "sha256": "9c9430d8d7cc449241371ba5cfb8800f0eec420aef27f27336a09f8c95352eab",
+    "bytes": 56218
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-1440.png": {
+    "sha256": "83e883057e333977e45049f51fb3563100042b9d95d87eef9455d601b430f5f7",
+    "bytes": 51833
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-390-zh.png": {
+    "sha256": "464e6754351e53ef410c9c9031797e9b4c8b56b5723d6ea5db4335fb067d8cb0",
+    "bytes": 44681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-390.png": {
+    "sha256": "2028252a54fbf6c9385f46d87191f415992f34a38b0f25370cf130b123138d4b",
+    "bytes": 39277
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-820-zh.png": {
+    "sha256": "e921c9d71c2e2cf3f12e2c1fe6bf39d747c99b11e4f32b526a1389149176b966",
+    "bytes": 55217
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-absent-820.png": {
+    "sha256": "55721c751c4b011b3c523d2768b78c31e6792dcf6ea1f7b4f8079d108b04da33",
+    "bytes": 50525
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-1440-zh.png": {
+    "sha256": "0bfc47838f65c2baa4b801d31b5c255db9435e0bf035694ebfcf8bb3ecdd757f",
+    "bytes": 57386
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-1440.png": {
+    "sha256": "562ee5fd41adefbfe667f01b6746d5dde76ae18d75e51345b2fb7b39b0e8a5ac",
+    "bytes": 52532
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-390-zh.png": {
+    "sha256": "b1b361432feda798ec3dbac39bfb4d3184e5aaaa52586f4b3e0bde595146ef0b",
+    "bytes": 45826
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-390.png": {
+    "sha256": "34771d0368e1e404ff9796d19f4bd08831f51247a67bbd38ff50d6e79a2195cb",
+    "bytes": 39993
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-820-zh.png": {
+    "sha256": "ae8afabda5eb08d696975e3f63b439424ae1ea00bbb452ae8e2e0f7bd987f74a",
+    "bytes": 56383
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-auth-820.png": {
+    "sha256": "d531cf37ba3939e630dea6ff5df772661b820082001d276722684e1608abd682",
+    "bytes": 51269
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-failed-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-refresh-refused-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-1440-zh.png": {
+    "sha256": "db14a9844d6ef2b3165f7410a40a2027f785930a90f1e6b9a6040b8c381c17cb",
+    "bytes": 57681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-1440.png": {
+    "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+    "bytes": 52403
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-390-zh.png": {
+    "sha256": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "bytes": 45682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-390.png": {
+    "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+    "bytes": 40220
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-820-zh.png": {
+    "sha256": "802a6fcd2ef6ec62b5f9d6a77bded119d67aacbb9d1b95a8d4c17de1bf328b63",
+    "bytes": 44143
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-persisted-retried-820.png": {
+    "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+    "bytes": 38424
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-1440-zh.png": {
+    "sha256": "52bcd824063e3734e0b4cdb40c1b6a768fd24c66a8332d8dfde41ef0b36369c8",
+    "bytes": 62142
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-1440.png": {
+    "sha256": "78c6d8f05d247f0866bd5a7c062e9510bf616735f7beff2405bb9e0ca548d668",
+    "bytes": 55669
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-390-zh.png": {
+    "sha256": "22111cc2dc25e5e23e12c54898640611aae93c4c256cc329b69fc98d2cde4d15",
+    "bytes": 50779
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-390.png": {
+    "sha256": "78ddb17f3cde744cf53caa1ca34cfd55365f965288c63bb0f150a30fea9d4731",
+    "bytes": 44321
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-820-zh.png": {
+    "sha256": "076765f3d216aef5b3282ea91fa10d3fd3eddbdf81a2db69e42d8e04bfe78993",
+    "bytes": 49531
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-refresh-failed-820.png": {
+    "sha256": "e13fa331aeec26b1d4f3c499baa79e7af6688f266392539c89513f17649d347c",
+    "bytes": 42730
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-1440-zh.png": {
+    "sha256": "db14a9844d6ef2b3165f7410a40a2027f785930a90f1e6b9a6040b8c381c17cb",
+    "bytes": 57681
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-1440.png": {
+    "sha256": "e9b63947a233371ef21baeef49652fe82915881e73d166cba606f32755dc05fb",
+    "bytes": 52403
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-390-zh.png": {
+    "sha256": "7739de40ed836b72a222a912cc2f08fa1d2066c8aa597dba2970fdb994475473",
+    "bytes": 45682
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-390.png": {
+    "sha256": "18b85a52c1ba2d7f47ee7ff84f95f02ec44457a9c05cf6df9f9d1fcc1c1e9ab2",
+    "bytes": 40220
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-820-zh.png": {
+    "sha256": "802a6fcd2ef6ec62b5f9d6a77bded119d67aacbb9d1b95a8d4c17de1bf328b63",
+    "bytes": 44143
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-retried-820.png": {
+    "sha256": "6fd832ff2a07ecb291f39e16ccd2335a1bda2939a786ecd6a3f17482638f4f05",
+    "bytes": 38424
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-1440-zh.png": {
+    "sha256": "56148541c2f412c95e287bca770678d089fd6be2312a61635f4d95897d60c0f6",
+    "bytes": 64542
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-1440.png": {
+    "sha256": "218cfdc673da261975aa2ecaf2d77daf2f9d034a0e37dc36e4d69273836e1653",
+    "bytes": 58349
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-390-zh.png": {
+    "sha256": "864cd64392d1cf834528f2ef1c1a913332795b453bdc2050dd5a15ab95ef2039",
+    "bytes": 49858
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-390.png": {
+    "sha256": "17e6e28099c6503103d345e89a96e53d328d4e05bb2b9441f0782a5a61e8604d",
+    "bytes": 43043
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-820-zh.png": {
+    "sha256": "b5bffd88231b141bafd6098d92951e1967ab44ad1155621344f751736d88ae9f",
+    "bytes": 60408
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-flow-unavailable-820.png": {
+    "sha256": "174f139c390f61b603a4919f7bb183e9a8f4d463a405f7e12dc7e939c40e4ecb",
+    "bytes": 54161
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-1440-zh.png": {
+    "sha256": "1913c2c221b6f7e1b01cd217710cf2fae96af8ed0b0977e8223b04d7bd47f3cc",
+    "bytes": 16407
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-1440.png": {
+    "sha256": "22df829040403f2ad2e2d5ea72359981a36bb035dce1f19698a05fb027f92940",
+    "bytes": 16197
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-390-zh.png": {
+    "sha256": "8ee6953ff6d3178ec328cf5467bc6d6768a6ecea010d58b1730536200117c24c",
+    "bytes": 13765
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-390.png": {
+    "sha256": "1e91ea54237cfea413a02e6eacfedab43dcca00c76aa5240a7f29d79b97e5e07",
+    "bytes": 12340
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-820-zh.png": {
+    "sha256": "f95e796f5e42f52e1b5c02fcb65e1251d98acab9cbb8e79642b6012d8fae4d98",
+    "bytes": 13404
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-live-failed-820.png": {
+    "sha256": "fe8b4ba17002350081fd1cf5f828725af550bc0c3f206431a119233a9c7b2d10",
+    "bytes": 13439
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-1440-zh.png": {
+    "sha256": "c645f253f2dee48bf124a8bad568f28bdb5b5586b0c65f9bbb9a80eaac15d727",
+    "bytes": 40353
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-1440.png": {
+    "sha256": "f74c703cd4138d0ec8547c7cbacaf184a4254d6efd15cf4edb205637d03ada0f",
+    "bytes": 34375
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-390-zh.png": {
+    "sha256": "c6eeb173dd87d00c172c41f5e9790a6f61ed2ced9cba811a10d787cee0aa9d5c",
+    "bytes": 28684
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-390.png": {
+    "sha256": "7b7ce7a64e109aa60a9d7ac353daff944ed523d47f7d5a9fb128abe4b28fffa5",
+    "bytes": 23875
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-820-zh.png": {
+    "sha256": "5a9dc3f901286745089e117e824345cc056e2164506a1f3324a79d59c8e41ba3",
+    "bytes": 34396
+  },
+  "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-no-match-820.png": {
+    "sha256": "f7e6d5a6ed7c40e3a44f42bf89702802e4ef6e5215ddb1bf02fdf8d4a5013c4f",
+    "bytes": 27742
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/EVIDENCE.before.yml": {
+    "sha256": "fdbbde228018ceaf5073624f4bbf8b7c517a7bb86f27c94d93423d6619a3434e",
+    "bytes": 88653
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/EVIDENCE.protected.yml": {
+    "sha256": "f802daa53147e8a771e01a6dd896c7991ab56a8ad3b520c9f7716726a7bbce34",
+    "bytes": 36912
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/capture-receipt.json": {
+    "sha256": "935ba4848b8fe09b1f7d45e39bbe228a2ba304d8fdaeefc47d013c286e7e7503",
+    "bytes": 15095
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/capture.log": {
+    "sha256": "a1b6886163eebd82c1f380cb61185dd074c70abf9f5f1ae1308382c3b479596f",
+    "bytes": 5647
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-1440-zh.png": {
+    "sha256": "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17",
+    "bytes": 15051
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-1440.png": {
+    "sha256": "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da",
+    "bytes": 12780
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-390-zh.png": {
+    "sha256": "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b",
+    "bytes": 13147
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-390.png": {
+    "sha256": "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1",
+    "bytes": 10565
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-820-zh.png": {
+    "sha256": "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858",
+    "bytes": 15393
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-absent-820.png": {
+    "sha256": "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236",
+    "bytes": 13170
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-1440-zh.png": {
+    "sha256": "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98",
+    "bytes": 98821
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-1440.png": {
+    "sha256": "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b",
+    "bytes": 92150
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-390-zh.png": {
+    "sha256": "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010",
+    "bytes": 44972
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-390.png": {
+    "sha256": "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f",
+    "bytes": 41104
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-820-zh.png": {
+    "sha256": "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461",
+    "bytes": 113078
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-retried-820.png": {
+    "sha256": "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d",
+    "bytes": 104815
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-1440-zh.png": {
+    "sha256": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be",
+    "bytes": 14616
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-1440.png": {
+    "sha256": "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4",
+    "bytes": 13247
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-390-zh.png": {
+    "sha256": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796",
+    "bytes": 12663
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-390.png": {
+    "sha256": "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96",
+    "bytes": 10757
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-820-zh.png": {
+    "sha256": "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6",
+    "bytes": 14966
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-ladder-unavailable-820.png": {
+    "sha256": "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84",
+    "bytes": 13695
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-1440-zh.png": {
+    "sha256": "aeb32bfedb0a70705918d6bdddfb8dca367cb6e231b264f98bd869e37960fcb9",
+    "bytes": 43086
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-1440.png": {
+    "sha256": "5f779d818ea3f137e5ac42c767bab8f9c5c3ecfde1d0875f716a139000712f1a",
+    "bytes": 39538
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-390-zh.png": {
+    "sha256": "6107783ea156b4c75c6646691dd76a6757c1d5ebb37ff74260b6fc2051282672",
+    "bytes": 27119
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-390.png": {
+    "sha256": "d9cea7854c7dc1f783c3ddf7d2c9b7e769565d35cdbda73395cb4904cc99876c",
+    "bytes": 25514
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-820-zh.png": {
+    "sha256": "7293ea6764d14cb8b0cd6bae21b4e9c54511da8014f83a453cf9744d70d88db1",
+    "bytes": 46160
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-refresh-failed-820.png": {
+    "sha256": "c9fcbe536350ceb6a512302299ff7c88a12c234a47de1284fb9bf4770ec7dc14",
+    "bytes": 43122
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-1440-zh.png": {
+    "sha256": "e2f86464c4292a2461bf0652b92b24981c9340a3e4d40220e3e01c4ad0a43d0f",
+    "bytes": 37946
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-1440.png": {
+    "sha256": "e124564c685be1b32708cd1b4885c3d33e2d706edbe29ff31a06fecb1bff72b0",
+    "bytes": 35148
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-390-zh.png": {
+    "sha256": "a5d9b75e9d5bb05458f7192715996ccd594c948b36ba5562f1c2be5d0b6a29c1",
+    "bytes": 22332
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-390.png": {
+    "sha256": "2f5952efcb70e27c362aaf9559920361ea4098b6976dd402e631c36babd92244",
+    "bytes": 21296
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-820-zh.png": {
+    "sha256": "a9cd7acd29b91d3c6416f97e0dba8b64613aaa2bf71cdbd9f7187ee0223fc652",
+    "bytes": 31403
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-live-retried-820.png": {
+    "sha256": "66f437cd20cdca2bed9cdb13f2ae1c075c3c84400dac4f54d931180a9237ae9f",
+    "bytes": 29557
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-1440-zh.png": {
+    "sha256": "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436",
+    "bytes": 5702
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-1440.png": {
+    "sha256": "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e",
+    "bytes": 5453
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-390-zh.png": {
+    "sha256": "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49",
+    "bytes": 5749
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-390.png": {
+    "sha256": "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced",
+    "bytes": 5656
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-820-zh.png": {
+    "sha256": "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b",
+    "bytes": 6203
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-pick-absent-820.png": {
+    "sha256": "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c",
+    "bytes": 5800
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-1440-zh.png": {
+    "sha256": "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db",
+    "bytes": 23263
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-1440.png": {
+    "sha256": "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f",
+    "bytes": 20215
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-390-zh.png": {
+    "sha256": "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3",
+    "bytes": 23326
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-390.png": {
+    "sha256": "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28",
+    "bytes": 20405
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-820-zh.png": {
+    "sha256": "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc",
+    "bytes": 25249
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-retried-820.png": {
+    "sha256": "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891",
+    "bytes": 24102
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-1440-zh.png": {
+    "sha256": "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a",
+    "bytes": 25689
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-1440.png": {
+    "sha256": "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2",
+    "bytes": 23549
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-390-zh.png": {
+    "sha256": "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7",
+    "bytes": 26034
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-390.png": {
+    "sha256": "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051",
+    "bytes": 23617
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-820-zh.png": {
+    "sha256": "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c",
+    "bytes": 27634
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-rail-unavailable-820.png": {
+    "sha256": "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790",
+    "bytes": 24023
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-1440-zh.png": {
+    "sha256": "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458",
+    "bytes": 8262
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-1440.png": {
+    "sha256": "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117",
+    "bytes": 7500
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-390-zh.png": {
+    "sha256": "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7",
+    "bytes": 8234
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-390.png": {
+    "sha256": "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5",
+    "bytes": 7489
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-820-zh.png": {
+    "sha256": "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164",
+    "bytes": 8781
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/gex-state-refresh-failed-820.png": {
+    "sha256": "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e",
+    "bytes": 7914
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-1440-zh.png": {
+    "sha256": "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83",
+    "bytes": 33813
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-1440.png": {
+    "sha256": "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9",
+    "bytes": 32793
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-390-zh.png": {
+    "sha256": "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc",
+    "bytes": 25542
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-390.png": {
+    "sha256": "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a",
+    "bytes": 23029
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-820-zh.png": {
+    "sha256": "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65",
+    "bytes": 25947
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-absent-820.png": {
+    "sha256": "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229",
+    "bytes": 24983
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-1440-zh.png": {
+    "sha256": "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb",
+    "bytes": 136806
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-1440.png": {
+    "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+    "bytes": 133354
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-390-zh.png": {
+    "sha256": "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59",
+    "bytes": 87399
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-390.png": {
+    "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+    "bytes": 81834
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-820-zh.png": {
+    "sha256": "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df",
+    "bytes": 119031
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-failed-820.png": {
+    "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+    "bytes": 115207
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-1440-zh.png": {
+    "sha256": "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb",
+    "bytes": 136806
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-1440.png": {
+    "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+    "bytes": 133354
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-390-zh.png": {
+    "sha256": "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59",
+    "bytes": 87399
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-390.png": {
+    "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+    "bytes": 81834
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-820-zh.png": {
+    "sha256": "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df",
+    "bytes": 119031
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-refresh-refused-820.png": {
+    "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+    "bytes": 115207
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-1440-zh.png": {
+    "sha256": "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c",
+    "bytes": 132278
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-1440.png": {
+    "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+    "bytes": 128955
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-390-zh.png": {
+    "sha256": "e07427eddd3322a8015f4e5fa9f3fc39318c5e28eaeb26632c5f8c175f8f91ec",
+    "bytes": 92486
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-390.png": {
+    "sha256": "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176",
+    "bytes": 87820
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-820-zh.png": {
+    "sha256": "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03",
+    "bytes": 114998
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-persisted-retried-820.png": {
+    "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+    "bytes": 111521
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-1440-zh.png": {
+    "sha256": "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c",
+    "bytes": 132278
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-1440.png": {
+    "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+    "bytes": 128955
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-390-zh.png": {
+    "sha256": "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618",
+    "bytes": 92490
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-390.png": {
+    "sha256": "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280",
+    "bytes": 87820
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-820-zh.png": {
+    "sha256": "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03",
+    "bytes": 114998
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-retried-820.png": {
+    "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+    "bytes": 111521
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-1440-zh.png": {
+    "sha256": "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a",
+    "bytes": 42203
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-1440.png": {
+    "sha256": "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1",
+    "bytes": 40651
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-390-zh.png": {
+    "sha256": "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af",
+    "bytes": 34065
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-390.png": {
+    "sha256": "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9",
+    "bytes": 31074
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-820-zh.png": {
+    "sha256": "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8",
+    "bytes": 35062
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/heatmap-unavailable-820.png": {
+    "sha256": "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce",
+    "bytes": 33688
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-1440-zh.png": {
+    "sha256": "10111af4cf84b5f93d0c8eee774a9d5f197c8947147921dfecfab5fc9e31968c",
+    "bytes": 75995
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-1440.png": {
+    "sha256": "af29d369bc2b63024f221e06b14eeb944e40e38b6fb324010ef114a93f23be9d",
+    "bytes": 68002
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-390-zh.png": {
+    "sha256": "b5b679b5233cf32742373d6129959c9497f3ff492d96d43b8b24e4e23d1fbbdf",
+    "bytes": 21826
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-390.png": {
+    "sha256": "5d112497fbc7ff4101b0255335c236bca9f00a4a3c91a0f6110b272068529987",
+    "bytes": 18487
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-820-zh.png": {
+    "sha256": "da28ddf1171875d871fdeefc7b919c4ba9be66d524b2ebbbff445c9ae4af95de",
+    "bytes": 72633
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-absent-820.png": {
+    "sha256": "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5",
+    "bytes": 65982
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-1440-zh.png": {
+    "sha256": "8f0a205737dda69905d8361919bb527e0704bca9dda31474f335bbd01ede92c2",
+    "bytes": 148451
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-1440.png": {
+    "sha256": "1f5fe76e983fd0dc16ba5a6ebcb9ecbe3ea63834b8f31dda6f7651386783ba8c",
+    "bytes": 140463
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-390-zh.png": {
+    "sha256": "8d45d55714f47507b3f0c7ae8e423c2f1ea9a55d429e686149266f9057c67192",
+    "bytes": 56712
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-390.png": {
+    "sha256": "6f55f6b012527b2224452e295d1a404fd5eed56976e83e8fd299922c48090204",
+    "bytes": 55535
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-820-zh.png": {
+    "sha256": "83da013d842f6447e3394b018b0262c1dffa18461159fdf3e0a7d9f8fe75c367",
+    "bytes": 136829
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-refresh-failed-820.png": {
+    "sha256": "3cde0b09e6aa199a9d626ad16321b8cba86043f2f67240ee2d43b2d05789551e",
+    "bytes": 127577
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-1440-zh.png": {
+    "sha256": "bdc10fd401c7713880f96cf274ce1ccfc2d039706395ee84078a3a7c2c018d32",
+    "bytes": 145657
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-1440.png": {
+    "sha256": "5b9bfc68fe984375ca47f54357cb9d7c33ee224a1af039664835278ecb756439",
+    "bytes": 138880
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-390-zh.png": {
+    "sha256": "6288b67ccf7e89bf3d9ebad68f2827534a1adc7bb139cff916f9290c9f66a293",
+    "bytes": 57698
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-390.png": {
+    "sha256": "bb8d5929274be93b315e840b820d4b42152539677b481347b2308e96c4ca03a7",
+    "bytes": 56671
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-820-zh.png": {
+    "sha256": "bdd00055926396b50b3b0065c42b9c94206db032b93fa306e77de954bc74c9ae",
+    "bytes": 133289
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-retried-820.png": {
+    "sha256": "764f16e22873dca319deae69d1afe2374e24cd2c3e372326092da6e923d66db0",
+    "bytes": 125005
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-1440-zh.png": {
+    "sha256": "ef244d3503672ccdd58b3f0f34bd003b0fd3e093557966765e0e321892788fa1",
+    "bytes": 68855
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-1440.png": {
+    "sha256": "af67c57c5064d71d2394678f3a60d7ba181acca099c921f37be4510ade07793c",
+    "bytes": 59482
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-390-zh.png": {
+    "sha256": "f6dd3c8d442f042e1d4e788ab27faa3e7a85260a48dbdba306893741984a458e",
+    "bytes": 19892
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-390.png": {
+    "sha256": "0cb8495f7dc12075e70abfb0bb492e99cbff412c36fd96bf700351c48b383839",
+    "bytes": 18154
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-820-zh.png": {
+    "sha256": "2a8bfdd40ff5174b4008128f9262fab269c0a7010c71b72bf64b098b8e0bf67e",
+    "bytes": 65496
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root/levels-unavailable-820.png": {
+    "sha256": "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34",
+    "bytes": 57501
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/prior-root-sha256.json": {
+    "sha256": "aa3b3b9e069939d15f5c885457942d535ee6c29079340071f5a64c755d64febf",
+    "bytes": 11810
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/promotion.json": {
+    "sha256": "e803e2bf7de72daced0dff0a11e6c18c3e361daba45a5882d90bf37566f46dee",
+    "bytes": 394
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/protected-root-sha256.json": {
+    "sha256": "6c8f8f3e4aa200a20b1690a81d124da3e4d0cd7e800af1c24c04eabef5b7c0a1",
+    "bytes": 11810
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/EVIDENCE.yml": {
+    "sha256": "415d5782676d2359b2adc7901d690a1d80e6b908537d7674bf2c44b0e8355113",
+    "bytes": 27914
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-1440-zh.png": {
+    "sha256": "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17",
+    "bytes": 15051
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-1440.png": {
+    "sha256": "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da",
+    "bytes": 12780
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-390-zh.png": {
+    "sha256": "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b",
+    "bytes": 13147
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-390.png": {
+    "sha256": "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1",
+    "bytes": 10565
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-820-zh.png": {
+    "sha256": "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858",
+    "bytes": 15393
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-absent-820.png": {
+    "sha256": "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236",
+    "bytes": 13170
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-1440-zh.png": {
+    "sha256": "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf",
+    "bytes": 98189
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-1440.png": {
+    "sha256": "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762",
+    "bytes": 92288
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-390-zh.png": {
+    "sha256": "54e04d7234849494101699a4ed5b49b88ff3365a4c32336836c3e0c3c2ce00a2",
+    "bytes": 44972
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-390.png": {
+    "sha256": "85ff6307658d1deffd3c9b2869852a6026952312fa58407caa9c22427349c949",
+    "bytes": 41099
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-820-zh.png": {
+    "sha256": "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480",
+    "bytes": 111489
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-retried-820.png": {
+    "sha256": "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b",
+    "bytes": 104279
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-1440-zh.png": {
+    "sha256": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be",
+    "bytes": 14616
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-1440.png": {
+    "sha256": "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33",
+    "bytes": 13247
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-390-zh.png": {
+    "sha256": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796",
+    "bytes": 12663
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-390.png": {
+    "sha256": "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96",
+    "bytes": 10757
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-820-zh.png": {
+    "sha256": "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6",
+    "bytes": 14966
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-ladder-unavailable-820.png": {
+    "sha256": "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84",
+    "bytes": 13695
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-1440-zh.png": {
+    "sha256": "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d",
+    "bytes": 53145
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-1440.png": {
+    "sha256": "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb",
+    "bytes": 47511
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-390-zh.png": {
+    "sha256": "d3ff932c9a8457db3b0156b12b1695c2e1ce9641f267815a91b083a3d306e346",
+    "bytes": 33044
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-390.png": {
+    "sha256": "f41a26ab91dfeb9e4a33f2d84f5055bf8514f7025d31dd17a19fe0ace2406d7b",
+    "bytes": 30723
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-820-zh.png": {
+    "sha256": "2f02cc7f32f9e1e19f290cf09b9c12bcdbaa8f338038c6a5931ec03c531e40f0",
+    "bytes": 46953
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-refresh-failed-820.png": {
+    "sha256": "67b611b8d88dd38ccde51fc222d08cc36b3072dc34ad1c0dd36b32f36811584a",
+    "bytes": 43493
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-1440-zh.png": {
+    "sha256": "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c",
+    "bytes": 47913
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-1440.png": {
+    "sha256": "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978",
+    "bytes": 43098
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-390-zh.png": {
+    "sha256": "2f49174d7ec552e20fee32dce71364430ea23066288c7f2abfd3d12ad87e4f3a",
+    "bytes": 27086
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-390.png": {
+    "sha256": "bbb3ea7ef11d1181ab6070ddb7c245ad3bd416217754e3e9e7a6916327d11ef0",
+    "bytes": 25330
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-820-zh.png": {
+    "sha256": "e324ef1ee548e4e5df88010b62c6d60234fee8b369ded77615a7bd20cf36a79d",
+    "bytes": 33631
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-live-retried-820.png": {
+    "sha256": "4e3a47ca51b1ba786af3d62d1bb39df374d8e66c347f7fb33c18e98686b49100",
+    "bytes": 31295
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-1440-zh.png": {
+    "sha256": "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1",
+    "bytes": 6176
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-1440.png": {
+    "sha256": "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31",
+    "bytes": 5551
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-390-zh.png": {
+    "sha256": "60a89d2515535a82bb98e139ef58ebe98e30d54b6e67f4580873c6388b21f669",
+    "bytes": 6270
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-390.png": {
+    "sha256": "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6",
+    "bytes": 5766
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-820-zh.png": {
+    "sha256": "ff2b670fe50c2b41eb01e9f7faa8eabe3248b428ee24c06f58fde178118a849d",
+    "bytes": 6724
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-pick-absent-820.png": {
+    "sha256": "22c942410566d2c787f94ce3314b39003541fd55722a6602f7afcc2888586c16",
+    "bytes": 6142
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-1440-zh.png": {
+    "sha256": "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223",
+    "bytes": 23339
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-1440.png": {
+    "sha256": "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4",
+    "bytes": 20220
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-390-zh.png": {
+    "sha256": "202d6345ba2334160c765e41d32f03b24628d22ed93e1f2f80cc60a83d655a3a",
+    "bytes": 23687
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-390.png": {
+    "sha256": "f8c5a4f9605703f7b7621b7ea0836459e198c4b98e412a3de71c9ae841c335d7",
+    "bytes": 20520
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-820-zh.png": {
+    "sha256": "f3b1b12309a4bad0e6dd151c653ddca9d35aa1c50cdaaaa43c1f23fc591edf21",
+    "bytes": 25107
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-retried-820.png": {
+    "sha256": "4db6291e1d44327226977a07fc609e9ceebea5b9e57cb82a2998f8f6b2f40c83",
+    "bytes": 24374
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-1440-zh.png": {
+    "sha256": "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad",
+    "bytes": 25994
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-1440.png": {
+    "sha256": "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30",
+    "bytes": 23723
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-390-zh.png": {
+    "sha256": "bda0b542942d1048a987f6da6df22c291761d93d5e6005b92567bb0cf9ce4035",
+    "bytes": 26397
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-390.png": {
+    "sha256": "71d2574c5effc1e78d99809d74926e2f75914dbc3770255697f2999422e3e7e6",
+    "bytes": 23847
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-820-zh.png": {
+    "sha256": "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994",
+    "bytes": 27861
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-rail-unavailable-820.png": {
+    "sha256": "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1",
+    "bytes": 24185
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-1440-zh.png": {
+    "sha256": "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c",
+    "bytes": 8040
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-1440.png": {
+    "sha256": "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba",
+    "bytes": 7356
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-390-zh.png": {
+    "sha256": "49f180f2da10c6b47e54adbab8c4710d642b7037853cbe1bccd2c0bd1921dfd6",
+    "bytes": 8228
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-390.png": {
+    "sha256": "05d849e8112010ce41601c6f561dbb9b275d8c05842a01490413eb8aec595aff",
+    "bytes": 7517
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-820-zh.png": {
+    "sha256": "f004af7fb41ead64616fe7a473bfea887f7725ff3bbf91de1b462dbbab2cf4d3",
+    "bytes": 8675
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/gex-state-refresh-failed-820.png": {
+    "sha256": "d691ed84c34eb5212f228130d9561275a211b7cf03b56e31d65ef71d6852cf8a",
+    "bytes": 7935
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-1440-zh.png": {
+    "sha256": "7c62ec6cb0a31046057bfdbd9702065707c0c35f7bb8c548d0bb0921718886b6",
+    "bytes": 35106
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-1440.png": {
+    "sha256": "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9",
+    "bytes": 32793
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-390-zh.png": {
+    "sha256": "013c35190668f5dc633903c801c1466ef2179d18228348af51b9f3244cc2d565",
+    "bytes": 26737
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-390.png": {
+    "sha256": "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a",
+    "bytes": 23029
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-820-zh.png": {
+    "sha256": "ab5eb75945abe2deb1c31cacd2707943781ffb9c9feabdebff3e4ddc594fffc6",
+    "bytes": 27495
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-absent-820.png": {
+    "sha256": "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229",
+    "bytes": 24983
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-1440-zh.png": {
+    "sha256": "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62",
+    "bytes": 138286
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-1440.png": {
+    "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+    "bytes": 133354
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-390-zh.png": {
+    "sha256": "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50",
+    "bytes": 88977
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-390.png": {
+    "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+    "bytes": 81834
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-820-zh.png": {
+    "sha256": "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27",
+    "bytes": 120615
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-failed-820.png": {
+    "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+    "bytes": 115207
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-1440-zh.png": {
+    "sha256": "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62",
+    "bytes": 138286
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-1440.png": {
+    "sha256": "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960",
+    "bytes": 133354
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-390-zh.png": {
+    "sha256": "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50",
+    "bytes": 88977
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-390.png": {
+    "sha256": "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673",
+    "bytes": 81834
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-820-zh.png": {
+    "sha256": "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27",
+    "bytes": 120615
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-refresh-refused-820.png": {
+    "sha256": "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83",
+    "bytes": 115207
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-1440-zh.png": {
+    "sha256": "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5",
+    "bytes": 133566
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-1440.png": {
+    "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+    "bytes": 128955
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-390-zh.png": {
+    "sha256": "f8a31f087ef5b5d82f660aefed965496f75d5dc6acca5586a93758daf7b366d7",
+    "bytes": 94014
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-390.png": {
+    "sha256": "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176",
+    "bytes": 87820
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-820-zh.png": {
+    "sha256": "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5",
+    "bytes": 116391
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-persisted-retried-820.png": {
+    "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+    "bytes": 111521
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-1440-zh.png": {
+    "sha256": "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5",
+    "bytes": 133566
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-1440.png": {
+    "sha256": "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283",
+    "bytes": 128955
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-390-zh.png": {
+    "sha256": "eb329a7037912615cd5a6ee3cb62bc35f9e3ae745bcdbae734d1583e70a5313d",
+    "bytes": 94016
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-390.png": {
+    "sha256": "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280",
+    "bytes": 87820
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-820-zh.png": {
+    "sha256": "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5",
+    "bytes": 116391
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-retried-820.png": {
+    "sha256": "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08",
+    "bytes": 111521
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-1440-zh.png": {
+    "sha256": "31b3b5daf17811c3c4a0fbc96a5f005954780346fa64426ccaaf8f66943942bc",
+    "bytes": 44178
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-1440.png": {
+    "sha256": "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1",
+    "bytes": 40651
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-390-zh.png": {
+    "sha256": "5869631ec0ea3de3a92dd9d6d99ea7bd527ff5833f4c37fe308b4f51b7a97e08",
+    "bytes": 35748
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-390.png": {
+    "sha256": "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9",
+    "bytes": 31074
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-820-zh.png": {
+    "sha256": "65be10ffce53092c201e98479b6a24e6f21047bc31e7492616ad70666c0e0abd",
+    "bytes": 37134
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/heatmap-unavailable-820.png": {
+    "sha256": "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce",
+    "bytes": 33688
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-1440-zh.png": {
+    "sha256": "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb",
+    "bytes": 78408
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-1440.png": {
+    "sha256": "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491",
+    "bytes": 68726
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-390-zh.png": {
+    "sha256": "60b21559ea78024916033513c54aa159ae32cff669831a698e8f034154ec9185",
+    "bytes": 22295
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-390.png": {
+    "sha256": "7d3fcf4a669125a3fbe85afbfa648301e77d114c226f567b5412499dc4f44497",
+    "bytes": 18519
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-820-zh.png": {
+    "sha256": "07932ee814ea2700be2dd3308e7aa9d86158410ce97119b1b1bba17bebb48ac8",
+    "bytes": 74716
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-absent-820.png": {
+    "sha256": "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5",
+    "bytes": 65982
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-1440-zh.png": {
+    "sha256": "532c196f5cc135ae52fad58dc5d7e83a3ee56bf7cf0a4c1c2f63dce8dd74fff5",
+    "bytes": 151980
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-1440.png": {
+    "sha256": "f6d40de25b7b4c1a80a20597d936947bae793dc974fbfd0d0226c025d7e8fc5e",
+    "bytes": 142023
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-390-zh.png": {
+    "sha256": "1dbecd94402b03d8f55bc98d820c3c247b79c118ded7cd4d88fc07357b6846cd",
+    "bytes": 58050
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-390.png": {
+    "sha256": "80958530ee9512ce3ceaf71772cf8f693ca22d0b8580ecfb96c0c41bee0aeea6",
+    "bytes": 55989
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-820-zh.png": {
+    "sha256": "0b81ce1513d164ce4fe138527f0cbf89f161b73b59a3c9044ceae41fc128323d",
+    "bytes": 139410
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-refresh-failed-820.png": {
+    "sha256": "8a573b80cca6cab19541e474c0129ca3f32c720d41d24208eaadcdba6082457a",
+    "bytes": 127578
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-1440-zh.png": {
+    "sha256": "e27125a64d8ddf3d4c5e06b63cd6eed041bd08cb1a1456e8676d064b0f549999",
+    "bytes": 153374
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-1440.png": {
+    "sha256": "5824e16b11fabf28f8e54c36c8eac84dbc7e1bbf058f49398098edbdaa2290e2",
+    "bytes": 139104
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-390-zh.png": {
+    "sha256": "b4a648e0210efcf262fcbdb76fca45aef3e60a6c3c34e6b51b34adcafdc04d06",
+    "bytes": 59222
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-390.png": {
+    "sha256": "f12409a0552dd7498ea0be4556986e641246aa37cf1ff967894b9fc51098ef2d",
+    "bytes": 57628
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-820-zh.png": {
+    "sha256": "035d29b0ae5c081991e7803244ad7ff5f0382e3587c59799b4cd57b8019e3fc4",
+    "bytes": 135595
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-retried-820.png": {
+    "sha256": "577562d1b09541ef223821cefcecc8d3b45eeadc36868b2394b6759e77309747",
+    "bytes": 125001
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-1440-zh.png": {
+    "sha256": "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb",
+    "bytes": 70639
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-1440.png": {
+    "sha256": "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961",
+    "bytes": 60205
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-390-zh.png": {
+    "sha256": "2ada896285e9f132e8714d2686b3870eb8d02a89f9814609e4d729098c8e3dfc",
+    "bytes": 19763
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-390.png": {
+    "sha256": "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b",
+    "bytes": 18184
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-820-zh.png": {
+    "sha256": "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac",
+    "bytes": 67103
+  },
+  "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/qualified-root/levels-unavailable-820.png": {
+    "sha256": "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34",
+    "bytes": 57501
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/README.md": {
+    "sha256": "075fe7c02bc926ce0b21d2f8c84e4422158b4ea5b425504dc94b1d586a89d574",
+    "bytes": 7335
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "2fadcdbf2ac1a7cbc209bd99cf431850effcc2b3f2ce8280de4a5dfb8e4d0914",
+    "bytes": 948903
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png": {
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png": {
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "cabfea910d3ba6fc39e94d3f4da53730d9464b190348af163f9f595c8d7f6bf0",
+    "bytes": 1040907
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png": {
+    "sha256": "b9864092209e6779d9a0b9d1d256f7bad9b7d8af5fb6a371cd61bb3194b9ba4c",
+    "bytes": 40043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png": {
+    "sha256": "b10a5ed5ac69190dcf778fd989583d48f1ac25b42513fd8b68b3e7a3ba035e77",
+    "bytes": 139687
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "9f75cc82d78ae2730a85429ef5b40818d04720227e917541800c341e6fa72dd8",
+    "bytes": 1014773
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png": {
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png": {
+    "sha256": "25325d218bd897e33fa984da538be87db7a96561b384e057648892e87d6c8bbe",
+    "bytes": 145455
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png": {
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png": {
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "0c2bea598e1126348e40cadd54324ee1a7f6ba1c35f6eb5a454e5ab373ae351c",
+    "bytes": 978673
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png": {
+    "sha256": "b9864092209e6779d9a0b9d1d256f7bad9b7d8af5fb6a371cd61bb3194b9ba4c",
+    "bytes": 40043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png": {
+    "sha256": "b10a5ed5ac69190dcf778fd989583d48f1ac25b42513fd8b68b3e7a3ba035e77",
+    "bytes": 139687
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "1b9f21bb328ee8e036add1b6213dc826fbf7ad4ddfbbdec807e574c0b3b3ff8b",
+    "bytes": 1046732
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png": {
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png": {
+    "sha256": "25325d218bd897e33fa984da538be87db7a96561b384e057648892e87d6c8bbe",
+    "bytes": 145455
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "6ed9fcdcbb655a426626b1883ac3cd5f8aac0e20e1ef18d861833099a792ed7e",
+    "bytes": 1007935
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png": {
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip": {
+    "sha256": "4b56ea87a874977417a18cdcfe2e919afbf0b7401d34e5558efda0d9f8d698d9",
+    "bytes": 944697
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png": {
+    "sha256": "5b76c191f55c1ed844f963f29f2221164f1f06da9628abc3239485e0b3cfd090",
+    "bytes": 103727
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip": {
+    "sha256": "8e72bba9dd5da2fb12923a71b09f6dd9bda23f41decc9d0f0cce67854b844061",
+    "bytes": 1168211
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png": {
+    "sha256": "a36fe641e5f9b311d9b08816d66256f82dc8eb566a05cb6668b5586264dddbcc",
+    "bytes": 103098
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip": {
+    "sha256": "88668350f0a736962748cafb93f69883646c572ef7553fbbbb91da133f871799",
+    "bytes": 970718
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png": {
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip": {
+    "sha256": "2e727c957e8e0bd50883d7e1d773f5e89bee94c351e8f764d5cf6d8545495929",
+    "bytes": 732380
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png": {
+    "sha256": "ccb53a7e00b21b607ca5f6ea27586920e6adc8b726db5ff6f157ecaa3a8ed5c9",
+    "bytes": 39868
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip": {
+    "sha256": "9e93f393d2910ebf57812264f168f0be64b6641222b332a19d0804090b79317b",
+    "bytes": 730859
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png": {
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip": {
+    "sha256": "71d0d5d7c47fac8dddb572bfbff22cc3d3a04251d8ab3e9f26395d7f43887c46",
+    "bytes": 808965
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/exposure-entry.png": {
+    "sha256": "c571de9188c734ed66997fe24db3f990742e657ed4a6a8e6cacec13fa4d322f2",
+    "bytes": 270940
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/history-controls.png": {
+    "sha256": "ca536b6faaf1c2d2a524a1490b86d0bcf01aaf896c078257eda4288cde26213a",
+    "bytes": 242887
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-details.png": {
+    "sha256": "8b374009cb35106d85ab71fd22d29162d74b27eb9ab1987dece0ded082d90eb4",
+    "bytes": 279361
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/market-state-passport.png": {
+    "sha256": "f6a3a209085dfbcf53f65aba376b80ca28ee78850de7f1e323025d0989107dac",
+    "bytes": 227174
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-desktop/trace.zip": {
+    "sha256": "825e5b44122b1d1f5f8de0c97cc20bd80df53f950a638a75b26b914d2ecfb5f7",
+    "bytes": 3003214
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/exposure-entry.png": {
+    "sha256": "aa1afeec5caad0bb176ab618badc0823a02e9018e2a2771e94cf362771a1ec54",
+    "bytes": 105884
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/history-controls.png": {
+    "sha256": "5ffffdcfdaaa4719ff23b9b9c8654dcbe6a634ddd12ac5dde51b475dd5d5d929",
+    "bytes": 108913
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-details.png": {
+    "sha256": "24513b14850b9c25a4fb2a4842b3604ca697950c62eb4d58ff57487697d6aec1",
+    "bytes": 116217
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/market-state-passport.png": {
+    "sha256": "4f536f7ab7abecb861614b2c81e67acc3a5876ec0c07c633d711b3fc04c01d68",
+    "bytes": 111710
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-mobile/trace.zip": {
+    "sha256": "393f607003a6c6eb08992ccf87612c82d7c6b6911e838b8b5a4967c3aea08d60",
+    "bytes": 2681099
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/exposure-entry.png": {
+    "sha256": "c0b586f5e5614dd6711e2631ddcae4f5e99082c073da7b152a8c01a6da6c02fe",
+    "bytes": 214459
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/history-controls.png": {
+    "sha256": "60fa8610a6038da7bbd0d277706259647ecb419ed08941e87c7c6eb748ab4289",
+    "bytes": 186977
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-details.png": {
+    "sha256": "7ace6f14be80ed066ac21cb76ca4bb075dd5c7d08e680c4bc789b25d3907600b",
+    "bytes": 184478
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/market-state-passport.png": {
+    "sha256": "53a8d7520340db9673601a81aeac7770a42bdcaf562973274ef5d530d9c1c8d0",
+    "bytes": 184524
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/exposure-workspace-Exposur-3f168-es-Market-State-and-history-tablet/trace.zip": {
+    "sha256": "ff7bd8fd07f3b3dc89067973215f464b9614d2302ebccd6cd98de58c4f0b2fbe",
+    "bytes": 2521456
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "6dcd5133b67928ed05108e9cc5dc9cf46ad2cead829e2332029b7a6bf1ab4418",
+    "bytes": 967750
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png": {
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png": {
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "475480bb484eae605ddbed07b64c31fd9465302a12b810e7be7bfadb873217bf",
+    "bytes": 1021220
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png": {
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png": {
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "89dcd3f22bdeeb6f7ac6cf507187138bd0d97f686c060544149a87ff174fd093",
+    "bytes": 1095369
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png": {
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png": {
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png": {
+    "sha256": "b9d958acf9451e01c43fbde18aa455cc2d7ae7ebd252abdbc125d2f0eae43966",
+    "bytes": 40031
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png": {
+    "sha256": "b1927330b1171fe45d1bba67ec548543f1cb245d41a58c0f8b71e794f9ed083e",
+    "bytes": 92043
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip": {
+    "sha256": "be3f5345f56e14a425fc80859da42938bdc4a40f5d3682e5fbf22720d97679ee",
+    "bytes": 950349
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png": {
+    "sha256": "0386eb85003c31bcebd1ddf56be47245932f766cb271304b4d737b856c274d46",
+    "bytes": 40033
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png": {
+    "sha256": "69f7ac621eb123a5d34baa6b3b184539cfe9c9211a40586fad02144d9f67e777",
+    "bytes": 42331
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip": {
+    "sha256": "2695b43b91e6ac57a57d556487c83fce92703e50604bb8e902c25c4a50c51896",
+    "bytes": 1184944
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png": {
+    "sha256": "474b34845fb4c32e295fbe535d3c98847973d6bb4bd05abcda5896588b7d4d30",
+    "bytes": 40456
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png": {
+    "sha256": "5ec84ce24f45a4c212a8d50d1c7411790cf0614a33cdf173d4f8af12ac85ad37",
+    "bytes": 86437
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip": {
+    "sha256": "ef61af8e552b68feb8ec47c720bede52b2a75880a669c3b15d2259b63ffc7357",
+    "bytes": 1093226
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png": {
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip": {
+    "sha256": "0bb1d1e90aeb72a649b8bbf18ad0fb3f70e5c0aded43e590c185a5c6e2e9741f",
+    "bytes": 1019382
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png": {
+    "sha256": "ad4ca288dec696445f30ec73039acdc3e44ba70d0dbe536a64383e1673077a88",
+    "bytes": 42953
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip": {
+    "sha256": "3cc0809ecaeeede6edf9315b02db883dfb7becc8886308b8e7af043f7d0cecbb",
+    "bytes": 1092959
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png": {
+    "sha256": "10fd463611114e7015a101e9de602855beabdfc3cb51e740fad1a8b5a0553bfd",
+    "bytes": 93534
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip": {
+    "sha256": "906735d8a80af457b61d3e196bdd1dcbd71525f69ecad241d0913a5577b57107",
+    "bytes": 1002603
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png": {
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip": {
+    "sha256": "17d423a435d8a3152565fb6953a1cdf4e1a03c349e4815316c44475927d3d872",
+    "bytes": 702634
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png": {
+    "sha256": "471affc361925c8fd47b39c8c1eb887176524cae55e6b77be4f422031d99ad7a",
+    "bytes": 39858
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip": {
+    "sha256": "975974e48e23f034eed2db407cdbc0064a272b2817087655a2ef2057126e8f85",
+    "bytes": 777486
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png": {
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip": {
+    "sha256": "134cc14d7fa96e113a5a3496889f7939dd6c92f1cbd579a74b4f51e415bae615",
+    "bytes": 820907
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-desktop/trace.zip": {
+    "sha256": "9e2d6628d6e427c67ae1c9ffc44e422c5759afd068dfbe20d107ac01449d73c2",
+    "bytes": 1141902
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-mobile/trace.zip": {
+    "sha256": "e5e4ab48dfd3d72f3c0f3d2c79465e44ef7af5e12257dd829e5cba08b9813de3",
+    "bytes": 1224007
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/browser-artifacts/preview/sector-exposure-depth-retu-6e21f-ting-appearance-preferences-tablet/trace.zip": {
+    "sha256": "3e28122ccbd86c3bb837d6eeecfde66af4edcc93cc2e2a8947ac15ca8217a9dc",
+    "bytes": 1202182
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/authored-lint.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser-artifacts.json": {
+    "sha256": "f2e4a406c7fdadb280a2978c520f0177bfd6a68542f09b3b1d5b7f62f06b74a1",
+    "bytes": 7221
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser-receipt.json": {
+    "sha256": "ba50ad34880c5853a0c58211ad1038a76976e1e8d2086421050abfb661eca8b9",
+    "bytes": 643
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser-server.log": {
+    "sha256": "b007c297a9de56d62331fe32645b02daed484146ae4e4fe2eac6e03cb42eb904",
+    "bytes": 12557
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser-source-after.json": {
+    "sha256": "f1c54ada9ecc0da40ed379c8c622483f602915d9eaf2f7967258e5b9081bc6db",
+    "bytes": 362291
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser-source-before.json": {
+    "sha256": "f1c54ada9ecc0da40ed379c8c622483f602915d9eaf2f7967258e5b9081bc6db",
+    "bytes": 362291
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/browser.log": {
+    "sha256": "df9ebdea47110e4d19d440babd12997d159b5d239d28f721260732677ad14404",
+    "bytes": 2591
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/candidate.json": {
+    "sha256": "ba31ba36926224f9879b1cb58a7a865ce6a31276058bb5e30852c19a0f9a0aa2",
+    "bytes": 596
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/dependency-integration.json": {
+    "sha256": "9f7f7505c28cc0144ae8921b23d770f74c5cb3dcb6331f6fa3a1d1169945c9ba",
+    "bytes": 420
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-evidence.log": {
+    "sha256": "727fb8317971f77d07c78f93e79d3fb2d243042438b22c6e8287e436349c24d5",
+    "bytes": 614
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-lint.log": {
+    "sha256": "0a15358a04b976671cc2b8e6bafc7c1114056756f4858e2c593face0f32c50fe",
+    "bytes": 8850
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-static.json": {
+    "sha256": "33b84af060b12712becc3afdabe6b3303490a9e94f92c52f1e3103f9c180053d",
+    "bytes": 1361
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-typescript.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/focused-unit.json": {
+    "sha256": "fb019361489af641f6d0e989396f1dc5f84bcedd90f3cd7b119d9a80a1cad5c5",
+    "bytes": 901
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/focused-unit.log": {
+    "sha256": "b71437968e4973c64ba851127a709627f8f5ee9a7793a01d7bd5a1fd561d23ca",
+    "bytes": 1502
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/lint-scope.json": {
+    "sha256": "000d3cd02fd0a2a935aaef02177d3ac126bdd83bf56695f37a8ba9a94d1549e2",
+    "bytes": 1374
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/mounted-unit.log": {
+    "sha256": "2a786d8f39e5cc5765fa7df4d533363adb3c3c17187ca554c815d27b0c703467",
+    "bytes": 591
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/typescript-after-idb.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/typescript-initial.log": {
+    "sha256": "f1993ab9fa1bb0aab8bc9d560d5fb3062dc9e8f0a9a25c3b2c52bb8cd06c80c7",
+    "bytes": 578
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/affected-upstream-unit.json": {
+    "sha256": "3cccde3c8419fe33911e14b6b904aa2bfdbb6b14a6f42ae59a2ab6ac0bbfcfa4",
+    "bytes": 445
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/affected-upstream-unit.log": {
+    "sha256": "17d28cfcf47d2b9385fe8f9ee0ac6a03270b0277ef2be894c69523842ad7b053",
+    "bytes": 1838
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser-artifacts.json": {
+    "sha256": "475d8337a0a9fab21dd4678e81110da8bfada5f403b94d2bd3db26a5e06679db",
+    "bytes": 11492
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser-receipt.json": {
+    "sha256": "bd3744763d2b80db63df77cef736b18b934505db9edd58e95228ff16957cd55b",
+    "bytes": 821
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser-server.log": {
+    "sha256": "df72bb2f83ab8a03ae2563dceed236fde25363f294d9c16b114664c612e3812d",
+    "bytes": 21037
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser-source-after.json": {
+    "sha256": "2935ba8c1b093aaf503dd5f1b3509093cb7bcc6df86c85248284693b4667da4c",
+    "bytes": 374150
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser-source-before.json": {
+    "sha256": "2935ba8c1b093aaf503dd5f1b3509093cb7bcc6df86c85248284693b4667da4c",
+    "bytes": 374150
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/browser.log": {
+    "sha256": "80c3f756349d1c4063501da57bc38a387b286f9804336eba2518ade5da940df3",
+    "bytes": 3498
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/composition-update.json": {
+    "sha256": "00ef22f3d2272c2bdd86843fe5683414862fec885408afc64c1413375fb55f4a",
+    "bytes": 1739
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/qualification.json": {
+    "sha256": "4b79861321202df23ee31ba60fdcc22542bbd726e3eef447b9471106cd35d818",
+    "bytes": 4555
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/reproduction/capture-original.py": {
+    "sha256": "25bc37e918a5034320f5468bfce7b62c802b3a9876c03e5f12cdc3df0dcc006d",
+    "bytes": 3624
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/reproduction/package-proof.py": {
+    "sha256": "362eb58de472b78bc42e9d713fdd4c8159e87ab7d9580e2528bff3aec080686c",
+    "bytes": 6032
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/reproduction/promote-evidence.py": {
+    "sha256": "a2542801c20cca414192dc59078235ab884af811e016e2a794d4bce9493897fc",
+    "bytes": 3227
+  },
+  "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/reproduction/verify-browser.py": {
+    "sha256": "cf93d4e866f5c9809c84473012c952c2485b5d5bd6c1ec078090de88add1fe72",
+    "bytes": 4278
+  }
+}

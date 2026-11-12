@@ -1,0 +1,19 @@
+{
+  "allPassed": true,
+  "packets": {
+    "grants": {
+      "receipt": "b-f12-b5-1-grants/capture-execution.json",
+      "receiptSha256": "7e42f3924e4c1d7dbc2b2dad451d876da98f059040e00e0620f8b4063d3aa7a6"
+    },
+    "rollup": {
+      "receipt": "w9t_f13_9-team-rollup-no-rank/capture-execution.json",
+      "receiptSha256": "495d686006d5da4ed302c9d7994eb6ca9f8ee48deffea8b84567442c3e72343d"
+    },
+    "workspaces": {
+      "receipt": "b-f12-b5-2-team-workspaces/capture-execution.json",
+      "receiptSha256": "382fbb298889dbee8acc2160df30f0701f4d82562684e010be9a5a3f299fa2f5"
+    }
+  },
+  "schema": "pr900_actual_native_capture_summary.v1",
+  "total": 36
+}

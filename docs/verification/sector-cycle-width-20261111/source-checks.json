@@ -1,0 +1,23 @@
+[
+  {
+    "name": "lint",
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/sector-intelligence/cycles/CycleChartPanel.tsx",
+      "e2e/sector-cycle-lens.spec.ts"
+    ],
+    "exit": 0,
+    "seconds": 6.268
+  },
+  {
+    "name": "typescript",
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 113.397
+  }
+]

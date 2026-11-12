@@ -1,0 +1,39 @@
+[
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-native-validation-20261109/terminal/test-results/pr650-recovery-20261109/native-evidence-tests-report.json"
+    ],
+    "exit": 0,
+    "seconds": 9.79,
+    "log": "post-capture-check-0.log",
+    "logSha256": "dbad99af9fe28fa241dd204dc93d8d3252623ec7cdaf9b361bbb9193f0178f07"
+  },
+  {
+    "command": [
+      "npx",
+      "eslint",
+      "lib/__tests__/eodCaptureIndicatorGate.test.ts"
+    ],
+    "exit": 0,
+    "seconds": 43.9,
+    "log": "post-capture-check-1.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "-e",
+      "const o=require(\"./e2e/tools/capture_ci_evidence.cjs\");const p=o.eodPacket(process.cwd()+\"/..\");if(p.plan.required)throw Error(\"Fresh EOD packet remains stale\");console.log(JSON.stringify({sources:Object.keys(p.layoutFiles).length,cases:p.files.length,plan:p.plan,manifestSha256:p.sha256}));"
+    ],
+    "exit": 0,
+    "seconds": 0.3,
+    "log": "post-capture-check-2.log",
+    "logSha256": "e1cd6fd820b6cd3b4fa33ea3a13444410d02a95bd278b3e5ff6425022ad8054c"
+  }
+]

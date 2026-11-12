@@ -1,0 +1,42 @@
+[
+  {
+    "label": "SMA 5 · D",
+    "text": "SMA 5 · D",
+    "fontPx": 11,
+    "serial": 16,
+    "left": 17,
+    "right": 69.98291015625,
+    "top": 831.953125,
+    "bottom": 839.953125
+  },
+  {
+    "label": "SMA 55 · D",
+    "text": "SMA 55 · D",
+    "fontPx": 11,
+    "serial": 18,
+    "left": 17,
+    "right": 76.9814453125,
+    "top": 849.953125,
+    "bottom": 857.953125
+  },
+  {
+    "label": "SMA 34 · 5m",
+    "text": "SMA 34 · 5m",
+    "fontPx": 11,
+    "serial": 19,
+    "left": 17,
+    "right": 85.97998046875,
+    "top": 867.953125,
+    "bottom": 875.953125
+  },
+  {
+    "label": "EMA 21 · D",
+    "text": "EMA 21 · D",
+    "fontPx": 11,
+    "serial": 17,
+    "left": 18,
+    "right": 76.94921875,
+    "top": 813.953125,
+    "bottom": 821.953125
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "schema": "terminal_pr768_current_source_recovery.v1",
+  "originalHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "sourceDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "startedAt": "2026-11-09T15:38:23.677414+00:00",
+  "takeoverComment": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/768#issuecomment-6744136601",
+  "unlocatedPriorTree": "2c6ff9d803e619587fa910f8ac799e9ce319ae9f",
+  "priorQualificationTransferred": false,
+  "guideBlobs": {
+    "AGENTS.md": "aba48321bf32eb757f11e1e2fb0c0b289206db12",
+    "terminal/AGENTS.md": "07a3b1916a97cfc2b05dd387ab1b4d4c15c1c6a9",
+    "terminal/CLAUDE.md": "8c32faf7eb9395eb5f1529ee0cdfd6d82808c0e1"
+  },
+  "mergeExit": 1,
+  "stdout": "Auto-merging .github/workflows/ci.yml\nCONFLICT (content): Merge conflict in .github/workflows/ci.yml\nAuto-merging terminal/components/gexdesk/StrikeLadder.tsx\nAuto-merging terminal/e2e/tools/capture_ci_evidence.cjs\nCONFLICT (content): Merge conflict in terminal/e2e/tools/capture_ci_evidence.cjs\nAuto-merging terminal/e2e/tools/capture_ci_evidence.test.cjs\nCONFLICT (content): Merge conflict in terminal/e2e/tools/capture_ci_evidence.test.cjs\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "stderr": "",
+  "conflicts": [
+    ".github/workflows/ci.yml",
+    "terminal/e2e/tools/capture_ci_evidence.cjs",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs"
+  ],
+  "headAfter": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "mergeHead": "03af393ce05c12282003a3919cc473c032264922"
+}

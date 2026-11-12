@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/pr627-validation/terminal
+
+ ✓ lib/__tests__/pulseWaveWarmup.test.ts (1 test) 3ms
+ ✓ lib/__tests__/suiteModules.test.ts (265 tests) 2100ms
+   ✓ W2 contract hygiene > keeps every drawn value inside its suite's declared pane range 478ms
+
+ Test Files  2 passed (2)
+      Tests  266 passed (266)
+   Start at  01:32:46
+   Duration  3.18s (transform 751ms, setup 0ms, collect 982ms, tests 2.10s, environment 0ms, prepare 127ms)
+

@@ -1,0 +1,21 @@
+{
+  "compilerSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+  "installedVersion": "5.9.3",
+  "lockedEntry": {
+    "bin": {
+      "tsc": "bin/tsc",
+      "tsserver": "bin/tsserver"
+    },
+    "dev": true,
+    "engines": {
+      "node": ">=14.17"
+    },
+    "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+    "license": "Apache-2.0",
+    "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+    "version": "5.9.3"
+  },
+  "nodePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules",
+  "sourceOrDependencyWrites": false,
+  "state": "EXACT_LOCKED_TYPESCRIPT_REUSED_READ_ONLY"
+}

@@ -22,9 +22,12 @@
 "use strict";
 /* eslint-disable @typescript-eslint/no-require-imports -- a plain Node CommonJS tool, like the other capture scripts */
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
+const assert = require("node:assert/strict");
+const { tmpdir } = require("node:os");
+const { startLegacyServer, reportLegacyServer, waitLegacyServer, settleLegacyServer, captureRefusal } = require("./capture_ci_evidence.cjs");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
@@ -36,6 +39,9 @@ const LAYOUT_FILES = [
   "terminal/components/alerts/alertBulk.module.css",
   "terminal/lib/alertBulk.ts",
   "terminal/lib/alertBulkLex.ts",
+  "terminal/e2e/tools/capture_e18_alert_management.cjs",
+  "terminal/e2e/tools/capture_ci_evidence.cjs",
+  "terminal/next.config.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3549);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -47,48 +53,11 @@ const VIEWPORTS = {
 const STATES = ["review", "results"];
 const LANGS = ["en", "zh"];
 
-mkdirSync(OUT, { recursive: true });
-
 const currentGitHead = () => execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 const sha256File = (rel) => createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
 const cropName = (state, vp, lang) => `${state}-${vp}-${lang}.png`;
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  return spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT, env, stdio: ["ignore", "ignore", "pipe"], detached: true,
-  });
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try { process.kill(-child.pid, "SIGINT"); } catch { try { child.kill("SIGINT"); } catch { /* gone */ } }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/alerts`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = (err.cause && err.cause.code) || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
+function startServer() { return startLegacyServer(ROOT, PORT); }
 
 const STORE = () => new Map([
   ["a1", { id: "a1", symbol: "NVDA", active: true, created_at: "2026-10-01T12:00:00Z", condition: { type: "signal", target: "BUY" } }],
@@ -99,9 +68,25 @@ const STORE = () => new Map([
   ["a6", { id: "a6", symbol: "SPY", active: true, created_at: "2026-10-01T12:00:00Z", condition: { type: "signal", target: "BUY" } }],
 ]);
 const SCRIPT = { a1: "ack", a2: "landed-then-502", a3: "500", a4: "gone-404" };
+// Same accepted result semantics as e2e/alerts-bulk-manage.spec.ts.
+const COPY = {
+  "en": {
+    "summary": "1 paused · 1 refused · 2 not confirmed · 1 skipped of 5 selected",
+    "landed": "Not confirmed — latest saved state: Paused",
+    "notLanded": "Not confirmed — latest saved state: Armed",
+    "refused": "Refused — not found in your alerts"
+  },
+  "zh": {
+    "summary": "已暂停 1 条 · 被拒绝 1 条 · 未获确认 2 条 · 跳过 1 条 共选 5 条",
+    "landed": "未获确认——最新保存的状态：已暂停",
+    "notLanded": "未获确认——最新保存的状态：已启用",
+    "refused": "被拒绝——在你的提醒中未找到"
+  }
+};
 
 async function installOwner(page) {
   const store = STORE();
+  const patches = [];
   await page.route("**/data/manifest.json**", (route) => route.fulfill({
     json: { symbols: { NVDA: { name: "NVIDIA", last: 182.5 }, SPY: { name: "SPDR S&P 500", last: 701.2 } } },
   }));
@@ -114,6 +99,7 @@ async function installOwner(page) {
     if (req.method() === "GET") return route.fulfill({ json: { alerts: [...store.values()].map((r) => structuredClone(r)) } });
     if (req.method() !== "PATCH") return route.fulfill({ status: 405, json: { error: "unexpected" } });
     const body = req.postDataJSON();
+    patches.push(structuredClone(body));
     const apply = () => {
       const r = store.get(body.id);
       if (!r) return null;
@@ -133,6 +119,7 @@ async function installOwner(page) {
       }
     }
   });
+  return { store, patches };
 }
 
 // Bring `sel` to the top of whichever box scrolls it (.pg on desktop/tablet, the document on a phone),
@@ -169,20 +156,25 @@ async function bringToTop(page, sel) {
   }
 }
 
-async function capture(browser, state, vp, lang) {
+async function capture(browser, state, vp, lang, stage) {
   const v = VIEWPORTS[vp];
   const context = await browser.newContext({
     viewport: { width: v.width, height: v.height },
     hasTouch: v.touch,
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
+    reducedMotion: "reduce",
   });
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
+  let failure;
   try {
-    await installOwner(page);
+    const owner = await installOwner(page);
     await page.addInitScript((l) => {
       localStorage.setItem("mm.lang", l);
+      localStorage.setItem("theme", "dark");
+      localStorage.setItem("theme_auto", "0");
+      document.documentElement.setAttribute("data-theme", "dark");
       document.documentElement.setAttribute("data-lang", l);
       document.documentElement.setAttribute("lang", l === "zh" ? "zh-CN" : "en");
     }, lang);
@@ -194,7 +186,7 @@ async function capture(browser, state, vp, lang) {
         await page.locator('[data-bulk-manager="open"]').waitFor({ state: "visible", timeout: 1_500 });
         break;
       } catch (err) {
-        if (i >= 20) throw err;
+        if (captureRefusal(err) || i >= 20) throw err;
       }
     }
     await page.locator("[data-bulk-row]").nth(5).waitFor({ state: "visible" });
@@ -211,48 +203,106 @@ async function capture(browser, state, vp, lang) {
       await page.waitForTimeout(600);   // let the post-batch re-read settle the observed states
       anchor = '[data-bulk-results="pause"]';
     }
-    await page.evaluate(() => document.querySelectorAll("nextjs-portal").forEach((el) => el.remove()));
-    if (await page.locator("[data-nextjs-dev-tools-button]").count()) throw new Error("Next.js N overlay mounted");
+    if (await page.locator("[data-nextjs-dev-tools-button]").count()) throw new Error("Next.js N indicator mounted");
     await bringToTop(page, anchor);
     await page.mouse.move(0, 0);
     await page.waitForTimeout(200);
+    await page.waitForFunction(() => document.fonts.status === "loaded", null, { timeout: 5_000 });
+    const proof = { state, viewport: { width: v.width, height: v.height }, lang };
+    if (state === "review") {
+      assert.equal(await page.locator('[data-bulk-review="pause"] [data-bulk-review-row]').count(), 5);
+      assert.equal(await page.locator('[data-bulk-review="pause"]').getAttribute("data-bulk-review-stale"), "0");
+      assert.equal(await page.locator('[data-bulk-review="pause"] [data-bulk-confirm]').isEnabled(), true,
+        "The captured review must have a completed matching inventory read");
+      assert.equal(await page.locator("[data-bulk-review-checking]").count(), 0);
+      assert.deepEqual(owner.patches, [], "Reviewing must not send writes");
+      assert.deepEqual(await page.locator("[data-bulk-review-row]").evaluateAll(rows => rows.map(row => row.getAttribute("data-bulk-review-row")).sort()), ["a1", "a2", "a3", "a4", "a5"]);
+      proof.reviewValidated = true;
+    } else {
+      proof.outcomes = {};
+      for (const [id, expected] of Object.entries({ a1: "acknowledged", a2: "unknown", a3: "unknown", a4: "refused", a5: "skipped" })) {
+        const row = page.locator(`[data-bulk-result-row="${id}"]`);
+        assert.equal(await row.getAttribute("data-bulk-outcome"), expected);
+        proof.outcomes[id] = { kind: expected, text: await row.innerText() };
+      }
+      assert.equal(await page.locator("[data-bulk-result-row]").count(), 5);
+      proof.summary = (await page.locator("[data-bulk-summary]").innerText()).trim();
+      assert.equal(proof.summary, COPY[lang].summary);
+      assert.ok(proof.outcomes.a2.text.includes(COPY[lang].landed), "AAPL must retain unknown status with observed paused state");
+      assert.ok(proof.outcomes.a3.text.includes(COPY[lang].notLanded), "TSLA must retain unknown status with observed armed state");
+      assert.ok(proof.outcomes.a4.text.includes(COPY[lang].refused));
+      proof.sent = owner.patches.map(patch => `${patch.id}:${String(patch.action)}`).sort();
+      assert.deepEqual(proof.sent, ["a1:pause", "a2:pause", "a3:pause", "a4:pause"]);
+      assert.deepEqual([...owner.store.values()].map(row => `${row.id}:${row.active ? "on" : "off"}`), ["a1:off", "a2:off", "a3:on", "a5:off", "a6:on"]);
+    }
+    const panel = page.locator(anchor);
+    const before = { box: await panel.boundingBox(), text: await panel.innerText() };
+    assert.ok(before.box, "The requested native state must be visible");
     const file = cropName(state, vp, lang);
-    await page.screenshot({ path: join(OUT, file), fullPage: false, animations: "disabled" });
-    return file;
+    await page.screenshot({ path: join(stage, file), fullPage: false, animations: "disabled" });
+    const after = { box: await panel.boundingBox(), text: await panel.innerText() };
+    assert.deepEqual(after, before, "The captured state changed during the screenshot");
+    if (await page.locator("[data-nextjs-dev-tools-button]").count()) throw new Error("Next.js N indicator mounted during capture");
+    return { file, ...proof, geometry: before.box };
   } catch (err) {
-    try {
-      await page.screenshot({ path: join(OUT, `FAIL-${cropName(state, vp, lang)}`), fullPage: false });
-      console.log(await page.locator("[data-bulk-manager]").innerText().catch(() => "(no panel)"));
-    } catch { /* ignore */ }
+    failure = err;
+    if (!captureRefusal(err)) {
+      try {
+        await page.screenshot({ path: join(stage, `FAIL-${cropName(state, vp, lang)}`), fullPage: false });
+        console.log(await page.locator("[data-bulk-manager]").innerText().catch(() => "(no panel)"));
+      } catch (diagnosticError) { console.error("capture diagnostic failed", diagnosticError); }
+    }
     throw err;
   } finally {
-    await context.close();
+    try { await context.close(); }
+    catch (closeError) {
+      throw failure ? new AggregateError([failure, closeError], "E18 capture and context cleanup failed") : closeError;
+    }
   }
 }
 
 async function main() {
   const capturedAtHead = currentGitHead();
-  const child = startServer();
-  const files = [];
+  const sourceHashes = Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)]));
+  const stage = mkdtempSync(join(tmpdir(), "mmx-capture_e18_alert_management-"));
+  console.log("capture stage " + stage);
+  const captures = [];
+  const failures = [];
+  let child, browser;
   try {
-    await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
-    try {
-      for (const state of STATES) {
-        for (const vp of Object.keys(VIEWPORTS)) {
-          for (const lang of LANGS) {
-            process.stdout.write(`capture ${cropName(state, vp, lang)} … `);
-            files.push(await capture(browser, state, vp, lang));
-            console.log("ok");
-          }
+    child = startServer();
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, BASE + "/alerts", 180_000);
+    browser = await chromium.launch({ headless: true });
+    for (const state of STATES) {
+      for (const vp of Object.keys(VIEWPORTS)) {
+        for (const lang of LANGS) {
+          process.stdout.write(`capture ${cropName(state, vp, lang)} … `);
+          const result = await capture(browser, state, vp, lang, stage);
+          captures.push(result);
+          console.log("ok " + JSON.stringify(result));
         }
       }
-    } finally {
-      await browser.close();
     }
-  } finally {
-    stopServer(child);
+  } catch (error) { failures.push(error); }
+  finally {
+    if (browser) {
+      try { await browser.close(); } catch (error) { failures.push(error); }
+    }
+    if (child) {
+      try { await settleLegacyServer(child); } catch (error) { failures.push(error); }
+    }
   }
+  writeFileSync(join(stage, "capture-proof.json"), JSON.stringify(captures, null, 2) + "\n");
+  if (failures.length) {
+    console.error("E18 capture failed; original packet preserved; diagnostics: " + stage);
+    throw new AggregateError(failures, "E18 capture or cleanup failed");
+  }
+  assert.equal(currentGitHead(), capturedAtHead, "Source head changed during capture");
+  for (const [rel, hash] of Object.entries(sourceHashes)) assert.equal(sha256File(rel), hash, rel + " changed during capture");
+  const files = captures.map(capture => capture.file);
+  const expectedFiles = STATES.flatMap(state => Object.keys(VIEWPORTS).flatMap(vp => LANGS.map(lang => cropName(state, vp, lang)))).sort();
+  assert.deepEqual([...files].sort(), expectedFiles, "The complete twelve-cell packet is required");
 
   files.sort();
   const evidence = [
@@ -263,7 +313,7 @@ async function main() {
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
     "layoutFiles:",
-    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`),
+    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${sourceHashes[rel]}"`),
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",
@@ -280,11 +330,25 @@ async function main() {
     "  TERMINAL_CROP_PORT=47283 node e2e/tools/capture_e18_alert_management.cjs",
     "",
   ];
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence.join("\n"));
-  console.log(`wrote ${files.length} crops + EVIDENCE.yml capturedAtHead=${capturedAtHead}`);
+  const manifest = evidence.join("\n");
+  // Validate every staged input before replacing any member of the original packet.
+  const qualified = captures.map(capture => {
+    const bytes = readFileSync(join(stage, capture.file));
+    assert.ok(bytes.length > 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), capture.file + ": invalid PNG");
+    assert.equal(bytes.readUInt32BE(16), capture.viewport.width, capture.file + ": viewport width changed");
+    assert.equal(bytes.readUInt32BE(20), capture.viewport.height, capture.file + ": viewport height changed");
+    return { file: capture.file, bytes };
+  });
+  mkdirSync(OUT, { recursive: true });
+  const allowed = new Set(["EVIDENCE.yml", ...expectedFiles]);
+  assert.ok(readdirSync(OUT).every(file => allowed.has(file)), "Unexpected existing packet member");
+  writeFileSync(join(stage, "EVIDENCE.yml"), manifest);
+  for (const capture of qualified) writeFileSync(join(OUT, capture.file), capture.bytes);
+  writeFileSync(join(OUT, "EVIDENCE.yml"), manifest);
+  console.log(`wrote ${files.length} qualified crops + EVIDENCE.yml capturedAtHead=${capturedAtHead}; proof=${stage}`);
 }
 
-main().catch((err) => {
-  console.error(err && err.stack ? err.stack : err);
-  process.exit(1);
-});
+module.exports = { LAYOUT_FILES, capture, main };
+if (require.main === module) {
+  main().catch(err => { console.error(err); process.exitCode = 1; });
+}

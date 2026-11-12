@@ -1,0 +1,12 @@
+{
+  "head": "e9fa843122ac0eee36d607b8313e0bb264bed840",
+  "protected": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "ancestor": "350a61f9bae0ae61b2ab188ec99cc73552496ad2",
+  "source_law": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "gex_diff3_rc": 0,
+  "candidate_sha256": {
+    "terminal/components/gexdesk/GexDeskView.tsx": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "1b9bfeaa9ae3a9460fcecd812a98dcd8ef6591df0041d5dc4a53bde6dc2daf8b"
+  },
+  "effect": "candidate_files_only_original_worktree_unchanged"
+}

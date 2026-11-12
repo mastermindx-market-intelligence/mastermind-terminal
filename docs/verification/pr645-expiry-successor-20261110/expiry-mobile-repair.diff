@@ -1,0 +1,34 @@
+diff --git a/terminal/e2e/exposure-expiry-greeks.spec.ts b/terminal/e2e/exposure-expiry-greeks.spec.ts
+index 71b1ea59b..41ceaad33 100644
+--- a/terminal/e2e/exposure-expiry-greeks.spec.ts
++++ b/terminal/e2e/exposure-expiry-greeks.spec.ts
+@@ -105,6 +105,12 @@ test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang
+   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+ 
+   await page.getByRole("button", { name: t("greekVannaFull"), exact: true }).click();
++  if (testInfo.project.name === "mobile") {
++    const disclosure = page.locator("details").filter({
++      has: page.getByRole("group", { name: t("viewAria"), exact: true, includeHidden: true }),
++    });
++    await disclosure.locator(":scope > summary").click();
++  }
+   await page.getByRole("button", { name: t("viewByExpiry"), exact: true }).click();
+ 
+   // The existing expiry bar view must consume the enriched by_expiry fields rather
+diff --git a/terminal/e2e/responsive.spec.ts b/terminal/e2e/responsive.spec.ts
+index 22b87feeb..e7a1d0213 100644
+--- a/terminal/e2e/responsive.spec.ts
++++ b/terminal/e2e/responsive.spec.ts
+@@ -1446,6 +1446,12 @@ test("Exposure desk renders expiry VEX and CHEX from the enriched owner payload"
+   await vanna.click();
+ 
+   const axis = page.getByRole("group", { name: "Exposure axis" });
++  if (testInfo.project.name === "mobile") {
++    const disclosure = page.locator("details").filter({
++      has: page.getByRole("group", { name: "Exposure axis", exact: true, includeHidden: true }),
++    });
++    await disclosure.locator(":scope > summary").click();
++  }
+   await axis.getByRole("button", { name: "By Expiration", exact: true }).click();
+ 
+   const expiryRegion = page.locator(".obs-gexdesk-ladder-region");

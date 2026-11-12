@@ -1,0 +1,1550 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/statistics-basis-controls.spec.ts",
+      "e2e/statistics-current-tables.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 47497",
+      "url": "http://127.0.0.1:47497/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "statistics-basis-controls.spec.ts",
+      "file": "statistics-basis-controls.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "analysis en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6371,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"en\",\"annual\":{\"x\":1213.203125,\"y\":212,\"width\":61.40625,\"height\":44},\"interim\":{\"x\":1274.609375,\"y\":212,\"width\":74.390625,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:01:18.249Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-7c925039871bc62d1686",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2562,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"zh\",\"annual\":{\"x\":1257,\"y\":212,\"width\":46,\"height\":44},\"interim\":{\"x\":1303,\"y\":212,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:01:25.800Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-8222c62123f43f64bed0",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13925,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"en\",\"annual\":{\"x\":850.28125,\"y\":185,\"width\":61.890625,\"height\":44},\"interim\":{\"x\":912.171875,\"y\":185,\"width\":75.828125,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:01:28.740Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-517b737d794c43f9ec52",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11975,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"zh\",\"annual\":{\"x\":896,\"y\":185,\"width\":46,\"height\":44},\"interim\":{\"x\":942,\"y\":185,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:01:45.140Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-73e8a20231c186122764",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "annual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1894,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:01:58.940Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-5ee57e38b99447cd633c",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        },
+        {
+          "title": "semiannual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1733,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics interim-only guidance No semiannual valuation ratios\nThe fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:00.966Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-fc9c622471ac10fafd2f",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        },
+        {
+          "title": "analysis en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3084,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"en\",\"annual\":{\"x\":649.203125,\"y\":203,\"width\":61.40625,\"height\":44},\"interim\":{\"x\":710.609375,\"y\":203,\"width\":74.390625,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:51.048Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-205e335b8f1b7449e7c4",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3275,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"zh\",\"annual\":{\"x\":693,\"y\":199,\"width\":46,\"height\":44},\"interim\":{\"x\":739,\"y\":199,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:55.060Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-10eedf35b25610c9fa2c",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13229,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"en\",\"annual\":{\"x\":647.28125,\"y\":143,\"width\":61.890625,\"height\":44},\"interim\":{\"x\":709.171875,\"y\":143,\"width\":75.828125,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:58.572Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-689d1866c35a81c8d592",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7211,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"zh\",\"annual\":{\"x\":693,\"y\":143,\"width\":46,\"height\":44},\"interim\":{\"x\":739,\"y\":143,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:12.058Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-6cad3f270e4155a60934",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "annual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1812,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:19.653Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-5bc9fe330a62caf9ac2f",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        },
+        {
+          "title": "semiannual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2386,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics interim-only guidance No semiannual valuation ratios\nThe fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:21.755Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-9aa7d927120cca742377",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        },
+        {
+          "title": "analysis en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2374,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"en\",\"annual\":{\"x\":157.203125,\"y\":189,\"width\":61.40625,\"height\":44},\"interim\":{\"x\":218.609375,\"y\":189,\"width\":74.390625,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:58.934Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-87d44b78f6abc917dd3b",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3217,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"analysis\",\"lang\":\"zh\",\"annual\":{\"x\":201,\"y\":189,\"width\":46,\"height\":44},\"interim\":{\"x\":247,\"y\":189,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:01.998Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--ab2f6-is-matches-available-ratios-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-6f5325195b79a03c3d56",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal en: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10313,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"en\",\"annual\":{\"x\":155.28125,\"y\":135,\"width\":61.890625,\"height\":44},\"interim\":{\"x\":217.171875,\"y\":135,\"width\":75.828125,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:05.395Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--caa36-is-matches-available-ratios-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-ad96d6e232f615bc6a56",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: selected statistics basis matches available ratios",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9655,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics initial controls {\"surface\":\"terminal\",\"lang\":\"zh\",\"annual\":{\"x\":201,\"y\":135,\"width\":46,\"height\":44},\"interim\":{\"x\":247,\"y\":135,\"width\":46,\"height\":44},\"role\":\"group\",\"annualPressed\":\"true\",\"interimPressed\":\"false\"}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:15.980Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-c0b17a2af5c9ea89c4fe",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 78,
+          "column": 7
+        },
+        {
+          "title": "annual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1994,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:26.049Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--27cfe-onest-availability-guidance-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-1240b7415556812f05da",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        },
+        {
+          "title": "semiannual-only basis preserves honest availability guidance",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1941,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics interim-only guidance 暂无半年度估值比率\n基本面数据源仅按年度报告期发布估值比率。该快照暂无年度报表历史。\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:28.270Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-basis-controls--b4aec-onest-availability-guidance-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "18fe8ea6c0cb01e974e3-77e37c55dc1f2aebefd6",
+          "file": "statistics-basis-controls.spec.ts",
+          "line": 143,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "statistics-current-tables.spec.ts",
+      "file": "statistics-current-tables.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "analysis en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4318,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":1288.953125,\"right\":1342,\"width\":53.046875,\"clipLeft\":312,\"clipRight\":1352,\"scrollLeft\":0,\"scrollWidth\":1040,\"clientWidth\":1040,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:02.911Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-660e0493c49405943f9c",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4895,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":1288.953125,\"right\":1342,\"width\":53.046875,\"clipLeft\":312,\"clipRight\":1352,\"scrollLeft\":0,\"scrollWidth\":1040,\"clientWidth\":1040,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:07.819Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-0a7be2a42a7779de10a6",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14667,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":927.953125,\"right\":981,\"width\":53.046875,\"clipLeft\":148,\"clipRight\":991,\"scrollLeft\":0,\"scrollWidth\":843,\"clientWidth\":843,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:13.350Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-b4946aee441cf9ca4dbe",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15791,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":927.953125,\"right\":981,\"width\":53.046875,\"clipLeft\":148,\"clipRight\":991,\"scrollLeft\":0,\"scrollWidth\":843,\"clientWidth\":843,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:02:31.314Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-64428a89061001b76c69",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "analysis en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5326,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":724.953125,\"right\":778,\"width\":53.046875,\"clipLeft\":32,\"clipRight\":788,\"scrollLeft\":0,\"scrollWidth\":756,\"clientWidth\":756,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:24.278Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-c85300ba9a0a354f36b0",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4449,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":724.953125,\"right\":778,\"width\":53.046875,\"clipLeft\":32,\"clipRight\":788,\"scrollLeft\":0,\"scrollWidth\":756,\"clientWidth\":756,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:30.334Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-822c3cebd311ec697f87",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11104,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":724.953125,\"right\":778,\"width\":53.046875,\"clipLeft\":32,\"clipRight\":788,\"scrollLeft\":0,\"scrollWidth\":756,\"clientWidth\":756,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:35.456Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-0c7ff5eb2fa193dd2b0f",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10338,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":724.953125,\"right\":778,\"width\":53.046875,\"clipLeft\":32,\"clipRight\":788,\"scrollLeft\":0,\"scrollWidth\":756,\"clientWidth\":756,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:03:47.209Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-2c731c749f2326a0a462",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "analysis en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4133,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":232.953125,\"right\":286,\"width\":53.046875,\"clipLeft\":24,\"clipRight\":296,\"scrollLeft\":0,\"scrollWidth\":272,\"clientWidth\":272,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:30.477Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--48664-ues-fit-beside-their-labels-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-e98edf6632fee47284a4",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "analysis zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4732,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"analysis\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":232.953125,\"right\":286,\"width\":53.046875,\"clipLeft\":24,\"clipRight\":296,\"scrollLeft\":0,\"scrollWidth\":272,\"clientWidth\":272,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:35.791Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d0531-ues-fit-beside-their-labels-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-cec271178946d3b02228",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal en: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12451,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"en\",\"text\":\"200.00M\",\"left\":232.953125,\"right\":286,\"width\":53.046875,\"clipLeft\":24,\"clipRight\":296,\"scrollLeft\":0,\"scrollWidth\":272,\"clientWidth\":272,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:41.404Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--1f022-ues-fit-beside-their-labels-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-a7e9072ec7efe2436626",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        },
+        {
+          "title": "terminal zh: current values fit beside their labels",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13428,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "statistics current-value geometry {\"surface\":\"terminal\",\"lang\":\"zh\",\"text\":\"200.00M\",\"left\":232.953125,\"right\":286,\"width\":53.046875,\"clipLeft\":24,\"clipRight\":296,\"scrollLeft\":0,\"scrollWidth\":272,\"clientWidth\":272,\"hit\":true}\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T07:04:54.660Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1397-protected-successor/docs/verification/pr1397-protected-successor-20261110/browser-beta/artifacts/statistics-current-tables--d99b4-ues-fit-beside-their-labels-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "840a595868a12c9b14d9-4ee9f65c62703a2c3e8d",
+          "file": "statistics-current-tables.spec.ts",
+          "line": 94,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T07:00:32.079Z",
+    "duration": 277409.577,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

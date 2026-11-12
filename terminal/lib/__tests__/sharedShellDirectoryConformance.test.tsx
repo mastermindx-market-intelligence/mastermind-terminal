@@ -102,6 +102,17 @@ afterEach(async () => {
 });
 
 describe("incumbent directory conformance", () => {
+  it.each(["en", "zh"] as const)("%s distinguishes the complete Prophet workspace from model plans", async lang => {
+    fixture.lang = lang;
+    fixture.directory = [entry("/us_stocks.html", "legacy", "nav.us", "Stock Dashboard"), entry("/prophet", "native", "nav.intelligence", "Prophet")];
+    fixture.paths = ["/us_stocks.html"];
+    await mount();
+    const workspace = links().find(link => link.getAttribute("href") === "/us_stocks.html");
+    const plans = links().find(link => link.getAttribute("href") === "/prophet");
+    expect(workspace?.textContent).toContain("Prophet");
+    expect(plans?.textContent).toContain(lang === "zh" ? "模型计划与期权" : "Model plans & options");
+    expect(hrefs()).toHaveLength(2);
+  });
   it("recovers zero-in-category matches without changing the typed query", async () => {
     await mount(); await type("options"); await click(button("Research"));
     expect(links()).toHaveLength(0);

@@ -1,10 +1,16 @@
 "use client";
 
-// Shown on the six member workspaces (/dislocations, /analysis, /discover, /scripts, /portfolio,
-// /alerts) when the visitor is signed out — each page gates server-side and returns
-// this instead of its workspace. The chart (/terminal) is deliberately NOT gated:
-// guests get the full charting surface, and these are the surfaces that need an
-// account to mean anything (saved lists, saved scripts, server-side alerts).
+// Shown on the nine member workspaces (/today, /research, /monitor, /dislocations,
+// /analysis, /discover, /scripts, /portfolio, /alerts) when the visitor is signed
+// out — each page gates server-side and returns this instead of its workspace.
+// The chart (/terminal) is deliberately NOT gated: guests get the full charting
+// surface, and these are the surfaces that need an account to mean anything
+// (saved lists, saved scripts, server-side alerts).
+//
+// Development exception: under the beta-runtime flag pair documented in
+// lib/shared-shell/devOpen.ts (MMX_SHARED_SHELL=1 + MMX_SHARED_SHELL_DEV_OPEN=1),
+// those pages render their workspaces for signed-out visitors and this gate never
+// mounts. Production declares no MMX_* environment variables.
 //
 // Guest and account-recovery states share one responsive, theme-aware surface.
 // The existing session and onboarding owners retain all authentication behavior.

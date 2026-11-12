@@ -1,0 +1,17 @@
+{
+  "afterSha256": "549d5314eb894b734d7dab2422a587ff0253a7f648178ea689d89a0c14142025",
+  "beforeSha256": "c70ca3f48feb1c24d38ff124d67a5f86ac7185f422e87486a77362a29c4e3489",
+  "diff": "diff --git a/terminal/e2e/drawing-save-concurrency.spec.ts b/terminal/e2e/drawing-save-concurrency.spec.ts\nindex 01e239830..b6af8394c 100644\n--- a/terminal/e2e/drawing-save-concurrency.spec.ts\n+++ b/terminal/e2e/drawing-save-concurrency.spec.ts\n@@ -118,7 +118,7 @@ test(\"a failed drawings read is shown and keeps drawing disabled\",async({page})=\n   await page.getByTestId(\"drawings-cat-trendlines\").click({timeout:20_000});\n   await page.getByTestId(\"drawings-tile-trendline\").click({timeout:20_000});\n  }else{\n-  await lines.click({timeout:20_000});\n+  await expect(lines).toBeDisabled({timeout:20_000});\n  }\n  await expect(lines).toHaveAttribute(\"aria-pressed\",\"false\",{timeout:20_000});\n  expect(puts).toBe(0);",
+  "head": "bf47f5429a2395bf9fcf1e2e5a69ffeae00ae16f",
+  "originalFailureJob": 129210622048,
+  "originalFailureRun": 42628721274,
+  "preparationNote": "Initial metadata-record attempt used an incorrect MobileNav path and exited128 after the single source edit/dependency clone. This readback uses the actual tracked path; no source edit or clone was replayed.",
+  "preparedAt": "2026-11-09T15:48:51.184560+00:00",
+  "preservedNavigation": {
+    "blob": "d0e118418c9a187420fb71384f0756fefb9557bc",
+    "path": "terminal/components/MobileNav.tsx"
+  },
+  "runtimeChanged": false,
+  "schema": "terminal_pr654_negative_read_assertion_repair.v1",
+  "takeoverComment": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/654#issuecomment-6744327025"
+}

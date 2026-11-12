@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-10T04:35:04.862157+00:00",
+  "checks": {
+    "lock": {
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "port": {
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "original": {
+    "appUrl": "http://localhost:3217",
+    "hostname": "localhost",
+    "pid": 56722,
+    "port": 3217,
+    "startedAt": 1794271124307
+  },
+  "originalSha256": "7884b04ae5f62c1b53c366850d5d164b1ad03acb3275b1e05a5c058d797760c5",
+  "originalStat": {
+    "dev": 16777252,
+    "ino": 345827017,
+    "mtimeNs": 1794271124307697945
+  },
+  "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/.next/dev/lock",
+  "schema": "terminal_pr1407_original_stale_lock_reconciliation.v1",
+  "state": "RECONCILED",
+  "workspaceCwdHolders": []
+}

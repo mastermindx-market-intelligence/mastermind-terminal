@@ -138,4 +138,16 @@ describe("the Portfolio workspace and the admitted sector context", () => {
       .toBe("unreadable");
     expect(host.querySelector('[data-testid="portfolio-sector-no-record"]')).toBeNull();
   });
+
+  it.each([[false, false], [true, true], [true, false]])(
+    "uses the incumbent refresh lifetime across unreadable=%s to unreadable=%s",
+    async (before, after) => {
+      window.history.replaceState({}, "", sectorPortfolioHref("XLK", { ...DEFAULT_SECTOR_STATE })!);
+      await render({ ...baseProps(), unreadable: before, retrying: true });
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+      await render({ ...baseProps(), unreadable: after, retrying: false });
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(globalThis.fetch).mock.calls[0][0]).toBe("/api/sector-intelligence?source=generation");
+    },
+  );
 });

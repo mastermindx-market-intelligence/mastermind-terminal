@@ -1,0 +1,25 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[warmup] /terminal?symbol=NVDA → 200 in 60ms
+[warmup] /options → 200 in 140ms
+[warmup] /portfolio → 200 in 142ms
+[warmup] /alerts → 200 in 71ms
+[warmup] /analysis → 200 in 136ms
+[warmup] /discover → 200 in 88ms
+[warmup] /admin → 200 in 42ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 36ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 63ms
+[warmup] /api/me → 200 in 50ms
+[warmup] /api/watchlist → 200 in 23ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 117ms
+
+Running 2 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [tablet] › e2e/chart-go-to-date-polish.spec.ts:5:7 › en: go-to-date supports deliberate focus, dismissal and command handoff (7.7s)
+  ✓  2 [tablet] › e2e/chart-go-to-date-polish.spec.ts:5:7 › zh: go-to-date supports deliberate focus, dismissal and command handoff (6.8s)
+
+  2 passed (18.8s)

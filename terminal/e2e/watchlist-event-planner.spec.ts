@@ -204,7 +204,10 @@ test("list → agenda → company evidence: honest coverage, bounded reads, iden
   // ── AC-E14-06: the agenda row opens that company's own Earnings evidence ──
   await eventRow(page, "AAPL").click();
   await expect(dialog(page)).toHaveCount(0);
-  await expect(page.locator(".fin-earn-next")).toContainText(fmtDate(AAPL_MOVED), { timeout: 20_000 });
+  const nextReport = page.locator("[data-earnings-vnext-pulse] article").filter({
+    has: page.getByText("Next report", { exact: true }),
+  });
+  await expect(nextReport).toContainText(fmtDate(AAPL_MOVED), { timeout: 20_000 });
 });
 
 test("AC-E14-05: switching lists drops the previous list's late answers", async ({ page, baseURL }, testInfo) => {

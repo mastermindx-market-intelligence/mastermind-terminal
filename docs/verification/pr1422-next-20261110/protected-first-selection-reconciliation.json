@@ -1,0 +1,15 @@
+{
+  "actualBrowserCases": 12,
+  "actualBrowserExit": 0,
+  "lockAbsent": true,
+  "nextAction": "Execute only the six omitted original expansion cases; preserve original four intentional skips. No accepted cases are replayed.",
+  "oldPortClosed": true,
+  "originalObserverExit": 1,
+  "reason": "Initial grep selected the six refreshed-event cases and six dossier withdrawal cases but omitted the separate expansion describe group. The original full-matrix assertion rejected that incomplete selection.",
+  "retainedReports": [
+    "portfolio-protected-execution.json",
+    "portfolio-protected-report.json"
+  ],
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourceStable": true
+}

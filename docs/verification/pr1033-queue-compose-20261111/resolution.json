@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-11T17:44:56.603873+00:00",
+  "state": "RESOLUTION_APPLIED_READ_BACK",
+  "head": "0b4ffeb3ce65b76ec14003dbab5d61688b1dbb2f",
+  "accepted_parent": "ed6529da70f124c2790c5ddf3b6d4482d739cb46",
+  "resolved_conflicts": 2,
+  "ordering": "accepted E18 step/directory then original active-inbox step/directory",
+  "before_sha256": "c7e5830e4b8da3a4bd64236e42a26eaf38aef09be9a0af5f9d1710d01d7e5744",
+  "after_sha256": "9337128302e4677e271fedd2c9891a2ab81416412165623cb07f800b22b07a17",
+  "workflow_blob": "31a3bfd4f6783fe76f0af62f6959499375ab30c2",
+  "owned_workflow_diff_check": 0,
+  "whole_merge_diff_check": 2,
+  "whole_merge_whitespace_log_sha256": "74df821027a3c1d72976fd3b058149fc3bd1aff6bfe4bb561224b25e87cc9ed4"
+}

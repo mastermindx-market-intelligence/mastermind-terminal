@@ -1,0 +1,49 @@
+[
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/settingsPanelBoundary.test.tsx",
+      "lib/__tests__/optionsNavigationRecovery.test.ts",
+      "lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts",
+      "lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts",
+      "--maxWorkers=1",
+      "--minWorkers=1",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/test-results/pr1353-settings-evidence-20261109/focused-unit-report.json"
+    ],
+    "exit": 0,
+    "seconds": 6.24,
+    "log": "check-0.log",
+    "sha256": "c19c8de109f368a57c998899659fd37c1eb1de93d5615a78773e1974646472c4"
+  },
+  {
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit",
+      "--pretty",
+      "false",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 88.31,
+    "log": "check-1.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "e2e/tools/capture_w9t_f08_13_targets.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.03,
+    "log": "check-2.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

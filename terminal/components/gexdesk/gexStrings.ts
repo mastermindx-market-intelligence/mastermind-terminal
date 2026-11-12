@@ -25,6 +25,9 @@ const GEX_LEX = {
   expiryAdmittedInputs: ["admitted input contracts", "已纳入的输入合约"],
   expirySupportSummary: ["{known}/{total} source expiry rows have values · {partial} known subtotals. Missing values remain unavailable.", "{known}/{total} 个来源到期日行有数值 · {partial} 项已知小计。缺失数值保持不可用。"],
   expirySourceBasis: ["Modeled net exposure · assumed holdings · source collection coverage unknown", "模型净敞口 · 持仓方向为假设 · 源采集覆盖范围未知"],
+  sourceSessionLabel: ["source session", "源交易日"],
+  sumReportedGex: ["Reported GEX", "源报告 GEX"],
+  lensReportedBasis: ["Source-reported modeled values · session {date}. Source completeness is unknown.", "源报告的模型值 · 交易日 {date}。源数据完整性未知。"],
   // ── Tab / surface header ───────────────────────────────────────────────────
   quickRoots: ["Roots", "标的"],
   exposureMap: ["Exposure map", "敞口图"],
@@ -171,13 +174,16 @@ const GEX_LEX = {
   ladderNetGex:     ["Net GEX", "净GEX"],
   ladderCallGex:    ["Call GEX", "认购GEX"],
   ladderPutGex:     ["Put GEX", "认沽GEX"],
+  ladderRelative:   ["Relative exposure", "相对敞口"],
   ladderStrike:     ["Strike", "行权价"],
   ladderFlipLine:   ["Γ FLIP", "Γ翻转"],
   ladderNoData:     ["No GEX for this ticker yet — indices + liquid single names build nightly", "该品种暂无GEX — 指数与高流动性个股每日夜间构建"],
   ladderLoading:    ["Loading strike ladder…", "加载行权价梯度中…"],
 
   // ── Market state card ──────────────────────────────────────────────────────
+  stateAsOf:          ["Regime as of", "状态更新于"],
   stateTitle:         ["Market State", "市场状态"],
+  stateDetails:       ["Details and provenance", "详情与来源"],
   stateComputing:     ["State computing — nightly", "状态计算中 — 每日更新"],
   // "Computing" is a published absence (404). A read that did not land is its own state.
   stateErrorTitle:    ["Could not load the market state", "无法加载市场状态"],
@@ -420,7 +426,9 @@ const GEX_LEX = {
   // per-session read-out. γ-polarity chips are compact forms of the history `regime` field
   // (long/short γ), shown only alongside the net value + its Δ + the sparkline (never bare).
   gexHistScrubHint:   ["drag · ← → keys", "拖动 · ← → 键"],
-  gexHistNow:         ["now", "当前"],
+  deskLevels:         ["Snapshot levels", "快照关键位"],
+  deskSections:       ["Exposure sections", "敞口分区"],
+  deskHistory:        ["History", "历史记录"],
   gexHistRegimeLong:  ["long γ", "多头γ"],
   gexHistRegimeShort: ["short γ", "空头γ"],
   gexHistRegimeFlat:  ["flat γ", "中性γ"],
@@ -441,7 +449,7 @@ const GEX_LEX = {
   // history plane has accrual holes (sessions that were never published) — a missing date
   // gets its own named state, never today's ladder wearing an archived label.
   sessionPickerAria:  ["Archived session", "已归档交易日"],
-  sessionLive:        ["Latest (live)", "最新（当前）"],
+  sessionLive:        ["Latest snapshot", "最新快照"],
   archivedChip:       ["archived session · {date}", "已归档交易日 · {date}"],
   backToLive:         ["Back to latest", "返回最新"],
   loadFullLadder:     ["Load full ladder", "加载完整梯图"],

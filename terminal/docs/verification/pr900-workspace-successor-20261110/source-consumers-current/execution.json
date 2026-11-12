@@ -1,0 +1,60 @@
+{
+  "completedAt": "2026-11-10T13:05:58.174085+00:00",
+  "results": {
+    "guards": {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+        "lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/terminal/docs/verification/pr900-workspace-successor-20261110/source-consumers-current/guards.json"
+      ],
+      "exit": 0,
+      "logSha256": "41e78e3f92ce33dfceb23a248cd78e037e3dabd3fd42aaae9378707cf5d7587e",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 12,
+        "numPendingTests": 0,
+        "numTotalTests": 12,
+        "success": true
+      },
+      "seconds": 3.383
+    },
+    "lint": {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+        "lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 4.76
+    },
+    "typecheck": {
+      "command": [
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 134.002
+    }
+  },
+  "schema": "terminal.pr900.current-source-consumers.v1",
+  "sourceAndPacketEntries": 2091,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T13:03:34.784120+00:00",
+  "state": "QUALIFIED"
+}

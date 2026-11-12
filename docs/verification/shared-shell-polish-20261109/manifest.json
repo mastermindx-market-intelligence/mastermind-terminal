@@ -1,0 +1,100 @@
+{
+  "operation": "shared-shell-polish-20261109-astra-01",
+  "recorded_at": "2026-11-09T11:08:42.401184+00:00",
+  "scope": "local source and real Next parent integration; controlled cross-origin child",
+  "base_sha": "e33a4c3dd9f0965e7879fc5397175f6f49b0d751",
+  "protected_master_composition_read": "ceb4a7cd9daa8ae8e0483268faa53af30d7876d1",
+  "procedure_pin": "494d095813dad415938800fa0e4d2719497738fa",
+  "macro_contract_pin": "cdfb627f4fcf8fe9cd536cfcb4f8a0dba4fa9d93",
+  "unit_tests": {
+    "passed": 93,
+    "failed": 0,
+    "files": 6,
+    "company_test_after_mock_cleanup": 14
+  },
+  "browser_tests": {
+    "passed": 21,
+    "failed": 0,
+    "skipped_viewport_inapplicable": 6,
+    "retries": 0,
+    "projects": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ]
+  },
+  "typecheck": {
+    "result": "PASS",
+    "command": "npx tsc --noEmit",
+    "route_type_cache_regenerated": true
+  },
+  "lint": {
+    "new_surfaces": "PASS",
+    "LegacyPageHost": "UNCHANGED_BASELINE: 2 errors, 1 warning"
+  },
+  "self_review": "SELF_REVIEWED; no GitHub approval asserted",
+  "source_review_before_publication": true,
+  "delivery": "PR, protected CI, merge, beta install and live acceptance have separate receipts",
+  "files": [
+    {
+      "path": "terminal/components/chrome/shared-shell/LegacyPageHost.tsx",
+      "bytes": 21137,
+      "sha256": "344c0c449474b3bb1cb217fc6f5983968ed0e2f553a3921b9b146cdf6b9cad64"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellToolbar.tsx",
+      "bytes": 3366,
+      "sha256": "d79ba5643b32b43f68d33a97d97f552f6beaa8d3f2486c21e5ca20cea9239aca"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/legacy-workspace-boundary.module.css",
+      "bytes": 1923,
+      "sha256": "5143fbd103904bf289330fad9fcd1f0a96e7ea30eca062a2571be64f6613602a"
+    },
+    {
+      "path": "terminal/lib/sharedShellCopy.ts",
+      "bytes": 7274,
+      "sha256": "7d0a6b09e8419a940fcd76c9cb033fbaf70e182dd38391e011946031b0f3942c"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellRecovery.test.tsx",
+      "bytes": 10156,
+      "sha256": "c65abe1f59a2b1f1389e969aaa73f2cb50b4b0b201ea7b96336205d79d9c02cb"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellCompanyHandoff.test.tsx",
+      "bytes": 4034,
+      "sha256": "05d9001939b51d52aa4ae79a03b01e6217f8f9f69e5fc2d2373533ff3b5b3f46"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "bytes": 25605,
+      "sha256": "0889fc5fab4dc369f8e7540f7b83358fe5cbf0852485264a713365ea7fd5a274"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/recovery-desktop-dark-en.png",
+      "bytes": 56825,
+      "sha256": "f9301560e8891cc55b32db7bb4279423d9246a805fd477b042e4a7f2136cbb5f"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/recovery-landscape-light-zh.png",
+      "bytes": 18492,
+      "sha256": "f510c3adfe2f2ad08f44d533690d9cd7fb21f84bb3afb4692d9eef16bf076180"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/recovery-mobile-dark-en.png",
+      "bytes": 20641,
+      "sha256": "b7481ca75cb0fc0f8a64e7942c9dc005d2018d621a1591eed82443b437aa8211"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/recovery-small-light-zh.png",
+      "bytes": 17011,
+      "sha256": "cc747e7f7a184762cc9dc1014bbb8b5294e2055b63fbecec25715b10432475b4"
+    },
+    {
+      "path": "docs/verification/shared-shell-polish-20261109/recovery-tablet-light-zh.png",
+      "bytes": 24393,
+      "sha256": "8975f75ee493b67fc67b20afb9256d8b840f3778f58f8b0a86c842ab9007b3c6"
+    }
+  ]
+}

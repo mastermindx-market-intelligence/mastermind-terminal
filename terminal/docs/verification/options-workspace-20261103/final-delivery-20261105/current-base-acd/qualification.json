@@ -1,0 +1,44 @@
+{
+  "schema": "options_current_base_compatibility.v1",
+  "completed_at": "2026-11-05T10:26:07.134831+00:00",
+  "base": "acd173eae60e1559c87603aee8fa70e35e661b65",
+  "combined_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+  "options_runtime_commit": "0ead3e18f4029500d7f31e3d199c64849bada79c",
+  "exposure_runtime_commit": "bd4d1cec5ad2b8025558672482ee7b7d39429fc0",
+  "both_orders_clean_and_equal": true,
+  "verified_terminal_files": 3320,
+  "verified_python_files": 3,
+  "verified_source_manifest_sha256": "c788a8f2d62f5fb4ac297cd9a2a514097f1b43bd41e3a88208c494bbceb84084",
+  "captures": [
+    {
+      "packet": "native-options-navigation-r4-gex",
+      "source_count": 319,
+      "source_map_sha256": "ce54a00507d1b17941c76bdfc0713807fa46aa9a37d062667a0c04a7e046d14e",
+      "changed_path_intersection": []
+    },
+    {
+      "packet": "native-options-navigation-r4-eod",
+      "source_count": 319,
+      "source_map_sha256": "ce54a00507d1b17941c76bdfc0713807fa46aa9a37d062667a0c04a7e046d14e",
+      "changed_path_intersection": []
+    },
+    {
+      "packet": "visual-navigation-r4-warm-vi",
+      "source_count": 138,
+      "source_map_sha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+      "changed_path_intersection": []
+    },
+    {
+      "packet": "visual-navigation-r4-warm-pl6",
+      "source_count": 138,
+      "source_map_sha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+      "changed_path_intersection": []
+    }
+  ],
+  "unit_passed": 276,
+  "python_passed": 59,
+  "full_typecheck_passed": true,
+  "source_stable": true,
+  "scope": "Two accepted protected changes: exact-US risk envelope qualification and signed earnings guidance. No Options/Exposure/Lab navigation, stylesheet, capture driver, evidence reader or harness configuration changed. No additional Options browser recapture required.",
+  "production_compile_scope": "The retained 93.8-second production build covers the repaired5d integration. The later acd delta is verified by exact composition,276unit tests,Pythonproducer tests andfullTSC; no new production build is claimed."
+}

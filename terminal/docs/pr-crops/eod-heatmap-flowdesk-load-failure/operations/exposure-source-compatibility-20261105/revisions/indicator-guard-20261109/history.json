@@ -1,0 +1,11 @@
+{
+  "branchHead": "483554457f302a90305f03c360636ca97ed75fb3",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "predecessor": {
+    "descriptorSha256": "8bb050b222bc7c822486ba85a0019734013575dac1fa1f76ded272d6b62e86d8",
+    "revision": "master-integration-20261109"
+  },
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "reason": "Observe the unmodified dev-indicator state before every accepted native screenshot; keep the preceding successful native and browser executions immutable.",
+  "schema": "exposure_indicator_guard_history.v1"
+}

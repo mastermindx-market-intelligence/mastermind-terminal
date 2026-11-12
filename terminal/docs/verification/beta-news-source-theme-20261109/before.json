@@ -1,0 +1,21 @@
+[
+  {
+    "sample": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "theme": "light",
+      "lang": "en"
+    },
+    "rootTheme": "light",
+    "rootLang": "en",
+    "rootScheme": "light",
+    "sourceScheme": "dark",
+    "sourceBackground": "rgb(238, 241, 246)",
+    "outline": "solid",
+    "filteredIds": [
+      "ev2_theme_outlook"
+    ],
+    "restoredCount": 3
+  }
+]

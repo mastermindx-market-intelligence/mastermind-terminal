@@ -1,0 +1,307 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/watchlist-annotation-sync.spec.ts",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--trace=on",
+      "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+      "--grep",
+      "a failed save never shows Synced and never overwrites the local edit$"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 34234",
+      "url": "http://127.0.0.1:34234/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "watchlist-annotation-sync.spec.ts",
+      "file": "watchlist-annotation-sync.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "AC-E05-04 — a failed save never shows Synced and never overwrites the local edit",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 35690,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"wl-annotation-sync\"]')\nExpected: \u001b[32m\"retrying\"\u001b[39m\nReceived: \u001b[31m\"synced\"\u001b[39m\nTimeout:  20000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 20000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"wl-annotation-sync\"]')\u001b[22m\n\u001b[2m    - locator resolved to <span data-sync-state=\"saving\" title=\"Saving to your account…\" data-testid=\"wl-annotation-sync\" aria-label=\"Saving to your account…\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__busy\">…</span>\u001b[22m\n\u001b[2m    - unexpected value \"saving\"\u001b[22m\n\u001b[2m    36 × locator resolved to <span data-sync-state=\"synced\" title=\"Notes & flags synced\" data-testid=\"wl-annotation-sync\" aria-label=\"Notes & flags synced\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__ok\">…</span>\u001b[22m\n\u001b[2m       - unexpected value \"synced\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"wl-annotation-sync\"]')\nExpected: \u001b[32m\"retrying\"\u001b[39m\nReceived: \u001b[31m\"synced\"\u001b[39m\nTimeout:  20000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 20000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"wl-annotation-sync\"]')\u001b[22m\n\u001b[2m    - locator resolved to <span data-sync-state=\"saving\" title=\"Saving to your account…\" data-testid=\"wl-annotation-sync\" aria-label=\"Saving to your account…\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__busy\">…</span>\u001b[22m\n\u001b[2m    - unexpected value \"saving\"\u001b[22m\n\u001b[2m    36 × locator resolved to <span data-sync-state=\"synced\" title=\"Notes & flags synced\" data-testid=\"wl-annotation-sync\" aria-label=\"Notes & flags synced\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__ok\">…</span>\u001b[22m\n\u001b[2m       - unexpected value \"synced\"\u001b[22m\n\n    at expectSync (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:175:30)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:350:9",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts",
+                      "column": 30,
+                      "line": 175
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 173 |\u001b[39m\n \u001b[90m 174 |\u001b[39m \u001b[36mconst\u001b[39m expectSync \u001b[33m=\u001b[39m (page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m state\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m20\u001b[39m_000) \u001b[33m=>\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 175 |\u001b[39m   expect(page\u001b[33m.\u001b[39mlocator(\u001b[33mSYNC\u001b[39m))\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-sync-state\"\u001b[39m\u001b[33m,\u001b[39m state\u001b[33m,\u001b[39m { timeout })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                              \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 176 |\u001b[39m\n \u001b[90m 177 |\u001b[39m \u001b[90m// ── desktop rail controls (the existing context menu, unchanged by E05) ──\u001b[39m\n \u001b[90m 178 |\u001b[39m \u001b[36mconst\u001b[39m row \u001b[33m=\u001b[39m (page\u001b[33m:\u001b[39m \u001b[33mPage\u001b[39m\u001b[33m,\u001b[39m symbol\u001b[33m:\u001b[39m string) \u001b[33m=>\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m`[data-watchlist-symbol=\"${symbol}\"]`\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts",
+                        "column": 30,
+                        "line": 175
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"wl-annotation-sync\"]')\nExpected: \u001b[32m\"retrying\"\u001b[39m\nReceived: \u001b[31m\"synced\"\u001b[39m\nTimeout:  20000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 20000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"wl-annotation-sync\"]')\u001b[22m\n\u001b[2m    - locator resolved to <span data-sync-state=\"saving\" title=\"Saving to your account…\" data-testid=\"wl-annotation-sync\" aria-label=\"Saving to your account…\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__busy\">…</span>\u001b[22m\n\u001b[2m    - unexpected value \"saving\"\u001b[22m\n\u001b[2m    36 × locator resolved to <span data-sync-state=\"synced\" title=\"Notes & flags synced\" data-testid=\"wl-annotation-sync\" aria-label=\"Notes & flags synced\" class=\"WatchlistAnnotationSync-module__N-zqmW__chip WatchlistAnnotationSync-module__N-zqmW__ok\">…</span>\u001b[22m\n\u001b[2m       - unexpected value \"synced\"\u001b[22m\n\n\n  173 |\n  174 | const expectSync = (page: Page, state: string, timeout = 20_000) =>\n> 175 |   expect(page.locator(SYNC)).toHaveAttribute(\"data-sync-state\", state, { timeout });\n      |                              ^\n  176 |\n  177 | // ── desktop rail controls (the existing context menu, unchanged by E05) ──\n  178 | const row = (page: Page, symbol: string) => page.locator(`[data-watchlist-symbol=\"${symbol}\"]`);\n    at expectSync (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:175:30)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts:350:9"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T13:37:05.546Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/watchlist-annotation-sync.spec.ts",
+                    "column": 30,
+                    "line": 175
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "0c2eacb943d50aa34cc7-82b9a09c97e7b71af445",
+          "file": "watchlist-annotation-sync.spec.ts",
+          "line": 324,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T13:36:26.225Z",
+    "duration": 78506.875,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

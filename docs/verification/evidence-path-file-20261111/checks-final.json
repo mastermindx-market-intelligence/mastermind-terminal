@@ -1,0 +1,79 @@
+{
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "tests/test_merge_group_fast_lane_contract.py",
+        "-q"
+      ],
+      "exit": 0,
+      "logSha256": "07169f5dd6f983a9114a04682f707a08af0666a8fc65da857eaa9ac8029c00b8",
+      "name": "workflow-contract-final",
+      "seconds": 3.024
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "e2e/tools/capture_visual_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs",
+        "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+        "e2e/tools/f11_provider_closed_policy.test.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "827e95ac038948f23f6f5628f63692e00265f5e57f7a4c18e422f1256d617ded",
+      "name": "orchestration-final",
+      "seconds": 33.859
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "diff-check-final",
+      "seconds": 0.609
+    }
+  ],
+  "completedAt": "2026-11-11T16:01:11.725430+00:00",
+  "readOnlyTypeScriptDependency": {
+    "compilerSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "installedVersion": "5.9.3",
+    "lockedEntry": {
+      "bin": {
+        "tsc": "bin/tsc",
+        "tsserver": "bin/tsserver"
+      },
+      "dev": true,
+      "engines": {
+        "node": ">=14.17"
+      },
+      "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+      "version": "5.9.3"
+    },
+    "nodePath": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules",
+    "sourceOrDependencyWrites": false,
+    "state": "EXACT_LOCKED_TYPESCRIPT_REUSED_READ_ONLY"
+  },
+  "sourceAfter": {
+    ".github/workflows/ci.yml": "950bc17563cd0e668ecefc4a2a8bc4c345ac47ca9896a67df2f10e1ddd878fcd",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "4f1a256a2b3a3b7e80b13721225139177679344ebe574c66481cbbae656d7c0f",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "94c9c01eaedd37e402007d338d35a6647cebbd1002e283213e99f9d28f3e098b",
+    "tests/test_merge_group_fast_lane_contract.py": "ab519f4c65f8e592a91a5282072a1394160763003a469607e1e484456d7906b4"
+  },
+  "sourceBefore": {
+    ".github/workflows/ci.yml": "950bc17563cd0e668ecefc4a2a8bc4c345ac47ca9896a67df2f10e1ddd878fcd",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "4f1a256a2b3a3b7e80b13721225139177679344ebe574c66481cbbae656d7c0f",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "94c9c01eaedd37e402007d338d35a6647cebbd1002e283213e99f9d28f3e098b",
+    "tests/test_merge_group_fast_lane_contract.py": "ab519f4c65f8e592a91a5282072a1394160763003a469607e1e484456d7906b4"
+  },
+  "state": "ALL_AFFECTED_CHECKS_PASSED"
+}

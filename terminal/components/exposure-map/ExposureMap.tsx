@@ -9,7 +9,7 @@ import FrozenNodeEntry from "./FrozenNodeEntry";
 import { useResearchAppearance } from "@/components/researchlab/useResearchAppearance";
 import "@/components/researchlab/ResearchAppearance.css";
 import type { TerminalVisualReadyDetail } from "@/lib/terminalBoot";
-import type { ChartEngine, SeriesHandle } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode, type ChartEngine, type SeriesHandle } from "@/lib/chart-engine/api";
 import type { GexMatrix } from "@/lib/gexLadder";
 import type { ExposureLens } from "@/lib/exposureMapProjection";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
@@ -263,6 +263,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     requestAnimationFrame(() => { inspector.current?.focus(); });
   }, [identity]);
   const s = read.summary;
+  const gammaLeader = metric === "gamma" && read.state === "data" && !stale ? s.netLeader?.strike : undefined;
+  const gammaLevelSide = gammaLeader != null && read.spot != null && gammaLeader !== read.spot
+    ? (gammaLeader < read.spot ? "below" : "above")
+    : null;
   const focus = selected ?? s.netLeader;
   const structure = useMemo(() => describeExposure(s.nodes, read.spot, focus?.strike ?? null), [s.nodes, read.spot, focus?.strike]);
   const expiryReads = useMemo(() => read.expiries.map(exp => ({ exp, read: readScope({ kind: "one", exp }, metric, shock) })), [read.expiries, readScope, metric, shock]);
@@ -309,9 +313,10 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
   useLayoutEffect(() => { frameData.current = {nodes:s.nodes,focus:selected?.strike}; }, [s.nodes,selected?.strike]);
   const frameChart = useCallback(() => {
     if (!api?.inventory().alive) return;
-    const series = api.panes()[0]?.getSeries().find(item => item.kind === "candles");
+    const pane = api.panes()[0];
+    const series = pane?.getSeries().find(item => item.kind === "candles");
     const bars = series?.data() ?? [], count = bars.length, windowSize = tf === "5m" ? 78 : 65;
-    if (!series || !count) return;
+    if (!pane || !series || !count) return;
     api.timeScale().setVisibleLogicalRange({from:Math.max(0,count-windowSize),to:count+18});
     const prices:number[] = [];
     for (const bar of bars.slice(-windowSize)) for (const field of ["low","high"] as const) {
@@ -323,10 +328,33 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
     if (frameData.current.focus != null) prices.push(frameData.current.focus);
     if (prices.length) {
       const low = Math.min(...prices), high = Math.max(...prices), pad = Math.max((high-low)*.12,high*.0005);
-      series.priceScale().setVisibleRange({from:Math.max(.001,low-pad),to:high+pad});
+      const from = Math.max(.001, low-pad), to = high+pad, scale = series.priceScale();
+      scale.setVisibleRange({from, to});
+      // A phone's wrapped price header needs room above the framed strikes.
+      // Keep the shared chart's scale mode, margins, annotations and lower bound.
+      const options = scale.options();
+      if (!phone || options.mode !== EnginePriceScaleMode.Normal || options.invertScale === true) return;
+      const header = chartHost.current?.querySelector<HTMLElement>(".statusline");
+      const paneElement = pane.getHTMLElement(), height = pane.height();
+      if (!header || !paneElement || !Number.isFinite(height) || height <= 0) return;
+      const headerRect = header.getBoundingClientRect(), paneRect = paneElement.getBoundingClientRect();
+      if (headerRect.width <= 0 || headerRect.height <= 0 || paneRect.height <= 0) return;
+      // Convert DOM geometry to pane coordinates and clear the label's glyphs.
+      const headerBottom = Math.max(0, headerRect.bottom-paneRect.top)*height/paneRect.height;
+      const targetY = Math.max(44, headerBottom+16);
+      const yFrom = series.priceToCoordinate(from), yTo = series.priceToCoordinate(to), yHigh = series.priceToCoordinate(high);
+      if (yFrom == null || yTo == null || yHigh == null || ![yFrom,yTo,yHigh,targetY].every(Number.isFinite) ||
+        yFrom <= yTo || yHigh >= targetY || targetY >= yFrom-Math.max(24,height*.2)) return;
+      // Solve the actual linear projection, including its existing scale margins.
+      const nextTo = from+(high-from)*(yFrom-yTo)/(yFrom-targetY);
+      if (Number.isFinite(nextTo) && nextTo > to) scale.setVisibleRange({from,to:nextTo});
     }
-  }, [api, tf]);
-  useEffect(() => { if (chartCurrent) frameChart(); }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);
+  }, [api, tf, phone]);
+  useEffect(() => {
+    if (!chartCurrent) return;
+    const frame = requestAnimationFrame(frameChart);
+    return () => cancelAnimationFrame(frame);
+  }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);
   const openRoot = (symbol: string) => { onOpenRoot?.(symbol); setView("focus"); };
   const signed = (n: number | null) => n == null ? "—" : `${n > 0 ? "+" : ""}${exposureValue(n)}`;
   const presets = [
@@ -398,7 +426,7 @@ export default function ExposureMap({ root, source, matrix, stale = false, sourc
           <div className={styles.chartBody}><ChartPanel symbol={root} indicators={NONE} timeframe={tf} onChartApi={setApi} onVisualReady={onVisualReady} optionsLevel={pinned} userTier="free" /></div>
           <div className={styles.caption}><span>{t("positiveExposureNegativeExposureSelectedNode")}</span><span>{t("reference")}</span></div>
         </div>
-        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} onAverages={onAverages} />}
+        {!archivedSession && <ExposureDivergence key={JSON.stringify([root, read.session])} root={root} timeframe={tf} onTimeframe={setTf} inspectorHost={momentumHost} gammaLevelSide={gammaLevelSide} onAverages={onAverages} />}
       </div>
       {phone ? <MobileSheet open={!!selected} onClose={close} title={`${root} · ${t("inspect")}`} ariaLabel={t("inspect")} detents={[60,94]} maxHeight="94svh" initialFocus="sheet" escapeKey="bubble" className={`${styles.map} ${styles.inspectorSheet}`}>{inspectorPanel}</MobileSheet> : inspectorPanel}
     </div>

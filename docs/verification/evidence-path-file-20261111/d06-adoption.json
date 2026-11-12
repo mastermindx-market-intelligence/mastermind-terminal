@@ -1,0 +1,114 @@
+{
+  "actualLocalGitAfter": {
+    "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "indexFileSha256": "80b386b50c94ef2f4b562c5b830399557ae1f38d9b465d76dd30f69eb7045d2d",
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+  },
+  "actualLocalGitBefore": {
+    "head": "357c32f1a330dda9362955361ae0ab30a3e54048",
+    "indexFileSha256": "80b386b50c94ef2f4b562c5b830399557ae1f38d9b465d76dd30f69eb7045d2d",
+    "mergeHead": "18fabe9d3c1439c4185559ba5ce491518fe999c9"
+  },
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "scripts/ci/plan-evidence-capture.test.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "284bb695478a3a9d567478789d9fbb464eb288396159a51e6339f863240f623d",
+      "name": "d06-planner-tests",
+      "seconds": 7.198
+    },
+    {
+      "command": [
+        "node",
+        "-e",
+        "const x=require(\"./scripts/ci/plan-evidence-capture.cjs\").driftedTouchedSourcesFromFile(); console.log(JSON.stringify({touchedCount:x.touched.length,first:x.touched[0],last:x.touched.at(-1),plan:x.plan,drifted:x.drifted})); if(x.touched.length!==2649) process.exitCode=1;"
+      ],
+      "exit": 0,
+      "logSha256": "a2aa8d77e97ae61d72198034c7fd9a3fd902c893c30352520b388d3a1d70e844",
+      "name": "d06-original-census-consumer",
+      "seconds": 0.071
+    },
+    {
+      "command": [
+        "node",
+        "scripts/ci/plan-evidence-capture.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "a9367dd2c99753c3d01003ba9070d7aae12dc48656f1b91c99d640f27c8727f5",
+      "name": "d06-local-planner-cli",
+      "seconds": 0.07
+    },
+    {
+      "command": [
+        "node",
+        "-e",
+        "const x=require(\"./e2e/tools/capture_ci_evidence.cjs\"),p=require(\"node:path\").resolve(\"..\");const changed=[\".github/workflows/ci.yml\", \"terminal/scripts/ci/plan-evidence-capture.cjs\", \"terminal/scripts/ci/plan-evidence-capture.test.cjs\", \"tests/test_merge_group_fast_lane_contract.py\"];const out={};for(const k of[\"eod\",\"gex\"]){const v=k===\"eod\"?x.eodPacket(p):x.gexPacket(p);const keys=Object.keys(v.sourceFiles||v.layoutFiles);out[k]={selection:v.selection,revision:v.captureRevision,sourceCount:keys.length,transportInputs:changed.filter(f=>keys.includes(f)),descriptorSha256:v.descriptorSha256};if(out[k].transportInputs.length)throw Error(\"Transport file entered native source map\");}console.log(JSON.stringify(out));"
+      ],
+      "exit": 0,
+      "logSha256": "9ba9cec81b3bcc947ed53581b283659723209857fde88433adcd9ef4f6b3cab3",
+      "name": "d06-native-map-separation",
+      "seconds": 5.259
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "d06-diff-check",
+      "seconds": 0.242
+    }
+  ],
+  "completedAt": "2026-11-11T16:04:35.175216+00:00",
+  "matchingSourcePreimages": {
+    ".github/workflows/ci.yml": {
+      "blob": "c17cd9626970997b3680fc8bac207d3fac0a3a01",
+      "bytes": 67756,
+      "sha256": "409a2f4a29e73205838faada4b7a578aafc01f19c7d1ceb58c9a19549be639a4"
+    },
+    "terminal/scripts/ci/plan-evidence-capture.cjs": {
+      "blob": "efb50a83c016c51b2d7f70975f348eb34867e285",
+      "bytes": 6447,
+      "sha256": "c8f50a3e05c95cb9e1a2ba0ffc47fc122c0a6826a66c172b67f82cb697df7e32"
+    },
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": {
+      "blob": "782d7d91dc9fcd9378baf6d5c5f9de1d82285565",
+      "bytes": 15493,
+      "sha256": "08e63a14486b606e1a2bd2be6c434f4a0db602c8c1bcedbf744120a7198b06e6"
+    },
+    "tests/test_merge_group_fast_lane_contract.py": {
+      "blob": "60708a8a6282681693f5ecb0f36533ce55c56880",
+      "bytes": 10113,
+      "sha256": "58ff8b3fbfc32659bcf6d374a47803dd389e785e3ec353ac1b364e99926ed45f"
+    }
+  },
+  "publishedBase": "762a0f7b88e0470cbf932bad8208b84d71b79c92",
+  "qualifiedSharedChecks": {
+    "failed": 0,
+    "nodePassed": 342,
+    "pythonPassed": 48,
+    "skipped": 0
+  },
+  "qualifiedSourceBase": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+  "schema": "terminal.pr1270.ci_path_file_adoption.v1",
+  "sourceAfter": {
+    ".github/workflows/ci.yml": "950bc17563cd0e668ecefc4a2a8bc4c345ac47ca9896a67df2f10e1ddd878fcd",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "4f1a256a2b3a3b7e80b13721225139177679344ebe574c66481cbbae656d7c0f",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "94c9c01eaedd37e402007d338d35a6647cebbd1002e283213e99f9d28f3e098b",
+    "tests/test_merge_group_fast_lane_contract.py": "ab519f4c65f8e592a91a5282072a1394160763003a469607e1e484456d7906b4"
+  },
+  "sourceFiles": [
+    ".github/workflows/ci.yml",
+    "terminal/scripts/ci/plan-evidence-capture.cjs",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "startedAt": "2026-11-11T16:04:22.290545+00:00",
+  "state": "OWNED_D06_TRANSPORT_CHECKS_PASSED"
+}

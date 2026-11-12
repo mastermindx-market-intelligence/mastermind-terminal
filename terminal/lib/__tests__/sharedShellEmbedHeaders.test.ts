@@ -95,6 +95,23 @@ function headersFor(rules: HeaderRule[], pathname: string): Header[] {
   }
   return [...byKey.values()];
 }
+it("lets missing public data responses retain their no-store policy", async () => {
+  const config = await loadConfig("production", "1");
+  const rules = await config.headers!();
+  expect(headersFor(rules, "/data/missing/nested.json").find(({ key }) => key.toLowerCase() === "cache-control")).toBeUndefined();
+
+  const { GET, HEAD } = await import("../../app/data/[...path]/route");
+  const get = GET();
+  const head = HEAD();
+  for (const response of [get, head]) {
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("Content-Type")).toBe("application/json");
+  }
+  await expect(get.json()).resolves.toEqual({ error: "not_found" });
+  await expect(head.text()).resolves.toBe("");
+});
+
 /* The additive view: every CSP any matching rule carries, ignoring replacement. */
 function enforcedPolicies(rules: HeaderRule[], pathname: string): string[] {
   const out: string[] = [];

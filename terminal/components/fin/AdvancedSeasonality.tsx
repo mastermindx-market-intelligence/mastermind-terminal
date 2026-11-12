@@ -1,4 +1,6 @@
 "use client";
+
+import styles from "./SeasonalControls.module.css";
 /**
  * AdvancedSeasonality — the analytics deck beneath the interactive overlay.
  * Every panel recomputes over the caller-supplied ACTIVE year set:
@@ -416,10 +418,22 @@ function MonthEdgePanel({ years, isActive, zh }: { years: YearData[]; isActive: 
         <table className="fin-adv-table">
           <thead>
             <tr>
-              <th className="l" onClick={() => setSort("month")}>{pick(zh, "Mo", "月")}</th>
-              <th className={"r sortable" + (sort === "mean" ? " on" : "")} onClick={() => setSort("mean")}>{pick(zh, "Avg", "平均")}</th>
+              <th className={"l sortable" + (sort === "month" ? " on" : "")} aria-sort={sort === "month" ? "ascending" : "none"}>
+                <button type="button" className={styles.sortButton + " " + styles.sortStart} onClick={() => setSort("month")}>
+                  {pick(zh, "Mo", "月")}{sort === "month" && <span aria-hidden="true">↑</span>}
+                </button>
+              </th>
+              <th className={"r sortable" + (sort === "mean" ? " on" : "")} aria-sort={sort === "mean" ? "descending" : "none"}>
+                <button type="button" className={styles.sortButton} onClick={() => setSort("mean")}>
+                  {pick(zh, "Avg", "平均")}{sort === "mean" && <span aria-hidden="true">↓</span>}
+                </button>
+              </th>
               <th className="r">{pick(zh, "Med", "中位")}</th>
-              <th className={"wr sortable" + (sort === "wr" ? " on" : "")} onClick={() => setSort("wr")}>{pick(zh, "Win rate", "胜率")}</th>
+              <th className={"wr sortable" + (sort === "wr" ? " on" : "")} aria-sort={sort === "wr" ? "descending" : "none"}>
+                <button type="button" className={styles.sortButton + " " + styles.sortStart} onClick={() => setSort("wr")}>
+                  {pick(zh, "Win rate", "胜率")}{sort === "wr" && <span aria-hidden="true">↓</span>}
+                </button>
+              </th>
               <th className="r">{pick(zh, "Best", "最佳")}</th>
               <th className="r">{pick(zh, "Worst", "最差")}</th>
               <th className="r dim">N</th>

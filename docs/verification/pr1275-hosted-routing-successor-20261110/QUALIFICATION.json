@@ -1,0 +1,109 @@
+{
+  "artifactHashes": {
+    "composition.json": "3cbb12713b295ae7178594d2c9f95e3c0dc8f5e75075a66e6afde430778bf857",
+    "diff-check-full.log": "a4459bf72428f76450c68e18bcb30737d168935f59e51dcff112387e9faca605",
+    "diff-check.json": "d8b8da22630bb9b9e6d25816f30ad997fa1c12250f86e44e98d74de0c752d05d",
+    "evidence-reader-report.json": "18cdfbd32af0dea18ae01f9e7941d9e7672f7502eab8aed1964c69f8bf2a8138",
+    "evidence-reader.json": "681de196280dc400474b2447e411662d3454009cebd1ba7cdd35ea699df8db05",
+    "evidence-reader.log": "de771d78d8c69e3d7ae9e6d6720f331156127fc0c690866df6f287d102d218b9",
+    "execution.json": "9e234f4c1439e93f60f9554f3fac6f78b3ef7cb1d0b804a70eb85b823df62c8a",
+    "f11-capture.log": "ec19fbfc3039a059074ad8cc2a78be01be4a30efe0bc0c123e26407c4b066474",
+    "later-protected-integration.json": "7a84c4b0a86fd255b2a4b664cca99eba275b4d05670e1f8043bb512ded67e0b8",
+    "preflight.json": "e41268da93cb596f63fa13716cc28596c170c661ba58be0193ecf7d15d2e599d",
+    "preservation.json": "b79739a3683b8fb5b7ceb897baad04b8056c444fb141272dddc455e2bbc15205",
+    "routing-contracts.json": "88bd51e679a0ba2509a204119238abe0132a1208047f2a532e96a5b5c71c7534",
+    "routing-contracts.log": "95079224909f987d2f3200b23fb9bb5b089c758a6cd27124e73edb0812509896",
+    "routing-contracts.xml": "75d44a87789237a710a76ff49fc9424502b0d18e256a76a8067b31b96c79a8bc",
+    "runtime.json": "bc2a8b15f767c686584064931f9c220ced947ce2b554e1d88699c988d69e5005",
+    "source-adoption.json": "146bca947384cbaa652adfd37925297aabdc5d10c184c46a894eae20170c2f97",
+    "visual-review.json": "60cbf090ac9e8b4a26472f84897ddd1e7f31c1924e5560c3b30b61ac0e35972c"
+  },
+  "capture": {
+    "allServerGroupsClosedAndAbsent": true,
+    "badAllowedResponseStatuses": 0,
+    "callbackFailures": 0,
+    "cases": 6,
+    "exitCode": 0,
+    "fixtureInputs": 15,
+    "generatedTypesRestoredToAbsent": true,
+    "imageReview": "visual-review.json",
+    "inputsStable": true,
+    "pageErrors": 0,
+    "perCaseNaturalFundRequestUnavailable": 1,
+    "port": 47275,
+    "portFree": true,
+    "profile": {
+      "browser": {
+        "freshBrowserPerImage": true,
+        "freshContextPerImage": true,
+        "launch": {
+          "headless": true
+        },
+        "revision": "1228",
+        "serviceWorkers": "block",
+        "version": "149.0.7827.55"
+      },
+      "next": "16.2.9",
+      "node": "v22.23.4",
+      "playwright": "1.61.1",
+      "publicScriptObservation": {
+        "bodyAwaitBeforeFulfill": true,
+        "browserDeliveryEvents": true,
+        "byteShaMimeEncoding": true
+      },
+      "server": {
+        "command": "next dev --webpack",
+        "distDir": ".next/f11",
+        "freshServerPerImage": true,
+        "mode": "development",
+        "providerClosedChild": true,
+        "reactDebugChannel": false,
+        "tsconfigPath": "tsconfig.f11.json"
+      }
+    },
+    "seconds": 306.727,
+    "serverExitCodes": "NOT_ASSERTED",
+    "sourceInputs": 43
+  },
+  "customWorkflowBlob": "688325d9bb3fe287a50b9fccdbf4acac5d74f9c9",
+  "earlierEvidence": "Prior 129 producer controls and older static checks retain their actual source and time. They were not rerun or relabeled as current whole-tree checks.",
+  "evidenceReaders": {
+    "failed": 0,
+    "passed": 5,
+    "skipped": 0
+  },
+  "fixtureSha256": "4e1ce922c00bfc42de2a9550f36926f6db7bbe386a8f60bbb1c6e4a751c0d9d0",
+  "laterProtectedApplicability": "later-protected-integration.json",
+  "laterProtectedCommit": "735eb66dd0446d1b4ee82c97fe87fce21757371a",
+  "laterProtectedInputOverlap": [],
+  "limitations": [
+    "Provider-closed synthetic fixture identity and unavailable market inputs.",
+    "The successful capture log has no error/warning; the reader log contains the Vite CJS Node API deprecation warning. No full browser-console cleanliness claim.",
+    "No server exit-code success is asserted; actual closure and process-group absence are recorded.",
+    "Current hosted CI and protected queue acceptance remain required; no merged/deployed/authenticated acceptance claim.",
+    "Full diff whitespace check flags one unchanged protected raw test transcript ending with a blank line; all other source and proof paths pass. Exact transcript preserved."
+  ],
+  "matrixRows": 17,
+  "operation": "terminal-pr-duty-20261110-1275-routing-f11-successor",
+  "preservation": "preservation.json",
+  "procedurePin": "5257967eb23d10418dc2326bb7a7b31f7e6a5915",
+  "publicationParents": [
+    "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+    "735eb66dd0446d1b4ee82c97fe87fce21757371a"
+  ],
+  "routingContractTests": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 33
+  },
+  "schema": "terminal.pr1275.hosted-routing-f11-qualification.v1",
+  "sourceAdoption": "Independent published GitHub web-flow merge exactly matched the prepared tree. Root made zero source-object/ref writes before adopting it.",
+  "sourceHead": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "sourceParents": [
+    "3609a9710a09c7ccc8c9fc80c3cc29fedaa3a432",
+    "839bace1e89dd6def9311d3a410786c73a6332aa"
+  ],
+  "sourceTree": "f6b2202bea775cebbd867deccc05bb9c69034412",
+  "state": "QUALIFIED"
+}

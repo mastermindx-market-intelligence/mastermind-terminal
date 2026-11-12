@@ -1,0 +1,41 @@
+{
+  "schema": "mastermind.terminal.pr739.browser.v1",
+  "head": "5ba9085a123ae93759e8cf24de3b73487bf38525",
+  "tree": "63edb98f25f3a9d7e4d087de7b5c7774a687bb6c",
+  "operation": "terminal-pr-duty-20261110-739-market-proof-web4",
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "e2e/research-workspace-nav.spec.ts",
+    "e2e/bottom-pivot-context.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=line,json",
+    "--output=test-results/pr739-20261110"
+  ],
+  "started_at": "2026-11-10T08:30:40.905066+00:00",
+  "finished_at": "2026-11-10T08:34:05.433871+00:00",
+  "exit_code": 0,
+  "seconds": 204.526,
+  "log_sha256": "3a999a5bf2f9389408c9fcac3d4a2aa7e2d2fac04deed25d9690cc8a0ebaada4",
+  "report_exists": true,
+  "runtime_dependencies_unchanged": true,
+  "head_unchanged": true,
+  "tracked_status": "",
+  "port_listener_after": "",
+  "port_observation_exit": 1,
+  "stats": {
+    "startTime": "2026-11-10T08:30:43.157Z",
+    "duration": 202023.456,
+    "expected": 91,
+    "skipped": 8,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": [],
+  "report_sha256": "4779e464093fd34b386ed28afe73c08b3c5ecb5112c616080766c850de297a23"
+}

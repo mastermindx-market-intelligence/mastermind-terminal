@@ -1,0 +1,13 @@
+{
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/visualIntelligenceEvidence.test.ts",
+    "--minWorkers=1",
+    "--maxWorkers=2"
+  ],
+  "exit": 0,
+  "log_sha256": "e4d8e3e51606bcd0b639968367a8b6d71996366a6e9c4e119ab877a722cdd346"
+}

@@ -1,0 +1,57 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "captureRerun": false,
+  "capturedChildren": [
+    "pl6",
+    "vi"
+  ],
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T17:10:34.886604+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109160768-2-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "0bd6c1f928fceb8bd6dfc783de56220ae55beb98256c43a2c2b6f28ad86ab755"
+  },
+  "error": "",
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 0,
+  "indexTreeAtStart": "6a50cced23e69b9581c6e5bd8ec7428892421720",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr768-options-integration-20261109/ci-owner-r2/ci-owner-r2-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T17:12:10.767156+00:00",
+    "sha256": "c7eca72fff49f3936db08c8590a9e4ecb4354fea9f199c9ab516a32d8ae9a54c"
+  },
+  "localDiagnosticAttempt": "2",
+  "localDiagnosticRunId": "20261109160768",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nativeReusedQualifiedCurrentSource": true,
+  "nativeSelectedImages": {
+    "eod": 126,
+    "gex": 114
+  },
+  "nextLockAbsent": true,
+  "originalPostconditionRecord": "docs/verification/pr768-options-integration-20261109/ci-owner-r2/execution.json",
+  "originalPostconditionRecordSha256": "923ddd41b06982c3b5768ac69a94276953fff46ac3af0eeff9d6def205465878",
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr768-options-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109160768-2.json",
+  "ownerReceiptSha256": "37bf3ee0f820a2ca9b93ea8cc96dccb0081555cc218491dfd02f06c5c2560b93",
+  "ownerSharedDeadlineMinutes": 84,
+  "ownerState": "SELECTED",
+  "postconditionFailure": "Stale Next lock after successful owner selection; recorded PID, descriptor, listener and owned workspace activity absent.",
+  "postconditionReconciledAt": "2026-11-09T17:12:11.569289+00:00",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr768_complete_ci_owner_validation.v1",
+  "seconds": 408.17,
+  "sourceAfterSha256": "cc379a53d8af6ed185c156b862a53027074da0b46bf673118067eb700c3c97ec",
+  "sourceBeforeSha256": "cc379a53d8af6ed185c156b862a53027074da0b46bf673118067eb700c3c97ec",
+  "sourceEntries": 1940,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:03:45.954247+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowCaptureMinutes": 85
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "actual": "eb392466ee95195dea79eff75c238aa0747ef69ecd9868cff9ef7e263888c657",
+    "before": "5ff005a544904a63a46928a33356f9d839ed4335319765916aa67d9a3fc5b83c",
+    "packet": "b-f12-b5-2-team-workspaces",
+    "path": "terminal/components/LayoutMenu.tsx"
+  }
+]

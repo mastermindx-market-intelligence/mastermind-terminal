@@ -1,10 +1,12 @@
-"""The native merge queue runs integrated fast checks, not duplicate browser matrices.
+"""The native merge queue runs fast checks plus hosted production-browser proof.
 
 The full responsive and screenshot suites still run on ordinary source PRs.
-Native merge_group and independently qualified docs-only PRs may skip the browser
-matrix; the browser selector remains mandatory in both cases.
-The branch-protected Terminal aggregate must stay red if ANY of the checks
-required for that event fail or are unexpectedly skipped.
+A native merge_group skips the full dev matrix, but its production build and
+four browser shards are mandatory and feed the existing required aggregate.
+Independently qualified docs-only PRs may skip browser work; the selector
+remains mandatory in both cases. The Terminal aggregate must stay red if ANY
+check required for that event fails, is unexpectedly skipped, or selects no
+production qualification for an integrated candidate.
 """
 from __future__ import annotations
 
@@ -42,7 +44,7 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
     assert e2e["strategy"]["fail-fast"] is False
     from scripts.ci_e2e_scope import FULL_MATRIX
-    assert len(FULL_MATRIX) == 14
+    assert len(FULL_MATRIX) == 17
     assert e2e["strategy"]["matrix"] == (
         chr(36) + "{{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
     )
@@ -59,26 +61,188 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     assert all_jobs["terminal-unit"]["if"] == (
         "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
     )
+    # The split typecheck and unit-shard lanes share the evidence lane's gate:
+    # mandatory browser selector, docs-only skip only, and no merge_group skip.
+    for job in ("terminal-typecheck", "terminal-unit-shards"):
+        assert all_jobs[job]["if"] == (
+            "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
+        )
+        assert all_jobs[job]["needs"] == ["pr_scope", "e2e-scope"]
+    unit_shards = all_jobs["terminal-unit-shards"]
+    assert unit_shards["strategy"]["fail-fast"] is False
+    assert unit_shards["strategy"]["matrix"]["shard"] == [1, 2, 3]
 
 
-def test_only_original_browser_capture_steps_skip_on_merge_group() -> None:
+def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() -> None:
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
+    f11 = by_name["Capture provider-closed F11 theses entry on this checkout"]
+    assert "if" not in f11
+    assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+    assert f11["timeout-minutes"] == 8
+    assert not f11.get("continue-on-error", False)
     assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
     assert by_name["Plan current-source evidence capture"]["id"] == "evidence_plan"
     assert by_name["Plan current-source evidence capture"]["run"] == (
         "node scripts/ci/plan-evidence-capture.cjs"
     )
     synthetic = by_name["Check immutable evidence orchestration (synthetic)"]["run"]
-    assert "scripts/ci/plan-evidence-capture.test.cjs" in synthetic
+    for name in (
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs",
+        "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+        "e2e/tools/f11_provider_closed_policy.test.cjs",
+    ):
+        assert name in synthetic
     for step in steps:
         command = str(step.get("run", ""))
-        if "npx tsc --noEmit" in command or command.strip() == "npm test":
-            assert "if" not in step, "typecheck and unit tests must run on native merge_group"
+        if "evidence-lock-suites.sh" in command:
+            assert "if" not in step, "records-mode evidence validation must follow every capture"
     assert "if" not in by_name["Plain-language guard self-check"]
     assert "if" not in by_name["Plain-language guard (forward-only, added lines block)"]
+
+
+def test_split_typecheck_and_unit_shards_run_on_every_qualified_event() -> None:
+    """Typecheck and the sharded vitest suite left the serial evidence lane:
+    they must run on native merge groups (no merge_group skip on any step),
+    shard deterministically through vitest's native --shard, and run without
+    the evidence env so they behave exactly like a local `npm test`."""
+    typecheck_steps = jobs()["terminal-typecheck"]["steps"]
+    by_run = {str(step.get("run", "")): step for step in typecheck_steps}
+    assert "npx next typegen" in by_run
+    assert "if" not in by_run["npx tsc --noEmit"]
+    for step in typecheck_steps:
+        assert "if" not in step, "typecheck must run on native merge_group"
+    shard_steps = jobs()["terminal-unit-shards"]["steps"]
+    vitest = next(
+        step for step in shard_steps
+        if "npx vitest run --shard=" in str(step.get("run", ""))
+    )
+    assert "${{ matrix.shard }}/3" in vitest["run"]
+    assert "if" not in vitest, "unit shards must run on native merge_group"
+    for step in shard_steps:
+        command = str(step.get("run", ""))
+        assert "TERMINAL_EVIDENCE" not in command, (
+            "unit shards must not depend on the evidence lane's captured records"
+        )
+
+
+def test_unit_shards_exclude_exactly_the_evidence_lane_suites() -> None:
+    """Suites that read capture-produced evidence (records-mode readers and
+    sha256 evidence locks) run only in the evidence lane after capture. One
+    list script feeds both the evidence step and the shard excludes, and it
+    must select every such suite and nothing else."""
+    import re
+    root = Path(__file__).resolve().parents[1]
+    tests_dir = root / "terminal" / "lib" / "__tests__"
+    marker = re.compile(
+        r"selectedComposition\(|without (a )?recaptur|assertCapturedLexProjection\("
+    )
+    expected = sorted(
+        "lib/__tests__/" + path.name
+        for pattern in ("*.test.ts", "*.test.tsx")
+        for path in tests_dir.glob(pattern)
+        if marker.search(path.read_text(encoding="utf-8"))
+    )
+    assert "lib/__tests__/b_pl_6Batch1Evidence.test.ts" in expected
+    assert "lib/__tests__/visualIntelligenceEvidence.test.ts" in expected
+    assert "lib/__tests__/lexEvidenceProjection.test.ts" in expected
+    listed = subprocess.run(
+        ["bash", "scripts/ci/evidence-lock-suites.sh"],
+        cwd=root / "terminal", check=True, capture_output=True, text=True,
+        env={**os.environ, "LC_ALL": "C"},
+    ).stdout.split()
+    assert sorted(listed) == expected
+    lane = next(
+        str(step["run"]) for step in jobs()["terminal-unit"]["steps"]
+        if step.get("name") == "Validate fresh evidence through the unit readers"
+    )
+    shard = next(
+        str(step["run"]) for step in jobs()["terminal-unit-shards"]["steps"]
+        if "npx vitest run --shard=" in str(step.get("run", ""))
+    )
+    for command in (lane, shard):
+        assert "bash scripts/ci/evidence-lock-suites.sh" in command
+        assert 'exit 1' in command, "an empty list must fail, not run everything"
+    assert '--exclude "$suite"' in shard
+
+
+def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
+    """Evidence-lock drift in a PR's own diff must fail the PR, not only the
+    merge group: one workflow step records the PR-touched paths (from the
+    synthetic merge commit's exact first parent), the unchanged planner step
+    consumes EVIDENCE_PR_TOUCHED_FILE, and the recording step is ordered
+    before it so the gate can never run on a stale environment."""
+    steps = jobs()["terminal-unit"]["steps"]
+    names = [s.get("name") for s in steps]
+    record = next(
+        s for s in steps if s.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    assert record["if"] == "github.event_name == 'pull_request'"
+    run = record["run"]
+    assert 'git diff --name-only --no-renames "${BASE}" HEAD' in run
+    assert "git rev-parse HEAD^1" in run
+    assert "EVIDENCE_PR_TOUCHED_FILE" in run and "GITHUB_ENV" in run
+    assert names.index("Record PR-touched paths for the evidence drift gate") < names.index(
+        "Plan current-source evidence capture"
+    )
+    # The merge-group backstop itself must remain byte-identical: the planner
+    # step's command and both capture-skip conditions are pinned above.
+
+
+def test_pr_touched_path_census_stays_in_a_file(tmp_path: Path) -> None:
+    """Execute the actual recording step with a census larger than the
+    439,184-byte value that prevented GitHub's runner from spawning bash."""
+    record = next(
+        step for step in jobs()["terminal-unit"]["steps"]
+        if step.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    census = "".join(
+        f"docs/verification/{'long-proof-path-' * 12}{i}/trace.zip\n"
+        for i in range(3000)
+    ) + "terminal/components/last-drifted-source.tsx\n"
+    assert len(census.encode()) > 439_184
+    source = tmp_path / "complete-census.txt"
+    source.write_text(census, encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    git = binary / "git"
+    git.write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        "  rev-parse) printf '%s\\n' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ;;\n"
+        '  diff) cat "$TEST_CENSUS_INPUT" ;;\n'
+        "  *) exit 97 ;;\n"
+        "esac\n",
+        encoding="utf-8",
+    )
+    git.chmod(0o755)
+    runner_temp = tmp_path / "runner"
+    runner_temp.mkdir()
+    github_env = tmp_path / "github-env"
+    result = subprocess.run(
+        ["/bin/bash", "-c", record["run"]],
+        env={
+            **os.environ,
+            "PATH": str(binary) + os.pathsep + os.environ.get("PATH", ""),
+            "RUNNER_TEMP": str(runner_temp),
+            "GITHUB_ENV": str(github_env),
+            "TEST_CENSUS_INPUT": str(source),
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    touched_file = runner_temp / "evidence-pr-touched.txt"
+    assert touched_file.read_text(encoding="utf-8") == census
+    assert github_env.read_text(encoding="utf-8") == (
+        f"EVIDENCE_PR_TOUCHED_FILE={touched_file}\n"
+    )
+    assert github_env.stat().st_size < 1024
 
 
 def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:
@@ -86,7 +250,9 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-typecheck",
+        "terminal-unit-shards", "terminal-e2e",
+        "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     step = aggregate_assertion_step()
     assert step["if"] == "${{ !cancelled() }}"
@@ -95,11 +261,22 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
         "PR_SCOPE": "${{ needs.pr_scope.result }}",
         "PR_MODE": "${{ needs.pr_scope.outputs.mode }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
+        "TYPECHECK": "${{ needs.terminal-typecheck.result }}",
+        "UNITS": "${{ needs.terminal-unit-shards.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
+        "BUILD": "${{ needs.terminal-e2e-build.result }}",
+        "PRODBUILD": "${{ needs.terminal-e2e-prodbuild.result }}",
+        "PRODBUILD_COUNT": "${{ needs.e2e-scope.outputs.prodbuild_count }}",
         "EVENT": "${{ github.event_name }}",
     }
     assert "native merge group" in step["run"]
     assert 'if [ "$SCOPE" != "success" ]; then' in step["run"]
+
+
+def prod_lane_results(event: str) -> dict[str, str]:
+    """Four successful production shards are required on every full run,
+    including the native merge group's production-only browser qualification."""
+    return {"BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4"}
 
 
 @pytest.mark.parametrize(
@@ -125,7 +302,8 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": unit, "E2E": e2e},
+             "UNIT": unit, "TYPECHECK": "success", "UNITS": "success",
+             "E2E": e2e, **prod_lane_results(event)},
         capture_output=True,
         text=True,
         check=False,
@@ -133,6 +311,55 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
     assert (result.returncode == 0) is should_pass, (
         event, unit, e2e, result.stdout, result.stderr
     )
+
+
+@pytest.mark.parametrize("lane", ["TYPECHECK", "UNITS"])
+@pytest.mark.parametrize("event", ["pull_request", "merge_group"])
+@pytest.mark.parametrize("status", ["skipped", "failure", "cancelled", ""])
+def test_required_aggregate_refuses_an_incomplete_split_lane(
+    lane: str, event: str, status: str
+) -> None:
+    """A skipped or failed typecheck/unit-shard lane can never qualify any
+    event, including the native merge group; only the trusted docs-only PR
+    skip is lawful and that is covered by the docs-mode tests."""
+    result = subprocess.run(
+        ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
+        env={**os.environ, "EVENT": event, "SCOPE": "success",
+             "PR_SCOPE": "success", "PR_MODE": "full",
+             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "E2E": "success" if event == "pull_request" else "skipped",
+             lane: status, **prod_lane_results(event)},
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode != 0, (lane, event, status, result.stdout)
+
+
+@pytest.mark.parametrize(("build", "prod", "count"), [
+    *((build, prod, "4") for build, prod in (
+        ("skipped", "skipped"), ("failure", "skipped"),
+        ("cancelled", "skipped"), ("", ""),
+        ("timed_out", "skipped"), ("success", "skipped"),
+        ("success", "cancelled"), ("success", "failure"),
+        ("success", ""),
+    )),
+    *((status, status, count) for status in ("success", "skipped")
+      for count in ("", "0", "3", "4.0", "four", "5", "-1")),
+    ("success", "skipped", "unknown"),
+    ("failure", "skipped", "0"),
+])
+def test_merge_group_never_accepts_missing_empty_or_unsuccessful_production(
+    build: str, prod: str, count: str,
+) -> None:
+    result = subprocess.run(
+        ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
+        env={**os.environ, "EVENT": "merge_group", "SCOPE": "success",
+             "PR_SCOPE": "success", "PR_MODE": "full", "UNIT": "success",
+             "TYPECHECK": "success", "UNITS": "success",
+             "E2E": "skipped", "BUILD": build, "PRODBUILD": prod,
+             "PRODBUILD_COUNT": count},
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode != 0, (build, prod, count, result.stdout)
 
 
 @pytest.mark.parametrize("scope_result", ["skipped", "failure", "cancelled", ""])
@@ -147,7 +374,8 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": scope_result,
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "E2E": e2e},
+             "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+             "E2E": e2e, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
     )
     assert result.returncode != 0, (scope_result, event, result.stdout)

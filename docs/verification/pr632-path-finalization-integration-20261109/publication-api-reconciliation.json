@@ -1,0 +1,40 @@
+{
+  "acknowledgedImmutableObjectsReused": 24,
+  "carrier": "same native GitHub immutable-object API; no branch push or alternate identity",
+  "httpStatus": 422,
+  "observedAt": "2026-11-09T19:27:42.679775+00:00",
+  "originalTreePublished": false,
+  "originalUploadReceipt": {
+    "path": "docs/verification/pr632-path-finalization-integration-20261109/publication-object-upload-r1.json",
+    "sha256": "42ec574d5a19da1093e06f721096c2b4df3324117e4f1fc3038ee0c8eba0448d"
+  },
+  "rejectedObject": {
+    "kind": "blob",
+    "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+    "sha": "83ad8bea0924f37dc1d09dd7dde2a1cd0cb59b93",
+    "startedAt": "2026-11-09T19:24:05.360797+00:00"
+  },
+  "rejectedObjectApplied": false,
+  "repackedTraces": [
+    {
+      "bytes": 55985343,
+      "manifest": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip.parts/manifest.json",
+      "manifestSha256": "868f1d6b07945752f41ac087983e864fcdb7e96854774b239d150d0b041128f4",
+      "originalPath": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+      "originalSha256": "e2e868f5c5528502049acdf49a2c82a424b02c6e6216af3b73f06300c6bd4bb0",
+      "parts": 14
+    },
+    {
+      "bytes": 38227374,
+      "manifest": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip.parts/manifest.json",
+      "manifestSha256": "e5f99ef55a2a5a6d99fc11e66691f4bcad662a2548ca90063bbf554710013d35",
+      "originalPath": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+      "originalSha256": "7ca290ad9786d80e99e938e5da06f4d33c936e0de7391af9bff0cdaa40aeb4b2",
+      "parts": 10
+    }
+  ],
+  "restoreUtility": "docs/verification/pr632-path-finalization-integration-20261109/restore-diagnostic-traces.py",
+  "schema": "terminal_pr632_publication_payload_reconciliation.v1",
+  "sourceUnchanged": true,
+  "state": "DEFINITE_422_PAYLOAD_REJECTION_RECONCILED_WITH_SMALLER_EXACT_OBJECTS"
+}

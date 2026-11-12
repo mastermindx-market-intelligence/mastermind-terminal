@@ -1,0 +1,112 @@
+{
+  "schema": "terminal_pr646_r5_adoption.v1",
+  "operation": "terminal-pr-estate-support-20261111-c3",
+  "state": "STRICT_READER_QUALIFIED",
+  "at": "2026-11-11T11:35:05.956723+00:00",
+  "capture": {
+    "head": "39a2d7c05aff9df0961359a6aeb3c0f64e78bf93",
+    "protectedMaster": "8967f977fc156fff6b3f849568d84e49ba61f7d6",
+    "checkout": "cb9722189b1a37e742a10aeff0c86cf6f30be7bf",
+    "tree": "1a825666dc49b30e3288f4bf4f9d69cce8248898",
+    "run": "43000912478",
+    "attempt": 1,
+    "artifactId": 13847929343,
+    "rawMembers": 545
+  },
+  "browser": {
+    "jointPassed": 144,
+    "expiryPassed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "localCapture": false
+  },
+  "validation": {
+    "initial": [
+      {
+        "name": "reader-unit",
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "lib/__tests__/optionsExposureR5Successor.test.ts",
+          "lib/__tests__/optionsExposureBrowserReport.test.ts",
+          "lib/__tests__/optionsExposureEvidence.test.ts",
+          "lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+        ],
+        "exit": 1,
+        "seconds": 126.69,
+        "logSha256": "0f824d22c65a20a4365a4db29540cac867a70e597c126b9935329e87c5bea4f6"
+      },
+      {
+        "name": "workflow-and-checkout",
+        "command": [
+          "python3",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/test_r5_browser_checkout_identity.py",
+          "tests/test_ci_e2e_shards.py"
+        ],
+        "exit": 0,
+        "seconds": 126.31,
+        "logSha256": "886a9d9b868e27df7e574630a2fdd12667332fc22070647c1135032cac4fba37"
+      }
+    ],
+    "followup": [
+      {
+        "name": "current-root-regressions",
+        "exit": 0,
+        "seconds": 4.76,
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+          "-t",
+          "refuses a removed declaration|refuses a mixed current family declaration|cannot downgrade by removing both successor declarations"
+        ],
+        "logSha256": "619d1008a59c4729cd532037f78c58a5840ad5824a79ed003ab3b6977063031c"
+      },
+      {
+        "name": "focused-lint",
+        "exit": 0,
+        "seconds": 8.22,
+        "command": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "lib/__tests__/optionsExposureR5Successor.test.ts",
+          "lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+        ],
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "typecheck",
+        "exit": 0,
+        "seconds": 150.47,
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "--pretty",
+          "false"
+        ],
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "distinctVitestCases": 142,
+    "vitestInitiallyPassed": 139,
+    "repairedAssertionCasesPassed": 3,
+    "pytestPassed": 197
+  },
+  "readerSha256": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+  "nativeOnlyPreflightQualifiesBrowser": false,
+  "currentNativeMapsRetained": {
+    "eod": 32,
+    "gex": 29
+  },
+  "protectedWorkflowBlob": "c17cd9626970997b3680fc8bac207d3fac0a3a01",
+  "productionAccepted": false,
+  "independentReviewRequiredByThisReceipt": false
+}

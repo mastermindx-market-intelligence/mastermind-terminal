@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal[39m
+
+ [32m✓[39m lib/__tests__/b_f08_8InvalidationEvidence.test.ts[2m > [22mB-F08-8 invalidation evidence lock is the sha256 of the layout sources[2m > [22mEVIDENCE.yml records a sha256 for every source the capture script stamps
+ [32m✓[39m lib/__tests__/b_f08_8InvalidationEvidence.test.ts[2m > [22mB-F08-8 invalidation evidence lock is the sha256 of the layout sources[2m > [22meach layoutFiles sha256 matches the file on disk
+ [32m✓[39m lib/__tests__/b_f08_8InvalidationEvidence.test.ts[2m > [22mB-F08-8 invalidation evidence lock is the sha256 of the layout sources[2m > [22mall dark crops exist, are non-empty and are listed in EVIDENCE.yml files
+ [32m✓[39m lib/__tests__/b_f08_8InvalidationEvidence.test.ts[2m > [22mB-F08-8 invalidation evidence lock is the sha256 of the layout sources[2m > [22mEVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the two viewports
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m   Start at [22m 06:20:13
+[2m   Duration [22m 2.74s[2m (transform 148ms, setup 0ms, collect 69ms, tests 49ms, environment 0ms, prepare 639ms)[22m
+

@@ -102,13 +102,13 @@ def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
         entry["shard"]: " ".join(str(entry["projects"]).split())
         for entry in FULL_MATRIX
     }
-    assert len(hosted) == len(FULL_MATRIX) == 14
+    assert len(hosted) == len(FULL_MATRIX) == 17
     assert all(entry["specs"] == "" for entry in FULL_MATRIX)
     table = dict(TABLE_LINE.findall(VALIDATOR.read_text(encoding="utf-8")))
     assert table == hosted
 
 
-@pytest.mark.parametrize("shard", ["desktop-1", "desktop-6", "tablet-3", "tablet-4", "serial"])
+@pytest.mark.parametrize("shard", ["desktop-1", "desktop-6", "tablet-3", "tablet-4", "mobile-5", "serial", "serial-standalone"])
 def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0
@@ -330,6 +330,7 @@ def test_invalid_inputs_never_publish_selfhosted_admission(
 
 @pytest.mark.parametrize(("shard", "workers"), [
     ("desktop-1", "1"), ("desktop-6", "1"), ("tablet-3", "4"), ("serial", "16"),
+    ("serial-standalone", "4"),
 ])
 def test_valid_admission_binds_fixed_inputs_and_same_immutable_sha(
     shard: str, workers: str, tmp_path: Path,

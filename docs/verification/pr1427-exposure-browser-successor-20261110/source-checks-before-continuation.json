@@ -1,0 +1,29 @@
+{
+  "checks": [
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/exposureMomentumConsumer.test.tsx",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/docs/verification/pr1427-exposure-browser-successor-20261110/focused-report.json"
+      ],
+      "exitCode": 0,
+      "finishedAt": "2026-11-10T15:27:49.246909+00:00",
+      "logSha256": "4fa23f5d08f3942dfc1b924801531b485de9f5255efc9950ee1549c1cb37b07a",
+      "name": "focused-vitest",
+      "pid": 95577,
+      "seconds": 6.801,
+      "startedAt": "2026-11-10T15:27:42.446262+00:00"
+    }
+  ],
+  "schema": "terminal.pr1427.focused-source-checks.v1",
+  "sourceHead": "2ca0ddc9b9f98dbeed000ef4a0802dc08aae26d7",
+  "sourceTree": "28755f8133c5208c38ca7af4645e0eaee1610187",
+  "startedAt": "2026-11-10T15:27:42.445585+00:00",
+  "state": "STARTED"
+}

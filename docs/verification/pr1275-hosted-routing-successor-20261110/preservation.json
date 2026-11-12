@@ -1,0 +1,13 @@
+{
+  "allSixPriorAndFreshImageBytesEqual": true,
+  "evidenceAppendixUnchanged": true,
+  "immutableSubtrees": {
+    "docs/verification/pr1275-current-master-20261110": "d52c417a0c1bd35a09d9969d92db8028dac885f3",
+    "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/history": "e870c75fd955f6112bf65a0b6225dc74288aa365",
+    "terminal/docs/pr-crops/shared-shell-b1-evidence-overlay-20261103": "beedaebb87e5dcdfb0c93a127ccde07f424921de",
+    "terminal/docs/pr-crops/shared-shell-b2-research-editorial-20261104": "52cf1ddfc579373500e40480b3796445f69130d0"
+  },
+  "priorActivePacketFiles": 8,
+  "priorPacketInventorySha256": "a0a8dd6de4cc4a0d90660ec84db802431f30c5a1e49bb3ab42a45d364bd4f856",
+  "schema": "terminal.pr1275.preservation.v1"
+}

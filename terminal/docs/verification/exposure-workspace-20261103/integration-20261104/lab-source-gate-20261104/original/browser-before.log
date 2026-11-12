@@ -1,0 +1,103 @@
+[warmup] /terminal?symbol=NVDA → 200 in 584ms
+[warmup] /options → 200 in 166ms
+[warmup] /portfolio → 200 in 1665ms
+[warmup] /alerts → 200 in 3791ms
+[warmup] /analysis → 200 in 2547ms
+[warmup] /discover → 200 in 2628ms
+[warmup] /admin → 200 in 891ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 1068ms
+[warmup] /login → 200 in 426ms
+[warmup] /reset-password → 200 in 1356ms
+[warmup] /api/me → 200 in 670ms
+[warmup] /api/watchlist → 200 in 712ms
+[warmup] /api/layouts → 200 in 568ms
+[warmup] /api/watchlist/annotations → 409 in 540ms
+[warmup] 14 routes compiled in 18s
+
+Running 2 tests using 1 worker
+
+  ✘  1 [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (10.1s)
+  ✘  2 [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (9.2s)
+
+
+  1) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('region', { name: '3D Research Lab', exact: true }).getByTestId('research-reported-gamma')
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByRole('region', { name: '3D Research Lab', exact: true }).getByTestId('research-reported-gamma')
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      56 |       releaseFailure();
+      57 |       await expect.poll(() => failureDelivered).toBe(true);
+    > 58 |       await expect(panel).toHaveCount(0);
+         |                           ^
+      59 |       await expect(lab).toContainText("No current all-expiry GEX source is supplied");
+      60 |       expect(reads.filter(x => x === "gex:SPY")).toHaveLength(liveReads);
+      61 |       expect(reads.filter(x => x === "gex_at:SPY:2026-10-16")).toHaveLength(archiveReads);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/e2e/options-lab-source-state.spec.ts:58:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace .next/options-lab-source-before-20261104/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  getByRole('region', { name: '3D Research Lab', exact: true }).getByTestId('research-reported-gamma')
+    Expected: 0
+    Received: 1
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveCount" with timeout 5000ms
+      - waiting for getByRole('region', { name: '3D Research Lab', exact: true }).getByTestId('research-reported-gamma')
+        14 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      56 |       releaseFailure();
+      57 |       await expect.poll(() => failureDelivered).toBe(true);
+    > 58 |       await expect(panel).toHaveCount(0);
+         |                           ^
+      59 |       await expect(lab).toContainText("No current all-expiry GEX source is supplied");
+      60 |       expect(reads.filter(x => x === "gex:SPY")).toHaveLength(liveReads);
+      61 |       expect(reads.filter(x => x === "gex_at:SPY:2026-10-16")).toHaveLength(archiveReads);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/e2e/options-lab-source-state.spec.ts:58:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    .next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: .next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    .next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace .next/options-lab-source-before-20261104/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery 
+    [desktop] › e2e/options-lab-source-state.spec.ts:25:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery 

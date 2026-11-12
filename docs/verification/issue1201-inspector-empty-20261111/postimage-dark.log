@@ -1,0 +1,65 @@
+[warmup] /terminal?symbol=NVDA → 200 in 208ms
+[warmup] /options → 200 in 6307ms
+[warmup] /portfolio → 200 in 3737ms
+[warmup] /alerts → 200 in 3499ms
+[warmup] /analysis → 200 in 4550ms
+[warmup] /discover → 200 in 4499ms
+[warmup] /admin → 200 in 1384ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 1212ms
+[warmup] /login → 200 in 409ms
+[warmup] /reset-password → 200 in 1344ms
+[warmup] /api/me → 200 in 1421ms
+[warmup] /api/watchlist → 200 in 974ms
+[warmup] /api/layouts → 200 in 659ms
+[warmup] /api/watchlist/annotations → 409 in 606ms
+[warmup] 14 routes compiled in 31s
+[fixture-ready] prophet_idx fixture 200 in 1603ms
+
+Running 4 tests using 1 worker
+F
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › postimage: Inspector empty dark/en/1440 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Cannot read properties of null (reading 'setAttribute')",
+    + ]
+
+      136 |           selectedEventCheck = { viewport: width, visible: true };
+      137 |         }
+    > 138 |         expect(errors).toEqual([]);
+          |                        ^
+      139 |         const after = hashes();
+      140 |         expect(after).toEqual(before);
+      141 |         writeFileSync(path.join(out, filename.replace(/\.png$/, ".json")), JSON.stringify({
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/terminal/e2e/issue1201-inspector-empty-capture.spec.ts:138:24
+
+    attachment #1: inspector-empty-dark-en-1440.png (image/png) ────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/attachments/inspector-empty-dark-en-1440-png-47e4a44e014a0f9d4bcf34e39606886e472ade72.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/issue1201-inspector-empty-20261111/postimage-dark-artifacts/issue1201-inspector-empty--bd32c-nspector-empty-dark-en-1440-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/issue1201-inspector-empty-capture.spec.ts:61:11 › N3 width 1440 › postimage: Inspector empty dark/en/1440 
+  3 did not run
+  1 error was not a part of any test, see above for details

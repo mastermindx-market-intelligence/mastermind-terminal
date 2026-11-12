@@ -1,0 +1,30 @@
+{
+  "acceptedTenBlobs": {
+    "terminal/components/offexchange/Tp2ResearchReadout.tsx": "aa6f00547ac8b88be8e3c34b293a217ab01efaab",
+    "terminal/docs/TP2_PRIVATE_CONSUMER_PHASE_A_20261012.md": "ecfbb1a6309fb5673e27fdd9be62c7cd0cf6f3e4",
+    "terminal/docs/images/tp2-private-synthetic-desktop-1440.png": "41eb3046a0d81445c36d0dd685179842cd68b912",
+    "terminal/docs/images/tp2-private-synthetic-mobile-390.png": "4b74cfd8af86a9d1e74bb0ffef2a9ccbd8a9de79",
+    "terminal/lib/__tests__/fixtures/tp2PrivateView.synthetic.v0.json": "7ab043dc74fc1dc4ca7c0528ed2b6aa12e27ea10",
+    "terminal/lib/__tests__/fixtures/tp2R0Sidecar.synthetic.v0.json": "4cefa56782df9d509432b65133c5e1fdb78d4066",
+    "terminal/lib/__tests__/tp2PrivateEvidence.test.ts": "cf8299415a156f5863e3fafb0855d5c0165a6f98",
+    "terminal/lib/__tests__/tp2ResearchReadout.test.ts": "0a73d800ececa235437737c36b1472b7104dc133",
+    "terminal/lib/tp2PrivateEvidence.ts": "0fc35aa66a8c9f5788a1fab063cecdf39f1d5b77",
+    "terminal/scripts/verify-tp2-readout-browser.mjs": "545caf731a882fc4623d188d1a9235309e1148e2"
+  },
+  "completedAt": "2026-11-09T17:10:23.411698+00:00",
+  "head": "46394e371a34ef9cda9ffd09b1ba115e3729c441",
+  "merge": {
+    "exit": 0,
+    "stderr": "Automatic merge went well; stopped before committing as requested\n",
+    "stdout": ""
+  },
+  "originalAcceptedLocal": "93a9f6882c3d035da674f6d70d6584e6c2335f2c",
+  "packageLockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "packageSha256": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr966_source_integration.v1",
+  "startedAt": "2026-11-09T17:10:20.002811+00:00",
+  "state": "CLEAN_REAL_PROTECTED_MERGE_TEN_ACCEPTED_BLOBS_UNCHANGED",
+  "takeoverComment": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/966#issuecomment-6746344985",
+  "workflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea"
+}

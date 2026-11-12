@@ -27,6 +27,8 @@ import PortfolioSectorContext from "@/components/PortfolioSectorContext";
 import type { Position } from "@/lib/portfolio";
 import ready from "./fixtures/sector_dossiers_v1.json";
 import outage from "./fixtures/sector_dossiers_unavailable_v1.json";
+import captured from "./fixtures/sector_generation.captured.preview.v1.json";
+import { nativeGenerationFixture } from "./fixtures/sectorNativeGeneration";
 
 vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
 
@@ -47,11 +49,13 @@ type Pending = {
 };
 const calls: Pending[] = [];
 
-const ok = (data: unknown) => ({ data, receipt: { source: "sector", status: "ready",
-  path: "/sectordata/sector_central.json", asOf: "2026-10-09", observedAt: "2026-10-09T21:00:00Z",
-  stale: false, contentHash: "sha256:transport" } });
-const access = () => ({ data: null, receipt: { source: "sector", status: "access",
-  path: "/sectordata/sector_central.json", asOf: null, observedAt: null, stale: false, contentHash: null } });
+const ok = (data: Record<string, unknown>) => ({ data: nativeGenerationFixture({ as_of: "2026-10-09",
+  sectors: [{ id: "xlk", ticker: "XLK", name: "Technology" }, { id: "xle", ticker: "XLE", name: "Energy" }], ...data }),
+  receipt: { source: "generation", status: "ready",
+    path: "/api/sector-generation?audience=preview", asOf: "2026-10-09", observedAt: "2026-10-09T21:00:00Z",
+    stale: false, contentHash: "sha256:transport" } });
+const access = () => ({ data: null, receipt: { source: "generation", status: "access",
+  path: "/api/sector-generation?audience=preview", asOf: null, observedAt: null, stale: false, contentHash: null } });
 
 let sequence = 0;
 const lot = (ticker: string, over: Partial<Position> = {}): Position => {
@@ -71,10 +75,10 @@ describe("the Portfolio selected-sector block", () => {
   let root: Root, host: HTMLDivElement;
 
   const render = async (props: { context?: SectorPortfolioContext; positions?: Position[];
-    unreadable?: boolean; stale?: boolean } = {}) => {
+    unreadable?: boolean; stale?: boolean; refreshing?: boolean } = {}) => {
     await act(async () => root.render(<LangProvider>
       <PortfolioSectorContext context={props.context ?? contextFor("XLK")} positions={props.positions ?? []}
-        unreadable={props.unreadable ?? false} stale={props.stale ?? false} />
+        unreadable={props.unreadable ?? false} stale={props.stale ?? false} refreshing={props.refreshing ?? false} />
     </LangProvider>));
   };
 
@@ -117,7 +121,7 @@ describe("the Portfolio selected-sector block", () => {
   it("renders the owner's own evidence for the selected sector", async () => {
     await render();
     expect(calls.length).toBe(1);
-    expect(calls[0].url).toContain("/api/sector-intelligence?source=sector");
+    expect(calls[0].url).toBe("/api/sector-intelligence?source=generation");
     expect(calls[0].method).toBe("GET");
     await act(async () => { calls[0].resolve(ok({ measured_read: ready })); });
     await flush();
@@ -128,6 +132,30 @@ describe("the Portfolio selected-sector block", () => {
     expect(dossier().querySelector("time")!.getAttribute("datetime")).toBe("2026-10-09");
     expect(metric("21").textContent).toContain("-0.50%");
     expect(metric("63").textContent).toContain("0.00%");
+  });
+
+  it.each(["accepted", "stale", "degraded"])("reads the captured native generation and preserves its %s qualification", async qualification => {
+    await render({ context: contextFor("XLU") });
+    const wire = structuredClone(captured);
+    wire.qualification = wire.projection.receipt.qualification = qualification;
+    await act(async () => { calls[0].resolve({ data: wire, receipt: { ...ok({}).receipt, asOf: wire.source_session } }); });
+    await flush();
+    expect(dossier().textContent).toContain("XLU");
+    expect(host.querySelector('[data-testid="sector-exact-window-returns"]')?.textContent).toContain("XLU");
+    expect(host.querySelectorAll('[data-testid="sector-exact-window"]')).toHaveLength(3);
+    expect(host.querySelector('[data-testid="sector-generation-source"]')?.textContent).toContain(captured.projection.receipt.generation_id);
+    const notice = host.querySelector('[data-testid="sector-generation-qualification"]');
+    if (qualification === "accepted") expect(notice).toBeNull();
+    else expect(notice?.getAttribute("data-qualification")).toBe(qualification);
+  });
+
+  it("refuses a static artifact carried under the native source instead of reviving its figures", async () => {
+    await render();
+    await act(async () => { calls[0].resolve({ ...ok({}), data: { measured_read: ready } }); });
+    await flush();
+    expect(dossier().getAttribute("data-state")).toBe("invalid");
+    expect(metric("21")).toBeNull();
+    expect(calls).toHaveLength(1);
   });
 
   it("retires a ready selection across pending A to B to A", async () => {
@@ -145,7 +173,8 @@ describe("the Portfolio selected-sector block", () => {
     expect(metric("21")).toBeNull();
     await act(async () => { calls[2].resolve(ok({ measured_read: outage })); });
     await flush();
-    expect(metric("21").textContent).toBe("—");
+    expect(metric("21")).toBeNull();
+    expect(dossier().getAttribute("data-state")).toBe("invalid");
   });
 
   it("offers the admitted return to the exact selection", async () => {
@@ -155,6 +184,23 @@ describe("the Portfolio selected-sector block", () => {
     const back = host.querySelector('[data-testid="portfolio-sector-context-return"]') as HTMLAnchorElement;
     expect(back.getAttribute("href")).toBe("/discover?tab=sectors&sectorWorkspace=rotation");
     expect(back.textContent).toContain("Back to Rotation");
+  });
+
+  it.each([false, true])("rereads once after an existing Portfolio refresh completes with unreadable=%s", async unreadable => {
+    await render();
+    await act(async () => { calls[0].resolve(ok({ measured_read: ready })); });
+    await flush();
+    expect(metric("21").textContent).toContain("-0.50%");
+    await render({ refreshing: true });
+    expect(metric("21")).toBeNull();
+    expect(calls).toHaveLength(1);
+    expect(calls[0].signal?.aborted).toBe(true);
+    await render({ refreshing: false, unreadable });
+    expect(calls).toHaveLength(2);
+    await act(async () => { calls[1].resolve(access(), 401); });
+    await flush();
+    expect(dossier().getAttribute("data-state")).toBe("access");
+    expect(metric("21")).toBeNull();
   });
 
   it("shows the direct holding and its share of the eligible recorded cost", async () => {
@@ -223,7 +269,7 @@ describe("the Portfolio selected-sector block", () => {
 
   it("reads the owner's own dossier states without inventing a figure", async () => {
     await render();
-    await act(async () => { calls[0].resolve(ok({ measured_read: {} })); });
+    await act(async () => { calls[0].resolve(ok({})); });
     await flush();
     expect(dossier().textContent).toContain("Leadership evidence is not available");
     expect(metric("21")).toBeNull();
@@ -231,8 +277,8 @@ describe("the Portfolio selected-sector block", () => {
     await render({ context: contextFor("XLE") });
     await act(async () => { calls[1].resolve(ok({ measured_read: outage })); });
     await flush();
-    expect(dossier().textContent).toContain("Leadership evidence is unavailable");
-    expect(host.querySelector('[data-testid="sector-dossier-metric"][data-window="21"] strong')!.textContent).toBe("—");
+    expect(dossier().getAttribute("data-state")).toBe("invalid");
+    expect(host.querySelector('[data-testid="sector-dossier-metric"][data-window="21"] strong')).toBeNull();
   });
 
   it("clears every figure when the access is withdrawn", async () => {

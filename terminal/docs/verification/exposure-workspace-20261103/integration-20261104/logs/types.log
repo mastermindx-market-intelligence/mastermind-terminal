@@ -1,0 +1,2 @@
+.next/dev/types/app/login/page.ts(37,29): error TS2344: Type '{ searchParams?: Promise<Record<string, string | string[] | undefined>> | undefined; } | undefined' does not satisfy the constraint 'PageProps'.
+  Type 'undefined' is not assignable to type 'PageProps'.

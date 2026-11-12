@@ -1,0 +1,24 @@
+{
+  "started": "2026-11-11T19:19:59.169090+00:00",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "e2e/tools/briefs_inbox_capture_contract.test.cjs",
+    "e2e/tools/capture_ci_evidence.test.cjs",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "scripts/ci/plan-evidence-capture.test.cjs",
+    "e2e/tools/sharedShellSafeReporter.test.cjs",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+    "e2e/tools/f11_provider_closed_policy.test.cjs"
+  ],
+  "TMPDIR": "/private/tmp/terminal-pr1470-protected-compose-20261111-c3/node-temp",
+  "recovery_reason": "Four on-disk inbox contract fixtures refused macOS /tmp -> /private/tmp path identity. Use the existing physical temporary directory; retain strict symlink checks and all source bytes.",
+  "source_hashes": {
+    ".github/workflows/ci.yml": "d649ddd971e7c55c4769a04988f41a25eda235fc0b3ea9e9d7c84caec447d07b",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "4f1a256a2b3a3b7e80b13721225139177679344ebe574c66481cbbae656d7c0f",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "94c9c01eaedd37e402007d338d35a6647cebbd1002e283213e99f9d28f3e098b",
+    "tests/test_merge_group_fast_lane_contract.py": "d6cddbd543964383322202f1f7fb29405fddbb918b0c72371a196d04856d2971",
+    "tests/test_trusted_migration_ownership.py": "71744f2cff6e041d93dff90a9ded8a670525acf1b83b22c6c2360614b8dcd869",
+    "terminal/components/fin/TranscriptDrawer.tsx": "8180e3e0d1fec93a8265f5e960cfadbe588548ee24599e70c7815a8cf6847759"
+  }
+}

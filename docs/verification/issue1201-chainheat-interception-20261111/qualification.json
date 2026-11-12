@@ -1,0 +1,43 @@
+{
+  "schema": "terminal.issue1201.qualification.v1",
+  "qualified_at": "2026-11-11T08:19:09.631841+00:00",
+  "operation_id": "terminal-pr-duty-20261111-1201-c3",
+  "base_head": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "protected_source_check": "74c007125129090cc762f2bc4b1b152123326444",
+  "source_preimages_unchanged_on_protected_master": true,
+  "source_sha256": {
+    "terminal/app/observatory.css": "b31919527c21e991e0be91129b72ddfa6c4166baf74c6ce817e625466a216c06",
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts": "194638305205d1ee4b2adc29eae0368c53b998f6f0ed106865cb223a014eb503"
+  },
+  "procedure_pin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "review": "SELF_REVIEWED_SOURCE_CONTRIBUTOR",
+  "formal_github_approval": false,
+  "production_acceptance": false,
+  "issue_closure": false,
+  "scope": "B9 completed response injection discriminator",
+  "positive_stats": {
+    "startTime": "2026-11-11T07:14:09.553Z",
+    "duration": 97720.021,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "negative_stats": {
+    "startTime": "2026-11-11T07:09:18.117Z",
+    "duration": 185420.30299999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "negative_expected_failure": true,
+  "static_checks": {
+    "eslint_exit": 0,
+    "next_typegen_exit": 0,
+    "typescript_exit": 0
+  },
+  "negative_port_closed": 62566,
+  "positive_port_closed": 49668,
+  "n3_followup": "../issue1201-inspector-empty-20261111/qualification.json"
+}

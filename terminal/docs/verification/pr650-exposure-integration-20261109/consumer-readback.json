@@ -1,0 +1,22 @@
+{
+  "eod": {
+    "selection": "qualified",
+    "manifest": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/ui-copy-integration-20261109/qualified-root/EVIDENCE.yml",
+    "sha256": "a8fbef52e9008df367c97ee73f7a1c0d1b27add3718634fd876982732f890dd0",
+    "descriptorSha256": "ecad16da1beda4bd3a1dbb5354ce92c2181d985b8f1644bb1f5371071d401910",
+    "captureRevision": "ui-copy-integration-20261109",
+    "capturedAtHead": "282ea2c40d839fecbe5ae5dc53de9c29a02850f6",
+    "layoutCount": 13,
+    "sourceCount": 30,
+    "plan": {
+      "required": false,
+      "changed": []
+    }
+  },
+  "gex": {
+    "sourceCount": 27,
+    "captureRevision": "indicator-guard-20261109",
+    "descriptorSha256": "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b"
+  },
+  "browserInputs": 68
+}

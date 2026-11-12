@@ -74,6 +74,18 @@ test("finite projects/source files and retry sequence reject malformed or duplic
   const a = specimen(), b = specimen(); assert.throws(() => new Recorder({}).begin([a, b], ROOT));
   const r = new Recorder({}); r.begin([a], ROOT); assert.throws(() => r.endTest(a, { status: "passed", retry: 1 }));
 });
+test("Discover focus journeys retain bounded case identity and validated outcomes", () => {
+  const items = ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang =>
+    specimen(`Discover chooser keeps keyboard focus with the selected task (${lang})`, project, "discover-focus-continuity.spec.ts")));
+  const recorder = new Recorder({ source: "fixture" }); recorder.begin(items, ROOT);
+  for (const item of items) recorder.endTest(item, { status: "passed", retry: 0 });
+  recorder.ended = true;
+  const row = recorder.project("passed", true);
+  assert.equal(row.collected, 6); assert.equal(row.verdict, "passed");
+  assert(row.cases.every(item => item.file === "e2e/discover-focus-continuity.spec.ts"));
+  assert.deepEqual(validate(row, { source: "fixture" }), row);
+  assert.throws(() => new Recorder({}).begin([specimen("foreign", "desktop", "private.spec.ts")], ROOT));
+});
 test("strict projection rejects forged completeness/counts, unknown fields and source drift", t => {
   const x = run(t), row = x.complete(); assert.deepEqual(validate(row, x.binding), row);
   for (const change of [r => { r.collected++; }, r => { r.verdict = "incomplete"; }, r => { r.cases[0].attempts = []; },
@@ -150,7 +162,7 @@ test("fresh output directory and target alias/inode substitution never follows a
 });
 test("the workflow preserves GitHub reporting, selection and the original responsive artifact", () => {
   const text = fs.readFileSync(path.join(ROOT, ".github/workflows/ci.yml"), "utf8");
-  assert(text.includes("npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts\n          --project=desktop --project=tablet --project=mobile\n          --workers=1 --retries=0\n          --output=test-results/shared-shell-refinement\n          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs"));
+  assert(text.includes("npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts e2e/discover-focus-continuity.spec.ts\n          --project=desktop --project=tablet --project=mobile\n          --workers=1 --retries=0\n          --output=test-results/shared-shell-refinement\n          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs"));
   assert(text.includes("steps.safe_shared_shell_summary.outcome == 'success' && steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true'"));
   assert(text.includes("name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}\n          path: terminal/test-results"));
   assert(text.includes("scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs"));

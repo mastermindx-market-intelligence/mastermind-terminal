@@ -1,0 +1,183 @@
+{
+  "captureHistoryUnchanged": true,
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-900-workspace-successor/.pr900-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_f12_b5_2_team_workspaces.cjs"
+  ],
+  "completedAt": "2026-11-10T12:58:31.295876+00:00",
+  "environment": {
+    "MMX_INVESTOR_SHELL_PREVIEW": "0",
+    "MMX_SHARED_SHELL": "0",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "PLAYWRIGHT_BROWSERS_PATH": "/Users/chriswong/Library/Caches/ms-playwright",
+    "TERMINAL_CROP_PORT": "47900"
+  },
+  "exit": 0,
+  "expectedImages": [
+    "desktop-en-member-read-only.png",
+    "desktop-en-share-confirm.png",
+    "desktop-en-team-grouped.png",
+    "desktop-zh-member-read-only.png",
+    "desktop-zh-share-confirm.png",
+    "desktop-zh-team-grouped.png",
+    "mobile-en-member-read-only.png",
+    "mobile-en-share-confirm.png",
+    "mobile-en-team-grouped.png",
+    "mobile-zh-member-read-only.png",
+    "mobile-zh-share-confirm.png",
+    "mobile-zh-team-grouped.png"
+  ],
+  "head": "90ed31ba6e5ddbc39d58913b3416159b7c511874",
+  "images": {
+    "desktop-en-member-read-only.png": {
+      "bytes": 38562,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "672ba23e3da67f22fa41d45bdf64d4865747ec20f20d81994211c4cd2a4b46d6",
+      "width": 1440
+    },
+    "desktop-en-share-confirm.png": {
+      "bytes": 45236,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "bdcb2ce5e2f9b01ce8db165a2812e28c99621084090ec59f7a1f71bd02d17e94",
+      "width": 1440
+    },
+    "desktop-en-team-grouped.png": {
+      "bytes": 36531,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "41d3b5efdeb81ece303fb27d81ee39b3fd91a72d980fe2bd52edaf4cd5dc50e9",
+      "width": 1440
+    },
+    "desktop-zh-member-read-only.png": {
+      "bytes": 39234,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "8a1b0eac60a71558eb8cd280ea0afef5f61d1d98062954b464873328f1df53d4",
+      "width": 1440
+    },
+    "desktop-zh-share-confirm.png": {
+      "bytes": 46667,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "939753321bf460df4a9e8076f3f34d73b9acd544f51e4472bf12c22a1d04a5bc",
+      "width": 1440
+    },
+    "desktop-zh-team-grouped.png": {
+      "bytes": 36072,
+      "height": 900,
+      "modifiedDuringCapture": true,
+      "sha256": "2b8395fb5090fa61b2234b9d2009e7677608267d5b6dbba30e7760b534dd4142",
+      "width": 1440
+    },
+    "mobile-en-member-read-only.png": {
+      "bytes": 33191,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "aff3e5cc7d79e4e2389521a3913848e394bf88de6a803194c9970a5f5e0ad07b",
+      "width": 390
+    },
+    "mobile-en-share-confirm.png": {
+      "bytes": 38214,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "8897e9b0161ae55c99fc16ba1f89d948eb42cd8a643f5ac5ba05e44b8b9c109b",
+      "width": 390
+    },
+    "mobile-en-team-grouped.png": {
+      "bytes": 31513,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "b8bc0552bbfa16ae2c5489ce41617b610507926753bb30e568a92897f740ee86",
+      "width": 390
+    },
+    "mobile-zh-member-read-only.png": {
+      "bytes": 34293,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "ca44df213e8c080beb32db80a409826c402f00d920f86c7db004cfd995719e52",
+      "width": 390
+    },
+    "mobile-zh-share-confirm.png": {
+      "bytes": 41569,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "01fd9e2c2e659871402b7b3b507f08fcb1f864b3740c3b393565f553aab037df",
+      "width": 390
+    },
+    "mobile-zh-team-grouped.png": {
+      "bytes": 31176,
+      "height": 844,
+      "modifiedDuringCapture": true,
+      "sha256": "bfb991232832c4878e4fccba023cf8d156db61d4f9ee0583aeeda531c2ad7080",
+      "width": 390
+    }
+  },
+  "lifecycle": {
+    "initialLockPresent": false,
+    "serverAbsenceVerifiedAt": "2026-11-10T12:58:31.023782+00:00"
+  },
+  "lifecycleTestReceiptSha256": "346468cd2ff6ec2ece841c5957638e5e95ee949f8a4b4f766a90b08e8b8ebf29",
+  "logSha256": "6115bb191858daaff7ce2e3a3d0313d3dc0878f40f14818e7733d432bd025941",
+  "manifestCaptureHeadCorrect": true,
+  "manifestFilesMatch": true,
+  "manifestSha256": "5a267267e82d8eaf42e15d08b8b699da613d864f812b4e57fbc729d4d17d282a",
+  "measurementsMatchPriorIntendedStates": true,
+  "nextLockAbsent": true,
+  "nextLockPresentAfterProducer": false,
+  "ownedCloseEvents": [
+    {
+      "code": 0,
+      "event": "owned-server-closed",
+      "pid": 87751,
+      "port": 47900,
+      "signal": null
+    }
+  ],
+  "ownedPortClosed": true,
+  "port": 47900,
+  "preservedPacketsUnchanged": true,
+  "priorManifestSha256": "2d9c15357dca74d533b07a4055fcebbed90429c4ff9c05664d1bcddc3cbc76e7",
+  "producerPid": 87742,
+  "producerSha256": "ed1dc37a6ee329bfdaa0d7595302c736d3f6a5a10915cc589c86b9e6328cfb5d",
+  "protectedBase": "d0578d1237a818e554d2ac52dc54e371f02c2770",
+  "readOnlyPortAfter": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:47900",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "observedAt": "2026-11-10T12:58:30.570734+00:00",
+    "stderr": "",
+    "stdout": ""
+  },
+  "recordedChildAfter": {
+    "command": [
+      "ps",
+      "-p",
+      "87751",
+      "-o",
+      "pid=,ppid=,comm="
+    ],
+    "exit": 1,
+    "observedAt": "2026-11-10T12:58:30.577163+00:00",
+    "stderr": "",
+    "stdout": ""
+  },
+  "runtime": {
+    "next": "16.2.9",
+    "node": "v22.23.4",
+    "playwright": "1.61.1"
+  },
+  "schema": "terminal.pr900.current-workspace-capture.v1",
+  "seconds": 27.881,
+  "sourceEntries": 2049,
+  "sourceLocksMatch": true,
+  "sourceStable": true,
+  "sourceTree": "ab80846b448691c1aa518e266c71168c1d1312de",
+  "startedAt": "2026-11-10T12:58:02.461521+00:00",
+  "state": "QUALIFIED"
+}
