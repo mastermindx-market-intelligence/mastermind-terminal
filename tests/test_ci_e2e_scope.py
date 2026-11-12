@@ -180,8 +180,8 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
     # Full audited PR matrix or safe focused subset; a native merge group
     # skips the full dev matrix but requires the production-build browser lane.
-    docs = ("github.event_name == 'pull_request' && "
-            "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs'")
+    docs = ("needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' "
+            "&& (github.event_name == 'pull_request' || github.event_name == 'merge_group')")
     assert jobs["terminal-unit"]["if"] == (
         "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
     )
@@ -796,10 +796,18 @@ def test_native_merge_group_keeps_only_its_development_matrix_skip():
             BUILD="skipped", PRODBUILD=status, PRODBUILD_COUNT="4",
         )
         assert result.returncode != 0, (status, result.stdout)
+    # A whole merge group CAN earn the docs exemption, but only from a
+    # successful classifier: an unqualified pr_scope keeps every skip unlawful.
     result = _execute_required_aggregate(
         EVENT="merge_group", PR_MODE="docs", UNIT="skipped", E2E="skipped",
     )
-    assert result.returncode != 0, result.stdout
+    assert result.returncode == 0, result.stdout
+    for status in ("failure", "skipped", "cancelled", ""):
+        result = _execute_required_aggregate(
+            EVENT="merge_group", PR_SCOPE=status, PR_MODE="docs",
+            UNIT="skipped", E2E="skipped", BUILD="skipped", PRODBUILD="skipped",
+        )
+        assert result.returncode != 0, (status, result.stdout)
 
 
 @pytest.mark.parametrize("event", ["workflow_dispatch", "schedule", "push"])

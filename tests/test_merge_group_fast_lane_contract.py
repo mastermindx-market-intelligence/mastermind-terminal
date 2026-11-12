@@ -11,6 +11,7 @@ production qualification for an integrated candidate.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -35,8 +36,8 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     all_jobs = jobs()
     e2e = all_jobs["terminal-e2e"]
     docs = (
-        "github.event_name == 'pull_request' && needs.pr_scope.result == 'success' "
-        "&& needs.pr_scope.outputs.mode == 'docs'"
+        "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' "
+        "&& (github.event_name == 'pull_request' || github.event_name == 'merge_group')"
     )
     assert e2e["if"] == (
         "${{ !cancelled() && needs.e2e-scope.result == 'success' "
@@ -456,3 +457,129 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
     )
     assert result.returncode != 0, (scope_result, event, result.stdout)
     assert "e2e-scope concluded" in result.stdout
+
+
+# --- trusted-base classifier wiring (pull request and whole merge group) ----
+
+
+def scope_step() -> dict:
+    return next(
+        step for step in jobs()["pr_scope"]["steps"]
+        if step.get("name") == "Classify the exact change using protected base code"
+    )
+
+
+def test_pr_scope_classifies_only_default_branch_prs_and_native_merge_groups() -> None:
+    job = jobs()["pr_scope"]
+    assert job["if"] == (
+        "${{ (github.event_name == 'pull_request' && "
+        "github.event.pull_request.base.ref == github.event.repository.default_branch) "
+        "|| github.event_name == 'merge_group' }}"
+    )
+    # push/schedule/dispatch never reach the classifier; with pr_scope skipped
+    # its mode output is empty and every heavy job below runs full.
+    for event in ("push", "schedule", "workflow_dispatch"):
+        assert event not in job["if"]
+
+
+def test_the_classifier_is_always_executed_from_a_protected_base() -> None:
+    run = scope_step()["run"]
+    # Pull request path: the classifier is extracted from HEAD^1 (the merge
+    # commit's first parent, the exact base tip) and executed out of tree.
+    assert 'git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"' in run
+    assert 'python3 "$trusted/scripts/ci_pr_scope.py"' in run
+    # Merge-group path: freeze the event identity, fetch the exact base
+    # object, then extract the classifier from THAT commit, never the group
+    # head (which contains candidate code).
+    assert '[ "${GITHUB_SHA}" = "${MG_HEAD_SHA}" ]' in run
+    assert '[ "$(git rev-parse HEAD)" = "${MG_HEAD_SHA}" ]' in run
+    assert 'git fetch --no-tags --depth=1 origin "${MG_BASE_SHA}"' in run
+    assert 'git show "${MG_BASE_SHA}:scripts/ci_pr_scope.py" > "${trusted}/ci_pr_scope.py"' in run
+    assert 'python3 "${trusted}/ci_pr_scope.py"' in run
+    # The candidate checkout's own copy is never executed on any path.
+    assert "python3 scripts/ci_pr_scope.py" not in run
+    assert "python3 \"$GITHUB_WORKSPACE/scripts/ci_pr_scope.py\"" not in run
+    # A missing classifier on the protected base fails closed to full on both
+    # paths, and any identity mismatch exits nonzero (mode stays empty).
+    assert run.count("mode=full\\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE") == 2
+    assert '[[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid merge-group commit identity" >&2; exit 1; }' in run
+    # A base classifier too old for merge groups (the group that ships this
+    # very change) is probed, never executed with flags it rejects, and the
+    # group fails closed to a full run instead of a red classifier job.
+    # Match the parser declaration, not any mention of the flag.
+    assert "grep -qF -- 'add_argument(\"--group-base-sha\"' \"${trusted}/ci_pr_scope.py\"" in run
+    assert 'mode=full\\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\\n' in run
+    assert run.index("--event merge-group") > run.index("grep -qF -- 'add_argument(\"--group-base-sha\"'")
+
+
+def test_the_pull_request_path_guards_forks_in_the_shell_and_stays_vintage_safe() -> None:
+    run = scope_step()["run"]
+    # The fork guard is shell-side so it holds whatever classifier vintage
+    # the protected base carries.
+    assert '[ "${PR_HEAD_REPO}" != "${REPOSITORY}" ]' in run
+    assert 'mode=full\\nreason=FORK_HEAD_REPOSITORY\\n' in run
+    # ... and the pull-request classifier call passes exactly the incumbent
+    # classifier's argument set (no new flags), so this workflow runs green
+    # against a protected base that predates those flags.
+    assert re.search(
+        r'--repo "\$GITHUB_WORKSPACE" --base-sha "\$PR_BASE_SHA" \\\n'
+        r'\s*--base-ref "\$PR_BASE_REF" --default-branch "\$DEFAULT_BRANCH" \\\n'
+        r'\s*--output "\$GITHUB_OUTPUT"',
+        run,
+    ), "pull-request classifier call must stay on the incumbent argument set"
+    assert "--head-repo" not in run
+    assert "--repository" not in run
+    env = scope_step()["env"]
+    assert env["PR_HEAD_REPO"] == "${{ github.event.pull_request.head.repo.full_name }}"
+    assert env["REPOSITORY"] == "${{ github.repository }}"
+    assert env["MG_BASE_SHA"] == "${{ github.event.merge_group.base_sha }}"
+    assert env["MG_HEAD_SHA"] == "${{ github.event.merge_group.head_sha }}"
+
+
+def _gate(**overrides: str) -> subprocess.CompletedProcess:
+    env = {
+        **os.environ,
+        "EVENT": "merge_group", "SCOPE": "success",
+        "PR_SCOPE": "success", "PR_MODE": "docs",
+        "UNIT": "skipped", "F11": "skipped", "TYPECHECK": "skipped", "UNITS": "skipped",
+        "E2E": "skipped", "BUILD": "skipped", "PRODBUILD": "skipped",
+        "PRODBUILD_COUNT": "4",
+        **overrides,
+    }
+    return subprocess.run(
+        ["bash", "-e", "-c", aggregate_assertion_step()["run"]],
+        env=env, capture_output=True, text=True, check=False, timeout=10,
+    )
+
+
+def test_a_qualified_docs_merge_group_may_skip_every_heavy_job() -> None:
+    # The whole-group classifier succeeded with mode=docs: the evidence lane,
+    # typecheck, unit shards and the production-browser lane may all skip and
+    # the required context still reports green.
+    assert _gate().returncode == 0
+    # A docs group is exempt from the four-prod-shard count assertion only
+    # because nothing consumes the lane there; any count still passes.
+    for count in ("0", "", "3"):
+        assert _gate(PRODBUILD_COUNT=count).returncode == 0
+
+
+@pytest.mark.parametrize("job", ["UNIT", "F11", "TYPECHECK", "UNITS", "E2E", "BUILD", "PRODBUILD"])
+@pytest.mark.parametrize("status", ["failure", "cancelled", ""])
+def test_a_docs_merge_group_cannot_launder_a_failed_result(
+    job: str, status: str,
+) -> None:
+    """Docs mode makes SKIPS lawful; it never accepts a failed, cancelled or
+    empty heavy-job result on a merge group."""
+    result = _gate(**{job: status})
+    assert result.returncode != 0, (job, status, result.stdout)
+
+
+@pytest.mark.parametrize("pr_scope", ["skipped", "failure", "cancelled", ""])
+@pytest.mark.parametrize("pr_mode", ["docs", "full", ""])
+def test_an_unqualified_classifier_keeps_every_merge_group_skip_unlawful(
+    pr_scope: str, pr_mode: str,
+) -> None:
+    """Whatever PR_MODE claims, a classifier that did not succeed cannot
+    authorize any heavy-job skip on a merge group."""
+    result = _gate(PR_SCOPE=pr_scope, PR_MODE=pr_mode, PRODBUILD_COUNT="4")
+    assert result.returncode != 0, (pr_scope, pr_mode, result.stdout)
