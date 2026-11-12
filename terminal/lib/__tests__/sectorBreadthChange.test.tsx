@@ -24,10 +24,17 @@
  *     change riding a sub-10 member set, and null member counts each degrade
  *     their own row without throwing; the adapter returns null (unavailable)
  *     for a wire with no recognizable ranked frame.
+ *   - DUTY-OFFICER DELTA 2026-11-12: the fixture names Macro #11128 head
+ *     0103db6e296bacbd97ab339b6fc41637add667f6; the member count shown is the
+ *     live like-for-like set n_fixed_200_13w (Financials 76), never the
+ *     archive's; the entire current frame comes from the live export and the
+ *     two sources are never joined into one series.
  */
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const G = globalThis as unknown as { __SI_BREADTH_LANG?: "en" | "zh" };
 G.__SI_BREADTH_LANG = "en";
@@ -96,6 +103,10 @@ const freshTooFew = () => sectorBreadthChangeFromWire(
 const staleWorld = () => sectorBreadthChangeFromWire(
   sectorBreadthFixtureStale.live, sectorBreadthFixtureStale.archive, sectorBreadthFixtureStale.latestSession);
 
+/** Structural clone for worlds mutated per test — JSON round-trip, exactly as
+ * distinct wires would arrive. */
+const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+
 const sectorsInOrder = (h: HTMLElement) =>
   Array.from(h.querySelectorAll('[data-testid="sector-breadth-row"]'))
     .map(r => r.getAttribute("data-sector"));
@@ -103,7 +114,7 @@ const rowOf = (h: HTMLElement, sector: string) =>
   h.querySelector(`[data-testid="sector-breadth-row"][data-sector="${sector}"]`) as HTMLElement;
 
 describe("adapter: two Macro files compared, never joined", () => {
-  it("builds the fresh full world: eleven rows, as-of from the archive frame, basis from live meta", () => {
+  it("builds the fresh full world: eleven rows, as-of from the live meta's as_of_week, basis from live", () => {
     const input = freshFull();
     expect(input).not.toBeNull();
     expect(input!.rows).toHaveLength(11);
@@ -117,6 +128,42 @@ describe("adapter: two Macro files compared, never joined", () => {
     expect(utilities.membersFixed13w).toBe(69);
   });
 
+  it("takes the member count from the live like-for-like set, never the archive's and never n_members", () => {
+    // Duty officer 2026-11-12: the count the Brief shows is n_fixed_200_13w —
+    // Financials 76 in the live file, while the archive history prices 55 and
+    // the live membership count is 79.
+    const input = freshFull()!;
+    const financials = input.rows.find(r => r.sectorId === "Financials")!;
+    expect(financials.membersFixed13w).toBe(76);
+    expect(financials.membersFixed13w).not.toBe(55);
+    const h = mount(freshFull());
+    const row = rowOf(h, "Financials");
+    expect(row.textContent).toContain("76");
+    expect(row.textContent).not.toContain("79");
+  });
+
+  it("never joins the two sources: the live frame wins even when the archive row differs", () => {
+    const world = clone(sectorBreadthFixtureFreshFull);
+    // Corrupt ONLY the archive: different change, share, count and as-of.
+    const fin = world.archive.rows.find(r => r.group === "Financials")!;
+    fin.fix_chg_pct_above_200_13w = -9.9;
+    fin.pct_above_200 = 11.1;
+    fin.n_fixed_200_13w = 55;
+    world.archive.as_of = "2026-10-02";
+    const input = sectorBreadthChangeFromWire(world.live, world.archive, world.latestSession)!;
+    const financials = input.rows.find(r => r.sectorId === "Financials")!;
+    expect(financials.changePp).toBe(1.2);
+    expect(financials.shareAbove200Now).toBe(66.7);
+    expect(financials.membersFixed13w).toBe(76);
+    expect(input.asOfDate).toBe("2026-11-06");
+    const h = mount(input);
+    const row = rowOf(h, "Financials");
+    expect(row.textContent).toContain("+1.2");
+    expect(row.textContent).toContain("66.7%");
+    expect(row.textContent).not.toContain("-9.9");
+    expect(row.textContent).not.toContain("11.1%");
+  });
+
   it("carries the too-few sector with a missing change and a present share", () => {
     const input = freshTooFew();
     const energy = input!.rows.find(r => r.sectorId === "Energy")!;
@@ -126,12 +173,21 @@ describe("adapter: two Macro files compared, never joined", () => {
     expect(energy.membersFixed13w).toBe(8);
   });
 
-  it("returns null — the unavailable state — when no ranked frame is recognizable", () => {
+  it("returns null — the unavailable state — when the live wire carries no current frame", () => {
     expect(sectorBreadthChangeFromWire(undefined, undefined, "2026-11-06")).toBeNull();
-    expect(sectorBreadthChangeFromWire(sectorBreadthFixtureFreshFull.live,
-      { as_of: "2026-11-06", basis: "reconstructed_current_membership", stale_rule: "", rows: [] }, "2026-11-06")).toBeNull();
+    expect(sectorBreadthChangeFromWire(
+      { ...sectorBreadthFixtureFreshFull.live, latest_week: [] },
+      sectorBreadthFixtureFreshFull.archive, "2026-11-06")).toBeNull();
+    // A recognizable live frame with an invalid session date cannot be dated.
     expect(sectorBreadthChangeFromWire(sectorBreadthFixtureFreshFull.live,
       sectorBreadthFixtureFreshFull.archive, "not-a-date")).toBeNull();
+  });
+
+  it("names the exact unmerged heads in its header, to be replaced before arming", () => {
+    const text = readFileSync(join(__dirname, "..", "__fixtures__", "sectorBreadthChange.fixture.ts"), "utf8");
+    // Flatten comment line-wrapping: whitespace AND block-comment asterisks.
+    const flat = text.replace(/[*\s]+/g, " ");
+    expect(flat).toContain("Macro #11128 head 0103db6e296bacbd97ab339b6fc41637add667f6 and Macro #11094 head 52e5ad722ef7; unmerged; replace before arming");
   });
 });
 
