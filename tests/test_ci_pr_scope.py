@@ -66,7 +66,7 @@ def test_prose_only_change_is_docs(repo: Path) -> None:
         _write(r, "docs/guide.md", "changed\n")
         _write(r, "docs/evidence/new.png", "png2\n")
         _write(r, "terminal/docs/note.md", "changed\n")
-        _write(r, "terminal/docs/pr-crops/x/crop.webp", "webp\n")
+        _write(r, "docs/evidence/deep/crop.webp", "webp\n")
         _write(r, "docs/new/HANDOFF.md", "handoff\n")
     base = _pr_merge(repo, mutate)
     decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
@@ -284,6 +284,39 @@ def test_group_with_any_source_file_is_full(repo: Path) -> None:
     assert decision.reason == "SOURCE_TOUCHED:terminal/lib/b.ts"
 
 
+def test_selfhosted_runbook_change_is_full(repo: Path) -> None:
+    # tests/test_ci_e2e_selfhosted_lane.py and tests/test_ci_e2e_lane_host_files.py
+    # read this runbook and skip on docs mode: a docs-only edit to it must
+    # still run the full suite.
+    def mutate(r: Path) -> None:
+        _write(r, "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md", "edited runbook\n")
+    base = _pr_merge(repo, mutate)
+    decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
+    assert decision.mode == "full"
+    assert decision.reason == "SOURCE_TOUCHED:docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md"
+
+
+def test_pr_crops_change_is_full(repo: Path) -> None:
+    # Evidence-lock suites hash pr-crops images (e.g.
+    # terminal/lib/__tests__/*LoadFailureEvidence.test.ts): a changed crop
+    # can change a test result, so crops never ride the docs tier.
+    def mutate(r: Path) -> None:
+        _write(r, "terminal/docs/pr-crops/gex/crop.png", "png\n")
+    base = _pr_merge(repo, mutate)
+    decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
+    assert decision.mode == "full"
+    assert decision.reason == "SOURCE_TOUCHED:terminal/docs/pr-crops/gex/crop.png"
+
+
+def test_evidence_tree_change_stays_docs(repo: Path) -> None:
+    # docs/evidence/ remains write-only evidence: crops there stay inert.
+    def mutate(r: Path) -> None:
+        _write(r, "docs/evidence/shot.png", "changed\n")
+    base = _pr_merge(repo, mutate)
+    decision = ci_pr_scope.classify(repo, expected_base=base, **_KW)
+    assert decision.mode == "docs"
+
+
 @pytest.mark.parametrize("operation", ["delete", "rename"])
 def test_group_deleting_or_renaming_docs_is_full(repo: Path, operation: str) -> None:
     def mutate(r: Path) -> None:
@@ -481,7 +514,7 @@ def test_a_change_above_the_cap_is_full(repo: Path) -> None:
 
 @pytest.mark.parametrize("path,expected", [
     ("docs/a.md", True), ("docs/evidence/x.png", True), ("docs/evidence/x.JPG", False),
-    ("terminal/docs/x.md", True), ("terminal/docs/pr-crops/a/b.jpeg", True),
+    ("terminal/docs/x.md", True), ("terminal/docs/pr-crops/a/b.jpeg", False),
     ("terminal/docs/x.json", False), ("docs/evidence/x.json", False), ("docs/x.png", False),
     ("README.md", False), ("ops/runbook.md", False), (".github/pull_request_template.md", False),
     ("terminal/app/docs/page.tsx", False), ("docs", False), ("", False), ("xdocs/a.md", False),
@@ -493,7 +526,23 @@ def test_is_docs_path(path: str, expected: bool) -> None:
 
 
 _LITERAL_REF = re.compile(r"""["'`]((?:\.\./|\./)?[A-Za-z0-9_][A-Za-z0-9_./-]*\.[A-Za-z0-9]{1,5})["'`]""")
+# Two literals joined as path segments: `ROOT / "docs" / "x.md"`,
+# `Path("docs", "x.md")`, `os.path.join("docs", "x.md")`, `join(DIR, "y.png")`.
+_SEGMENT_REF = re.compile(
+    r"""["']([A-Za-z0-9_][A-Za-z0-9_./-]*)["']\s*[/,]\s*"""
+    r"""["']([A-Za-z0-9_][A-Za-z0-9_./-]*\.[A-Za-z0-9]{1,5})["']"""
+)
 _SOURCE_SUFFIXES = (".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs", ".py", ".sh", ".yml", ".yaml")
+
+
+def _inert_evidence(path: str) -> bool:
+    # Only the evidence trees are write-only: written by specs
+    # (page.screenshot), never compared, so a changed image there cannot
+    # change a test result. Everything else an image-suffixed reference
+    # points at (e.g. pr-crops, hashed by evidence-lock suites) counts.
+    return path.startswith(ci_pr_scope._EVIDENCE_TREES) and path.endswith(
+        ci_pr_scope._EVIDENCE_SUFFIXES
+    )
 
 
 def _literal_path_references() -> dict[str, set[str]]:
@@ -502,6 +551,19 @@ def _literal_path_references() -> dict[str, set[str]]:
                          capture_output=True).stdout.decode("utf-8", "surrogateescape")
     tracked = {name for name in raw.split("\0") if name}
     referenced: dict[str, set[str]] = {}
+
+    def note(source: str, literals: set[str]) -> None:
+        for literal in literals:
+            candidates = {literal.lstrip("./"), f"terminal/{literal.lstrip('./')}"}
+            try:
+                candidates.add((Path(source).parent / literal).resolve()
+                               .relative_to(ROOT.resolve()).as_posix())
+            except ValueError:
+                pass
+            for candidate in candidates:
+                if candidate in tracked and not _inert_evidence(candidate):
+                    referenced.setdefault(candidate, set()).add(source)
+
     for source in tracked:
         if not source.endswith(_SOURCE_SUFFIXES) or "node_modules" in source:
             continue
@@ -511,19 +573,8 @@ def _literal_path_references() -> dict[str, set[str]]:
             text = (ROOT / source).read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        parent = Path(source).parent
-        for match in _LITERAL_REF.finditer(text):
-            literal = match.group(1)
-            candidates = {literal.lstrip("./"), f"terminal/{literal.lstrip('./')}"}
-            try:
-                candidates.add((parent / literal).resolve().relative_to(ROOT.resolve()).as_posix())
-            except ValueError:
-                pass
-            for candidate in candidates:
-                if candidate in tracked and not candidate.endswith(ci_pr_scope._EVIDENCE_SUFFIXES):
-                    # Raster evidence is written by specs (page.screenshot) and
-                    # never compared: a changed PNG cannot change a test result.
-                    referenced.setdefault(candidate, set()).add(source)
+        note(source, {match.group(1) for match in _LITERAL_REF.finditer(text)})
+        note(source, {f"{m.group(1)}/{m.group(2)}" for m in _SEGMENT_REF.finditer(text)})
     return referenced
 
 
@@ -531,12 +582,15 @@ def test_no_literally_referenced_tracked_file_is_docs() -> None:
     """The allowlist must never contain a file that source names by path.
 
     This is the self-maintaining half of the docs allowlist: when a test or
-    runtime module starts reading a Markdown file under docs/, this census
-    fails until scripts/ci_pr_scope.py excludes it. Dynamic path building is
+    runtime module starts reading a Markdown file under docs/ -- by whole
+    literal or by joined path segments -- this census fails until
+    scripts/ci_pr_scope.py excludes it. Deeper dynamic construction remains
     outside its reach; keep the docs class narrow for that reason.
     """
     referenced = _literal_path_references()
     assert "terminal/docs/api/API_V1_CONTRACT.md" in referenced  # the census sees real consumers
+    # Segment-joined construction is seen too (ROOT / "docs" / <runbook>).
+    assert "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md" in referenced
     leaked = {path: sorted(sources) for path, sources in referenced.items() if ci_pr_scope.is_docs_path(path)}
     assert not leaked, leaked
 
@@ -553,10 +607,14 @@ def _scope_step_shell() -> str:
     return step["run"]
 
 
-def _seed_classifier(repo: Path) -> None:
+def _seed_classifier(repo: Path, text: str | None = None) -> None:
     # The protected base carries this classifier; candidate commits never
-    # modify it in these scenarios.
-    _write(repo, "scripts/ci_pr_scope.py", (ROOT / "scripts" / "ci_pr_scope.py").read_text())
+    # modify it in these scenarios. ``text`` seeds an older vintage to test
+    # the workflow's transitional handling.
+    _write(
+        repo, "scripts/ci_pr_scope.py",
+        text if text is not None else (ROOT / "scripts" / "ci_pr_scope.py").read_text(),
+    )
 
 
 def _run_scope_step(repo: Path, tmp_path: Path, event: str, **env_extra: str) -> dict[str, str]:
@@ -613,6 +671,31 @@ def test_the_workflow_step_classifies_a_docs_pr(tmp_path: Path) -> None:
     fields = _run_scope_step(repo, tmp_path, "pull_request", PR_BASE_SHA=base)
     assert fields["mode"] == "full"
     assert fields["reason"] == "SOURCE_TOUCHED:scripts/ci_pr_scope.py"
+
+
+def test_the_workflow_step_survives_a_base_classifier_without_group_support(tmp_path: Path) -> None:
+    # The merge group that ships this change classifies with the classifier
+    # from the *old* protected base, which predates --group-base-sha: the
+    # step must fail closed to mode=full (not exit 2 and go red), and the
+    # old classifier's own answer -- however permissive -- must never run.
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _write(repo, "README.md", "# t\n")
+    _seed_classifier(repo, text="print('mode=docs')  # an old, group-unaware classifier\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "base")
+    base = _git(repo, "rev-parse", "HEAD")
+    _write(repo, "docs/guide.md", "changed\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "group head")
+    head = _git(repo, "rev-parse", "HEAD")
+    fields = _run_scope_step(
+        repo, tmp_path, "merge_group",
+        MG_BASE_SHA=base, MG_HEAD_SHA=head, GITHUB_SHA=head,
+    )
+    assert fields["mode"] == "full"
+    assert fields["reason"] == "CLASSIFIER_LACKS_GROUP_SUPPORT"
 
 
 def test_the_workflow_step_classifies_a_docs_merge_group(tmp_path: Path) -> None:

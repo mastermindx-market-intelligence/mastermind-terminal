@@ -16,8 +16,9 @@ script existed.
   ``terminal/app/docs/api/contract/route.ts``; specimens, refs and the
   chart-engine receipts are test inputs; a few named contracts are compared
   byte-for-byte by tests).
-* Raster evidence images under ``docs/evidence/`` and
-  ``terminal/docs/pr-crops/``.
+* Raster evidence images under ``docs/evidence/``. The pr-crops tree is
+  deliberately absent: evidence-lock suites hash those crops, so a changed
+  crop can change a test result.
 
 Top-level and package Markdown (README, AGENTS, CLAUDE, DEPLOY, HANDOFF ...)
 is read by tests and therefore never docs. ``tests/test_ci_pr_scope.py`` pins
@@ -63,8 +64,13 @@ _CONSUMED_FILES = frozenset({
     "docs/F12_TENANT_SCOPE_CONTRACT_2026-09-06.md",  # tenantScopeConformance.test.ts
     "docs/FEATURE_GAP_AUDIT.md",                     # terminal/lib/replayContract.ts
     "docs/LARGE_TRADES_ABSORPTION.md",               # terminal/scripts/verify-large-trades.mjs
+    "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",       # tests/test_ci_e2e_selfhosted_lane.py +
+                                                     # tests/test_ci_e2e_lane_host_files.py
 })
-_EVIDENCE_TREES = ("docs/evidence/", "terminal/docs/pr-crops/")
+# Written by specs and never compared: a changed image here cannot change a
+# test result. (terminal/docs/pr-crops is NOT here: evidence-lock suites
+# hash those crops, so pr-crops changes must run the full suite.)
+_EVIDENCE_TREES = ("docs/evidence/",)
 _EVIDENCE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 # A docs-tier change is bounded: a diff large enough to reshape a tree is not
 # a prose edit and must run the full suite.
@@ -163,11 +169,11 @@ def _name_status(raw: bytes) -> list[tuple[str, tuple[str, ...]]]:
     return rows
 
 
-def _head_tree_modes(root: Path) -> dict[str, tuple[bytes, bytes]]:
-    """Every path in the head tree with its (mode, object kind); one call,
-    no per-path arguments, so the size of the change never hits an argv
-    limit."""
-    raw_tree = _git(root, "ls-tree", "-r", "-z", "HEAD")
+def _head_tree_modes(root: Path, head: str) -> dict[str, tuple[bytes, bytes]]:
+    """Every path in the ``head`` tree with its (mode, object kind); one
+    call, no per-path arguments, so the size of the change never hits an
+    argv limit."""
+    raw_tree = _git(root, "ls-tree", "-r", "-z", head)
     if raw_tree and not raw_tree.endswith(b"\x00"):
         raise ScopeUnqualified("GIT_TREE_INCOMPLETE")
     modes: dict[str, tuple[bytes, bytes]] = {}
@@ -212,7 +218,7 @@ def _decide(root: Path, base: str, head: str) -> ScopeDecision:
     # execution or data boundary even under a prose-looking name. Every
     # surviving path must be an exact regular 100644 blob in the head tree.
     if present:
-        modes = _head_tree_modes(root)
+        modes = _head_tree_modes(root, head)
         if any(path not in modes for path in present):
             raise ScopeUnqualified("GIT_TREE_FILE_COVERAGE_INVALID")
         if any(modes[path] != (b"100644", b"blob") for path in present):
@@ -259,7 +265,10 @@ def classify_group(
 
     The workflow has already frozen the event identity (refs, workflow SHA and
     the checkout agree); this re-verifies the two SHAs against the checkout
-    before deciding, so a mismatched object can never be classified.
+    before deciding, so a mismatched object can never be classified. It does
+    NOT itself prove that ``base_sha`` is an ancestor of ``head_sha`` (or of
+    the checked-out group head): that ancestry is part of the workflow's
+    frozen-ref contract, not something this script re-derives.
     """
     root = repo.resolve(strict=True)
     if not _is_sha(base_sha):

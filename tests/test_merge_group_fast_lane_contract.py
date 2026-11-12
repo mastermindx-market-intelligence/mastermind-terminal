@@ -427,6 +427,12 @@ def test_the_classifier_is_always_executed_from_a_protected_base() -> None:
     # paths, and any identity mismatch exits nonzero (mode stays empty).
     assert run.count("mode=full\\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE") == 2
     assert '[[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid merge-group commit identity" >&2; exit 1; }' in run
+    # A base classifier too old for merge groups (the group that ships this
+    # very change) is probed, never executed with flags it rejects, and the
+    # group fails closed to a full run instead of a red classifier job.
+    assert "grep -q -- '--group-base-sha' \"${trusted}/ci_pr_scope.py\"" in run
+    assert 'mode=full\\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\\n' in run
+    assert run.index("--event merge-group") > run.index("grep -q -- '--group-base-sha'")
 
 
 def test_the_pull_request_path_guards_forks_in_the_shell_and_stays_vintage_safe() -> None:

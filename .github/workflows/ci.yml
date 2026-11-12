@@ -118,10 +118,19 @@ jobs:
             [ "$(git rev-parse "${MG_BASE_SHA}^{commit}")" = "${MG_BASE_SHA}" ] || { echo "Merge-group base is not the exact commit" >&2; exit 1; }
             if git cat-file -e "${MG_BASE_SHA}:scripts/ci_pr_scope.py" 2>/dev/null; then
               git show "${MG_BASE_SHA}:scripts/ci_pr_scope.py" > "${trusted}/ci_pr_scope.py"
-              python3 "${trusted}/ci_pr_scope.py" \
-                --repo "$GITHUB_WORKSPACE" --event merge-group \
-                --group-base-sha "${MG_BASE_SHA}" --group-head-sha "${MG_HEAD_SHA}" \
-                --output "$GITHUB_OUTPUT"
+              if grep -q -- '--group-base-sha' "${trusted}/ci_pr_scope.py"; then
+                python3 "${trusted}/ci_pr_scope.py" \
+                  --repo "$GITHUB_WORKSPACE" --event merge-group \
+                  --group-base-sha "${MG_BASE_SHA}" --group-head-sha "${MG_HEAD_SHA}" \
+                  --output "$GITHUB_OUTPUT"
+              else
+                # Transitional vintage: the protected base (e.g. master when
+                # the group that ships this very change runs) predates
+                # merge-group support and would exit 2 on these flags. Fail
+                # closed to a full run instead of crashing the classifier.
+                printf 'mode=full\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\n' >> "$GITHUB_OUTPUT"
+                echo 'CI_SCOPE mode=full reason=CLASSIFIER_LACKS_GROUP_SUPPORT'
+              fi
             else
               printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
               echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
