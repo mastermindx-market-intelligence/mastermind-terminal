@@ -333,7 +333,8 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.getByTestId("prophet-sector-open-CARR").click();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     // The case header and its states read natively in Chinese: kicker, stance,
-    // the unavailable verdict, and the four tab destinations.
+    // the unavailable verdict, and the tab destinations (History has no Paper
+    // design and is deliberately absent).
     await expect(page.getByTestId("case-header")).toContainText("公司案例");
     await expect(page.getByTestId("case-stance")).toContainText("进行中的模型计划");
     await expect(page.getByTestId("case-verdict")).toContainText("未产出结论");

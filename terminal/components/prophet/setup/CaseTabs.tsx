@@ -1,23 +1,24 @@
 "use client";
 /**
- * CaseTabs — the company case's four parallel destinations (Setup / Evidence /
- * Context / History). Tabs are parallel tasks, not filters: each keeps its own
- * content and the reader returns to the same tab. Tab choice is local view
- * state for now — a URL key would go through the Prophet url-state owner
- * (Lane A) and is deliberately not invented here.
+ * CaseTabs — the company case's parallel destinations (Setup / Evidence /
+ * Context). Tabs are parallel tasks, not filters: each keeps its own content
+ * and the reader returns to the same tab. Tab choice is local view state for
+ * now — a URL key would go through the Prophet url-state owner (Lane A) and
+ * is deliberately not invented here. History is deliberately absent: it has
+ * no Paper design (census G14) and surfaces without one get no build work
+ * before their design (principal ruling, 2026-11-12).
  */
 import { useId } from "react";
 import type { Lang } from "@/lib/i18n";
 import { makeSetupT, type SetupKey } from "./setupStrings";
 import styles from "./setup.module.css";
 
-export type CaseTab = "setup" | "evidence" | "context" | "history";
+export type CaseTab = "setup" | "evidence" | "context";
 
 const TAB_KEYS: ReadonlyArray<{ id: CaseTab; key: SetupKey }> = [
   { id: "setup", key: "tabSetup" },
   { id: "evidence", key: "tabEvidence" },
   { id: "context", key: "tabContext" },
-  { id: "history", key: "tabHistory" },
 ];
 
 export function CaseTabs({ tab, onTab, lang }: { tab: CaseTab; onTab: (tab: CaseTab) => void; lang: Lang }) {

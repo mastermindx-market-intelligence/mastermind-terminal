@@ -3,10 +3,12 @@ import { stubBoardWithCarr, stubObservationsUnavailable } from "./prophetCaseFix
 
 /**
  * Prophet company case (Lane C) — the Setup rebuilt as a verdict-first case
- * with Setup / Evidence / Context / History destinations, the developing
- * observation state, and the Save / Follow states. All unserved fields render
- * their designed unavailable states; nothing here depends on a live quote,
- * verdict, fundamentals or history producer.
+ * with Setup / Evidence / Context destinations, the developing observation
+ * state, and the Save / Follow states. All unserved fields render their
+ * designed unavailable states; nothing here depends on a live quote, verdict
+ * or fundamentals producer. History has no Paper design (census G14) and so
+ * has no destination here at all (principal ruling: no build work before
+ * design).
  *
  * Data: the committed sector-member fixtures through the real BFF route
  * (FLOW_FIXTURE=1 webServer); the plan-member case extends the board fixture
@@ -26,7 +28,7 @@ async function withLang(page: Page, lang: "en" | "zh" = "en") {
 }
 
 test.describe("Company case (Lane C)", () => {
-  test("a plan member's case reads verdict-first across its four destinations", async ({ page }) => {
+  test("a plan member's case reads verdict-first across its destinations", async ({ page }) => {
     test.setTimeout(90_000);
     await stubBoardWithCarr(page);
     await stubObservationsUnavailable(page);
@@ -77,10 +79,10 @@ test.describe("Company case (Lane C)", () => {
     await expect(page.getByTestId("context-relationships")).toContainText("Peer membership");
     await expect(page.getByTestId("context-relationships")).toContainText(/not served/i);
 
-    // History tab: the designed unavailable state is the shipped contract
-    // until the producer and its mockup exist (G14, census §5).
-    await page.getByTestId("case-tab-history").click();
-    await expect(page.getByTestId("history-panel")).toContainText(/assessment history not published/i);
+    // No History destination: it has no Paper design (census G14) and gets
+    // no build work before one (principal ruling) — the tab strip carries
+    // no placeholder for it.
+    await expect(page.getByTestId("case-tab-history")).toHaveCount(0);
 
     // Return context: back to Setup restores the study without a refetch of
     // the address (tab choice is view state; the symbol/group stay served).

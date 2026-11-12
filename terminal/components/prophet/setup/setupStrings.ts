@@ -43,7 +43,6 @@ export const SETUP_LEX = {
   tabSetup:           ["Setup", "研究"],
   tabEvidence:        ["Evidence", "证据"],
   tabContext:         ["Context", "背景"],
-  tabHistory:         ["History", "历史"],
 
   // ── Setup · study card (G9) ──────────────────────────────────────────────
   studyTitle:         ["Separate the common move from the name", "区分共同波动与个股表现"],
@@ -131,11 +130,6 @@ export const SETUP_LEX = {
   relTheme:           ["Theme membership", "主题归属"],
   relThemeBody:       ["Not served — no theme research is linked to this name.", "未提供——没有主题研究与该股票关联。"],
 
-  // ── History tab (G14 — no mockup yet, census §5) ─────────────────────────
-  historyIntro:       ["How the case developed over time.", "案例如何随时间演进。"],
-  historyUnavailable: ["Assessment history not published", "评估历史未发布"],
-  historyBody:        ["The Prophet index does not yet publish a dated assessment history or corrections for this symbol.", "预言台指数尚未发布该代码的带日期评估历史或更正记录。"],
-  historyDesignNote:  ["This section's layout is still being designed; its unavailable state is the shipped contract.", "该板块的版式仍在设计中；此不可用状态即为当前交付约定。"],
 
   // ── Fetch states (T2-21 #4, #7) ──────────────────────────────────────────
   caseLoading:        ["Reading the case…", "正在读取案例…"],

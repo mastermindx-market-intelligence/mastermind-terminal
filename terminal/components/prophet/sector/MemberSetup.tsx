@@ -2,7 +2,9 @@
 /**
  * MemberSetup (SX03 → company case) — the company case behind a population
  * row, restructured per Lane C: a verdict-first header with Setup / Evidence /
- * Context / History tabs, never an entry/stop/target lead.
+ * Context tabs, never an entry/stop/target lead. History has no Paper design
+ * (census G14) and is deliberately absent until one exists (principal ruling,
+ * 2026-11-12: no build work before design).
  *
  * Laws:
  *   - The header orients in 3–4 seconds: company, served Prophet state in
@@ -10,8 +12,8 @@
  *   - Entry/stop/targets render only inside the read-only "Model plan" rail
  *     (Lane D's GeometryRail, imported unedited), labeled reported.
  *   - Unserved fields (verdict, supports/challenges, next check, name leg of
- *     the decomposition, peer snapshot, fundamentals, history) render their
- *     designed unavailable states — nothing is invented.
+ *     the decomposition, peer snapshot, fundamentals) render their designed
+ *     unavailable states — nothing is invented.
  *   - The member's group/market returns stay labeled (G10); the reason a plan
  *     is absent stays translated through the sector lane's closed map.
  *   - Tab choice is local view state; a URL key belongs to the url-state
@@ -27,7 +29,6 @@ import { CaseTabs, type CaseTab } from "../setup/CaseTabs";
 import { ContextTab } from "../setup/ContextTab";
 import { EntryCheckRail, type BoardPlanRow } from "../setup/EntryCheckRail";
 import { EvidenceTab } from "../setup/EvidenceTab";
-import { HistoryTab } from "../setup/HistoryTab";
 import { ObservationCard } from "../setup/ObservationCard";
 import { StudyCard } from "../setup/StudyCard";
 import { SupportsChallenges } from "../setup/SupportsChallenges";
@@ -147,7 +148,6 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
           <EvidenceTab symbol={payload.symbol} showObservation={prophet.state === "early_observation" || prophet.observation !== null} />
         ) : null}
         {tab === "context" ? <ContextTab payload={payload} lang={lang} /> : null}
-        {tab === "history" ? <HistoryTab /> : null}
 
         <EntryCheckRail
           symbol={payload.symbol}
