@@ -7041,7 +7041,9 @@ log "next build (staging) ..."
 # exact admitted activation drop-in and inert unit BUILD flag. Next pins the
 # value into this build, so restoring an older off build cannot enable it.
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
-( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
+# Preserve serving-tier priority on the shared VPS. Only the build subtree
+# inherits this niceness; admission, publication and health checks are unchanged.
+( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" nice -n 10 npm run build )
 
 # 4) verify the new build is complete before touching anything live.
 if [ ! -f "$STAGE/.next/BUILD_ID" ]; then
