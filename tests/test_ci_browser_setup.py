@@ -45,7 +45,8 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     prepare_index = next(i for i, step in enumerate(steps) if step.get("name") == PREPARE)
     capture_index = next(i for i, step in enumerate(steps) if step.get("name") == CAPTURE)
     assert prepare_index < capture_index
-    assert steps[capture_index]["run"] == "node e2e/tools/capture_ci_evidence.cjs"
+    # terminal-unit is the fan-in of the parallel capture shards.
+    assert steps[capture_index]["run"] == "node e2e/tools/capture_ci_evidence.cjs --fan-in"
     # Preserve the existing workflow budget for complete native evidence.
     assert steps[capture_index]["timeout-minutes"] == 85
     assert not steps[prepare_index].get("continue-on-error", False)

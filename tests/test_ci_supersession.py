@@ -14,10 +14,10 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-LANES = ("hub", "terminal-unit", "terminal-f11-evidence", "terminal-typecheck", "terminal-unit-shards",
+LANES = ("hub", "terminal-evidence-capture", "terminal-unit", "terminal-f11-evidence", "terminal-typecheck", "terminal-unit-shards",
          "terminal-e2e", "terminal-e2e-build", "terminal-e2e-prodbuild", "python",
          "investigation-postgres")
-MATRIX_LANES = ("terminal-unit-shards", "terminal-e2e", "terminal-e2e-prodbuild")
+MATRIX_LANES = ("terminal-evidence-capture", "terminal-unit-shards", "terminal-e2e", "terminal-e2e-prodbuild")
 PREFIX = "terminal-ci-${{ github.event.pull_request.number || github.ref }}-"
 RESULTS = ("success", "failure", "cancelled", "skipped", "timed_out", "unknown", "")
 

@@ -459,6 +459,72 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
     assert "e2e-scope concluded" in result.stdout
 
 
+CAPTURE_SHARDS = ["pl6", "vi-desktop", "vi-tablet", "vi-mobile"]
+SELECTIVE = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+
+
+def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
+    """PL6/legacy and three VI viewport captures run as one matrix on the same
+    SHA; terminal-unit downloads exactly those four shards and composes them."""
+    capture = jobs()["terminal-evidence-capture"]
+    assert capture["strategy"]["fail-fast"] is False
+    assert capture["strategy"]["matrix"]["shard"] == CAPTURE_SHARDS
+    by_name = {s["name"]: s for s in capture["steps"] if "name" in s}
+    # The shard lane's planner is merge-group-only: its outputs are consumed
+    # solely by the capture-skip conditions, and its pull_request branch
+    # requires EVIDENCE_PR_TOUCHED_FILE — which only terminal-unit records —
+    # so an unconditional run here failed every pull_request shard at the
+    # planner step before any capture started. terminal-unit keeps its own
+    # ungated planner (the drift gate) with the recording step ahead of it.
+    assert by_name["Plan current-source evidence capture"]["run"] == "node scripts/ci/plan-evidence-capture.cjs"
+    assert by_name["Plan current-source evidence capture"]["if"] == "github.event_name == 'merge_group'"
+    run = by_name["Capture this evidence shard"]
+    assert run["run"] == "node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}"
+    assert run["if"] == SELECTIVE and not run.get("continue-on-error", False)
+    # The PL6 leg's legal worst case is 46-52 min: the step budget (55) covers
+    # it and the tool's internal deadline (54, below the step) can actually
+    # fire instead of the runner killing the step mid-write. Setup (npm ci +
+    # Chromium) can legally take ~13 min first, so the job allows 70.
+    assert run["timeout-minutes"] == 55
+    assert run["env"] == {"CI_CAPTURE_BUDGET_MINUTES": "54"}
+    assert capture["timeout-minutes"] == 70
+    upload = by_name["Retain this shard's bytes and receipt"]
+    assert upload["if"] == SELECTIVE
+    # Attempt-free names + overwrite keep "Re-run failed jobs" lawful: the
+    # rerun replaces failed legs' artifacts while succeeded legs keep theirs.
+    assert upload["with"]["name"] == "evidence-shard-${{ github.run_id }}-${{ matrix.shard }}"
+    assert upload["with"]["if-no-files-found"] == "error"
+    assert upload["with"]["overwrite"] is True
+    for step in capture["steps"]:
+        assert "TERMINAL_EVIDENCE" not in str(step.get("run", "")), "shards never select records"
+
+    steps = jobs()["terminal-unit"]["steps"]
+    names = [s.get("name") for s in steps]
+    unit = {s["name"]: s for s in steps if "name" in s}
+    downloads = [s for s in steps if str(s.get("uses", "")).startswith("actions/download-artifact")]
+    assert [d["with"]["name"] for d in downloads] == [
+        f"evidence-shard-${{{{ github.run_id }}}}-{shard}" for shard in CAPTURE_SHARDS]
+    assert [d["with"]["path"] for d in downloads] == [
+        f"${{{{ runner.temp }}}}/terminal-ci-evidence-shards/{shard}" for shard in CAPTURE_SHARDS]
+    assert all(d["if"] == SELECTIVE and not d.get("continue-on-error", False) for d in downloads)
+    fan = unit["Capture and validate evidence on this checkout"]
+    assert fan["run"] == "node e2e/tools/capture_ci_evidence.cjs --fan-in" and fan["if"] == SELECTIVE
+    guard = names.index("Require every evidence capture shard")
+    first_download = steps.index(downloads[0])
+    assert guard < first_download < steps.index(downloads[-1]) < names.index("Capture and validate evidence on this checkout") \
+        < names.index("Validate fresh evidence through the unit readers")
+    assert "if" not in unit["Require every evidence capture shard"]
+
+
+@pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped", ""])
+def test_fan_in_fails_unless_every_capture_shard_succeeded(result: str) -> None:
+    step = next(s for s in jobs()["terminal-unit"]["steps"] if s.get("name") == "Require every evidence capture shard")
+    assert step["env"] == {"SHARDS": "${{ needs.terminal-evidence-capture.result }}"}
+    completed = subprocess.run(["bash", "-e", "-c", step["run"]], env={**os.environ, "SHARDS": result},
+                               capture_output=True, text=True, check=False)
+    assert (completed.returncode == 0) is (result == "success"), completed.stdout
+
+
 # --- trusted-base classifier wiring (pull request and whole merge group) ----
 
 
