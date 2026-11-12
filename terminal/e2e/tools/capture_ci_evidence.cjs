@@ -635,7 +635,8 @@ function verifyNativeHistory(history) {
 function prepareNativePlans({ repoRoot, evidence }) {
   return ["eod", "gex"].map(family => {
     const definition = nativeDefinition(family);
-    const controls = [definition.script, CONTROL, "terminal/e2e/tools/optionsExposureEvidence.cjs"];
+    const controls = [definition.script, CONTROL, "terminal/e2e/tools/optionsExposureEvidence.cjs",
+      ...(family === "eod" ? ["terminal/public/data/darkpool_fixture.json"] : [])];
     const sources = nativeSources(repoRoot, definition.producer.LAYOUT_FILES), controlSources = nativeSources(repoRoot, controls);
     // Qualification failures are outside the legacy repair catch and cannot authorize overwrite.
     const selected = qualifiedNativePacket(repoRoot, definition);

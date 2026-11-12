@@ -1,0 +1,247 @@
+{
+  "schema": "pr895.batch3-prerequisite-import.v1",
+  "state": "RAW_PACKET_VALIDATED_CONSUMER_CI_PENDING",
+  "run": "43224805483",
+  "runAttempt": "1",
+  "artifactIds": [
+    13947153468,
+    13946649198
+  ],
+  "archiveSha256": {
+    "43224805483-pl6.zip": "28bd451b8bbb78d49cebd056f12783faa3c8ff865a7f59ffff5da7682e676aa3",
+    "43224805483-pl6-diagnostics.zip": "0ba311305cc45f7825c637067787b218abc042361190045606f340ffd145f670"
+  },
+  "branchHead": "86734ee171317df24f5f8e2349e350aabe48f42f",
+  "actualCheckout": {
+    "commit": "37ad42be3a043570ddcb39236c3b8c6a9a21ff91",
+    "tree": "220120a93b82a4d4d158e279e5d8e05532b0d56e"
+  },
+  "captureState": "CAPTURED_AWAITING_UNIT_VALIDATION",
+  "manifestSha256": "62d11855661e8fb6da39b2bc8292d084f4d9fec6db0a3d3758d03032b0cb1bff",
+  "sourceSha256": {
+    "terminal/components/options/OptionsFlowBoardView.tsx": "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b",
+    "terminal/components/flowdesk/FiltersPanel.tsx": "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479",
+    "terminal/components/flowdesk/FlowCard.tsx": "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37",
+    "terminal/components/alerts/AlertDetail.tsx": "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/components/heatmap/Treemap.tsx": "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b",
+    "terminal/lib/heatmapStrings.ts": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/components/PineEditor.tsx": "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "508dc8683ee4608da352c2cb59f20725fed4dd958387d6d641425ae3530f9ba8",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/e2e/fixtures/heatmap-price-only-tile.json": "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
+  },
+  "sourceGitBlobs": {
+    "terminal/components/options/OptionsFlowBoardView.tsx": "eb4bf4400dcd541c596425123f246674ae0f02c8",
+    "terminal/components/flowdesk/FiltersPanel.tsx": "e2d9ab999a7891856f54b6f4f1577db28789609c",
+    "terminal/components/flowdesk/FlowCard.tsx": "64fe6363c7d931149a6367b90dc6adeb72dd1618",
+    "terminal/components/alerts/AlertDetail.tsx": "e6c0a726066c18e514ab7528fc85352be9d01d3a",
+    "terminal/components/alerts/alerts.module.css": "3bb87de5b1c037cf0b248f4a1dca12d11b08df50",
+    "terminal/components/heatmap/HeatmapView.tsx": "25b5ad5644eee6f2ad268efd1b9521d2e4a29824",
+    "terminal/components/heatmap/Treemap.tsx": "ab5902f00e74c6810bb03780f314d0b0c3888881",
+    "terminal/lib/heatmapStrings.ts": "9a212f7b5b6a51dcc2ea4884613edcf784cbd86e",
+    "terminal/lib/flowdeskStrings.ts": "23800be852d2a76e928a1a89c870b358c67774f9",
+    "terminal/lib/plainLabels.ts": "038995c4df9dab2e4df79b621b3f69e4e851ef19",
+    "terminal/lib/i18n.tsx": "efd3688e2b4ca6bcd9e806d0096854158c1de214",
+    "terminal/components/PineEditor.tsx": "3f1ab1aa2de681ce0f0ffc67ad7aee452c3fbf83",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "889e4bf6b8a16cf2359de02802e48815fc457d53",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": "ce7882e51b20bbb60286ffcafcd003eedd46f775",
+    "terminal/next.config.ts": "71069181428ef3af6ac567a15878703ab0398069",
+    "terminal/e2e/fixtures/heatmap-price-only-tile.json": "f457bcc110b27cd40dc7374c3f52ee78e1b445ff"
+  },
+  "images": [
+    {
+      "file": "OptionsFlowBoard-1440.png",
+      "sha256": "598ebc5397d93c35f9d2241de0dcb72fb852682e17bdd06df47044c166ac3c8a",
+      "width": 1390,
+      "height": 653,
+      "bytes": 97010,
+      "gitBlob": "014e7ccc40ae5e93b67e2c60bb95e417b215d0ae"
+    },
+    {
+      "file": "FlowDesk-1440.png",
+      "sha256": "f965df0b6f8c8100ae0345464c232fddc05d719fffc463f3a2111b2324182646",
+      "width": 746,
+      "height": 584,
+      "bytes": 45344,
+      "gitBlob": "e7cf3b1fe111ee1a20260c4e882034cb492ae001"
+    },
+    {
+      "file": "AlertDetail-1440.png",
+      "sha256": "a8e473d6f0b16dda19902f1fc0c3ec6b6d4a300a64eef44af7a32d009f32e47b",
+      "width": 580,
+      "height": 460,
+      "bytes": 29083,
+      "gitBlob": "13bac875d4aafa756e66f4c60de1536f822cf03e"
+    },
+    {
+      "file": "HeatmapTreemap-1440.png",
+      "sha256": "1c57716cddecc09d439118b3e8d57efe3d220c3862dfcfc1bb2cffac4a4a1c53",
+      "width": 1440,
+      "height": 900,
+      "bytes": 141220,
+      "gitBlob": "cc2b877dfb45756ad92dc30957141fcfaf6615aa"
+    },
+    {
+      "file": "PineLibrary-1440.png",
+      "sha256": "e71f0be19096b32424553ec66fdfecd1a34337084ee706fbc0d0ad3e67226194",
+      "width": 310,
+      "height": 803,
+      "bytes": 33413,
+      "gitBlob": "71a474bb9bd8cfc3c40117da9ce1c36574d82e68"
+    },
+    {
+      "file": "OptionsFlowBoard-1440-zh.png",
+      "sha256": "e975de88a6b3bd994ee696804f491510a0a6c4c7be4d2baed0b26cee9c1c3ce1",
+      "width": 1390,
+      "height": 653,
+      "bytes": 111517,
+      "gitBlob": "ffef7f1cea1d8d0e83cebcb4e9885f51d64e30aa"
+    },
+    {
+      "file": "FlowDesk-1440-zh.png",
+      "sha256": "c805762b7bd362844e9e6da099dd1bc4ae012cb00082f44b36fe7e1ea1289acc",
+      "width": 746,
+      "height": 602,
+      "bytes": 55107,
+      "gitBlob": "4ae539e1194eb74214f0cffc11c11bc27cc2ea45"
+    },
+    {
+      "file": "AlertDetail-1440-zh.png",
+      "sha256": "a6c7553e55b91d0684a6d816ed4f27ea9f9507caed7104c626ae86c7281000aa",
+      "width": 580,
+      "height": 460,
+      "bytes": 34967,
+      "gitBlob": "e57810e4cb73d87947e4c7d337edbb26b0f68171"
+    },
+    {
+      "file": "HeatmapTreemap-1440-zh.png",
+      "sha256": "6feec962c43168fdc57cc9eb0b13ad8afc36ef1ce2003bb6ec534889479ba368",
+      "width": 1440,
+      "height": 900,
+      "bytes": 153839,
+      "gitBlob": "46d56133e2e5e12cb24d5a9b4755fcd587c5a349"
+    },
+    {
+      "file": "PineLibrary-1440-zh.png",
+      "sha256": "7bbb47e297ead1eebfd143c09351d08ac37653df8be5ed5391dc91ff49bc804c",
+      "width": 310,
+      "height": 803,
+      "bytes": 37123,
+      "gitBlob": "bf13d6be69906dd3568a59a00c7569cc3a10d3da"
+    },
+    {
+      "file": "OptionsFlowBoard-390.png",
+      "sha256": "b5e536915e2da9de1a610593ffdab8c0a23260014c392c5616e955ece18e47c7",
+      "width": 390,
+      "height": 515,
+      "bytes": 50600,
+      "gitBlob": "40e9c64b868092b0fc6c447c677706224e3f899d"
+    },
+    {
+      "file": "FlowDesk-390.png",
+      "sha256": "9e39c6b1c455462280042127f607b6a6ebc1246586aa1c22a86c3d9ca10c6a58",
+      "width": 386,
+      "height": 248,
+      "bytes": 20787,
+      "gitBlob": "160540c233753264d67f0b15a7e4659b8d38c72a"
+    },
+    {
+      "file": "AlertDetail-390.png",
+      "sha256": "4161611802f9cf203a6e63d5d93e5f73c4bc56774e839fe9ae356b3f185a3331",
+      "width": 378,
+      "height": 684,
+      "bytes": 29417,
+      "gitBlob": "f7164feaf58a75703819c3f3678f4579b53ed28d"
+    },
+    {
+      "file": "HeatmapTreemap-390.png",
+      "sha256": "2382c75d85ac35eb910b7461741529d716ec7e89515da9ffa269bb35831a5e43",
+      "width": 390,
+      "height": 844,
+      "bytes": 99044,
+      "gitBlob": "a6baa04a6124dca6430440dac902496e19f4fdaf"
+    },
+    {
+      "file": "PineLibrary-390.png",
+      "sha256": "9389eeae16e194b5904905c12b01fb8403ef0352843b2b2a72daeeec6d9e1d20",
+      "width": 390,
+      "height": 257,
+      "bytes": 5592,
+      "gitBlob": "01b4d5cf004065a2562bd754359508ca4dca7461"
+    },
+    {
+      "file": "OptionsFlowBoard-390-zh.png",
+      "sha256": "e70f68cdc921a8ee8a299fd612c7bfdac78de2a421ed0c3359d454635e5e14c2",
+      "width": 390,
+      "height": 524,
+      "bytes": 58927,
+      "gitBlob": "0c7b25f865863787233e70a1ba54a7edec55bbb5"
+    },
+    {
+      "file": "FlowDesk-390-zh.png",
+      "sha256": "357d0356f609cdd7e481922e577ff488fde392358f769e192708be515f9939fe",
+      "width": 386,
+      "height": 266,
+      "bytes": 25896,
+      "gitBlob": "6fc625fb96cc8e9c83b28ebd103aef15c281e50f"
+    },
+    {
+      "file": "AlertDetail-390-zh.png",
+      "sha256": "a07bb5ad8ab6365b797d4fd2c343e5722eeafab8f85da6179c1ecee3db71b6ee",
+      "width": 378,
+      "height": 666,
+      "bytes": 35442,
+      "gitBlob": "d14e8af7b557c8e9e7ef05105992f988fd3c8e9f"
+    },
+    {
+      "file": "HeatmapTreemap-390-zh.png",
+      "sha256": "156e3203917a45a85cf8235a48f10def856dd71aa569874873d21d19eb097ffd",
+      "width": 390,
+      "height": 844,
+      "bytes": 110239,
+      "gitBlob": "91cc14d92b72b2263206631b303470257544e541"
+    },
+    {
+      "file": "PineLibrary-390-zh.png",
+      "sha256": "32bd1e9b06b2a60e222f5154896e3709719087e32cd9f9e35f6303afe6fd5aa3",
+      "width": 390,
+      "height": 246,
+      "bytes": 6708,
+      "gitBlob": "9df4a56fc7bfc215a1a3a2ce935789808ed41394"
+    }
+  ],
+  "priorArchive": "terminal/docs/pr-crops/b-pl-6-batch-3/history/pr895-before-43224805483",
+  "priorFileCount": 40,
+  "priorManifestSha256": "63b8b2a8389aca76f21d0c7f183d363b7953648df2cfea825e4926c6daf97f20",
+  "child": {
+    "packet": "batch3",
+    "command": [
+      "/opt/hostedtoolcache/node/20.20.2/x64/bin/node",
+      "e2e/tools/capture_pl6_batch3.cjs"
+    ],
+    "state": "CLOSED",
+    "stdoutPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-43224805483-batch3.stdout.log",
+    "stderrPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-43224805483-batch3.stderr.log",
+    "pid": 5044,
+    "serverPid": 5052,
+    "serverReportedStopped": true,
+    "serverRefused": null,
+    "serverSettled": true,
+    "status": 0,
+    "signal": null,
+    "timedOut": false,
+    "error": null
+  },
+  "qualifiedClaim": "Actual complete 20-image capture, exact current 16 inputs, receipt and server settlement verified. Existing batch3 consumer CI remains authoritative.",
+  "exporterStarted": false,
+  "remaining": [
+    "Active-inbox committed control lock remains stale.",
+    "Full EOD/browser successor export and immutable import remain pending."
+  ]
+}

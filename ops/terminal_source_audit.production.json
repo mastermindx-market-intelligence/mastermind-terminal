@@ -62,7 +62,7 @@
           "path": "public/data",
           "classification": "host_owned_runtime_market_data",
           "allow_tracked_runtime_subtree": true,
-          "canonical_git_tree": "9ab33afba87ddf6b5793de84989547559a847ad9"
+          "canonical_git_tree": "eac595ec082d6495b5616fc56c33b41719a297a2"
         },
         {
           "path": "scripts/dist/score_personal_accuracy.mjs",

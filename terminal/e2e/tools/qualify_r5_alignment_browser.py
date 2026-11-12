@@ -45,16 +45,16 @@ def put(path, value):
 
 
 def git(*args):
-    return subprocess.check_output(["git", "-C", str(REPO), *args], text=True).strip()
+    return subprocess.check_output(["git", "-C", str(REPO), *args], text=True, timeout=30).strip()
 
 
 def node(script, *args):
-    return json.loads(subprocess.check_output(["node", "-e", script, *args], cwd=REPO, text=True))
+    return json.loads(subprocess.check_output(["node", "-e", script, *args], cwd=REPO, text=True, timeout=120))
 
 
 def observe(args):
     # The census process itself must not appear as a repository CWD holder.
-    result = subprocess.run(args, cwd="/", text=True, capture_output=True)
+    result = subprocess.run(args, cwd="/", text=True, capture_output=True, timeout=10)
     return {"command": args, "exit": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
 
 
@@ -93,15 +93,18 @@ def qualify_base_ancestry(event_base, actual_base, identity):
         raise
 
 
-def checkout_identity():
+def checkout_identity(profile="r5"):
+    profiles = {"r5": (646, "terminal-e2e", "serial"), "eod-v2": (895, "terminal-unit", "unit")}
+    require(profile in profiles, "unknown owned export profile")
+    pr_number, workflow_job, shard = profiles[profile]
     require(os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("GITHUB_EVENT_NAME") == "pull_request",
             "exporter is restricted to the incumbent pull_request job")
-    require(os.environ.get("GITHUB_JOB") == "terminal-e2e", "unexpected CI job")
+    require(os.environ.get("GITHUB_JOB") == workflow_job, "unexpected CI job")
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
     pr = event.get("pull_request", {})
     repo_name = "mastermindx-market-intelligence/mastermind-terminal"
     require(os.environ.get("GITHUB_REPOSITORY") == repo_name, "unexpected workflow repository")
-    require(event.get("number") == 646 and pr.get("number") == 646, "not the owned PR646 operation")
+    require(event.get("number") == pr_number and pr.get("number") == pr_number, "not the owned PR operation")
     require(pr.get("head", {}).get("repo", {}).get("full_name") == repo_name and
             pr.get("base", {}).get("repo", {}).get("full_name") == repo_name and
             pr.get("base", {}).get("ref") == "master", "unexpected repository or base")
@@ -109,7 +112,7 @@ def checkout_identity():
     require(all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value) for value in [head, event_base]),
             "invalid event source identity")
     actual = git("rev-parse", "HEAD")
-    require(actual == os.environ.get("GITHUB_SHA") and os.environ.get("GITHUB_REF") == "refs/pull/646/merge",
+    require(actual == os.environ.get("GITHUB_SHA") and os.environ.get("GITHUB_REF") == f"refs/pull/{pr_number}/merge",
             "checkout differs from the actual workflow source")
     parents = checkout_parents()
     require(len(parents) == 2 and parents[1] == head, "checkout is not the declared PR merge")
@@ -125,7 +128,7 @@ def checkout_identity():
     return {
         "branchHead": head, "protectedMaster": base, "integratedDependency": base,
         **identity, "baseRelationship": relationship,
-        "workflowRunId": run_id, "workflowRunAttempt": attempt, "workflowJob": "terminal-e2e", "shard": "serial",
+        "workflowRunId": run_id, "workflowRunAttempt": attempt, "workflowJob": workflow_job, "shard": shard,
         "workflowUrl": f"https://github.com/{repo_name}/actions/runs/{run_id}",
         "exporter": str(Path(__file__).resolve().relative_to(REPO)), "exporterSha256": sha(Path(__file__)),
     }
@@ -226,13 +229,16 @@ def report_cases(report):
     return cases
 
 
-def run_stage(name, out, specs, extra, expected, current_inputs, schemas, context, inputs, baseline, env, port, allowed):
+def run_stage(name, out, specs, extra, expected, current_inputs, schemas, context, inputs, baseline, env, port, allowed,
+              *, proof_root=None, output_prefix="pr646-r5-browser", execute=None):
+    proof_root = PROOF if proof_root is None else proof_root
+    require(re.fullmatch(r"[a-z0-9-]+", output_prefix), "invalid browser output identity")
     out.mkdir(parents=True, exist_ok=False)
     require(port_closed(port) and not (TERMINAL / ".next/dev/lock").exists(), "previous server is not settled")
     require(not workspace_holders(allowed), "unknown workspace writer or process")
-    output = TERMINAL / f"test-results/pr646-r5-browser-{name}"
+    output = TERMINAL / f"test-results/{output_prefix}-{name}"
     require(not output.exists(), "capture output already exists")
-    prior_root = PROOF / ("prior-browser-root-" + name)
+    prior_root = proof_root / ("prior-browser-root-" + name)
     prior_root.mkdir()
     results = TERMINAL / "test-results"
     results.mkdir(exist_ok=True)
@@ -242,13 +248,15 @@ def run_stage(name, out, specs, extra, expected, current_inputs, schemas, contex
             require(not file.is_symlink(), "symlink in prior results")
             shutil.copy2(file, prior_root / file.name)
             inventory[file.name] = {"sha256": sha(file), "mtimeNs": file.stat().st_mtime_ns, "bytes": file.stat().st_size}
-    put(PROOF / ("prior-browser-root-" + name + ".json"), inventory)
+    put(proof_root / ("prior-browser-root-" + name + ".json"), inventory)
     env = {**env, "PLAYWRIGHT_JSON_OUTPUT_FILE": str(out / "browser-report.json")}
     command = ["node", "node_modules/@playwright/test/cli.js", "test", *specs, *extra,
                "--project=desktop", "--project=tablet", "--project=mobile", "--workers=1", "--retries=0",
                "--reporter=list,json", "--output=" + str(output)]
-    listed = subprocess.run([*command, "--list", "--reporter=list"], cwd=TERMINAL, env=env, capture_output=True, text=True)
-    (PROOF / (name + "-selection.log")).write_text(listed.stdout + listed.stderr)
+    selection = [*command, "--list", "--reporter=list"]
+    listed = (execute(selection, env, proof_root / (name + "-selection.log"), True) if execute else
+              subprocess.run(selection, cwd=TERMINAL, env=env, capture_output=True, text=True))
+    (proof_root / (name + "-selection.log")).write_text(listed.stdout + listed.stderr)
     require(listed.returncode == 0 and re.search(r"Total: " + str(len(expected)) + r" tests? in ", listed.stdout), "incorrect test selection")
     before = snapshot(inputs)
     require(before == baseline, "source changed before execution")
@@ -256,11 +264,14 @@ def run_stage(name, out, specs, extra, expected, current_inputs, schemas, contex
     start, start_ns, started_at = time.monotonic(), time.time_ns(), now()
     log = out / "browser.log"
     print(json.dumps({"starting": name, "cases": len(expected), "port": port, "checkoutCommit": context["checkoutCommit"]}), flush=True)
-    with log.open("w") as handle:
-        result = subprocess.run(command, cwd=TERMINAL, env=env, stdout=handle, stderr=subprocess.STDOUT)
+    if execute:
+        result = execute(command, env, log, False)
+    else:
+        with log.open("w") as handle:
+            result = subprocess.run(command, cwd=TERMINAL, env=env, stdout=handle, stderr=subprocess.STDOUT)
+    lifecycle = settled(port, allowed, out)
     after = snapshot(inputs)
     put(out / "source-after.json", after)
-    lifecycle = settled(port, allowed, out)
     report_path = out / "browser-report.json"
     report = json.loads(report_path.read_text()) if report_path.exists() else {"errors": [{"message": "missing report"}], "stats": {}}
     artifacts = {}

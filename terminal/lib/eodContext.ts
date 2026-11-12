@@ -8,11 +8,9 @@
  *
  * WHAT THIS MODULE IS ALLOWED TO DO
  *   Select, format, and label values that the payloads already carry. Nothing here derives
- *   a new number from market data — the one classification it performs (the dark-pool lean)
- *   is a VERBATIM port of the macro darkpool page's own published rule, thresholds and
- *   plain words included, because the mirrored artifact ships the inputs but not the label
- *   (see darkPoolLean below). Adding a second, differently-tuned rule would be exactly the
- *   estate divergence this lane exists to close.
+ *   a new market-data signal. The off-exchange reader consumes Macro's source-issued
+ *   observations and existing display gates; short-marked volume never establishes
+ *   accumulation, distribution, or buyer/seller intent.
  *
  * CADENCE IS THE PRODUCT
  *   Every value the belt shows is settled-close data sitting next to live tape. The vintage
@@ -29,28 +27,44 @@
 
 import type { Lang } from "@/lib/i18n";
 
-// ─── Dark pool (schema darkpool_eod.v1 → R2 darkpool/eod.json) ────────────────
+// ─── Settled off-exchange observations (Macro darkpool_eod.v2) ────────────────
 
-/** One name's settled off-exchange row. Every metric is independently nullable. */
+export type DarkPoolSchema = "darkpool_eod.v1" | "darkpool_eod.v2";
+export type DarkPoolPattern =
+  | "heavy_into_weakness"
+  | "heavy_into_strength"
+  | "heavy_price_flat";
+
+/** Producer fields are independently nullable. Legacy names are read only for explicit v1. */
 export interface DarkPoolRow {
   ticker: string;
   asof?: string | null;
-  /** Share of FINRA-reported volume marked short (level). */
+  session_status?: string | null;
+  participation?: number | null;
+  participation_z?: number | null;
+  participation_norm?: number | null;
+  participation_5d?: number | null;
+  participation_trend_pp?: number | null;
+  short_rate?: number | null;
+  short_rate_z?: number | null;
+  short_trend_pp?: number | null;
+  price_change_pct?: number | null;
+  pattern?: string | null;
+  n_obs?: number | null;
+  n_usable?: number | null;
+  history_rebased?: boolean | null;
+  // Explicit v1 observation compatibility; never evidence of buyer/seller intent.
   short_ratio?: number | null;
   short_ratio_recent?: number | null;
   short_ratio_baseline?: number | null;
-  /** Short-marking CHANGE, recent vs baseline, in percentage points. */
   trend_pp?: number | null;
-  /** Short-ratio z vs the name's own norm. */
   ratio_z?: number | null;
   n_days?: number | null;
   finra_total_vol?: number | null;
-  /** Off-exchange share of volume, 0..1. */
   oe_share?: number | null;
   oe_share_5d?: number | null;
   oe_share_40d?: number | null;
   oe_trend_pp?: number | null;
-  /** Off-exchange share z vs the name's own norm. */
   oe_z?: number | null;
   spark20?: number[] | null;
   ats_shares?: number | null;
@@ -64,93 +78,97 @@ export interface DarkPoolEodPayload {
   tier?: string;
   source?: string;
   asof?: string | null;
+  built?: string | null;
   panel_dates?: number | null;
   below_floor?: boolean;
   n_with_oe?: number | null;
   n_with_ats?: number | null;
   universe?: DarkPoolRow[];
+  historical_rows?: DarkPoolRow[];
 }
 
-/**
- * Lean thresholds — copied verbatim from macro `engine/darkpool_context.py`.
- *
- * The mirrored artifact (darkpool_eod.v1) carries the INPUTS (oe_z, oe_share, trend_pp,
- * ratio_z) but not the lean tag: the tag is computed in the macro page builder, which does
- * not publish through this key. Rather than invent a Terminal-flavoured rule — two estates
- * disagreeing about whether NVDA is "accumulation" is worse than no label at all — the
- * published rule is reproduced here exactly, constants and precedence included. If macro
- * ever adds a `lean` field to the payload, prefer it and delete this block.
- */
-export const DP_STANDOUT_Z = 1.5;    // oe_z ≥ → off-exchange share unusually high vs own norm
-export const DP_STANDOUT_OE = 0.40;  // …and ≥ 40% of the day's volume printed off-exchange
-export const DP_ACC_TREND = -2.0;    // short-marking fading ≥ 2pp vs baseline
-export const DP_ACC_RZ = -0.75;      // …or short ratio ≥ 0.75σ below the name's own norm
-export const DP_DIS_TREND = 4.0;     // short-marking building ≥ 4pp vs baseline
-export const DP_DIS_RZ = 1.0;        // …or short ratio ≥ 1σ above the name's own norm
-
-export type DarkPoolLean = "accumulation" | "distribution" | "unusual";
+// Macro darkpool_context.classify's existing display gates; no new signal classifier.
+export const DP_STANDOUT_Z = 1.5;
+export const DP_STANDOUT_OE = 0.40;
+// Existing short-marking descriptions, retained only as observations, never a direction.
+export const DP_ACC_TREND = -2.0;
+export const DP_ACC_RZ = -0.75;
+export const DP_DIS_TREND = 4.0;
+export const DP_DIS_RZ = 1.0;
+export type DarkPoolLean = "unusual";
 
 const num = (v: unknown): number | null =>
   typeof v === "number" && Number.isFinite(v) ? v : null;
+const fraction = (v: unknown): number | null => {
+  const n = num(v);
+  return n !== null && n >= 0 && n <= 1 ? n : null;
+};
+const count = (v: unknown): number | null => {
+  const n = num(v);
+  return n !== null && Number.isSafeInteger(n) && n >= 0 ? n : null;
+};
+const sourceDay = (v: unknown): string | null => {
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  const ms = Date.parse(v + "T00:00:00Z");
+  return Number.isFinite(ms) && new Date(ms).toISOString().slice(0, 10) === v ? v : null;
+};
+const sourcePattern = (row: DarkPoolRow | null | undefined): DarkPoolPattern | null =>
+  row?.pattern === "heavy_into_weakness" ||
+  row?.pattern === "heavy_into_strength" ||
+  row?.pattern === "heavy_price_flat" ? row.pattern : null;
 
-/** Case-insensitive row lookup. Returns null when macro does not cover the root. */
+const matchingRows = (rows: unknown, root: string): DarkPoolRow[] => {
+  if (!Array.isArray(rows) || typeof root !== "string" || !root.trim()) return [];
+  const want = root.trim().toUpperCase();
+  return rows.filter((r): r is DarkPoolRow =>
+    r !== null && typeof r === "object" && !Array.isArray(r) &&
+    typeof r.ticker === "string" && r.ticker.trim().toUpperCase() === want);
+};
+
+/** Current cross-section only. Historical rows are never promoted to a current row. */
 export function pickDarkPoolRow(
   payload: DarkPoolEodPayload | null | undefined,
   root: string
 ): DarkPoolRow | null {
-  const rows = payload?.universe;
-  if (!Array.isArray(rows) || !root) return null;
-  const want = root.trim().toUpperCase();
-  return rows.find((r) => (r?.ticker ?? "").toUpperCase() === want) ?? null;
+  const rows = matchingRows(payload?.universe, root);
+  return rows.length === 1 ? rows[0] : null;
 }
 
-/**
- * Deterministic lean tag for one row, or null when the name is not a standout.
- *
- * A *standout* has off-exchange share both unusually high vs its own norm (oe_z ≥ 1.5) and
- * materially dark (oe_share ≥ 0.40). Names without enough matched history have no oe_z and
- * are never tagged — honest-null, not forced. Port of macro `darkpool_context.classify`.
- */
-export function darkPoolLean(row: DarkPoolRow | null | undefined): DarkPoolLean | null {
+/** Conservative activity label over the source's observed pattern; no direction inference. */
+export function darkPoolLean(
+  row: DarkPoolRow | null | undefined,
+  schema: DarkPoolSchema = "darkpool_eod.v2"
+): DarkPoolLean | null {
   if (!row) return null;
-  const oeZ = num(row.oe_z);
-  const oe = num(row.oe_share);
-  if (oeZ === null || oe === null) return null;
-  if (oeZ < DP_STANDOUT_Z || oe < DP_STANDOUT_OE) return null;
-
-  const tpp = num(row.trend_pp);
-  const rz = num(row.ratio_z);
-  const building = (tpp !== null && tpp >= DP_DIS_TREND) || (rz !== null && rz >= DP_DIS_RZ);
-  const fading = (tpp !== null && tpp <= DP_ACC_TREND) || (rz !== null && rz <= DP_ACC_RZ);
-  if (building && !fading) return "distribution";
-  if (fading && !building) return "accumulation";
+  const z = num(schema === "darkpool_eod.v2" ? row.participation_z : row.oe_z);
+  const share = fraction(schema === "darkpool_eod.v2" ? row.participation : row.oe_share);
+  if (z === null || share === null || z < DP_STANDOUT_Z || share < DP_STANDOUT_OE) return null;
+  if (schema === "darkpool_eod.v2" &&
+      (!sourcePattern(row) || num(row.price_change_pct) === null)) return null;
   return "unusual";
 }
 
-/** "vs its own norm" band from oe_z. Port of macro `_norm_label`. */
 export type DarkPoolNorm = "far" | "well" | "above" | "at";
-
-export function darkPoolNorm(row: DarkPoolRow | null | undefined): DarkPoolNorm | null {
-  const oeZ = num(row?.oe_z);
-  if (oeZ === null) return null;
-  if (oeZ >= 2.5) return "far";
-  if (oeZ >= 1.5) return "well";
-  if (oeZ >= 0.5) return "above";
+export function darkPoolNorm(
+  row: DarkPoolRow | null | undefined,
+  schema: DarkPoolSchema = "darkpool_eod.v2"
+): DarkPoolNorm | null {
+  const z = num(schema === "darkpool_eod.v2" ? row?.participation_z : row?.oe_z);
+  if (z === null) return null;
+  if (z >= 2.5) return "far";
+  if (z >= 1.5) return "well";
+  if (z >= 0.5) return "above";
   return "at";
 }
 
-/**
- * Short-marking read — the CHANGE, never the raw level. Port of macro `_short_label`.
- * `pp` is the magnitude to print beside the word (null when the read is level-based).
- */
 export type DarkPoolShortKey = "building" | "fading" | "light" | "heavy" | "normal";
-
 export function darkPoolShortRead(
-  row: DarkPoolRow | null | undefined
+  row: DarkPoolRow | null | undefined,
+  schema: DarkPoolSchema = "darkpool_eod.v2"
 ): { key: DarkPoolShortKey; pp: number | null } | null {
   if (!row) return null;
-  const tpp = num(row.trend_pp);
-  const rz = num(row.ratio_z);
+  const tpp = num(schema === "darkpool_eod.v2" ? row.short_trend_pp : row.trend_pp);
+  const rz = num(schema === "darkpool_eod.v2" ? row.short_rate_z : row.ratio_z);
   if (tpp === null && rz === null) return null;
   if (tpp !== null && tpp >= DP_DIS_TREND) return { key: "building", pp: Math.abs(tpp) };
   if (tpp !== null && tpp <= DP_ACC_TREND) return { key: "fading", pp: Math.abs(tpp) };
@@ -159,40 +177,73 @@ export function darkPoolShortRead(
   return { key: "normal", pp: null };
 }
 
-/** Everything the Dark Pool mini-panel renders for one root, or an honest absent state. */
 export interface DarkPoolRead {
   root: string;
-  /** null when macro's universe has no row for this root. */
+  schema: DarkPoolSchema | null;
+  state: "available" | "partial" | "unavailable" | "not_covered";
+  reason: string | null;
   row: DarkPoolRow | null;
-  /** null when the row exists but is not a standout — a real, printable state. */
   lean: DarkPoolLean | null;
   norm: DarkPoolNorm | null;
   short: { key: DarkPoolShortKey; pp: number | null } | null;
-  /** Off-exchange share as a percent, or null. */
   oeSharePct: number | null;
   oeZ: number | null;
-  /** Panel vintage — the row's own asof, falling back to the payload's. */
   asof: string | null;
-  /** Matched trading days behind the z-scores; small n is disclosed, not hidden. */
   nDays: number | null;
+  pattern: DarkPoolPattern | null;
+  priceChangePct: number | null;
+  historyRebased: boolean | null;
+  historicalAsOf: string | null;
 }
 
+/** Pure consumer projection. A null observation never becomes a quiet-market conclusion. */
 export function darkPoolRead(
   payload: DarkPoolEodPayload | null | undefined,
   root: string
 ): DarkPoolRead {
-  const row = pickDarkPoolRow(payload, root);
-  const oe = num(row?.oe_share);
+  const out: DarkPoolRead = {
+    root: typeof root === "string" ? root.trim().toUpperCase() : "",
+    schema: null, state: "unavailable", reason: "ARTIFACT_UNAVAILABLE", row: null,
+    lean: null, norm: null, short: null, oeSharePct: null, oeZ: null, asof: null,
+    nDays: null, pattern: null, priceChangePct: null, historyRebased: null,
+    historicalAsOf: null,
+  };
+  if (!payload || typeof payload !== "object") return out;
+  if (payload.schema !== "darkpool_eod.v1" && payload.schema !== "darkpool_eod.v2")
+    return { ...out, reason: "UNSUPPORTED_SCHEMA" };
+  const schema = payload.schema;
+  out.schema = schema;
+  if (payload.tier !== "eod" || !sourceDay(payload.asof))
+    return { ...out, reason: "SOURCE_SESSION_UNAVAILABLE" };
+  if (!Array.isArray(payload.universe) || payload.universe.length === 0)
+    return { ...out, reason: "CURRENT_CROSS_SECTION_UNAVAILABLE" };
+  const matches = matchingRows(payload.universe, out.root);
+  if (matches.length > 1) return { ...out, reason: "DUPLICATE_CURRENT_ROW" };
+  const row = matches[0];
+  if (!row) {
+    const historical = matchingRows(payload.historical_rows, out.root);
+    if (historical.length)
+      return { ...out, reason: "HISTORICAL_ONLY", historicalAsOf: sourceDay(historical[0].asof) };
+    return { ...out, state: "not_covered", reason: "TICKER_NOT_COVERED" };
+  }
+  const day = sourceDay(row.asof ?? (schema === "darkpool_eod.v1" ? payload.asof : null));
+  if (day !== payload.asof ||
+      (row.session_status !== undefined && row.session_status !== "current"))
+    return { ...out, reason: "ROW_SESSION_MISMATCH", historicalAsOf: sourceDay(row.asof) };
+  const share = fraction(schema === "darkpool_eod.v2" ? row.participation : row.oe_share);
+  const z = num(schema === "darkpool_eod.v2" ? row.participation_z : row.oe_z);
+  const n = count(schema === "darkpool_eod.v2" ? row.n_usable : row.n_days);
+  const complete = share !== null && z !== null && n !== null && !payload.below_floor;
   return {
-    root: (root ?? "").trim().toUpperCase(),
-    row,
-    lean: darkPoolLean(row),
-    norm: darkPoolNorm(row),
-    short: darkPoolShortRead(row),
-    oeSharePct: oe === null ? null : oe * 100,
-    oeZ: num(row?.oe_z),
-    asof: (row?.asof ?? payload?.asof ?? null) || null,
-    nDays: num(row?.n_days),
+    ...out, row, asof: day, state: complete ? "available" : "partial",
+    reason: complete ? null : "PARTIAL_SOURCE_OBSERVATIONS",
+    lean: complete && n > 0 ? darkPoolLean(row, schema) : null,
+    norm: darkPoolNorm(row, schema), short: darkPoolShortRead(row, schema),
+    oeSharePct: share === null ? null : share * 100, oeZ: z, nDays: n,
+    pattern: schema === "darkpool_eod.v2" ? sourcePattern(row) : null,
+    priceChangePct: schema === "darkpool_eod.v2" ? num(row.price_change_pct) : null,
+    historyRebased: schema === "darkpool_eod.v2" && typeof row.history_rebased === "boolean"
+      ? row.history_rebased : null,
   };
 }
 
