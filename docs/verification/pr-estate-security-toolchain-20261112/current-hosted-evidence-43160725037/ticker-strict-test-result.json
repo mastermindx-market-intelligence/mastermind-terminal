@@ -1,0 +1,26 @@
+{
+  "completedAt": "2026-11-12T06:01:08.105274+00:00",
+  "exitCode": 0,
+  "durationSeconds": 0.9226024579256773,
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/terminal/node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "--maxWorkers=2",
+    "--reporter=verbose",
+    "--reporter=json",
+    "--outputFile=/private/tmp/terminal-pr1481-current-evidence-20261112-c3/ticker-strict-tests.json"
+  ],
+  "manifestBefore": "c6688f56e9b326457ff854b6e291bf84807ae618848b768731281c2f485f35de",
+  "manifestAfter": "c6688f56e9b326457ff854b6e291bf84807ae618848b768731281c2f485f35de",
+  "tests": {
+    "success": true,
+    "numTotalTestSuites": 2,
+    "numTotalTests": 4,
+    "numPassedTests": 4,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  }
+}
