@@ -899,7 +899,7 @@ function operationIds(env) {
 const LITERAL_CAPTURE_PORTS = Object.freeze({ pl6: "3536", vi: "3537", batch2: "3538", pine: "3571", batch3: "3572" });
 const CAPTURE_PORT_OFFSETS = Object.freeze({ pl6: 0, vi: 1, batch2: 2, pine: 35, batch3: 36 });
 const CAPTURE_PORT_MAX = 32768 - 1 - Math.max(...Object.values(CAPTURE_PORT_OFFSETS));
-const RESERVED_PORT_BANDS = Object.freeze([[3050, 3300], [3530, 3610], [31990, 32100], [47270, 47300]]);
+const RESERVED_PORT_BANDS = Object.freeze([[3050, 3300], [3530, 3610], [31990, 32100]]);
 
 function fnv1a(text) {
   let hash = 0x811c9dc5;

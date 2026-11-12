@@ -1393,7 +1393,7 @@ test("capture ports stay literal without a runner name and derive disjoint sets 
   const laneSlot = capturePorts({ RUNNER_NAME: "runner-slot-7" });
   const hosted = capturePorts({ RUNNER_NAME: "github-actions-runner-abc123" });
   assert.deepEqual(capturePorts({ RUNNER_NAME: "runner-slot-7" }), laneSlot, "same name, same ports");
-  const bands = [[3050, 3300], [3530, 3610], [31990, 32100], [47270, 47300]];
+  const bands = [[3050, 3300], [3530, 3610], [31990, 32100]];
   for (const ports of [laneSlot, hosted]) {
     const numbers = Object.values(ports).map(Number);
     assert.equal(new Set(numbers).size, 5, "the five capture ports are disjoint");
