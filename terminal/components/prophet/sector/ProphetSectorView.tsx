@@ -184,9 +184,36 @@ export function ProphetSectorView({ state, update }: {
     navigate({ view: "overview", symbol: null, q: "", state: null, offset: 0 });
   // Returning from a company case keeps the symbol in the address: the
   // population highlights and scrolls to that member's row/card (T2-06), so the
-  // reader lands where they left. Compare has no symbol of its own.
-  const returnFromSetup = () =>
-    navigate({ view: "population", plan: null });
+  // reader lands where they left — and M1 puts focus on the population heading,
+  // after that highlight and scroll. The population's read refetches on
+  // re-entry (its rows unmount for a loading commit), so the generic
+  // view-change pass would focus the stale pre-Setup heading and then lose it
+  // with the remount; this return waits for the re-read to settle instead.
+  const returnFocusPending = useRef(false);
+  const returnFocusSawReload = useRef(false);
+  const returnFromSetup = () => {
+    returnFocusPending.current = true;
+    returnFocusSawReload.current = false;
+    update({ view: "population", plan: null });
+  };
+  const groupReadStatus = groupFetch.read.status;
+  useEffect(() => {
+    if (!returnFocusPending.current || state.view !== "population") return;
+    if (groupReadStatus !== "ready") {
+      // The population is re-reading: its heading is not mounted yet.
+      returnFocusSawReload.current = true;
+      return;
+    }
+    if (!returnFocusSawReload.current) return; // stale pre-Setup payload
+    const body = laneBodyRef.current;
+    const heading = body?.querySelector<HTMLElement>(
+      '[data-testid="prophet-sector-population"] [data-view-heading]',
+    ) ?? null;
+    returnFocusPending.current = false;
+    returnFocusSawReload.current = false;
+    // A fail-closed read renders no population heading: nothing to land on.
+    if (heading !== null) heading.focus({ preventScroll: true });
+  }, [state.view, groupReadStatus]);
   const backToPopulation = () =>
     navigate({ view: "population", symbol: null, plan: null });
   const openCompare = () =>

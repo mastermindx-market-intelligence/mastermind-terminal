@@ -272,6 +272,25 @@ export function prophetSectorFill(template: string, vars: Record<string, string 
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(vars[key] ?? ""));
 }
 
+/** Prophet plan phase → the owner's plain-language label, EN/ZH.
+ *
+ * Mirrored from the intelligence workspace's own PHASE map
+ * (`components/intelligence/IntelligenceWorkspace.tsx`), which is where Lane A's
+ * Prophet work takes its phase vocabulary from. The wire enum stays the
+ * producer's (`pre_trigger` …); the reader never sees the slug and never sees a
+ * title-cased code either ("Pre-Trigger" is the raw-code spelling, not this
+ * vocabulary). A minimal local copy until that map has a single shared owner —
+ * then this const is replaced by the import, nothing else. */
+export const PROPHET_PHASE_LABELS: Record<string, readonly [string, string]> = {
+  pre_trigger:      ["Before trigger", "尚未触发"],
+  triggered_pre_t1: ["Triggered · before target 1", "已触发 · 未达第一目标"],
+  at_t1:            ["At T1", "T1位"],
+  between_t1_t2:    ["T1→T2", "T1→T2"],
+  at_t2:            ["At T2", "T2位"],
+  overtime:         ["Window elapsed", "窗口已过"],
+  invalidated:      ["Invalidated", "已失效"],
+};
+
 /** Wire state → label key (reported, never recommended). */
 export const PROPHET_STATE_LABEL_KEY: Record<string, ProphetSectorKey> = {
   open_plan: "stateOpenPlan",

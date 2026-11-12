@@ -255,6 +255,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
                     key={member.symbol}
                     className={isHighlighted ? `${styles.memberRow} ${styles.memberRowHighlight}` : styles.memberRow}
                     data-highlight={isHighlighted ? "true" : undefined}
+                    // P1: the row the reader returned to is the current one in
+                    // this population — announced, not only tinted.
+                    aria-current={isHighlighted ? "true" : undefined}
                     ref={node => {
                       if (node !== null) rowRefs.current.set(member.symbol, node);
                       else rowRefs.current.delete(member.symbol);

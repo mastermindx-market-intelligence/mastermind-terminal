@@ -23,34 +23,24 @@ import type { ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
-import { getProphetStr, type ProphetKey } from "../prophetStrings";
 import { PROPHET_COMPARE_CAP } from "./SectorMemberPopulation";
 import {
-  makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey,
-  prophetSectorFill,
+  makeProphetSectorT, PROPHET_PHASE_LABELS, PROPHET_STATE_LABEL_KEY,
+  prophetReasonKey, prophetSectorFill,
 } from "./prophetSectorStrings";
 import styles from "./prophetSector.module.css";
 
 type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
 
 /** The Prophet plan phase is the producer's wire enum (`pre_trigger` …); the
- * reader gets the shared display vocabulary, never the raw slug. An enum this
- * surface does not know says so rather than printing itself. */
-const PHASE_LABEL_KEY: Record<string, ProphetKey> = {
-  pre_trigger: "phasePretrigger",
-  triggered_pre_t1: "phaseTriggered",
-  at_t1: "phaseAtT1",
-  between_t1_t2: "phaseBetweenT1T2",
-  at_t2: "phaseAtT2",
-  overtime: "phaseOvertime",
-  invalidated: "phaseInvalidated",
-};
-
+ * reader gets the owner's plain-language vocabulary (P3), never the raw slug
+ * and never a title-cased code. An enum this surface does not know says so
+ * rather than printing itself. */
 function phaseDisplay(lang: Lang, phase: string | null | undefined,
   notStated: string, unmapped: string): string {
   if (phase === null || phase === undefined) return notStated;
-  const key = PHASE_LABEL_KEY[phase];
-  return key === undefined ? unmapped : getProphetStr(lang, key);
+  const labels = PROPHET_PHASE_LABELS[phase];
+  return labels === undefined ? unmapped : labels[lang === "zh" ? 1 : 0];
 }
 
 export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMember }: {

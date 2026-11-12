@@ -183,6 +183,18 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     expect(clocks).toContain("2026-11-06");
     expect(clocks).toContain("2026-11-09");
     await expect(page.getByTestId("prophet-sector-verdict")).toContainText(/different sessions/i);
+    // P2: the strip's figures carry the leadership table's semantic ink — the
+    // positive readings share the up tone, a falling market takes the down
+    // tone, and an untoned figure (breadth) stays in the neutral text ink.
+    const figureInk = (stat: string) =>
+      page.getByTestId(`prophet-sector-stat-${stat}`).locator("b")
+        .evaluate(node => getComputedStyle(node).color);
+    const [groupInk, marketInk, relativeInk, breadthInk] =
+      [await figureInk("group"), await figureInk("market"), await figureInk("relative"), await figureInk("breadth")];
+    expect(relativeInk).toBe(groupInk); // +1.1% and +6.7 pp: both the up tone
+    expect(groupInk).not.toBe(breadthInk); // never the neutral ink
+    expect(marketInk).not.toBe(breadthInk); // −5.6%: the down tone
+    expect(marketInk).not.toBe(groupInk);
 
     const table = page.getByTestId("prophet-sector-member-table");
     await expect(table).toBeVisible();
@@ -285,6 +297,12 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     const returnedRow = page.getByTestId("prophet-sector-member-table").locator('tr[data-highlight="true"]');
     await expect(returnedRow).toContainText("CARR");
     await expect(returnedRow).toBeInViewport();
+    // P1: the row the reader returned to is the current one in this list.
+    await expect(returnedRow).toHaveAttribute("aria-current", "true");
+    // M1: focus lands on the population heading once that highlight and scroll
+    // have happened — not left on the document body.
+    await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
+    expect(await page.evaluate(() => document.activeElement?.tagName ?? "")).toBe("H3");
   });
 
   test("a member without a plan gets an honest Setup, never a manufactured signal", async ({ page }) => {
@@ -542,8 +560,11 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(carrCard).toContainText(/Open plan/i);
     await expect(adpCard).toContainText(/Early observation/i);
     // M6: the phase is the shared display vocabulary, never the wire's slug.
-    await expect(page.getByTestId("prophet-sector-compare-phase-CARR")).toContainText("Pre-Trigger");
+    // P3: the owner's plain-language phase vocabulary — never the wire slug and
+    // never its title-cased spelling.
+    await expect(page.getByTestId("prophet-sector-compare-phase-CARR")).toContainText("Before trigger");
     await expect(page.getByTestId("prophet-sector-compare-phase-CARR")).not.toContainText("pre_trigger");
+    await expect(page.getByTestId("prophet-sector-compare-phase-CARR")).not.toContainText("Pre-Trigger");
     // M6: each card names its own single open action.
     await expect(page.getByTestId("prophet-sector-compare-open-CARR")).toContainText("Open setup");
     // Each case keeps its own clock — both owners' sessions on the card.
