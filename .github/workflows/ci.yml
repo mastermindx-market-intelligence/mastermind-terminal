@@ -365,7 +365,9 @@ jobs:
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal evidence capture (${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Setup (npm ci + Chromium) can legally take ~13 min before the 55-minute
+    # capture step, so the job needs more than the step's own budget.
+    timeout-minutes: 70
     strategy:
       fail-fast: false
       matrix:
@@ -381,9 +383,15 @@ jobs:
           cache: npm
           cache-dependency-path: terminal/package-lock.json
       - run: npm ci
-      # The same deterministic planner the fan-in runs on the same tree.
+      # The same deterministic planner the fan-in runs on the same tree. Only
+      # the merge_group event consumes its outputs (capture reuse); a pull
+      # request always earns a full capture, and the planner's pull_request
+      # branch requires EVIDENCE_PR_TOUCHED_FILE, which only terminal-unit
+      # records — running it here would fail every PR shard before any
+      # capture starts. The drift gate itself stays in terminal-unit.
       - name: Plan current-source evidence capture
         id: evidence_plan
+        if: github.event_name == 'merge_group'
         run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for this capture shard
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'

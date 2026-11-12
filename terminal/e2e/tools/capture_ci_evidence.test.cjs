@@ -1398,7 +1398,9 @@ test("capture ports stay literal without a runner name and derive disjoint sets 
     const numbers = Object.values(ports).map(Number);
     assert.equal(new Set(numbers).size, 5, "the five capture ports are disjoint");
     for (const port of numbers) {
-      assert.ok(port >= 1024 && port <= 65535, `${port} in range`);
+      // Below the Linux ephemeral range: an outbound allocation could
+      // otherwise race a listener's bind inside it.
+      assert.ok(port >= 1024 && port < 32768, `${port} in range`);
       for (const [low, high] of bands) assert.ok(port < low || port > high, `${port} inside reserved band ${low}-${high}`);
     }
   }
@@ -1429,7 +1431,7 @@ test("the capture deadline follows the workflow budget and rejects malformed val
     const before = Date.now(), deadline = captureDeadlineMs(env, 54);
     assert.ok(deadline >= before + expected * 60_000 && deadline <= Date.now() + expected * 60_000 + 100);
   }
-  for (const bad of ["zero", "0", "-3", "601", "1.5", "5min"]) {
+  for (const bad of ["zero", "0", "-3", "601", "1.5", "5min", "0x10", "1e2", "1_0"]) {
     const env = { CI_CAPTURE_BUDGET_MINUTES: bad };
     assert.throws(() => captureDeadlineMs(env, 54), /CI_CAPTURE_BUDGET_MINUTES/, bad);
   }

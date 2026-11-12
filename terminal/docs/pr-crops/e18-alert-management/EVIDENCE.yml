@@ -1,8 +1,8 @@
 # E18 alert management — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e71dcd53e21ae632bed69b2cd40eff630adc1894
-# capturedAt: 2026-11-11T06:52:14.984Z
+# capturedAtHead: bdf82c353ef2e5c99d1e1dd079c548ad9ffb2ab0
+# capturedAt: 2026-11-12T04:11:47.680Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/alerts/AlertBulkManager.tsx: "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27"
@@ -10,7 +10,7 @@ layoutFiles:
   terminal/lib/alertBulk.ts: "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c"
   terminal/lib/alertBulkLex.ts: "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd"
   terminal/e2e/tools/capture_e18_alert_management.cjs: "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88"
-  terminal/e2e/tools/capture_ci_evidence.cjs: "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4"
+  terminal/e2e/tools/capture_ci_evidence.cjs: "9d720cb20839ed91f60ec82d54c646331c4b55d58045f8245c12151a600b8bf5"
   terminal/next.config.ts: "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
 theme: dark
 languages: [en, zh]

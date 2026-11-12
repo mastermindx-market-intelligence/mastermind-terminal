@@ -888,13 +888,17 @@ function operationIds(env) {
 // port set from its runner NAME the same way .github/scripts/terminal_e2e_lane.sh
 // derives its slot ports from the runner name: one name deterministically owns
 // one port set, so co-located legs get their own numbers except on a hash
-// collision (about one chance in ten thousand for a four-leg matrix — the same
-// order of risk that script accepts across its own slots). The derived base
-// also steers away from the port bands the e2e lane and the workflow's other
-// literal-port captures already occupy. Without RUNNER_NAME (unit tests, local
-// runs) the historical literal ports stay, so those runs remain byte-identical.
+// collision. The set is 37 ports wide (offsets 0..36), so a pair of co-located
+// legs collides with probability about 73/31,708 (~0.2%), and all four legs of
+// this matrix sharing one host — six pairs — stays near 1.5%. The base also
+// stays below the Linux ephemeral range (an outbound connection's allocation
+// could otherwise race a listener's bind) and outside the port bands the e2e
+// lane and the workflow's other literal-port captures occupy. Without
+// RUNNER_NAME (unit tests, local runs) the historical literal ports stay, so
+// those runs remain byte-identical.
 const LITERAL_CAPTURE_PORTS = Object.freeze({ pl6: "3536", vi: "3537", batch2: "3538", pine: "3571", batch3: "3572" });
 const CAPTURE_PORT_OFFSETS = Object.freeze({ pl6: 0, vi: 1, batch2: 2, pine: 35, batch3: 36 });
+const CAPTURE_PORT_MAX = 32768 - 1 - Math.max(...Object.values(CAPTURE_PORT_OFFSETS));
 const RESERVED_PORT_BANDS = Object.freeze([[3050, 3300], [3530, 3610], [31990, 32100], [47270, 47300]]);
 
 function fnv1a(text) {
@@ -908,7 +912,7 @@ function capturePortBase(env) {
   if (!name) return null;
   let hash = fnv1a(name);
   for (;;) {
-    const base = 1024 + (hash % 60_000);
+    const base = 1024 + (hash % (CAPTURE_PORT_MAX - 1024 + 1));
     // base..base+36 (the widest offset) must not intersect a reserved band.
     if (RESERVED_PORT_BANDS.every(([low, high]) => base + 36 < low || base > high)) return base;
     hash = fnv1a(String(hash));
@@ -928,9 +932,14 @@ function capturePorts(env) {
 // matching its own step's budget.
 function captureDeadlineMs(env, fallbackMinutes) {
   const raw = String(env.CI_CAPTURE_BUDGET_MINUTES || "").trim();
-  const minutes = raw ? Number(raw) : fallbackMinutes;
-  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 600)
-    throw new Error(`CI_CAPTURE_BUDGET_MINUTES: ${raw || fallbackMinutes}`);
+  let minutes = fallbackMinutes;
+  if (raw) {
+    // Decimal digits only: Number() would happily accept "0x10" or "1e2" and
+    // silently turn a typo into a different budget than the one written.
+    if (!/^[0-9]+$/.test(raw)) throw new Error(`CI_CAPTURE_BUDGET_MINUTES: ${raw}`);
+    minutes = Number(raw);
+  }
+  if (minutes < 1 || minutes > 600) throw new Error(`CI_CAPTURE_BUDGET_MINUTES: ${raw || fallbackMinutes}`);
   return Date.now() + minutes * 60_000;
 }
 
@@ -1350,11 +1359,13 @@ async function runShard(shard, { repoRoot = path.resolve(__dirname, "../../.."),
     const capture = makeCapture(ctx, spawn);
     let ref;
     if (shard === "pl6") {
-      ref = capturePl6(ctx, capture);
       // The shard step's budget is 55 minutes: the deadline default (54) sits
       // below it so the tool's own CI_CAPTURE_BUDGET_EXHAUSTED fires before
       // the runner kills the step; the workflow pins it via env regardless.
-      await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline: captureDeadlineMs(env, 54) });
+      // Computed before any capture child runs, like run() above.
+      const captureDeadline = captureDeadlineMs(env, 54);
+      ref = capturePl6(ctx, capture);
+      await captureRest(ctx, capture, batch2, { spawnLegacy, captureDeadline });
     } else ref = captureVi(ctx, capture, shard.slice(3));
     if (!same(checkout(repoRoot, env).actualCheckout, record.actualCheckout)) throw new Error("CI_SHARD_CHECKOUT_CHANGED");
     const delta = treeDelta(before, treeSnapshot(repoRoot));

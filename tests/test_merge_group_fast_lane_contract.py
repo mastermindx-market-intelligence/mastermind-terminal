@@ -469,16 +469,24 @@ def test_evidence_capture_fans_out_and_terminal_unit_fans_in() -> None:
     assert capture["strategy"]["fail-fast"] is False
     assert capture["strategy"]["matrix"]["shard"] == CAPTURE_SHARDS
     by_name = {s["name"]: s for s in capture["steps"] if "name" in s}
+    # The shard lane's planner is merge-group-only: its outputs are consumed
+    # solely by the capture-skip conditions, and its pull_request branch
+    # requires EVIDENCE_PR_TOUCHED_FILE — which only terminal-unit records —
+    # so an unconditional run here failed every pull_request shard at the
+    # planner step before any capture started. terminal-unit keeps its own
+    # ungated planner (the drift gate) with the recording step ahead of it.
     assert by_name["Plan current-source evidence capture"]["run"] == "node scripts/ci/plan-evidence-capture.cjs"
+    assert by_name["Plan current-source evidence capture"]["if"] == "github.event_name == 'merge_group'"
     run = by_name["Capture this evidence shard"]
     assert run["run"] == "node e2e/tools/capture_ci_evidence.cjs --shard ${{ matrix.shard }}"
     assert run["if"] == SELECTIVE and not run.get("continue-on-error", False)
     # The PL6 leg's legal worst case is 46-52 min: the step budget (55) covers
     # it and the tool's internal deadline (54, below the step) can actually
-    # fire instead of the runner killing the step mid-write.
+    # fire instead of the runner killing the step mid-write. Setup (npm ci +
+    # Chromium) can legally take ~13 min first, so the job allows 70.
     assert run["timeout-minutes"] == 55
     assert run["env"] == {"CI_CAPTURE_BUDGET_MINUTES": "54"}
-    assert capture["timeout-minutes"] == 60
+    assert capture["timeout-minutes"] == 70
     upload = by_name["Retain this shard's bytes and receipt"]
     assert upload["if"] == SELECTIVE
     # Attempt-free names + overwrite keep "Re-run failed jobs" lawful: the
