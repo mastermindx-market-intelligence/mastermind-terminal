@@ -44,22 +44,30 @@ jobs:
   # Classifies the exact pull-request merge commit from Git objects only: a
   # prose-only change (Markdown under docs/ and terminal/docs/ minus the
   # sub-trees and files that code or tests read, plus raster evidence images
-  # under docs/evidence/ and terminal/docs/pr-crops/; see the allowlist in
+  # under docs/evidence/ (pr-crops are hash-locked, so never docs); see the allowlist in
   # scripts/ci_pr_scope.py) is mode=docs, and the unit, e2e, ingest and
   # PostgreSQL jobs below are then
   # skipped or reduced to a no-op that still reports its required context
   # green. Anything else -- or anything the classifier cannot qualify: a base
-  # mismatch, a symlink, an executable bit, a type change, a classifier missing
-  # from the base -- is mode=full, exactly what this workflow always ran. The
+  # mismatch, a fork head, a delete/rename/copy/type-change row, a change over
+  # the file cap, a symlink, an executable bit, a classifier missing from the
+  # base -- is mode=full, exactly what this workflow always ran. The
   # classifier executes from the protected base commit (HEAD^1 of the merge
-  # commit), so a pull request cannot reclassify itself. Other events never
-  # receive the docs exemption; their existing event-specific checks remain.
+  # commit), so a pull request cannot reclassify itself. A native merge group
+  # is classified the same way from the whole group diff
+  # (merge_group.base_sha..head_sha), with the classifier taken from the
+  # group's base commit on the protected default branch: a group whose
+  # combined diff is prose-only also gets mode=docs, and a group carrying any
+  # non-docs file runs everything. Other events never receive the docs
+  # exemption; their existing event-specific checks remain.
   pr_scope:
     name: PR test scope
-    # Only a pull request against the protected default branch is classified;
-    # a PR targeting any other branch runs the full suite (the classifier is
-    # taken from HEAD^1, which is only trusted when that is the default branch).
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == github.event.repository.default_branch }}
+    # A pull request against the protected default branch is classified from
+    # its merge commit (a PR targeting any other branch runs the full suite:
+    # the classifier is taken from HEAD^1, which is only trusted when that is
+    # the default branch). A native merge group is classified from the group
+    # base commit, which the queue guarantees is on the default branch.
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.base.ref == github.event.repository.default_branch) || github.event_name == 'merge_group' }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
@@ -68,29 +76,85 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The merge commit plus both parents: the classifier diffs HEAD^1..HEAD
-          # and is itself taken from HEAD^1, the protected base.
+          # The classified tree plus its first parent(s): the classifier is
+          # always taken from a protected base commit, never PR or group code.
           fetch-depth: 2
           persist-credentials: false
-      - name: Classify the exact merge commit using protected base code
+      - name: Classify the exact change using protected base code
         id: scope
         env:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+          MG_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MG_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          MG_BASE_REF: ${{ github.event.merge_group.base_ref }}
+          MG_HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           set -euo pipefail
           trusted="$RUNNER_TEMP/ci-trusted-base"
           mkdir -p "$trusted"
-          if git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
-            git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
-            python3 "$trusted/scripts/ci_pr_scope.py" \
-              --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
-              --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
-              --output "$GITHUB_OUTPUT"
+          if [ "${GITHUB_EVENT_NAME}" = "merge_group" ]; then
+            # Freeze the event's trees exactly (the identity contract the
+            # plain-language guard in terminal-unit uses): both SHAs, both
+            # refs, the workflow ref/SHA and the checkout itself must agree
+            # before anything is classified. Any mismatch fails this job
+            # loudly, and a failed pr_scope leaves mode empty, so every job
+            # below runs full.
+            for SHA in "${MG_BASE_SHA}" "${MG_HEAD_SHA}"; do
+              [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid merge-group commit identity" >&2; exit 1; }
+            done
+            [ "${MG_BASE_REF}" = "refs/heads/${DEFAULT_BRANCH}" ] || { echo "Wrong merge-group base ref" >&2; exit 1; }
+            case "${MG_HEAD_REF}" in
+              "refs/heads/gh-readonly-queue/${DEFAULT_BRANCH}/"?*) ;;
+              *) echo "Invalid merge-group head ref" >&2; exit 1 ;;
+            esac
+            [ "${GITHUB_REF}" = "${MG_HEAD_REF}" ] || { echo "Merge-group ref differs from checkout ref" >&2; exit 1; }
+            [ "${GITHUB_SHA}" = "${MG_HEAD_SHA}" ] || { echo "Merge-group SHA differs from workflow SHA" >&2; exit 1; }
+            [ "$(git rev-parse HEAD)" = "${MG_HEAD_SHA}" ] || { echo "Merge-group SHA differs from checked-out commit" >&2; exit 1; }
+            git fetch --no-tags --depth=1 origin "${MG_BASE_SHA}"
+            [ "$(git rev-parse "${MG_BASE_SHA}^{commit}")" = "${MG_BASE_SHA}" ] || { echo "Merge-group base is not the exact commit" >&2; exit 1; }
+            if git cat-file -e "${MG_BASE_SHA}:scripts/ci_pr_scope.py" 2>/dev/null; then
+              git show "${MG_BASE_SHA}:scripts/ci_pr_scope.py" > "${trusted}/ci_pr_scope.py"
+              if grep -qF -- 'add_argument("--group-base-sha"' "${trusted}/ci_pr_scope.py"; then
+                python3 "${trusted}/ci_pr_scope.py" \
+                  --repo "$GITHUB_WORKSPACE" --event merge-group \
+                  --group-base-sha "${MG_BASE_SHA}" --group-head-sha "${MG_HEAD_SHA}" \
+                  --output "$GITHUB_OUTPUT"
+              else
+                # Transitional vintage: the protected base (e.g. master when
+                # the group that ships this very change runs) predates
+                # merge-group support and would exit 2 on these flags. Fail
+                # closed to a full run instead of crashing the classifier.
+                printf 'mode=full\nreason=CLASSIFIER_LACKS_GROUP_SUPPORT\n' >> "$GITHUB_OUTPUT"
+                echo 'CI_SCOPE mode=full reason=CLASSIFIER_LACKS_GROUP_SUPPORT'
+              fi
+            else
+              printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
+              echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
+            fi
           else
-            printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
-            echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
+            if [ "${PR_HEAD_REPO}" != "${REPOSITORY}" ]; then
+              # A fork's head repository is not this repository: never docs.
+              # Enforced here in the shell so the guard holds whatever
+              # classifier vintage the protected base carries.
+              printf 'mode=full\nreason=FORK_HEAD_REPOSITORY\n' >> "$GITHUB_OUTPUT"
+              echo 'CI_SCOPE mode=full reason=FORK_HEAD_REPOSITORY'
+            elif git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
+              git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
+              # The arguments below are exactly the incumbent classifier's
+              # interface: this call must run green against the protected
+              # base even before a newer classifier lands there.
+              python3 "$trusted/scripts/ci_pr_scope.py" \
+                --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
+                --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
+                --output "$GITHUB_OUTPUT"
+            else
+              printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
+              echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
+            fi
           fi
 
   hub:
@@ -100,7 +164,8 @@ jobs:
     name: Quote Hub tests
     runs-on: ubuntu-latest
     needs: [pr_scope]
-    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # A docs-only change (pr_scope mode=docs: a prose-only pull request, or a
+    # native merge group whose whole diff is prose-only) still COMPLETES this
     # required context green: every step below is skipped, so branch
     # protection and scripts/merge_on_green.py (`conclusion == success`)
     # read it as proven. `!cancelled()` keeps the job running when pr_scope
@@ -110,25 +175,25 @@ jobs:
       run:
         working-directory: hub
     steps:
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/checkout@v4
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: hub/package-lock.json
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         run: npm ci
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         run: npm test
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: hub/requirements-futures.txt
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         name: Futures offline SDK and source conformance
         run: |
           python -m pip install -r requirements-futures.txt
@@ -361,8 +426,11 @@ jobs:
     # The PL6/legacy capture and one VI capture per viewport project, each on its
     # own runner at this SHA. They only retain bytes plus a receipt; none selects
     # records. terminal-unit is the fan-in and fails unless all four succeeded.
+    # The docs exemption (pull request or whole merge group) skips the shards
+    # exactly as it skips their fan-in; its failure or absence falls back to
+    # normal qualification.
     needs: [pr_scope, e2e-scope]
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     name: Terminal evidence capture (${{ matrix.shard }})
     runs-on: ubuntu-latest
     # Setup (npm ci + Chromium) can legally take ~13 min before the 55-minute
@@ -438,8 +506,9 @@ jobs:
       cancel-in-progress: true
     needs: [pr_scope, e2e-scope, terminal-evidence-capture]
     # The browser selector stays mandatory. PR scope only grants the docs
-    # exemption; its failure or absence falls back to normal qualification.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # exemption (pull request or whole merge group); its failure or absence
+    # falls back to normal qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     # Display name only; typecheck itself moved to the terminal-typecheck job.
     # The required context ("Terminal typecheck + tests") is the terminal gate
     # job's name and is unchanged.
@@ -752,7 +821,7 @@ jobs:
     # must succeed, only a trusted docs-only PR may skip, and it runs on native
     # merge groups (no merge_group skip): F11 always qualifies the admitted checkout.
     needs: [pr_scope, e2e-scope]
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     name: Terminal F11 evidence (shard)
     runs-on: ubuntu-latest
     # Setup ~2 min + Chromium <=10 + capture <=8 + F11 lock suites <=10.
@@ -799,10 +868,10 @@ jobs:
       group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-typecheck
       cancel-in-progress: true
     # Same qualification gate as terminal-unit: the independent browser
-    # selector must succeed, and only a trusted docs-only PR may skip.
-    # Typecheck must also run on native merge groups (no merge_group skip).
+    # selector must succeed, and only a trusted docs-only change (a
+    # prose-only PR, or a prose-only whole merge group) may skip.
     needs: [pr_scope, e2e-scope]
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     name: Terminal typecheck (shard)
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -827,10 +896,10 @@ jobs:
       group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit-shards-${{ matrix.shard }}
       cancel-in-progress: true
     # Same qualification gate as terminal-unit: the independent browser
-    # selector must succeed, and only a trusted docs-only PR may skip.
-    # Unit shards must also run on native merge groups (no merge_group skip).
+    # selector must succeed, and only a trusted docs-only change (a
+    # prose-only PR, or a prose-only whole merge group) may skip.
     needs: [pr_scope, e2e-scope]
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     name: Terminal unit tests (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -917,9 +986,10 @@ jobs:
       TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
     needs: [pr_scope, e2e-scope]
     # Source PRs run the independently selected responsive matrix. Trusted
-    # docs-only PRs and native merge groups have separate, explicit skip rules.
-    # Neither rule permits a failed selector or claims fresh browser proof.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && github.event_name != 'merge_group' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # docs-only changes and native merge groups have separate, explicit skip
+    # rules. Neither rule permits a failed selector or claims fresh browser
+    # proof.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && github.event_name != 'merge_group' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
     # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
@@ -1092,9 +1162,10 @@ jobs:
     name: Terminal e2e production build
     needs: [pr_scope, e2e-scope]
     # The dev lane's event shape without its merge-group exclusion, plus a
-    # nonempty prod lane. Trusted docs-only PRs skip the build; native merge
-    # groups run it as their only browser-build qualification.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # nonempty prod lane. Trusted docs-only changes (a prose-only PR, or a
+    # prose-only whole merge group) skip the build; other native merge groups
+    # run it as their only browser-build qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     defaults:
@@ -1166,7 +1237,7 @@ jobs:
     # The build job's own condition plus its success. Without a build these
     # shards skip instead of failing one by one at the download; the required
     # aggregate below turns both the failed build and that skip red.
-    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.terminal-e2e-build.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && needs.terminal-e2e-build.result == 'success' && needs.e2e-scope.outputs.prodbuild_count != '0' && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     # Fixed GitHub-hosted image; the variable-gated dev lane is untouched.
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -1275,14 +1346,20 @@ jobs:
         run: |
           echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-f11-evidence:$F11 terminal-typecheck:$TYPECHECK terminal-unit-shards:$UNITS terminal-e2e:$E2E terminal-e2e-build:$BUILD terminal-e2e-prodbuild:$PRODBUILD (count=$PRODBUILD_COUNT)"
           docs_only=0
-          if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
+          # The docs exemption is earned only by a trusted classifier success
+          # on the two events pr_scope classifies: a pull request or a whole
+          # merge group. A skipped, failed or cancelled pr_scope leaves
+          # docs_only at 0 no matter what PR_MODE shows.
+          if { [ "$EVENT" = "pull_request" ] || [ "$EVENT" = "merge_group" ]; } && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
             docs_only=1
           fi
           fail=0
           # The independent browser selector is mandatory for every event.
           # A native merge group runs only the production lane and must select
           # its four fixed shards; no malformed or empty selection qualifies.
-          if [ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then
+          # A qualified docs-only group skips that lane entirely and is exempt
+          # from the count assertion (nothing consumes it there).
+          if [ "$EVENT" = "merge_group" ] && [ "$docs_only" -ne 1 ] && [ "$PRODBUILD_COUNT" != "4" ]; then
             echo "::error title=terminal-ci::native merge group selected '$PRODBUILD_COUNT' production shards (expected '4')"
             fail=1
           fi
@@ -1293,18 +1370,18 @@ jobs:
           if [ "$UNIT" = "success" ]; then
             :
           elif [ "$docs_only" -eq 1 ] && [ "$UNIT" = "skipped" ]; then
-            echo "terminal-unit skipped: trusted docs-only pull request"
+            echo "terminal-unit skipped: trusted docs-only change"
           else
             echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
             fail=1
           fi
           # The split typecheck and unit-shard lanes follow the same rule as the
-          # evidence lane: success, or a skip only a trusted docs-only PR earned.
-          # A skipped or failed matrix result can never qualify a candidate.
+          # evidence lane: success, or a skip only a trusted docs-only change
+          # earned. A skipped or failed matrix result can never qualify a candidate.
           if [ "$F11" = "success" ]; then
             :
           elif [ "$docs_only" -eq 1 ] && [ "$F11" = "skipped" ]; then
-            echo "terminal-f11-evidence skipped: trusted docs-only pull request"
+            echo "terminal-f11-evidence skipped: trusted docs-only change"
           else
             echo "::error title=terminal-ci::terminal-f11-evidence concluded '$F11' (expected 'success')"
             fail=1
@@ -1312,7 +1389,7 @@ jobs:
           if [ "$TYPECHECK" = "success" ]; then
             :
           elif [ "$docs_only" -eq 1 ] && [ "$TYPECHECK" = "skipped" ]; then
-            echo "terminal-typecheck skipped: trusted docs-only pull request"
+            echo "terminal-typecheck skipped: trusted docs-only change"
           else
             echo "::error title=terminal-ci::terminal-typecheck concluded '$TYPECHECK' (expected 'success')"
             fail=1
@@ -1320,7 +1397,7 @@ jobs:
           if [ "$UNITS" = "success" ]; then
             :
           elif [ "$docs_only" -eq 1 ] && [ "$UNITS" = "skipped" ]; then
-            echo "terminal-unit-shards skipped: trusted docs-only pull request"
+            echo "terminal-unit-shards skipped: trusted docs-only change"
           else
             echo "::error title=terminal-ci::terminal-unit-shards concluded '$UNITS' (expected 'success')"
             fail=1
@@ -1328,19 +1405,20 @@ jobs:
           if [ "$E2E" = "success" ]; then
             :
           elif [ "$E2E" = "skipped" ] && { [ "$docs_only" -eq 1 ] || [ "$EVENT" = "merge_group" ]; }; then
-            echo "terminal-e2e skipped: qualified docs-only PR or native merge group"
+            echo "terminal-e2e skipped: qualified docs-only change or native merge group"
           else
             echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
             fail=1
           fi
           # The prod lane must FAIL, never silently skip: a failed, cancelled,
           # skipped or empty build/prod lane turns this required context red on
-          # a native merge group. Skips are lawful for trusted docs-only PRs,
-          # or on other events when the selector emitted no prod shards.
+          # a native merge group. Skips are lawful for trusted docs-only changes
+          # (pull request or whole merge group), or on other events when the
+          # selector emitted no prod shards.
           if [ "$BUILD" = "success" ]; then
             :
           elif [ "$BUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
-            echo "terminal-e2e-build skipped: qualified docs-only PR or empty non-merge-group prod lane"
+            echo "terminal-e2e-build skipped: qualified docs-only change or empty non-merge-group prod lane"
           else
             echo "::error title=terminal-ci::terminal-e2e-build concluded '$BUILD' (expected 'success')"
             fail=1
@@ -1348,7 +1426,7 @@ jobs:
           if [ "$PRODBUILD" = "success" ]; then
             :
           elif [ "$PRODBUILD" = "skipped" ] && { [ "$docs_only" -eq 1 ] || { [ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]; }; }; then
-            echo "terminal-e2e-prodbuild skipped: qualified docs-only PR or empty non-merge-group prod lane"
+            echo "terminal-e2e-prodbuild skipped: qualified docs-only change or empty non-merge-group prod lane"
           else
             echo "::error title=terminal-ci::terminal-e2e-prodbuild concluded '$PRODBUILD' (expected 'success')"
             fail=1
@@ -1363,7 +1441,8 @@ jobs:
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
     needs: [pr_scope]
-    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # A docs-only change (pr_scope mode=docs: a prose-only pull request, or a
+    # native merge group whose whole diff is prose-only) still COMPLETES this
     # required context green: every step below is skipped, so branch
     # protection and scripts/merge_on_green.py (`conclusion == success`)
     # read it as proven. `!cancelled()` keeps the job running when pr_scope
@@ -1376,21 +1455,21 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/checkout@v4
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
       # consumer in this same job. Python and PostgreSQL alone cannot run it.
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         name: Install Terminal consumer test dependencies
         run: npm ci
         working-directory: terminal
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -1408,7 +1487,7 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         run: |
           ingest_python_env="$(mktemp -d "${RUNNER_TEMP:?}/terminal-ingest-python.XXXXXX")"
           python -m venv "$ingest_python_env"
@@ -1416,10 +1495,10 @@ jobs:
           printf '%s\n' "$ingest_python_env/bin" >> "$GITHUB_PATH"
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         name: Put PostgreSQL binaries on PATH
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         name: Require PostgreSQL rather than silently skip
         run: |
           command -v initdb
@@ -1440,7 +1519,7 @@ jobs:
       # merge-on-green orders after refreshing a stale branch (round 4, MAJOR 2):
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
-      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+      - if: ${{ !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
         id: ingest_tests
         run: python -m pytest tests/ -q
         env:
@@ -1478,9 +1557,9 @@ jobs:
     name: Investigation PostgreSQL invariants
     runs-on: ubuntu-latest
     needs: [pr_scope]
-    # Skipped only for a qualified docs-only pull request (pr_scope
-    # mode=docs); a failed, skipped or unqualified pr_scope runs everything.
-    if: ${{ !cancelled() && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+    # Skipped only for a qualified docs-only change (pr_scope mode=docs);
+    # a failed, skipped or unqualified pr_scope runs everything.
+    if: ${{ !cancelled() && !(needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')) }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Trusted-base PR scope for Terminal CI.
 
-A pull request whose effective change is inert prose or evidence only gets
-``mode=docs``: the workflow then skips the unit, e2e, ingest and PostgreSQL
-machinery and reports the required contexts green from their own bounded
-steps. Anything else, and anything this script cannot qualify, is
-``mode=full`` -- the exact behaviour the workflow had before this script
-existed.
+A pull request -- or a native merge group -- whose effective change is inert
+prose or evidence only gets ``mode=docs``: the workflow then skips the unit,
+e2e, ingest and PostgreSQL machinery and reports the required contexts green
+from their own bounded steps. Anything else, and anything this script cannot
+qualify, is ``mode=full`` -- the exact behaviour the workflow had before this
+script existed.
 
 "Docs" is a positive allowlist, not "everything under docs/":
 
@@ -16,17 +16,27 @@ existed.
   ``terminal/app/docs/api/contract/route.ts``; specimens, refs and the
   chart-engine receipts are test inputs; a few named contracts are compared
   byte-for-byte by tests).
-* Raster evidence images under ``docs/evidence/`` and
-  ``terminal/docs/pr-crops/``.
+* Raster evidence images under ``docs/evidence/``. The pr-crops tree is
+  deliberately absent: evidence-lock suites hash those crops, so a changed
+  crop can change a test result.
 
 Top-level and package Markdown (README, AGENTS, CLAUDE, DEPLOY, HANDOFF ...)
 is read by tests and therefore never docs. ``tests/test_ci_pr_scope.py`` pins
 this allowlist against a census of literal path references in source.
 
-The decision is taken from Git objects only, never from PR text, and the
-workflow executes this file from the protected base commit (``HEAD^1`` of
-the pull-request merge commit) and only for pull requests whose base is the
-repository default branch, so a pull request cannot reclassify itself.
+A change qualifies as docs only when every diff row is an add or a modify (a
+delete, rename, copy or type change is full), every touched path is on the
+allowlist, and the change touches at most ``_MAX_CHANGES`` files. A pull
+request additionally qualifies only when its head repository is this
+repository (never a fork).
+
+The decision is taken from Git objects only, never from PR text. For a pull
+request the workflow executes this file from the protected base commit
+(``HEAD^1`` of the pull-request merge commit) and only for pull requests whose
+base is the repository default branch; for a merge group it executes this
+file from the group's base commit (the protected default-branch commit the
+queue built on) and classifies the whole group diff. Neither a pull request
+nor a queued group can reclassify itself.
 """
 from __future__ import annotations
 
@@ -54,9 +64,17 @@ _CONSUMED_FILES = frozenset({
     "docs/F12_TENANT_SCOPE_CONTRACT_2026-09-06.md",  # tenantScopeConformance.test.ts
     "docs/FEATURE_GAP_AUDIT.md",                     # terminal/lib/replayContract.ts
     "docs/LARGE_TRADES_ABSORPTION.md",               # terminal/scripts/verify-large-trades.mjs
+    "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",       # tests/test_ci_e2e_selfhosted_lane.py +
+                                                     # tests/test_ci_e2e_lane_host_files.py
 })
-_EVIDENCE_TREES = ("docs/evidence/", "terminal/docs/pr-crops/")
+# Written by specs and never compared: a changed image here cannot change a
+# test result. (terminal/docs/pr-crops is NOT here: evidence-lock suites
+# hash those crops, so pr-crops changes must run the full suite.)
+_EVIDENCE_TREES = ("docs/evidence/",)
 _EVIDENCE_SUFFIXES = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+# A docs-tier change is bounded: a diff large enough to reshape a tree is not
+# a prose edit and must run the full suite.
+_MAX_CHANGES = 50
 # Everything written to GITHUB_OUTPUT is reduced to this alphabet first, so a
 # crafted path can never add a line (and therefore a key) to the output file.
 _OUTPUT_TOKEN = re.compile(r"[^A-Za-z0-9._/:+-]")
@@ -151,11 +169,11 @@ def _name_status(raw: bytes) -> list[tuple[str, tuple[str, ...]]]:
     return rows
 
 
-def _head_tree_modes(root: Path) -> dict[str, tuple[bytes, bytes]]:
-    """Every path in the head tree with its (mode, object kind); one call,
-    no per-path arguments, so the size of the change never hits an argv
-    limit."""
-    raw_tree = _git(root, "ls-tree", "-r", "-z", "HEAD")
+def _head_tree_modes(root: Path, head: str) -> dict[str, tuple[bytes, bytes]]:
+    """Every path in the ``head`` tree with its (mode, object kind); one
+    call, no per-path arguments, so the size of the change never hits an
+    argv limit."""
+    raw_tree = _git(root, "ls-tree", "-r", "-z", head)
     if raw_tree and not raw_tree.endswith(b"\x00"):
         raise ScopeUnqualified("GIT_TREE_INCOMPLETE")
     modes: dict[str, tuple[bytes, bytes]] = {}
@@ -172,24 +190,11 @@ def _head_tree_modes(root: Path) -> dict[str, tuple[bytes, bytes]]:
     return modes
 
 
-def classify(
-    repo: Path, *, expected_base: str, base_ref: str, default_branch: str,
-) -> ScopeDecision:
-    root = repo.resolve(strict=True)
-    if not default_branch or base_ref != default_branch:
-        # Only the protected default branch carries this classifier's
-        # authority; a PR against any other branch runs everything.
-        raise ScopeUnqualified("BASE_IS_NOT_THE_DEFAULT_BRANCH")
-    if len(expected_base) != _SHA_LEN or any(c not in "0123456789abcdef" for c in expected_base):
-        raise ScopeUnqualified("BASE_SHA_UNQUALIFIED")
-    parents = _git(root, "rev-list", "--parents", "-n", "1", "HEAD").decode("ascii").split()
-    if len(parents) != 3:
-        raise ScopeUnqualified("HEAD_NOT_A_TWO_PARENT_MERGE")
-    if parents[1] != expected_base:
-        raise ScopeUnqualified("MERGE_FIRST_PARENT_IS_NOT_THE_EVENT_BASE")
+def _decide(root: Path, base: str, head: str) -> ScopeDecision:
+    """Classify the two-tree diff ``base..head`` against the docs allowlist."""
     rows = _name_status(_git(
         root, "diff", "--name-status", "-z", "--find-renames", "--no-ext-diff",
-        "HEAD^1", "HEAD",
+        base, head,
     ))
     if not rows:
         raise ScopeUnqualified("DIFF_EMPTY")
@@ -199,36 +204,137 @@ def classify(
         touched.update(paths)
         if kind != "D":
             present.add(paths[-1])
+    non_docs = sorted(path for path in touched if not is_docs_path(path))
+    if non_docs:
+        return ScopeDecision("full", "SOURCE_TOUCHED:" + non_docs[0][:120], len(touched))
+    for kind, paths in rows:
+        if kind not in ("A", "M"):
+            return ScopeDecision(
+                "full", f"STATUS_{kind}_NOT_ADD_OR_MODIFY:" + paths[-1][:100], len(touched),
+            )
+    if len(touched) > _MAX_CHANGES:
+        return ScopeDecision("full", "CHANGE_COUNT_ABOVE_CAP", len(touched))
     # A symlink, executable bit, submodule or type change can be a new
     # execution or data boundary even under a prose-looking name. Every
     # surviving path must be an exact regular 100644 blob in the head tree.
     if present:
-        modes = _head_tree_modes(root)
+        modes = _head_tree_modes(root, head)
         if any(path not in modes for path in present):
             raise ScopeUnqualified("GIT_TREE_FILE_COVERAGE_INVALID")
         if any(modes[path] != (b"100644", b"blob") for path in present):
             raise ScopeUnqualified("GIT_EXECUTABLE_SYMLINK_OR_SUBMODULE")
-    non_docs = sorted(path for path in touched if not is_docs_path(path))
-    if non_docs:
-        return ScopeDecision("full", "SOURCE_TOUCHED:" + non_docs[0][:120], len(touched))
     return ScopeDecision("docs", "PROSE_ONLY", len(touched))
+
+
+def _is_sha(value: str) -> bool:
+    return (
+        len(value) == _SHA_LEN
+        and all(c in "0123456789abcdef" for c in value)
+    )
+
+
+def classify(
+    repo: Path, *, expected_base: str, base_ref: str, default_branch: str,
+    head_repo: str | None = None, repository: str | None = None,
+) -> ScopeDecision:
+    """Classify a pull-request merge commit (HEAD with two parents)."""
+    root = repo.resolve(strict=True)
+    if not default_branch or base_ref != default_branch:
+        # Only the protected default branch carries this classifier's
+        # authority; a PR against any other branch runs everything.
+        raise ScopeUnqualified("BASE_IS_NOT_THE_DEFAULT_BRANCH")
+    if not _is_sha(expected_base):
+        raise ScopeUnqualified("BASE_SHA_UNQUALIFIED")
+    if (head_repo is None) != (repository is None):
+        raise ScopeUnqualified("REPOSITORY_IDENTITY_INCOMPLETE")
+    if head_repo is not None and head_repo != repository:
+        # A fork's head repository is not this repository: never docs.
+        raise ScopeUnqualified("FORK_HEAD_REPOSITORY")
+    parents = _git(root, "rev-list", "--parents", "-n", "1", "HEAD").decode("ascii").split()
+    if len(parents) != 3:
+        raise ScopeUnqualified("HEAD_NOT_A_TWO_PARENT_MERGE")
+    if parents[1] != expected_base:
+        raise ScopeUnqualified("MERGE_FIRST_PARENT_IS_NOT_THE_EVENT_BASE")
+    return _decide(root, "HEAD^1", "HEAD")
+
+
+def classify_group(
+    repo: Path, *, base_sha: str, head_sha: str,
+) -> ScopeDecision:
+    """Classify a native merge group: the whole group diff ``base..head``.
+
+    The workflow has already frozen the event identity (refs, workflow SHA and
+    the checkout agree); this re-verifies the two SHAs against the checkout
+    before deciding, so a mismatched object can never be classified. It does
+    NOT itself prove that ``base_sha`` is an ancestor of ``head_sha`` (or of
+    the checked-out group head): that ancestry is part of the workflow's
+    frozen-ref contract, not something this script re-derives.
+    """
+    root = repo.resolve(strict=True)
+    if not _is_sha(base_sha):
+        raise ScopeUnqualified("GROUP_BASE_SHA_UNQUALIFIED")
+    if not _is_sha(head_sha):
+        raise ScopeUnqualified("GROUP_HEAD_SHA_UNQUALIFIED")
+    if base_sha == head_sha:
+        raise ScopeUnqualified("GROUP_BASE_EQUALS_HEAD")
+    if _git(root, "rev-parse", "HEAD").decode("ascii").strip() != head_sha:
+        raise ScopeUnqualified("GROUP_HEAD_IS_NOT_THE_CHECKOUT")
+    if _git(root, "cat-file", "-t", base_sha).decode("ascii").strip() != "commit":
+        raise ScopeUnqualified("GROUP_BASE_NOT_A_COMMIT")
+    return _decide(root, base_sha, head_sha)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Trusted-base Terminal CI scope")
     parser.add_argument("--repo", required=True, type=Path)
-    parser.add_argument("--base-sha", required=True)
-    parser.add_argument("--base-ref", required=True, help="pull_request.base.ref")
-    parser.add_argument("--default-branch", required=True, help="repository.default_branch")
+    parser.add_argument(
+        "--event", choices=("pull-request", "merge-group"), default="pull-request",
+        help="which event is being classified",
+    )
+    parser.add_argument("--base-sha", help="pull_request.base.sha")
+    parser.add_argument("--base-ref", help="pull_request.base.ref")
+    parser.add_argument("--default-branch", help="repository.default_branch")
+    parser.add_argument(
+        "--head-repo", help="pull_request.head.repo.full_name (fork guard)",
+    )
+    parser.add_argument("--repository", help="github.repository (fork guard)")
+    parser.add_argument("--group-base-sha", help="merge_group.base_sha")
+    parser.add_argument("--group-head-sha", help="merge_group.head_sha")
     parser.add_argument("--output", type=Path, help="GITHUB_OUTPUT file to append to")
     args = parser.parse_args(argv)
     try:
-        decision = classify(
-            args.repo,
-            expected_base=args.base_sha,
-            base_ref=args.base_ref,
-            default_branch=args.default_branch,
-        )
+        if args.event == "merge-group":
+            missing = [
+                name for name, value in (
+                    ("--group-base-sha", args.group_base_sha),
+                    ("--group-head-sha", args.group_head_sha),
+                ) if not value
+            ]
+            if missing:
+                raise ScopeUnqualified("GROUP_ARGS_MISSING:" + ":".join(missing))
+            decision = classify_group(
+                args.repo,
+                base_sha=args.group_base_sha,
+                head_sha=args.group_head_sha,
+            )
+        else:
+            missing = [
+                name for name, value in (
+                    ("--base-sha", args.base_sha),
+                    ("--base-ref", args.base_ref),
+                    ("--default-branch", args.default_branch),
+                ) if not value
+            ]
+            if missing:
+                raise ScopeUnqualified("PR_ARGS_MISSING:" + ":".join(missing))
+            decision = classify(
+                args.repo,
+                expected_base=args.base_sha,
+                base_ref=args.base_ref,
+                default_branch=args.default_branch,
+                head_repo=args.head_repo,
+                repository=args.repository,
+            )
     except (ScopeUnqualified, OSError, subprocess.SubprocessError, ValueError) as exc:
         decision = ScopeDecision("full", f"UNQUALIFIED:{str(exc)[:140]}", 0)
     if args.output is not None:
