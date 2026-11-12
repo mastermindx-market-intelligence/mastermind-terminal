@@ -7,10 +7,10 @@
   "productionAcceptance": false,
   "captureFlag": "TERMINAL_E2E_FIXTURE",
   "mechanism": "playwright-locator-screenshot",
-  "capturedAt": "2026-11-12T04:12:57.492Z",
+  "capturedAt": "2026-11-12T07:50:30.277Z",
   "checkout": {
-    "commit": "bdf82c353ef2e5c99d1e1dd079c548ad9ffb2ab0",
-    "tree": "94049b9563fdf2327eb788b7b1582a85837a8bc3"
+    "commit": "9acf9c245ccb481beb6886046dd084c275d09dce",
+    "tree": "bdd7ee699fdb6cfc8d0cafafd3302f55926a30e8"
   },
   "sources": {
     "terminal/components/briefs/BriefsInbox.tsx": "4d561b964a59860a0e927cf9d5a0586ef17387599d43abc09f6ec19317b718e6",
@@ -24,7 +24,7 @@
     "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
     "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs": "07766cfee2d7f04fabfcf06f8cbdf303acca104e8d61d34e44f0d9d49fc31ba1",
     "terminal/e2e/tools/briefs_inbox_capture_contract.cjs": "d98ee81fd6848e24da6c70eb3426c07f317e4401aef01b9953ce0dd2eeed114b",
-    "terminal/e2e/tools/capture_ci_evidence.cjs": "9d720cb20839ed91f60ec82d54c646331c4b55d58045f8245c12151a600b8bf5",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "a0c24294d0334b30f99e2dc446c1b5f933b193c9508dcfb1e1008a69ff443d77",
     "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
     "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
     "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
@@ -219,7 +219,7 @@
       "image": {
         "width": 1340,
         "height": 115,
-        "sha256": "067a77e5415574718ac1461f4e1be6b59ef7004bff0bfc626ca5a446f8c08860"
+        "sha256": "2484fc5ad9e24791231218264c4c4e60829d1d6218792c69dd863c29e457854d"
       },
       "proof": {
         "settled": true,
@@ -258,7 +258,7 @@
       "image": {
         "width": 1340,
         "height": 96,
-        "sha256": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d"
+        "sha256": "5c580a67446cd902738dd33c58d12721652c4c0feb7bc100330f356b67820667"
       },
       "proof": {
         "settled": true,

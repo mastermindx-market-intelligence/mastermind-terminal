@@ -382,12 +382,22 @@ test("every packet that locks the capture control records the committed control 
     if (start < 0) continue;
     for (let i = start + 1; i < lines.length && lines[i].startsWith("  "); i++) {
       const row = /^  (\S+): "?([0-9a-f]{64})"?$/.exec(lines[i]);
-      if (row && row[1] === control) holders.push({packet, expected: row[2]});
+      if (row && row[1] === control) holders.push({packet, file: "EVIDENCE.yml", expected: row[2]});
+    }
+  }
+  // Packets whose own vitest suite validates a capture.json source map hold the
+  // same lock; an inventory of EVIDENCE.yml alone let a stale one reach CI.
+  for (const packet of fs.readdirSync(crops)) {
+    const packetFile = path.join(crops, packet, "capture.json");
+    if (!fs.existsSync(packetFile)) continue;
+    const sources = JSON.parse(fs.readFileSync(packetFile, "utf8")).sources;
+    if (sources && typeof sources[control] === "string") {
+      holders.push({packet, file: "capture.json", expected: sources[control]});
     }
   }
   assert.ok(holders.length > 0, "no packet locks " + control + "; the lock inventory is broken");
   for (const holder of holders) {
     assert.equal(holder.expected, actual,
-      holder.packet + "/EVIDENCE.yml locks " + control + " at a stale hash — recapture that packet with its own producer");
+      holder.packet + "/" + holder.file + " locks " + control + " at a stale hash — recapture that packet with its own producer");
   }
 });
