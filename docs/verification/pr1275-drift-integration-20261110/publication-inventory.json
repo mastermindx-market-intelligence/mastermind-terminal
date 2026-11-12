@@ -1,0 +1,252 @@
+{
+  "sourceHead": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "sourceTree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "items": [
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/QUALIFICATION.json",
+      "sha": "418e11d0125ea073e35a7ad586e77be175d51110",
+      "bytes": 14345,
+      "sha256": "585b5472ce9322f1f8d546106ad1e529039822d6781e1a4cd046ecbe9f54b978",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/README.md",
+      "sha": "06eb59dbd47a7d6f31ac82a5ad9f494c0c734bcd",
+      "bytes": 5368,
+      "sha256": "6490963a0a742b9fa121432ed1e0bf3f89785a1911bca47fca0a4cf715c6d149",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/complete-qualification.py",
+      "sha": "6404f2da631b180abceea7609fba97d41f6fb55a",
+      "bytes": 4993,
+      "sha256": "1a34ea299adecfaecebcdd8812a06605e84851a1c913aece690afaeac21d125b",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/diff-check.json",
+      "sha": "5e68cc2d0b5dbfbc78616e4743dfd9c22484ec24",
+      "bytes": 52,
+      "sha256": "6d620d1c454a90e41ee536109b1fee6ba5177ac2ee9d3aeb3a9f1e108bf3f044",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/drift-contracts.json",
+      "sha": "6cc03ee11c20c1941aced6b0f65f5b82e00418c1",
+      "bytes": 657,
+      "sha256": "18f77628dbd9aa16bb27efb830c5615187cf6d154fe78fe18f904e933eb89875",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/drift-contracts.log",
+      "sha": "f533ff96ff4d71a139c8af10043ea9183ed73a25",
+      "bytes": 99,
+      "sha256": "ec3f598069c5f4a98deabf7b58bc61ebd7f8b04efb1aec1c3910407f286cb950",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/drift-contracts.xml",
+      "sha": "4e0fcf0e8cbb1ff32e44e71a6765cb0b4f4a5016",
+      "bytes": 4031,
+      "sha256": "d6a029515c1d41bef574b0c4a8be138a2a05970273a56598ff7ff1d70c9168d0",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/evidence-reader-report.json",
+      "sha": "1dba3331a50b0f7810f5f0c80f6dcb6de7272d99",
+      "bytes": 2684,
+      "sha256": "6a58fb08b4b8fcdf66410d1490ee90f8ff426a90b0c9159cb527a1b4a23bb28c",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/evidence-reader.json",
+      "sha": "b6aaf8067081beef3f6bfdc737aff37832f8248f",
+      "bytes": 1133,
+      "sha256": "5f4f97f41d4de60f32eafa9d54707447206ffa57ff0ee185adefb7da78b6e460",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/evidence-reader.log",
+      "sha": "0d1e838a96e04b905261792c856da282d154b183",
+      "bytes": 362,
+      "sha256": "89a17b8c8fb982e8906cdf493ac0fc035ef66002c28d471bf68272b1e628435f",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/execution.json",
+      "sha": "40daa2f2e462d754da1bf2a8ec3bbef958cbf186",
+      "bytes": 1357,
+      "sha256": "91c7491679852abcee5c21837f00588b59ab1137290730ba6011fa02ded37f24",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/f11-capture.log",
+      "sha": "261d1b67dac1f5994b5e010a53f244b65f16f035",
+      "bytes": 765,
+      "sha256": "453494fc943882d36fbbcde4d2fe246e8c6b86ccc535bd7c6848b3a73d872b6b",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/npm-ci.log",
+      "sha": "12d5382e7fb5d5cd35e20317c8cf79728d48886d",
+      "bytes": 149,
+      "sha256": "e8d84e9d75290b5c7e9b757a1c92f570b8d51ae2f01982c830f84d9ea795c568",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/post-capture-reconciliation.json",
+      "sha": "8552e58d616fa92f3587a6ec157fb83367e7bee3",
+      "bytes": 997,
+      "sha256": "575f8b188a9a5a6571ef497b2e498e84cbbdf3a31de84750966a1d97a5b9d532",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/preflight.json",
+      "sha": "2e2c4b8a77594cdb293a8c5e20821b80f5c1c9c0",
+      "bytes": 10153,
+      "sha256": "b3d9b23138f415db518c8885113781fcddaefb7b3e71bc3a0e58acbfcdf68b5c",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/EVIDENCE.yml",
+      "sha": "090c3854fd54f7d4668128b1ab93f1b213c8d048",
+      "bytes": 4373,
+      "sha256": "5f9a2cc2646389a7e3ed41d3c2462c914e3d78bb28e02f26ad45f457985a86a2",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/FIXTURE.json",
+      "sha": "a5cf2a97ef48252518b03ea4c5df227aa687aff5",
+      "bytes": 65252,
+      "sha256": "4e1ce922c00bfc42de2a9550f36926f6db7bbe386a8f60bbb1c6e4a751c0d9d0",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/desktop-en.png",
+      "sha": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "bytes": 72928,
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/desktop-zh.png",
+      "sha": "e33505e525d33207a8c8f9af05876a02d23e788c",
+      "bytes": 72865,
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/mobile-en.png",
+      "sha": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "bytes": 21970,
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/mobile-zh.png",
+      "sha": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "bytes": 22687,
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/tablet-en.png",
+      "sha": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "bytes": 35568,
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet/tablet-zh.png",
+      "sha": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "bytes": 34375,
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "reuse": true
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/prior-published-packet.json",
+      "sha": "718eee2e591d4321cce4ac9722078681a421bd62",
+      "bytes": 1826,
+      "sha256": "3604bbb004ede6cc9c2b4949f99386f62320937dd915e5af74c130b9cfcb245d",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/qualification-completion.json",
+      "sha": "4095de64e3ccfc3ba2f4fc17e7619bc1018e044e",
+      "bytes": 426,
+      "sha256": "dfb77e995fa0a2801ac0f964492f9aa6c0436de91317bbdb92ea95195217a001",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/qualification-completion.log",
+      "sha": "62a87b33e9fda570b63e7b7b749bb4ea3bed6e74",
+      "bytes": 175,
+      "sha256": "d7838891769b6d4bdac6bcce23a77f46f4be8b6a2ebdcc86e823d119e2e7b3a9",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/routing-contracts.json",
+      "sha": "a5377c78d2dedc7a883b47cd2864f8def51833a0",
+      "bytes": 1659,
+      "sha256": "7898004a6113bd3992187e10b52eb1053d885f10db68772ef28fd4d74321199e",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/routing-contracts.log",
+      "sha": "8bb14a2dd68dcef69f0b4be4e1f082a43540d8e5",
+      "bytes": 99,
+      "sha256": "0ef3ded1af36e711a4d6eec12c40aa3913b7564313217f5ff0a6013e69b27a6c",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/routing-contracts.xml",
+      "sha": "40f8a31f1e46c224d10131b4a81671546e8fdc77",
+      "bytes": 4618,
+      "sha256": "0191a415c28ecd2c5590e984085b00920e24868f6bd179d7e92f653028bf1fe4",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/run-qualification.py",
+      "sha": "f79a2f677f2b02166e1511523ffc6646f1a90f1b",
+      "bytes": 9081,
+      "sha256": "b06ea15a2ea4bc03086cea39b8e4bfb7f05be7ce30548907dc098219792e91df",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/runtime-setup.json",
+      "sha": "3dbdca8b256ad4f36225000ffe88496d7865da52",
+      "bytes": 805,
+      "sha256": "060f60116ce7abd44859ac03987e9225e02b539a519374547081ab2831ef614c",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/source-integration.json",
+      "sha": "a15940d145890d03acf48781ea7483741150f94c",
+      "bytes": 1419,
+      "sha256": "57746978db642b5ad39fe10230c7e59a82a2a2f3628ab7a5f82062f4f2d9e911",
+      "reuse": false
+    },
+    {
+      "path": "docs/verification/pr1275-drift-integration-20261110/visual-review.json",
+      "sha": "103130fd90c7399aecfca7d719f648c165d9ad3f",
+      "bytes": 2629,
+      "sha256": "62b0c1db775ba5f76b1a26fd12d1ee443b60f58134a86dbbd9071cbeb55ad759",
+      "reuse": false
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "sha": "63c3ab0cb4024effe5c6bc59b8dd19da2822fd13",
+      "bytes": 4373,
+      "sha256": "9ad60c9bbc157782f6e0da9edfea3a48601f2137f1fa57d02278e3c699b2b061",
+      "reuse": false
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json",
+      "sha": "eb5c66549da7b6371a445e6fc3e0d85441f476a8",
+      "bytes": 65272,
+      "sha256": "50d9f085f80303bcd41c53969c7a593e7b671b22371a4c09162af5401097d9f7",
+      "reuse": false
+    }
+  ],
+  "note": "The inventory excludes its own hash; final tree readback binds its postimage."
+}

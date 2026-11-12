@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-11T18:30:38.806899+00:00",
+  "results": {
+    "evidence_consumer": {
+      "startedAt": "2026-11-11T18:29:53.144924+00:00",
+      "completedAt": "2026-11-11T18:29:57.224937+00:00",
+      "rc": 0,
+      "log": "evidence_consumer.log",
+      "log_sha256": "23496dccb5ace8bfccd462857ffe490d8266eb6799d469d705703b1ddaec6459",
+      "tail": "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1403-ticker-import-20261111-c3/terminal\n\n \u2713 lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 30ms\n\n Test Files  1 passed (1)\n      Tests  4 passed (4)\n   Start at  10:29:55\n   Duration  1.80s (transform 59ms, setup 0ms, collect 55ms, tests 30ms, environment 0ms, prepare 783ms)\n\n"
+    },
+    "combined_ci": {
+      "startedAt": "2026-11-11T18:29:53.148202+00:00",
+      "completedAt": "2026-11-11T18:30:38.680236+00:00",
+      "rc": 0,
+      "log": "combined_ci.log",
+      "log_sha256": "3f2ba2119bccea31f48e221e959eee9e873f4277437ba00b4fa203b56d578aa3",
+      "tail": "........................................................................ [ 34%]\n........................................................................ [ 69%]\n................................................................         [100%]\n208 passed in 44.50s\n"
+    }
+  },
+  "source_unchanged": true,
+  "authored_source_diff_check_rc": 0,
+  "source_hashes": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb",
+    "terminal/components/WatchlistDisplaySettings.tsx": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "terminal/components/WatchlistDisplaySettings.module.css": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    ".github/workflows/ci.yml": "902bef81938c1f40a80b34905613083d05474a553ab5e0f8159614c0adeb461f",
+    "tests/test_ci_e2e_shards.py": "0212d6b194d489c1f34784ed920407204e51a3adc167485275c44e108ea9f512",
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml": "5c7ec580e3598506c7257df29c190cce43dd072aa6bcb4fb718b0249e22bddf5",
+    "terminal/lib/__tests__/tickerNewsEvidence.test.ts": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a"
+  }
+}

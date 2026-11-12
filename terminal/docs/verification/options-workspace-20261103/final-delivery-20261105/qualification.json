@@ -1,0 +1,139 @@
+{
+  "schema": "options_exposure_final_delivery_evidence.v1",
+  "created_at": "2026-11-05T10:05:25.913128+00:00",
+  "source_law_pin": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "source_heads_before_final_commit": {
+    "options": "8e3362508aa2c451b7c02531097d0b9ee34653d9",
+    "exposure": "c9a57fc8dc6cb624309c3930c49319bbc980db2b"
+  },
+  "protected_base": "5d7b76376a8b3f5a8001f02d7f0ded29f5743798",
+  "prior_combined_tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+  "journeys": {
+    "original": 39,
+    "integrated": 39,
+    "chart_framing_successor": 12,
+    "calendar_pane_sync": 1
+  },
+  "native_and_visual_captures": 294,
+  "repaired_gates": {
+    "original_unit": 112,
+    "integrated_unit": 122,
+    "exposure_unit": 104,
+    "typecheck": "All three full tsc --noEmit --incremental false passed; generated dev guards retained."
+  },
+  "broad_baseline": {
+    "original_passed": 18042,
+    "original_failed": 1,
+    "integrated_passed": 18817,
+    "integrated_failed": 2,
+    "state": "Historical pre-repair full runs; all three failing evidence cases repaired and passed in affected suites. Do not describe these as full green runs."
+  },
+  "chart_proof_relative": "../../exposure-workspace-20261103/chart-framing-20261105",
+  "journey_traces": "Full original39/integrated39 Playwright artifacts are retained at exact absolute paths in each browser-receipt.json; this Git package includes their original SHA indexes, reports, source maps and52screenshots, not78 trace ZIPs.",
+  "claim_limits": [
+    "Fixture browsers establish local behavior, not signed-in production market data or deployment.",
+    "Light-theme screenshots are controlled DOM specimens; no application-wide light-mode setting is claimed.",
+    "Historical captures retain exact original source identities; later chart source qualified by its own red/green packet.",
+    "Actual final commit and hosted CI status are established by publication readback, not this pre-commit packet."
+  ],
+  "production_compiler": {
+    "exit": 0,
+    "duration_seconds": 93.8,
+    "source_count": 3128,
+    "source_sha256": "0977c028b60121a51fe62d70ab6feee7e95f17e8b88715c13c082088b94a9fd4",
+    "receipt_sha256": "9e5e9f8e7b3c1531a86c846f3b52266af39c33e4c600fb7a3cd68f31c9c4c891",
+    "all13_original_font_bytes_emitted": true,
+    "production_deployed": false
+  },
+  "runtime_composition": {
+    "options_source_commit": "0ead3e18f4029500d7f31e3d199c64849bada79c",
+    "exposure_source_commit": "bd4d1cec5ad2b8025558672482ee7b7d39429fc0",
+    "combined_tree": "0742c2a07c452c7b9ea60d5ec76dac19694cb21b",
+    "checked_bases": 5,
+    "both_orders_clean_and_equal": true,
+    "verified_preview_exact_files": 3318,
+    "proof_only_successors": "Final publication commits may add this matrix and documentation corrections; runtime identity must remain equal."
+  },
+  "current_protected_base": {
+    "schema": "options_current_base_compatibility.v1",
+    "completed_at": "2026-11-05T10:26:07.134831+00:00",
+    "base": "acd173eae60e1559c87603aee8fa70e35e661b65",
+    "combined_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+    "options_runtime_commit": "0ead3e18f4029500d7f31e3d199c64849bada79c",
+    "exposure_runtime_commit": "bd4d1cec5ad2b8025558672482ee7b7d39429fc0",
+    "both_orders_clean_and_equal": true,
+    "verified_terminal_files": 3320,
+    "verified_python_files": 3,
+    "verified_source_manifest_sha256": "c788a8f2d62f5fb4ac297cd9a2a514097f1b43bd41e3a88208c494bbceb84084",
+    "captures": [
+      {
+        "packet": "native-options-navigation-r4-gex",
+        "source_count": 319,
+        "source_map_sha256": "ce54a00507d1b17941c76bdfc0713807fa46aa9a37d062667a0c04a7e046d14e",
+        "changed_path_intersection": []
+      },
+      {
+        "packet": "native-options-navigation-r4-eod",
+        "source_count": 319,
+        "source_map_sha256": "ce54a00507d1b17941c76bdfc0713807fa46aa9a37d062667a0c04a7e046d14e",
+        "changed_path_intersection": []
+      },
+      {
+        "packet": "visual-navigation-r4-warm-vi",
+        "source_count": 138,
+        "source_map_sha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+        "changed_path_intersection": []
+      },
+      {
+        "packet": "visual-navigation-r4-warm-pl6",
+        "source_count": 138,
+        "source_map_sha256": "e33ffe823b42d24aa24b5b36c188f1ef838ea44809e414a21c95b709c4e42cde",
+        "changed_path_intersection": []
+      }
+    ],
+    "unit_passed": 276,
+    "python_passed": 59,
+    "full_typecheck_passed": true,
+    "source_stable": true,
+    "scope": "Two accepted protected changes: exact-US risk envelope qualification and signed earnings guidance. No Options/Exposure/Lab navigation, stylesheet, capture driver, evidence reader or harness configuration changed. No additional Options browser recapture required.",
+    "production_compile_scope": "The retained 93.8-second production build covers the repaired5d integration. The later acd delta is verified by exact composition,276unit tests,Pythonproducer tests andfullTSC; no new production build is claimed."
+  },
+  "final_observer_binding": {
+    "schema": "options_chart_observer_composition_qualification.v1",
+    "completed_at": "2026-11-05T10:59:07.464630+00:00",
+    "issue": "The current Map50 chart composed independently with Options observer947, but the reader incorrectly required the integrated observerc3. Both actual captured observers differ only by the readiness budget on one unrelated return assertion.",
+    "fix": "After fully verifying both pinned historical capture profiles, admit either of their already-qualified current observer hashes. Per-capture raw source binding, geometry, exact case sets, single attempts and all digests remain enforced; no new observer hash admitted.",
+    "helper_sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325",
+    "regression_test_sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9",
+    "runtime_changed": false,
+    "historical_qualification_sha256": "4175c376a016a00cd03dbf2c90c9604739c62b9004362db4a9cb277b752fc891",
+    "standalone_options_red": {
+      "failed_test_cases": 2,
+      "native_suite_collection_failures": 2,
+      "reason": "CHART_FRAMING_CURRENT_OBSERVER"
+    },
+    "standalone_options_green": {
+      "passed": 39,
+      "failed": 0,
+      "pending": 0,
+      "source_count": 3319,
+      "only_changed_source": "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "preview_restored": true
+    },
+    "final_affected_unit_results": {
+      "original": 120,
+      "exposure": 112,
+      "preview": 284
+    },
+    "final_combined_typecheck": true,
+    "changed_source_lint_zero_warnings": true,
+    "fresh_browser_capture_required": false,
+    "reason_no_recapture": "Only evidence reader and unit tests changed. Both chart runtimes, browser observer code and actual captured proof remain unchanged.",
+    "standalone_exposure_green": {
+      "passed": 50,
+      "failed": 0,
+      "source_count": 3304,
+      "preview_restored": true
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "acceptance_attempt_id": "f6065ab1a0bf46f58e925c5153b7da94",
+  "accepted_sha": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "app_root": "/opt/terminal/beta/terminal",
+  "build_id": "build-TfctsWXpff2fKS",
+  "canonical_repo": "/opt/terminal/.gitsrc-beta",
+  "generated_at": "2026-11-09T11:36:45.338568Z",
+  "policy_digest": "99f76cb211b086d1f83bb86c10747e2711a4c318fa4bd5dab1b94e84d46fe1d6",
+  "policy_path": "/opt/terminal/.gitsrc-beta/ops/terminal_source_audit.beta.json",
+  "previous_runtime_record": "/var/lib/mastermind-terminal-beta/source-provisioned/runtime-accepted-e33a4c3dd9f0965e7879fc5397175f6f49b0d751-2891692be28a4cd6.json",
+  "previous_runtime_record_id": "2891692be28a4cd679eecdbb4d552d2ebbc03c6fa3494ae32c4cc2a15d5b55f8",
+  "record_id": "3440fc29c05d27e1de27e2c43fb2e34debc21d75f33e2d6da52f3df74548eb8d",
+  "release_receipt_id": "fef4f99cfc2772fe0fba5aa36a7ade2417e8d799b20b69606f00fd65f1874ff0",
+  "release_receipt_path": "/var/lib/mastermind-terminal-beta/release-preflight/20261109T113628Z-f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f-fef4f99cfc2772fe0fba5aa36a7ade2417e8d799b20b69606f00fd65f1874ff0.json",
+  "rollback_baseline": true,
+  "runtime_accepted": true,
+  "schema": "mastermind.terminal.beta_runtime_accepted.v1",
+  "source_audit_receipt_id": "34eedc029ad70c7492bdff6688cb516c76e83ec81e554edac06245db0c24a12c",
+  "source_provisioned_record": "/var/lib/mastermind-terminal-beta/source-provisioned/source-provisioned-e45bde2cac07ac3b29285ff70c40d68900fad62c-efb499b6d0108d69.json",
+  "source_provisioned_record_id": "efb499b6d0108d69d3eedba424f7ef6ecea26c957c5378fbef4f9b6b997365d9",
+  "target": "beta",
+  "target_root": "/opt/terminal/beta"
+}

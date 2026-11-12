@@ -1,0 +1,17 @@
+{
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/marker-tooltip.spec.ts",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/touch/browser-artifacts/playwright",
+    "--grep",
+    "(?:tapping\\ a\\ marker\\ opens\\ its\\ tooltip,\\ and\\ tapping\\ away\\ dismisses\\ it|a\\ pane\\ relayout\\ after\\ a\\ tap\\ re\\-anchors\\ the\\ tooltip\\ instead\\ of\\ dismissing\\ it|a\\ tap\\ keeps\\ the\\ marker\\ it\\ started\\ on\\ when\\ geometry\\ moves\\ before\\ pointerup|a\\ tap\\ still\\ opens\\ the\\ tooltip\\ when\\ the\\ thread\\ stalls\\ between\\ down\\ and\\ up|a\\ touch\\ press\\ that\\ travels\\ is\\ a\\ pan,\\ not\\ a\\ tooltip\\ tap)$",
+    "--reporter=list,json"
+  ],
+  "pid": 60182
+}

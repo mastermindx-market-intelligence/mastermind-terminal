@@ -1,0 +1,24 @@
+{
+  "phase": "baseline",
+  "startedAt": "2026-11-11T07:35:13.930152+00:00",
+  "port": 53133,
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/issue1201-inspector-empty-capture.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-inspector-empty-20261111/baseline-artifacts"
+  ],
+  "cssSha256": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+  "captureSourceSha256": "c17661b777f3b8cd17b55767d9bc3a2f750f10067d9a247950a7371cf8034815",
+  "exitCode": 1,
+  "seconds": 182.573,
+  "completedAt": "2026-11-11T07:38:16.504928+00:00",
+  "cssUnchanged": true,
+  "ownedTemporarySpecRemoved": true,
+  "portClosedAfterOwnerReturn": true
+}

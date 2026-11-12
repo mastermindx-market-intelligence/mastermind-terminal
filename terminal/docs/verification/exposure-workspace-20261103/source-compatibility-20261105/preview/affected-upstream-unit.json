@@ -1,0 +1,14 @@
+{
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/spotVolMissingR2.test.tsx",
+    "lib/__tests__/indicatorLegendAccessibility.test.tsx",
+    "lib/__tests__/trackerEmbedLifetime.test.tsx",
+    "lib/__tests__/volumeMappingWarmup.test.ts",
+    "lib/__tests__/advancedSeasonalityIdentity.test.tsx",
+    "lib/__tests__/suiteModules.test.ts",
+    "lib/__tests__/researchReportedGammaMounted.test.tsx"
+  ],
+  "exit": 0
+}

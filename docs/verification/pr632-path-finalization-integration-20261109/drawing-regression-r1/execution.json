@@ -1,0 +1,72 @@
+{
+  "chartPanelLint": {
+    "acceptedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+    "baselineCount": 200,
+    "currentCount": 200,
+    "novel": {},
+    "state": "NO_NEW_DIAGNOSTICS"
+  },
+  "completedAt": "2026-11-09T18:48:31.844768+00:00",
+  "error": "drawing-spec-lint",
+  "head": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "integratedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "port": 3902,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr632_existing_drawing_regression.v1",
+  "sourceEntries": 1938,
+  "stages": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/drawingTools.test.ts",
+        "lib/__tests__/drawingInteraction.test.ts",
+        "lib/__tests__/drawingGeometry.test.ts",
+        "lib/__tests__/drawingSettings.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/docs/verification/pr632-path-finalization-integration-20261109/drawing-regression-r1/unit-report.json"
+      ],
+      "exit": 0,
+      "label": "drawing-units",
+      "logSha256": "b3f0112c380f6456270244ce0cfd2258908654279b321e6fb72974e226d4efcf",
+      "seconds": 1.44,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:47:11.850268+00:00",
+      "state": "CLOSED"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "label": "typecheck",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 42.69,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:47:13.369134+00:00",
+      "state": "CLOSED"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/drawing-system.spec.ts"
+      ],
+      "exit": 1,
+      "label": "drawing-spec-lint",
+      "logSha256": "690f2a25dd4f73cbc9ca823456f0f4c5f0fb4e76498aed2c535d6f3c8d973625",
+      "seconds": 1.95,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:48:29.473559+00:00",
+      "state": "FAILED"
+    }
+  ],
+  "startedAt": "2026-11-09T18:47:11.850005+00:00",
+  "state": "FAILED",
+  "unitTestsPassed": 25
+}

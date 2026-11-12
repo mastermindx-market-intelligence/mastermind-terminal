@@ -1,0 +1,32 @@
+[warmup] /terminal?symbol=NVDA → 200 in 127ms
+[warmup] /options → 200 in 1814ms
+[warmup] /portfolio → 200 in 679ms
+[warmup] /alerts → 200 in 607ms
+[warmup] /analysis → 200 in 961ms
+[warmup] /discover → 200 in 1133ms
+[warmup] /admin → 200 in 319ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 211ms
+[warmup] /login → 200 in 88ms
+[warmup] /reset-password → 200 in 270ms
+[warmup] /api/me → 200 in 293ms
+[warmup] /api/watchlist → 200 in 129ms
+[warmup] /api/layouts → 200 in 153ms
+[warmup] /api/watchlist/annotations → 409 in 105ms
+[warmup] 14 routes compiled in 7s
+[fixture-ready] prophet_idx fixture 200 in 332ms
+
+Running 10 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [tablet] › e2e/marker-tooltip.spec.ts:790:5 › tapping a marker opens its tooltip, and tapping away dismisses it (6.9s)
+  ✓   2 [tablet] › e2e/marker-tooltip.spec.ts:808:5 › a pane relayout after a tap re-anchors the tooltip instead of dismissing it (7.0s)
+  ✓   3 [tablet] › e2e/marker-tooltip.spec.ts:842:5 › a tap keeps the marker it started on when geometry moves before pointerup (6.6s)
+  ✓   4 [tablet] › e2e/marker-tooltip.spec.ts:888:5 › a tap still opens the tooltip when the thread stalls between down and up (7.5s)
+  ✓   5 [tablet] › e2e/marker-tooltip.spec.ts:955:5 › a touch press that travels is a pan, not a tooltip tap (7.1s)
+  ✓   6 [mobile] › e2e/marker-tooltip.spec.ts:790:5 › tapping a marker opens its tooltip, and tapping away dismisses it (9.0s)
+  ✓   7 [mobile] › e2e/marker-tooltip.spec.ts:808:5 › a pane relayout after a tap re-anchors the tooltip instead of dismissing it (7.8s)
+  ✓   8 [mobile] › e2e/marker-tooltip.spec.ts:842:5 › a tap keeps the marker it started on when geometry moves before pointerup (7.2s)
+  ✓   9 [mobile] › e2e/marker-tooltip.spec.ts:888:5 › a tap still opens the tooltip when the thread stalls between down and up (6.1s)
+  ✓  10 [mobile] › e2e/marker-tooltip.spec.ts:955:5 › a touch press that travels is a pan, not a tooltip tap (6.3s)
+
+  10 passed (1.5m)

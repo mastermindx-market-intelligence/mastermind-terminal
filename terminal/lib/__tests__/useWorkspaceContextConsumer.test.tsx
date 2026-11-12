@@ -4,7 +4,7 @@ import {createRoot,type Root} from "react-dom/client";
 import {afterEach,beforeEach,describe,expect,it} from "vitest";
 import {createWorkspaceContextSession,type WorkspaceContextSession} from "../workspaceContextSession";
 import {useWorkspaceContextConsumer} from "../useWorkspaceContextConsumer";
-import StockAnalysis from "../../components/StockAnalysis";
+import StockAnalysis from "../../components/StockAnalysisImpl";
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root,element:HTMLDivElement,result:ReturnType<typeof useWorkspaceContextConsumer>;
 function Harness({session,id="view",group="active_security"}:{session:WorkspaceContextSession|null;id?:string;group?:string}){

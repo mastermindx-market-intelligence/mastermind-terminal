@@ -1,0 +1,52 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_actual_generated_companion_controller_suite_is_closed_and_green _____
+tests/test_trusted_migration_ownership.py:856: in test_actual_generated_companion_controller_suite_is_closed_and_green
+    assert result.returncode == 0, result.stdout + result.stderr
+E   AssertionError: ........................................................................ [ 38%]
+E     ........................................................................ [ 76%]
+E     .........................Fatal Python error: Segmentation fault
+E     
+E     Current thread 0x00007d1c080b2740 (most recent call first):
+E       File "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib/python3.12/json/encoder.py", line 258 in iterencode
+E       File "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib/python3.12/json/encoder.py", line 200 in encode
+E       File "/home/longr/actions-runner-a/_work/_tool/Python/3.12.16/x64/lib/python3.12/json/__init__.py", line 231 in dumps
+E       File "/tmp/terminal-python-loader-support-20261111-c3/old-fixtures/test_actual_generated_companio0/tests/test_merge_on_green.py", line 1855 in test_reporting_workflow_does_not_receive_native_user_credentials
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/python.py", line 187 in pytest_pyfunc_call
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_execution.py", line 147 in _multicall
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_manager.py", line 183 in _hookexec
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_caller.py", line 197 in __call__
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/python.py", line 1798 in runtest
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 184 in pytest_runtest_call
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_execution.py", line 147 in _multicall
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_manager.py", line 183 in _hookexec
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_caller.py", line 197 in __call__
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 250 in <lambda>
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 361 in from_call
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 249 in call_and_report
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 139 in runtestprotocol
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/runner.py", line 118 in pytest_runtest_protocol
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_execution.py", line 147 in _multicall
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_manager.py", line 183 in _hookexec
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_caller.py", line 197 in __call__
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/main.py", line 411 in pytest_runtestloop
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_execution.py", line 147 in _multicall
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_manager.py", line 183 in _hookexec
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_caller.py", line 197 in __call__
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/main.py", line 387 in _main
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/main.py", line 333 in wrap_session
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/main.py", line 380 in pytest_cmdline_main
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_execution.py", line 147 in _multicall
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_manager.py", line 183 in _hookexec
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/pluggy/_caller.py", line 197 in __call__
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 262 in _main
+E       File "/tmp/terminal-python-loader-support-20261111-c3/venv/lib/python3.12/site-packages/_pytest/config/__init__.py", line 231 in main
+E       File "/tmp/terminal-python-loader-support-20261111-c3/old-fixtures/test_actual_generated_companio0/inert_controller_runner.py", line 7 in <module>
+E     
+E     Extension modules: yaml._yaml (total: 1)
+E     
+E   assert -11 == 0
+E    +  where -11 = CompletedProcess(args=['/tmp/terminal-python-loader-support-20261111-c3/venv/bin/python', '/tmp/terminal-python-loader...ual_generated_companio0/inert_controller_runner.py", line 7 in <module>\n\nExtension modules: yaml._yaml (total: 1)\n').returncode
+=========================== short test summary info ============================
+FAILED tests/test_trusted_migration_ownership.py::test_actual_generated_companion_controller_suite_is_closed_and_green
+1 failed in 0.99s

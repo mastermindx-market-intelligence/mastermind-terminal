@@ -1,0 +1,20 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/chartClockIsolation.test.tsx lib/__tests__/dataCacheWarmRefresh.test.ts lib/__tests__/heatmapPersistedRefreshFailure.test.tsx lib/__tests__/screenerPresetPersistence.test.tsx lib/__tests__/symbolPickerRecovery.test.tsx lib/__tests__/watchlistEventPlanner.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal
+
+ ✓ lib/__tests__/dataCacheWarmRefresh.test.ts (14 tests) 13ms
+ ✓ lib/__tests__/watchlistEventPlanner.test.ts (32 tests) 84ms
+ ✓ lib/__tests__/symbolPickerRecovery.test.tsx (31 tests) 178ms
+ ✓ lib/__tests__/chartClockIsolation.test.tsx (6 tests) 89ms
+ ✓ lib/__tests__/heatmapPersistedRefreshFailure.test.tsx (15 tests) 760ms
+ ✓ lib/__tests__/screenerPresetPersistence.test.tsx (42 tests) 1853ms
+
+ Test Files  6 passed (6)
+      Tests  140 passed (140)
+   Start at  16:34:39
+   Duration  4.01s (transform 1.77s, setup 0ms, collect 2.96s, tests 2.98s, environment 2.46s, prepare 639ms)
+

@@ -1,0 +1,38 @@
+[
+  {
+    "check": "unit-final",
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "lib/__tests__/researchReportedGammaMounted.test.tsx"
+    ],
+    "exit": 0,
+    "log_sha256": "51e7af5853868a4dfdab1a6dfde895847bf12abbf97701e72e3701888db42d3e"
+  },
+  {
+    "check": "lint",
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/researchlab/AdmittedOptionsResearchLab.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "e2e/options-lab-source-state.spec.ts",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    ],
+    "exit": 0,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "check": "typescript",
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/original-lab-integration-20261104/source-tsconfig.json"
+    ],
+    "exit": 0,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

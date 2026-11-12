@@ -1,0 +1,676 @@
+diff --git a/terminal/components/ChartPanel.tsx b/terminal/components/ChartPanel.tsx
+index a574bcb5e..d3135dc61 100644
+--- a/terminal/components/ChartPanel.tsx
++++ b/terminal/components/ChartPanel.tsx
+@@ -9298,6 +9298,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
+       if (indSvgRef.current) { try { indSvgRef.current.remove(); } catch {} indSvgRef.current = null; }
+       suiteTablesRef.current = [];
+       if (sigRef.current) { try { sigRef.current.remove(); } catch {} sigRef.current = null; }
++      brandBugRef.current?.remove();
++      brandBugRef.current = null;
+       if (svgRef.current) { try { svgRef.current.remove(); } catch {} svgRef.current = null; }
+       closeMediaSurface(false);
+       cancelPendingDrawingRef.current = () => {};
+diff --git a/terminal/components/EventImpactPanel.tsx b/terminal/components/EventImpactPanel.tsx
+index cbd8a0d32..5ede8b330 100644
+--- a/terminal/components/EventImpactPanel.tsx
++++ b/terminal/components/EventImpactPanel.tsx
+@@ -239,6 +239,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
+       !scope.token.revoked &&
+       scope.token === lifetimeRef.current &&
+       scope.sequence === sequenceRef.current;
++    // A setup retired before admission must not start a request or change busy state.
++    if (!current()) return;
+     const publish = (next: EventImpactRead) => {
+       if (!current()) return;
+       setPublished({ identity: scope.identity, epoch: scope.epoch, read: next });
+@@ -317,7 +319,8 @@ export default function EventImpactPanel({ positions, holdingsUnreadable }: Even
+       sequence: ++sequenceRef.current,
+       token,
+     };
+-    void load(scope, holdingsUnreadable);
++    // Development setup-cleanup-setup retires the first token before this admission.
++    queueMicrotask(() => { void load(scope, holdingsUnreadable); });
+     return () => { token.revoked = true; };
+   }, [identity, committed.epoch, holdingsUnreadable, load]);
+ 
+diff --git a/terminal/e2e/rs-pivot-study.spec.ts b/terminal/e2e/rs-pivot-study.spec.ts
+index cec66698b..679099a26 100644
+--- a/terminal/e2e/rs-pivot-study.spec.ts
++++ b/terminal/e2e/rs-pivot-study.spec.ts
+@@ -1,4 +1,4 @@
+-import { test, expect } from "@playwright/test";
++import { test, expect, type APIResponse, type Page, type Route } from "@playwright/test";
+ import { readFile } from "node:fs/promises";
+ import projection from "../lib/usEquitySessionProjection.json";
+ import { renderAsGuest } from "./layoutStore";
+@@ -8,6 +8,34 @@ test.beforeEach(async ({page,baseURL}) => {
+   await page.context().addCookies([{name:"mm_e2e_rs30",value:"1",url:baseURL!}]);
+ });
+ 
++// Match the emitted factory itself. Turbopack can group it into an opaque chunk,
++// while its importer also mentions the module without defining the client action.
++const STUDY_FACTORY = '"[project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript)", ((';
++
++async function interceptStudyFactory(page: Page, baseURL: string, intercept: (route: Route, response: APIResponse) => Promise<void>) {
++  const origin = new URL(baseURL).origin;
++  await page.route(url => url.origin === origin && url.pathname.startsWith("/_next/static/chunks/")
++    && url.pathname.endsWith(".js"), async route => {
++    const request = route.request();
++    if (request.method() !== "GET") return route.fallback();
++    const response = await route.fetch({
++      headers: { ...await request.allHeaders(), "accept-encoding": "identity" },
++      maxRedirects: 0, maxRetries: 0,
++    });
++    try {
++      const encoding = response.headers()["content-encoding"];
++      expect(encoding ?? "identity", "static fixture response uses the requested identity encoding").toBe("identity");
++      if (response.ok() && (await response.text()).includes(STUDY_FACTORY)) {
++        await intercept(route, response);
++      } else {
++        await route.fulfill({ response });
++      }
++    } finally {
++      await response.dispose();
++    }
++  });
++}
++
+ // Synthetic, nominal geometry fixtures. Never treated as a production/PIT data receipt.
+ function input(symbol: string): Bar6[] {
+   const days=Object.entries(projection.sessions).filter(([d])=>d>="2026-08-03"&&d<="2026-10-01").slice(0,36);
+@@ -88,13 +116,13 @@ test("logged-out user gets the existing sign-in path and cannot request research
+   await expect(page.getByRole("link",{name:"Sign in",exact:true})).toBeVisible(); expect(requests).toBe(0);
+ });
+ 
+-test("streamed study action waits for its lazy client handlers before accepting a run", async ({ page }) => {
++test("streamed study action waits for its lazy client handlers before accepting a run", async ({ page, baseURL }) => {
+   let release!: () => void;
+   const gate = new Promise<void>(resolve => { release = resolve; });
+   let held = 0;
+   let inputs = 0;
+-  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
+-    held++; await gate; await route.continue();
++  await interceptStudyFactory(page, baseURL!, async (route, response) => {
++    held++; await gate; await route.fulfill({ response });
+   });
+   await page.route("**/api/intraday?**", route => {
+     inputs++;
+@@ -110,7 +138,7 @@ test("streamed study action waits for its lazy client handlers before accepting
+     await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
+     const run = page.getByRole("button", { name: "Run local study", exact: true });
+     await expect(page.getByRole("heading", { name: "RS × 30m Pivot Study" })).toBeVisible();
+-    await expect.poll(() => held).toBeGreaterThan(0);
++    await expect.poll(() => held).toBe(1);
+     await expect(run).toBeDisabled();
+     await run.evaluate((button: HTMLButtonElement) => button.click());
+     expect(inputs).toBe(0);
+@@ -119,21 +147,23 @@ test("streamed study action waits for its lazy client handlers before accepting
+     await run.click();
+     await expect(page.getByTestId("rs-pivot-chart")).toBeVisible({ timeout: 30000 });
+     expect(inputs).toBe(2);
++    expect(held).toBe(1);
+   } finally { release(); }
+ });
+ 
+-test("a missing study client chunk leaves the streamed action inert", async ({ page }) => {
++test("a missing study client chunk leaves the streamed action inert", async ({ page, baseURL }) => {
+   let rejected = 0;
+   let inputs = 0;
+-  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
++  await interceptStudyFactory(page, baseURL!, async route => {
+     rejected++; await route.abort("failed");
+   });
+   page.on("request", request => { if (request.url().includes("/api/intraday?")) inputs++; });
+   await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
+   const run = page.getByRole("button", { name: "Run local study", exact: true });
+-  await expect.poll(() => rejected).toBeGreaterThan(0);
++  await expect.poll(() => rejected).toBe(1);
+   // A rejected lazy chunk may remove its boundary. Neither an enabled action
+   // nor a research request may survive that failure.
+   await expect(run.and(page.locator(":enabled"))).toHaveCount(0);
+   expect(inputs).toBe(0);
++  expect(rejected).toBe(1);
+ });
+diff --git a/terminal/e2e/sector-intraday-comparison.spec.ts b/terminal/e2e/sector-intraday-comparison.spec.ts
+index e56c0e708..1766146ac 100644
+--- a/terminal/e2e/sector-intraday-comparison.spec.ts
++++ b/terminal/e2e/sector-intraday-comparison.spec.ts
+@@ -216,7 +216,9 @@ test("an open workspace keeps repeated observations stale as their source clock
+   const now = Date.now(), pulse = intradayPulse(now);
+   await page.clock.install({ time: new Date(now) });
+   let requests = 0;
+-  page.on("request", request => {
++  // A retired mount can start and abort a read. Only finished fixture deliveries
++  // can revalidate the source clock shown by the surviving workspace.
++  page.on("requestfinished", request => {
+     const parsed = new URL(request.url());
+     if (parsed.pathname === "/api/sector-intelligence" && parsed.searchParams.get("source") === "intraday") requests++;
+   });
+@@ -224,7 +226,7 @@ test("an open workspace keeps repeated observations stale as their source clock
+   const section = panel(page);
+   await expect(section.getByTestId("sector-intraday-basket")).toHaveCount(2);
+   const source = await section.getByTestId("sector-intraday-clock").getAttribute("dateTime");
+-  expect(requests).toBe(1);
++  await expect.poll(() => requests).toBe(1);
+   await page.clock.fastForward("00:46:00");
+   // Fast-forward fires the visible-feed revalidation once. Receiving the same
+   // owner observation must not make its source clock or comparison current.
+diff --git a/terminal/e2e/sector-leadership-dossier.spec.ts b/terminal/e2e/sector-leadership-dossier.spec.ts
+index 079344349..2fd60e117 100644
+--- a/terminal/e2e/sector-leadership-dossier.spec.ts
++++ b/terminal/e2e/sector-leadership-dossier.spec.ts
+@@ -4,22 +4,11 @@ import dossier from "../lib/__tests__/fixtures/sector_dossiers_v1.json";
+ import outage from "../lib/__tests__/fixtures/sector_dossiers_unavailable_v1.json";
+ import complete from "../lib/__tests__/fixtures/sector_window_measurements.complete.v1.json";
+ import unavailable from "../lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json";
++import { nativeGenerationFixture, syntheticExactParent as nov5Parent } from "../lib/__tests__/fixtures/sectorNativeGeneration";
+ 
+ /** The clearly labelled synthetic November 5 parent. It carries the producer's own exact-session
+  * companion and no legacy dossier, so the companion is proved on its own in the browser. It is
+  * NOT the October 9 legacy fixture with its dates moved. */
+-const nov5Parent = (read: unknown) => ({
+-  schema: "leadership_rotation_context.measured_group_read/v1",
+-  status: "available",
+-  generation: {
+-    benchmark: "SPY", cohort_id: "us_sectors_11", history_as_of: "2026-11-05",
+-    history_schema: "sector_cycles.rs_history.v1", id: "2026-11-05|SPY|us_sectors_11",
+-    price_basis: "total_return", session_end: "2026-11-05",
+-  },
+-  groups: [],
+-  sector_window_measurements: read,
+-});
+-
+ /** The owner's own sector rows. The dossier identifies a sector by its ETF proxy ticker, so the
+  * owner row and the cohort row are the same identity here. */
+ const sectors = [
+@@ -46,37 +35,43 @@ const tiles = ["AAA", "BBB", "CCC", "DDD", "EEE"].map((ticker, index) => ({ t: t
+  * overview. The dossier is the owner's own `measured_read` document, delivered exactly as the
+  * producer delivers it — no new gateway and no new route. */
+ async function prepare(page: Page, options: {
+-  language?: string; read?: unknown; denied?: boolean; withdrawAfterFirst?: boolean;
++  language?: string; read?: unknown; denied?: boolean; accessWithdrawn?: () => boolean;
+   /** Serve the producer's exact-session companion inside a synthetic November 5 parent. */
+   companion?: unknown;
+ } = {}) {
+   await page.addInitScript(lang => {
+     localStorage.setItem("mm.lang", lang); document.documentElement?.setAttribute("data-lang", lang);
+   }, options.language || "en");
+-  let sectorReads = 0;
+   await page.route("**/api/sector-intelligence?**", async (route: Route) => {
+     const source = new URL(route.request().url()).searchParams.get("source") || "";
+     if (source === "heatmap") return route.fulfill({ status: 200, json: { data: {
+       asof: "2026-10-09", size_basis: "marketcap", n_tiles: tiles.length, tiles },
+       receipt: { source, path: "/marketdata/sp500_heatmap.json", status: "ready", asOf: "2026-10-09",
+         observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: null } } });
+-    if (source !== "sector") return sectorFixture(route);
+-    sectorReads += 1;
+-    const withdrawn = options.denied || (options.withdrawAfterFirst && sectorReads > 1);
++    if (source !== "sector" && source !== "generation") return sectorFixture(route);
++    const withdrawn = source === "generation" && (options.denied || options.accessWithdrawn?.());
+     if (withdrawn) return route.fulfill({ status: 401, json: { data: null, receipt: {
+-      source, path: "/sectordata/sector_central.json", status: "access", asOf: null,
++      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "access", asOf: null,
+       observedAt: null, stale: false, contentHash: null } } });
+     const read = options.companion !== undefined ? nov5Parent(options.companion)
+       : options.read === undefined ? dossier : options.read;
+-    const data = read === null ? { as_of: "2026-10-09", sectors }
+-      : { as_of: "2026-10-09", sectors, measured_read: read };
+-    return route.fulfill({ status: 200, json: { data, receipt: {
+-      source, path: "/sectordata/sector_central.json", status: "ready", asOf: "2026-10-09",
++    const session = options.companion !== undefined ? "2026-11-05" : "2026-10-09";
++    const data = read === null ? { as_of: session, sectors }
++      : { as_of: session, sectors, measured_read: read };
++    return route.fulfill({ status: 200, json: { data: source === "generation" ? nativeGenerationFixture(data) : data, receipt: {
++      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "ready", asOf: session,
+       observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
+   });
+ }
+ 
+ const root = (page: Page) => page.getByTestId("sector-intelligence");
++async function refreshAfterWithdrawal(page: Page, withdraw: () => void) {
++  const expected = new URL("/api/sector-intelligence?source=generation", page.url()).href;
++  const denied = page.waitForResponse(response => response.url() === expected
++    && response.request().method() === "GET" && response.status() === 401);
++  withdraw();
++  await Promise.all([denied, root(page).getByRole("button", { name: "Refresh" }).click()]);
++}
+ const panel = (page: Page) => page.getByTestId("sector-leadership-dossier");
+ const metric = (page: Page, window: string) =>
+   panel(page).locator(`[data-testid="sector-dossier-metric"][data-window="${window}"]`);
+@@ -208,9 +203,10 @@ test("the rotation workspace opens the same research depth", async ({ page }) =>
+ });
+ 
+ test("a withdrawn access clears every figure and leaves the rest of the overview intact", async ({ page }) => {
+-  await prepare(page, { withdrawAfterFirst: true }); await page.goto(detail);
++  let withdrawn = false;
++  await prepare(page, { accessWithdrawn: () => withdrawn }); await page.goto(detail);
+   await expect(metric(page, "21")).toContainText("-0.50%");
+-  await root(page).getByRole("button", { name: "Refresh" }).click();
++  await refreshAfterWithdrawal(page, () => { withdrawn = true; });
+   await expect(panel(page)).toContainText("Leadership evidence requires access");
+   await expect(metric(page, "21")).toHaveCount(0);
+   await expect(panel(page)).not.toContainText("-0.50%");
+@@ -220,24 +216,21 @@ test("a withdrawn access clears every figure and leaves the rest of the overview
+ });
+ 
+ test("an owner document with no leadership evidence reads as a missing capability", async ({ page }) => {
+-  await prepare(page, { read: {} }); await page.goto(detail);
++  await prepare(page, { read: null }); await page.goto(detail);
+   await expect(panel(page)).toContainText("Leadership evidence is not available for this sector");
+   await expect(metric(page, "21")).toHaveCount(0);
+   await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+   await noOverflow(page);
+ });
+ 
+-test("a valid unavailable dossier retains all eleven null rows and source qualifications", async ({ page }) => {
++test("an unavailable parent without generation clocks cannot revive a legacy dossier", async ({ page }) => {
+   await prepare(page, { read: outage }); await page.goto(detail);
+-  await expect(panel(page)).toContainText("Leadership evidence is unavailable");
+-  await expect(metric(page, "21").locator("strong")).toHaveText("—");
+-  await expect(metric(page, "21")).toContainText("The source session date is missing or invalid.");
+-  await panel(page).getByTestId("sector-dossier-compare").locator("summary").click();
+-  await expect(panel(page).locator("tbody tr")).toHaveCount(11);
+-  await expect(panel(page).locator("tbody")).not.toContainText("source_session_missing_or_invalid");
+-  await panel(page).getByTestId("sector-dossier-source").locator("summary").click();
+-  await expect(panel(page).getByTestId("sector-dossier-source")).toContainText("XLK: source_session_missing_or_invalid");
++  await expect(panel(page)).toHaveAttribute("data-state", "invalid");
++  await expect(panel(page)).toContainText("Leadership evidence could not be verified");
++  await expect(metric(page, "21")).toHaveCount(0);
++  await expect(panel(page).getByTestId("sector-dossier-compare")).toHaveCount(0);
+   await expect(panel(page)).not.toContainText("0.00%");
++  await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
+   await noOverflow(page);
+ });
+ 
+@@ -388,9 +381,10 @@ test("a valid all-null companion block stays visible with its identities and cau
+ });
+ 
+ test("a withdrawn access clears the companion and leaves the rest of the overview intact", async ({ page }) => {
+-  await prepare(page, { companion: complete, withdrawAfterFirst: true }); await page.goto(detail);
++  let withdrawn = false;
++  await prepare(page, { companion: complete, accessWithdrawn: () => withdrawn }); await page.goto(detail);
+   await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-8.85%");
+-  await root(page).getByRole("button", { name: "Refresh" }).click();
++  await refreshAfterWithdrawal(page, () => { withdrawn = true; });
+   await expect(panel(page)).toContainText("Leadership evidence requires access");
+   await expect(exact(page)).toHaveCount(0);
+   await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
+diff --git a/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs b/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
+index bc1d882f9..d12c5a1af 100644
+--- a/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
++++ b/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
+@@ -1,8 +1,10 @@
++/* eslint-disable @typescript-eslint/no-require-imports -- This standalone Node qualifier is intentionally CommonJS. */
+ /* Local fixture-only qualification of the actual native routes. No real account,
+  * credential, service, or external writer is used. Both HTTP servers are loopback
+  * children owned and stopped by this process. Never production acceptance. */
+ const fs = require('node:fs');
+ const path = require('node:path');
++const os = require('node:os');
+ const http = require('node:http');
+ const crypto = require('node:crypto');
+ const {spawn,execFileSync} = require('node:child_process');
+@@ -11,7 +13,10 @@ const ROOT = process.cwd();
+ // Reuse the incumbent historical sector fixture, never a second sample dataset.
+ const ts = require('typescript');
+ require.extensions['.ts'] = (module, filename) => {
+-  if (!path.resolve(filename).startsWith(path.join(ROOT,'e2e/fixtures')+path.sep)) throw Error('fixture loader scope');
++  const resolved = path.resolve(filename);
++  // sector-company-v3 reuses this one shared synthetic fixture dependency.
++  const generationFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorNativeGeneration.ts');
++  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture) throw Error('fixture loader scope');
+   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+   module._compile(code,filename);
+ };
+@@ -19,8 +24,15 @@ const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
+ const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
+ const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
+ if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
+-const OUT = VARIANT ? path.join(EVIDENCE_ROOT,VARIANT) : EVIDENCE_ROOT;
+-fs.mkdirSync(OUT,{recursive:true});
++const CANONICAL_OUT = VARIANT ? path.join(EVIDENCE_ROOT,VARIANT) : EVIDENCE_ROOT;
++fs.mkdirSync(CANONICAL_OUT,{recursive:true});
++// Next watches the project tree. Keep live logs and screenshots outside it and
++// retain the complete result only after this qualifier's server has closed.
++const OUT = fs.mkdtempSync(path.join(os.tmpdir(),'terminal-intelligence-'));
++const outputRelative=path.relative(fs.realpathSync(ROOT),fs.realpathSync(OUT));
++if(outputRelative!== '..'&&!outputRelative.startsWith('..'+path.sep)&&!path.isAbsolute(outputRelative)){
++ fs.rmdirSync(OUT);throw Error('live qualification output must be outside the project');
++}
+ const OWNER = '11111111-1111-4111-8111-111111111111';
+ const PORT = Number(process.env.INTELLIGENCE_TEST_PORT || 3347);
+ if (!Number.isInteger(PORT) || PORT < 1024 || PORT > 65535) throw Error('invalid test port');
+@@ -43,7 +55,68 @@ report.sourceFiles=Object.fromEntries([
+  'e2e/tools/qualify_shared_shell_intelligence.cjs'
+ ].map(file=>[file,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,file))).digest('hex')]));
+ report.trackedWorkingChanges=execFileSync('git',['diff','--name-only'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+-let theme='dark',locale='en', browser, child, fixture;
++let theme='dark',locale='en', browser, child, childClosed, fixture;
++report.authReads=0;
++report.authStatuses={200:0,401:0};
++report.outputOutsideProject=true;
++report.overviewNavigations=[];
++report.reloadDiagnostics={counts:{},events:{},dropped:{}};
++function diagnostic(kind,value){
++ const key=kind+':'+String(value.event||value.type||value.reason||'observed').slice(0,80);
++ const data=report.reloadDiagnostics;
++ if(!Object.hasOwn(data.counts,key)&&Object.keys(data.counts).length>=48)return;
++ data.counts[key]=(data.counts[key]||0)+1;
++ const events=data.events[key]??=[];
++ const limit=/reload/i.test(key)?20:kind==='console'?24:12;
++ if(events.length<limit)events.push({at:Date.now(),theme,locale,...value});
++ else data.dropped[key]=(data.dropped[key]||0)+1;
++}
++const diagnosticText=(value,limit=512)=>typeof value==='string'?value.slice(0,limit):undefined;
++const diagnosticPath=value=>{try{return new URL(value).pathname;}catch{return diagnosticText(value);}};
++const diagnosticUpdate=value=>value&&typeof value==='object'?{
++ type:diagnosticText(value.type),path:diagnosticText(value.path),
++ resourcePath:diagnosticText(value.resource?.path),
++ resourceHeaderNames:value.resource?.headers&&typeof value.resource.headers==='object'?Object.keys(value.resource.headers).slice(0,12):undefined,
++ instructionType:diagnosticText(value.instruction?.type),reason:diagnosticText(value.reason,2048)
++}:undefined;
++async function observeReloads(ctx,page){
++ page.on('console',message=>{
++  const text=message.text();
++  if(['warning','error'].includes(message.type())||/HMR|Fast Refresh|Turbopack|full reload/i.test(text))
++   diagnostic('console',{type:message.type(),text:text.slice(0,2048)});
++ });
++ page.on('websocket',socket=>{
++  const pathname=new URL(socket.url()).pathname;
++  if(!['/_next/hmr','/_next/webpack-hmr'].includes(pathname))return;
++  diagnostic('socket',{type:'opened',path:pathname});
++  socket.on('close',()=>diagnostic('socket',{type:'closed',path:pathname}));
++  socket.on('socketerror',error=>diagnostic('socket',{type:'error',path:pathname,error:diagnosticText(String(error),2048)}));
++  for(const direction of ['framesent','framereceived'])socket.on(direction,frame=>{
++   const payload=frame.payload,bytes=Buffer.byteLength(payload);
++   if(typeof payload!=='string'||bytes>1024*1024){diagnostic(direction,{path:pathname,bytes,binary:typeof payload!=='string'});return;}
++   try{
++    const value=JSON.parse(payload);
++    diagnostic(direction,{path:pathname,bytes,type:diagnosticText(value.type),event:diagnosticText(value.event),action:diagnosticText(value.action),
++     hmrVersion:value.hmrVersion,dataHmrVersion:value.data?.hmrVersion,sessionId:value.data?.sessionId,
++     resource:diagnosticText(value.resource)||diagnosticText(value.resource?.path),resourcePath:diagnosticText(value.path),
++     resourceHeaderNames:value.headers&&typeof value.headers==='object'?Object.keys(value.headers).slice(0,12):undefined,
++     dataType:diagnosticText(value.data?.type),hadRuntimeError:value.hadRuntimeError,
++     updates:Array.isArray(value.data)?value.data.slice(0,8).map(diagnosticUpdate):diagnosticUpdate(value.data),
++     reason:typeof value.reason==='string'?value.reason.slice(0,2048):undefined,
++     stackTrace:typeof value.stackTrace==='string'?value.stackTrace.slice(0,4096):undefined,
++     dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8).map(item=>diagnosticText(item)):undefined});
++   }catch{diagnostic(direction,{path:pathname,bytes,nonJson:true});}
++  });
++ });
++ const protocol=await ctx.newCDPSession(page);
++ await protocol.send('Page.enable');await protocol.send('Network.enable');
++ protocol.on('Page.frameRequestedNavigation',event=>diagnostic('navigation',{reason:event.reason,path:diagnosticPath(event.url),frameId:event.frameId}));
++ protocol.on('Network.requestWillBeSent',event=>{
++  if(event.type!=='Document')return;
++  diagnostic('document',{path:diagnosticPath(event.request.url),redirectStatus:event.redirectResponse?.status,
++   initiator:event.initiator?.type,stack:event.initiator?.stack?.callFrames?.slice(0,8).map(frame=>({functionName:diagnosticText(frame.functionName),path:diagnosticPath(frame.url),lineNumber:frame.lineNumber,columnNumber:frame.columnNumber}))});
++ });
++}
+ const now = Math.floor(Date.now()/1000);
+ const enc = v=>Buffer.from(JSON.stringify(v)).toString('base64url');
+ const head=enc({alg:'HS256',typ:'JWT'}),body=enc({sub:OWNER,email:'research-fixture@example.test',aud:'authenticated',role:'authenticated',iat:now,exp:now+3600});
+@@ -52,13 +125,18 @@ const token=`${head}.${body}.${crypto.createHmac('sha256',crypto.randomBytes(32)
+ const user=()=>({id:OWNER,aud:'authenticated',role:'authenticated',email:'research-fixture@example.test',email_confirmed_at:'2026-01-01T00:00:00Z',created_at:'2026-01-01T00:00:00Z',app_metadata:{provider:'email',providers:['email']},user_metadata:{theme,lang:locale,onboarded_at:'2026-01-01T00:00:00Z'}});
+ const session=()=>({access_token:token,refresh_token:'fixture-only-refresh-never-used',expires_in:3600,expires_at:now+3600,token_type:'bearer',user:user()});
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
++async function within(promise,ms,label){
++ let timer;
++ try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(label)),ms);})]);}
++ finally{clearTimeout(timer);}
++}
+ async function startFixture(){
+  fixture=http.createServer((req,res)=>{
+   res.setHeader('Access-Control-Allow-Origin',BASE);res.setHeader('Access-Control-Allow-Headers',req.headers['access-control-request-headers']||'authorization,apikey,content-type,x-client-info,x-supabase-api-version');res.setHeader('Access-Control-Allow-Methods','GET,OPTIONS');res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
+   if(req.method==='OPTIONS'){res.writeHead(204).end();return;}
+   if(req.method!=='GET'){report.fixtureWrites.push({method:req.method,path:req.url});res.writeHead(405).end('{}');return;}
+   const u=new URL(req.url,'http://localhost');
+-  if(u.pathname==='/auth/v1/user'){if(req.headers.authorization!==`Bearer ${token}`){res.writeHead(401).end('{"message":"invalid fixture session"}');return;}res.end(JSON.stringify(user()));return;}
++  if(u.pathname==='/auth/v1/user'){report.authReads++;if(req.headers.authorization!==`Bearer ${token}`){report.authStatuses[401]++;res.writeHead(401).end('{"message":"invalid fixture session"}');return;}report.authStatuses[200]++;res.end(JSON.stringify(user()));return;}
+   if(u.pathname==='/api/me'){res.end(JSON.stringify({tier:'pro',features:['terminal_live_options'],status:'active'}));return;}
+   if(u.pathname.startsWith('/rest/')){res.end('[]');return;}
+   res.writeHead(404).end('{"error":"fixture route absent"}');
+@@ -90,6 +168,9 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   const authBase=await startFixture();
+   const log=fs.openSync(path.join(OUT,'local-next.log'),'w');
+   child=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1','--port',String(PORT)],{cwd:ROOT,stdio:['ignore',log,log],env:{...process.env,MMX_SHARED_SHELL:'1',NEXT_PUBLIC_SUPABASE_URL:authBase,NEXT_PUBLIC_SUPABASE_ANON_KEY:'fixture-anon-key',BILLING_GATEWAY_BASE:authBase,FLOW_FIXTURE:'1',TERMINAL_REQUIRE_AUTH:'0',TERMINAL_E2E_FIXTURE:'1',TERMINAL_E2E_EMAIL:'research-fixture@example.test',TERMINAL_E2E_ENTITLEMENT:'unlimited',ANALYSIS_LOCAL_PREVIEW:'1',RATE_LIMIT_MAX:'100000',ISSUE_DESK_API_BASE:authBase}});
++  childClosed=new Promise((resolve,reject)=>{child.once('close',(code,signal)=>resolve({code,signal}));child.once('error',reject);});
++  // Attach a rejection observer immediately; cleanup still receives the original error.
++  void childClosed.catch(()=>{});
+   fs.closeSync(log);
+   let ready=false;
+   for(let i=0;i<100;i++){if(child.exitCode!==null)throw Error(`Next exited ${child.exitCode}`);try{const r=await fetch(BASE+'/api/shared-shell/status',{signal:AbortSignal.timeout(2000)});if(r.ok){ready=true;break;}}catch{}await sleep(1000);}
+@@ -102,7 +183,11 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   }
+   for(const [w,h] of [[1440,900],[820,1180],[390,844]])for(const mode of [['dark','en'],['light','zh']]){
+    [theme,locale]=mode;const ctx=await context();const page=await ctx.newPage();await page.setViewportSize({width:w,height:h});
++   await observeReloads(ctx,page);
+    page.on('pageerror',e=>report.errors.push({cell:`${w}-${theme}-${locale}`,error:e.message}));
++   const documentNavigations=[];
++   report.overviewNavigations.push({cell:`${w}-${theme}-${locale}`,documents:documentNavigations});
++   page.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())documentNavigations.push(request.url());});
+    await page.goto(BASE+'/intelligence',{waitUntil:'domcontentloaded'});
+    await expect(page.locator('[data-intelligence-overview]')).toBeVisible({timeout:45000});
+    await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready',{timeout:30000});
+@@ -115,7 +200,8 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+     await expect(page.getByRole('dialog').locator('[data-intelligence-nav="drawer"]')).toBeVisible();
+     await page.keyboard.press('Escape');
+    }
+-   report.cells.push({w,h,theme,locale,screenshot:file,bounds});await ctx.close();
++   if(documentNavigations.length!==1||documentNavigations[0]!==BASE+'/intelligence')throw Error(`unexpected overview navigation: ${JSON.stringify(documentNavigations)}`);
++   report.cells.push({w,h,theme,locale,screenshot:file,bounds,documentNavigations});await ctx.close();
+   }
+   theme='dark';locale='en';const ctx=await context();const page=await ctx.newPage();
+   await page.goto(BASE+'/intelligence');await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','ready');
+@@ -163,8 +249,29 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
+   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
+  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}
+  finally{
+-  if(browser)await browser.close();if(child&&child.exitCode===null){child.kill('SIGTERM');await Promise.race([new Promise(r=>child.once('exit',r)),sleep(5000)]);if(child.exitCode===null)child.kill('SIGKILL');}
+-  if(fixture)await new Promise(r=>fixture.close(r));report.finishedAt=new Date().toISOString();
+-  report.externalRequests=[...new Set(report.externalRequests)];fs.writeFileSync(path.join(OUT,'browser-qualification.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({passed:report.passed,cells:report.cells.length,failure:report.failure,errors:report.errors,receipt:path.join(OUT,'browser-qualification.json')}));
++  const cleanupErrors=[];
++  if(browser)try{await within(browser.close(),10000,'browser close unsettled');}catch(error){cleanupErrors.push(String(error));}
++  report.ownedChildClosed=!child;
++  if(child){
++   if(child.exitCode===null&&child.signalCode===null)child.kill('SIGTERM');
++   try{report.childClose=await within(childClosed,5000,'Next close unsettled');report.ownedChildClosed=true;}
++   catch(error){
++    if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');
++    try{report.childClose=await within(childClosed,5000,'Next kill unsettled');report.ownedChildClosed=true;}
++    catch(settleError){cleanupErrors.push(String(error),String(settleError));}
++   }
++  }
++  if(fixture)try{await within(new Promise((resolve,reject)=>fixture.close(error=>error?reject(error):resolve())),5000,'fixture close unsettled');report.fixtureClosed=true;}catch(error){cleanupErrors.push(String(error));}
++  report.finishedAt=new Date().toISOString();
++  report.externalRequests=[...new Set(report.externalRequests)];
++  if(cleanupErrors.length){report.passed=false;report.cleanupErrors=cleanupErrors;process.exitCode=1;}
++  fs.writeFileSync(path.join(OUT,'browser-qualification.json'),JSON.stringify(report,null,2)+'\n');
++  let receipt=path.join(OUT,'browser-qualification.json');
++  if(report.ownedChildClosed){
++   fs.cpSync(OUT,CANONICAL_OUT,{recursive:true});
++   receipt=path.join(CANONICAL_OUT,'browser-qualification.json');
++   fs.rmSync(OUT,{recursive:true});
++  }
++  console.log(JSON.stringify({passed:report.passed,cells:report.cells.length,failure:report.failure,errors:report.errors,cleanupErrors:report.cleanupErrors,receipt}));
+  }
+ })();
+diff --git a/terminal/e2e/watchlist-annotation-sync.spec.ts b/terminal/e2e/watchlist-annotation-sync.spec.ts
+index 82f3203a0..4801a270d 100644
+--- a/terminal/e2e/watchlist-annotation-sync.spec.ts
++++ b/terminal/e2e/watchlist-annotation-sync.spec.ts
+@@ -438,9 +438,15 @@ test("AC-E05-03 — concurrent edits merge disjoint fields and surface a same-fi
+     await menuNote(page, "NVDA", MINE);
+     await expectSync(page, "retrying");
+   } else {
+-    await editSlot(page, E2E_WL_NOTES_KEY, owner, "NVDA", MINE);
++    // Set the offline edit before the next document restores the owner slot.
++    await seedSlots(page, "conflict-offline", [[E2E_WL_NOTES_KEY, owner, { NVDA: MINE }]]);
+     await boot(page);
+     await expectSync(page, "readFailed");
++    await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", MINE);
++    await expect.poll(() => slot(page, ANNOTATION_SYNC_KEY, owner)).toMatchObject({
++      acked: { "NVDA|note": { value: "shared base", rev: 1 } },
++      pending: { "NVDA|note": { value: MINE, base: 1 } },
++    });
+   }
+   // ...while the other device changes the same note and, separately, the flag.
+   await serverWrite(request, key, [{ symbol: "NVDA", field: "note", value: THEIRS, baseRevision: 1 }, { symbol: "NVDA", field: "flag", value: BLUE, baseRevision: 0 }]);
+diff --git a/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx b/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
+index ef2a3a08c..9f1f0235d 100644
+--- a/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
++++ b/terminal/lib/__tests__/eventImpactPanelRefresh.test.tsx
+@@ -465,26 +465,47 @@ describe("EventImpactPanel — effect lifetime", () => {
+     expect(errors).toHaveLength(0);
+   });
+ 
+-  it("rejects a retired result under StrictMode setup-cleanup-setup while the current load works", async () => {
+-    const StrictMode = (await import("react")).StrictMode;
+-    await act(async () => {
+-      root.render(
+-        <StrictMode>
+-          <EventImpactPanel positions={[{ ...BASE }]} holdingsUnreadable={false} />
+-        </StrictMode>
+-      );
+-    });
+-    await flush();
+-    // StrictMode mounts, tears down and mounts again: the first setup's read is retired.
+-    expect(requests.length).toBeGreaterThanOrEqual(1);
+-    const retired = requests[0];
+-    const current = requests[requests.length - 1];
+-    await respond(retired, true, 200);
+-    await complete(current, "CURRENT_FACT", [{ ...BASE }]);
+-    await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
+-    expect(panelText()).toContain("CURRENT_FACT");
+-    expect(panelText()).not.toContain("RETIRED_FACT");
+-  });
++  it.each(["before-current", "after-current"] as const)(
++    "admits one StrictMode read and retires a committed input's body %s",
++    async (order) => {
++      const StrictMode = (await import("react")).StrictMode;
++      const render = (positions: Position[]) => act(async () => {
++        root.render(
++          <StrictMode>
++            <EventImpactPanel positions={positions} holdingsUnreadable={false} />
++          </StrictMode>
++        );
++      });
++      await render([{ ...BASE }]);
++      await flush();
++      // The throwaway setup is revoked before admission; only the live setup reads.
++      expect(requests).toHaveLength(1);
++      const retired = requests[0];
++      await respond(retired, true, 200);
++
++      const edited = [{ ...BASE, shares: 25 }];
++      await render(edited);
++      await flush();
++      expect(requests).toHaveLength(2);
++      const current = requests[1];
++      expect(current).not.toBe(retired);
++      expect(checking()).toBeTruthy();
++
++      if (order === "before-current") {
++        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
++        expect(checking()).toBeTruthy();
++        expect(panelText()).not.toContain("RETIRED_FACT");
++      }
++      await complete(current, "CURRENT_FACT", edited);
++      if (order === "after-current") {
++        await settleBody(retired, payload("RETIRED_FACT", [{ ...BASE }]));
++      }
++      expect(panelText()).toContain("CURRENT_FACT");
++      expect(panelText()).not.toContain("RETIRED_FACT");
++      expect(checking()).toBeFalsy();
++      expect(requests).toHaveLength(2);
++    },
++  );
+ });
+ 
+ describe("EventImpactPanel — language register", () => {
+diff --git a/terminal/lib/__tests__/nextConfigDevIndicator.test.ts b/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
+index c76161d90..21f0a9c66 100644
+--- a/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
++++ b/terminal/lib/__tests__/nextConfigDevIndicator.test.ts
+@@ -31,3 +31,28 @@ describe("next.config.ts devIndicators gate", () => {
+     expect(nextConfig.devIndicators).toBeUndefined();
+   });
+ });
++
++describe("fixture development cache isolation", () => {
++  afterEach(() => {
++    vi.unstubAllEnvs();
++    vi.resetModules();
++  });
++
++  it.each([
++    { mode: "development", fixture: "1", transport: undefined, cache: false, debug: undefined },
++    { mode: "development", fixture: "1", transport: "intl-fixture-v1", cache: false, debug: false },
++    { mode: "development", fixture: "0", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++    { mode: "development", fixture: undefined, transport: undefined, cache: undefined, debug: undefined },
++    { mode: "production", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++    { mode: "test", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
++  ])("keeps the actual config boundary for $mode / fixture=$fixture / transport=$transport", async ({ mode, fixture, transport, cache, debug }) => {
++    vi.stubEnv("NODE_ENV", mode);
++    vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
++    vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", transport);
++    vi.resetModules();
++    const { default: nextConfig } = await import("../../next.config");
++    expect(nextConfig.experimental?.turbopackFileSystemCacheForDev).toBe(cache);
++    expect(nextConfig.experimental?.reactDebugChannel).toBe(debug);
++    expect(nextConfig.experimental?.turbopackFileSystemCacheForBuild).toBeUndefined();
++  });
++});
+diff --git a/terminal/lib/__tests__/productionTypeProject.test.ts b/terminal/lib/__tests__/productionTypeProject.test.ts
+index 70f74c7ed..c228d3249 100644
+--- a/terminal/lib/__tests__/productionTypeProject.test.ts
++++ b/terminal/lib/__tests__/productionTypeProject.test.ts
+@@ -68,9 +68,11 @@ describe("strict production TypeScript project", () => {
+       vi.resetModules();
+       const { default: config } = await import("../../next.config");
+       expect(config.experimental?.reactDebugChannel).toBe(debug);
++      const fixtureDev = mode === "development" && fixture === "1";
++      expect(config.experimental?.turbopackFileSystemCacheForDev).toBe(fixtureDev ? false : undefined);
+       expect(config.typescript?.tsconfigPath).toBe(mode === "production" ? "tsconfig.build.json" : "tsconfig.json");
+       expect(config.distDir).toBeUndefined();
+-      if (debug === undefined) expect(config).not.toHaveProperty("experimental");
++      if (debug === undefined && !fixtureDev) expect(config).not.toHaveProperty("experimental");
+     } finally { vi.unstubAllEnvs(); vi.resetModules(); }
+   });
+   it("inherits every full-project compiler option unchanged", () => {
+diff --git a/terminal/next.config.ts b/terminal/next.config.ts
+index 50d6906dd..98a50a5d7 100644
+--- a/terminal/next.config.ts
++++ b/terminal/next.config.ts
+@@ -4,9 +4,10 @@ import { readFileSync, readdirSync } from "node:fs";
+ import path from "path";
+ 
+ const isProd = process.env.NODE_ENV === "production";
++const isFixtureDevelopment = process.env.NODE_ENV === "development"
++  && process.env.TERMINAL_E2E_FIXTURE === "1";
+ // Only the closed canonical fixture transport denies the optional debug WebSocket.
+-const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
+-  && process.env.TERMINAL_E2E_FIXTURE === "1"
++const isClosedCanonicalTransport = isFixtureDevelopment
+   && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
+ 
+ // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
+@@ -170,7 +171,16 @@ const embedChartHeaders = embedHeaders.map((header) =>
+ );
+ 
+ const nextConfig: NextConfig = {
+-  ...(isClosedCanonicalTransport ? { experimental: { reactDebugChannel: false } } : {}),
++  ...(isFixtureDevelopment ? {
++    experimental: {
++      // Sequential fixture servers change public environment values. Next 16.4's
++      // persistent dev-cache restoration can restart the shared client entry forever:
++      // https://github.com/vercel/next.js/issues/100251 and /issues/100267.
++      // Keep Turbopack/HMR; each fixture server computes its own development state.
++      turbopackFileSystemCacheForDev: false,
++      ...(isClosedCanonicalTransport ? { reactDebugChannel: false } : {}),
++    },
++  } : {}),
+   // Internal public-sample diagnostics must never be copied into a deploy artifact.
+   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
+   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.

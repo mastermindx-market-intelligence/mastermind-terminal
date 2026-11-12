@@ -1,0 +1,21 @@
+{
+  "acquireReplay": false,
+  "classification": "ORIGINAL_WORKSPACE_ACQUISITION_APPLIED_AND_RECONCILED",
+  "initialTypedAcquire": "WORKSPACE_ACQUISITION_UNQUALIFIED/EFFECT_UNKNOWN",
+  "laterTypedPublishStatus": {
+    "clean": true,
+    "localHead": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+    "publicationState": "NOT_APPLIED",
+    "readyToPush": true,
+    "remoteHead": null
+  },
+  "operation": "terminal-evidence-path-file-support-20261111-c3",
+  "originalTargetReadback": {
+    "branch": "sol/web-terminal-evidence-path-file-support-20261111-c3",
+    "dirty": false,
+    "head": "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+    "recoverability": "UNCHANGED_FROM_ACQUIRED_BASE",
+    "state": "RELEASABLE"
+  },
+  "recordedAt": "2026-11-11T15:52:21.647764+00:00"
+}

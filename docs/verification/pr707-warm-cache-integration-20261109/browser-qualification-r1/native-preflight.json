@@ -1,0 +1,12 @@
+{
+  "currentBrowserQualified": false,
+  "eod": {
+    "descriptorSha256": "eff4608e93f91459040c703419206ab4507e2af0b4e4525f3b4400da39eb696b",
+    "revision": "warm-cache-integration-20261111"
+  },
+  "gex": {
+    "descriptorSha256": "5ea7f88044ead844cb93cde0bf986b75b8b89cf6ef8002a7cf5792344144f37e",
+    "revision": "warm-cache-integration-20261111"
+  },
+  "state": "NATIVE_ONLY_VALIDATED"
+}

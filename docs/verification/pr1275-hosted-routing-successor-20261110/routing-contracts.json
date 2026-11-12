@@ -1,0 +1,46 @@
+{
+  "command": [
+    "/opt/homebrew/bin/python3.11",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_ci_e2e_selfhosted_lane.py",
+    "--junitxml=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-routing-f11-successor/docs/verification/pr1275-hosted-routing-successor-20261110/routing-contracts.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 33
+  },
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T11:52:51.541490+00:00",
+  "head": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "inputs": [
+    {
+      "gitBlob": "688325d9bb3fe287a50b9fccdbf4acac5d74f9c9",
+      "path": ".github/workflows/ci.yml",
+      "sha256": "bf734595d5c5ae2239b4f0d577ddff463df1420f2675349b4212d589604fe1d7"
+    },
+    {
+      "gitBlob": "1b29bc626d3a719d7f6ee60008da8fce031f07db",
+      "path": "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+      "sha256": "1fda988e0a4e57045b104da287256273a99777325cace8d773d344d28717c932"
+    },
+    {
+      "gitBlob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+      "path": "tests/test_ci_e2e_selfhosted_lane.py",
+      "sha256": "8cbd831cda8c0943ac9eff2595ff2dc68a4b7a1c04525253f252ce847159e484"
+    },
+    {
+      "gitBlob": "e29ca206dcbd49388f765e8b799a59f8c3b8df3c",
+      "path": ".github/scripts/terminal_e2e_lane.sh",
+      "sha256": "624735c4350ff760b6adcaeebe54fc9f71fe6110e9f42774ba785f8c32a40f38"
+    }
+  ],
+  "logSha256": "95079224909f987d2f3200b23fb9bb5b089c758a6cd27124e73edb0812509896",
+  "schema": "terminal.pr1275.routing-contracts.v1",
+  "seconds": 6.657,
+  "startedAt": "2026-11-10T11:52:44.883376+00:00",
+  "tree": "f6b2202bea775cebbd867deccc05bb9c69034412"
+}

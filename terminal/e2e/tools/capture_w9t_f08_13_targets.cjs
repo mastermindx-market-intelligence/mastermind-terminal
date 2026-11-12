@@ -79,6 +79,10 @@ async function ensureServer() {
 
 async function gotoSettings(page, lang) {
   await page.addInitScript((useZh) => {
+    window.__mmTargetsVisualReady = false;
+    window.addEventListener("mm:terminal-visual-ready", () => {
+      window.__mmTargetsVisualReady = true;
+    }, { once: true });
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
@@ -98,14 +102,12 @@ async function gotoSettings(page, lang) {
   // identical whichever shell opened it.
   await page.goto(`${BASE}/terminal?symbol=NVDA`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await page.waitForFunction(
-    () => Array.from(document.querySelectorAll('button[aria-label]'))
-      .some((el) => {
-        const lbl = el.getAttribute("aria-label") || "";
-        return /^Settings$|^设置$/.test(lbl);
-      }),
+    () => window.__mmTargetsVisualReady === true,
     undefined, { timeout: 60_000 },
   );
-  await page.locator('button[aria-label="Settings"]:visible, button[aria-label="设置"]:visible').first().click();
+  // The existing readiness event waits for the real shell's handlers; .app
+  // excludes the provider-less .app2 route placeholder with its no-op button.
+  await page.locator('.app button[aria-label="Settings"]:visible, .app button[aria-label="设置"]:visible').first().click();
   await page.locator(".acs-overlay.open .acs-card").waitFor({ state: "visible", timeout: 30_000 });
   const tabName = lang === "zh" ? "组合目标权重" : "Portfolio targets";
   await page.getByRole("tab", { name: tabName, exact: true }).click();

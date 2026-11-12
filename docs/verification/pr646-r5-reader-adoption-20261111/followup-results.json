@@ -1,0 +1,41 @@
+[
+  {
+    "name": "current-root-regressions",
+    "exit": 0,
+    "seconds": 4.76,
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+      "-t",
+      "refuses a removed declaration|refuses a mixed current family declaration|cannot downgrade by removing both successor declarations"
+    ],
+    "logSha256": "619d1008a59c4729cd532037f78c58a5840ad5824a79ed003ab3b6977063031c"
+  },
+  {
+    "name": "focused-lint",
+    "exit": 0,
+    "seconds": 8.22,
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "lib/__tests__/optionsExposureR5Successor.test.ts",
+      "lib/__tests__/optionsExposureEvidenceOwner.test.ts"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "typecheck",
+    "exit": 0,
+    "seconds": 150.47,
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

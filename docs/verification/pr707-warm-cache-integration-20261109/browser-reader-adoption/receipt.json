@@ -1,0 +1,62 @@
+{
+  "at": "2026-11-12T01:07:25.957415+00:00",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "abd85d23ba648e2b4a60c872e1014616e7569d400b61612c31e7e4027afa3bbc",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "2ffe50b1d70d83e78271432668eaaaa4c5be3d7ab9020c0831450eb8f055f11c"
+    },
+    "joint": {
+      "lifecycleSha256": "5a0f6d3d1a44434164e9dc0949d20a7554e2257593a50bb6a79bf845a353b034",
+      "qualification": "qualification.json",
+      "sha256": "b81d5a8a7258792f0a8f439a99a7e15c7573353e6c73fd082228d60c37179b46"
+    }
+  },
+  "context": {
+    "actualGit": {
+      "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+      "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+      "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+      "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    },
+    "branchHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "checkoutCommit": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "checkoutTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTreeAtEnd": "230348fb24131907d559b48e0516ffbc268537d0",
+    "indexTreeAtStart": "230348fb24131907d559b48e0516ffbc268537d0",
+    "integratedSourceHeads": [
+      "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+      "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    ],
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "operation": "terminal-pr707-warm-cache-browser-current-20261111",
+    "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "descriptorSha256": "e4c73e9d6e36e94e7b117d912b9cec9d559bf11b08216163e0d86f067883fd3a",
+  "immutableFiles": 699,
+  "nativeAndCapturedFilesUnchanged": true,
+  "postCaptureSourceChanges": [
+    "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts"
+  ],
+  "rootAfter": {
+    "eod": "afe346047f9e8932314fc37e996ea66dbd15f9f3cddf42ac3af82944fd9b3ded",
+    "gex": "9f9f0b9c396e07749f85c4068e6230f245ea365f2351c202513b31371e71d745"
+  },
+  "schema": "terminal_pr707_actual_browser_adoption.v1",
+  "sourceAfter": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "a690e23fd38629d1fec94d36cfbd1ee7e9152b11c212f37a02e50bd49788be60",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "0d49ad8bd1f8add3a2d0cbd94d953d780f8b795cc296b548b94d3364f8cef1b4",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "f81326ef53021ad10dd611250b4639064b4d48360f59296953cc31619f40582e"
+  },
+  "sourceBefore": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": "c5556ab71eb6f89158492929e7f7975f6bfa5e608a3a618b6c92abaeae2ba994",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts": "6521af03a3ba257f796308e7d3b00a2ee57351b727da0a3a37c6fbb5806885cf",
+    "terminal/lib/__tests__/optionsExposureR5Successor.test.ts": "706794aaf871a7682398052bbd65885a8a8917bfeda7daea39ec87fa8bb7c929"
+  },
+  "sourceChangesOutsideCurrentBrowserClosures": true,
+  "state": "ACTUAL_BROWSER_PROOF_ADOPTED_PENDING_CONSUMER_CHECKS"
+}

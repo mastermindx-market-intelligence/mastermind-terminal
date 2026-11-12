@@ -1,0 +1,120 @@
+[warmup] /terminal?symbol=NVDA → 200 in 167ms
+[warmup] /options → 200 in 3140ms
+[warmup] /portfolio → 200 in 1688ms
+[warmup] /alerts → 200 in 1233ms
+[warmup] /analysis → 200 in 2398ms
+[warmup] /discover → 200 in 2189ms
+[warmup] /admin → 200 in 1438ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 875ms
+[warmup] /login → 200 in 113ms
+[warmup] /reset-password → 200 in 638ms
+[warmup] /api/me → 200 in 623ms
+[warmup] /api/watchlist → 200 in 266ms
+[warmup] /api/layouts → 200 in 278ms
+[warmup] /api/watchlist/annotations → 409 in 212ms
+[warmup] 14 routes compiled in 15s
+[fixture-ready] prophet_idx fixture 200 in 589ms
+
+Running 99 tests using 1 worker
+
+[1/99] [desktop] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark en
+[2/99] [desktop] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark zh
+[3/99] [desktop] › e2e/bottom-pivot-context.spec.ts:93:5 › stale original dates are not refreshed by a fresh envelope
+[4/99] [desktop] › e2e/bottom-pivot-context.spec.ts:103:5 › partial and conflicting evidence never becomes an all-clear
+[5/99] [desktop] › e2e/bottom-pivot-context.spec.ts:114:5 › historical issuance is visibly not current evidence
+[6/99] [desktop] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 401 has no invented evidence
+[7/99] [desktop] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 403 has no invented evidence
+[8/99] [desktop] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 503 has no invented evidence
+[9/99] [desktop] › e2e/research-workspace-nav.spec.ts:251:5 › company page families preserve exact FinPage deep links
+[10/99] [desktop] › e2e/research-workspace-nav.spec.ts:271:5 › family selection lands on the existing family default without a second router
+[11/99] [desktop] › e2e/research-workspace-nav.spec.ts:297:5 › Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas
+[12/99] [desktop] › e2e/research-workspace-nav.spec.ts:325:5 › Overview vNext remains bilingual and overflow-safe on mobile
+[13/99] [desktop] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (en)
+[14/99] [desktop] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (zh)
+[15/99] [desktop] › e2e/research-workspace-nav.spec.ts:384:5 › Ownership family defaults to Institutional and preserves Insider as its sibling
+[16/99] [desktop] › e2e/research-workspace-nav.spec.ts:452:5 › Market vNext projects canonical technicals, pivots and five-year seasonality
+[17/99] [desktop] › e2e/research-workspace-nav.spec.ts:494:5 › Market vNext remains bilingual and overflow-safe on mobile
+[18/99] [desktop] › e2e/research-workspace-nav.spec.ts:516:5 › Market summary keeps seasonality ahead of deep indicator tables
+[19/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 29 active observations
+[20/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 30 active observations
+[21/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 49 active observations
+[22/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 50 active observations
+[23/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 199 active observations
+[24/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 200 active observations
+[25/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 220 active observations
+[26/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 29 active observations
+[27/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 30 active observations
+[28/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 49 active observations
+[29/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 50 active observations
+[30/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 199 active observations
+[31/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 200 active observations
+[32/99] [desktop] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 220 active observations
+[33/99] [desktop] › e2e/research-workspace-nav.spec.ts:652:5 › Market full-history hierarchy remains readable in Chinese
+[34/99] [tablet] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark en
+[35/99] [tablet] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark zh
+[36/99] [tablet] › e2e/bottom-pivot-context.spec.ts:93:5 › stale original dates are not refreshed by a fresh envelope
+[37/99] [tablet] › e2e/bottom-pivot-context.spec.ts:103:5 › partial and conflicting evidence never becomes an all-clear
+[38/99] [tablet] › e2e/bottom-pivot-context.spec.ts:114:5 › historical issuance is visibly not current evidence
+[39/99] [tablet] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 401 has no invented evidence
+[40/99] [tablet] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 403 has no invented evidence
+[41/99] [tablet] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 503 has no invented evidence
+[42/99] [tablet] › e2e/research-workspace-nav.spec.ts:251:5 › company page families preserve exact FinPage deep links
+[43/99] [tablet] › e2e/research-workspace-nav.spec.ts:271:5 › family selection lands on the existing family default without a second router
+[44/99] [tablet] › e2e/research-workspace-nav.spec.ts:297:5 › Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas
+[45/99] [tablet] › e2e/research-workspace-nav.spec.ts:325:5 › Overview vNext remains bilingual and overflow-safe on mobile
+[46/99] [tablet] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (en)
+[47/99] [tablet] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (zh)
+[48/99] [tablet] › e2e/research-workspace-nav.spec.ts:384:5 › Ownership family defaults to Institutional and preserves Insider as its sibling
+[49/99] [tablet] › e2e/research-workspace-nav.spec.ts:452:5 › Market vNext projects canonical technicals, pivots and five-year seasonality
+[50/99] [tablet] › e2e/research-workspace-nav.spec.ts:494:5 › Market vNext remains bilingual and overflow-safe on mobile
+[51/99] [tablet] › e2e/research-workspace-nav.spec.ts:516:5 › Market summary keeps seasonality ahead of deep indicator tables
+[52/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 29 active observations
+[53/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 30 active observations
+[54/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 49 active observations
+[55/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 50 active observations
+[56/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 199 active observations
+[57/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 200 active observations
+[58/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 220 active observations
+[59/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 29 active observations
+[60/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 30 active observations
+[61/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 49 active observations
+[62/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 50 active observations
+[63/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 199 active observations
+[64/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 200 active observations
+[65/99] [tablet] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 220 active observations
+[66/99] [tablet] › e2e/research-workspace-nav.spec.ts:652:5 › Market full-history hierarchy remains readable in Chinese
+[67/99] [mobile] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark en
+[68/99] [mobile] › e2e/bottom-pivot-context.spec.ts:65:9 › daily pivot on demand dark zh
+[69/99] [mobile] › e2e/bottom-pivot-context.spec.ts:93:5 › stale original dates are not refreshed by a fresh envelope
+[70/99] [mobile] › e2e/bottom-pivot-context.spec.ts:103:5 › partial and conflicting evidence never becomes an all-clear
+[71/99] [mobile] › e2e/bottom-pivot-context.spec.ts:114:5 › historical issuance is visibly not current evidence
+[72/99] [mobile] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 401 has no invented evidence
+[73/99] [mobile] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 403 has no invented evidence
+[74/99] [mobile] › e2e/bottom-pivot-context.spec.ts:123:7 › source refusal 503 has no invented evidence
+[75/99] [mobile] › e2e/research-workspace-nav.spec.ts:251:5 › company page families preserve exact FinPage deep links
+[76/99] [mobile] › e2e/research-workspace-nav.spec.ts:271:5 › family selection lands on the existing family default without a second router
+[77/99] [mobile] › e2e/research-workspace-nav.spec.ts:297:5 › Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas
+[78/99] [mobile] › e2e/research-workspace-nav.spec.ts:325:5 › Overview vNext remains bilingual and overflow-safe on mobile
+[79/99] [mobile] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (en)
+[80/99] [mobile] › e2e/research-workspace-nav.spec.ts:351:7 › Overview labels an older available annual EPS without inventing current or historical P/E (zh)
+[81/99] [mobile] › e2e/research-workspace-nav.spec.ts:384:5 › Ownership family defaults to Institutional and preserves Insider as its sibling
+[82/99] [mobile] › e2e/research-workspace-nav.spec.ts:452:5 › Market vNext projects canonical technicals, pivots and five-year seasonality
+[83/99] [mobile] › e2e/research-workspace-nav.spec.ts:494:5 › Market vNext remains bilingual and overflow-safe on mobile
+[84/99] [mobile] › e2e/research-workspace-nav.spec.ts:516:5 › Market summary keeps seasonality ahead of deep indicator tables
+[85/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 29 active observations
+[86/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 30 active observations
+[87/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 49 active observations
+[88/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 50 active observations
+[89/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 199 active observations
+[90/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 200 active observations
+[91/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral en at 220 active observations
+[92/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 29 active observations
+[93/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 30 active observations
+[94/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 49 active observations
+[95/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 50 active observations
+[96/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 199 active observations
+[97/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 200 active observations
+[98/99] [mobile] › e2e/research-workspace-nav.spec.ts:564:9 › Market numeric availability thresholds and measured Neutral zh at 220 active observations
+[99/99] [mobile] › e2e/research-workspace-nav.spec.ts:652:5 › Market full-history hierarchy remains readable in Chinese
+  8 skipped
+  91 passed (3.4m)

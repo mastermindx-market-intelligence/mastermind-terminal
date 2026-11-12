@@ -8,6 +8,7 @@ import type { Route } from "@playwright/test";
 import holdings from "../../lib/__tests__/fixtures/sector-holdings-coverage.v1.json";
 import relativeTrend from "../../lib/__tests__/fixtures/sector-rotation-relative-trend.v1.json";
 import { intradayPulse } from "./sector-intraday-pulse";
+import { nativeGenerationFixture } from "../../lib/__tests__/fixtures/sectorNativeGeneration";
 const stocks: Array<[string, number, number, number, string | null, number, boolean, string]> = [
   ["MPWR", 1355.47, 3.9, -9, "T2", 1, true, "long-bias"],
   ["MCHP", 75.53, 2.8, -10.2, "T2", 1, true, "long-bias"],
@@ -42,12 +43,14 @@ const data: Record<string, unknown> = {
   intraday: intradayPulse(),
 };
 const paths: Record<string, string> = { sector: "/sectordata/sector_central.json", confluence: "/marketdata/subsector_confluence.json", themes: "/neuralwebdata/theme_state.json", heatmap: "/marketdata/sp500_heatmap.json",
+  generation: "/api/sector-generation?audience=preview",
   relative_trend: "/sectordata/sector_rotation_relative_trend.json", holdings: "/sectordata/sector_holdings_coverage.json", intraday: "/live/basket_pulse.json" };
 export async function sectorFixture(route: Route, mode: "ready" | "access" = "ready") {
   const source = new URL(route.request().url()).searchParams.get("source") || "";
   const status = mode === "access" ? "access" : source === "heatmap" ? "unavailable" : "ready";
   const http = status === "access" ? 401 : status === "unavailable" ? 404 : 200;
-  return route.fulfill({ status: http, json: { data: status === "ready" ? data[source] : null,
+  const owner = source === "generation" ? nativeGenerationFixture(data.sector as Record<string, unknown>) : data[source];
+  return route.fulfill({ status: http, json: { data: status === "ready" ? owner : null,
     receipt: { source, path: paths[source], status, asOf: status === "ready" ? "2026-09-23" : null,
       observedAt: status === "ready" ? "2026-09-26T10:00:00Z" : null, stale: false, contentHash: null } } });
 }

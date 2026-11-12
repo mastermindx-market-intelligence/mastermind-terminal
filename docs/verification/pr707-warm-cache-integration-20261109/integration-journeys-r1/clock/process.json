@@ -1,0 +1,16 @@
+{
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/chart-clock-isolation.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/clock/browser-artifacts/playwright",
+    "--reporter=list,json"
+  ],
+  "pid": 54332
+}

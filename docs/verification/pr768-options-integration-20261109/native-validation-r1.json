@@ -1,0 +1,39 @@
+{
+  "completedAt": "2026-11-09T16:15:55.093346+00:00",
+  "head": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "integratedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr768_native_successor_validation.v1",
+  "stages": [
+    {
+      "captureId": "terminal-pr768-eod-options-integration-20261109-r1",
+      "completedAt": "2026-11-09T16:11:55.353559+00:00",
+      "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+      "expected": 126,
+      "kind": "eod",
+      "ownedServerStopped": true,
+      "port": 3866,
+      "seconds": 261.06,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T16:07:33.487040+00:00",
+      "state": "QUALIFIED",
+      "successfulFiles": 126
+    },
+    {
+      "captureId": "terminal-pr768-gex-options-integration-20261109-r1",
+      "completedAt": "2026-11-09T16:15:55.092834+00:00",
+      "descriptorSha256": "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7",
+      "expected": 114,
+      "kind": "gex",
+      "ownedServerStopped": true,
+      "port": 3864,
+      "seconds": 238.16,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T16:11:56.106422+00:00",
+      "state": "QUALIFIED",
+      "successfulFiles": 114
+    }
+  ],
+  "startedAt": "2026-11-09T16:07:31.934223+00:00",
+  "state": "BOTH_NATIVE_FAMILIES_QUALIFIED"
+}

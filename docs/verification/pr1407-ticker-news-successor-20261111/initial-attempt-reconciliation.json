@@ -1,0 +1,118 @@
+{
+  "schema": "terminal.pr1407.news-first-attempt-reconciliation.v1",
+  "at": "2026-11-11T08:45:30.645591+00:00",
+  "head": "5338557e44e2a8b5ca789aac7cd295037db9692d",
+  "state": "SETTLED_DEPENDENCY_ABSENT",
+  "producerExit": 1,
+  "passedDesktopCases": 7,
+  "historicalTabletMobileLaunchFailures": 14,
+  "missingExecutable": "/Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell",
+  "sourceStable": true,
+  "sourceEntries": 2120,
+  "manifestUnchanged": true,
+  "newerPacketsUnchanged": true,
+  "processChecks": {
+    "listener": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "producer": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "nextLock": {
+    "present": true,
+    "sha256": "e15687e6c0ba81580dcfed131f466bc70ce399ba224fdadc202abb8e46547ef3",
+    "content": {
+      "pid": 62756,
+      "port": 61981,
+      "hostname": "127.0.0.1",
+      "appUrl": "http://127.0.0.1:61981",
+      "startedAt": 1794385790643
+    },
+    "mtimeNs": 1794385790651510777
+  },
+  "partialPacketArchive": "failed-first-packet",
+  "files": {
+    "EVIDENCE.yml": {
+      "sha256": "e1b7a5dea4a9b6abde3df3eaac7ee49d3ac34a33987e2f628dae1ea9c5144859",
+      "bytes": 2760,
+      "mtimeNs": 1794382499039195660,
+      "mtimeAtOrAfterAttemptStart": false
+    },
+    "unavailable-desktop-zh-dark.png": {
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+      "bytes": 8590,
+      "mtimeNs": 1794386060428699790,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "unavailable-desktop-en-dark.png": {
+      "sha256": "570371304d3d8f57d7314f8af18fd2e0040e7e14c37720e09621395665f4ed01",
+      "bytes": 10065,
+      "mtimeNs": 1794386044049554007,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "unavailable-mobile-en-dark.png": {
+      "sha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+      "bytes": 8131,
+      "mtimeNs": 1794382499052032305,
+      "mtimeAtOrAfterAttemptStart": false
+    },
+    "unavailable-mobile-zh-dark.png": {
+      "sha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792",
+      "bytes": 6792,
+      "mtimeNs": 1794382499052276722,
+      "mtimeAtOrAfterAttemptStart": false
+    },
+    "mobile-zh-dark.png": {
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "bytes": 53955,
+      "mtimeNs": 1794386030296284290,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "mobile-en-dark.png": {
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "bytes": 52998,
+      "mtimeNs": 1794386003648130842,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "desktop-en-dark.png": {
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+      "bytes": 52359,
+      "mtimeNs": 1794385878236378972,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "desktop-zh-dark.png": {
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+      "bytes": 51972,
+      "mtimeNs": 1794385904373295492,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "tablet-en-dark.png": {
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "bytes": 54550,
+      "mtimeNs": 1794385939151597713,
+      "mtimeAtOrAfterAttemptStart": true
+    },
+    "tablet-zh-dark.png": {
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "bytes": 55964,
+      "mtimeNs": 1794385971643819361,
+      "mtimeAtOrAfterAttemptStart": true
+    }
+  },
+  "acceptedFreshImages": [
+    "desktop-en-dark.png",
+    "desktop-zh-dark.png",
+    "tablet-en-dark.png",
+    "tablet-zh-dark.png",
+    "mobile-en-dark.png",
+    "mobile-zh-dark.png",
+    "unavailable-desktop-en-dark.png",
+    "unavailable-desktop-zh-dark.png"
+  ],
+  "nextAction": "Install only missing officialPlaywrightheadless-shell dependency; then run only tablet/mobile on unchanged source, retaining desktop successes and eight images"
+}

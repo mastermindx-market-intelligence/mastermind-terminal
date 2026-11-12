@@ -1,0 +1,41 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ❯ lib/__tests__/annotationDialogFocus.test.tsx (1 test | 1 failed) 91ms
+   × keeps the chosen import-preview action focused through a background annotation refresh 90ms
+     → expected <button type="button" …(2)></button> to be <button type="button" …(1)></button> // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/annotationDialogFocus.test.tsx > keeps the chosen import-preview action focused through a background annotation refresh
+AssertionError: expected <button type="button" …(2)></button> to be <button type="button" …(1)></button> // Object.is equality
+
+- Expected
++ Received
+
+  <button
+-   class="_secondary_1e2133"
++   class="_primary_1e2133"
++   data-autofocus="true"
+    type="button"
+  >
+-   Not now
++   Import 1
+  </button>
+
+ ❯ lib/__tests__/annotationDialogFocus.test.tsx:46:34
+     44|   await act(async () => window.dispatchEvent(new Event("online")));
+     45|   expect(read.mock.calls.length).toBeGreaterThan(readsBefore);
+     46|   expect(document.activeElement).toBe(later);
+       |                                  ^
+     47|   await act(async () => later.dispatchEvent(new KeyboardEvent("keydown…
+     48|   expect(document.querySelector('[data-testid="wl-annotation-import-di…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  06:36:20
+   Duration  1.45s (transform 401ms, setup 0ms, collect 520ms, tests 91ms, environment 422ms, prepare 92ms)
+

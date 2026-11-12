@@ -1,0 +1,237 @@
+{
+  "all_missing": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 0,
+            "admitted_contracts": 1,
+            "known_net": null
+          },
+          "charm": {
+            "known_contracts": 0,
+            "admitted_contracts": 1,
+            "known_net": null
+          }
+        },
+        "vanna_net": null,
+        "charm_net": null
+      }
+    ]
+  },
+  "true_zero": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.0
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.0
+          }
+        },
+        "vanna_net": 0.0,
+        "charm_net": 0.0
+      }
+    ]
+  },
+  "partial_vanna": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 0.0,
+        "delta_net": 50.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 2,
+            "known_net": 0.1
+          },
+          "charm": {
+            "known_contracts": 2,
+            "admitted_contracts": 2,
+            "known_net": -0.1
+          }
+        },
+        "vanna_net": null,
+        "charm_net": -0.1
+      }
+    ]
+  },
+  "two_expiries": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.1
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": -0.05
+          }
+        },
+        "vanna_net": 0.1,
+        "charm_net": -0.05
+      },
+      {
+        "exp": "2026-10-23",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 0,
+            "admitted_contracts": 1,
+            "known_net": null
+          },
+          "charm": {
+            "known_contracts": 0,
+            "admitted_contracts": 1,
+            "known_net": null
+          }
+        },
+        "vanna_net": null,
+        "charm_net": null
+      }
+    ]
+  },
+  "cancellation": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 0.0,
+        "delta_net": 50.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 2,
+            "admitted_contracts": 2,
+            "known_net": 0.0
+          },
+          "charm": {
+            "known_contracts": 2,
+            "admitted_contracts": 2,
+            "known_net": 0.0
+          }
+        },
+        "vanna_net": 0.0,
+        "charm_net": 0.0
+      }
+    ]
+  },
+  "complete": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.1
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": -0.05
+          }
+        },
+        "vanna_net": 0.1,
+        "charm_net": -0.05
+      },
+      {
+        "exp": "2026-10-23",
+        "gamma_net": 5.0,
+        "delta_net": 50.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.4
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.1
+          }
+        },
+        "vanna_net": 0.4,
+        "charm_net": 0.1
+      }
+    ]
+  },
+  "outside_strike_window": {
+    "asof": "2026-09-25",
+    "by_expiry": [
+      {
+        "exp": "2026-10-02",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.1
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": -0.05
+          }
+        },
+        "vanna_net": 0.1,
+        "charm_net": -0.05
+      },
+      {
+        "exp": "2026-10-23",
+        "gamma_net": 2.5,
+        "delta_net": 25.0,
+        "exposure_support": {
+          "basis": "admitted_input_contracts",
+          "vanna": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": 0.1
+          },
+          "charm": {
+            "known_contracts": 1,
+            "admitted_contracts": 1,
+            "known_net": -0.05
+          }
+        },
+        "vanna_net": 0.1,
+        "charm_net": -0.05
+      }
+    ]
+  }
+}

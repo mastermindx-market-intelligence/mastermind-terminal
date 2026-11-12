@@ -1,0 +1,15 @@
+{
+  "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+  "terminal/app/observatory.css": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+  "terminal/components/flowdesk/FlowCard.tsx": "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37",
+  "terminal/components/flowdesk/FlowDeskView.tsx": "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0",
+  "terminal/components/flowdesk/InspectorPane.tsx": "6dbf18a47196cb7090f16f33c6a821767eeb025cef722bbd1704d7c1f425c498",
+  "terminal/components/flowdesk/PrintInspector.tsx": "9afd51d9d816790a5615d6680e57600c5278d60214ffcc6b61c1e3202540ab64",
+  "terminal/e2e/fixtures/options-r1-w3a-flow.json": "bc1f5d0ebfaa2f39fe4b542f25e5b2df84c37738b6da124c380e014d565b9f1f",
+  "terminal/lib/__tests__/optionsFlowBoards.test.ts": "cb80205144258660f19429791c1684472bc4ec2a7be2cd1e87e3ef837baae0e5",
+  "terminal/lib/flowFreshness.ts": "903c88766d921e2d4dd14466234bc7f993ebfc6f301c551b6e04050987ffc5d4",
+  "terminal/lib/flowPrintInspector.ts": "0a49d78882d4d84b195bd3d264029d0b8f2c842448d7fd6b758a898d6a7413b0",
+  "terminal/lib/flowStream.ts": "cae4dcdac2bb863b3fb1394e0d8de91b23b05deb64425ccd33b75bda205d4314",
+  "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+  "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525"
+}

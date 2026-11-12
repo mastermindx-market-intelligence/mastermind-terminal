@@ -7,6 +7,8 @@
  *
  * Props: {sym, fund, zh}
  */
+import { useId, useLayoutEffect, useRef, useState } from "react"
+import styles from "./DividendHistory.module.css"
 import type { Fund, DividendEvent } from "../../lib/fund"
 import { fmtNum, fmtPct, fmtDate, pick } from "../../lib/finFormat"
 
@@ -53,6 +55,114 @@ function nextExDate(events: DividendEvent[], today: string): DividendEvent | nul
   // fallback: most recent past
   const past = [...events].sort((a, b) => b.ex.localeCompare(a.ex))
   return past[0] ?? null
+}
+
+const HISTORY_PAGE_SIZE = 40
+
+function DividendHistory({ events, ccy, zh }: { events: DividendEvent[]; ccy: string; zh?: boolean }) {
+  const tableId = useId()
+  const pagerRef = useRef<HTMLDivElement>(null)
+  const scrollToPage = useRef<number | null>(null)
+  const [paging, setPaging] = useState({ page: 0, enabled: events.length > HISTORY_PAGE_SIZE })
+  const lastPage = Math.max(0, Math.ceil(events.length / HISTORY_PAGE_SIZE) - 1)
+  const page = Math.min(paging.page, lastPage)
+  const enabled = paging.enabled || lastPage > 0
+  // Reconcile this component's own state before rendering a changed dataset.
+  // Keep existing controls mounted if a refresh reduces history to one page.
+  if (page !== paging.page || enabled !== paging.enabled) setPaging({ page, enabled })
+  const start = page * HISTORY_PAGE_SIZE
+  const end = Math.min(start + HISTORY_PAGE_SIZE, events.length)
+  useLayoutEffect(() => {
+    const requestedPage = scrollToPage.current
+    scrollToPage.current = null
+    if (requestedPage === page) pagerRef.current?.scrollIntoView?.({ block: "start", behavior: "instant" })
+  })
+  function selectPage(nextPage: number) {
+    if (nextPage < 0 || nextPage > lastPage || nextPage === page) return
+    scrollToPage.current = nextPage
+    setPaging({ page: nextPage, enabled: true })
+  }
+
+  return (
+    <div className="fin-sec">
+      <div
+        id={`${tableId}-title`}
+        className="fin-sec-h fin-rail fin-rule"
+        style={{ "--rail": "var(--brand)" } as React.CSSProperties}
+      >
+        {pick(!!zh, "Dividend history", "股息历史")}
+      </div>
+      {enabled && (
+        <div ref={pagerRef} className={styles.pager}>
+          <span className={`fin-div-more ${styles.range}`} role="status" aria-atomic="true">
+            {pick(!!zh, `Showing ${start + 1}–${end} of ${events.length} events`, `显示 ${start + 1}–${end} / ${events.length} 条记录`)}
+          </span>
+          <div className={styles.actions} role="group" aria-label={pick(!!zh, "Dividend history pages", "股息历史分页")}>
+            <button
+              type="button"
+              className={styles.button}
+              aria-controls={tableId}
+              aria-disabled={page === 0}
+              onClick={() => selectPage(page - 1)}
+            >
+              {pick(!!zh, "Previous", "上一页")}
+            </button>
+            <button
+              type="button"
+              className={styles.button}
+              aria-controls={tableId}
+              aria-disabled={page === lastPage}
+              onClick={() => selectPage(page + 1)}
+            >
+              {pick(!!zh, "Next", "下一页")}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="fin-table-scroll">
+        <table id={tableId} className="fin-table" aria-labelledby={`${tableId}-title`}>
+          <thead>
+            <tr>
+              <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
+                {pick(!!zh, "Ex-date", "除息日")}
+              </th>
+              <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
+                {pick(!!zh, "Amount", "金额")}
+              </th>
+              <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
+                {pick(!!zh, "Pay date", "派息日")}
+              </th>
+              <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
+                {pick(!!zh, "Type", "类型")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Keep the 40-row DOM window while making all supplied events reachable. */}
+            {[...events]
+              .sort((a, b) => b.ex.localeCompare(a.ex))
+              .slice(start, end)
+              .map((ev, i) => (
+                <tr key={i} className="fin-row">
+                  <th className="fin-cell fin-cell-sticky" scope="row">
+                    {fmtDate(ev.ex)}
+                  </th>
+                  <td className="fin-cell fin-cell-num">
+                    {ev.amount != null ? fmtNum(ev.amount, { decimals: 4 }) + " " + ccy : "—"}
+                  </td>
+                  <td className="fin-cell fin-cell-num">
+                    {ev.pay ? fmtDate(ev.pay) : "—"}
+                  </td>
+                  <td className="fin-cell fin-cell-num fin-div-type">
+                    {ev.type ?? "—"}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 }
 
 // ── main component ────────────────────────────────────────────────────────────
@@ -166,63 +276,7 @@ export default function DividendsPage({ sym, fund, zh }: DividendsPageProps) {
       </div>
 
       {/* ── Events table ── */}
-      {events.length > 0 && (
-        <div className="fin-sec">
-          <div
-            className="fin-sec-h fin-rail fin-rule"
-            style={{ "--rail": "var(--brand)" } as React.CSSProperties}
-          >
-            {pick(!!zh, "Dividend history", "股息历史")}
-          </div>
-          <div className="fin-table-scroll">
-            <table className="fin-table">
-              <thead>
-                <tr>
-                  <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
-                    {pick(!!zh, "Ex-date", "除息日")}
-                  </th>
-                  <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
-                    {pick(!!zh, "Amount", "金额")}
-                  </th>
-                  <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
-                    {pick(!!zh, "Pay date", "派息日")}
-                  </th>
-                  <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
-                    {pick(!!zh, "Type", "类型")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Show most recent first, limit to 40 rows to avoid DOM bloat */}
-                {[...events]
-                  .sort((a, b) => b.ex.localeCompare(a.ex))
-                  .slice(0, 40)
-                  .map((ev, i) => (
-                    <tr key={i} className="fin-row">
-                      <th className="fin-cell fin-cell-sticky" scope="row">
-                        {fmtDate(ev.ex)}
-                      </th>
-                      <td className="fin-cell fin-cell-num">
-                        {ev.amount != null ? fmtNum(ev.amount, { decimals: 4 }) + " " + ccy : "—"}
-                      </td>
-                      <td className="fin-cell fin-cell-num">
-                        {ev.pay ? fmtDate(ev.pay) : "—"}
-                      </td>
-                      <td className="fin-cell fin-cell-num fin-div-type">
-                        {ev.type ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-          {events.length > 40 && (
-            <div className="fin-div-more">
-              {pick(!!zh, `Showing 40 of ${events.length} events`, `显示 40 / ${events.length} 条记录`)}
-            </div>
-          )}
-        </div>
-      )}
+      {events.length > 0 && <DividendHistory key={sym} events={events} ccy={ccy} zh={zh} />}
 
       {/* ── Splits table (if any) ── */}
       {div.splits && div.splits.length > 0 && (

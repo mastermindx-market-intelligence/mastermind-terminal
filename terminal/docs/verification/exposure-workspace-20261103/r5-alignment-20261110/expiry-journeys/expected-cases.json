@@ -1,0 +1,14 @@
+{
+  "expectedPassed": [
+    "desktop|Exposure desk carries expiry Vanna/Charm through bars and drawer in en",
+    "desktop|Exposure desk carries expiry Vanna/Charm through bars and drawer in zh",
+    "desktop|Exposure desk renders expiry VEX and CHEX from the enriched owner payload",
+    "tablet|Exposure desk carries expiry Vanna/Charm through bars and drawer in en",
+    "tablet|Exposure desk carries expiry Vanna/Charm through bars and drawer in zh",
+    "tablet|Exposure desk renders expiry VEX and CHEX from the enriched owner payload",
+    "mobile|Exposure desk carries expiry Vanna/Charm through bars and drawer in en",
+    "mobile|Exposure desk carries expiry Vanna/Charm through bars and drawer in zh",
+    "mobile|Exposure desk renders expiry VEX and CHEX from the enriched owner payload"
+  ],
+  "expectedSkipped": []
+}

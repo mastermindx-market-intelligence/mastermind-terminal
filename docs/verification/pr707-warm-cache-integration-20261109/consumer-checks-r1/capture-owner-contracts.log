@@ -1,0 +1,1120 @@
+TAP version 13
+# Subtest: runs complete original captures, retains24PL6, selects20+30 and exact returned hashes
+ok 1 - runs complete original captures, retains24PL6, selects20+30 and exact returned hashes
+  ---
+  duration_ms: 4929.822292
+  type: 'test'
+  ...
+# Subtest: changed Options source opts only PL6 into one capture and retains actual checkout identity
+ok 2 - changed Options source opts only PL6 into one capture and retains actual checkout identity
+  ---
+  duration_ms: 5882.173875
+  type: 'test'
+  ...
+# Subtest: helper-only Options source drift requests the existing five-case capture
+ok 3 - helper-only Options source drift requests the existing five-case capture
+  ---
+  duration_ms: 5140.327792
+  type: 'test'
+  ...
+# Subtest: stale or event-head Options receipt cannot select a successful capture
+ok 4 - stale or event-head Options receipt cannot select a successful capture
+  ---
+  duration_ms: 4368.985625
+  type: 'test'
+  ...
+# Subtest: stale or event-head Options receipt cannot select a successful capture
+ok 5 - stale or event-head Options receipt cannot select a successful capture
+  ---
+  duration_ms: 4032.3805
+  type: 'test'
+  ...
+# Subtest: Options runs asynchronously against the owned server, preserving inherited fixture settings
+ok 6 - Options runs asynchronously against the owned server, preserving inherited fixture settings
+  ---
+  duration_ms: 1.40175
+  type: 'test'
+  ...
+# Subtest: Options nonzero fails once without retrying or starting a replacement server
+ok 7 - Options nonzero fails once without retrying or starting a replacement server
+  ---
+  duration_ms: 0.228709
+  type: 'test'
+  ...
+# Subtest: Options signal fails once without retrying or starting a replacement server
+ok 8 - Options signal fails once without retrying or starting a replacement server
+  ---
+  duration_ms: 0.223375
+  type: 'test'
+  ...
+# Subtest: Options error fails once without retrying or starting a replacement server
+ok 9 - Options error fails once without retrying or starting a replacement server
+  ---
+  duration_ms: 0.307834
+  type: 'test'
+  ...
+# Subtest: Options server-exit fails once without retrying or starting a replacement server
+ok 10 - Options server-exit fails once without retrying or starting a replacement server
+  ---
+  duration_ms: 0.328208
+  type: 'test'
+  ...
+# Subtest: Options refuses an unowned or unready server before spawning
+ok 11 - Options refuses an unowned or unready server before spawning
+  ---
+  duration_ms: 0.234958
+  type: 'test'
+  ...
+# Subtest: Options preserves the original EPERM refusal after child closure
+ok 12 - Options preserves the original EPERM refusal after child closure
+  ---
+  duration_ms: 0.243791
+  type: 'test'
+  ...
+# Subtest: Options preserves the original EACCES refusal after child closure
+ok 13 - Options preserves the original EACCES refusal after child closure
+  ---
+  duration_ms: 0.654958
+  type: 'test'
+  ...
+# Subtest: PL6 invokes Options only after its captures succeed and before its own server cleanup
+ok 14 - PL6 invokes Options only after its captures succeed and before its own server cleanup
+  ---
+  duration_ms: 3.387708
+  type: 'test'
+  ...
+# Subtest: missing reference preserves failure and does not export selector
+ok 15 - missing reference preserves failure and does not export selector
+  ---
+  duration_ms: 3558.823042
+  type: 'test'
+  ...
+# Subtest: ambiguous reference preserves failure and does not export selector
+ok 16 - ambiguous reference preserves failure and does not export selector
+  ---
+  duration_ms: 2639.419875
+  type: 'test'
+  ...
+# Subtest: hash malformed preserves failure and does not export selector
+ok 17 - hash malformed preserves failure and does not export selector
+  ---
+  duration_ms: 2480.5735
+  type: 'test'
+  ...
+# Subtest: narrowed PL6 count preserves failure and does not export selector
+ok 18 - narrowed PL6 count preserves failure and does not export selector
+  ---
+  duration_ms: 2983.055042
+  type: 'test'
+  ...
+# Subtest: unrelated operation preserves failure and does not export selector
+ok 19 - unrelated operation preserves failure and does not export selector
+  ---
+  duration_ms: 2778.1765
+  type: 'test'
+  ...
+# Subtest: nonzero child preserves failure and does not export selector
+ok 20 - nonzero child preserves failure and does not export selector
+  ---
+  duration_ms: 2585.913958
+  type: 'test'
+  ...
+# Subtest: signalled child preserves failure and does not export selector
+ok 21 - signalled child preserves failure and does not export selector
+  ---
+  duration_ms: 1560.702
+  type: 'test'
+  ...
+# Subtest: spawn error preserves failure and does not export selector
+ok 22 - spawn error preserves failure and does not export selector
+  ---
+  duration_ms: 1522.1775
+  type: 'test'
+  ...
+# Subtest: spawn throws preserves failure and does not export selector
+ok 23 - spawn throws preserves failure and does not export selector
+  ---
+  duration_ms: 1482.295334
+  type: 'test'
+  ...
+# Subtest: source mismatch preserves failure and does not export selector
+ok 24 - source mismatch preserves failure and does not export selector
+  ---
+  duration_ms: 1897.5305
+  type: 'test'
+  ...
+# Subtest: profile mismatch preserves failure and does not export selector
+ok 25 - profile mismatch preserves failure and does not export selector
+  ---
+  duration_ms: 1841.185166
+  type: 'test'
+  ...
+# Subtest: bad report/image closure preserves failure and does not export selector
+ok 26 - bad report/image closure preserves failure and does not export selector
+  ---
+  duration_ms: 1642.567708
+  type: 'test'
+  ...
+# Subtest: composition changed after writer validation preserves failure and does not export selector
+ok 27 - composition changed after writer validation preserves failure and does not export selector
+  ---
+  duration_ms: 1316.133875
+  type: 'test'
+  ...
+# Subtest: incomplete composition preserves failure and does not export selector
+ok 28 - incomplete composition preserves failure and does not export selector
+  ---
+  duration_ms: 1519.308666
+  type: 'test'
+  ...
+# Subtest: lost extra layout cases preserves failure and does not export selector
+ok 29 - lost extra layout cases preserves failure and does not export selector
+  ---
+  duration_ms: 1663.239625
+  type: 'test'
+  ...
+# Subtest: capture filtering and prior composition are refused before child execution
+ok 30 - capture filtering and prior composition are refused before child execution
+  ---
+  duration_ms: 3121.120292
+  type: 'test'
+  ...
+# Subtest: stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite
+ok 31 - stable per-run/attempt IDs refuse invalid values and duplicate invocation cannot overwrite
+  ---
+  duration_ms: 1598.369125
+  type: 'test'
+  ...
+# Subtest: checkout-only metadata survives a later capture failure without selecting records
+ok 32 - checkout-only metadata survives a later capture failure without selecting records
+  ---
+  duration_ms: 1191.1165
+  type: 'test'
+  ...
+# Subtest: VI outputDir cleanup preserves successful diagnostics and open logs
+ok 33 - VI outputDir cleanup preserves successful diagnostics and open logs
+  ---
+  duration_ms: 1239.870208
+  type: 'test'
+  ...
+# Subtest: VI outputDir cleanup preserves failed diagnostics and open logs
+ok 34 - VI outputDir cleanup preserves failed diagnostics and open logs
+  ---
+  duration_ms: 802.181834
+  type: 'test'
+  ...
+# Subtest: stale Pine and batch3 packets run all50 cases and preserve complete prior bytes
+ok 35 - stale Pine and batch3 packets run all50 cases and preserve complete prior bytes
+  ---
+  duration_ms: 1474.702
+  type: 'test'
+  ...
+# Subtest: batch3-only source drift recaptures all20 files while Pine is reused
+ok 36 - batch3-only source drift recaptures all20 files while Pine is reused
+  ---
+  duration_ms: 1200.363208
+  type: 'test'
+  ...
+# Subtest: batch3 capture input drift requires fresh20: terminal/e2e/tools/capture_pl6_batch3.cjs
+ok 37 - batch3 capture input drift requires fresh20: terminal/e2e/tools/capture_pl6_batch3.cjs
+  ---
+  duration_ms: 975.790041
+  type: 'test'
+  ...
+# Subtest: batch3 capture input drift requires fresh20: terminal/e2e/fixtures/heatmap-price-only-tile.json
+ok 38 - batch3 capture input drift requires fresh20: terminal/e2e/fixtures/heatmap-price-only-tile.json
+  ---
+  duration_ms: 818.747167
+  type: 'test'
+  ...
+# Subtest: current packets preserve their old capture identity and do not launch replacement captures
+ok 39 - current packets preserve their old capture identity and do not launch replacement captures
+  ---
+  duration_ms: 551.223709
+  type: 'test'
+  ...
+# Subtest: pine: nonzero producer keeps diagnostics and refuses selector export
+ok 40 - pine: nonzero producer keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 472.425042
+  type: 'test'
+  ...
+# Subtest: pine: missing current receipt keeps diagnostics and refuses selector export
+ok 41 - pine: missing current receipt keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 445.765125
+  type: 'test'
+  ...
+# Subtest: pine: partial fresh inventory keeps diagnostics and refuses selector export
+ok 42 - pine: partial fresh inventory keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 1117.35425
+  type: 'test'
+  ...
+# Subtest: pine: different attempt keeps diagnostics and refuses selector export
+ok 43 - pine: different attempt keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 2074.247791
+  type: 'test'
+  ...
+# Subtest: pine: changed image bytes keeps diagnostics and refuses selector export
+ok 44 - pine: changed image bytes keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 2322.263834
+  type: 'test'
+  ...
+# Subtest: pine: source changed during capture keeps diagnostics and refuses selector export
+ok 45 - pine: source changed during capture keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 1819.769416
+  type: 'test'
+  ...
+# Subtest: batch3: nonzero producer keeps diagnostics and refuses selector export
+ok 46 - batch3: nonzero producer keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 1166.253917
+  type: 'test'
+  ...
+# Subtest: batch3: missing current receipt keeps diagnostics and refuses selector export
+ok 47 - batch3: missing current receipt keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 523.020417
+  type: 'test'
+  ...
+# Subtest: batch3: partial fresh inventory keeps diagnostics and refuses selector export
+ok 48 - batch3: partial fresh inventory keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 464.938625
+  type: 'test'
+  ...
+# Subtest: batch3: different attempt keeps diagnostics and refuses selector export
+ok 49 - batch3: different attempt keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 558.93425
+  type: 'test'
+  ...
+# Subtest: batch3: changed image bytes keeps diagnostics and refuses selector export
+ok 50 - batch3: changed image bytes keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 879.297416
+  type: 'test'
+  ...
+# Subtest: batch3: source changed during capture keeps diagnostics and refuses selector export
+ok 51 - batch3: source changed during capture keeps diagnostics and refuses selector export
+  ---
+  duration_ms: 2598.485833
+  type: 'test'
+  ...
+# Subtest: Options uses the full PL6 owner, records five fresh images, and preserves its historical audit
+ok 52 - Options uses the full PL6 owner, records five fresh images, and preserves its historical audit
+  ---
+  duration_ms: 1995.482
+  type: 'test'
+  ...
+# Subtest: an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure
+ok 53 - an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure
+  ---
+  duration_ms: 1584.723584
+  type: 'test'
+  ...
+# Subtest: missing Options completion stops before VI and selection
+ok 54 - missing Options completion stops before VI and selection
+  ---
+  duration_ms: 422.885875
+  type: 'test'
+  ...
+# Subtest: partial Options completion stops before VI and selection
+ok 55 - partial Options completion stops before VI and selection
+  ---
+  duration_ms: 357.971917
+  type: 'test'
+  ...
+# Subtest: rewritten Options historical audit stops before VI and selection
+ok 56 - rewritten Options historical audit stops before VI and selection
+  ---
+  duration_ms: 391.513208
+  type: 'test'
+  ...
+# Subtest: pine inspects the actual dev indicator DOM, count=0
+ok 57 - pine inspects the actual dev indicator DOM, count=0
+  ---
+  duration_ms: 0.258708
+  type: 'test'
+  ...
+# Subtest: pine inspects the actual dev indicator DOM, count=1
+ok 58 - pine inspects the actual dev indicator DOM, count=1
+  ---
+  duration_ms: 0.073875
+  type: 'test'
+  ...
+# Subtest: batch3 inspects the actual dev indicator DOM, count=0
+ok 59 - batch3 inspects the actual dev indicator DOM, count=0
+  ---
+  duration_ms: 0.044083
+  type: 'test'
+  ...
+# Subtest: batch3 inspects the actual dev indicator DOM, count=1
+ok 60 - batch3 inspects the actual dev indicator DOM, count=1
+  ---
+  duration_ms: 0.033917
+  type: 'test'
+  ...
+# Subtest: Options keeps the owning server live before and after asynchronous child completion
+ok 61 - Options keeps the owning server live before and after asynchronous child completion
+  ---
+  duration_ms: 0.246708
+  type: 'test'
+  ...
+# Subtest: Options refuses a missing owner without starting another process
+ok 62 - Options refuses a missing owner without starting another process
+  ---
+  duration_ms: 0.073833
+  type: 'test'
+  ...
+# Subtest: producer cleanup waits for the owned group after its npm leader has closed
+ok 63 - producer cleanup waits for the owned group after its npm leader has closed
+  ---
+  duration_ms: 0.37375
+  type: 'test'
+  ...
+# Subtest: producer cleanup refuses an owned group that survives both bounded signals
+ok 64 - producer cleanup refuses an owned group that survives both bounded signals
+  ---
+  duration_ms: 0.301667
+  type: 'test'
+  ...
+# Subtest: producer cleanup does not treat permission failure or absent close proof as success
+ok 65 - producer cleanup does not treat permission failure or absent close proof as success
+  ---
+  duration_ms: 0.093083
+  type: 'test'
+  ...
+# Subtest: Legacy capture supervisor observes close, not merely a process exit
+ok 66 - Legacy capture supervisor observes close, not merely a process exit
+  ---
+  duration_ms: 0.090917
+  type: 'test'
+  ...
+# Subtest: a late exit-zero after the capture deadline remains a timeout failure
+ok 67 - a late exit-zero after the capture deadline remains a timeout failure
+  ---
+  duration_ms: 13.622584
+  type: 'test'
+  ...
+# Subtest: a child that never closes is bounded and remains unsettled after hard termination
+ok 68 - a child that never closes is bounded and remains unsettled after hard termination
+  ---
+  duration_ms: 16.87425
+  type: 'test'
+  ...
+# Subtest: supervisor permission refusal stops termination attempts
+ok 69 - supervisor permission refusal stops termination attempts
+  ---
+  duration_ms: 6.189084
+  type: 'test'
+  ...
+# Subtest: supervisor retains spawn error and waits for its close event
+ok 70 - supervisor retains spawn error and waits for its close event
+  ---
+  duration_ms: 0.169625
+  type: 'test'
+  ...
+# Subtest: normal producer completion binds its stopped server to this attempt without another termination
+ok 71 - normal producer completion binds its stopped server to this attempt without another termination
+  ---
+  duration_ms: 0.131917
+  type: 'test'
+  ...
+# Subtest: hard producer termination reconciles its distinct server group, survives=false
+ok 72 - hard producer termination reconciles its distinct server group, survives=false
+  ---
+  duration_ms: 11.075167
+  type: 'test'
+  ...
+# Subtest: hard producer termination reconciles its distinct server group, survives=true
+ok 73 - hard producer termination reconciles its distinct server group, survives=true
+  ---
+  duration_ms: 10.489417
+  type: 'test'
+  ...
+# Subtest: a producer close without an original server identity remains unsettled
+ok 74 - a producer close without an original server identity remains unsettled
+  ---
+  duration_ms: 0.211209
+  type: 'test'
+  ...
+# Subtest: a server identity from another capture attempt is refused without signalling it
+ok 75 - a server identity from another capture attempt is refused without signalling it
+  ---
+  duration_ms: 0.123167
+  type: 'test'
+  ...
+# Subtest: server permission refusal leaves reconciliation unresolved and sends no termination signal
+ok 76 - server permission refusal leaves reconciliation unresolved and sends no termination signal
+  ---
+  duration_ms: 0.19375
+  type: 'test'
+  ...
+# Subtest: Legacy capture producer EPERM propagates to its parent without another server probe or signal
+ok 77 - Legacy capture producer EPERM propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.205625
+  type: 'test'
+  ...
+# Subtest: Legacy capture producer EACCES propagates to its parent without another server probe or signal
+ok 78 - Legacy capture producer EACCES propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.058459
+  type: 'test'
+  ...
+# Subtest: current full deterministic batch2 packet is left for native validation without a duplicate capture
+ok 79 - current full deterministic batch2 packet is left for native validation without a duplicate capture
+  ---
+  duration_ms: 386.606917
+  type: 'test'
+  ...
+# Subtest: legacy receipt forces the incumbent full24 capture and preserves exact prior history before selecting50
+ok 80 - legacy receipt forces the incumbent full24 capture and preserves exact prior history before selecting50
+  ---
+  duration_ms: 329.593792
+  type: 'test'
+  ...
+# Subtest: current-source drift requires real recapture without approximating the legacy lex projection
+ok 81 - current-source drift requires real recapture without approximating the legacy lex projection
+  ---
+  duration_ms: 240.866208
+  type: 'test'
+  ...
+# Subtest: combined Options and Batch2 refresh keeps the standalone24 packet outside the two-operation composition
+ok 82 - combined Options and Batch2 refresh keeps the standalone24 packet outside the two-operation composition
+  ---
+  duration_ms: 433.532917
+  type: 'test'
+  ...
+# Subtest: a historical sixteen-case active manifest cannot replace the current tablet-inclusive packet
+ok 83 - a historical sixteen-case active manifest cannot replace the current tablet-inclusive packet
+  ---
+  duration_ms: 175.464084
+  type: 'test'
+  ...
+# Subtest: batch2 nonzero preserves failure, logs and history without selecting a composition
+ok 84 - batch2 nonzero preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 267.578875
+  type: 'test'
+  ...
+# Subtest: batch2 signal preserves failure, logs and history without selecting a composition
+ok 85 - batch2 signal preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 266.284917
+  type: 'test'
+  ...
+# Subtest: batch2 timeout preserves failure, logs and history without selecting a composition
+ok 86 - batch2 timeout preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 697.515708
+  type: 'test'
+  ...
+# Subtest: batch2 spawn exception preserves failure, logs and history without selecting a composition
+ok 87 - batch2 spawn exception preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 927.190125
+  type: 'test'
+  ...
+# Subtest: batch2 missing completion preserves failure, logs and history without selecting a composition
+ok 88 - batch2 missing completion preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 933.364208
+  type: 'test'
+  ...
+# Subtest: batch2 duplicate completion preserves failure, logs and history without selecting a composition
+ok 89 - batch2 duplicate completion preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 1162.524667
+  type: 'test'
+  ...
+# Subtest: batch2 wrong checkout preserves failure, logs and history without selecting a composition
+ok 90 - batch2 wrong checkout preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 946.971333
+  type: 'test'
+  ...
+# Subtest: batch2 incomplete count preserves failure, logs and history without selecting a composition
+ok 91 - batch2 incomplete count preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 3370.851833
+  type: 'test'
+  ...
+# Subtest: batch2 partial packet preserves failure, logs and history without selecting a composition
+ok 92 - batch2 partial packet preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 902.505125
+  type: 'test'
+  ...
+# Subtest: batch2 source changed during capture preserves failure, logs and history without selecting a composition
+ok 93 - batch2 source changed during capture preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 465.463875
+  type: 'test'
+  ...
+# Subtest: batch2 lost history preserves failure, logs and history without selecting a composition
+ok 94 - batch2 lost history preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 91.480416
+  type: 'test'
+  ...
+# Subtest: batch2 invalid actual image preserves failure, logs and history without selecting a composition
+ok 95 - batch2 invalid actual image preserves failure, logs and history without selecting a composition
+  ---
+  duration_ms: 78.283958
+  type: 'test'
+  ...
+# Subtest: malformed batch2 duplicate layout fails before any child
+ok 96 - malformed batch2 duplicate layout fails before any child
+  ---
+  duration_ms: 4182.935125
+  type: 'test'
+  ...
+# Subtest: malformed batch2 missing source fails before any child
+ok 97 - malformed batch2 missing source fails before any child
+  ---
+  duration_ms: 8135.378125
+  type: 'test'
+  ...
+# Subtest: malformed batch2 duplicate image fails before any child
+ok 98 - malformed batch2 duplicate image fails before any child
+  ---
+  duration_ms: 6284.346208
+  type: 'test'
+  ...
+# Subtest: malformed batch2 duplicate flag fails before any child
+ok 99 - malformed batch2 duplicate flag fails before any child
+  ---
+  duration_ms: 2440.600708
+  type: 'test'
+  ...
+# Subtest: malformed batch2 wrong image bytes fails before any child
+ok 100 - malformed batch2 wrong image bytes fails before any child
+  ---
+  duration_ms: 13404.575833
+  type: 'test'
+  ...
+# Subtest: malformed batch2 missing history declaration fails before any child
+ok 101 - malformed batch2 missing history declaration fails before any child
+  ---
+  duration_ms: 1429.172625
+  type: 'test'
+  ...
+# Subtest: malformed batch2 duplicate history declaration fails before any child
+ok 102 - malformed batch2 duplicate history declaration fails before any child
+  ---
+  duration_ms: 1257.671292
+  type: 'test'
+  ...
+# Subtest: malformed batch2 history path traversal fails before any child
+ok 103 - malformed batch2 history path traversal fails before any child
+  ---
+  duration_ms: 635.188667
+  type: 'test'
+  ...
+# Subtest: malformed batch2 lost existing history fails before any child
+ok 104 - malformed batch2 lost existing history fails before any child
+  ---
+  duration_ms: 592.095959
+  type: 'test'
+  ...
+# Subtest: malformed batch2 corrupted existing history fails before any child
+ok 105 - malformed batch2 corrupted existing history fails before any child
+  ---
+  duration_ms: 764.325792
+  type: 'test'
+  ...
+# Subtest: producer full-packet check rejects missing, duplicate and unrelated successful names
+ok 106 - producer full-packet check rejects missing, duplicate and unrelated successful names
+  ---
+  duration_ms: 0.310167
+  type: 'test'
+  ...
+# Subtest: producer navigation requires an actual200 and the intended origin, route and query
+ok 107 - producer navigation requires an actual200 and the intended origin, route and query
+  ---
+  duration_ms: 2.232042
+  type: 'test'
+  ...
+# Subtest: producer refuses a mounted dev indicator before screenshot without hiding its DOM
+ok 108 - producer refuses a mounted dev indicator before screenshot without hiding its DOM
+  ---
+  duration_ms: 0.611709
+  type: 'test'
+  ...
+# Subtest: producer observes the clean DOM before its deterministic crop and retains screenshot settings
+ok 109 - producer observes the clean DOM before its deterministic crop and retains screenshot settings
+  ---
+  duration_ms: 0.550209
+  type: 'test'
+  ...
+# Subtest: changed EOD source uses the complete native supervisor and preserves both composition operations
+ok 110 - changed EOD source uses the complete native supervisor and preserves both composition operations
+  ---
+  duration_ms: 1472.315209
+  type: 'test'
+  ...
+# Subtest: matching EOD layout does not invent a new capture receipt
+ok 111 - matching EOD layout does not invent a new capture receipt
+  ---
+  duration_ms: 1123.0445
+  type: 'test'
+  ...
+# Subtest: EOD partial manifest with historical images fails once after composition and before selection
+ok 112 - EOD partial manifest with historical images fails once after composition and before selection
+  ---
+  duration_ms: 2420.729666
+  type: 'test'
+  ...
+# Subtest: EOD timed out child fails once after composition and before selection
+ok 113 - EOD timed out child fails once after composition and before selection
+  ---
+  duration_ms: 2286.527125
+  type: 'test'
+  ...
+# Subtest: EOD spawn exception fails once after composition and before selection
+ok 114 - EOD spawn exception fails once after composition and before selection
+  ---
+  duration_ms: 843.620833
+  type: 'test'
+  ...
+# Subtest: EOD malformed missing manifest cannot authorize planner reuse
+ok 115 - EOD malformed missing manifest cannot authorize planner reuse
+  ---
+  duration_ms: 333.35725
+  type: 'test'
+  ...
+# Subtest: EOD malformed duplicate manifest cannot authorize planner reuse
+ok 116 - EOD malformed duplicate manifest cannot authorize planner reuse
+  ---
+  duration_ms: 293.465083
+  type: 'test'
+  ...
+# Subtest: EOD malformed unrelated manifest cannot authorize planner reuse
+ok 117 - EOD malformed unrelated manifest cannot authorize planner reuse
+  ---
+  duration_ms: 276.785958
+  type: 'test'
+  ...
+# Subtest: EOD malformed missing-source manifest cannot authorize planner reuse
+ok 118 - EOD malformed missing-source manifest cannot authorize planner reuse
+  ---
+  duration_ms: 326.91975
+  type: 'test'
+  ...
+# Subtest: missing current EOD source fails before capture
+ok 119 - missing current EOD source fails before capture
+  ---
+  duration_ms: 300.135916
+  type: 'test'
+  ...
+# Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondControl":true}
+ok 120 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondControl":true}
+  ---
+  duration_ms: 385.22475
+  type: 'test'
+  ...
+# Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondSource":true}
+ok 121 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondSource":true}
+  ---
+  duration_ms: 501.816083
+  type: 'test'
+  ...
+# Subtest: the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondImage":true}
+ok 122 - the first native producer cannot redefine its peer or reader: {"nativeFirstMutatesSecondImage":true}
+  ---
+  duration_ms: 628.81175
+  type: 'test'
+  ...
+# Subtest: the first native producer cannot redefine its peer or reader: {"nativeReaderDrift":true}
+ok 123 - the first native producer cannot redefine its peer or reader: {"nativeReaderDrift":true}
+  ---
+  duration_ms: 928.500625
+  type: 'test'
+  ...
+# Subtest: matching EOD/GEX packets preserve the existing two-operation selection without another capture
+ok 124 - matching EOD/GEX packets preserve the existing two-operation selection without another capture
+  ---
+  duration_ms: 555.69
+  type: 'test'
+  ...
+# Subtest: complete original native matrices qualify only after settled execution: {"nativeStale":["eod","gex"]}
+ok 125 - complete original native matrices qualify only after settled execution: {"nativeStale":["eod","gex"]}
+  ---
+  duration_ms: 2004.4985
+  type: 'test'
+  ...
+# Subtest: complete original native matrices qualify only after settled execution: {"missingManifest":"eod"}
+ok 126 - complete original native matrices qualify only after settled execution: {"missingManifest":"eod"}
+  ---
+  duration_ms: 993.135917
+  type: 'test'
+  ...
+# Subtest: complete original native matrices qualify only after settled execution: {"invalidManifest":"gex"}
+ok 127 - complete original native matrices qualify only after settled execution: {"invalidManifest":"gex"}
+  ---
+  duration_ms: 306.258875
+  type: 'test'
+  ...
+# Subtest: native nonzero producer preserves failure and cannot select CI evidence
+ok 128 - native nonzero producer preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 320.493833
+  type: 'test'
+  ...
+# Subtest: native signalled producer preserves failure and cannot select CI evidence
+ok 129 - native signalled producer preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 298.574834
+  type: 'test'
+  ...
+# Subtest: native wrong family preserves failure and cannot select CI evidence
+ok 130 - native wrong family preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 240.384084
+  type: 'test'
+  ...
+# Subtest: native wrong attempt preserves failure and cannot select CI evidence
+ok 131 - native wrong attempt preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 257.96075
+  type: 'test'
+  ...
+# Subtest: native wrong head preserves failure and cannot select CI evidence
+ok 132 - native wrong head preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 193.817625
+  type: 'test'
+  ...
+# Subtest: native partial receipt preserves failure and cannot select CI evidence
+ok 133 - native partial receipt preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 214.840125
+  type: 'test'
+  ...
+# Subtest: native duplicate member preserves failure and cannot select CI evidence
+ok 134 - native duplicate member preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 195.887167
+  type: 'test'
+  ...
+# Subtest: native wrong image digest preserves failure and cannot select CI evidence
+ok 135 - native wrong image digest preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 190.739834
+  type: 'test'
+  ...
+# Subtest: native missing fresh image preserves failure and cannot select CI evidence
+ok 136 - native missing fresh image preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 251.11125
+  type: 'test'
+  ...
+# Subtest: native invalid image preserves failure and cannot select CI evidence
+ok 137 - native invalid image preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 236.195625
+  type: 'test'
+  ...
+# Subtest: native ambiguous manifest preserves failure and cannot select CI evidence
+ok 138 - native ambiguous manifest preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 175.956708
+  type: 'test'
+  ...
+# Subtest: native changed layout preserves failure and cannot select CI evidence
+ok 139 - native changed layout preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 185.212375
+  type: 'test'
+  ...
+# Subtest: native changed capture control preserves failure and cannot select CI evidence
+ok 140 - native changed capture control preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 179.514333
+  type: 'test'
+  ...
+# Subtest: native changed checkout preserves failure and cannot select CI evidence
+ok 141 - native changed checkout preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 193.581583
+  type: 'test'
+  ...
+# Subtest: native changed archived packet preserves failure and cannot select CI evidence
+ok 142 - native changed archived packet preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 196.570541
+  type: 'test'
+  ...
+# Subtest: native changed history link preserves failure and cannot select CI evidence
+ok 143 - native changed history link preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 184.592292
+  type: 'test'
+  ...
+# Subtest: native missing completion preserves failure and cannot select CI evidence
+ok 144 - native missing completion preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 186.244583
+  type: 'test'
+  ...
+# Subtest: native duplicate completion preserves failure and cannot select CI evidence
+ok 145 - native duplicate completion preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 226.078208
+  type: 'test'
+  ...
+# Subtest: native missing receipt preserves failure and cannot select CI evidence
+ok 146 - native missing receipt preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 425.066333
+  type: 'test'
+  ...
+# Subtest: native duplicate receipt preserves failure and cannot select CI evidence
+ok 147 - native duplicate receipt preserves failure and cannot select CI evidence
+  ---
+  duration_ms: 578.046125
+  type: 'test'
+  ...
+# Subtest: native source symlinks are refused before any native child starts
+ok 148 - native source symlinks are refused before any native child starts
+  ---
+  duration_ms: 207.25325
+  type: 'test'
+  ...
+# Subtest: a historical packet symlink is never followed during fresh qualification
+ok 149 - a historical packet symlink is never followed during fresh qualification
+  ---
+  duration_ms: 111.996667
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstSource":true}
+ok 150 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstSource":true}
+  ---
+  duration_ms: 288.922083
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstImage":true}
+ok 151 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstImage":true}
+  ---
+  duration_ms: 348.35825
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstArchive":true}
+ok 152 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstArchive":true}
+  ---
+  duration_ms: 396.708917
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstHistory":true}
+ok 153 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesFirstHistory":true}
+  ---
+  duration_ms: 380.705542
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesComposition":true}
+ok 154 - the final selection rechecks prior owners after the second native producer: {"nativeSecondMutatesComposition":true}
+  ---
+  duration_ms: 447.394583
+  type: 'test'
+  ...
+# Subtest: the final selection rechecks prior owners after the second native producer: {"nativeCompositionReferencedBytes":true}
+ok 155 - the final selection rechecks prior owners after the second native producer: {"nativeCompositionReferencedBytes":true}
+  ---
+  duration_ms: 390.498625
+  type: 'test'
+  ...
+# Subtest: eod producer EPERM propagates to its parent without another server probe or signal
+ok 156 - eod producer EPERM propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.509541
+  type: 'test'
+  ...
+# Subtest: eod producer EACCES propagates to its parent without another server probe or signal
+ok 157 - eod producer EACCES propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.128459
+  type: 'test'
+  ...
+# Subtest: gex producer EPERM propagates to its parent without another server probe or signal
+ok 158 - gex producer EPERM propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.129583
+  type: 'test'
+  ...
+# Subtest: gex producer EACCES propagates to its parent without another server probe or signal
+ok 159 - gex producer EACCES propagates to its parent without another server probe or signal
+  ---
+  duration_ms: 0.090792
+  type: 'test'
+  ...
+# Subtest: eod producer cleanup waits for the owned group after its npm leader has closed
+ok 160 - eod producer cleanup waits for the owned group after its npm leader has closed
+  ---
+  duration_ms: 0.432416
+  type: 'test'
+  ...
+# Subtest: eod producer cleanup refuses an owned group that survives both bounded signals
+ok 161 - eod producer cleanup refuses an owned group that survives both bounded signals
+  ---
+  duration_ms: 0.25225
+  type: 'test'
+  ...
+# Subtest: eod producer cleanup does not treat permission failure or absent close proof as success
+ok 162 - eod producer cleanup does not treat permission failure or absent close proof as success
+  ---
+  duration_ms: 0.079291
+  type: 'test'
+  ...
+# Subtest: gex producer cleanup waits for the owned group after its npm leader has closed
+ok 163 - gex producer cleanup waits for the owned group after its npm leader has closed
+  ---
+  duration_ms: 0.223042
+  type: 'test'
+  ...
+# Subtest: gex producer cleanup refuses an owned group that survives both bounded signals
+ok 164 - gex producer cleanup refuses an owned group that survives both bounded signals
+  ---
+  duration_ms: 0.19075
+  type: 'test'
+  ...
+# Subtest: gex producer cleanup does not treat permission failure or absent close proof as success
+ok 165 - gex producer cleanup does not treat permission failure or absent close proof as success
+  ---
+  duration_ms: 0.034625
+  type: 'test'
+  ...
+# Subtest: Native supervisor observes close, not merely a process exit
+ok 166 - Native supervisor observes close, not merely a process exit
+  ---
+  duration_ms: 0.066542
+  type: 'test'
+  ...
+# Subtest: native: a late exit-zero after the capture deadline remains a timeout failure
+ok 167 - native: a late exit-zero after the capture deadline remains a timeout failure
+  ---
+  duration_ms: 12.499667
+  type: 'test'
+  ...
+# Subtest: native: a child that never closes is bounded and remains unsettled after hard termination
+ok 168 - native: a child that never closes is bounded and remains unsettled after hard termination
+  ---
+  duration_ms: 16.16275
+  type: 'test'
+  ...
+# Subtest: native: supervisor permission refusal stops termination attempts
+ok 169 - native: supervisor permission refusal stops termination attempts
+  ---
+  duration_ms: 6.083583
+  type: 'test'
+  ...
+# Subtest: native: supervisor retains spawn error and waits for its close event
+ok 170 - native: supervisor retains spawn error and waits for its close event
+  ---
+  duration_ms: 0.195125
+  type: 'test'
+  ...
+# Subtest: eod dev-indicator count0 is inspected without removing DOM
+ok 171 - eod dev-indicator count0 is inspected without removing DOM
+  ---
+  duration_ms: 0.113959
+  type: 'test'
+  ...
+# Subtest: eod dev-indicator count1 is inspected without removing DOM
+ok 172 - eod dev-indicator count1 is inspected without removing DOM
+  ---
+  duration_ms: 0.057375
+  type: 'test'
+  ...
+# Subtest: gex dev-indicator count0 is inspected without removing DOM
+ok 173 - gex dev-indicator count0 is inspected without removing DOM
+  ---
+  duration_ms: 0.03525
+  type: 'test'
+  ...
+# Subtest: gex dev-indicator count1 is inspected without removing DOM
+ok 174 - gex dev-indicator count1 is inspected without removing DOM
+  ---
+  duration_ms: 0.025416
+  type: 'test'
+  ...
+# Subtest: native: normal producer completion binds its stopped server to this attempt without another termination
+ok 175 - native: normal producer completion binds its stopped server to this attempt without another termination
+  ---
+  duration_ms: 0.085334
+  type: 'test'
+  ...
+# Subtest: native: hard producer termination reconciles its distinct server group, survives=false
+ok 176 - native: hard producer termination reconciles its distinct server group, survives=false
+  ---
+  duration_ms: 12.524125
+  type: 'test'
+  ...
+# Subtest: native: hard producer termination reconciles its distinct server group, survives=true
+ok 177 - native: hard producer termination reconciles its distinct server group, survives=true
+  ---
+  duration_ms: 11.787959
+  type: 'test'
+  ...
+# Subtest: native: a producer close without an original server identity remains unsettled
+ok 178 - native: a producer close without an original server identity remains unsettled
+  ---
+  duration_ms: 0.186666
+  type: 'test'
+  ...
+# Subtest: native: a server identity from another capture attempt is refused without signalling it
+ok 179 - native: a server identity from another capture attempt is refused without signalling it
+  ---
+  duration_ms: 0.116083
+  type: 'test'
+  ...
+# Subtest: native: server permission refusal leaves reconciliation unresolved and sends no termination signal
+ok 180 - native: server permission refusal leaves reconciliation unresolved and sends no termination signal
+  ---
+  duration_ms: 0.106875
+  type: 'test'
+  ...
+# Subtest: an undeclared legacy packet retains the existing owner capture decision
+ok 181 - an undeclared legacy packet retains the existing owner capture decision
+  ---
+  duration_ms: 43.062917
+  type: 'test'
+  ...
+# Subtest: qualified history cannot silently fall back after its declaration disappears: exposure-source-compatibility-20261105
+ok 182 - qualified history cannot silently fall back after its declaration disappears: exposure-source-compatibility-20261105
+  ---
+  duration_ms: 28.014792
+  type: 'test'
+  ...
+# Subtest: qualified history cannot silently fall back after its declaration disappears: options-source-compatibility-20261105
+ok 183 - qualified history cannot silently fall back after its declaration disappears: options-source-compatibility-20261105
+  ---
+  duration_ms: 29.956417
+  type: 'test'
+  ...
+# Subtest: qualified history cannot silently fall back after its declaration disappears: combined-source-compatibility-20261105
+ok 184 - qualified history cannot silently fall back after its declaration disappears: combined-source-compatibility-20261105
+  ---
+  duration_ms: 33.072333
+  type: 'test'
+  ...
+# Subtest: a corrupt declared successor is refused before the raw root can be reused or overwritten
+ok 185 - a corrupt declared successor is refused before the raw root can be reused or overwritten
+  ---
+  duration_ms: 27.976208
+  type: 'test'
+  ...
+1..185
+# tests 185
+# suites 0
+# pass 185
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162674.772458

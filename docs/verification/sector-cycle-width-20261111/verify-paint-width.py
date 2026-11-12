@@ -1,0 +1,54 @@
+from pathlib import Path
+import json,subprocess,os,hashlib,time,datetime,sys
+root=Path('/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3')
+proof=root/'docs/verification/sector-cycle-width-20261111'
+stage='theme-paint-qualified'
+out=proof/stage;assert not out.exists()
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def git(*args):return subprocess.check_output(['git','-C',str(root),*args],text=True).strip()
+panel=root/'terminal/components/sector-intelligence/cycles/CycleChartPanel.tsx'
+blob=git('hash-object',str(panel))
+if stage=='old-source':assert blob=='20b8e035409153a6ce2e4b1216a62ac75646c480'
+else:assert blob==json.loads((proof/'repair-source.json').read_text())['panelBlob']
+assert sha(root/'terminal/e2e/sector-cycle-lens.spec.ts')=='33e87cae885620c2dc9ad94a0a5188e942eeeaf196a41225c82f4261542fe9c5'
+assert sha(root/'terminal/app/dev/sector-cycles/page.tsx')=='f24c19fe6f4df20564ac8c46ba97e60e5383fc5fef9c939710a8b6f00d668512'
+paths=sorted(q for q in subprocess.check_output(['git','-C',str(root),'ls-files','-z']).decode().split('\0') if q and (root/q).is_file() and not (root/q).is_symlink())
+def fingerprint():return {q:sha(root/q) for q in paths}
+def lifecycle():
+ port=subprocess.run(['lsof','-nP','-iTCP:57735','-sTCP:LISTEN'],text=True,capture_output=True)
+ lock=root/'terminal/.next/dev/lock';handles=subprocess.run(['lsof','-t',str(lock)],text=True,capture_output=True) if lock.exists() else None
+ cwd=subprocess.run(['lsof','-nP','-a','-d','cwd','-F','pn'],text=True,capture_output=True);holders=[];pid=None
+ for line in cwd.stdout.splitlines():
+  if line.startswith('p'):pid=line[1:]
+  elif line.startswith('n') and (line[1:]==str(root) or line[1:].startswith(str(root)+'/')):holders.append({'pid':pid,'cwd':line[1:]})
+ return {'port':57735,'listenerExit':port.returncode,'listeners':port.stdout,'lockPathExists':lock.exists(),'lockHandles':handles.stdout if handles else '', 'workspaceCwdHolders':holders}
+initial=lifecycle()
+assert initial['listenerExit']==1 and not initial['listeners'] and not initial['lockHandles'] and not initial['workspaceCwdHolders'],json.dumps(initial)
+cache=Path('/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/.playwright-browsers');assert cache.exists()
+out.mkdir();before=fingerprint();(out/'source-before.json').write_text(json.dumps(before,indent=2,sort_keys=True)+'\n')
+env=os.environ.copy();env.update({'CI':'1','MMX_SHARED_SHELL':'0','MMX_INVESTOR_SHELL_PREVIEW':'0','TERMINAL_E2E_PORT':'57735','TERMINAL_VISUAL_EVIDENCE_OPERATION':'terminal-cycle-width-support-20261111-c3-'+stage,'PLAYWRIGHT_BROWSERS_PATH':str(cache),'PLAYWRIGHT_JSON_OUTPUT_FILE':str(out/'report.json')})
+for key in ['EXPOSURE_P09_CURRENT_WITNESS','EXPOSURE_P09_PREVIOUS_WITNESS','EXPOSURE_NATIVE_WITNESS','TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE','TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE','TERMINAL_EXPOSURE_PAINT_PROBE','TERMINAL_EVIDENCE_MODE','TERMINAL_EVIDENCE_COMPOSITION','TERMINAL_PL6_EVIDENCE_OPERATION_ID']:assert not env.get(key),key
+command=['./node_modules/.bin/playwright','test','e2e/sector-cycle-lens.spec.ts','--workers=1','--retries=0','--trace=on','--output='+str(out/'artifacts'),'--grep','cycles chart measurement survives table transitions en dark' if stage=='old-source' else 'cycles chart measurement survives']
+command+=['--project=desktop'] if stage=='old-source' else ['--project=desktop','--project=tablet','--project=mobile']
+expected=1 if stage=='old-source' else 12
+with (out/'selection.log').open('w') as log:s=subprocess.run(command+['--list','--reporter=list'],cwd=root/'terminal',env=env,stdout=log,stderr=subprocess.STDOUT)
+assert s.returncode==0 and ('Total: '+str(expected)+(' test' if expected==1 else ' tests')+' in 1 file') in (out/'selection.log').read_text(),(out/'selection.log').read_text()
+record={'state':'BROWSER_RUNNING','stage':stage,'actualHead':git('rev-parse','HEAD'),'actualTree':git('rev-parse','HEAD^{tree}'),'indexTreeAtStart':git('write-tree'),'panelBlob':blob,'sourceFiles':len(before),'initial':initial,'node':subprocess.check_output(['node','--version'],text=True).strip(),'command':command+['--reporter=list,json'],'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'productionProof':False}
+(out/'execution.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps({'state':record['state'],'stage':stage,'sourceFiles':len(before),'cases':expected}),flush=True);start=time.monotonic()
+with (out/'browser.log').open('w') as log:r=subprocess.run(record['command'],cwd=root/'terminal',env=env,stdout=log,stderr=subprocess.STDOUT)
+after=fingerprint();(out/'source-after.json').write_text(json.dumps(after,indent=2,sort_keys=True)+'\n');settled=lifecycle();report=json.loads((out/'report.json').read_text()) if (out/'report.json').exists() else {};cases=[]
+def visit(s):
+ for spec in s.get('specs',[]):
+  for test in spec.get('tests',[]):cases.append({'project':test.get('projectName'),'title':spec.get('title'),'results':[{'status':x.get('status'),'retry':x.get('retry'),'errors':[e.get('message') for e in x.get('errors',[])]} for x in test.get('results',[])]})
+ for child in s.get('suites',[]):visit(child)
+visit(report);record.update({'exit':r.returncode,'seconds':round(time.monotonic()-start,3),'stats':report.get('stats'),'cases':cases,'sourceStable':before==after,'lifecycle':settled,'state':'RESULT_RECORDED','completedAt':datetime.datetime.now(datetime.timezone.utc).isoformat()});(out/'execution.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record),flush=True)
+assert before==after and settled['listenerExit']==1 and not settled['listeners'] and not settled['lockHandles'] and not settled['workspaceCwdHolders']
+assert len(cases)==expected and all(len(x['results'])==1 and x['results'][0]['retry']==0 for x in cases)
+if stage=='old-source':
+ assert r.returncode==1 and cases[0]['results'][0]['status']=='failed'
+ assert any('SVG coordinates must follow the current measured content width' in e for e in cases[0]['results'][0]['errors'])
+ record['state']='OLD_SOURCE_GEOMETRY_REGRESSION_CONFIRMED'
+else:
+ assert r.returncode==0 and all(x['results'][0]['status']=='passed' for x in cases)
+ record['state']='ALL_TWELVE_GEOMETRY_AND_THEME_CASES_PASSED'
+(out/'execution.json').write_text(json.dumps(record,indent=2)+'\n');print(json.dumps({'state':record['state'],'sourceFiles':len(before)}),flush=True)

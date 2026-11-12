@@ -15,16 +15,24 @@ vi.mock("@/lib/rateLimit", () => ({ rateLimit, tooMany: vi.fn() }));
 // stubbing them lets the closed-mode assertions prove that the handler returned
 // before any collaborator — or network — was reached. The main route's
 // investigations lib is stubbed for the same reason; the open-path tests below
-// still drive the routes' OWN auth and selector validation.
+// still drive the routes' OWN auth and selector validation. The expected-actor
+// fence helpers stay REAL (importActual) so the route's fence calls observe the
+// production truth table, not a stub that would always say "ok".
 vi.mock("@/lib/upstreams", () => ({ R2_BASE: "https://r2.fixture.invalid" }));
-vi.mock("@/lib/investigations", () => ({
-  INVESTIGATION_ADMISSION: { surface: "investigation" },
-  listInvestigations: vi.fn(),
-  parseInvestigationCommand: vi.fn(),
-  readInvestigation: vi.fn(),
-  readInvestigationOperation: vi.fn(),
-  applyInvestigationRevision: vi.fn(),
-}));
+vi.mock("@/lib/investigations", async importOriginal => {
+  const actual = await importOriginal<typeof import("@/lib/investigations")>();
+  return {
+    INVESTIGATION_ADMISSION: { surface: "investigation" },
+    listInvestigations: vi.fn(),
+    parseInvestigationCommand: vi.fn(),
+    readInvestigation: vi.fn(),
+    readInvestigationOperation: vi.fn(),
+    applyInvestigationRevision: vi.fn(),
+    INVESTIGATION_FENCE_OWNERS: actual.INVESTIGATION_FENCE_OWNERS,
+    investigationOwnerFence: actual.investigationOwnerFence,
+    investigationFenceRequired: actual.investigationFenceRequired,
+  };
+});
 vi.mock("@/lib/investigationScenarioServer", () => ({ qualifyScenarioCaptureSave: vi.fn() }));
 vi.mock("@/lib/eventWorkspace", () => ({
   normalizeCompanyIntelligenceSymbol: (symbol: string) => symbol,

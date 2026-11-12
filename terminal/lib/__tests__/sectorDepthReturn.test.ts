@@ -21,6 +21,17 @@ describe("sector research depth return", () => {
     expect(parseSectorDepthReturn(encodeSectorDepthReturn(state))).toEqual(state);
   });
 
+  it("retains a nondefault breadth interval and sort through the current depth-return owner", () => {
+    const state = { ...DEFAULT_SECTOR_STATE, workspace: "breadth" as const, sector: "xle",
+      breadthSort: "contract" as const, breadthWindow: 1 as const, discoveryQuery: "Energy",
+      theme: "light" as const };
+    const snapshot = encodeSectorDepthReturn(state)!;
+    expect(snapshot).toContain("sectorBreadthSort=contract");
+    expect(snapshot).toContain("sectorBreadthWindow=1");
+    expect(parseSectorDepthReturn(snapshot)).toEqual(state);
+    expect(resolveSectorDepthReturn(sectorDepthReturnQuery(state)!, snapshot)).toEqual(state);
+  });
+
   it("uses the incumbent bounds and preserves non-ASCII filters", () => {
     const state = { ...DEFAULT_SECTOR_STATE, discoveryQuery: "科技", matrixIndustry: "半导体" };
     expect(parseSectorDepthReturn(encodeSectorDepthReturn(state))).toEqual(state);

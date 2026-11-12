@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/docs/verification/pr726-readout-successor-20261110/build-browser.cjs"
+      ],
+      "exitCode": 0,
+      "logSha256": "f504f77fc90c1598579993512fafb57eff2e1dcaecf765972acf99217db2e808",
+      "name": "browser-build",
+      "pid": 61231,
+      "seconds": 4.769,
+      "startedAt": "2026-11-10T16:23:06.942670+00:00"
+    },
+    {
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-726-readout-successor/docs/verification/pr726-readout-successor-20261110/browser-proof.cjs"
+      ],
+      "exitCode": 0,
+      "logSha256": "74fa534f53fb67a22aab144ffca2f4fb8b20f475cea32ed033f803d530294063",
+      "name": "browser-proof",
+      "pid": 61494,
+      "seconds": 17.031,
+      "startedAt": "2026-11-10T16:23:11.712404+00:00"
+    }
+  ],
+  "finishedAt": "2026-11-10T16:23:28.748281+00:00",
+  "images": 24,
+  "matrices": 12,
+  "receiptSha256": "fed9c4242e534ea3f20f98ec81ad9e42847578d11d98535faf86fe0c56fb380d",
+  "schema": "terminal_pr726_browser_execution.v1",
+  "startedAt": "2026-11-10T16:23:06.941930+00:00",
+  "state": "REAL_COMPONENT_BROWSER_QUALIFIED",
+  "states": 108,
+  "transitions": 36
+}

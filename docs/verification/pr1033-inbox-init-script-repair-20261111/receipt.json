@@ -1,0 +1,23 @@
+{
+  "schema": "mastermind.pr1033.inbox-init-script-repair.v1",
+  "parent": "78b70abcbb9d8b9e1fee82fb4c0fa1ac3d8afcb0",
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "run": 42984818721,
+  "job": 130403830503,
+  "artifact": 13838549681,
+  "artifactSha256": "1cfe673379aadbf229dcec9237a24976d8f3c41f1f092a2393343ef97ab458e8",
+  "artifactMember": "_temp/terminal-ci-evidence/mmx-briefs-active-inbox-zDc1Rm/capture-proof.json",
+  "actualCheckout": "d52323a1cca4e03aff6aab5887d4e19d2371377e",
+  "actualTree": "fa9c34e9ae9a19d503265532e6f5172ce2c35289",
+  "qualifiedCapture": false,
+  "sourceRepair": "Keep preference storage initialization before application scripts; defer document-root attributes until DOMContentLoaded only when the HTML root is absent.",
+  "validation": {
+    "tests": 38,
+    "newRegressionCases": 4,
+    "syntax": "passed",
+    "affectedEslint": "passed",
+    "preFixNullRootReproduced": true
+  },
+  "producerActivation": false,
+  "productionAcceptance": false
+}

@@ -1,0 +1,16 @@
+{
+  "phase": "before",
+  "exit": 1,
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/options-lab-source-state.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/options-lab-source-before-20261104"
+  ],
+  "logSha256": "e8f92fb6bb1399a14e87bd9bbed6ccfb1f2b3453cec981cd71e3621d31fa1743",
+  "gexSourceSha256": "c4a9c3a8f58d9a0cc67fbf228c009dcb2106d6acdd610012107a27371fdb842d"
+}

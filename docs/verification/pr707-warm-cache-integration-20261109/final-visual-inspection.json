@@ -1,0 +1,26 @@
+{
+  "at": "2026-11-12T01:39:18.997820+00:00",
+  "images": [
+    {
+      "inspection": "Actual mobile cleared-target state is legible and preserves the cleared target value.",
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390.png",
+      "sha256": "e352fa63eb75827518e7f07372df4397e28e5f5d897a8ac97aa929425684a05d"
+    },
+    {
+      "inspection": "Actual Chinese mobile target settings show the original60% target and +40 percentage-point difference without forced renormalization.",
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png",
+      "sha256": "30c9c2979a222c70d2598715e321d2c74dea1eed4a5cc7323b85af24f17be94d"
+    },
+    {
+      "inspection": "Actual mobile chart and navigation remain rendered after the clock/navigation journey. This fixture screenshot is not a live-price acceptance claim.",
+      "path": "terminal/docs/pr-crops/chart-clock-isolation-20260921/mobile.png",
+      "sha256": "e65cc2d5f31b73ab3a1f9c499895cf0560c5c4e9d9a1ae3271b466805d31f2e2"
+    },
+    {
+      "inspection": "Actual refreshed company label appears in the still-open symbol picker.",
+      "path": "terminal/docs/pr-crops/warm-symbol-picker-20260921/corrected-after-refresh.png",
+      "sha256": "922cef2eb0845239e199b9b04b82571f33cc0f255e0ebec5ed7594d712b5f310"
+    }
+  ],
+  "scope": "Root viewed these actual native/browser images; previous EOD/GEX inspection remains additional evidence. All are local fixtures."
+}

@@ -36,7 +36,7 @@ import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-s
  * (no scrim, no scroll-lock, positioned by .fin-pane--workspace CSS which is a
  * flex:1 child of a flex-column parent — see app/fin.css:947). This composer
  * supplies the two things TerminalShell supplies around it: (1) a per-symbol data
- * load (intel/fund/bars/quote) and (2) symbol + sub-page context.
+ * load (intel/fund/bars) and (2) symbol + sub-page context.
  *
  * ── URL state (seeded by the server page, then kept shallow with
  *    window.history.replaceState to avoid a useSearchParams CSR bailout) ──
@@ -49,13 +49,13 @@ import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-s
  *                     (lib/navSymbol) so the usual path never reaches the adoption below.
  *   ?page=<FinPage>   the active sub-page (default overview). Validated against
  *                     FIN_PAGES on mount; MegaPane's onPage updates it.
- *   NB: MegaPane ALSO writes ?pane=<page> internally (its own legacy deep-link,
- *   unchanged here). It carries the same value as our ?page= — harmless mirror.
+ *   Standalone research uses ?page=; MegaPane retains ?pane= only for the
+ *   chart-hosted overlay, and removes that legacy mirror in workspace mode.
  *
  * ── Data load ── replicates TerminalShell's per-symbol loader (TerminalShell.tsx
- *    ~576-605): on symbol change, reset (intel/fund/bars/quote → null/[], fundLoading
- *    → true) then fetch. Race-guarded by an `alive` flag captured per effect run so a
- *    fast symbol switch can't apply stale data. Deviation: TerminalShell defers the
+ *    ~576-605): on symbol change, reset (intel/fund/bars → null/[], fundLoading
+ *    → true) then fetch. The snapshot is symbol-bound before render, with an
+ *    `alive` flag per effect run so a fast switch cannot adopt stale responses. Deviation: TerminalShell defers the
  *    below-the-fold intel/fund/opts behind requestIdleCallback so they don't compete
  *    with the chart's cold-load OHLC fetch in the network queue. There is no chart
  *    fetch on this standalone route, so we fetch immediately — simpler, same result.
@@ -75,9 +75,16 @@ const DEFAULT_PAGE: FinPage = "overview";
  * rejects separators, repeated delimiters, and any other shape that could be
  * mistaken for a route or silently normalised into another company.
  */
-// Light live-quote refresh; matches the /api/quote snapshot cadence (TTL 5s). We
-// poll a touch slower to avoid needless load on a single-symbol page.
-const QUOTE_REFRESH_MS = 15_000;
+// The research panels consume published company snapshots. Statistics renders
+// fund.ratios.current, not quote.last; no separate live quote poll is needed.
+const EMPTY_BARS: Bar[] = [];
+interface CompanyRead {
+  symbol: string;
+  intel: unknown | null;
+  fund: Fund | null;
+  bars: Bar[];
+  fundLoading: boolean;
+}
 
 export interface AnalysisWorkspaceProps {
   initialSymbol?: string;
@@ -131,18 +138,21 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     setPage(nextPage && FIN_PAGES.has(nextPage as FinPage) ? nextPage as FinPage : DEFAULT_PAGE);
   }, [routeQuery]);
 
-  const [intel, setIntel] = useState<unknown | null>(null);
-  const [fund, setFund] = useState<Fund | null>(null);
-  const [fundLoading, setFundLoading] = useState(true);
-  const [bars, setBars] = useState<Bar[]>([]);
-  const [last, setLast] = useState<number | null>(null);
+  const [companyRead, setCompanyRead] = useState<CompanyRead | null>(null);
+  // A URL update renders before passive-effect cleanup. Bind every projection to
+  // its company now, not after a frame has borrowed the previous company's values.
+  const selectedRead = companyRead?.symbol === sym ? companyRead : null;
+  const intel = selectedRead?.intel ?? null;
+  const fund = selectedRead?.fund ?? null;
+  const fundLoading = selectedRead?.fundLoading ?? true;
+  const bars = selectedRead?.bars ?? EMPTY_BARS;
 
   // ── adopt the cross-route cursor when the URL named no company ───────────────────────────
   //
   // Gate, not a race. `localStorage` cannot be read during render without a hydration mismatch
   // (the server already emitted DEFAULT_SYMBOL into the context bar), and setting the symbol
   // from a passive effect would let this commit's data effects fire a full NVDA load first —
-  // four wasted requests on a phone, for a company nobody asked for. So the loaders below wait
+  // three wasted requests on a phone, for a company nobody asked for. So the loaders below wait
   // on `symbolSettled`, and a LAYOUT effect resolves the cursor before the browser paints: the
   // user never sees the fallback, and the network never fetches it. Ordering, never a timer —
   // see the mount-effect starvation note in TerminalShell.
@@ -210,35 +220,18 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   useEffect(() => {
     if (invalidSymbol || !symbolSettled) return;
     let alive = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIntel(null); setFund(null); setBars([]); setLast(null); setFundLoading(true);
-    getJSON(`/data/${sym}.intel.json`).then((d) => { if (alive) setIntel(d); }).catch(() => {});
-    getBars(sym).then((b) => { if (alive) setBars(b); }).catch(() => {});
-    getFund(sym)
-      .then((d) => { if (alive) setFund(d); })
-      .catch(() => {})
-      .finally(() => { if (alive) setFundLoading(false); });
-    return () => { alive = false; };
-  }, [invalidSymbol, sym, symbolSettled]);
-
-  // ── live quote (single symbol): initial fetch + light refresh, race-guarded ──
-  // MegaPane consumes only quote.last (Statistics "Current" column, forecast spot),
-  // so we extract quotes[sym].last from /api/quote?syms=<SYM> and pass { last }.
-  useEffect(() => {
-    if (invalidSymbol || !symbolSettled) return;
-    let alive = true;
-    const load = async () => {
-      try {
-        const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
-        if (!r.ok) return;
-        const j = await r.json();
-        const px = j?.quotes?.[sym]?.last;
-        if (alive) setLast(typeof px === "number" ? px : null);
-      } catch { /* transient — keep last good */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize this selected company's read lifetime.
+    setCompanyRead({ symbol: sym, intel: null, fund: null, bars: [], fundLoading: true });
+    const publish = (patch: Partial<Omit<CompanyRead, "symbol">>) => {
+      if (alive) setCompanyRead(current => current?.symbol === sym ? { ...current, ...patch } : current);
     };
-    load();
-    const id = window.setInterval(load, QUOTE_REFRESH_MS);
-    return () => { alive = false; window.clearInterval(id); };
+    getJSON(`/data/${sym}.intel.json`).then(d => publish({ intel: d })).catch(() => {});
+    getBars(sym).then(b => publish({ bars: b })).catch(() => {});
+    getFund(sym)
+      .then(d => publish({ fund: d }))
+      .catch(() => {})
+      .finally(() => publish({ fundLoading: false }));
+    return () => { alive = false; };
   }, [invalidSymbol, sym, symbolSettled]);
 
   // ── symbol switch ────────────────────────────────────────────────────────────────────
@@ -402,7 +395,6 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           sym={sym}
           fund={fund}
           fundLoading={fundLoading}
-          quote={{ last }}
           bars={bars}
           page={page}
           onPage={onPage}

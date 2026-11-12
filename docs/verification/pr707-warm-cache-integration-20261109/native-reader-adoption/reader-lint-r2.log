@@ -1,0 +1,13 @@
+
+/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs
+     4:24  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+     5:51  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+     6:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+     7:31  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  1042:52  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  1201:34  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  1204:34  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  1455:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 8 problems (8 errors, 0 warnings)
+

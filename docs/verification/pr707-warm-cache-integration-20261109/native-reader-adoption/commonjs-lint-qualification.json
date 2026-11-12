@@ -1,0 +1,61 @@
+{
+  "schema": "terminal_pr707_commonjs_lint_qualification.v1",
+  "at": "2026-11-12T00:39:32.970098+00:00",
+  "reason": "This existing .cjs is the Node CommonJS runtime shared by capture owners and typed consumers. The default TypeScript import-style rule rejects all require imports, including7 protected preexisting imports. One new node:util import is valid CommonJS. Qualify all other ESLint rules with only that module-style rule disabled on this .cjs invocation; keep default lint on the type declarations. No repository lint configuration or required CI gate changed.",
+  "checks": [
+    {
+      "name": "reader-lint-protected-default",
+      "exit": 1,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "--stdin",
+        "--stdin-filename",
+        "e2e/tools/optionsExposureEvidence.cjs",
+        "--format=json"
+      ],
+      "diagnostics": 7,
+      "raw_sha256": "0cc803ca78814922e6248e47a417198a618e4093c4f964eb48c7d7eb5987eba7"
+    },
+    {
+      "name": "reader-lint-current-default",
+      "exit": 1,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/optionsExposureEvidence.cjs",
+        "--format=json"
+      ],
+      "diagnostics": 8,
+      "raw_sha256": "d203d05d3b64561793e7a0434533119181a1edf87d57e6c7158ac735bdca65d6"
+    },
+    {
+      "name": "reader-lint-commonjs",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "--rule",
+        "{\"@typescript-eslint/no-require-imports\":\"off\"}",
+        "e2e/tools/optionsExposureEvidence.cjs",
+        "--format=json"
+      ],
+      "diagnostics": 0,
+      "raw_sha256": "eaf88509851485266ad9260bcfd9505b4a7f0696ec4465ae8ea1272b988656e6"
+    },
+    {
+      "name": "types-lint-default",
+      "exit": 0,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/optionsExposureEvidence.d.cts",
+        "--format=json"
+      ],
+      "diagnostics": 0,
+      "raw_sha256": "ea986f6f471d3cff1a56b6b76499a870a2b4238fa182d5bf706796e45845377d"
+    }
+  ],
+  "reader_sha256": "c5556ab71eb6f89158492929e7f7975f6bfa5e608a3a618b6c92abaeae2ba994",
+  "source_changed": false
+}

@@ -63,6 +63,12 @@ import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
 export { FIN_PAGES, type FinPage } from "./finPages";
 import type { FinPage } from "./finPages";
 
+// These views read the selected company's fundamental snapshot. Independent
+// Intelligence, transcript, forecast and ownership readers keep their own states.
+const FUND_SNAPSHOT_PAGES = new Set<FinPage>([
+  "overview", "statements", "statistics", "dividends", "earnings", "revenue",
+]);
+
 const PAGE_LABELS: Record<FinPage, [string, string]> = {
   overview: ["Overview", "概览"],
   statements: ["Statements", "报表"],
@@ -217,6 +223,8 @@ export default function MegaPane({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (txOpenRef.current || intelligenceEvidenceOpenRef.current) return; // nested inspector/drawer owns Esc
+        // An open seasonal year picker owns Escape before its enclosing pane.
+        if (e.target instanceof Element && e.target.closest('.fin-seas-yearpop-wrap[data-open="true"]')) return;
         e.stopPropagation();
         closePane();
       }
@@ -338,6 +346,11 @@ export default function MegaPane({
 
         {/* ── body ── */}
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
+          {fundLoading && !fund && FUND_SNAPSHOT_PAGES.has(page) ? (
+            <div className="fin-empty fin-empty-lg" role="status" aria-busy="true" data-testid="fundamentals-loading">
+              <span className="fin-empty-title">{pick(zh, "Loading financial data…", "正在加载财务数据…")}</span>
+            </div>
+          ) : <>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
             // The regional snapshot and the incumbent event view share this one mount, so the
@@ -385,6 +398,7 @@ export default function MegaPane({
           {page === "compare" && (
             <FinComparePage key={sym} sym={sym} fund={fund} fundLoading={fundLoading} onOpenTx={openTranscript} />
           )}
+          </>}
         </div>
       </div>
 

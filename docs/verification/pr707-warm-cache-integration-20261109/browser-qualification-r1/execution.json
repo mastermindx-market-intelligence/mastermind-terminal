@@ -1,0 +1,49 @@
+{
+  "completedAt": "2026-11-12T00:57:56.544132+00:00",
+  "context": {
+    "actualGit": {
+      "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+      "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+      "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+      "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    },
+    "branchHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "checkoutCommit": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "checkoutTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTreeAtEnd": "230348fb24131907d559b48e0516ffbc268537d0",
+    "indexTreeAtStart": "230348fb24131907d559b48e0516ffbc268537d0",
+    "integratedSourceHeads": [
+      "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+      "6c5d71ebbd797897b50f8727588bd95e834517a8"
+    ],
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "operation": "terminal-pr707-warm-cache-browser-current-20261111",
+    "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+    "sourceIdentity": "stable-composed-working-tree"
+  },
+  "results": {
+    "expiry": {
+      "artifacts": 37,
+      "lifecycleSha256": "abd85d23ba648e2b4a60c872e1014616e7569d400b61612c31e7e4027afa3bbc",
+      "passed": 9,
+      "qualificationSha256": "2ffe50b1d70d83e78271432668eaaaa4c5be3d7ab9020c0831450eb8f055f11c",
+      "seconds": 63.971,
+      "sourceFiles": 3787,
+      "state": "WARM_BROWSER_STAGE_QUALIFIED"
+    },
+    "joint": {
+      "artifacts": 374,
+      "lifecycleSha256": "5a0f6d3d1a44434164e9dc0949d20a7554e2257593a50bb6a79bf845a353b034",
+      "passed": 144,
+      "qualificationSha256": "b81d5a8a7258792f0a8f439a99a7e15c7573353e6c73fd082228d60c37179b46",
+      "seconds": 1010.459,
+      "sourceFiles": 3787,
+      "state": "WARM_BROWSER_STAGE_QUALIFIED"
+    }
+  },
+  "snapshotSha256": "0b471cf110cd90c7d09444c6768af088d28b898668e1555d4301a18d9532fc81",
+  "sourceFiles": 3787,
+  "startedAt": "2026-11-12T00:39:47.797572+00:00",
+  "state": "BOTH_WARM_BROWSER_STAGES_QUALIFIED_PENDING_READER_PINS"
+}

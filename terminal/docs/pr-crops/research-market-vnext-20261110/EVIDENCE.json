@@ -1,0 +1,432 @@
+{
+  "schema": "mastermind.terminal.ui_evidence.v1",
+  "title": "Research Market vNext — current protected-source qualification",
+  "operation": "terminal-pr-duty-20261110-739-market-proof-web4",
+  "date": "2026-11-10",
+  "source": {
+    "branch": "sol/research-market-vnext-20260924-sol-001",
+    "previous_accepted_head": "e8045bf7c35c1a713dd4cee3030e46be81343717",
+    "integrated_master": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+    "captured_head": "5ba9085a123ae93759e8cf24de3b73487bf38525",
+    "captured_tree": "63edb98f25f3a9d7e4d087de7b5c7774a687bb6c",
+    "preflight": "preflight.json",
+    "runtime_dependency_count": 17,
+    "evidence_only_publication": true,
+    "historical_evidence": [
+      {
+        "path": "terminal/docs/pr-crops/research-market-vnext-20260926",
+        "preserved_unchanged": true,
+        "restamped": false
+      },
+      {
+        "path": "terminal/docs/pr-crops/research-market-vnext-20261109",
+        "preserved_unchanged": true,
+        "restamped": false
+      }
+    ],
+    "shared_file_reconciliation": {
+      "fin_css": "Protected Earnings block and original Market block both retained",
+      "technicals_import": "Current canonical analystRating helper retained",
+      "navigation": "Complete protected Overview/Ownership/navigation prefix retained before original Market suffix",
+      "ci": "All eight paths from merged #1418 retained without application-source changes"
+    }
+  },
+  "surface": {
+    "route": "/analysis?symbol=NVDA&page=technicals",
+    "theme": "dark",
+    "fixture": "Existing marketBarsFixture plus isolated threshold OHLC inputs through the canonical /data/NVDA.json route",
+    "production_data": false,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "thresholds": [
+      29,
+      30,
+      49,
+      50,
+      199,
+      200,
+      220
+    ],
+    "threshold_basis": {
+      "desktop": "D",
+      "tablet": "W",
+      "mobile": "1M"
+    },
+    "locales": [
+      "en",
+      "zh"
+    ]
+  },
+  "presentation": {
+    "finding": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/739#issuecomment-6092998703",
+    "ruling": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/739#issuecomment-6745062399",
+    "null_rows": "Dash and localized Unavailable/不可用 with muted tone; measured zero and finite canonical votes unchanged.",
+    "partial_groups": "Any numeric-null row withholds that existing group's gauge, direction and vote tally, with exact numeric available/unavailable counts. No subset score is computed.",
+    "complete_groups": "All-numeric groups retain canonical score/verdict/tally. This is numeric availability, not full analytical readiness.",
+    "empty_state": "Existing uncomputed/below-30 nonnumeric presentation retained, without fabricated denominator.",
+    "neutral_note": {
+      "en": "Neutral may reflect limited history.",
+      "zh": "中性也可能表示历史不足。"
+    },
+    "preserved_owners": [
+      "computeRatings",
+      "groupScore",
+      "readingToArc",
+      "ArcGauge",
+      "buildYears/monthlyStats",
+      "price/data cache",
+      "route/navigation",
+      "BottomPivotContextCard"
+    ],
+    "mobile_repair": "Market-only control spacing, one-line horizontally scrollable timeframes and compact summary spacing restore the existing seasonality-before-detail/first-screen geometry. The bottom-pivot owner remains unchanged."
+  },
+  "design_reference": {
+    "file_id": "01M2WGNCX9475G79JRKJTCM08P",
+    "page_id": "p-4-1",
+    "artboards": [
+      "NED-0",
+      "OG8-0"
+    ],
+    "status": "Previously accepted reference retained; no new Paper read or mutation claimed."
+  },
+  "verification": {
+    "source_checks": "source-checks.json",
+    "mounted_tests": {
+      "passed": 8,
+      "failed": 0
+    },
+    "typegen_exit": 0,
+    "full_typecheck_exit": 0,
+    "browser": {
+      "schema": "mastermind.terminal.pr739.browser.v1",
+      "head": "5ba9085a123ae93759e8cf24de3b73487bf38525",
+      "tree": "63edb98f25f3a9d7e4d087de7b5c7774a687bb6c",
+      "operation": "terminal-pr-duty-20261110-739-market-proof-web4",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/research-workspace-nav.spec.ts",
+        "e2e/bottom-pivot-context.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line,json",
+        "--output=test-results/pr739-20261110"
+      ],
+      "started_at": "2026-11-10T08:30:40.905066+00:00",
+      "finished_at": "2026-11-10T08:34:05.433871+00:00",
+      "exit_code": 0,
+      "seconds": 204.526,
+      "log_sha256": "3a999a5bf2f9389408c9fcac3d4a2aa7e2d2fac04deed25d9690cc8a0ebaada4",
+      "report_exists": true,
+      "runtime_dependencies_unchanged": true,
+      "head_unchanged": true,
+      "tracked_status": "",
+      "port_listener_after": "",
+      "port_observation_exit": 1,
+      "stats": {
+        "startTime": "2026-11-10T08:30:43.157Z",
+        "duration": 202023.456,
+        "expected": 91,
+        "skipped": 8,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": [],
+      "report_sha256": "4779e464093fd34b386ed28afe73c08b3c5ecb5112c616080766c850de297a23",
+      "report": "browser-report.json",
+      "cases": "test-cases.json",
+      "log": "browser.log",
+      "market_captures": 18,
+      "ancillary_captures": 76,
+      "single_actual_run": true,
+      "ci_mode": true,
+      "retries": 0
+    },
+    "geometry": {
+      "seasonality_before_deep_tables": true,
+      "seasonality_top_less_than_viewport_height_minus_72": true,
+      "narrow_seasonality_before_pivots": true,
+      "horizontal_document_overflow_max_px": 1,
+      "partial_and_neutral_groups_fully_in_viewport": true,
+      "changed_rows_reachable_by_ordinary_scroll": true,
+      "all_detail_above_fold_claimed": false,
+      "basis": "Unchanged assertions in the completed 99-case existing browser run"
+    },
+    "visual_review": {
+      "outcome": "PASS",
+      "count": 18,
+      "reviewed": [
+        "desktop-market-full-history-en.png",
+        "desktop-market-full-history-zh.png",
+        "desktop-market-neutral-en.png",
+        "desktop-market-neutral-zh.png",
+        "desktop-market-partial-en.png",
+        "desktop-market-partial-zh.png",
+        "mobile-market-full-history-en.png",
+        "mobile-market-full-history-zh.png",
+        "mobile-market-neutral-en.png",
+        "mobile-market-neutral-zh.png",
+        "mobile-market-partial-en.png",
+        "mobile-market-partial-zh.png",
+        "tablet-market-full-history-en.png",
+        "tablet-market-full-history-zh.png",
+        "tablet-market-neutral-en.png",
+        "tablet-market-neutral-zh.png",
+        "tablet-market-partial-en.png",
+        "tablet-market-partial-zh.png"
+      ],
+      "method": "Root inspected all six mobile frames; delegated reasoning inspected all six desktop and all six tablet frames, including original Chinese partial/neutral detail reads. Root consumed both returns.",
+      "formal_approval": false,
+      "external_independent_review_claimed": false,
+      "notes": [
+        "Inspected both full-resolution vertical sheets containing all six 390x844 English/Chinese captures.",
+        "No material overlapping content or document-width overflow visible. English timeframe strip intentionally scrolls; document overflow and interaction behavior passed existing browser assertions.",
+        "Partial histories withhold both gauges and show 10/11 oscillator and 9/15 moving-average availability; missing SMA values remain dashes.",
+        "Complete measured Neutral retains the moving-average 50 gauge and 15 Neutral votes; oscillator state remains separately qualified.",
+        "Seasonality begins within the initial viewport and remains ordinarily scrollable below the fixed navigation; no all-content-above-fold claim.",
+        "Chinese as-of dates retain English month abbreviations from the existing date presentation; core state copy remains localized.",
+        "Desktop and tablet partial states show no complete seasonal sample where no fully observed year exists; unavailable groups remain distinct from calculated zero/Neutral.",
+        "English month abbreviations remain in Chinese as-of dates, and the retained generic Neutral/history caveat is less precise than the explicit partial treatment. These existing copy limitations did not create a material state or layout defect."
+      ],
+      "ancillary_images_manually_reviewed": false
+    },
+    "cleanup": {
+      "observer_exit": 0,
+      "source_hashes_stable": true,
+      "tracked_status_before_packet": "",
+      "port": 34739,
+      "port_listener_after": "",
+      "port_observation_exit": 1
+    }
+  },
+  "captures": [
+    {
+      "file": "desktop-market-partial-zh.png",
+      "sha256": "344ac28fba6c8edcc4093d34933c718ae50a7be1ad7735c3885298c30c2347eb",
+      "git_blob": "6d297bb596332d385fe33b0fee107d0a501b13d7",
+      "bytes": 166902,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-desktop/desktop-market-partial-zh.png"
+    },
+    {
+      "file": "mobile-market-partial-zh.png",
+      "sha256": "43fb07de6cbb57668ceda48e68a2958a8461d4a484333ede606cad13930095a5",
+      "git_blob": "b0d827013921fb1e6e9a05eea62c7eee578364f2",
+      "bytes": 84960,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-mobile/mobile-market-partial-zh.png"
+    },
+    {
+      "file": "tablet-market-partial-zh.png",
+      "sha256": "3c2958f27af2dedd9b14ba41b9d7fb5253275502ac75246c7109c3d6cf9aa28e",
+      "git_blob": "18446b34ed7cdf549fafd3451797e491e15b3417",
+      "bytes": 132666,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-tablet/tablet-market-partial-zh.png"
+    },
+    {
+      "file": "desktop-market-full-history-en.png",
+      "sha256": "e17906481810d8ed645daed0243d2380e7e9fb513d46fb32552f7d8d02ddacf3",
+      "git_blob": "855787cd8fa7fc838bc3881f689777839a0895db",
+      "bytes": 200043,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-desktop/desktop-market-full-history-en.png"
+    },
+    {
+      "file": "mobile-market-full-history-en.png",
+      "sha256": "338c33a0d7d298abe1342e859914ceebf46f32f648c0ea8a7357e3131eafe2f4",
+      "git_blob": "8728bb4db88188414c006d4cbaff97047b1d803f",
+      "bytes": 101631,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-mobile/mobile-market-full-history-en.png"
+    },
+    {
+      "file": "tablet-market-full-history-en.png",
+      "sha256": "2aec34996be7df3a2e97ce6b4acd3ea2abdedb49a0184b8d0d901a4506be6e3e",
+      "git_blob": "75fffcaa4160cb2d4b36200df371ec2f0dfa71f7",
+      "bytes": 157360,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-tablet/tablet-market-full-history-en.png"
+    },
+    {
+      "file": "desktop-market-partial-en.png",
+      "sha256": "7a5c3804cc715835cd0f92282e3b4855df8ddf5cee45f33cd6699287a6d0d5de",
+      "git_blob": "3fcc41adaa00f1d275546f98893a427c941b98b9",
+      "bytes": 174912,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-desktop/desktop-market-partial-en.png"
+    },
+    {
+      "file": "mobile-market-partial-en.png",
+      "sha256": "157d310a8c1105c4bde1afd1666045be57cc76c1c671663c38a6e511c5d1402e",
+      "git_blob": "d7a9db76515ac0fdd4c621f4ac8d98e0be26672d",
+      "bytes": 85311,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-mobile/mobile-market-partial-en.png"
+    },
+    {
+      "file": "tablet-market-partial-en.png",
+      "sha256": "35c8dd9fb407fe0a616fc3a4d348bfbeac042cf203a8d11121cd733832907f73",
+      "git_blob": "76e63f691002a4455ba89aea30173df7f61f55cf",
+      "bytes": 138687,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-tablet/tablet-market-partial-en.png"
+    },
+    {
+      "file": "desktop-market-neutral-zh.png",
+      "sha256": "a762d9584779496f4ec7eed288c8508b58f133fb126c874ac25302ddf73b9314",
+      "git_blob": "ab71241b4c0282b0eb47e39b981e69fd4cb8b59c",
+      "bytes": 174875,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-desktop/desktop-market-neutral-zh.png"
+    },
+    {
+      "file": "mobile-market-neutral-zh.png",
+      "sha256": "a60c8423166cb735230427048c9e5c888a699850649cd32f5989bc02438dbf2f",
+      "git_blob": "af2b3c35328d68640be08c2064de771ee14fb753",
+      "bytes": 91619,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-mobile/mobile-market-neutral-zh.png"
+    },
+    {
+      "file": "tablet-market-neutral-zh.png",
+      "sha256": "06305c132c3a36ffe50bc0934bf0b8df5d195aaf19d58e7ebc5bdc40f0c7b0fd",
+      "git_blob": "f0b7faa3cefd3443c11de2cda887ef9734e2daee",
+      "bytes": 143061,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-tablet/tablet-market-neutral-zh.png"
+    },
+    {
+      "file": "desktop-market-neutral-en.png",
+      "sha256": "c58c912f80c664fe4c437f5e255250916aaa9d9de340ce43c7e9f527750d11c8",
+      "git_blob": "5ef5b3862c8e4ceab7b83903f8e51e54f76f64c8",
+      "bytes": 182560,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-desktop/desktop-market-neutral-en.png"
+    },
+    {
+      "file": "mobile-market-neutral-en.png",
+      "sha256": "c1d3024cb8865117e76874eb27781bad0061d407b685d292b30d455d2e03cdf9",
+      "git_blob": "a9af078c453b504cbb902da9506520e44835d8fd",
+      "bytes": 93602,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-mobile/mobile-market-neutral-en.png"
+    },
+    {
+      "file": "tablet-market-neutral-en.png",
+      "sha256": "2f40a5a81ba16b54493c947f82ab41e8bdf3418822916e9a2bcea243f373fea0",
+      "git_blob": "369463d8205653f8058471795b030bd1f61f92ec",
+      "bytes": 150053,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-tablet/tablet-market-neutral-en.png"
+    },
+    {
+      "file": "desktop-market-full-history-zh.png",
+      "sha256": "d01739804dab1c3bc57920659f70999d450dfa1cfe53e662ee8900a293909daf",
+      "git_blob": "c6719af18f8bfa4d3c43efcdf620b111f9f22b90",
+      "bytes": 192690,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-desktop/desktop-market-full-history-zh.png"
+    },
+    {
+      "file": "mobile-market-full-history-zh.png",
+      "sha256": "94c69704f7acc38709b2d8bc4991c6277c72929b899bf8837b0fdc332b33758b",
+      "git_blob": "040c1bd6fe0787fd6ce84b554b0a7bc630e337e6",
+      "bytes": 99782,
+      "dimensions": [
+        390,
+        844
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-mobile/mobile-market-full-history-zh.png"
+    },
+    {
+      "file": "tablet-market-full-history-zh.png",
+      "sha256": "be214875a553c4c488afe48dee76dbdf3eaa85a03c88f71f8569b63f967b0ba3",
+      "git_blob": "a55cd43b7936856c13886a8d858dd346440e353a",
+      "bytes": 150497,
+      "dimensions": [
+        820,
+        1180
+      ],
+      "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-tablet/tablet-market-full-history-zh.png"
+    }
+  ],
+  "truth_boundaries": [
+    "Current proof uses local deterministic fixtures; it is not live-market, authenticated, installed or production acceptance.",
+    "Existing numeric owners and 67 previously qualified canonical math cases were unchanged; they were not rerun or relabeled as new evidence in this phase.",
+    "The current eight mounted tests, full typecheck and one 99-case browser execution are actual new checks on the recorded frozen source.",
+    "No current whole-component lint-clean claim; the two previously recorded protected lint diagnostics retain their original status.",
+    "All 18 primary captures are fresh outputs; historical September and November9 packets remain unchanged."
+  ],
+  "release_boundary": {
+    "current_disposition": "Draft and unarmed pending the existing exact-head hosted CI/security condition.",
+    "serialized_rule": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/issues/699#issuecomment-5810101348",
+    "predecessor": {
+      "pr": 738,
+      "merged_commit": "ec51b95e6437875099fab0fb3f8ca4b466fa2a75",
+      "actual_merge_previously_verified": true
+    },
+    "remaining_condition": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/739#issuecomment-6746009243",
+    "next": "Consume actual current-head hosted checks/security; once the recorded condition is satisfied, individually mark Ready and request native auto-merge after fresh writer/head/hold/queue readback.",
+    "production_acceptance": "Separate served-browser/deployment proof remains owed; not claimed here."
+  },
+  "procedure_pin": {
+    "repository": "mastermindx-market-intelligence/Mastermind",
+    "sha": "c065e56b4cb7c4487e51249795ca6ebf010e6ffa"
+  }
+}

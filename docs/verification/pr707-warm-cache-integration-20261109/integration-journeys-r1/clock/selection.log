@@ -1,0 +1,5 @@
+Listing tests:
+  [desktop] › chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu
+  [tablet] › chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu
+  [mobile] › chart-clock-isolation.spec.ts:4:5 › chart clock keeps ticking without interrupting navigation or an open settings menu
+Total: 3 tests in 1 file

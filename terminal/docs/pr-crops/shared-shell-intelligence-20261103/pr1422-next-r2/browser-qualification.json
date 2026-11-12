@@ -1,0 +1,2464 @@
+{
+  "proof": "LOCAL_FIXTURE_BROWSER_NOT_PRODUCTION",
+  "cspProof": "NOT_COVERED: isolated loopback authority fixture uses context-only bypassCSP; production headers unchanged",
+  "source": "c868d69224b577a4c298986fa89635123cc5498a",
+  "startedAt": "2026-11-10T10:33:01.873Z",
+  "cells": [],
+  "errors": [],
+  "externalRequests": [],
+  "fixtureWrites": [],
+  "passed": false,
+  "variant": "pr1422-next-r2",
+  "sourceFiles": {
+    "components/AppNav.tsx": "4913754572e028db52ff2f39dd35b333539168ae29d45d91197409065e01ab43",
+    "components/MobileNav.tsx": "fd2281846f9e3073bef347fdd81e1811b60720c72a66bb705b2652144769da7c",
+    "components/intelligence/IntelligenceNav.tsx": "ce0a67d3109aecdfad240ef758a655cadcaff7d32256495215c602454a1fde12",
+    "components/intelligence/SharedShellPrimaryNav.tsx": "9c05c8358cf4db74d17be97d2a36a74752b9d08edf4da145d328057d8f3b6aee",
+    "lib/shared-shell/intelligenceNavigation.ts": "fb44bf69240e01c72d7fdff584d1b5f63b6054d2f4730fc9f402f010a54624e2",
+    "components/intelligence/IntelligenceWorkspace.tsx": "2b057c14f2c68cbf0ef026d51c280e64e3f74b02b653b3dc1eea3a1ca0491d97",
+    "components/intelligence/IntelligenceToolWorkspace.tsx": "1eacf093668e81e9a7788aaefcc6c1c85059e5382015d66f5575255bc1e99b05",
+    "components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "d6b924cf87a69a627148a026c8d7aa1d24a812283cae08ecc67a50efa6438b7b",
+    "lib/sectorDepthReturn.ts": "fd8ee3f188cb2be12e5bb9f5c62071c664fe2898df8f7fa93c429b6c0e14459b",
+    "lib/sharedShellRoutes.generated.json": "f002aab49c28f98014d29ae11710db6a99a01c03b38985e9cb84ba6bba8a699e",
+    "app/(shell)/intelligence/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "app/(shell)/prophet/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "app/(shell)/sectors/loading.tsx": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+    "e2e/tools/qualify_shared_shell_intelligence.cjs": "a268a5e0387912be9bee6cc6fb3e74f4cab14f77e3e358c566bd03ff84272479"
+  },
+  "trackedWorkingChanges": [
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/desktop-en-expansion-retired.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/desktop-en-refreshed.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/desktop-zh-expansion-retired.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/desktop-zh-refreshed.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/mobile-en-refreshed.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/mobile-zh-refreshed.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/tablet-en-refreshed.png",
+    "terminal/docs/verification/portfolio-event-refresh-20261102/browser/tablet-zh-refreshed.png"
+  ],
+  "authReads": 432,
+  "authStatuses": {
+    "200": 432,
+    "401": 0
+  },
+  "outputOutsideProject": true,
+  "overviewNavigations": [
+    {
+      "cell": "1440-dark-en",
+      "documents": [
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence",
+        "http://127.0.0.1:34224/intelligence"
+      ]
+    }
+  ],
+  "reloadDiagnostics": {
+    "counts": {
+      "document:observed": 69,
+      "socket:opened": 68,
+      "framesent:browser-logs": 68,
+      "console:log": 237,
+      "framereceived:isrManifest": 172,
+      "framesent:turbopack-subscribe": 144,
+      "framereceived:turbopack-connected": 68,
+      "framereceived:observed": 136,
+      "framereceived:building": 68,
+      "framereceived:turbopack-message": 68,
+      "navigation:reload": 68,
+      "framereceived:built": 101,
+      "framesent:client-success": 168,
+      "framesent:client-hmr-latency": 101,
+      "console:warning": 2,
+      "socket:closed": 68,
+      "framereceived:sync": 67
+    },
+    "events": {
+      "document:observed": [
+        {
+          "at": 1794306795901,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "other"
+        },
+        {
+          "at": 1794306796671,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306799106,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306799670,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306800118,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306800631,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306800992,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306801845,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306802294,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306802798,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306803220,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        },
+        {
+          "at": 1794306803586,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/intelligence",
+          "initiator": "script",
+          "stack": [
+            {
+              "functionName": "restart",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2589,
+              "columnNumber": 35
+            },
+            {
+              "functionName": "handleApply",
+              "path": "/_next/static/chunks/turbopack-_11q0wbt2n0d9y._.js",
+              "lineNumber": 2109,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "triggerUpdate",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 473,
+              "columnNumber": 8
+            },
+            {
+              "functionName": "handleSocketMessage",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 421,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "",
+              "path": "/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsayzyj2p6._.js",
+              "lineNumber": 37,
+              "columnNumber": 28
+            },
+            {
+              "functionName": "processTurbopackMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16321,
+              "columnNumber": 12
+            },
+            {
+              "functionName": "processMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 15953,
+              "columnNumber": 16
+            },
+            {
+              "functionName": "handleMessage",
+              "path": "/_next/static/chunks/node_modules_next_dist_client_1165-soo5tfpf._.js",
+              "lineNumber": 16269,
+              "columnNumber": 51
+            }
+          ]
+        }
+      ],
+      "socket:opened": [
+        {
+          "at": 1794306796610,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306799068,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306799625,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306800081,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306800591,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306800966,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306801801,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306802253,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306802765,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803197,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803557,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803972,
+          "theme": "dark",
+          "locale": "en",
+          "type": "opened",
+          "path": "/_next/hmr"
+        }
+      ],
+      "framesent:browser-logs": [
+        {
+          "at": 1794306796629,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306799074,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306799628,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306800084,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306800598,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306800977,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306801803,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306802260,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306802768,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306803200,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306803562,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        },
+        {
+          "at": 1794306803975,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 4257,
+          "event": "browser-logs"
+        }
+      ],
+      "console:log": [
+        {
+          "at": 1794306796629,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306796670,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306796787,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 9ms"
+        },
+        {
+          "at": 1794306796898,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 9ms"
+        },
+        {
+          "at": 1794306799074,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306799105,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306799152,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306799242,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306799629,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306799668,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306799696,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306799760,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306800084,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306800116,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306800212,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 1ms"
+        },
+        {
+          "at": 1794306800598,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306800630,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306800671,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 6ms"
+        },
+        {
+          "at": 1794306800726,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 6ms"
+        },
+        {
+          "at": 1794306800977,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[HMR] connected"
+        },
+        {
+          "at": 1794306800990,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] rebuilding"
+        },
+        {
+          "at": 1794306801022,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306801139,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        },
+        {
+          "at": 1794306801330,
+          "theme": "dark",
+          "locale": "en",
+          "type": "log",
+          "text": "[Fast Refresh] done in 0ms"
+        }
+      ],
+      "framereceived:isrManifest": [
+        {
+          "at": 1794306796631,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306796851,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 65,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799074,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799169,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 65,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799391,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799634,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799714,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 65,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306799882,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306800087,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306800157,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 65,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306800368,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        },
+        {
+          "at": 1794306800598,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 87,
+          "type": "isrManifest"
+        }
+      ],
+      "framesent:turbopack-subscribe": [
+        {
+          "at": 1794306796637,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306796637,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794306796638,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306796638,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 105,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "0",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794306799097,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "1",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306799097,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "1",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794306799656,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "2",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306799656,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "2",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794306800111,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "3",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306800111,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "3",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        },
+        {
+          "at": 1794306800620,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "4",
+          "resourcePath": "static/chunks/_1anvha4rlo79g._.js"
+        },
+        {
+          "at": 1794306800620,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 90,
+          "type": "turbopack-subscribe",
+          "hmrVersion": "4",
+          "resourcePath": "static/chunks/_14bo6q7awalpe._.js"
+        }
+      ],
+      "framereceived:turbopack-connected": [
+        {
+          "at": 1794306796638,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "0",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306799074,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "1",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306799637,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "2",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306800087,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "3",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306800601,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "4",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306800978,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "5",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306801811,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "6",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306802273,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "7",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306802773,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "8",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306803200,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 85,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "9",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306803562,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 86,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "10",
+          "sessionId": 2954098050485035
+        },
+        {
+          "at": 1794306803975,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 86,
+          "type": "turbopack-connected",
+          "dataHmrVersion": "11",
+          "sessionId": 2954098050485035
+        }
+      ],
+      "framereceived:observed": [
+        {
+          "at": 1794306796654,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49215,
+          "binary": true
+        },
+        {
+          "at": 1794306796660,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794306799085,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49209,
+          "binary": true
+        },
+        {
+          "at": 1794306799085,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794306799644,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49277,
+          "binary": true
+        },
+        {
+          "at": 1794306799646,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794306800093,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49292,
+          "binary": true
+        },
+        {
+          "at": 1794306800094,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794306800609,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49291,
+          "binary": true
+        },
+        {
+          "at": 1794306800610,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        },
+        {
+          "at": 1794306800980,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 49280,
+          "binary": true
+        },
+        {
+          "at": 1794306800980,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 23,
+          "binary": true
+        }
+      ],
+      "framereceived:building": [
+        {
+          "at": 1794306796661,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306799105,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306799667,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306800114,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306800624,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306800989,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306801837,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306802286,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306802794,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306803215,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306803582,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        },
+        {
+          "at": 1794306803994,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 19,
+          "type": "building"
+        }
+      ],
+      "framereceived:turbopack-message": [
+        {
+          "at": 1794306796670,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "1"
+        },
+        {
+          "at": 1794306799105,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "2"
+        },
+        {
+          "at": 1794306799667,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "3"
+        },
+        {
+          "at": 1794306800116,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "4"
+        },
+        {
+          "at": 1794306800630,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "5"
+        },
+        {
+          "at": 1794306800990,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "6"
+        },
+        {
+          "at": 1794306801844,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "7"
+        },
+        {
+          "at": 1794306802292,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "8"
+        },
+        {
+          "at": 1794306802798,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 173,
+          "type": "turbopack-message",
+          "hmrVersion": "9"
+        },
+        {
+          "at": 1794306803219,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 174,
+          "type": "turbopack-message",
+          "hmrVersion": "10"
+        },
+        {
+          "at": 1794306803585,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 174,
+          "type": "turbopack-message",
+          "hmrVersion": "11"
+        },
+        {
+          "at": 1794306803999,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 174,
+          "type": "turbopack-message",
+          "hmrVersion": "12"
+        }
+      ],
+      "navigation:reload": [
+        {
+          "at": 1794306796671,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306799105,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306799668,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306800116,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306800631,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306800991,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306801845,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306802293,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306802798,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306803220,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306803586,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306803999,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306804310,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306804677,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306805116,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306805814,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306806364,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306806905,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306807379,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        },
+        {
+          "at": 1794306807944,
+          "theme": "dark",
+          "locale": "en",
+          "reason": "reload",
+          "path": "/intelligence",
+          "frameId": "12DA2D6BD9CEB23C737901C91399128D"
+        }
+      ],
+      "framereceived:built": [
+        {
+          "at": 1794306796787,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306796897,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306799152,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306799242,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306799696,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306799760,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306800212,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306800671,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306800726,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306801022,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306801113,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        },
+        {
+          "at": 1794306801330,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 53,
+          "type": "built"
+        }
+      ],
+      "framesent:client-success": [
+        {
+          "at": 1794306796787,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306796897,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799087,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799152,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799242,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799646,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799696,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306799760,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306800094,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306800212,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306800611,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        },
+        {
+          "at": 1794306800671,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 51,
+          "event": "client-success"
+        }
+      ],
+      "framesent:client-hmr-latency": [
+        {
+          "at": 1794306796787,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306796898,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306799152,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306799242,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306799696,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306799760,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306800212,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306800671,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306800726,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306801022,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306801139,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        },
+        {
+          "at": 1794306801330,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 144,
+          "event": "client-hmr-latency"
+        }
+      ],
+      "console:warning": [
+        {
+          "at": 1794306796851,
+          "theme": "dark",
+          "locale": "en",
+          "type": "warning",
+          "text": "[.WebGL-0x104005c6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "at": 1794306799812,
+          "theme": "dark",
+          "locale": "en",
+          "type": "warning",
+          "text": "[.WebGL-0x104005bea00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        }
+      ],
+      "socket:closed": [
+        {
+          "at": 1794306798607,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306799392,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306799888,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306800379,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306800841,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306801479,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306802051,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306802550,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803040,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803297,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306803722,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        },
+        {
+          "at": 1794306804093,
+          "theme": "dark",
+          "locale": "en",
+          "type": "closed",
+          "path": "/_next/hmr"
+        }
+      ],
+      "framereceived:sync": [
+        {
+          "at": 1794306799087,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306799646,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306800094,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306800611,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306800980,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306801821,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306802275,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306802783,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306803205,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306803572,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306803980,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        },
+        {
+          "at": 1794306804291,
+          "theme": "dark",
+          "locale": "en",
+          "path": "/_next/hmr",
+          "bytes": 206,
+          "type": "sync"
+        }
+      ]
+    },
+    "dropped": {
+      "framereceived:isrManifest": 160,
+      "framesent:client-success": 156,
+      "framesent:turbopack-subscribe": 132,
+      "console:log": 213,
+      "framereceived:observed": 124,
+      "framereceived:built": 89,
+      "framesent:client-hmr-latency": 89,
+      "document:observed": 57,
+      "socket:opened": 56,
+      "framesent:browser-logs": 56,
+      "framereceived:turbopack-connected": 56,
+      "framereceived:building": 56,
+      "framereceived:turbopack-message": 56,
+      "socket:closed": 56,
+      "framereceived:sync": 55,
+      "navigation:reload": 48
+    }
+  },
+  "failure": "Error: expect(locator).toHaveAttribute(expected) failed\n\nLocator: locator('[data-intelligence-source=\"macro\"]')\nExpected: \"ready\"\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 30000ms\n  - waiting for locator('[data-intelligence-source=\"macro\"]')\n    26 × waiting for\" http://127.0.0.1:34224/intelligence\" navigation to finish...\n       - navigated to \"http://127.0.0.1:34224/intelligence\"\n",
+  "failureBody": "Skip to content\nMASTERMIND\nBETA\nR\nToday\nDiscover\nAnalysis\nMonitor\nResearch\nPortfolio\nMARKET INTELLIGENCE\nOverview\nMacro Dashboard\nProphet\nSector Cycles\nSector Intelligence\nMARKETS\nUS\nUnited States\nCN\nChina\nHK\nHong Kong\nCA\nCanada\nINTL\nInternational\nAll tools\nMastermind AI\nMarket Intelligence\n\nStart with the market backdrop, inspect sector cycles, then investigate a company or plan. Each reading keeps its own source and date.\n\nOverview\nMacro Dashboard\nProphet\nSector Cycles\nSector Intelligence\n\nVerifying your account…\n\nResearch context only. The overview does not combine sources into a trading signal or authorize a trade.",
+  "ownedChildClosed": true,
+  "childClose": {
+    "code": 0,
+    "signal": null
+  },
+  "fixtureClosed": true,
+  "finishedAt": "2026-11-10T10:33:47.082Z"
+}

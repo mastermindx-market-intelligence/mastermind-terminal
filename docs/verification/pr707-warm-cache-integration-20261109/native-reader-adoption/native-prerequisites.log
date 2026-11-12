@@ -1,0 +1,17 @@
+/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:149
+        throw new Error("Options/Exposure evidence: " + code);
+        ^
+
+Error: Options/Exposure evidence: WARM_NATIVE_LIFECYCLE:gex
+    at check (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:149:15)
+    at readWarmNativeDescriptor (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:1515:5)
+    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:1540:24
+    at Array.map (<anonymous>)
+    at readWarmNativePair (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:1539:46)
+    at Object.verifyExpiryIntegrationNativePrerequisites (/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/e2e/tools/optionsExposureEvidence.cjs:1680:9)
+    at [eval]:1:138
+    at runScriptInThisContext (node:internal/vm:209:10)
+    at node:internal/process/execution:446:12
+    at [eval]-wrapper:6:24
+
+Node.js v22.23.4

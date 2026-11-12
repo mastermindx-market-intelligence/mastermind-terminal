@@ -1,0 +1,27 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "at": "2026-11-12T00:34:04.572630+00:00",
+  "candidateSha256": "5271dcc165e8e23991df7616dd3d98ce48adab88b40079eccfefe1e11d344e23",
+  "changes_after_native_capture": [
+    "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts"
+  ],
+  "consumer_map_changes": [],
+  "nativeDescriptorPins": {
+    "eod": "eff4608e93f91459040c703419206ab4507e2af0b4e4525f3b4400da39eb696b",
+    "gex": "5ea7f88044ead844cb93cde0bf986b75b8b89cf6ef8002a7cf5792344144f37e"
+  },
+  "nativeSnapshotSha256": "11137db4ccd0bac85dbc84232fb43885f3752192351ba3e6dae7dbf99a290281",
+  "native_source_files": 4528,
+  "readerAfterSha256": "f9c3a3a877e920dd9455f1aa5d2f1a2e4196feccf2d3a97ca35c99877938782c",
+  "readerBeforeSha256": "753ff1d32da23b7e0b95268aeb20b08b2e6934f6a48cdfda08199bdb38749972",
+  "schema": "terminal_pr707_native_reader_adoption.v1",
+  "state": "NATIVE_PINS_INSTALLED_BROWSER_QUALIFICATION_STILL_CLOSED",
+  "typesAfterSha256": "32a6e9dba87d932f862a416f7c8ef67d542d4c0a729db65b7ac639810660f022",
+  "typesBeforeSha256": "1af14a94c149698c13f57cc9152a230ea5dd60f84145cfc9e58b02a4bbb11c4a"
+}

@@ -3,25 +3,28 @@
 **The live site (`app.mastermind-x.com`) is GIT-GATED. `origin/master` is the single source of truth.**
 
 As of 2026-07-09 the VPS build script (`/opt/terminal/terminal-build.sh`) builds **only `origin/master`**.
-Editing files under `/opt/terminal/terminal` directly (scp/rsync of a working tree) **does nothing** —
-the build ignores the working tree and overwrites it with `master` on every deploy. This exists because
-sessions were rsync'ing working trees straight to the box and silently overwriting each other's live work.
+Direct edits under `/opt/terminal/terminal` are not a deployment and can make the canonical
+source preflight refuse. Publish changes through protected `master`; do not scp or rsync a working
+tree over the live source.
 
 ## To ship a change — the ONLY supported flow
 
 1. **Branch + commit** your change (work in a git checkout, not on the box).
 2. **Open a PR** to `master` on `github.com/mastermindx-market-intelligence/mastermind-terminal`.
 3. **Merge to `master`** (get it reviewed / conflicts resolved against everyone else's merged work).
-4. **Deploy** — run the build on the VPS (it fetches + builds `origin/master`, zero-downtime, auto-rollback):
+4. **Deploy through the existing release owner.** The `vps-main-deploy` workflow resolves the
+   protected target and uses the shared build lock. If an attended manual invocation is needed,
+   reconcile any active or interrupted attempt first and pass the exact qualified target explicitly
+   (replace `FULL_PROTECTED_40_HEX_SHA` with that commit):
 
    ```sh
-   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh'
+   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh --target production --target-sha FULL_PROTECTED_40_HEX_SHA'
    ```
 
-That's it. Because everyone deploys the same committed `master`, nobody's work can be reverted by
-another session's deploy.
+A merge, running workflow, or successful build alone is not installed-generation acceptance.
+Read the release owner's final identity and recovery receipts.
 
-## Canonical source preflight — W2A status
+## Canonical source preflight
 
 `ops/terminal_release_preflight.py` plus
 `ops/terminal_source_audit.production.json` now define the reviewed read-only
@@ -30,16 +33,19 @@ requires the live marker, clean canonical checkout, accepted ref, all applicatio
 and runtime-code projections, and both installed wrappers to agree on one SHA. It
 publishes an immutable receipt and mutates no source, service, build, or data.
 
-**The incumbent `terminal-build.sh` does not call this gate yet.** W2A must first
-merge and produce a `CLEAN` production receipt. W2B then owns binding the gate to
-exact-target build/deploy/rollback behavior. Until that integration lands, do not
-claim that running the build command below has produced a W2A preflight receipt.
+The incumbent `terminal-build.sh` runs this preflight before fetch, reset, clean, build or
+service effects. Target and storage validation precede the shared build lock; under that lock,
+memory admission runs before the owner writes a preflight receipt or changes source. A memory
+refusal therefore produces no new `CLEAN` preflight receipt. Starting a workflow or acquiring
+the lock does not establish preflight or deployment acceptance.
 See [`ops/TERMINAL_RELEASE_PREFLIGHT.md`](ops/TERMINAL_RELEASE_PREFLIGHT.md).
 
 ## What the build script does (`terminal-build.sh`)
 
 `git fetch && reset --hard origin/master` in `/opt/terminal/.gitsrc` (a read-only-deploy-key checkout)
-→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`, `public/data`)
+→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`)
+→ stage `public/data`: production gets only the commit's git-tracked fixtures (`git archive HEAD -- terminal/public/data`,
+#1442), and beta gets its own beta-owned tree; the live production data tree is never in the build
 → `next build` in the stage → verify `BUILD_ID` → **atomic-swap `.next`** (live site stays up throughout;
 auto-rolls-back if health fails) → **runtime-code sync** (cron/systemd scripts, below) → sync
 `/opt/terminal/terminal` source back to `master`.
@@ -51,8 +57,10 @@ box copy in place.
 ## What a deploy ships — exact paths
 
 One `terminal-build.sh` run deploys **all** of the following from the same `origin/master` SHA.
-If the deploy fails (build error or health check), **nothing** moves — app and runtime code both
-stay on the previous state.
+A failed run is not proof that nothing changed. Read the owner's admission, recovery and acceptance
+verdicts: an early memory refusal precedes source and build effects, while a later failure may require
+restoration of the canonical checkout, dependency inputs, build and deployment marker. Runtime
+overlays have their own later effects; their state cannot be inferred from the workflow conclusion.
 
 | repo path | deployed to | how |
 |---|---|---|
@@ -79,6 +87,63 @@ host-owned runtime-data class: Git contains reviewed fixtures/snapshots under th
 live tree is continuously refreshed. The policy pins the exact Git tree shape, validates live metadata,
 and never treats mutable data content as implementation source. None of these exceptions permits an
 `rsync --delete` over host-owned runtime state.
+
+### When the installed builder is itself the blocker (self-update deadlock)
+
+Both the `vps-main-deploy` workflow and the manual command above execute the **installed** copy at
+`/opt/terminal/terminal-build.sh`, and only step 8 of a **successful production** deploy reinstalls it
+from the just-deployed generation ("effective next run"). Beta deploys never install it
+(`INSTALLS_GLOBAL_RUNTIME` is production-only), so beta traffic alone never advances the box copy.
+The production source-audit policy additionally pins that copy: the `terminal-build-wrapper` mapping
+compares `/opt/terminal/terminal-build.sh` **byte-exact** against the accepted generation's
+`ops/terminal-build.sh` blob, so an out-of-band replacement of the box copy fails the next
+current-generation preflight with `TRACKED_MODIFIED` before admission ever runs.
+
+That coupling can deadlock when a merged master change to the builder is *required* for the next
+production admission to pass. It happened once: the operator-installed `hardening.conf` /
+`storage.conf` `ExecStartPre` guards are refused outright by the pre-#1328 installed builder
+(`unsupported-service-launch-hook`), while master since #1328–#1340 admits exactly that pinned pair —
+so every `vps-main-deploy` run since the workflow's first execution (30/30 failures,
+2026-11-09T11:11Z → 2026-11-10T02:55Z; e.g.
+[run 42743708853](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42743708853))
+was refused by a box copy that predated the fix it needed.
+
+To identify which builder a failed run actually executed: the `source preflight CLEAN: accepted=<sha>`
+log line names the deployed generation, and the installed builder is byte-exact that generation's
+`git show <accepted>:ops/terminal-build.sh`. Read the refusal logic from that revision — not from
+current master — before changing any source.
+
+Breaking the deadlock (one-time release-owner action; never edit the box copy in place): verify a
+candidate copy of current master's `ops/terminal-build.sh` against its git blob, then run it **from a
+staging path** on the VPS with `--target production --target-sha <current protected master>`. The
+staging run performs the ordinary deploy end-to-end: the current-generation preflight still audits the
+untouched installed copy (CLEAN), the new admission code qualifies the pinned guards, and the
+deploy's own step 8 re-pins `/opt/terminal/terminal-build.sh` in-band. After that single run the
+workflow is self-sustaining again.
+
+Start that staging run detached (`nohup setsid bash <staging copy> --target production --target-sha
+<sha> > <log> 2>&1 < /dev/null &`) so a dropped SSH session cannot signal it mid-deploy, and confirm
+the `identity verified: intended=<sha> marker=<sha>` and `installed ops/terminal-build.sh` log lines
+before you call it done.
+
+How that incident was resolved (2026-11-10). The first staging runs of master's builder got past
+`unsupported-service-launch-hook`, but the production host lacked the prerequisites listed below, so
+each run stopped at the next refusal. Each of those refusals came before mutation, and production kept
+serving its last good generation. Once the prerequisites were in place, `next build` was OOM-killed
+until #1442 removed the live data tree from the build stage. The staging run of master `7f7f3698`
+then deployed at 20:57Z, and its step 8 re-pinned the box copy.
+
+#### Production host prerequisites checked by candidate admission
+
+These are host facts, not source, so a fresh or rebuilt production host must provide them before
+its first deploy. Each refusal names its code in the deploy log.
+
+| Requirement | Refusal when missing |
+|---|---|
+| Every directory on systemd's manager `PATH` exists and is owned `root:root`. Ubuntu's default manager `PATH` includes `/snap/bin`; on a host without snapd, create it as an empty `root:root` `0755` directory. | `safety-hook-manager-path-unreadable` / `safety-hook-manager-path-untrusted` |
+| The production unit declares `INVESTIGATION_API_ADMISSION=closed` exactly once and nowhere else. Use a drop-in such as `/etc/systemd/system/terminal.service.d/investigation-admission.conf` containing `[Service]` and `Environment=INVESTIGATION_API_ADMISSION=closed`, then `systemctl daemon-reload`; no restart is needed. Do not put the key in `.env`/`.env.local` or the manager environment. | `missing-explicit-closed`, `conflicting-admission-declaration`, `dotenv-admission-conflict`, `admission-key-in-manager-environment` |
+| `terminal/.env` and `terminal/.env.local`, where present, are regular files owned by the deploying user (root) and not group- or other-writable. A file copied in by another account keeps that account's owner; `chown root:root` it. Values are never read into the log. | `dotenv-foreign-owner`, `dotenv-group-or-other-writable`, `dotenv-not-regular` |
+| Build memory admission: `MemAvailable + SwapFree` from `/proc/meminfo` must meet the default **4096 MiB** floor (`BUILD_NODE_HEAP_MB=3072` plus 1024 MiB). This is an early capacity check, not a reservation or guarantee against a later OOM. Restore capacity and requalify through the same release owner; do not lower or disable the guard to replay a refusal. | Exit **75**, with `reason=insufficient-build-memory` below the floor or `reason=build-memory-unmeasurable` when the values cannot be read or parsed. Admission runs under the shared lock before preflight receipt, Git, dependency-install, build or swap effects. Inspect recorded capacity and process/lock ownership before retrying; this refusal itself requires no source or dependency rollback. |
 
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
@@ -226,28 +291,21 @@ The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhoo
 - Secrets live in `/opt/terminal/.env` / `terminal/.env.local` on the box (gitignored) — preserved across deploys.
 - `next.config.ts` sets `typescript.ignoreBuildErrors` + `eslint.ignoreDuringBuilds`, so the build won't
   catch type errors — run `tsc --noEmit` yourself before merging.
-- **Rollback restores the identity and the build together.** `.deployment-id` and the `.next` it names are
-  one deploy generation. Before the new marker is installed the previous one is snapshotted to
-  `.deployment-id.bak` (`cp -p`, exact bytes and metadata) — or `.deployment-id.absent` records that there
-  was none. **Every** failure after that point restores `.next.bak` **and** the marker as a pair: a failed
-  `.next` swap, a failed `systemctl restart`, or a failed health/identity check. They all route through one
-  guarded exit, so none of them can abort the script past rollback — the script runs under `set -e`, and a
-  bare failing command used to terminate the deploy with the marker already advanced. The failed build is
-  kept at `.next.broken` for diagnosis.
-  Two cases do **not** produce a clean rollback, and the script says so instead of pretending otherwise:
-  if the marker record is gone, or if the swap already happened and there is **no** `.next.bak` to return
-  to (a bootstrap deploy, or a previous run that died between the marker install and the swap). Both exit
-  non-zero and report the identity `UNRESOLVED`. In the second case the build that just failed its health
-  check is still live — treat the box as serving nothing provable until reconciled by hand.
-  Whenever the live `.next` was moved the service is restarted, **including** on the unresolved path:
-  `next start` resolves `.next/*` at request time, so a server left bound to a renamed directory serves
-  one build's chunks against another build's manifests.
-- **To force a rollback by hand:** stop `terminal`, `mv .next .next.broken && mv .next.bak .next`, then set
-  `.deployment-id` to the SHA that build was deployed from and restart. Note the rollback snapshot is
-  **not** available for this — `.deployment-id.bak` is purged on every successful deploy — so recover the
-  previous SHA from `git -C /opt/terminal/.gitsrc rev-parse HEAD~1` or the prior deploy's log line.
-  Swapping `.next.bak` back while leaving `.deployment-id` on the new commit is exactly the incoherent
-  state this machinery exists to prevent.
+- **Rollback restores a qualified generation, including dependencies.** Before production installs
+  changed dependencies, the owner snapshots `package.json`, `package-lock.json` and the original
+  `node_modules` tree. On a handled pre-swap failure, exit cleanup restores those inputs. On a
+  post-swap failure, generation rollback restores the build and marker, then restores dependency
+  inputs before any restart. The owner verifies the saved tree before returning the package files,
+  so a failed tree restore cannot falsely present accepted package files beside unqualified
+  dependencies. Successful acceptance discards the replaced generation's dependency snapshot.
+  If any restoration leg is incomplete, preserve the unresolved snapshot and recovery evidence.
+  The owner contains the selected service instead of treating the previous generation as safely
+  restored. Reactivation also requires prior identity and applicable closed-configuration checks;
+  a restart is not automatic merely because `.next.bak` exists. Beta uses its own transaction
+  and does not use the production dependency snapshot.
+- **For attended recovery, reconcile the exact accepted generation and the owner's recovery record**
+  before the next release attempt, including build, marker and dependency identity. Do not restore
+  only the two package files, delete an unresolved snapshot, or guess the prior SHA from `HEAD~1`.
 - **Verifying a deploy names three identities:** the intended `origin/master` SHA, the live
   `/opt/terminal/terminal/.deployment-id`, and the live `/opt/terminal/terminal/.next/BUILD_ID`. The
   deploy fails closed unless all three agree.

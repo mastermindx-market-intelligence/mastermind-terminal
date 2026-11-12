@@ -1,0 +1,70 @@
+{
+  "started_at": "2026-11-10T13:12:21.694851+00:00",
+  "steps": [
+    {
+      "action": "disable-owned-auto",
+      "state": "STARTED",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "action": "remove-owned-merge-on-green",
+      "state": "STARTED",
+      "exit_code": 0,
+      "stdout": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1422\n",
+      "stderr": ""
+    }
+  ],
+  "before": {
+    "headRefOid": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+    "isDraft": false,
+    "state": "OPEN",
+    "autoMergeRequest": {
+      "enabledAt": "2026-11-10T12:16:12Z"
+    },
+    "mergeQueueEntry": null,
+    "labels": {
+      "nodes": [
+        {
+          "name": "merge-on-green"
+        },
+        {
+          "name": "merge-blocked"
+        }
+      ]
+    }
+  },
+  "after_auto": {
+    "headRefOid": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+    "isDraft": false,
+    "state": "OPEN",
+    "autoMergeRequest": null,
+    "mergeQueueEntry": null,
+    "labels": {
+      "nodes": [
+        {
+          "name": "merge-on-green"
+        },
+        {
+          "name": "merge-blocked"
+        }
+      ]
+    }
+  },
+  "after": {
+    "headRefOid": "1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df",
+    "isDraft": false,
+    "state": "OPEN",
+    "autoMergeRequest": null,
+    "mergeQueueEntry": null,
+    "labels": {
+      "nodes": [
+        {
+          "name": "merge-blocked"
+        }
+      ]
+    }
+  },
+  "effect": "APPLIED_AND_READ_BACK"
+}

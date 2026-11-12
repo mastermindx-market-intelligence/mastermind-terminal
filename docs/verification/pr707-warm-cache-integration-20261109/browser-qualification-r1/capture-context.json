@@ -1,0 +1,22 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "branchHead": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "checkoutCommit": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "checkoutTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+  "indexTreeAtEnd": "230348fb24131907d559b48e0516ffbc268537d0",
+  "indexTreeAtStart": "230348fb24131907d559b48e0516ffbc268537d0",
+  "integratedSourceHeads": [
+    "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "operation": "terminal-pr707-warm-cache-browser-current-20261111",
+  "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+  "sourceIdentity": "stable-composed-working-tree"
+}

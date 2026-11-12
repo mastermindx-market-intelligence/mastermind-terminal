@@ -1,0 +1,10 @@
+{
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/accountLifecycleRoutes.test.ts",
+    "--reporter=dot"
+  ],
+  "log_sha256": "c67148ba3d98160f2304112314abc02885793009273d5a0507c7c2009870dd5b"
+}

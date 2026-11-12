@@ -1,0 +1,44 @@
+{
+  "artifacts": {
+    "browser-artifacts/picker/cached-while-refreshing.png": "adf837b8acb86f44d8ef92c4389d6f0f4c64e861e62775104f477643d6c99be3",
+    "browser-artifacts/picker/corrected-after-refresh.png": "922cef2eb0845239e199b9b04b82571f33cc0f255e0ebec5ed7594d712b5f310",
+    "browser-artifacts/playwright/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "browser-artifacts/playwright/marker-tooltip-Gap-Zones-s-d30f1-scillator-panes-are-present-desktop/trace.zip": "0c15fef9197efe16428fb0e6da3fc12c48e5c3d2445c8f9c5a053bac5bc57224",
+    "browser-artifacts/playwright/marker-tooltip-signals-and-cba85-coped-to-a-moved-price-pane-desktop/trace.zip": "36bd05e7e7f5cf41bce2279eb2860e99db32dc7468cca1b1abafc26060b54f18",
+    "browser-artifacts/playwright/warm-symbol-picker-a-cache-53d7d-eives-the-corrected-company-desktop/trace.zip": "f43ace1ba082a3550ba6f785852801e091628c3d6b35fdbb3ed1e3912cb060af"
+  },
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/warm-symbol-picker.spec.ts",
+    "e2e/marker-tooltip.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/desktop/browser-artifacts/playwright",
+    "--grep",
+    "(?:a\\ cached\\ symbol\\ picker\\ stays\\ usable\\ during\\ refresh\\ and\\ receives\\ the\\ corrected\\ company|signals\\ and\\ every\\ price\\ overlay\\ stay\\ scoped\\ to\\ a\\ moved\\ price\\ pane|Gap\\ Zones\\ stays\\ clipped\\ to\\ price\\ when\\ oscillator\\ panes\\ are\\ present)$",
+    "--reporter=list,json"
+  ],
+  "completedAt": "2026-11-12T01:18:32.104822+00:00",
+  "exit": 0,
+  "expectedPassed": [
+    "desktop|Gap Zones stays clipped to price when oscillator panes are present",
+    "desktop|a cached symbol picker stays usable during refresh and receives the corrected company",
+    "desktop|signals and every price overlay stay scoped to a moved price pane"
+  ],
+  "failed": 0,
+  "flaky": 0,
+  "lifecycleSha256": "ebcce7d20309fa37047b1aaf3edb5c675ba26c6fd11009edfddc16779cbb7423",
+  "ownedServerStopped": true,
+  "passed": 3,
+  "playwrightPid": 58074,
+  "port": 3908,
+  "reportSha256": "62f6100d1cc6538757c442b9959bcd7ce2f6dec95b821a69d4c60ce4b0788f54",
+  "retries": 0,
+  "seconds": 38.723,
+  "skipped": 0,
+  "sourceStable": true,
+  "startedAt": "2026-11-12T01:17:53.116094+00:00"
+}

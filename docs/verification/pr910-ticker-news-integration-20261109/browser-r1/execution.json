@@ -1,0 +1,416 @@
+{
+  "artifacts": {
+    ".last-run.json": "ccf6d3fc41fd2d53efa361415d2eb40453bccdcbeaa4d5f966d8b56116564632",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/error-context.md": "33bb19cf3a244245d330dffa9caee0ba5932b04d439964cff631868be8c9633e",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/test-failed-1.png": "5033815ffe879ffc974f90a5576c876be83f8d6a1e1651260b6457ca6d4ea7dd",
+    "ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/trace.zip": "3868d1572797e6635d9a14d094b385d37b17c741a7475002056b4bed7393ce3e"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot renders without rail overflow"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "grouped reports expand inside the real rail without leaving ticker context"
+    },
+    {
+      "expectedStatus": "skipped",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "status": "skipped",
+      "title": "MSFT grouped detail starts while an Apple story response is still held"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "editorial views filter before display and keep grouped details in the selected context"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "ticker-news.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/ticker-news.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/test-results/pr910-browser-r1"
+  ],
+  "completedAt": "2026-11-09T17:30:24.293426+00:00",
+  "exit": 1,
+  "expectedExistingSkips": 7,
+  "expectedImages": [
+    "desktop-en-dark.png",
+    "desktop-zh-dark.png",
+    "mobile-en-dark.png",
+    "mobile-zh-dark.png",
+    "tablet-en-dark.png",
+    "tablet-zh-dark.png",
+    "unavailable-desktop-en-dark.png",
+    "unavailable-desktop-zh-dark.png",
+    "unavailable-mobile-en-dark.png",
+    "unavailable-mobile-zh-dark.png"
+  ],
+  "expectedPassed": 14,
+  "head": "ed396f371a86c029ccfd26b67dc9fc981d49f35d",
+  "images": {
+    "desktop-en-dark.png": {
+      "bytes": 31255,
+      "modifiedDuringCapture": false,
+      "pngHeight": 418,
+      "pngWidth": 344,
+      "sha256": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0"
+    },
+    "desktop-zh-dark.png": {
+      "bytes": 29621,
+      "modifiedDuringCapture": false,
+      "pngHeight": 418,
+      "pngWidth": 344,
+      "sha256": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d"
+    },
+    "mobile-en-dark.png": {
+      "bytes": 31522,
+      "modifiedDuringCapture": false,
+      "pngHeight": 407,
+      "pngWidth": 390,
+      "sha256": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f"
+    },
+    "mobile-zh-dark.png": {
+      "bytes": 31423,
+      "modifiedDuringCapture": false,
+      "pngHeight": 407,
+      "pngWidth": 390,
+      "sha256": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a"
+    },
+    "tablet-en-dark.png": {
+      "bytes": 33051,
+      "modifiedDuringCapture": false,
+      "pngHeight": 406,
+      "pngWidth": 820,
+      "sha256": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f"
+    },
+    "tablet-zh-dark.png": {
+      "bytes": 32918,
+      "modifiedDuringCapture": false,
+      "pngHeight": 406,
+      "pngWidth": 820,
+      "sha256": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68"
+    },
+    "unavailable-desktop-en-dark.png": {
+      "bytes": 9044,
+      "modifiedDuringCapture": true,
+      "pngHeight": 395,
+      "pngWidth": 344,
+      "sha256": "dd10b1aba263b1e321b81d8412a411e55a9bd7f225d0f38f49992228929d5002"
+    },
+    "unavailable-desktop-zh-dark.png": {
+      "bytes": 7570,
+      "modifiedDuringCapture": true,
+      "pngHeight": 395,
+      "pngWidth": 344,
+      "sha256": "05e6fd90e60c8c2fc90706cf8ec09bea84e4e65c25812dc66b10a9986995bf26"
+    },
+    "unavailable-mobile-en-dark.png": {
+      "bytes": 8129,
+      "modifiedDuringCapture": true,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "sha256": "771648561ad3e95496c44e305a6eec9e834f4b20f7316fb76ccf5060fc9cf7f0"
+    },
+    "unavailable-mobile-zh-dark.png": {
+      "bytes": 6790,
+      "modifiedDuringCapture": true,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "sha256": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1"
+    }
+  },
+  "invalidSelectorProofSha256": "8ffc8e6dc8a38d4e493ce1836bd8faf604ecd28850a497d20cc3b2b2750574f9",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr910-ticker-news-integration-20261109/ticker-news-browser-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T17:30:24.164757+00:00",
+    "sha256": "8bae858ba74c88b64f1a6f4abcfa841cef35fe03a3a35296c8adcd24eecb7154"
+  },
+  "logSha256": "5f8e42f0d58c9d0ab784b9cc34a2bb92d7a82cf2a4f8ecc0dd785b7e810cf1c8",
+  "manifestUnchangedUntilBinding": true,
+  "newerPacketFiles": 103,
+  "newerPacketsUnchanged": true,
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3896,
+  "priorManifestSha256": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "reportErrors": [],
+  "schema": "terminal_pr910_full_current_news_capture.v1",
+  "seconds": 350.11,
+  "sourceEntries": 1938,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:24:28.270396+00:00",
+  "state": "FAILED",
+  "stats": {
+    "duration": 349658.137,
+    "expected": 13,
+    "flaky": 0,
+    "skipped": 7,
+    "startTime": "2026-11-09T17:24:28.630Z",
+    "unexpected": 1
+  }
+}

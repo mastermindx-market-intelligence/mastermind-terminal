@@ -1,0 +1,41 @@
+{
+  "checks": [
+    {
+      "name": "eslint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/options-flowdesk-chainheat-load-failure.spec.ts"
+      ],
+      "startedAt": "2026-11-11T07:25:22.068039+00:00",
+      "seconds": 369.819,
+      "exitCode": 0
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "startedAt": "2026-11-11T07:31:31.888607+00:00",
+      "seconds": 1.233,
+      "exitCode": 0
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "startedAt": "2026-11-11T07:31:33.121910+00:00",
+      "seconds": 227.021,
+      "exitCode": 0
+    }
+  ],
+  "sourceStable": true,
+  "trackedChanges": [
+    "terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "actualGit": {
+    "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+    "headTree": "28e452fbc0a1c60fb00e9de6b79e1790b69d873e",
+    "indexTree": "230348fb24131907d559b48e0516ffbc268537d0",
+    "mergeHead": "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  },
+  "compositionReceiptSha256": "ff5f2a343bed2a56c43d5a7444684bca3e54741ac0e7ef37d026a1fd994b2116",
+  "driver": "docs/verification/pr645-expiry-successor-20261110/native-driver.cjs",
+  "driverSha256": "4051bcca83ff0a6bd884930c500e35278ba4fb609b3e741e5558fda24fe40a58",
+  "excludedNonregularPaths": [
+    "macro-site-link"
+  ],
+  "initialLifecycle": {
+    "eod": {
+      "listenerReturncode": 1,
+      "listenerStderr": "",
+      "listeners": "",
+      "nextLockHandlesExit": 1,
+      "nextLockHandlesStderr": "lsof: status error on /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/.next/dev/lock: No such file or directory\nlsof 4.91\n latest revision: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/\n latest FAQ: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/FAQ\n latest man page: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_man\n usage: [-?abhlnNoOPRtUvVX] [+|-c c] [+|-d s] [+D D] [+|-f[cgG]]\n [-F [f]] [-g [s]] [-i [i]] [+|-L [l]] [+|-M] [-o [o]] [-p s]\n [+|-r [t]] [-s [p:s]] [-S [t]] [-T [t]] [-u s] [+|-w] [-x [fl]] [--] [names]\nUse the ``-h'' option to get more help information.\n",
+      "nextLockOpenHandles": "",
+      "nextLockPathExists": false,
+      "port": 3566,
+      "workspaceCwdHolders": []
+    },
+    "gex": {
+      "listenerReturncode": 1,
+      "listenerStderr": "",
+      "listeners": "",
+      "nextLockHandlesExit": 1,
+      "nextLockHandlesStderr": "lsof: status error on /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/.next/dev/lock: No such file or directory\nlsof 4.91\n latest revision: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/\n latest FAQ: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/FAQ\n latest man page: ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_man\n usage: [-?abhlnNoOPRtUvVX] [+|-c c] [+|-d s] [+D D] [+|-f[cgG]]\n [-F [f]] [-g [s]] [-i [i]] [+|-L [l]] [+|-M] [-o [o]] [-p s]\n [+|-r [t]] [-s [p:s]] [-S [t]] [-T [t]] [-u s] [+|-w] [-x [fl]] [--] [names]\nUse the ``-h'' option to get more help information.\n",
+      "nextLockOpenHandles": "",
+      "nextLockPathExists": false,
+      "port": 3564,
+      "workspaceCwdHolders": []
+    }
+  },
+  "integratedSourceHeads": [
+    "0fd27ff1dfb7e031457a4ffe4c05458587c4eb81",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "operation": "terminal-pr707-warm-cache-native-current-20261111",
+  "publishedBasis": "0b48ac7f699b99fce10fd76d64d7c278cd23e9d2",
+  "sourceFiles": 4528,
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceLawPin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178"
+}

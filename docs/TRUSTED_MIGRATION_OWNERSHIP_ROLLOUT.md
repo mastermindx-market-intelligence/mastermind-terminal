@@ -224,6 +224,98 @@ need their own evidence. Do not repeat completed bootstrap effects.
 8. A subsequent new candidate's normal head/group checks and release are still
    owed. There is no authorization here to rearm or retry PR1290.
 
+## Recovery entry (dormant, same publisher)
+
+`trusted-migration-ownership-recovery.yml` is the manually invoked recovery
+entry of the SAME ownership publisher, required by rollout step 4. It is a
+separate `workflow_dispatch` workflow, because a switch inside the mutable
+default-branch `trusted-migration-ownership.yml` cannot survive that workflow
+being broken. Its only input is the completed original `ci_run_id` whose
+candidate head needs the check. The job checks out exactly the dispatch-time
+default-branch revision `github.sha` (sparse, no persisted credentials — the
+same checkout law as the automatic issuer, asserted in-workflow by
+`git rev-parse HEAD`) and runs the same three protected modules from it with
+`--recover-preflight` before the key mint, then `--recover` after it. There is
+no pinned older revision and no revision input at all: a caller cannot select
+which bytes execute, so old weaker rules cannot be selected. The same
+`terminal-migration-owner` environment, App, installation binding, minted
+grant set, check name, required context and validator are reused; recovery
+adds no new publisher, scheduler or credential path.
+
+Dormancy: unless both repository selectors are strict positive integers — `0`,
+empty, missing and non-numeric values are all dormant/invalid — there is
+nothing to recover, and a manual dispatch fails loudly before any API client,
+environment allocation or mint. The workflow splits this refusal into a
+`dormancy-guard` job with **no** `environment:` that validates both selectors
+against the shell regex `^[1-9][0-9]*$` on every dispatch (the vars are passed
+through step `env:`, never interpolated into the shell body) and exits
+non-zero otherwise, and the credential job (`terminal-migration-owner`
+environment), which needs the guard's success and whose `if:` additionally
+requires both selectors non-zero on top of the repository/ref/default-branch
+guards, so a dormant or misconfigured dispatch can never allocate the
+environment or its key. Recovery never forges workflow_run identity: the
+original run is re-read and qualified, and the published check honestly
+records the recovery run, its dispatching actor (sender, authenticated
+`triggering_actor`, and their repository permission, which must be
+admin/maintain/write — proven in `--recover-preflight` before the mint as well
+as after it) and the dispatch-time protected revision in `external_id`,
+`details_url` and the check output.
+
+Anti-rollback/staleness: recovery executes exactly the dispatch-time
+default-branch bytes and refuses unless those modules
+(`check_supabase_migration_namespace.py`, `migration_merge_group.py`) **and the
+issuer module `trusted_migration_ownership.py` itself** still carry exactly
+the same content-addressed blob identity as the current `refs/heads/master`
+branch tip — resolved explicitly so a same-named tag cannot shadow the branch —
+at run time. A dispatch whose executing law has since been changed on master
+is a stale run and refuses before any mint; because no revision input exists,
+a revision that predates the currently accepted validator/issuer-law identity
+can never mint a green check under old law. Original-operation reconciliation
+runs before any write: an existing check for the same
+`migration-owner:v1:{run}:{attempt}:{head}` operation from either the
+automatic issuer or a prior recovery is read back, its claimed issuer run is
+authenticated against Actions metadata at its original attempt identity (a
+rerun — `run_attempt != 1` — of that prior issuer run leaves later
+reconciliations refused, fail-closed like the automatic path), a settled
+outcome is only reconciled, and an unsettled or unknown one is never replayed;
+a rerun of the recovery run itself is likewise reconcile-only. Recovery also
+refuses while the target CI run is still in progress (its original issuer
+keeps the turn), while ANY not-yet-completed automatic issuer attempt for the
+same target exists — queued, waiting, pending, requested, action-required or
+in-progress, with that scan scoped to the issuer workflow, paginated
+fail-closed, and repeated immediately before publication — and when an earlier
+recovery dispatch for the same target is unsettled or already reached the
+publication step. The prior-recovery scan is scoped to this recovery
+workflow's `master` `workflow_dispatch` runs created no earlier than the
+target CI run, paginated under a hard page cap that fails closed, considers a
+run only when its event, branch and repository identity match, and reads
+prior-recovery jobs with `filter=all` across every attempt so a re-run cannot
+hide attempt 1's publication. Immediately before the POST, the check-runs
+listing is re-read and must show no owner operation for this target; the write
+order is scan → re-read checks → POST. For
+pull-request targets the source PR must still be OPEN (a merged PR has no
+remaining gate to supply). Merge-group recovery only works while the entry is
+still queued: the authenticated queue snapshot must still carry the candidate
+entry and its ordered contributing prefix (migration-bearing predecessors
+included), which binds the candidate head commit. The operative binding of the
+namespace material itself is the `{head}:supabase/migrations` tree read on
+that queue-validated head commit; the head commit's root tree must equal the
+queue entry's integrated tree as an additional commit-identity check (the root
+tree and the nested `supabase/migrations` subtree are distinct git objects).
+
+The `terminal-migration-owner` environment keeps the same configuration law as
+the automatic issuer: a selected **branch** rule for `master` only, no tag
+rule, no administrator bypass. Because `workflow_dispatch` can target any ref
+that carries this workflow file, only that environment branch policy keeps a
+hostile-ref dispatch of a modified copy away from the key; the module's
+`GITHUB_REF` guard protects the legitimate master path only.
+
+Administrator effects that remain outside this source: dispatching the
+workflow, qualifying that the installation token may actually read the
+collaborator permission endpoint under its granted scopes, App
+approval/activation, and any required-check or environment change. Inert
+tests prove none of those live behaviors.
+
 ## Rollback
 
 Restore the stage-2 patch in reverse through normal reviewed protected source

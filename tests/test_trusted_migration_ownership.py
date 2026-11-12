@@ -135,7 +135,18 @@ class Service:
         if query == owner.CONTENTS_QUERY:
             values = self.sql | {"RESERVATIONS.json": json.dumps(self.doc).encode(), "README.md": b"fixture\n"}
             entries = [{"name": n, "type": "blob", "mode": 0o100644, "object": blob(b)} for n, b in values.items()]
+            # The head commit's ROOT tree is the queue entry's integrated tree
+            # for a group candidate (a real commit's root tree and its
+            # supabase/migrations subtree are distinct objects); PR-scope
+            # reads have no queue binding.
+            root_tree = TREE
+            if self.run["event"] == "merge_group":
+                root_tree = next((entry.get("headCommit") or {}).get("tree", {}).get("oid")
+                                 for entry in self.queue["repository"]["mergeQueue"]["entries"]["nodes"]
+                                 if (entry.get("headCommit") or {}).get("oid") == self.run["head_sha"])
             value = {"repository": {"nameWithOwner": owner.REPO,
+                     "head": {"__typename": "Commit", "oid": self.run["head_sha"],
+                              "tree": {"oid": root_tree}},
                      "object": {"__typename": "Tree", "oid": TREE, "entries": entries}}}
             if self.contents_override:
                 self.contents_override(value)
@@ -835,13 +846,19 @@ socket.create_connection = deny
 import pytest
 raise SystemExit(pytest.main(['-q', 'tests/test_merge_on_green.py', '--tb=short', '--junitxml=generated-controller.xml']))
 """)
+    child_env = {
+        "PATH": os.defpath, "HOME": str(tmp_path),
+        # Keep installed test dependencies available when the temporary HOME
+        # hides a user-site install, without inheriting the source checkout.
+        "PYTHONPATH": str(Path(pytest.__file__).resolve().parent.parent),
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1",
+    }
+    # A relocated setup-python interpreter needs its configured library path
+    # to load its own libpython rather than an incompatible system library.
+    if "LD_LIBRARY_PATH" in os.environ:
+        child_env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"]
     result = subprocess.run([sys.executable, str(runner)], cwd=tmp_path, text=True, capture_output=True,
-                            env={"PATH": os.defpath, "HOME": str(tmp_path),
-                                 # Keep the installed test dependencies available when the
-                                 # intentional temporary HOME hides a user-site install.
-                                 # No source checkout or parent environment is inherited.
-                                 "PYTHONPATH": str(Path(pytest.__file__).resolve().parent.parent),
-                                 "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1"})
+                            env=child_env)
     assert result.returncode == 0, result.stdout + result.stderr
     import xml.etree.ElementTree as ET
     cases = list(ET.parse(tmp_path / "generated-controller.xml").iter("testcase"))

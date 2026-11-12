@@ -1,0 +1,43 @@
+{
+  "schema": "terminal_pr645_reader_and_type_validation.v1",
+  "completedAt": "2026-11-10T06:30:34.605601+00:00",
+  "checks": [
+    {
+      "name": "reader-node",
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "exitCode": 0,
+      "seconds": 33.14,
+      "logSha256": "b1e275a0d30b9bc49ab8be80d9bc2f094fcb9e6b35ad45466db5ab3af06c9983"
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "next",
+        "typegen"
+      ],
+      "exitCode": 0,
+      "seconds": 8.56,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "name": "typescript",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "tsc",
+        "--noEmit"
+      ],
+      "exitCode": 2,
+      "seconds": 86.66,
+      "logSha256": "2955129fd964413c1900e09e713cd96879dffab352578f6ffec0a614b162eee1"
+    }
+  ]
+}

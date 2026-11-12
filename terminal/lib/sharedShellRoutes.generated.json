@@ -1,12 +1,12 @@
 {
   "schema": "mastermind.shared_shell_routes.v1",
-  "generatedAt": "2026-10-21T16:34:10Z",
+  "generatedAt": "2026-11-03T04:25:04Z",
   "sources": {
-    "registrySha256": "8d6346856bf24eb42525cfd0a7cbb6de3ff00092a907874012d8187e44623fbe",
+    "registrySha256": "ee0708b3be98e37268af469bb67c936a7c3135eb6775388051078d90fe2484dd",
     "macro": "73852e221d9ce087abe30b4703de3627773f3351",
-    "terminal": "e0d4cabfccd3f1fd83b4362288124ba8078de731",
+    "terminal": "7063a8e1324c75f69361688161f1e2a90bf87951",
     "mastermind": "7ab47f0b62d9a22ff16a13f6b99b96b681874a93",
-    "inventory": "90e0644f9f08ab37115dfffedce2ba7939b0835d"
+    "inventory": "e39ec45902c1a2bb28507beb851593be6e422167"
   },
   "legacyPaths": [
     "/about-research.html",
@@ -6653,6 +6653,7 @@
     "/stocks/earnings/aapg-2026q2-call-record.html",
     "/stocks/earnings/aapl-2026q2-call-record.html",
     "/stocks/earnings/aapl-2026q3-call-record.html",
+    "/stocks/earnings/aapl-2026q4-call-record.html",
     "/stocks/earnings/aat-2026q1-call-record.html",
     "/stocks/earnings/aat-2026q2-call-record.html",
     "/stocks/earnings/aauc-2026q2-call-record.html",
@@ -6743,6 +6744,7 @@
     "/stocks/earnings/adct-2026q2-call-record.html",
     "/stocks/earnings/adea-2026q1-call-record.html",
     "/stocks/earnings/adea-2026q2-call-record.html",
+    "/stocks/earnings/adea-2026q3-call-record.html",
     "/stocks/earnings/adi-2026q2-call-record.html",
     "/stocks/earnings/adi-2026q3-call-record.html",
     "/stocks/earnings/adig-2026q2-call-record.html",
@@ -6773,8 +6775,10 @@
     "/stocks/earnings/aeg-2026q2-call-record.html",
     "/stocks/earnings/aehr-2026q3-call-record.html",
     "/stocks/earnings/aehr-2026q4-call-record.html",
+    "/stocks/earnings/aehr-2027q1-call-record.html",
     "/stocks/earnings/aeis-2026q1-call-record.html",
     "/stocks/earnings/aeis-2026q2-call-record.html",
+    "/stocks/earnings/aeis-2026q3-call-record.html",
     "/stocks/earnings/aemd-2027q1-call-record.html",
     "/stocks/earnings/aent-2026q4-call-record.html",
     "/stocks/earnings/aeo-2027q1-call-record.html",
@@ -6922,6 +6926,7 @@
     "/stocks/earnings/alrs-2026q3-call-record.html",
     "/stocks/earnings/alsn-2026q1-call-record.html",
     "/stocks/earnings/alsn-2026q2-call-record.html",
+    "/stocks/earnings/alsn-2026q3-call-record.html",
     "/stocks/earnings/alt-2026q2-call-record.html",
     "/stocks/earnings/altg-2026q2-call-record.html",
     "/stocks/earnings/alti-2026q2-call-record.html",
@@ -7274,6 +7279,7 @@
     "/stocks/earnings/axs-2026q3-call-record.html",
     "/stocks/earnings/axsm-2026q1-call-record.html",
     "/stocks/earnings/axsm-2026q2-call-record.html",
+    "/stocks/earnings/axsm-2026q3-call-record.html",
     "/stocks/earnings/axta-2026q1-call-record.html",
     "/stocks/earnings/axta-2026q2-call-record.html",
     "/stocks/earnings/axta-2026q3-call-record.html",
@@ -7514,6 +7520,7 @@
     "/stocks/earnings/blx-2026q3-call-record.html",
     "/stocks/earnings/blze-2026q1-call-record.html",
     "/stocks/earnings/blze-2026q2-call-record.html",
+    "/stocks/earnings/blze-2026q3-call-record.html",
     "/stocks/earnings/bma-2026q2-call-record.html",
     "/stocks/earnings/bmbl-2026q1-call-record.html",
     "/stocks/earnings/bmbl-2026q2-call-record.html",
@@ -7636,6 +7643,7 @@
     "/stocks/earnings/bvn-2026q3-call-record.html",
     "/stocks/earnings/bvs-2026q1-call-record.html",
     "/stocks/earnings/bvs-2026q2-call-record.html",
+    "/stocks/earnings/bvs-2026q3-call-record.html",
     "/stocks/earnings/bw-2025q4-call-record.html",
     "/stocks/earnings/bw-2026q1-call-record.html",
     "/stocks/earnings/bw-2026q2-call-record.html",
@@ -7659,6 +7667,7 @@
     "/stocks/earnings/bwmx-2026q3-call-record.html",
     "/stocks/earnings/bwxt-2026q1-call-record.html",
     "/stocks/earnings/bwxt-2026q2-call-record.html",
+    "/stocks/earnings/bwxt-2026q3-call-record.html",
     "/stocks/earnings/bx-2026q2-call-record.html",
     "/stocks/earnings/bx-2026q3-call-record.html",
     "/stocks/earnings/bxc-2026q1-call-record.html",
@@ -7853,6 +7862,7 @@
     "/stocks/earnings/cepl-2027q1-call-record.html",
     "/stocks/earnings/cers-2026q1-call-record.html",
     "/stocks/earnings/cers-2026q2-call-record.html",
+    "/stocks/earnings/cers-2026q3-call-record.html",
     "/stocks/earnings/cert-2026q1-call-record.html",
     "/stocks/earnings/cert-2026q2-call-record.html",
     "/stocks/earnings/ceva-2026q1-call-record.html",
@@ -7895,6 +7905,7 @@
     "/stocks/earnings/chgg-2026q2-call-record.html",
     "/stocks/earnings/chh-2026q1-call-record.html",
     "/stocks/earnings/chh-2026q2-call-record.html",
+    "/stocks/earnings/chh-2026q3-call-record.html",
     "/stocks/earnings/chpt-2027q1-call-record.html",
     "/stocks/earnings/chpt-2027q2-call-record.html",
     "/stocks/earnings/chrd-2026q2-call-record.html",
@@ -7916,6 +7927,7 @@
     "/stocks/earnings/cien-2026q3-call-record.html",
     "/stocks/earnings/cifr-2026q1-call-record.html",
     "/stocks/earnings/cifr-2026q2-call-record.html",
+    "/stocks/earnings/cifr-2026q3-call-record.html",
     "/stocks/earnings/cig-2025q4-call-record.html",
     "/stocks/earnings/cig-2026q1-call-record.html",
     "/stocks/earnings/cig-2026q2-call-record.html",
@@ -7965,6 +7977,7 @@
     "/stocks/earnings/clw-2026q2-call-record.html",
     "/stocks/earnings/clw-2026q3-call-record.html",
     "/stocks/earnings/clx-2026q3-call-record.html",
+    "/stocks/earnings/clx-2027q1-call-record.html",
     "/stocks/earnings/cm-2026q2-call-record.html",
     "/stocks/earnings/cm-2026q3-call-record.html",
     "/stocks/earnings/cmbt-2026q2-call-record.html",
@@ -8531,6 +8544,7 @@
     "/stocks/earnings/ebc-2026q3-call-record.html",
     "/stocks/earnings/ebs-2026q1-call-record.html",
     "/stocks/earnings/ebs-2026q2-call-record.html",
+    "/stocks/earnings/ebs-2026q3-call-record.html",
     "/stocks/earnings/ec-2026q2-call-record.html",
     "/stocks/earnings/ecg-2026q1-call-record.html",
     "/stocks/earnings/ecg-2026q2-call-record.html",
@@ -8598,6 +8612,7 @@
     "/stocks/earnings/eix-2026q3-call-record.html",
     "/stocks/earnings/el-2026q3-call-record.html",
     "/stocks/earnings/el-2026q4-call-record.html",
+    "/stocks/earnings/el-2027q1-call-record.html",
     "/stocks/earnings/elan-2026q1-call-record.html",
     "/stocks/earnings/elan-2026q2-call-record.html",
     "/stocks/earnings/ele-2025q4-call-record.html",
@@ -8741,6 +8756,7 @@
     "/stocks/earnings/etor-2026q2-call-record.html",
     "/stocks/earnings/etr-2026q1-call-record.html",
     "/stocks/earnings/etr-2026q2-call-record.html",
+    "/stocks/earnings/etr-2026q3-call-record.html",
     "/stocks/earnings/etsy-2026q1-call-record.html",
     "/stocks/earnings/etsy-2026q2-call-record.html",
     "/stocks/earnings/etsy-2026q3-call-record.html",
@@ -8751,6 +8767,7 @@
     "/stocks/earnings/evcm-2026q2-call-record.html",
     "/stocks/earnings/ever-2026q1-call-record.html",
     "/stocks/earnings/ever-2026q2-call-record.html",
+    "/stocks/earnings/ever-2026q3-call-record.html",
     "/stocks/earnings/evex-2026q2-call-record.html",
     "/stocks/earnings/evgn-2026q1-call-record.html",
     "/stocks/earnings/evgn-2026q2-call-record.html",
@@ -8978,6 +8995,7 @@
     "/stocks/earnings/fmx-2026q3-call-record.html",
     "/stocks/earnings/fn-2026q3-call-record.html",
     "/stocks/earnings/fn-2026q4-call-record.html",
+    "/stocks/earnings/fn-2027q1-call-record.html",
     "/stocks/earnings/fnb-2026q1-call-record.html",
     "/stocks/earnings/fnb-2026q2-call-record.html",
     "/stocks/earnings/fnb-2026q3-call-record.html",
@@ -9005,8 +9023,10 @@
     "/stocks/earnings/four-2026q2-call-record.html",
     "/stocks/earnings/fox-2026q3-call-record.html",
     "/stocks/earnings/fox-2026q4-call-record.html",
+    "/stocks/earnings/fox-2027q1-call-record.html",
     "/stocks/earnings/foxa-2026q3-call-record.html",
     "/stocks/earnings/foxa-2026q4-call-record.html",
+    "/stocks/earnings/foxa-2027q1-call-record.html",
     "/stocks/earnings/foxf-2026q1-call-record.html",
     "/stocks/earnings/foxf-2026q2-call-record.html",
     "/stocks/earnings/fps-2026q2-call-record.html",
@@ -9294,6 +9314,7 @@
     "/stocks/earnings/grdn-2026q2-call-record.html",
     "/stocks/earnings/grfs-2026q1-call-record.html",
     "/stocks/earnings/grfs-2026q2-call-record.html",
+    "/stocks/earnings/grfs-2026q3-call-record.html",
     "/stocks/earnings/grmn-2026q1-call-record.html",
     "/stocks/earnings/grmn-2026q2-call-record.html",
     "/stocks/earnings/grmn-2026q3-call-record.html",
@@ -9453,12 +9474,14 @@
     "/stocks/earnings/hl-2026q2-call-record.html",
     "/stocks/earnings/hlf-2026q1-call-record.html",
     "/stocks/earnings/hlf-2026q2-call-record.html",
+    "/stocks/earnings/hlf-2026q3-call-record.html",
     "/stocks/earnings/hli-2027q1-call-record.html",
     "/stocks/earnings/hli-2027q2-call-record.html",
     "/stocks/earnings/hlio-2026q1-call-record.html",
     "/stocks/earnings/hlio-2026q2-call-record.html",
     "/stocks/earnings/hlit-2026q1-call-record.html",
     "/stocks/earnings/hlit-2026q2-call-record.html",
+    "/stocks/earnings/hlit-2026q3-call-record.html",
     "/stocks/earnings/hlly-2026q2-call-record.html",
     "/stocks/earnings/hlmn-2026q1-call-record.html",
     "/stocks/earnings/hlmn-2026q2-call-record.html",
@@ -9476,6 +9499,7 @@
     "/stocks/earnings/hmn-2026q2-call-record.html",
     "/stocks/earnings/hnge-2026q1-call-record.html",
     "/stocks/earnings/hnge-2026q2-call-record.html",
+    "/stocks/earnings/hnge-2026q3-call-record.html",
     "/stocks/earnings/hni-2026q1-call-record.html",
     "/stocks/earnings/hni-2026q2-call-record.html",
     "/stocks/earnings/hnrg-2025q4-call-record.html",
@@ -9612,6 +9636,7 @@
     "/stocks/earnings/ibp-2026q2-call-record.html",
     "/stocks/earnings/ibta-2026q1-call-record.html",
     "/stocks/earnings/ibta-2026q2-call-record.html",
+    "/stocks/earnings/ibta-2026q3-call-record.html",
     "/stocks/earnings/iccm-2026q1-call-record.html",
     "/stocks/earnings/iccm-2026q2-call-record.html",
     "/stocks/earnings/ice-2026q1-call-record.html",
@@ -9620,6 +9645,7 @@
     "/stocks/earnings/icfi-2026q1-call-record.html",
     "/stocks/earnings/icfi-2026q2-call-record.html",
     "/stocks/earnings/ichr-2026q1-call-record.html",
+    "/stocks/earnings/ichr-2026q3-call-record.html",
     "/stocks/earnings/icl-2026q1-call-record.html",
     "/stocks/earnings/icl-2026q2-call-record.html",
     "/stocks/earnings/iclr-2025q4-call-record.html",
@@ -9637,6 +9663,7 @@
     "/stocks/earnings/idt-2026q3-call-record.html",
     "/stocks/earnings/idt-2026q4-call-record.html",
     "/stocks/earnings/idxx-2026q2-call-record.html",
+    "/stocks/earnings/idxx-2026q3-call-record.html",
     "/stocks/earnings/iep-2026q1-call-record.html",
     "/stocks/earnings/iep-2026q2-call-record.html",
     "/stocks/earnings/iex-2026q1-call-record.html",
@@ -9652,6 +9679,7 @@
     "/stocks/earnings/ihg-2026q3-call-record.html",
     "/stocks/earnings/ihrt-2026q2-call-record.html",
     "/stocks/earnings/iii-2026q2-call-record.html",
+    "/stocks/earnings/iii-2026q3-call-record.html",
     "/stocks/earnings/iiin-2026q2-call-record.html",
     "/stocks/earnings/iiin-2026q3-call-record.html",
     "/stocks/earnings/iiin-2026q4-call-record.html",
@@ -9723,6 +9751,7 @@
     "/stocks/earnings/insm-2026q3-call-record.html",
     "/stocks/earnings/insp-2026q1-call-record.html",
     "/stocks/earnings/insp-2026q2-call-record.html",
+    "/stocks/earnings/insp-2026q3-call-record.html",
     "/stocks/earnings/insw-2026q2-call-record.html",
     "/stocks/earnings/inta-2026q3-call-record.html",
     "/stocks/earnings/inta-2026q4-call-record.html",
@@ -9835,6 +9864,7 @@
     "/stocks/earnings/jan-2026q2-call-record.html",
     "/stocks/earnings/jazz-2026q1-call-record.html",
     "/stocks/earnings/jazz-2026q2-call-record.html",
+    "/stocks/earnings/jazz-2026q3-call-record.html",
     "/stocks/earnings/jbht-2026q1-call-record.html",
     "/stocks/earnings/jbht-2026q2-call-record.html",
     "/stocks/earnings/jbht-2026q3-call-record.html",
@@ -9999,6 +10029,7 @@
     "/stocks/earnings/kopn-2026q2-call-record.html",
     "/stocks/earnings/kos-2026q1-call-record.html",
     "/stocks/earnings/kos-2026q2-call-record.html",
+    "/stocks/earnings/kos-2026q3-call-record.html",
     "/stocks/earnings/kr-2027q1-call-record.html",
     "/stocks/earnings/kr-2027q2-call-record.html",
     "/stocks/earnings/krc-2026q1-call-record.html",
@@ -10020,6 +10051,7 @@
     "/stocks/earnings/krt-2026q2-call-record.html",
     "/stocks/earnings/krus-2026q2-call-record.html",
     "/stocks/earnings/krys-2026q1-call-record.html",
+    "/stocks/earnings/krys-2026q3-call-record.html",
     "/stocks/earnings/kscp-2025q4-call-record.html",
     "/stocks/earnings/kscp-2026q2-call-record.html",
     "/stocks/earnings/kspi-2026q2-call-record.html",
@@ -10145,6 +10177,7 @@
     "/stocks/earnings/lif-2026q2-call-record.html",
     "/stocks/earnings/life-2026q1-call-record.html",
     "/stocks/earnings/life-2026q2-call-record.html",
+    "/stocks/earnings/life-2026q3-call-record.html",
     "/stocks/earnings/lii-2026q1-call-record.html",
     "/stocks/earnings/lii-2026q2-call-record.html",
     "/stocks/earnings/lii-2026q3-call-record.html",
@@ -10244,6 +10277,7 @@
     "/stocks/earnings/lrn-2026q4-call-record.html",
     "/stocks/earnings/lrn-2027q1-call-record.html",
     "/stocks/earnings/lscc-2026q2-call-record.html",
+    "/stocks/earnings/lscc-2026q3-call-record.html",
     "/stocks/earnings/lspd-2026q4-call-record.html",
     "/stocks/earnings/lspd-2027q1-call-record.html",
     "/stocks/earnings/lstr-2026q1-call-record.html",
@@ -10251,6 +10285,7 @@
     "/stocks/earnings/lstr-2026q3-call-record.html",
     "/stocks/earnings/ltbr-2026q1-call-record.html",
     "/stocks/earnings/ltbr-2026q2-call-record.html",
+    "/stocks/earnings/ltbr-2026q3-call-record.html",
     "/stocks/earnings/ltc-2026q1-call-record.html",
     "/stocks/earnings/ltc-2026q2-call-record.html",
     "/stocks/earnings/lth-2026q1-call-record.html",
@@ -10284,6 +10319,7 @@
     "/stocks/earnings/lvs-2026q2-call-record.html",
     "/stocks/earnings/lvs-2026q3-call-record.html",
     "/stocks/earnings/lvwr-2026q1-call-record.html",
+    "/stocks/earnings/lvwr-2026q3-call-record.html",
     "/stocks/earnings/lw-2026q3-call-record.html",
     "/stocks/earnings/lw-2026q4-call-record.html",
     "/stocks/earnings/lw-2027q1-call-record.html",
@@ -10333,6 +10369,7 @@
     "/stocks/earnings/manh-2026q3-call-record.html",
     "/stocks/earnings/mar-2026q1-call-record.html",
     "/stocks/earnings/mar-2026q2-call-record.html",
+    "/stocks/earnings/mar-2026q3-call-record.html",
     "/stocks/earnings/mara-2026q1-call-record.html",
     "/stocks/earnings/mara-2026q2-call-record.html",
     "/stocks/earnings/mas-2026q1-call-record.html",
@@ -10575,6 +10612,7 @@
     "/stocks/earnings/msft-2027q1-call-record.html",
     "/stocks/earnings/msge-2026q3-call-record.html",
     "/stocks/earnings/msge-2026q4-call-record.html",
+    "/stocks/earnings/msgk-2026q4-call-record.html",
     "/stocks/earnings/msgs-2026q4-call-record.html",
     "/stocks/earnings/msi-2026q1-call-record.html",
     "/stocks/earnings/msi-2026q2-call-record.html",
@@ -10590,6 +10628,7 @@
     "/stocks/earnings/mtb-2026q3-call-record.html",
     "/stocks/earnings/mtch-2026q1-call-record.html",
     "/stocks/earnings/mtch-2026q2-call-record.html",
+    "/stocks/earnings/mtch-2026q3-call-record.html",
     "/stocks/earnings/mtd-2026q1-call-record.html",
     "/stocks/earnings/mtd-2026q2-call-record.html",
     "/stocks/earnings/mtdr-2026q1-call-record.html",
@@ -10668,6 +10707,7 @@
     "/stocks/earnings/nbhc-2026q2-call-record.html",
     "/stocks/earnings/nbix-2026q1-call-record.html",
     "/stocks/earnings/nbix-2026q2-call-record.html",
+    "/stocks/earnings/nbix-2026q3-call-record.html",
     "/stocks/earnings/nbr-2026q1-call-record.html",
     "/stocks/earnings/nbr-2026q2-call-record.html",
     "/stocks/earnings/nbr-2026q3-call-record.html",
@@ -10850,6 +10890,7 @@
     "/stocks/earnings/nsp-2026q3-call-record.html",
     "/stocks/earnings/nssc-2026q3-call-record.html",
     "/stocks/earnings/nssc-2026q4-call-record.html",
+    "/stocks/earnings/nssc-2027q1-call-record.html",
     "/stocks/earnings/ntap-2026q4-call-record.html",
     "/stocks/earnings/ntap-2027q1-call-record.html",
     "/stocks/earnings/ntb-2026q1-call-record.html",
@@ -10959,6 +11000,7 @@
     "/stocks/earnings/nyxh-2026q2-call-record.html",
     "/stocks/earnings/o-2026q1-call-record.html",
     "/stocks/earnings/o-2026q2-call-record.html",
+    "/stocks/earnings/o-2026q3-call-record.html",
     "/stocks/earnings/oabi-2026q2-call-record.html",
     "/stocks/earnings/oabi-2026q3-call-record.html",
     "/stocks/earnings/obai-2026q2-call-record.html",
@@ -11043,6 +11085,7 @@
     "/stocks/earnings/omf-2026q3-call-record.html",
     "/stocks/earnings/on-2026q1-call-record.html",
     "/stocks/earnings/on-2026q2-call-record.html",
+    "/stocks/earnings/on-2026q3-call-record.html",
     "/stocks/earnings/onb-2026q2-call-record.html",
     "/stocks/earnings/onc-2026q1-call-record.html",
     "/stocks/earnings/onc-2026q2-call-record.html",
@@ -11225,6 +11268,7 @@
     "/stocks/earnings/page-69.html",
     "/stocks/earnings/page-7.html",
     "/stocks/earnings/page-70.html",
+    "/stocks/earnings/page-71.html",
     "/stocks/earnings/page-8.html",
     "/stocks/earnings/page-9.html",
     "/stocks/earnings/pagp-2026q2-call-record.html",
@@ -11251,6 +11295,7 @@
     "/stocks/earnings/pax-2026q2-call-record.html",
     "/stocks/earnings/pay-2026q1-call-record.html",
     "/stocks/earnings/pay-2026q2-call-record.html",
+    "/stocks/earnings/pay-2026q3-call-record.html",
     "/stocks/earnings/payo-2026q1-call-record.html",
     "/stocks/earnings/pays-2025q4-call-record.html",
     "/stocks/earnings/pays-2026q1-call-record.html",
@@ -11308,6 +11353,7 @@
     "/stocks/earnings/ped-2026q2-call-record.html",
     "/stocks/earnings/peg-2026q1-call-record.html",
     "/stocks/earnings/peg-2026q2-call-record.html",
+    "/stocks/earnings/peg-2026q3-call-record.html",
     "/stocks/earnings/peng-2026q2-call-record.html",
     "/stocks/earnings/peng-2026q3-call-record.html",
     "/stocks/earnings/peng-2026q4-call-record.html",
@@ -11422,6 +11468,7 @@
     "/stocks/earnings/pltk-2026q1-call-record.html",
     "/stocks/earnings/pltk-2026q2-call-record.html",
     "/stocks/earnings/pltr-2026q2-call-record.html",
+    "/stocks/earnings/pltr-2026q3-call-record.html",
     "/stocks/earnings/plug-2026q1-call-record.html",
     "/stocks/earnings/plug-2026q2-call-record.html",
     "/stocks/earnings/plus-2026q4-call-record.html",
@@ -11902,6 +11949,7 @@
     "/stocks/earnings/ry-2026q3-call-record.html",
     "/stocks/earnings/ryaay-2026q4-call-record.html",
     "/stocks/earnings/ryaay-2027q1-call-record.html",
+    "/stocks/earnings/ryaay-2027q2-call-record.html",
     "/stocks/earnings/ryam-2026q2-call-record.html",
     "/stocks/earnings/ryan-2026q1-call-record.html",
     "/stocks/earnings/ryan-2026q2-call-record.html",
@@ -11956,6 +12004,7 @@
     "/stocks/earnings/sb-2026q2-call-record.html",
     "/stocks/earnings/sbac-2026q1-call-record.html",
     "/stocks/earnings/sbac-2026q2-call-record.html",
+    "/stocks/earnings/sbac-2026q3-call-record.html",
     "/stocks/earnings/sbcf-2026q1-call-record.html",
     "/stocks/earnings/sbcf-2026q2-call-record.html",
     "/stocks/earnings/sbcf-2026q3-call-record.html",
@@ -12211,6 +12260,7 @@
     "/stocks/earnings/sndr-2026q3-call-record.html",
     "/stocks/earnings/sndx-2026q1-call-record.html",
     "/stocks/earnings/sndx-2026q2-call-record.html",
+    "/stocks/earnings/sndx-2026q3-call-record.html",
     "/stocks/earnings/snes-2026q2-call-record.html",
     "/stocks/earnings/snex-2026q3-call-record.html",
     "/stocks/earnings/snfca-2026q2-call-record.html",
@@ -12465,6 +12515,7 @@
     "/stocks/earnings/tatt-2025q4-call-record.html",
     "/stocks/earnings/tatt-2026q1-call-record.html",
     "/stocks/earnings/tatt-2026q2-call-record.html",
+    "/stocks/earnings/tatt-2026q3-call-record.html",
     "/stocks/earnings/tbbb-2025q4-call-record.html",
     "/stocks/earnings/tbbb-2026q1-call-record.html",
     "/stocks/earnings/tbbb-2026q2-call-record.html",
@@ -12488,6 +12539,7 @@
     "/stocks/earnings/tcbx-2026q3-call-record.html",
     "/stocks/earnings/tcmd-2026q1-call-record.html",
     "/stocks/earnings/tcmd-2026q2-call-record.html",
+    "/stocks/earnings/tcmd-2026q3-call-record.html",
     "/stocks/earnings/tcom-2026q2-call-record.html",
     "/stocks/earnings/tcpc-2026q1-call-record.html",
     "/stocks/earnings/tcpc-2026q2-call-record.html",
@@ -12525,6 +12577,7 @@
     "/stocks/earnings/tel-2026q4-call-record.html",
     "/stocks/earnings/tem-2026q1-call-record.html",
     "/stocks/earnings/tem-2026q2-call-record.html",
+    "/stocks/earnings/tem-2026q3-call-record.html",
     "/stocks/earnings/ten-2026q1-call-record.html",
     "/stocks/earnings/ten-2026q2-call-record.html",
     "/stocks/earnings/tenb-2026q1-call-record.html",
@@ -12707,6 +12760,7 @@
     "/stocks/earnings/tsco-2026q3-call-record.html",
     "/stocks/earnings/tsem-2026q1-call-record.html",
     "/stocks/earnings/tsem-2026q2-call-record.html",
+    "/stocks/earnings/tsem-2026q3-call-record.html",
     "/stocks/earnings/tsha-2025q4-call-record.html",
     "/stocks/earnings/tsha-2026q1-call-record.html",
     "/stocks/earnings/tsha-2026q2-call-record.html",
@@ -12746,6 +12800,7 @@
     "/stocks/earnings/tv-2026q3-call-record.html",
     "/stocks/earnings/tvtx-2026q1-call-record.html",
     "/stocks/earnings/tvtx-2026q2-call-record.html",
+    "/stocks/earnings/tvtx-2026q3-call-record.html",
     "/stocks/earnings/tw-2026q1-call-record.html",
     "/stocks/earnings/tw-2026q2-call-record.html",
     "/stocks/earnings/tw-2026q3-call-record.html",
@@ -12863,6 +12918,7 @@
     "/stocks/earnings/upst-2026q2-call-record.html",
     "/stocks/earnings/upwk-2026q1-call-record.html",
     "/stocks/earnings/upwk-2026q2-call-record.html",
+    "/stocks/earnings/upwk-2026q3-call-record.html",
     "/stocks/earnings/upxi-2026q4-call-record.html",
     "/stocks/earnings/urbn-2027q1-call-record.html",
     "/stocks/earnings/urg-2026q1-call-record.html",
@@ -13029,6 +13085,7 @@
     "/stocks/earnings/vrts-2026q2-call-record.html",
     "/stocks/earnings/vrtx-2026q1-call-record.html",
     "/stocks/earnings/vrtx-2026q2-call-record.html",
+    "/stocks/earnings/vrtx-2026q3-call-record.html",
     "/stocks/earnings/vsat-2026q4-call-record.html",
     "/stocks/earnings/vsat-2027q1-call-record.html",
     "/stocks/earnings/vsec-2026q1-call-record.html",
@@ -13064,6 +13121,7 @@
     "/stocks/earnings/vvv-2026q3-call-record.html",
     "/stocks/earnings/vvx-2026q1-call-record.html",
     "/stocks/earnings/vvx-2026q2-call-record.html",
+    "/stocks/earnings/vvx-2026q3-call-record.html",
     "/stocks/earnings/vylr-2026q2-call-record.html",
     "/stocks/earnings/vyx-2026q1-call-record.html",
     "/stocks/earnings/vyx-2026q2-call-record.html",
@@ -13091,6 +13149,7 @@
     "/stocks/earnings/wave-2026q1-call-record.html",
     "/stocks/earnings/way-2026q1-call-record.html",
     "/stocks/earnings/way-2026q2-call-record.html",
+    "/stocks/earnings/way-2026q3-call-record.html",
     "/stocks/earnings/wb-2025q4-call-record.html",
     "/stocks/earnings/wb-2026q1-call-record.html",
     "/stocks/earnings/wb-2026q2-call-record.html",
@@ -13159,6 +13218,7 @@
     "/stocks/earnings/weekly/2026-10-12.html",
     "/stocks/earnings/weekly/2026-10-19.html",
     "/stocks/earnings/weekly/2026-10-26.html",
+    "/stocks/earnings/weekly/2026-11-02.html",
     "/stocks/earnings/weekly/index.html",
     "/stocks/earnings/wen-2026q2-call-record.html",
     "/stocks/earnings/wern-2026q1-call-record.html",
@@ -13211,6 +13271,7 @@
     "/stocks/earnings/wkc-2026q3-call-record.html",
     "/stocks/earnings/wkey-2025q4-call-record.html",
     "/stocks/earnings/wkey-2026q2-call-record.html",
+    "/stocks/earnings/wkhs-2026q2-call-record.html",
     "/stocks/earnings/wldn-2026q1-call-record.html",
     "/stocks/earnings/wldn-2026q2-call-record.html",
     "/stocks/earnings/wlfc-2026q1-call-record.html",
@@ -14003,16 +14064,20 @@
     "/discover",
     "/dislocations",
     "/embed/chart",
+    "/intelligence",
     "/invite",
     "/learn",
     "/login",
     "/monitor",
     "/options",
+    "/options/equity-replay",
     "/options/futures",
     "/portfolio",
+    "/prophet",
     "/research",
     "/reset-password",
     "/scripts",
+    "/sectors",
     "/terminal",
     "/today"
   ],
@@ -14234,6 +14299,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/cagr.html",
+      "href": "/tools/calculators/cagr.html",
+      "kind": "legacy",
+      "title": {
+        "en": "CAGR Calculator",
+        "zh": "复合年增长率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:calibration",
       "href": "/calibration.html",
       "kind": "legacy",
@@ -14450,6 +14527,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/compounding.html",
+      "href": "/tools/calculators/compounding.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Compound Interest Calculator",
+        "zh": "复利计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:congress_trades",
       "href": "/congress_trades.html",
       "kind": "legacy",
@@ -14484,6 +14573,18 @@
       "group": "product_nav.international",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/covered-call.html",
+      "href": "/tools/calculators/covered-call.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Covered Call Return Calculator",
+        "zh": "备兑看涨期权回报计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "macro:crypto",
@@ -14606,6 +14707,54 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/dividend.html",
+      "href": "/tools/calculators/dividend.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Dividend Calculator",
+        "zh": "股息计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/dollar-cost-averaging.html",
+      "href": "/tools/calculators/dollar-cost-averaging.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Dollar-Cost Averaging (DCA) Calculator",
+        "zh": "定期定额投资计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/drawdown-recovery.html",
+      "href": "/tools/calculators/drawdown-recovery.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Drawdown Recovery Calculator",
+        "zh": "回撤恢复计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "terminal:options_equity_replay",
+      "href": "/options/equity-replay",
+      "kind": "native",
+      "title": {
+        "en": "Equity Replay",
+        "zh": "Equity Replay"
+      },
+      "group": "none",
+      "question": "",
+      "payloadTier": "premium"
+    },
+    {
       "id": "macro:euro_area",
       "href": "/euro_area.html",
       "kind": "legacy",
@@ -14700,6 +14849,18 @@
       "group": "product_nav.other_assets",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/forex-pip-value.html",
+      "href": "/tools/calculators/forex-pip-value.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Forex Pip Value Calculator",
+        "zh": "外汇点值计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "macro:tools_index",
@@ -15518,6 +15679,30 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/inflation.html",
+      "href": "/tools/calculators/inflation.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Inflation & Purchasing Power Calculator",
+        "zh": "通胀与购买力计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "terminal:intelligence",
+      "href": "/intelligence",
+      "kind": "native",
+      "title": {
+        "en": "Intelligence",
+        "zh": "Intelligence"
+      },
+      "group": "app_nav.rail",
+      "question": "What do Macro, sector cycles and published Prophet plans say, and which source should I inspect next?",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
       "id": "macro:intl",
       "href": "/intl.html",
       "kind": "legacy",
@@ -15564,6 +15749,18 @@
       "group": "none",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/kelly-criterion.html",
+      "href": "/tools/calculators/kelly-criterion.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Kelly Criterion Calculator",
+        "zh": "凯利公式计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "macro:leader_radar",
@@ -15806,6 +16003,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/margin.html",
+      "href": "/tools/calculators/margin.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Margin & Buying Power Calculator",
+        "zh": "保证金与购买力计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:products_market_dashboards",
       "href": "/products/market-dashboards.html",
       "kind": "legacy",
@@ -16034,6 +16243,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/net-worth.html",
+      "href": "/tools/calculators/net-worth.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Net Worth Calculator",
+        "zh": "净资产计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:neural_web",
       "href": "/neural_web.html",
       "kind": "legacy",
@@ -16106,6 +16327,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/options-profit.html",
+      "href": "/tools/calculators/options-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Options Profit Calculator",
+        "zh": "期权盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:options_screener",
       "href": "/options_screener.html",
       "kind": "legacy",
@@ -16128,6 +16361,18 @@
       "group": "product_nav.china",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/percentage-gain-loss.html",
+      "href": "/tools/calculators/percentage-gain-loss.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Percentage Gain/Loss Calculator",
+        "zh": "百分比盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "macro:products_index",
@@ -16166,6 +16411,30 @@
       "payloadTier": "unknown"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/portfolio-rebalancing.html",
+      "href": "/tools/calculators/portfolio-rebalancing.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Portfolio Rebalancing Calculator",
+        "zh": "投资组合再平衡计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/position-size.html",
+      "href": "/tools/calculators/position-size.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Position Size Calculator",
+        "zh": "仓位计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:plans",
       "href": "/plans.html",
       "kind": "legacy",
@@ -16188,6 +16457,18 @@
       "group": "footer.legal",
       "question": "",
       "payloadTier": "public"
+    },
+    {
+      "id": "terminal:prophet",
+      "href": "/prophet",
+      "kind": "native",
+      "title": {
+        "en": "Prophet",
+        "zh": "Prophet"
+      },
+      "group": "app_nav.rail",
+      "question": "Which published Macro plans should I investigate, separately from Options Alpha?",
+      "payloadTier": "premium"
     },
     {
       "id": "macro:report_ai_master_plan",
@@ -16346,6 +16627,66 @@
       "payloadTier": "public"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/retirement.html",
+      "href": "/tools/calculators/retirement.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Retirement Calculator",
+        "zh": "退休储蓄计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/risk-of-ruin.html",
+      "href": "/tools/calculators/risk-of-ruin.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Risk of Ruin Calculator",
+        "zh": "破产风险计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/risk-reward.html",
+      "href": "/tools/calculators/risk-reward.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Risk-Reward Calculator",
+        "zh": "风险收益比计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/roi.html",
+      "href": "/tools/calculators/roi.html",
+      "kind": "legacy",
+      "title": {
+        "en": "ROI Calculator",
+        "zh": "投资回报率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/rule-of-72.html",
+      "href": "/tools/calculators/rule-of-72.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Rule of 72 Calculator",
+        "zh": "72法则计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:sanctions_map",
       "href": "/sanctions_map.html",
       "kind": "legacy",
@@ -16356,6 +16697,18 @@
       "group": "product_nav.international",
       "question": "Where do US sanctions point today, and which countries is our coverage silent about?",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/savings-goal.html",
+      "href": "/tools/calculators/savings-goal.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Savings Goal Calculator",
+        "zh": "储蓄目标计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "terminal:scripts",
@@ -16416,6 +16769,42 @@
       "group": "product_nav.china",
       "question": "",
       "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "terminal:sectors",
+      "href": "/sectors",
+      "kind": "native",
+      "title": {
+        "en": "Sectors",
+        "zh": "Sectors"
+      },
+      "group": "app_nav.rail",
+      "question": "Where is sector leadership changing, and which companies explain it?",
+      "payloadTier": "public_shell_premium_payload"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/sharpe-ratio.html",
+      "href": "/tools/calculators/sharpe-ratio.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Sharpe Ratio Calculator",
+        "zh": "夏普比率计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/short-selling.html",
+      "href": "/tools/calculators/short-selling.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Short Selling Profit Calculator",
+        "zh": "卖空盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
     },
     {
       "id": "macro:confluence_screener",
@@ -16514,6 +16903,18 @@
       "payloadTier": "public_shell_premium_payload"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/stock-average.html",
+      "href": "/tools/calculators/stock-average.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Stock Average (Average Down) Calculator",
+        "zh": "股票平均成本计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:canada_stocks",
       "href": "/canada_stocks.html",
       "kind": "legacy",
@@ -16594,6 +16995,18 @@
         "zh": "个股季节性"
       },
       "group": "product_nav.research",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
+      "id": "macro:tools_family:/tools/calculators/stop-loss-take-profit.html",
+      "href": "/tools/calculators/stop-loss-take-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Stop-Loss & Take-Profit Calculator",
+        "zh": "止损与止盈计算器"
+      },
+      "group": "public_nav.public",
       "question": "",
       "payloadTier": "public"
     },
@@ -17354,6 +17767,18 @@
       "payloadTier": "unknown"
     },
     {
+      "id": "macro:tools_family:/tools/calculators/trade-profit.html",
+      "href": "/tools/calculators/trade-profit.html",
+      "kind": "legacy",
+      "title": {
+        "en": "Trade Profit & Loss Calculator",
+        "zh": "交易盈亏计算器"
+      },
+      "group": "public_nav.public",
+      "question": "",
+      "payloadTier": "public"
+    },
+    {
       "id": "macro:transmission",
       "href": "/transmission.html",
       "kind": "legacy",
@@ -17499,8 +17924,8 @@
     }
   ],
   "coverage": {
-    "trackedHtml": 14023,
-    "legacyPaths": 13987,
+    "trackedHtml": 14084,
+    "legacyPaths": 14048,
     "excluded": [
       {
         "path": "/_mockup_ccw_credit_desk.html",
@@ -17673,6 +18098,10 @@
         "reason": "retained_by_native_owner"
       },
       {
+        "path": "/dev/options-plan",
+        "reason": "retained_by_native_owner"
+      },
+      {
         "path": "/dev/settings",
         "reason": "retained_by_native_owner"
       },
@@ -17701,7 +18130,7 @@
       "macro:rotation_china_family": 233,
       "macro:rotation_family": 269,
       "macro:sectors_family": 52,
-      "macro:stocks_family": 9562,
+      "macro:stocks_family": 9623,
       "macro:subsector_china_family": 237,
       "macro:subsector_family": 114,
       "macro:subsector_nasdaq_family": 6,

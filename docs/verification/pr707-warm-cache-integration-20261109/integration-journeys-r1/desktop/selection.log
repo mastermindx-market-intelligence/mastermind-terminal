@@ -1,0 +1,5 @@
+Listing tests:
+  [desktop] › marker-tooltip.spec.ts:507:5 › signals and every price overlay stay scoped to a moved price pane
+  [desktop] › marker-tooltip.spec.ts:607:5 › Gap Zones stays clipped to price when oscillator panes are present
+  [desktop] › warm-symbol-picker.spec.ts:4:5 › a cached symbol picker stays usable during refresh and receives the corrected company
+Total: 3 tests in 2 files

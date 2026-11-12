@@ -1,15 +1,15 @@
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-# capturedAt: 2026-10-24T05:30:04.103Z
+# capturedAtHead: 793dd27a1bc88fe2bcf86fa2de9962034b0769a2
+# capturedAt: 2026-11-09T09:09:38.557Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
-  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
+  terminal/components/settings/SettingsProvider.tsx: "fb717b94d3074bf3e7866cd399088bb0203d8e1fea0b6c18bfff46546972402b"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -41,12 +41,6 @@ measurements:
   mobile-en-password.png: { teamLine: "You are the owner of Acme.", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
   mobile-zh-password.png: { teamLine: "你是“Acme”团队的所有者。", currentPasswordField: true, passwordEditVisible: false, noPasswordLine: "" }
 
-documentLanguageRecapture20261024:
-  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
-  historicalManifest: history/before-document-language-20261024.yml
-  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
-  receiptIndex: ../document-language/recapture-index.json
-
-# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
-lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+capture_method: Original capture fixture, interactions, assertions and measurements executed against the existing same-workspace Next preview on port 3391. Only startServer ownership was omitted; the incumbent preview was not started or stopped.
+recovery_adapter: ../../verification/profile-settings-recapture-20261109/settings-reuse-capture.cjs
+recovery_adapter_sha256: 44405fd05de74ad62633cc39d2c842e7939e09d5de38d31086855c94cfb8f9f1

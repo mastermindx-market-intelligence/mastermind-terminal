@@ -1,0 +1,14 @@
+{
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/optionsExposureEvidence.test.ts",
+    "--reporter=dot"
+  ],
+  "helper_sha256": "a5e787f6508e61df7b329a276aa529993c01fcf30acc9f39b2fdb09ebb590004",
+  "source_stable": true,
+  "log_sha256": "6038da3105ce9fd81723d33708a5a290889e8e9996c8de256129a0ac9780de59"
+}

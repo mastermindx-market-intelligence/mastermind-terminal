@@ -1,0 +1,44 @@
+{
+  "artifacts": {
+    "browser-artifacts/clock/desktop.png": "2f6e9cd4e915056475f8ce354cd2584bb48d2e790c1515bf543fb51343529439",
+    "browser-artifacts/clock/mobile.png": "e65cc2d5f31b73ab3a1f9c499895cf0560c5c4e9d9a1ae3271b466805d31f2e2",
+    "browser-artifacts/clock/tablet.png": "47bf51cc50006df8a965bf2507780ccf0312b91c41e6a2871e31dd243c7d8c49",
+    "browser-artifacts/playwright/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "browser-artifacts/playwright/chart-clock-isolation-char-8f420-on-or-an-open-settings-menu-desktop/trace.zip": "738094b39f85c75babd4cc33a451bce4181e9122b748aae34805d2da11767739",
+    "browser-artifacts/playwright/chart-clock-isolation-char-8f420-on-or-an-open-settings-menu-mobile/trace.zip": "852e10116d1ff0940e561d38ce9020f6315d617c77ec4f38ddd7c9baa1c5e076",
+    "browser-artifacts/playwright/chart-clock-isolation-char-8f420-on-or-an-open-settings-menu-tablet/trace.zip": "c641a664270e4d2472d24c7db2804b39c6adfd1421f35d651c65ed9c487128d0"
+  },
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/chart-clock-isolation.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/docs/verification/pr707-warm-cache-integration-20261109/integration-journeys-r1/clock/browser-artifacts/playwright",
+    "--reporter=list,json"
+  ],
+  "completedAt": "2026-11-12T01:17:50.861941+00:00",
+  "exit": 0,
+  "expectedPassed": [
+    "desktop|chart clock keeps ticking without interrupting navigation or an open settings menu",
+    "mobile|chart clock keeps ticking without interrupting navigation or an open settings menu",
+    "tablet|chart clock keeps ticking without interrupting navigation or an open settings menu"
+  ],
+  "failed": 0,
+  "flaky": 0,
+  "lifecycleSha256": "f9d2e2864ab85d39702346251cb756689f45e2bf760eccabbd72cdf9bcd595dc",
+  "ownedServerStopped": true,
+  "passed": 3,
+  "playwrightPid": 54332,
+  "port": 3908,
+  "reportSha256": "8e26571376d97ef44e17b4280b3bd9db03477948c7fc6d843db5355cf0cda062",
+  "retries": 0,
+  "seconds": 51.973,
+  "skipped": 0,
+  "sourceStable": true,
+  "startedAt": "2026-11-12T01:16:57.944344+00:00"
+}

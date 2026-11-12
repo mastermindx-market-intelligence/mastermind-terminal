@@ -1,0 +1,88 @@
+{
+  "started_at": "2026-11-11T23:33:24.556242+00:00",
+  "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "merge_head": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "package_lock_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "results": [
+    {
+      "name": "dependency-install",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/npm",
+        "ci",
+        "--prefer-offline",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/pr707-warm-cache-integration-20261109/protected-integration-r1/dependency-install.log",
+      "sha256": "c4602044dd0cd1084ff045411af4ea07db3d751bd6e7718699a2c9b2ba250e22"
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/pr707-warm-cache-integration-20261109/protected-integration-r1/typegen.log",
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/pr707-warm-cache-integration-20261109/protected-integration-r1/typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "affected-unit",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/npm",
+        "test",
+        "--",
+        "lib/__tests__/chartClockIsolation.test.tsx",
+        "lib/__tests__/dataCacheWarmRefresh.test.ts",
+        "lib/__tests__/heatmapPersistedRefreshFailure.test.tsx",
+        "lib/__tests__/screenerPresetPersistence.test.tsx",
+        "lib/__tests__/symbolPickerRecovery.test.tsx",
+        "lib/__tests__/watchlistEventPlanner.test.ts"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/pr707-warm-cache-integration-20261109/protected-integration-r1/affected-unit.log",
+      "sha256": "425d5ce622417dd58e2292bb52f9b91866fc8a35c59c320f480e85c59ee70feb"
+    },
+    {
+      "name": "affected-lint",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/AlertsView.tsx",
+        "components/ChartFrameBar.tsx",
+        "components/PortfolioView.tsx",
+        "components/ScreenerView.tsx",
+        "components/SymbolPicker.tsx",
+        "components/TerminalShell.tsx",
+        "components/heatmap/HeatmapView.tsx",
+        "e2e/chart-clock-isolation.spec.ts",
+        "e2e/marker-tooltip.spec.ts",
+        "e2e/warm-symbol-picker.spec.ts",
+        "lib/dataCache.ts",
+        "lib/watchlistEventPlanner.ts",
+        "lib/__tests__/chartClockIsolation.test.tsx",
+        "lib/__tests__/dataCacheWarmRefresh.test.ts",
+        "lib/__tests__/heatmapPersistedRefreshFailure.test.tsx",
+        "lib/__tests__/screenerPresetPersistence.test.tsx",
+        "lib/__tests__/symbolPickerRecovery.test.tsx",
+        "lib/__tests__/watchlistEventPlanner.test.ts"
+      ],
+      "returncode": 1,
+      "log": "docs/verification/pr707-warm-cache-integration-20261109/protected-integration-r1/affected-lint.log",
+      "sha256": "9fa55b1a2766f39f8f569d4b6c9c3fb62c09b9216e4fc2b5fe7a03c02674150b"
+    }
+  ]
+}

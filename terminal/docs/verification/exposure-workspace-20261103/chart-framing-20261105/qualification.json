@@ -1,0 +1,206 @@
+{
+  "schema": "exposure_chart_framing_qualification.v1",
+  "operation": "chart-framing-20261105",
+  "qualified_at": "2026-11-05T09:52:05.584919+00:00",
+  "nativeContractSha256": "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7",
+  "captureRevision": "options-navigation-r4",
+  "chartPath": "terminal/components/exposure-map/ExposureMap.tsx",
+  "driverSha256": "53a1dcc01f94f8629a6bf1e727539202fec83478a37ef9a1964882f13693032c",
+  "maps": {
+    "original": {
+      "before": "52dcb7e81d556e2239454dae822458236430737f55877bb5bd3b21465aa2e349",
+      "after": "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7",
+      "observer": "94794d7172931d4f45b34d54dfe104083e5c581fda0470a973f252b0638b9d7e"
+    },
+    "preview": {
+      "before": "099b71567187d5509182d9cbee9be3d44b584bf1202748df8a6f92a48e0a5c11",
+      "after": "50bdfadd453747170d597b8f1a2a11853fe864ef08c6b2ffb561299f8a3dd60c",
+      "observer": "c3cdb23766b8fa6cc69a04209f2eeef945728108cf14946a779b431ac1402de5"
+    }
+  },
+  "files": {
+    "baseline/browser-receipt.json": "323ac86a8ba9a067e32de151434114366d59d65accf09e5332ec1c77d9f5f588",
+    "baseline/source-before.json": "bc6b6802621189d461ca0cf642d426a08cd0541a59f01c4a403c01e35e8486c0",
+    "baseline/source-after.json": "bc6b6802621189d461ca0cf642d426a08cd0541a59f01c4a403c01e35e8486c0",
+    "baseline/browser-report.json": "1976bd95cce6600068af3f83976d04089433b9b20ea0e82efce6173ab8201b52",
+    "baseline/browser.log": "2967e6986f3c30ca9679a0e73e780f7196a9232598dbe800b578dff3605fc0e1",
+    "baseline/painted-label-witnesses.json": "2a135c1bafd4f74b9db4e765e04151fcb48cc780b37c5798a9266f15de0ed6b7",
+    "original/browser-receipt.json": "da22c32fc157bc0b582e84fffd16d7289f02d2028df292e3ac3d7d9daef4125b",
+    "original/source-before.json": "f42be1a029ccc07d922225faa4a5eb48f669c4fda0ce191971e800dc13419d5d",
+    "original/source-after.json": "f42be1a029ccc07d922225faa4a5eb48f669c4fda0ce191971e800dc13419d5d",
+    "original/browser-report.json": "8f7c868e052e2421534e783b7baaa11ea6f38ef699c7ee4f7c5a1f57aef8e3fe",
+    "original/browser.log": "daab38d7c3ae0cb5537e41c31e3c17ff64b0654352e094a01a91e421075529d4",
+    "original/painted-label-witnesses.json": "e5565fe25a7e967ee02644541467007129cfebfb3ac19cef76a8b5701ccabe6e",
+    "preview/browser-receipt.json": "0177afdfbc77c67abb134527d1b143c38cf57074c8b92965749f09a2423f95b3",
+    "preview/source-before.json": "6bb3acfc4ed647c8659c7242aa723eb223553e8698c8a540eb42aafdb80a31fa",
+    "preview/source-after.json": "6bb3acfc4ed647c8659c7242aa723eb223553e8698c8a540eb42aafdb80a31fa",
+    "preview/browser-report.json": "57e025d35c748f726c7745bcc2021a9eeb28bf947c93ce6306c2b313876f9db1",
+    "preview/browser.log": "88fc93da0885f00a0c72c78e5a7a4cbc91372e1ee481921c87b676e0c3e7aa13",
+    "preview/painted-label-witnesses.json": "e5565fe25a7e967ee02644541467007129cfebfb3ac19cef76a8b5701ccabe6e",
+    "capture-driver.py": "53a1dcc01f94f8629a6bf1e727539202fec83478a37ef9a1964882f13693032c"
+  },
+  "baselineToOriginalChangedSources": [
+    "terminal/components/exposure-map/ExposureMap.tsx"
+  ],
+  "scope": "One Exposure-owned initial/Fit framing adjustment; native Strike captures and 319/138source maps remain immutable. SharedChart, primitive collision policy, data values, metrics, controls and manualpanning are unchanged.",
+  "witness": "Require the visible leading756node and minimum4CSSpixel clearance of every actuallypainted ranked glyph, initially andafterFit, with retainedOHLC/change controls and strictEN/ZHxthreeviewports.",
+  "results": {
+    "baseline": [],
+    "original": [
+      {
+        "project": "desktop",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "desktop",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "tablet",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "tablet",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "mobile",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 25.538491781655694,
+        "min_gap_after_fit": 25.538491781655694,
+        "painted_labels": [
+          756,
+          747
+        ]
+      },
+      {
+        "project": "mobile",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 25.538491781655694,
+        "min_gap_after_fit": 25.538491781655694,
+        "painted_labels": [
+          756,
+          747
+        ]
+      }
+    ],
+    "preview": [
+      {
+        "project": "desktop",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "desktop",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "tablet",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "tablet",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 5.49239793346851,
+        "min_gap_after_fit": 5.49239793346851,
+        "painted_labels": [
+          756,
+          757,
+          755,
+          747,
+          746,
+          748
+        ]
+      },
+      {
+        "project": "mobile",
+        "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+        "min_gap": 25.538491781655694,
+        "min_gap_after_fit": 25.538491781655694,
+        "painted_labels": [
+          756,
+          747
+        ]
+      },
+      {
+        "project": "mobile",
+        "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+        "min_gap": 25.538491781655694,
+        "min_gap_after_fit": 25.538491781655694,
+        "painted_labels": [
+          756,
+          747
+        ]
+      }
+    ]
+  }
+}

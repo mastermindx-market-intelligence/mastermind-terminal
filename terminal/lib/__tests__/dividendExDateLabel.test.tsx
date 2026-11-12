@@ -31,4 +31,54 @@ for(const zh of [false,true])describe(zh?'ZH':'EN',()=>{
 it('updates the label when the mounted language changes',async()=>{await render([event('2026-10-01')]);expect(label()).toBe('Last ex-date');await render([event('2026-10-01')],true);expect(label()).toBe('上次除息日');expect(value()).toBe(fmtDate('2026-10-01'));await render([event('2026-10-01')],false);expect(label()).toBe('Last ex-date');});
 it('updates past to upcoming and back while mounted',async()=>{await render([event('2026-10-01')]);expect(label()).toBe('Last ex-date');await render([event('2026-11-01')]);expect(label()).toBe('Next ex-date');await render([event('2026-10-01')]);expect(label()).toBe('Last ex-date');});
 it('does not change malformed selected-event value or amount',async()=>{await render([event('2026-02-30',7)]);expect(label()).toBe('Ex-date');expect(value()).toBe(fmtDate('2026-02-30'));expect(card()?.querySelector('.s')?.textContent).toContain('7.0000 CAD');});
-it('retains the forty-row history cap',async()=>{const ev=Array.from({length:45},(_,i)=>event(`2025-${String(1+Math.floor(i/28)).padStart(2,'0')}-${String(1+i%28).padStart(2,'0')}`));await render(ev);expect(el.querySelectorAll('tbody tr')).toHaveLength(40);expect(el.querySelector('.fin-div-more')?.textContent).toBe('Showing 40 of 45 events');});
+it('retains the forty-row history cap',async()=>{const ev=Array.from({length:45},(_,i)=>event(`2025-${String(1+Math.floor(i/28)).padStart(2,'0')}-${String(1+i%28).padStart(2,'0')}`));await render(ev);expect(el.querySelectorAll('tbody tr')).toHaveLength(40);expect(el.querySelector('.fin-div-more')?.textContent).toBe('Showing 1–40 of 45 events');});
+
+const historyRecords = (count: number) => Array.from({ length: count }, (_, i) =>
+  event(new Date(Date.UTC(2026, 8 - i, 15)).toISOString().slice(0, 10), (i + 1) / 100));
+const pageButton = (name: string) => Array.from(el.querySelectorAll<HTMLButtonElement>('button'))
+  .find(button => button.textContent === name)!;
+
+it.each([35, 50])('keeps focused paging controls and clamps a refresh to %s records', async count => {
+  await render(historyRecords(83));
+  await act(async () => pageButton('Next').click());
+  await act(async () => pageButton('Next').click());
+  expect(el.querySelectorAll('tbody tr')).toHaveLength(3);
+  const next = pageButton('Next');
+  next.focus();
+  await render(historyRecords(count));
+  expect(document.activeElement).toBe(next);
+  expect(next.getAttribute('aria-disabled')).toBe('true');
+  expect(el.querySelectorAll('tbody tr')).toHaveLength(count === 35 ? 35 : 10);
+  expect(el.querySelector('.fin-div-more')?.textContent).toBe(
+    count === 35 ? 'Showing 1–35 of 35 events' : 'Showing 41–50 of 50 events');
+  await act(async () => next.click());
+  expect(el.querySelectorAll('tbody tr')).toHaveLength(count === 35 ? 35 : 10);
+  await render(historyRecords(83));
+  expect(document.activeElement).toBe(next);
+  expect(el.querySelector('.fin-div-more')?.textContent).toBe(
+    count === 35 ? 'Showing 1–40 of 83 events' : 'Showing 41–80 of 83 events');
+});
+
+it('starts a newly selected company at its newest records', async () => {
+  const records = historyRecords(83);
+  await render(records);
+  await act(async () => pageButton('Next').click());
+  expect(el.querySelector('.fin-div-more')?.textContent).toBe('Showing 41–80 of 83 events');
+  await act(async () => root.render(<DividendsPage sym="OTHER" fund={fund(records)} />));
+  expect(el.querySelector('.fin-div-more')?.textContent).toBe('Showing 1–40 of 83 events');
+  expect(el.querySelector('tbody tr th')?.textContent).toBe('Sep 15, 2026');
+});
+
+it('keeps the selected history and focus when its language changes', async () => {
+  const records = historyRecords(83);
+  await render(records);
+  const next = pageButton('Next');
+  next.focus();
+  await act(async () => next.click());
+  await render(records, true);
+  expect(document.activeElement).toBe(next);
+  expect(next.textContent).toBe('下一页');
+  expect(el.querySelector('.fin-div-more')?.textContent).toBe('显示 41–80 / 83 条记录');
+  expect(el.querySelectorAll('tbody tr')).toHaveLength(40);
+  expect(el.querySelector('tbody tr th')?.textContent).toBe('May 15, 2023');
+});

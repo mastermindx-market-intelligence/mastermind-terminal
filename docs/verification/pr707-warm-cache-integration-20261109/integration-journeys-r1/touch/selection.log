@@ -1,0 +1,12 @@
+Listing tests:
+  [tablet] › marker-tooltip.spec.ts:790:5 › tapping a marker opens its tooltip, and tapping away dismisses it
+  [tablet] › marker-tooltip.spec.ts:808:5 › a pane relayout after a tap re-anchors the tooltip instead of dismissing it
+  [tablet] › marker-tooltip.spec.ts:842:5 › a tap keeps the marker it started on when geometry moves before pointerup
+  [tablet] › marker-tooltip.spec.ts:888:5 › a tap still opens the tooltip when the thread stalls between down and up
+  [tablet] › marker-tooltip.spec.ts:955:5 › a touch press that travels is a pan, not a tooltip tap
+  [mobile] › marker-tooltip.spec.ts:790:5 › tapping a marker opens its tooltip, and tapping away dismisses it
+  [mobile] › marker-tooltip.spec.ts:808:5 › a pane relayout after a tap re-anchors the tooltip instead of dismissing it
+  [mobile] › marker-tooltip.spec.ts:842:5 › a tap keeps the marker it started on when geometry moves before pointerup
+  [mobile] › marker-tooltip.spec.ts:888:5 › a tap still opens the tooltip when the thread stalls between down and up
+  [mobile] › marker-tooltip.spec.ts:955:5 › a touch press that travels is a pan, not a tooltip tap
+Total: 10 tests in 1 file

@@ -1,0 +1,20 @@
+{
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/exposure-expiry-greeks.spec.ts",
+    "e2e/responsive.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr707-warm-cache-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/warm-cache-integration-20261111/expiry-journeys/browser-artifacts/playwright",
+    "--trace=on",
+    "--grep",
+    "Exposure desk (carries expiry Vanna/Charm through bars and drawer in (en|zh)|renders expiry VEX and CHEX from the enriched owner payload)$",
+    "--reporter=list,json"
+  ],
+  "pid": 87259,
+  "startedAt": "2026-11-12T00:56:48.924268+00:00"
+}

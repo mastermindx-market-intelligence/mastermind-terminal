@@ -1,0 +1,10 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1403/terminal
+
+ ✓ lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  04:09:51
+   Duration  426ms (transform 40ms, setup 0ms, collect 34ms, tests 9ms, environment 0ms, prepare 80ms)

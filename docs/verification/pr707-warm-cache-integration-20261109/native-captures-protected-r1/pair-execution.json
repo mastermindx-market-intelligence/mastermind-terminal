@@ -1,0 +1,29 @@
+{
+  "schema": "terminal_pr707_protected_legacy_pair.v1",
+  "state": "BOTH_LEGACY_PACKETS_CAPTURED_CURRENT_COMPLETE",
+  "started_at": "2026-11-12T00:30:39.752173+00:00",
+  "head": "181e06a944bf892f7cb064a3aeab96ac827bc5ca",
+  "results": {
+    "b5": {
+      "returncode": 0,
+      "state": "CAPTURED_CURRENT_COMPLETE_PENDING_NATIVE_READER",
+      "count": 32,
+      "manifest_sha256": "2dd3cf2de6d4653c9c7ff0437a0b1040eaca9750f35357ddc67fb990f9054f71",
+      "listener_returncode": 1,
+      "listener_stdout": "",
+      "listener_stderr": "",
+      "execution_sha256": "8da3772ff2f9079bf465fc286321e468b0cb43aff7cd72994055e0bfab22e728"
+    },
+    "w9t": {
+      "returncode": 0,
+      "state": "CAPTURED_CURRENT_COMPLETE_PENDING_NATIVE_READER",
+      "count": 8,
+      "manifest_sha256": "8033515bffe7367b9b2361a3c1bf63868e6b2ba46d37af617eafa098a788da28",
+      "listener_returncode": 1,
+      "listener_stdout": "",
+      "listener_stderr": "",
+      "execution_sha256": "29b16437437626ee3b8ccae5a4e2eac2cd999780ad067ce9d5a6d8f2c92888e1"
+    }
+  },
+  "completed_at": "2026-11-12T00:32:25.220823+00:00"
+}

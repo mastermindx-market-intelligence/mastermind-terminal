@@ -1,0 +1,11 @@
+{
+  "schema": "pr1207_original_ci_failure.v1",
+  "head": "8470d4c5bba5848aca0f25fda439af55047e86d6",
+  "runId": 42607993927,
+  "jobId": 129136903439,
+  "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42607993927/job/129136903439",
+  "diagnosis": "An active page route callback used readBook while the test request context was being disposed.",
+  "sourceBlob": "181976c5ea4362b3490770a890edbcd356248701",
+  "excerpt": "2026-11-09T12:09:42.9080807Z Error: \"apiRequestContext.get: Test ended.\n2026-11-09T12:09:42.9097516Z    at portfolio-risk-reasons.spec.ts:9\n2026-11-09T12:09:42.9101674Z     at readBook (/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/portfolio-risk-reasons.spec.ts:9:39)\n2026-11-09T12:09:42.9102793Z     at /home/runner/work/mastermind-terminal/mastermind-terminal/terminal/e2e/portfolio-risk-reasons.spec.ts:25:26\n2026-11-09T12:19:35.3445143Z ##[notice]  112 skipped\n  1 did not run\n  281 passed (26.8m)\n2026-11-09T12:19:35.3451709Z   112 skipped\n2026-11-09T12:19:35.3451920Z   1 did not run\n2026-11-09T12:19:35.3452127Z   281 passed (26.8m)",
+  "officialBehaviorReference": "https://playwright.dev/docs/api/class-page#page-unroute-all"
+}

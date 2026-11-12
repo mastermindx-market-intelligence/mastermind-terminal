@@ -1,0 +1,16 @@
+{
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:3908",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "lockPresent": false,
+  "port": 3908,
+  "workspaceCwdHolders": []
+}

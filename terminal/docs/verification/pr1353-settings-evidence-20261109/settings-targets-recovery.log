@@ -1,0 +1,13 @@
+[dev] - Network:       http://127.0.0.1:3804
+✓ Ready in 642ms
+unpromoted capture directory /tmp/mmx-w9t-targets-vPapoj
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+captured PortfolioTargetsSettings-empty-390-en.png
+captured PortfolioTargetsSettings-empty-390-zh.png
+captured PortfolioTargetsSettings-empty-1440-en.png
+captured PortfolioTargetsSettings-empty-1440-zh.png
+captured PortfolioTargetsSettings-populated-390-en.png
+captured PortfolioTargetsSettings-populated-390-zh.png
+captured PortfolioTargetsSettings-populated-1440-en.png
+captured PortfolioTargetsSettings-populated-1440-zh.png
+Wrote 8 crops + EVIDENCE.yml under /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/pr-crops/w9t-f08-13-targets-readout

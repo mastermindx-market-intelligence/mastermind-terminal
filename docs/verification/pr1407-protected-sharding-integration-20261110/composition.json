@@ -1,0 +1,17 @@
+{
+  "actualMergeHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "globalCssBlob": "10f2df3f3e04f291f028c345b50a1967ba158cb2",
+  "mergeExit": 0,
+  "mergeStderr": "Automatic merge went well; stopped before committing as requested\n",
+  "mergeStdout": "Auto-merging terminal/components/TerminalShell.tsx\n",
+  "originalHead": "c0810319e70ab04da776b651580c7f35873088df",
+  "originalOperation": "terminal-experience-refinement-20261109-sol-01",
+  "priorPublication": "APPLIED; clean local and remote match originalHead; no uncertain effect replay.",
+  "protectedParent": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "schema": "terminal_pr1407_protected_sharding_integration.v1",
+  "sourceTreeAtMerge": "b7817978e0ce1d9c19a5674046505f70716e6392",
+  "startedAt": "2026-11-10T08:18:17.472761+00:00",
+  "state": "MERGED_PENDING_QUALIFICATION",
+  "terminalShellBlob": "c77fd610d9ff49cd2cf5049ff8194fee8cad72e7",
+  "unmerged": ""
+}

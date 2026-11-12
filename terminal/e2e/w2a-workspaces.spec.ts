@@ -246,6 +246,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnknownWidgetTypeWorkspace(page, "UnknownWidget");
+    await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
     // The row itself must be "ok" — never the unsupported_schema/blocked treatment M5 forbids for a
     // per-widget-type defect.
@@ -878,6 +879,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnreadableWorkspace(page, "Broken");
+    await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
     const row = menu.locator('[data-layout-row="Broken"]');
     await expect(row).toBeVisible();

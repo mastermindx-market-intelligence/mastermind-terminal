@@ -1,0 +1,116 @@
+{
+  "originalHead": "43fa33c7423daca90237e5b34f26b08fe0b5c24d",
+  "baselineBugReproduced": true,
+  "actualModules": "IntelligenceWorkspace + useReadingScope/readingJson + useReadingClock + readingFreshness/session calendar; identity/network/navigation controlled",
+  "cases": [
+    {
+      "lang": "en",
+      "scenario": "close",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "en",
+      "scenario": "wake",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "en",
+      "scenario": "price-only",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "en",
+      "scenario": "abort",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "zh",
+      "scenario": "close",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "zh",
+      "scenario": "wake",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "zh",
+      "scenario": "price-only",
+      "aged": true,
+      "requests": 3
+    },
+    {
+      "lang": "zh",
+      "scenario": "abort",
+      "aged": true,
+      "requests": 3
+    }
+  ],
+  "sourceCheckoutWrites": 0,
+  "branchWrites": 0,
+  "consumedOwnerBlobs": [
+    {
+      "path": "lib/shared-shell/useReadingClock.ts",
+      "expected_blob": "f116e541d8caa72f20747ecc5d263b931a1e52ef",
+      "actual_blob": "f116e541d8caa72f20747ecc5d263b931a1e52ef",
+      "matches": true
+    },
+    {
+      "path": "lib/shared-shell/readingFreshness.ts",
+      "expected_blob": "0fd921fcc3898b2722081f0726a9144324f5c525",
+      "actual_blob": "0fd921fcc3898b2722081f0726a9144324f5c525",
+      "matches": true
+    },
+    {
+      "path": "lib/shared-shell/useReadingScope.ts",
+      "expected_blob": "27e32b8489f9ed44a63d0d001de320dba3474d49",
+      "actual_blob": "27e32b8489f9ed44a63d0d001de320dba3474d49",
+      "matches": true
+    },
+    {
+      "path": "lib/shared-shell/readingPayloads.ts",
+      "expected_blob": "f68b0744982bd3e50224bf8038221ec641cfd167",
+      "actual_blob": "f68b0744982bd3e50224bf8038221ec641cfd167",
+      "matches": true
+    },
+    {
+      "path": "lib/usEquitySessionClock.ts",
+      "expected_blob": "bfc98f5cb29f54cd7ece50d3bb3a0995d819c686",
+      "actual_blob": "bfc98f5cb29f54cd7ece50d3bb3a0995d819c686",
+      "matches": true
+    }
+  ],
+  "candidateSourceSha256": {
+    "terminal/components/intelligence/IntelligenceWorkspace.tsx": "2b057c14f2c68cbf0ef026d51c280e64e3f74b02b653b3dc1eea3a1ca0491d97",
+    "terminal/lib/__tests__/intelligenceWorkspace.test.tsx": "9c6412d8b39de5af4da64179a8b5732b0694e5c9d056df88ea489a3b4f9850f9"
+  },
+  "typeQualification": {
+    "baseHead": "43fa33c7423daca90237e5b34f26b08fe0b5c24d",
+    "qualification": "exact candidate virtual source with installed dependency scaffolding",
+    "rootFiles": 2896,
+    "diagnostics": 0,
+    "first": [],
+    "sourceWrites": 0
+  },
+  "scopedLint": [
+    {
+      "path": "terminal/components/intelligence/IntelligenceWorkspace.tsx",
+      "errors": 0,
+      "warnings": 0,
+      "messages": []
+    },
+    {
+      "path": "terminal/lib/__tests__/intelligenceWorkspace.test.tsx",
+      "errors": 0,
+      "warnings": 0,
+      "messages": []
+    }
+  ],
+  "acceptanceBoundary": "Controlled actual-component qualification. Hosted CI and real signed-in/deployed acceptance remain distinct and pending."
+}

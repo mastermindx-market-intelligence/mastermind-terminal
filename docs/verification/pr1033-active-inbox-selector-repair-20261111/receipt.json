@@ -1,0 +1,26 @@
+{
+  "failed_run": 42980715856,
+  "failed_job": 130390615807,
+  "artifact": 13837028017,
+  "artifact_sha256": "132fd74d7d6f03855cb5d7ff7198a5902d575d20eebc2da2cc6f7da4766c392b",
+  "captured_checkout": {
+    "commit": "3202d4b6e53820beda17aac0a7000e498040ea9d",
+    "tree": "5fcbce79f84910ad31f3a5ecafc7cd971e79f071"
+  },
+  "qualified_cases": 0,
+  "cleanup": {
+    "contextsClosed": 0,
+    "browserClosed": true,
+    "serverSettled": true
+  },
+  "failure": "The inbox title is a span, not an accessible heading; exact title text is the intended assertion.",
+  "repair": "getByText(copy.title,{exact:true}) scoped to the existing inbox; all subsequent matrix/state/language/write/cleanup assertions retained.",
+  "checks": {
+    "node_syntax": 0,
+    "eslint": 0,
+    "product_markup_changed": false
+  },
+  "remaining": "Genuine eight-view hosted packet, artifact qualification/import, and required current-head CI.",
+  "productionAcceptance": false,
+  "producerActivation": false
+}

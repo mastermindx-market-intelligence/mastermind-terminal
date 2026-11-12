@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ✓ lib/__tests__/chartSettingsUi.test.ts (45 tests) 9ms
+ ✓ lib/__tests__/compareAnchor.test.ts (40 tests) 150ms
+ ✓ lib/__tests__/compareSettingsAccessibility.test.tsx (5 tests) 298ms
+
+ Test Files  3 passed (3)
+      Tests  90 passed (90)
+   Start at  08:47:59
+   Duration  1.86s (transform 1.09s, setup 0ms, collect 1.31s, tests 458ms, environment 553ms, prepare 533ms)
+

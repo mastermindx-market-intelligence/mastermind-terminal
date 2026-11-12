@@ -1,0 +1,291 @@
+{
+  "artifacts": {
+    "artifacts/.last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/scripts-desktop-en-light.png": "fb00e8887ea90ac3cc952e32974cdf142cdd68a5af327a63fac78be612783882",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/scripts-desktop-en.png": "7721b9a9e0001b984d39c560342290a569acd8f7959800c1acb98fb5612d2fef",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/study-actions-desktop-en-light.png": "d7550782ceade158329bb2d9912ca9627464817c74cdd7d80bfbc9dd120cd844",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--desktop/study-actions-desktop-en.png": "14376b772ef14a73287bdfda3ef7610c0045538f524a5610ec520bef0e4311c9",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/scripts-mobile-en-light.png": "f05e5a5b2c9910b30df6c53a4a1506831c11cbc6373c9b03d69c8968ff74677a",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/scripts-mobile-en.png": "3c6dba3662a8047c5a43d917d87b7cd6adb49f3f45ecbf8bfbeeae17526120e2",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/study-actions-mobile-en-light.png": "10ba126c68f1c6840f6308553f4349528267a5b1556f037360d6d963cffca9cb",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--mobile/study-actions-mobile-en.png": "1bc9b5d582c3d05fb2613c3453df057601b4da8c7355b461719cde37e22b9d11",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/scripts-tablet-en-light.png": "5a5d39bf1c7b7ab997cf58d497d1d18a29170acd7a72f7797b8a4c7bf221d672",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/scripts-tablet-en.png": "5162b70ad8856cca26f1fa96c2410c99282abb726dcae0384da8a6f139563e07",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/study-actions-tablet-en-light.png": "105f3821166369034d3a2e886d2bae89ab6ad136b3f163a02845e1fb0adf97e0",
+    "artifacts/scripts-library-script-ren-4ac10-p-the-whole-task-intact-en--tablet/study-actions-tablet-en.png": "c21606a4276a53515995d9ae57a22f8bfd5b3542fff240993a43e3d6ed49820f",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/scripts-desktop-zh-light.png": "0d363e47147b72ea9a7b747c8b2e22c4b9ec761d394642b990d768eb740d28fa",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/scripts-desktop-zh.png": "0d1baab985e0c142768c85c03de740bc9da6115562b05819abce734ebcbf5419",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/study-actions-desktop-zh-light.png": "822d907262a36bff4d0385a4e67b4c5e7469e08717c40932be717298d6712929",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--desktop/study-actions-desktop-zh.png": "f24e73a0749d10c660e5e3a2629c52aee969b2557db8f901baddda88c0557414",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/scripts-mobile-zh-light.png": "1821b332922668777a912196726173b9e3ff03d85b8be2dfb0327536785bb903",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/scripts-mobile-zh.png": "bb7ee429e7874af4ec95261021b7a14ed0421ba8d6e10e6746ac67016dee1f66",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/study-actions-mobile-zh-light.png": "05ed0459f43cb2bfbb92c6adcaad88278f5e2455478ad77136da1d6fef65c11a",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--mobile/study-actions-mobile-zh.png": "f5c9114c2aab0f97c20324c1dad6b7f7114ca70875db8fe6173ca82efaa2ebdc",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/scripts-tablet-zh-light.png": "076c337d547d395c9e20413febf9d2c0cdd6fc39cb79c5fe6fcbc6fbb69d8c01",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/scripts-tablet-zh.png": "a910cdbeb61df479a417cdcef3a8613c021adc964d773c7f851059cb21701fcb",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/study-actions-tablet-zh-light.png": "6a3c6e02adcc765157ebf32b5c47d6d4d7643b5ef3fcdc24bd80e4486a6d159a",
+    "artifacts/scripts-library-script-ren-eddc3-p-the-whole-task-intact-zh--tablet/study-actions-tablet-zh.png": "233a364807fe6f0c5612025e93434c17d3328476da55ad6a430f619262fa0b7b",
+    "artifacts/workspace-rename-focus-lat-6f8a3--newer-draft-is-being-typed-desktop/late-rename-draft.png": "9600c5c017870eae3ab47fe7195a140f48ec399af5b3d8bebfdd779c43987e29",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/unreadable-workspace.json": "ef8d73b3e3d425ee053367151a1d21be56e3d8c2d5f46b83a4f773d00a2e57b5",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/workspace-actions-desktop-light.png": "a651ff07ead0ed8c30cd996a5d0c4f33536d7207126a6186dacfcf1f633ad7d9",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-desktop/workspace-actions-desktop.png": "790be7b9f384a7e9fc1b4b99191a3f2751500b35d89dab39be54292fe73b85fb",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/unreadable-workspace.json": "362d05132a32eebf66b6e281c3bae0e06665c8098e80470784207f411d704a7e",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/workspace-actions-mobile-light.png": "de5972fbe2353bb6db6973556011860043ad71814a7fda767069a69c1c38f368",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-mobile/workspace-actions-mobile.png": "cdfb409f4b836d3d4b28a8563afff1a791668cf9acd871d13b055aaaaecaf14c",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/unreadable-workspace.json": "37bfeaaf1e7cf06823ac4556dd8aebe78115a1e3f18b34d7d52bbe13e1256bf9",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/workspace-actions-tablet-light.png": "bfe52d74770ed3b7e110439c6a27b1ec87bd84fbefd1bea13067ff4f20f09bc9",
+    "artifacts/workspace-rename-focus-unr-36ddc-thout-opening-the-workspace-tablet/workspace-actions-tablet.png": "85b5fbbb42a34beda85e3bc24d81bbdd2e4a79edb00dc0b4912dab57514af616",
+    "artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--desktop/rename-save-desktop-zh.png": "f6438bbda5d013ff168a268df166cbc62e88bc73cd2bb87216c8361d13a5d856",
+    "artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--mobile/rename-save-mobile-zh.png": "81193dfa323486b2665ee6293af112d762ea8fe00fcf2fc59ee8010ca5ce4e7e",
+    "artifacts/workspace-rename-focus-wor-1cac8-he-keyboard-task-intact-zh--tablet/rename-save-tablet-zh.png": "eec7f7d1095a46dcf1debd51d8c23d6dd29eb3cc49108144738e8e580ae166b6",
+    "artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--desktop/rename-save-desktop-en.png": "edd0248ede852adfa2e06ac161be7a4612a30a62429d155dcd12c2046e48552b",
+    "artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--mobile/rename-save-mobile-en.png": "b5e37ec16aaa8974955c504c18bbce38348f40628d318afaeb8cd0f982ad5f26",
+    "artifacts/workspace-rename-focus-wor-56ecd-he-keyboard-task-intact-en--tablet/rename-save-tablet-en.png": "65bc2370e9bd19e964b797b507812e8355c4ddc14c246e8bf1a6198544eb8e44"
+  },
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "script rename and touch actions keep the whole task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "script rename and touch actions keep the whole task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "script rename and touch actions keep the whole task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "script rename and touch actions keep the whole task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "script rename and touch actions keep the whole task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "script rename and touch actions keep the whole task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "workspace rename keeps the keyboard task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "workspace rename keeps the keyboard task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "late rename success never replays while a newer draft is being typed"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "desktop",
+      "title": "unreadable workspace actions stay keyboard accessible without opening the workspace"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "workspace rename keeps the keyboard task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "workspace rename keeps the keyboard task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "project": "tablet",
+      "title": "late rename success never replays while a newer draft is being typed"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "tablet",
+      "title": "unreadable workspace actions stay keyboard accessible without opening the workspace"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "workspace rename keeps the keyboard task intact (en)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "workspace rename keeps the keyboard task intact (zh)"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "project": "mobile",
+      "title": "late rename success never replays while a newer draft is being typed"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "project": "mobile",
+      "title": "unreadable workspace actions stay keyboard accessible without opening the workspace"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/workspace-rename-focus.spec.ts",
+    "e2e/scripts-library.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--grep",
+    "workspace rename keeps the keyboard task intact|late rename success never replays|unreadable workspace actions stay keyboard accessible|script rename and touch actions keep the whole task intact",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-refinement-20261109-sol-01/terminal/test-results/pr1407-style-workspace-library"
+  ],
+  "completedAt": "2026-11-10T04:44:08.831331+00:00",
+  "errors": [],
+  "exit": 0,
+  "expectedAuthoredSkips": 2,
+  "expectedPassed": 16,
+  "generatedWorkspaceCrops": {},
+  "investorPreview": 0,
+  "lifecycleSha256": "10c9832757f409e5323ea45626d97f311d1de553ae29693350632b9a7e379428",
+  "logSha256": "72d053e0a25465e643be7b62d062da20c5e2affad568fd3440318d8ee18ca54e",
+  "ownedServerStopped": true,
+  "port": 47407,
+  "reportSha256": "2a9a028aa7a596fa112f2eeb52ad7a8aab2af6bf3691524ac247c52c5d1d65cc",
+  "schema": "terminal_pr1407_style_browser_stage.v1",
+  "seconds": 313.11,
+  "sharedShell": 0,
+  "sourceEntries": 1981,
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourceStable": true,
+  "stage": "workspace-library",
+  "startedAt": "2026-11-10T04:38:55.715362+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 304218.98,
+    "expected": 16,
+    "flaky": 0,
+    "skipped": 2,
+    "startTime": "2026-11-10T04:38:56.058Z",
+    "unexpected": 0
+  }
+}

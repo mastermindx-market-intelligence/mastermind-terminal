@@ -1,0 +1,110 @@
+[
+  {
+    "path": "terminal/components/news/TickerNewsPanel.tsx",
+    "capture_sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "original_head_sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "integrated_worktree_sha256": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2"
+  },
+  {
+    "path": "terminal/components/news/TickerNewsPanel.module.css",
+    "capture_sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "original_head_sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "integrated_worktree_sha256": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358"
+  },
+  {
+    "path": "terminal/components/TerminalShell.tsx",
+    "capture_sha256": "623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb",
+    "original_head_sha256": "623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb",
+    "integrated_worktree_sha256": "623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb"
+  },
+  {
+    "path": "terminal/components/WatchlistDisplaySettings.tsx",
+    "capture_sha256": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "original_head_sha256": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "integrated_worktree_sha256": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827"
+  },
+  {
+    "path": "terminal/components/WatchlistDisplaySettings.module.css",
+    "capture_sha256": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "original_head_sha256": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "integrated_worktree_sha256": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41"
+  },
+  {
+    "path": "terminal/app/globals.css",
+    "capture_sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "original_head_sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "integrated_worktree_sha256": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  },
+  {
+    "path": "terminal/lib/i18n.tsx",
+    "capture_sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "original_head_sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "integrated_worktree_sha256": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  {
+    "path": "terminal/lib/__tests__/fixtures/newsEditorial.ts",
+    "capture_sha256": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "original_head_sha256": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "integrated_worktree_sha256": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d"
+  },
+  {
+    "path": "terminal/e2e/ticker-news.spec.ts",
+    "capture_sha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "original_head_sha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "integrated_worktree_sha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a"
+  },
+  {
+    "path": "terminal/e2e/watchlistStore.ts",
+    "capture_sha256": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "original_head_sha256": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "integrated_worktree_sha256": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2"
+  },
+  {
+    "path": "terminal/e2e/presentationControls.ts",
+    "capture_sha256": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "original_head_sha256": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "integrated_worktree_sha256": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34"
+  },
+  {
+    "path": "terminal/e2e/globalSetup.ts",
+    "capture_sha256": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "original_head_sha256": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "integrated_worktree_sha256": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b"
+  },
+  {
+    "path": "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+    "capture_sha256": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "original_head_sha256": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "integrated_worktree_sha256": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c"
+  },
+  {
+    "path": "terminal/playwright.config.ts",
+    "capture_sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "original_head_sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "integrated_worktree_sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525"
+  },
+  {
+    "path": "terminal/docs/specimens/news-flow.light.css",
+    "capture_sha256": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "original_head_sha256": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "integrated_worktree_sha256": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8"
+  },
+  {
+    "path": "terminal/next.config.ts",
+    "capture_sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "original_head_sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "integrated_worktree_sha256": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
+  },
+  {
+    "path": "terminal/package.json",
+    "capture_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "original_head_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "integrated_worktree_sha256": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf"
+  },
+  {
+    "path": "terminal/package-lock.json",
+    "capture_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "original_head_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+    "integrated_worktree_sha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  }
+]

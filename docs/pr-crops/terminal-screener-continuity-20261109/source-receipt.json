@@ -1,0 +1,34 @@
+{
+  "base": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "product_head": "b9978b95292cca5e1670f341373af27f0387c392",
+  "verifiedFiles": 3378,
+  "mismatches": [],
+  "affectedUnitTests": 42,
+  "browserTests": 18,
+  "retries": 0,
+  "typecheckExit": 0,
+  "lint": {
+    "ScreenerView": {
+      "beforeErrors": 9,
+      "afterErrors": 9
+    },
+    "newTests": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "captures": [
+    {
+      "path": "docs/pr-crops/terminal-screener-continuity-20261109/desktop-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "53eb0961e9115bee8bbfa6c7e1a40256c0718cb0"
+    },
+    {
+      "path": "docs/pr-crops/terminal-screener-continuity-20261109/mobile-zh.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47853f94fbccdf31dc1007cb915315877708b2f4"
+    }
+  ]
+}

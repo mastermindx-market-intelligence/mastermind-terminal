@@ -196,7 +196,7 @@ export default function PortfolioWorkspace(p: Props) {
           {/* The book's own numbers are gone, but the selected sector's evidence is its own
               owner's read and stays available — with every book number withheld. */}
           {sectorContext && <PortfolioSectorContext context={sectorContext} positions={p.positions}
-            unreadable={p.unreadable} stale={p.stale} />}
+            unreadable={p.unreadable} stale={p.stale} refreshing={p.retrying} />}
         </section> : <>
           <div className={s.tabs} role="tablist" aria-label={t("portfolio")}>
             {SECTIONS.map((key, index) => <button key={key} type="button" role="tab" id={`portfolio-tab-${key}`}
@@ -302,7 +302,7 @@ export default function PortfolioWorkspace(p: Props) {
             {/* The selected sector, when the address admitted one. It stands apart from the
                 market-global readout below: its own heading, its own evidence, its own card. */}
             {sectorContext && <PortfolioSectorContext context={sectorContext} positions={p.positions}
-              unreadable={p.unreadable} stale={p.stale} />}
+              unreadable={p.unreadable} stale={p.stale} refreshing={p.retrying} />}
             <header className={s.sectionIntro}><h2>{c("riskIntro")}</h2><p>{c("concentrationHint")} {c("commonUnits")}</p></header>
             {p.riskContent}
             <section className={s.history}><header className={s.sectionIntro}><h2>{c("historyTitle")}</h2><p>{c("historyHint")}</p></header><p className={s.methodNote}>{c("historyNotPerformance")}</p>{p.historyContent}</section>

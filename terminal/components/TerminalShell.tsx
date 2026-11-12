@@ -8,6 +8,7 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import replayStyles from "./ReplayTransport.module.css";
+import layoutMenuStyles from "./LayoutMenu.module.css";
 import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
 import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
@@ -49,6 +50,7 @@ import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { buildPrecisionPlan, detectPrecisionHorizon, precisionLayoutState } from "@/lib/precisionEntry";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
+import { useBrainOpenIntent } from "@/lib/useBrainOpenIntent";
 import { accountIdentity, identityOwnerKey, identityUserId, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
@@ -126,6 +128,9 @@ const GuidePanel = dynamic(() => import("@/components/GuidePanel"), { ssr: false
 const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { ssr: false });
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
+// Closed surfaces load at their existing intent paths; their state remains in this shell.
+const LayoutMenu = dynamic(() => import("@/components/LayoutMenu"), { ssr: false });
+const DataInspector = dynamic(() => import("@/components/dataInspector/DataInspector"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
 // Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
 const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
@@ -195,14 +200,14 @@ import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { writeActiveSymbol } from "@/lib/activeSymbol";
 import { listScripts, deleteScript as delScript, runRenameScriptClick, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
-import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
+import type { LayoutFeedback, LayoutStatus, SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
 import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
 import { migrateLegacy, workspaceToLayout, captureWorkspace } from "@/lib/workspaceMigrate";
 import RetainedInvestigationLayout from "@/components/RetainedInvestigationLayout";
 import { SCHEMA as WORKSPACE_SCHEMA, validateEnvelope, type WorkspaceEnvelope, type Widget as WorkspaceWidget } from "@/lib/workspaceLayout";
-import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, openBrainReincluding, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
+import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
 import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
@@ -211,7 +216,6 @@ import { captureChartReadout, CHART_READOUT_SCHEMA } from "@/lib/chartReadoutSna
 import { CHART_PRICE_WINDOW_MAX_BARS, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
 import { CHART_PRESENTATION_SCHEMA, chartPresentationSessionKey, commitChartPresentation, readChartPresentation, type ChartPresentationCache } from "@/lib/chartPresentation";
 import { LIVE_NATIVE_OBSERVATION_SCHEMA, LIVE_NATIVE_OBSERVATION_MAX_BYTES } from "@/lib/nativeObservationProjection";
-import DataInspector from "@/components/dataInspector/DataInspector";
 import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
 // E07: study templates — the host owns the save dialog, the library and the menu events.
@@ -221,6 +225,7 @@ import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
+import WatchlistDisplaySettings from "@/components/WatchlistDisplaySettings";
 import {
   DEFAULT_WATCHLIST_SETTINGS,
   WATCHLIST_SETTINGS_KEY,
@@ -246,7 +251,7 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
-import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, symbolSearchSeedFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
 import { paletteText } from "@/lib/commandPaletteLex";
 import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
@@ -550,7 +555,17 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
   );
 }
 
-type WlContextPoint = { x: number; y: number; symbol: string };
+type WlContextPoint = {
+  x: number;
+  y: number;
+  symbol: string;
+  openingScroll: { owner: HTMLElement; left: number; top: number } | null;
+};
+
+function watchlistContextPoint(symbol: string, x: number, y: number, opener: HTMLElement): WlContextPoint {
+  const owner = opener.closest<HTMLElement>(".wl-scroll");
+  return { symbol, x, y, openingScroll: owner ? { owner, left: owner.scrollLeft, top: owner.scrollTop } : null };
+}
 type WlSectionContextPoint = { x: number; y: number; section: string; initialView?: "main" | "rename" };
 
 function WlBulkContextMenu({
@@ -631,8 +646,14 @@ function WlBulkContextMenu({
   }, [point.x, point.y, view, sections.length]);
 
   useEffect(() => {
-    const close = (event?: Event) => {
-      if (event?.type === "scroll" && event.target instanceof Node && rootRef.current?.contains(event.target)) return;
+    const close = (event: Event) => {
+      if (event.type === "scroll") {
+        if (event.target instanceof Node && rootRef.current?.contains(event.target)) return;
+        const opening = point.openingScroll;
+        // A scroll already reflected when the row opened can be delivered after the menu mounts.
+        if (opening && event.target === opening.owner
+          && opening.owner.scrollLeft === opening.left && opening.owner.scrollTop === opening.top) return;
+      }
       onClose();
     };
     window.addEventListener("scroll", close, true);
@@ -641,7 +662,7 @@ function WlBulkContextMenu({
       window.removeEventListener("scroll", close, true);
       window.removeEventListener("resize", close);
     };
-  }, [onClose]);
+  }, [onClose, point.openingScroll]);
 
   const back = () => { setView("main"); setName(""); };
   const onMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -1364,6 +1385,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const wlSettingsLauncherRef = useRef<HTMLButtonElement>(null);
+  const wlSettingsId = useId();
   const [captureOpen, setCaptureOpen] = useState(false);
   const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
@@ -1486,7 +1509,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // carries a name string, so the op that produced it is tracked here for "Use <suggested>".
   const [pendingConflict, setPendingConflict] = useState<
     | { op: "save"; envelope: WorkspaceEnvelope }
-    | { op: "rename"; oldName: string; revision: number; id?: string }
+    | { op: "rename"; oldName: string; revision: number; id: string }
     | { op: "duplicate"; sourceName: string; sourceId?: string }
     | { op: "import"; envelope: WorkspaceEnvelope }
     | null
@@ -3565,25 +3588,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     } catch { setLayoutStatus("unavailable"); return { ok: false }; }
   }, [lang]);
   const refreshLayouts = useCallback(async (): Promise<boolean> => (await fetchWorkspaceRows()).ok, [fetchWorkspaceRows]);
-  useEffect(() => { void refreshLayouts(); }, [refreshLayouts]);
-  useEffect(() => {
-    // Open the Brain widget. The script is deferred + cross-origin, so on early ?ai=1 deep-links
-    // window.MMBrain may not exist yet — retry once after 800ms before giving up.
-    // Reviewer ruling M6(b): opening the assistant is itself the user asking for it — every entry
-    // point RE-INCLUDES the dock in the live workspace graph when it was toggled off, rather than
-    // opening a widget the workspace no longer declares (freeze §7's own membership rule flows both
-    // ways: a workspace can drop the dock, and asking for the assistant brings it back).
-    const openBrain = () => {
-      openBrainReincluding(setBrainIncluded, () => {
-        const b = (window as any).MMBrain;
-        if (b?.open) { b.open(); return; }
-        window.setTimeout(() => (window as any).MMBrain?.open?.(), 800);
-      });
-    };
-    window.addEventListener("mm:copilot", openBrain);
-    try { if (new URLSearchParams(window.location.search).get("ai") === "1") openBrain(); } catch {}
-    return () => window.removeEventListener("mm:copilot", openBrain);
-  }, []);
+  // The saved library is separate from local chart restoration. Start its existing read on intent.
+  const layoutReadStartedRef = useRef(false);
+  const ensureLayoutsLoaded = useCallback(() => {
+    if (layoutReadStartedRef.current) return;
+    layoutReadStartedRef.current = true;
+    void refreshLayouts();
+  }, [refreshLayouts]);
+  // Keep the current language refresh once the library has actually been requested.
+  useEffect(() => { if (layoutReadStartedRef.current) void refreshLayouts(); }, [refreshLayouts]);
+  const { openBrain, toggleBrain, cancelPendingBrainOpen } = useBrainOpenIntent(setBrainIncluded);
   // shallow deep-link: ?pane=<page> opens the MegaPane on that page (MegaPane keeps the URL in sync
   // and strips ?pane= on close). Reactive so clicking ?pane= links while already on /terminal works.
   // Only OPEN when a valid pane is present — do NOT force-close when absent (MegaPane owns its close).
@@ -3792,12 +3806,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (paletteOpen) return;
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea") return;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
+      if (paletteOpen || searchOpen) return;
+      const seed = symbolSearchSeedFromKey(e, {
+        target: e.target instanceof Element ? e.target : null,
+        active: document.activeElement,
+        modalOpen: hasOpenModal(document),
+      });
+      if (seed === null) return;
+      e.preventDefault(); setSeed(seed); setSearchOpen(true);
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
   }, [paletteOpen, searchOpen]);
@@ -4052,7 +4068,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setWlSelected((current) => resolveWatchlistContextSelection(current, symbol));
     wlAnchorRef.current = symbol;
     setWlSectionContext(null);
-    setWlContext({ symbol, x: event.clientX, y: event.clientY });
+    setWlContext(watchlistContextPoint(symbol, event.clientX, event.clientY, event.currentTarget));
   }, []);
 
   const openWlSectionContext = useCallback((section: string, point: { x: number; y: number; focus: HTMLElement }, initialView: "main" | "rename" = "main") => {
@@ -5536,6 +5552,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const envelope = migrated.envelope;
     const layout = workspaceToLayout(envelope);
     const next = applyLayoutConfig(layout, currentWorkspace());
+    cancelPendingBrainOpen();
     setPanes(next.panes);
     setPaneTfs(next.paneTfs);
     setSplit(next.split);
@@ -5636,7 +5653,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         setWorkspaceId(rowId);
         setLoadedEnvelope((prev) => (prev ? { ...prev, revision: outcome.revision } : prev));
       }
-      setLayoutFeedback({ kind: "renamed" });
+      setLayoutFeedback({ kind: "renamed", id: rowId, name: newName });
       await refreshLayouts();
       return;
     }
@@ -5775,7 +5792,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           setWorkspaceRevision(outcome.revision);
           if (pending.id) setWorkspaceId(pending.id);
         }
-        setLayoutFeedback({ kind: "renamed" });
+        setLayoutFeedback({ kind: "renamed", id: pending.id, name: suggested });
         await refreshLayouts();
       } else {
         setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") });
@@ -5858,7 +5875,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     onRetry: () => { setLayoutStatus("loading"); void refreshLayouts(); },
     onSignUp: promptLayoutSignup,
     brainInWorkspace: brainIncluded,
-    onToggleBrainDock: () => setBrainIncluded((b) => !b),
+    onToggleBrainDock: () => { cancelPendingBrainOpen(); setBrainIncluded((b) => !b); },
     onRename: renameWorkspaceAction,
     onDuplicate: duplicateWorkspaceAction,
     onExport: exportWorkspaceAction,
@@ -5899,7 +5916,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       })()
     : [];
 
-  const colList = (): [string, string][] => { const a: [string, string][] = [["last", t("colLast")]]; if (set.cols.change) a.push(["change", t("colChgShort")]); if (set.cols.changePct) a.push(["changePct", t("colChgPctShort")]); if (set.cols.volume) a.push(["volume", t("colVolShort")]); if (set.cols.ext) a.push(["ext", t("colExtShort")]); if (set.cols.extPct) a.push(["extPct", t("colExtPctShort")]); return a; };
+  const colList = (): [string, string][] => { const a: [string, string][] = []; if (set.cols.last) a.push(["last", t("colLast")]); if (set.cols.change) a.push(["change", t("colChgShort")]); if (set.cols.changePct) a.push(["changePct", t("colChgPctShort")]); if (set.cols.volume) a.push(["volume", t("colVolShort")]); if (set.cols.ext) a.push(["ext", t("colExtShort")]); if (set.cols.extPct) a.push(["extPct", t("colExtPctShort")]); return a; };
   // Plain-word label for an ext window. The hub's classification when it has one; "Overnight"
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
@@ -6003,6 +6020,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (id) setDrawingsVisible(true);
     return true;
   };
+  // Visible creation controls follow the same admission fence as their handler.
+  // The initial account placeholder enables them before the cloud GET settles.
+  const drawingControlDisabledReason = drawingCreationDisabledReason
+    ?? (drawingsReadyFor(active) ? null : "loading");
   const activeStoredDrawings = drawingOwnerMatches ? (drawStore[active] ?? []) : [];
   const activeUserDrawings = activeStoredDrawings.filter(isUserDrawing);
   const storedDetectedDrawingCount = activeStoredDrawings.length - activeUserDrawings.length;
@@ -6235,7 +6256,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
           <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
         </button>
-        <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
+        <button className="ai" onClick={toggleBrain}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
       )}
@@ -6244,10 +6265,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {!shellMode && (<>
       <MobileNav
         email={email}
+        intentPrefetch
         fromMacro={fromMacro}
         returnHref={macroHref}
         onBack={onBack}
-        onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
+        onOpenCopilot={openBrain}
         onOpenCommandPalette={() => setPaletteOpen(true)}
         commandPaletteLabel={paletteText(paletteLang, "cpTriggerName")}
         isTerminal
@@ -6281,7 +6303,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
-      <AppNav />
+      <AppNav intentPrefetch />
       </>)}
 
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
@@ -6398,9 +6420,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="layouts">
-              <button className="tbtn" onClick={(e) => { e.stopPropagation(); const willOpen = !layoutOpen; closeAll(); setLayoutOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span style={{ color: "var(--muted)" }}>▾</span></button>
+              <button className="tbtn" onMouseEnter={ensureLayoutsLoaded} onFocus={ensureLayoutsLoaded} onClick={(e) => { e.stopPropagation(); ensureLayoutsLoaded(); const willOpen = !layoutOpen; closeAll(); setLayoutOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span style={{ color: "var(--muted)" }}>▾</span></button>
               <div className={`pop${layoutOpen ? " show" : ""}`} style={{ top: 32, right: 0, minWidth: 300 }} onClick={(e) => e.stopPropagation()}>
-                <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
+                {layoutOpen && <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />}
               </div>
             </div>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="snapshot">
@@ -6494,7 +6516,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
                     <svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8" /></svg>{t("detect")}<span>›</span>
                   </button>
-                  <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="layouts" onClick={() => setToolbarMoreView("layouts")}>
+                  <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="layouts" onMouseEnter={ensureLayoutsLoaded} onFocus={ensureLayoutsLoaded} onClick={() => { ensureLayoutsLoaded(); setToolbarMoreView("layouts"); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 9h16M9 9v10" /></svg>{t("layouts")}<span>›</span>
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="snapshot" onClick={() => setToolbarMoreView("snapshot")}>
@@ -6597,7 +6619,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           <div className="chart-body" style={{ "--subpanes": subPanes ?? impliedSubPanes } as React.CSSProperties}>
             <DrawingSidebar
               tool={drawingsReadyFor(active) ? activeDrawingTool : null}
-              creationDisabledReason={drawingCreationDisabledReason}
+              creationDisabledReason={drawingControlDisabledReason}
               magnet={magnet}
               sticky={drawingCreationDisabledReason ? false : drawingKeepsActive}
               stayActive={drawingSticky}
@@ -6855,7 +6877,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "chartSettings") window.dispatchEvent(new CustomEvent("mm:open-chart-settings", {
               detail: { pane: activePane, symbol: active, tab: "symbol" },
             }));
-            else if (action === "workspaces") setPhoneWorkspacesOpen(true);
+            else if (action === "workspaces") { ensureLayoutsLoaded(); setPhoneWorkspacesOpen(true); }
             else if (action === "options") optionsRailRef.current?.open();
             else if (action === "replay") toggleReplay();
             else if (action === "capture") setCaptureOpen(true);
@@ -6863,6 +6885,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
+              // Leaving News first restores the company card and the watchlists, so the
+              // dossier below is the visible target of the scroll on a phone.
+              if (loggedIn && newsRailEnabled && railTab === "news") setRailTab("watchlists");
               // The dossier is the page's own scroll position on a phone, not a modal.
               window.requestAnimationFrame(() =>
                 document.querySelector(".detail-board")?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -6872,15 +6897,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <MobileSheet
           open={phoneWorkspacesOpen}
           onClose={() => setPhoneWorkspacesOpen(false)}
+          escapeKey="bubble"
           title={t("layouts")}
-          className="phone-workspaces-sheet"
+          className={`phone-workspaces-sheet ${layoutMenuStyles.phoneSheet}`}
           detents={[60, 96]}
         >
-          <LayoutMenu
+          {phoneWorkspacesOpen && <LayoutMenu
             {...layoutMenuProps}
             onPicked={() => setPhoneWorkspacesOpen(false)}
             isOpen={phoneWorkspacesOpen}
-          />
+          />}
         </MobileSheet>
       </>)}
 
@@ -7065,22 +7091,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
-                <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
+                <button ref={wlSettingsLauncherRef} type="button" title={t("settings")} aria-label={`${t("watchlists")}: ${t("settings")}`} aria-haspopup="dialog" aria-expanded={wlSetOpen} aria-controls={wlSetOpen ? wlSettingsId : undefined} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
-              <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
-                <div className="set-h"><b>{t("tableViewLabel")}</b><span className={`switch${set.tableView ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, tableView: !s.tableView }))} /></div>
-                <div className="set-grp">{t("columns")}</div>
-                {([["last", t("colLast")], ["change", t("colChange")], ["changePct", t("colChangePct")], ["volume", t("colVolume")]] as [string, string][]).map(([k, l]) => (
-                  <div key={k} className={`set-row${(set.cols as any)[k] ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, [k]: !(s.cols as any)[k] } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{l}</div>
-                ))}
-                {/* item-26: Extended Hours column — dash for composites/non-US/no print */}
-                <div className="set-grp">{t("extColumns")}</div>
-                <div data-watchlist-setting="ext" className={`set-row${set.cols.ext ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, ext: !s.cols.ext } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("colExt")}</div>
-                <div data-watchlist-setting="extPct" className={`set-row${set.cols.extPct ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, cols: { ...s.cols, extPct: !s.cols.extPct } }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("colExtPct")}</div>
-                <div className="set-grp">{t("symbolDisplay")}</div>
-                <div className={`set-row${set.logo ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, logo: !s.logo }))}><span className="cbx"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span>{t("logo")}</div>
-                {([["symbol", t("dispSymbol")], ["name", t("dispName")], ["both", t("dispBoth")]] as [string, string][]).map(([d, l]) => <div key={d} className={`set-row${set.disp === d ? " on" : ""}`} onClick={() => setSet((s) => ({ ...s, disp: d }))}><span className="rdo" />{l}</div>)}
-              </div>
+              <WatchlistDisplaySettings id={wlSettingsId} open={wlSetOpen} settings={set} onChange={setSet}
+                launcherRef={wlSettingsLauncherRef} onClose={() => setWlSetOpen(false)} />
             </div>
             <div className="wl-scroll">
               <div className="wl-cols" style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW }}>
@@ -7162,7 +7176,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                               wlContextFocusRef.current = event.currentTarget;
                               setWlSelected((current) => resolveWatchlistContextSelection(current, sym));
                               wlAnchorRef.current = sym;
-                              setWlContext({ symbol: sym, x: rect.left + Math.min(36, rect.width / 2), y: rect.top + Math.min(32, rect.height) });
+                              setWlContext(watchlistContextPoint(sym, rect.left + Math.min(36, rect.width / 2),
+                                rect.top + Math.min(32, rect.height), event.currentTarget));
                             }
                           }}
                           onMouseEnter={() => { if (!isCompSym) { prefetch(`/data/${sym}.json`); prefetch(`/data/${sym}.slice.json`); prefetch(`/data/${sym}.intel.json`); } }}
@@ -7261,7 +7276,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             )}
           </div>
 
-          <div className="board detail-board">
+          {/* The company card keeps its place in the rail, but the News rail owns the
+              full column while it is the active source: hiding (never unmounting) the
+              card preserves its scroll and price state for when News is left. */}
+          <div className={`board detail-board${loggedIn && newsRailEnabled && railTab === "news" ? " rail-hidden" : ""}`}>
             {/* detail-hd: flex-wrap 2-row — top: icon+name, bottom: big price + status chip */}
             <div className="detail-hd">
               <AssetLogo className="ic" symbol={active} name={nameOf(m)} market={m?.mkt || m?.sec} color={m?.col || "#76b900"} size={26} />
@@ -7346,7 +7364,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
-                <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
+                <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={openBrain}>{t("askAIabout")} {active} →</button>
               </div>
             </div>
           </div>
