@@ -259,11 +259,10 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Both membership clocks, labeled — lower bound and roster date.
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("at least 2026-08-13");
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("Roster effective 2023-05-09");
-    // AnalysisPanel renders the board's own plan body (not a recomposed copy) —
-    // and the body must be CARR's OWN: asset, thesis, conviction and every
-    // price level below are the real 2026-11-09 row's values. A relabelled
-    // template of any other plan (the old bug: SBUX's numbers on Carrier's
-    // setup) fails every check from here down.
+    // AnalysisPanel renders the board's own plan body (not a recomposed copy).
+    // Deliberately NOT asserted: entry, invalidation, targets, conviction and
+    // the thesis text. #1477 removes that trade ticket, and no test of ours may
+    // lock it in — this only proves the plan is named and its panel mounted.
     await expect(setup.locator(".obs-prophet-analysis").first()).toBeVisible();
     const setupText = await setup.innerText();
     expect(setupText).toContain("CARR");
@@ -274,15 +273,6 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Housing's. also_in_groups is never rendered, so "Housing" can only
     // reach the screen through the wrong-membership pick (review M1).
     expect(setupText).not.toContain("Housing");
-    expect(setupText).toContain("conviction 53/100"); // the SBUX template reads 42/100
-    expect(setupText).toContain("Industrials (Equal-Weight) basket"); // CARR's own basket clause
-    expect(setupText).toContain(`$${(56.47).toFixed(2)}`); // entry
-    expect(setupText).toContain(`$${(52.26).toFixed(2)}`); // invalidation
-    expect(setupText).toContain(`$${(62.785).toFixed(2)}`); // T1
-    expect(setupText).toContain(`$${(69.1).toFixed(2)}`); // T2
-    // The template's own markers must be absent.
-    expect(setupText).not.toContain("SBUX");
-    expect(setupText).not.toContain(`${(104.3).toFixed(2)}`);
 
     // Sources: both generations, one destination, the A2 disclosure vocabulary.
     await page.getByTestId("prophet-sector-sources").locator("summary").click();
@@ -430,7 +420,7 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.goto("/options?tab=prophet&prophetLane=sector&prophetView=population&prophetGroup=us_sector_industrials");
     const unavailable = page.getByTestId("prophet-sector-group-unavailable");
     await expect(unavailable).toBeVisible({ timeout: 15_000 });
-    await expect(unavailable).toContainText("not shown for this read");
+    await expect(unavailable).toContainText("group context is not shown");
     await expect(unavailable).toHaveAttribute("role", "status");
     // No table renders that could read as "this group has no members".
     await expect(page.getByTestId("prophet-sector-member-table")).toHaveCount(0);

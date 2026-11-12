@@ -41,7 +41,7 @@ export const PROPHET_SECTOR_LEX = {
   verdictStaleSector:  ["The sector reading is {gap} sessions older than the Prophet index — treat group measures as dated.", "行业读数比预言台指数旧 {gap} 个交易日——请将组内指标视为滞后数据。"],
   verdictStaleProphet: ["The Prophet index is {gap} sessions older than the sector reading — member states may lag the group.", "预言台指数比行业读数旧 {gap} 个交易日——成员状态可能滞后于行业。"],
   verdictMixedBasis:   ["The readings were captured on different sessions ({sector} vs {prophet}) — comparisons span dates.", "两次读数采集于不同交易日（{sector} 与 {prophet}）——对比跨越了日期。"],
-  verdictSectorDown:   ["The sector reading is unavailable — group context is not shown for this read.", "行业读数不可用——本次不显示行业背景。"],
+  verdictSectorDown:   ["The sector reading is unavailable — group context is not shown.", "行业读数不可用——不显示行业背景。"],
   verdictProphetDown:  ["The Prophet index is unavailable — member states cannot be shown.", "预言台指数不可用——无法显示成员状态。"],
 
   // ── Group picker (SX02) ──────────────────────────────────────────────────
@@ -112,7 +112,9 @@ export const PROPHET_SECTOR_LEX = {
   setupMemberSince:    ["In this group since at least {date}", "至少自 {date} 起在该组"],
   setupRosterSince:    ["Roster effective {date}", "名单生效 {date}"],
   setupReported:       ["Reported from the Prophet index — not a recommendation.", "来自预言台指数的记录——不构成建议。"],
-  setupInGroups:       ["Member of {n} group(s)", "{n} 个组的成分"],
+  // Only rendered when the member belongs to more than one group, so the
+  // plural is fixed here rather than carrying an "(s)" the reader must parse.
+  setupInGroups:       ["Member of {n} groups", "同属 {n} 个组"],
 
   // ── Sources & evidence disclosure ────────────────────────────────────────
   sourcesSummary:      ["Sources & evidence", "来源与证据"],
@@ -150,7 +152,7 @@ export const PROPHET_SECTOR_LEX = {
   // The upstream reading is not published for the Terminal yet (404/502/timeout
   // at the BFF). The designed degradation: say so, keep the rest of Prophet usable.
   unavailableYet:      ["Sector context is not available yet.", "行业背景暂未开放。"],
-  groupUnavailableMembers: ["The group's member list is not part of this read.", "本次读数不包含该组的成员列表。"],
+  groupUnavailableMembers: ["The group's member list is not available.", "该组的成员列表暂不可用。"],
   unavailableNote:     ["This reading is not available yet — the rest of Prophet keeps working.", "该读数暂不可用——预言台其余功能不受影响。"],
   // The visible back controls draw their own "←" (SX02/SX04); these labels must
   // not carry a second one.
