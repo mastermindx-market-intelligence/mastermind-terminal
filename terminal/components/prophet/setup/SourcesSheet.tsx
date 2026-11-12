@@ -26,7 +26,7 @@ export function SourcesSheet({ rosterDate, planSignalDate, planReadFailed, obser
     ? t("srcNotReadable")
     : planSignalDate !== null
       ? setupFill(t("srcPlansClock"), { date: planSignalDate })
-      : t("srcNotServed");
+      : t("valueNotAvailable");
 
   return (
     <details className={styles.sourcesSheet} data-testid="sources-sheet">
@@ -34,7 +34,7 @@ export function SourcesSheet({ rosterDate, planSignalDate, planReadFailed, obser
       <p className={styles.cardIntro}>{t("sourcesIntro")}</p>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcRoster")}</span>
-        <span className={styles.sourceClock}>{rosterDate ?? t("srcNotServed")}</span>
+        <span className={styles.sourceClock}>{rosterDate ?? t("valueNotAvailable")}</span>
       </div>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcPlans")}</span>
@@ -45,20 +45,20 @@ export function SourcesSheet({ rosterDate, planSignalDate, planReadFailed, obser
         <span className={styles.sourceClock}>
           {observationAsof !== null
             ? setupFill(t("srcObsClock"), { date: observationAsof })
-            : t("srcNotServed")}
+            : t("valueNotAvailable")}
         </span>
       </div>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcQuotes")}</span>
-        <span className={styles.sourceClock}>{t("srcNoQuoteFeed")}</span>
+        <span className={styles.sourceClock}>{t("valueNotAvailable")}</span>
       </div>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcFundamentals")}</span>
-        <span className={styles.sourceClock}>{t("srcNotServed")}</span>
+        <span className={styles.sourceClock}>{t("valueNotAvailable")}</span>
       </div>
       <div className={styles.sourceRow}>
         <span className={styles.sourceName}>{t("srcPeers")}</span>
-        <span className={styles.sourceClock}>{t("srcNotServed")}</span>
+        <span className={styles.sourceClock}>{t("valueNotAvailable")}</span>
       </div>
     </details>
   );

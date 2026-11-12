@@ -2,13 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { REAL_CARR_BOARD_PLAN, stubBoardWithCarr, stubObservationsUnavailable } from "./prophetCaseFixtures";
 
 /**
- * Prophet company case (Lane C) — the Setup rebuilt as a verdict-first case
- * with Setup / Evidence / Context destinations, the developing observation
- * state, and the Save / Follow states. All unserved fields render their
- * designed unavailable states; nothing here depends on a live quote, verdict
- * or fundamentals producer. History has no Paper design (census G14) and so
- * has no destination here at all (principal ruling: no build work before
- * design).
+ * Prophet company case (Lane C) — T2-C5's case-unpublished design at every
+ * width: an arrival breadcrumb, the honest headline, ONE card for what is not
+ * published, the served study, "You can still study" as the exit list, and a
+ * closed "Original model plan" row that links to Plans (P0-1: no trade
+ * ticket — no entry, stop, target, R multiple, conviction or sizing copy on
+ * this surface). Evidence and Context hold only what is served.
  *
  * Data: the committed sector-member fixtures through the real BFF route
  * (FLOW_FIXTURE=1 webServer); the plan-member case extends the board fixture
@@ -20,6 +19,9 @@ const CARR_SETUP = "/options?tab=prophet&prophetLane=sector&prophetView=setup"
   + "&prophetGroup=us_sector_industrials&prophetSymbol=CARR&prophetPlan=CARR-BULL-20261016";
 const ADP_SETUP = "/options?tab=prophet&prophetLane=sector&prophetView=setup"
   + "&prophetGroup=us_sector_industrials&prophetSymbol=ADP";
+
+/** P1-5 vocabulary contract: no internal words and no raw ids on the case. */
+const INTERNAL_WORDS = /not served|in this read|board read|\bPIT\b|group\(s\)/i;
 
 async function withLang(page: Page, lang: "en" | "zh" = "en") {
   await page.addInitScript(langCode => {
@@ -48,8 +50,7 @@ async function expectCaseTouchTargets(page: Page) {
 
 /** M2 (round 3): the case's Save/Follow BUTTON — not its card — must be fully
  * visible above the hub's fixed disclaimer bar in the initial scrollport: its
- * bottom clears the bar's top by 8px. Measured for every fixture symbol, so a
- * wrapped stance heading cannot push the action under the bar. */
+ * bottom clears the bar's top by 8px. Measured for both fixture symbols. */
 async function expectActionsClearDisclaimer(page: Page) {
   const barTop = await page.locator(".flow-disclaimer")
     .evaluate(el => el.getBoundingClientRect().top);
@@ -64,7 +65,7 @@ async function expectActionsClearDisclaimer(page: Page) {
 }
 
 test.describe("Company case (Lane C)", () => {
-  test("a plan member's case reads verdict-first across its destinations", async ({ page }) => {
+  test("a plan member's case says what is missing once and keeps the exit list", async ({ page }) => {
     test.setTimeout(90_000);
     await stubBoardWithCarr(page);
     await stubObservationsUnavailable(page);
@@ -74,109 +75,131 @@ test.describe("Company case (Lane C)", () => {
     const setup = page.getByTestId("prophet-sector-setup");
     await expect(setup).toBeVisible({ timeout: 15_000 });
 
-    // The header orients in seconds (T2-03): the STANCE line is the large
-    // heading and the ticker rides the eyebrow; two labeled clocks (assessment
-    // dated by the plan's own open date; no quote feed) and the honest
-    // not-produced verdict — never entry/stop/targets first.
+    // P1-1: the headline is the honest case state, not a plan announcement;
+    // the served Prophet state is the one eyebrow chip (no clocks, no quote
+    // line, no verdict card).
     await expect(page.getByTestId("case-header")).toContainText("CARR");
-    await expect(page.getByTestId("case-stance")).toContainText(/open model plan is running/i);
-    await expect(page.getByTestId("case-clock-assessment")).toContainText("2026-10-20");
-    await expect(page.getByTestId("case-clocks")).toContainText(/quote clock not published/i);
-    await expect(page.getByTestId("case-verdict")).toContainText("Verdict not produced");
-    // The compact entry banner is a phone-width device (T2-12): hidden on
-    // desktop/tablet, visible at contract phone widths.
-    const viewportWidth = page.viewportSize()?.width ?? 1440;
-    if (viewportWidth > 640) {
-      await expect(page.getByTestId("case-entry-banner")).toBeHidden();
-    } else {
-      await expect(page.getByTestId("case-entry-banner")).toBeVisible();
-      // B1 (fix r2): every disclosure control and button on the case page is
-      // a real ≥44px touch target, the plan-thesis summary included.
-      await expectCaseTouchTargets(page);
-    }
+    await expect(page.getByTestId("case-stance")).toHaveText("Case not published yet");
+    await expect(page.getByTestId("case-state-chip")).toHaveText("Open plan");
+    await expect(page.getByTestId("case-header")).not.toContainText(/quote clock|verdict not produced/i);
 
+    const viewportWidth = page.viewportSize()?.width ?? 1440;
     if (viewportWidth === 1440) {
-      // M1 (fix r2): the stance is the case's display heading at the designed
-      // T2-03 size (~32px), not a card-sized line.
+      // The headline keeps the T2-C5 display size (~32px), not a card line.
       const stanceSize = await page.getByTestId("case-stance")
         .evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize));
       expect(stanceSize).toBeGreaterThanOrEqual(30);
     }
 
-    // Setup tab (default): the labeled study — market and group over the same
-    // window, the company's own leg honestly not produced (G10, G9). The dated
-    // membership line lives HERE, once (fix order item 15).
-    await expect(page.getByTestId("study-card")).toContainText("Separate the common move from the name");
-    await expect(page.getByTestId("study-card")).toContainText("-5.6%"); // market, labeled
-    await expect(page.getByTestId("study-card")).toContainText("+1.1%"); // group, labeled
-    await expect(page.getByTestId("study-card")).toContainText("+6.7 pp");
-    await expect(page.getByTestId("study-card")).toContainText(/not produced in this read/i);
+    // P1-7: the arrival breadcrumb names the group and the kept selection; the
+    // same population href backs the bottom return.
+    const back = page.getByTestId("prophet-sector-setup-back");
+    await expect(back).toHaveAttribute("href", /prophetView=population/, { timeout: 10_000 });
+    await expect(back).toHaveAttribute("href", /prophetSymbol=CARR/);
+    await expect(back).toHaveAttribute("href", /prophetGroup=us_sector_industrials/);
+    await expect(back).toContainText(/(Industrials \(Equal-Weight\) · members|Sector members) · CARR selected/);
+    const backBottom = page.getByTestId("prophet-sector-setup-back-bottom");
+    await expect(backBottom).toContainText("Back to sector members");
+    await expect(backBottom).toHaveAttribute("href", /prophetSymbol=CARR/);
+    await expect(backBottom).toHaveAttribute("href", /prophetView=population/);
+
+    // P1-2 / P1-3: ONE card says what is unavailable — the ~12 per-field
+    // blocks (verdict card, entry banner, supports/challenges, next check,
+    // evidence conclusion rows, context cards) are gone.
+    const card = page.getByTestId("case-unavailable");
+    await expect(card).toHaveCount(1);
+    await expect(card).toContainText("Research case unavailable");
+    await expect(card).toContainText(/has not published a case for CARR/i);
+    for (const row of ["Verdict headline", "Research family", "Supports and challenges", "Next check", "Entry assessment"]) {
+      await expect(card, row).toContainText(row);
+    }
+    await expect(card).toContainText("Not available");
+    await expect(card).toContainText("Unavailable"); // the entry assessment row
+    // P1-4: no date labeled an assessment anywhere on the case.
+    await expect(setup).not.toContainText(/assessment 2026/i);
+    const legacyBlocks = setup.locator(
+      '[data-testid="case-verdict"], [data-testid="case-clocks"], [data-testid="case-entry-banner"],'
+      + '[data-testid="entry-check"], [data-testid="supports-challenges"], [data-testid="next-check"],'
+      + '[data-testid="evidence-conclusion"]');
+    expect(await legacyBlocks.count()).toBe(0);
+
+    // The served study keeps its real numbers (G9); the company's own leg is
+    // plainly "Not available".
+    const study = page.getByTestId("study-card");
+    await expect(study).toContainText("Separate the common move from the name");
+    await expect(study).toContainText("-5.6%");
+    await expect(study).toContainText("+1.1%");
+    await expect(study).toContainText("+6.7 pp");
+    await expect(study).toContainText("Not available");
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("at least 2026-08-13");
-    // Supports / challenges / next check: designed unavailable states (G8),
-    // with the chart link and reported footnote attached to the next check
-    // (fix order item 16) — nothing floats at the tab's bottom.
-    await expect(page.getByTestId("supports-challenges")).toContainText(/not produced for this symbol/i);
-    await expect(page.getByTestId("next-check")).toContainText(/no next check is scheduled/i);
-    await expect(page.getByTestId("next-check")).toContainText("Open CARR chart");
-    await expect(page.getByTestId("next-check")).toContainText(/not a recommendation/i);
+    await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("Member of 2 groups");
 
-    // The rail stays the only place with terms, labeled reported (G8/G22):
-    // entry state first, Save/Follow directly after it (fix order item 5),
-    // then the model plan — and no R/R chip on this surface (item 3).
-    const rail = page.getByTestId("entry-check-rail");
-    await expect(page.getByTestId("entry-check")).toContainText("Entry assessment unavailable");
-    await expect(rail.locator('[data-testid="entry-check"] + [data-testid="save-follow"]')).toBeVisible();
-    await expect(page.getByTestId("model-plan-rail")).toContainText("CARR-BULL-20261016");
-    // The R/R chip is hidden on this surface (item 3) — assert VISIBILITY, not
-    // text: Playwright's text match reads textContent, which still carries
-    // display:none content.
-    await expect(page.getByTestId("geometry-rail").locator("span", { hasText: "R/R" })).toBeHidden();
+    // P0-1: the rail is Save/Follow plus ONE closed, linked model-plan row.
+    // The trade ticket — entry, stop, targets, R multiples, conviction,
+    // management bullets, "size down" — does not exist on this surface.
+    const rail = page.getByTestId("model-plan-rail");
+    await expect(rail).toContainText("Original model plan · CARR-BULL-20261016");
+    await expect(rail).toContainText("Opened 2026-10-20.");
+    await expect(rail).toContainText(/not permission to trade/i);
+    const planLink = page.getByTestId("prophet-sector-plan-link");
+    await expect(planLink).toHaveAttribute("href", /prophetPlan=CARR-BULL-20261016/, { timeout: 10_000 });
+    await expect(planLink).not.toHaveAttribute("href", /prophetLane=sector/);
+    await expect(rail.locator("details")).toHaveCount(0);
+    for (const banned of ["52.26", "56.47", "62.78", "69.10"]) {
+      await expect(setup, banned).not.toContainText(banned);
+    }
+    await expect(setup).not.toContainText(/conviction/i);
+    await expect(setup).not.toContainText(/size down/i);
+    await expect(setup).not.toContainText(/\d\.\d+R\b/);
+    expect(await page.getByTestId("geometry-rail").count()).toBe(0);
+    // The Save action still sits before the plan row in the rail's DOM.
+    await expect(page.locator('[data-testid="case-rail"] > [data-testid="save-follow"]').first()).toBeVisible();
 
-    // Sources & method (T2-16): every source keeps its own clock — the plan
-    // row's own signal date, the roster's own effective date, and per-source
-    // not-served states; never one merged "as of".
+    // "You can still study" is the honest exit list (T2-C5).
+    const links = page.getByTestId("study-links");
+    await expect(links).toContainText("You can still study");
+    await expect(links).toContainText("Company evidence");
+    await expect(links).toContainText("Context and peers");
+    await expect(links).toContainText("Sources & method");
+    await expect(page.getByTestId("prophet-sector-chart-link")).toContainText("Open CARR chart");
+
+    // Its sources row opens the one owner of the per-source clocks (T2-16),
+    // which now says "Not available" in plain words.
+    await page.getByTestId("study-link-sources").click();
     const sheet = page.getByTestId("sources-sheet");
-    await expect(sheet).toContainText("Sources & method");
-    await sheet.locator("summary").click();
+    await expect(sheet).toHaveAttribute("open", "");
     await expect(sheet).toContainText("Signal date 2026-10-20");
-    await expect(sheet).toContainText("No live quote feed");
-    await expect(sheet).toContainText(/not served on this surface/i);
+    await expect(sheet).toContainText("Prophet plans");
+    await expect(sheet).toContainText("Not available");
+    await expect(sheet).not.toContainText(/not served|board read/i);
 
-    // Evidence tab: what is published vs what this source does not carry —
-    // no observation block for a plan member (G12, G13). The rail carries the
-    // conclusion as per-field unavailable rows + next checks (fix order item
-    // 7): no repeated entry check, model plan or save on this destination.
+    // The study list navigates to the served destinations.
+    await page.getByTestId("study-link-evidence").click();
+    await expect(page.getByTestId("evidence-tab")).toBeVisible();
+    await page.getByTestId("case-tab-setup").click();
+    await page.getByTestId("study-link-context").click();
+    await expect(page.getByTestId("context-tab")).toBeVisible();
+
+    // Evidence: one plain unavailable line for a plan member (no observation
+    // block), and no repeated rail (P1-2, fix order item 7).
     await page.getByTestId("case-tab-evidence").click();
-    await expect(page.getByTestId("evidence-fundamentals")).toContainText(/not published/i);
-    await expect(page.getByTestId("evidence-fundamentals")).toContainText(/revenue, net income, diluted shares and EPS/i);
-    await expect(page.getByTestId("evidence-sequence")).toContainText(/release, call and filing times/i);
-    await expect(page.getByTestId("evidence-conclusion")).toContainText(/not enough published evidence/i);
-    await expect(page.getByTestId("evidence-conclusion")).toContainText("Reported growth");
-    await expect(page.getByTestId("evidence-conclusion")).toContainText("Consensus surprise");
-    await expect(page.getByTestId("evidence-conclusion")).toContainText("Matched revisions");
-    await expect(page.getByTestId("evidence-conclusion")).toContainText("Entry decision");
-    await expect(page.getByTestId("evidence-conclusion")).toContainText("Next checks");
+    await expect(page.getByTestId("evidence-unavailable")).toContainText("Evidence for this company is not available yet.");
     await expect(page.getByTestId("observation-evidence")).toHaveCount(0);
-    await expect(page.getByTestId("entry-check")).toHaveCount(0);
-    await expect(page.getByTestId("model-plan-rail")).toHaveCount(0);
+    await expect(page.getByTestId("case-rail")).toHaveCount(0);
     await expect(page.getByTestId("save-follow")).toHaveCount(0);
+    await expect(page.getByTestId("evidence-tab")).not.toContainText(INTERNAL_WORDS);
 
-    // Context tab: membership without the repeated dated line (item 15 — that
-    // line stays on Setup); the unserved relationships are named, not hidden
-    // (G13), including the dated peer comparison and Foresight / Winner
-    // health unavailable states (item 8). No rail on this destination.
+    // Context: membership by display name only (no raw ids — P1-5) and one
+    // plain line for the relationships that are not published.
     await page.getByTestId("case-tab-context").click();
-    await expect(page.getByTestId("context-membership")).toContainText(/industrials/i);
-    await expect(page.getByTestId("context-membership")).not.toContainText("Roster effective");
-    await expect(page.getByTestId("context-relationships")).toContainText("Peer membership");
-    await expect(page.getByTestId("context-relationships")).toContainText(/not served/i);
-    await expect(page.getByTestId("context-peer")).toContainText("Dated peer comparison");
-    await expect(page.getByTestId("context-peer")).toContainText(/not published for this group/i);
-    await expect(page.getByTestId("context-foresight")).toContainText("Foresight");
-    await expect(page.getByTestId("context-foresight")).toContainText("Context unavailable");
-    await expect(page.getByTestId("context-winner")).toContainText("Winner health");
-    await expect(page.getByTestId("context-winner")).toContainText("Context unavailable");
-    await expect(page.getByTestId("entry-check-rail")).toHaveCount(0);
+    const membership = page.getByTestId("context-membership");
+    await expect(membership).toContainText("Industrials (Equal-Weight)");
+    await expect(membership).toContainText("Housing Chain");
+    await expect(membership).not.toContainText(/us_sector_|housing\b(?! Chain)/i);
+    await expect(page.getByTestId("context-unavailable")).toContainText("Company context is not available yet.");
+    await expect(page.getByTestId("case-rail")).toHaveCount(0);
+    await expect(page.getByTestId("context-relationships")).toHaveCount(0);
+    await expect(page.getByTestId("context-peer")).toHaveCount(0);
 
     // No History destination: it has no Paper design (census G14) and gets
     // no build work before one (principal ruling) — the tab strip carries
@@ -189,19 +212,13 @@ test.describe("Company case (Lane C)", () => {
     await expect(page.getByTestId("case-tab-setup")).not.toHaveAttribute("aria-controls");
     await expect(page.getByTestId("case-tab-evidence")).not.toHaveAttribute("aria-controls");
 
-    // Return context: back to Setup restores the study without a refetch of
-    // the address (tab choice is view state; the symbol/group stay served).
+    // Tab choice stays view state: the symbol/group in the address survive.
     await page.getByTestId("case-tab-setup").click();
     await expect(page.getByTestId("study-card")).toBeVisible();
     await expect(page).toHaveURL(/prophetSymbol=CARR/);
 
-    // Back to population is a real link that keeps the symbol (item 10): the
-    // population row this case came from keeps its identity. What the
-    // population does with it is that surface's own order.
-    const back = page.getByTestId("prophet-sector-setup-back");
-    await expect(back).toHaveAttribute("href", /prophetView=population/, { timeout: 10_000 });
-    await expect(back).toHaveAttribute("href", /prophetSymbol=CARR/);
-    await expect(back).toHaveAttribute("href", /prophetGroup=us_sector_industrials/);
+    // P1-5: no internal vocabulary anywhere on the case.
+    await expect(setup).not.toContainText(INTERNAL_WORDS);
 
     // Keyboard travel across the tabs (parallel destinations, roving focus).
     await page.getByTestId("case-tab-evidence").focus();
@@ -212,7 +229,7 @@ test.describe("Company case (Lane C)", () => {
     await expect(page.getByTestId("case-tab-evidence")).toBeFocused();
   });
 
-  test("the next action clears the disclaimer bar at 1440, at any headline length", async ({ page }) => {
+  test("the next action clears the disclaimer bar at 1440", async ({ page }) => {
     test.setTimeout(90_000);
     test.skip((page.viewportSize()?.width ?? 0) !== 1440,
       "the fold budget is the 1440×900 contract");
@@ -220,27 +237,17 @@ test.describe("Company case (Lane C)", () => {
     await stubObservationsUnavailable(page);
     await withLang(page);
 
-    // CARR: a one-line stance, and the plan's management notes make the entry
-    // check the tall block above the action.
     await page.goto(CARR_SETUP);
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    const carrStance = page.getByTestId("case-stance");
-    expect(carrStance).toHaveCount(1);
-    expect((await carrStance.boundingBox())!.height, "CARR stance is one line").toBeLessThan(50);
     await expectActionsClearDisclaimer(page);
 
-    // ADP: the 32px stance wraps to two lines and the header grows by a line —
-    // the round-3 regression had the button under the bar here (y 821).
     await page.goto(ADP_SETUP);
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    const adpStance = page.getByTestId("case-stance");
-    expect(await adpStance.evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize)))
-      .toBeGreaterThanOrEqual(30);
-    expect((await adpStance.boundingBox())!.height, "ADP stance is two lines").toBeGreaterThan(50);
+    await expect(page.getByTestId("case-stance")).toHaveText("Case not published yet");
     await expectActionsClearDisclaimer(page);
   });
 
-  test("a failed board read states unknown instead of a false absence, and retry recovers", async ({ page }) => {
+  test("a failed plan read states unknown instead of a false absence, and retry recovers", async ({ page }) => {
     test.setTimeout(60_000);
     await stubObservationsUnavailable(page);
     await withLang(page);
@@ -273,11 +280,13 @@ test.describe("Company case (Lane C)", () => {
 
     await page.goto(CARR_SETUP);
     const rail = page.getByTestId("model-plan-rail");
-    await expect(rail).toContainText("Assessment data unavailable", { timeout: 15_000 });
+    await expect(rail).toContainText("Plan terms unavailable", { timeout: 15_000 });
     await expect(rail).toContainText("Status unknown");
-    await expect(rail).toContainText(/read failure, not a published absence/i);
-    // The false absence claim must not render for a failed read (item 1).
+    await expect(rail).toContainText(/loading failure, not a missing plan/i);
+    // The false absence claim must not render for a failed read (item 1), and
+    // the copy no longer says "board read" (P1-5).
     await expect(rail).not.toContainText("not in the current board read");
+    await expect(rail).not.toContainText(/board read/i);
     await expect(rail).not.toContainText("CARR-BULL-20261016");
     expect(boardReads).toBeGreaterThanOrEqual(1);
     expect(realReads).toBe(0);
@@ -312,26 +321,32 @@ test.describe("Company case (Lane C)", () => {
     await expect(page.getByTestId("save-follow")).toBeVisible({ timeout: 15_000 });
 
     // Not saved → the designed failure state: Retry primary plus the
-    // another-list exit to the monitor surface (T2-20 #7, item 11).
+    // another-list exit (T2-20 #7, item 11). P2-6: the top button is not a
+    // second save action while the failure panel shows.
     await page.getByTestId("save-security").click();
     await expect(page.getByTestId("save-result")).toContainText(/couldn't save to this list/i);
     await expect(page.getByTestId("save-result")).toContainText("Your list is unchanged");
     await expect(page.getByTestId("save-result")).toContainText("Choose another list");
     await expect(page.getByTestId("save-result").getByRole("link", { name: /choose another list/i })).toHaveAttribute("href", "/monitor");
+    await expect(page.getByTestId("save-security")).toBeDisabled();
     await page.getByTestId("save-result").getByRole("button", { name: /retry save/i }).click();
 
     // Saved → the confirmed state with the no-alerts footnote, the view-list
-    // link and a Done that dismisses the panel (T2-20 #1, item 11).
+    // link and a Done that dismisses the panel (T2-20 #1, item 11). P2-1: the
+    // top button says "Saved ✓" — exactly one "Done" on the page.
     await expect(page.getByTestId("save-result")).toContainText(/saved to your list/i);
     await expect(page.getByTestId("save-result")).toContainText(/does not save a dated thesis or start alerts/i);
     await expect(page.getByTestId("save-result")).toContainText("View saved list");
+    await expect(page.getByTestId("save-security")).toHaveText("Saved ✓");
+    await expect(page.getByTestId("prophet-sector-setup").getByText("Done", { exact: true })).toHaveCount(1);
     await page.getByTestId("save-done").click();
     await expect(page.getByTestId("save-result")).toHaveCount(0);
+    await expect(page.getByTestId("save-security")).toHaveText("Saved ✓");
     expect(calls).toBe(2);
     expect(JSON.parse(bodies[0])).toEqual({ action: "add", symbol: "CARR", section: "prophet" });
 
     // Follow: no change-feed producer exists — the designed "alerts aren't
-    // available here" state, with save still offered (T2-20 #8).
+    // available here" state (T2-20 #8).
     await page.getByTestId("follow-changes").click();
     await expect(page.getByTestId("follow-panel")).toContainText(/alerts aren't available here/i);
     await expect(page.getByTestId("follow-panel")).toContainText(/does not yet provide a supported change feed/i);
@@ -349,29 +364,33 @@ test.describe("Company case (Lane C)", () => {
       const setup = page.getByTestId("prophet-sector-setup");
       await expect(setup).toBeVisible({ timeout: 15_000 });
 
-      // The compact entry-state banner sits directly under the header at
-      // ≤640 (T2-12 order, item 6): the reader meets the amber state before
-      // the deep content.
-      const banner = page.getByTestId("case-entry-banner");
-      await expect(banner).toBeVisible();
-      await expect(banner).toContainText(/entry assessment unavailable/i);
+      // The same T2-C5 case state, with the served observation date labeled as
+      // what it is (P1-4), and the short breadcrumb form.
+      await expect(page.getByTestId("case-stance")).toHaveText("Case not published yet");
+      await expect(page.getByTestId("case-state-chip")).toHaveText("Early observation");
+      const card = page.getByTestId("case-unavailable");
+      await expect(card).toContainText("Research case unavailable");
+      await expect(card).toContainText("Latest observation 2026-11-06");
+      await expect(page.getByTestId("prophet-sector-setup-back")).toContainText("Sector members · ADP selected");
 
-      // The observation line and badge come from the sector contract; the
-      // known list states the source is unreadable (deterministic 503), and
-      // missing / next-check are the designed states (T2-22, G13).
-      const card = page.getByTestId("observation-card");
-      await expect(card).toBeVisible();
-      await expect(card).toContainText("Early observation · 2026-11-06");
-      await expect(card).toContainText("Observation only");
-      await expect(card).toContainText(/not readable right now/i);
-      await expect(card).toContainText(/no entry assessment is attached/i);
-      await expect(card).toContainText(/does not schedule a next check/i);
+      // No plan is open → the row says so and still offers the exit to Plans;
+      // no entry check and no trade terms (P0-1).
+      const rail = page.getByTestId("model-plan-rail");
+      await expect(rail).toContainText("No model plan is open for this name.");
+      await expect(rail).toContainText("Browse model plans");
+      await expect(page.getByTestId("entry-check")).toHaveCount(0);
+      await expect(setup).not.toContainText(/entry assessment unavailable/i);
 
-      // The entry rail carries the missing-terms state; the amber assessment
-      // banner stays first (T2-12).
-      await expect(page.getByTestId("entry-check")).toContainText(/entry assessment unavailable/i);
-      await expect(page.getByTestId("entry-check")).toContainText(/current entry terms are missing/i);
-      await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
+      // P1-6: at 390 the case's tabs start within the first screen; at 320 the
+      // first screen gets past the header chips.
+      const chipBox = await page.getByTestId("case-state-chip").boundingBox();
+      expect(chipBox, `${size.width} state chip`).not.toBeNull();
+      expect((chipBox!.y + chipBox!.height), `${size.width} chip bottom`).toBeLessThan(size.height);
+      if (size.width >= 390) {
+        const tabsBox = await page.getByTestId("case-tabs").boundingBox();
+        expect(tabsBox, "tabs").not.toBeNull();
+        expect(tabsBox!.y, "390: tabs start within the first screen").toBeLessThan(size.height);
+      }
 
       // Zero page-level horizontal overflow at the contract widths.
       expect(await setup.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
@@ -379,6 +398,11 @@ test.describe("Company case (Lane C)", () => {
       // the case page is ≥44px (fix r2 B1 — the tabs, back, save, follow and
       // the Sources & method summary are all covered by the one contract).
       await expectCaseTouchTargets(page);
+
+      // Evidence keeps the served observation disclosure for this member.
+      await page.getByTestId("case-tab-evidence").click();
+      await expect(page.getByTestId("observation-evidence")).toHaveCount(1);
+      await expect(page.getByTestId("evidence-unavailable")).toContainText("Evidence for this company is not available yet.");
     }
   });
 });

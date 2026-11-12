@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 //
 // Lane C company-case unit coverage: the setup lexicon's invariants (every
-// key a full EN/ZH pair), the pure helpers (stance mapping, signed-percent
-// formatting, fill), and the two stateful pieces — the developing-observation
-// card (T2-22) and the Save/Follow states (T2-20) — mounted through
-// react-dom/client with the observation hook and shell identity mocked.
+// key a full EN/ZH pair), the pure helpers (fill, signed-percent formatting),
+// and the stateful pieces — the one unavailable card + study list (T2-C5), the
+// closed model-plan row (P0-1: no trade ticket), and the Save/Follow states
+// (T2-20, including the P2-1/P2-6 interaction fixes).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -13,13 +13,12 @@ vi.mock("@/lib/useProphetObservation", () => ({ useProphetObservation: vi.fn() }
 vi.mock("@/components/chrome/AppShell", () => ({
   useShellIdentity: () => ({ kind: "account", userId: "u1", email: "unit@example.com" }),
 }));
-import { useProphetObservation } from "@/lib/useProphetObservation";
-import { ObservationCard } from "@/components/prophet/setup/ObservationCard";
+import { CaseUnavailable, StudyLinks } from "@/components/prophet/setup/CaseUnavailable";
+import { ModelPlanRail } from "@/components/prophet/setup/ModelPlanRail";
 import { SaveFollow } from "@/components/prophet/setup/SaveFollow";
 import {
-  SETUP_LEX, fmtSignedPct, makeSetupT, setupFill, stanceKey,
+  SETUP_LEX, fmtSignedPct, makeSetupT, setupFill,
 } from "@/components/prophet/setup/setupStrings";
-import type { ProphetObservationRead } from "@/lib/prophetObservations";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -71,16 +70,18 @@ describe("setup lexicon invariants", () => {
       .toContain("20");
     expect(setupFill("{missing} stays", {})).toBe(" stays");
   });
-});
 
-describe("stanceKey maps served states to reported sublines", () => {
-  it("maps every sector-contract state and falls back honestly", () => {
-    expect(stanceKey("open_plan")).toBe("stanceOpenPlan");
-    expect(stanceKey("resolved_plan")).toBe("stanceResolvedPlan");
-    expect(stanceKey("early_observation")).toBe("stanceEarly");
-    expect(stanceKey("none")).toBe("stanceNone");
-    expect(stanceKey("unavailable")).toBe("stanceUnavailable");
-    expect(stanceKey("never-heard-of")).toBe("stanceUnavailable");
+  it("keeps the reader vocabulary contract (P1-5): no internal words in EN copy", () => {
+    const banned = /not served|in this read|board read|\bPIT\b|\(s\)|group\(s\)/i;
+    for (const [key, entry] of Object.entries(SETUP_LEX)) {
+      expect((entry as readonly string[])[0], key).not.toMatch(banned);
+    }
+  });
+
+  it("never labels a plan or observation date as an assessment (P1-4)", () => {
+    for (const key of ["planRowOpened", "cardObserved"] as const) {
+      expect(makeSetupT("en")(key)).not.toMatch(/assessment/i);
+    }
   });
 });
 
@@ -94,52 +95,145 @@ describe("fmtSignedPct", () => {
   });
 });
 
-function readWithRows(): ProphetObservationRead {
-  return {
-    symbol: "ADP", account: "u1", status: "ready",
-    data: {
-      rows: [{
-        source_event_id: "evt-1",
-        triggers_fired: ["dot_1d", "basket_turn"],
-        source_session: "2026-11-06",
-        source_timing: null,
-        source_evidence: { triggers: {}, counterevidence: [] },
-        episode_relation: { state: "STANDALONE", reason: "" },
-      } as never],
-    } as never,
-  };
-}
-
-describe("ObservationCard (T2-22)", () => {
-  it("lists known triggers from a ready read and keeps missing/next honest", () => {
-    vi.mocked(useProphetObservation).mockReturnValue(readWithRows());
-    mount(<ObservationCard symbol="ADP" observationAsof="2026-11-06" />);
+describe("CaseUnavailable (T2-C5)", () => {
+  it("says what is missing once, with the one real date labeled by its source", () => {
+    mount(<CaseUnavailable symbol="CARR" observedAsof={null} lang="en" />);
     const body = text();
-    expect(body).toContain("Early observation · 2026-11-06");
-    expect(body).toContain("Observation only");
-    expect(body).toContain("Daily turn");       // TRIGGER_NAMES en for dot_1d
-    expect(body).toContain("Group turn");       // TRIGGER_NAMES en for basket_turn
-    expect(body).toContain("2026-11-06");       // the row's own session
-    expect(body).toContain("No entry assessment is attached");
-    expect(body).toContain("does not schedule a next check");
+    expect(body).toContain("Research case unavailable");
+    expect(body).toContain("has not published a case for CARR");
+    for (const row of ["Verdict headline", "Research family", "Supports and challenges", "Next check", "Entry assessment"]) {
+      expect(body, row).toContain(row);
+    }
+    expect(body).toContain("Not available");
+    expect(body).toContain("Unavailable");     // the entry row, in warn ink
+    expect(body).not.toMatch(/assessment 2026|in this read|not served/i);
+    expect(container!.querySelector('[data-testid="case-unavailable-dates"]')).toBeNull();
   });
 
-  it("says the source is unreadable when the read is not ready", () => {
-    for (const status of ["loading", "unavailable", "forbidden", "unauthenticated"] as const) {
-      vi.mocked(useProphetObservation).mockReturnValue(
-        { symbol: "ADP", account: "u1", status, data: null });
-      mount(<ObservationCard symbol="ADP" observationAsof={null} />);
-      expect(text()).not.toContain("Daily turn");
-      act(() => root!.unmount()); container!.remove();
-    }
-    vi.mocked(useProphetObservation).mockReturnValue(
-      { symbol: "ADP", account: "u1", status: "unavailable", data: null });
-    mount(<ObservationCard symbol="ADP" observationAsof="2026-11-06" />);
-    expect(text()).toContain("not readable right now");
+  it("states the observation date under an explicit label, never as an assessment", () => {
+    mount(<CaseUnavailable symbol="ADP" observedAsof="2026-11-06" lang="en" />);
+    const dates = container!.querySelector('[data-testid="case-unavailable-dates"]')!;
+    expect(dates.textContent).toBe("Latest observation 2026-11-06");
+  });
+
+  it("offers the three served destinations from the study list", async () => {
+    const onTab = vi.fn();
+    const onOpenSources = vi.fn();
+    mount(
+      <StudyLinks
+        symbol="CARR"
+        chartHref="/company/CARR"
+        onTab={onTab}
+        onOpenSources={onOpenSources}
+        lang="en"
+      />,
+    );
+    expect(text()).toContain("You can still study");
+    expect(text()).toContain("Company evidence");
+    expect(text()).toContain("Context and peers");
+    expect(text()).toContain("Sources & method");
+    await click('[data-testid="study-link-evidence"]');
+    expect(onTab).toHaveBeenCalledWith("evidence");
+    await click('[data-testid="study-link-context"]');
+    expect(onTab).toHaveBeenCalledWith("context");
+    await click('[data-testid="study-link-sources"]');
+    expect(onOpenSources).toHaveBeenCalledTimes(1);
+    expect(container!.querySelector('[data-testid="prophet-sector-chart-link"]')?.getAttribute("href"))
+      .toBe("/company/CARR");
   });
 });
 
-describe("SaveFollow states (T2-20)", () => {
+describe("ModelPlanRail (P0-1: no trade ticket)", () => {
+  it("renders one closed row that names the plan and links to Plans", () => {
+    mount(
+      <ModelPlanRail
+        symbol="CARR"
+        tab="setup"
+        planId="CARR-BULL-20261016"
+        planOpenedOn="2026-10-20"
+        plansHref="/options?tab=prophet&prophetPlan=CARR-BULL-20261016"
+        boardPhase="ready"
+        onRetryBoard={() => {}}
+        lang="en"
+      />,
+    );
+    const body = text();
+    expect(body).toContain("Original model plan · CARR-BULL-20261016");
+    expect(body).toContain("Opened 2026-10-20.");
+    expect(body).toContain("not permission to trade");
+    const link = container!.querySelector('[data-testid="prophet-sector-plan-link"]')!;
+    expect(link.getAttribute("href")).toBe("/options?tab=prophet&prophetPlan=CARR-BULL-20261016");
+    // The trade ticket is gone: no prices, no R multiples, no conviction, no
+    // sizing copy, and no expanded plan detail on this surface.
+    expect(body).not.toContain("52.26");
+    expect(body).not.toContain("62.78");
+    expect(body).not.toMatch(/conviction/i);
+    expect(body).not.toMatch(/size down/i);
+    expect(body).not.toMatch(/\d\.\d+R\b/);
+    expect(container!.querySelector("details")).toBeNull();
+    expect(container!.querySelector('[data-testid="prophet-sector-plan-unavailable"]')).toBeNull();
+  });
+
+  it("offers Browse model plans when no plan is open", () => {
+    mount(
+      <ModelPlanRail
+        symbol="ADP"
+        tab="setup"
+        planId={null}
+        planOpenedOn={null}
+        plansHref="/options?tab=prophet"
+        boardPhase="idle"
+        onRetryBoard={() => {}}
+        lang="en"
+      />,
+    );
+    expect(text()).toContain("No model plan is open for this name.");
+    expect(container!.querySelector('[data-testid="prophet-sector-plan-link"]')?.textContent)
+      .toContain("Browse model plans");
+  });
+
+  it("keeps a failed read honest: plan terms unavailable, status unknown, retry", async () => {
+    const onRetry = vi.fn();
+    mount(
+      <ModelPlanRail
+        symbol="CARR"
+        tab="setup"
+        planId="CARR-BULL-20261016"
+        planOpenedOn="2026-10-20"
+        plansHref="/options?tab=prophet"
+        boardPhase="unavailable"
+        onRetryBoard={onRetry}
+        lang="en"
+      />,
+    );
+    const body = text();
+    expect(body).toContain("Plan terms unavailable");
+    expect(body).toContain("Status unknown");
+    expect(body).toContain("loading failure, not a missing plan");
+    expect(body).not.toContain("CARR-BULL-20261016");
+    expect(body).not.toMatch(/board read/i);
+    await click('[data-testid="prophet-sector-plan-retry"]');
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders no rail on Evidence or Context", () => {
+    mount(
+      <ModelPlanRail
+        symbol="CARR"
+        tab="context"
+        planId="CARR-BULL-20261016"
+        planOpenedOn="2026-10-20"
+        plansHref="/options?tab=prophet"
+        boardPhase="ready"
+        onRetryBoard={() => {}}
+        lang="en"
+      />,
+    );
+    expect(container!.innerHTML).toBe("");
+  });
+});
+
+describe("SaveFollow states (T2-20, P2-1 / P2-6)", () => {
   it("rides the existing watchlist endpoint and confirms with the no-alerts footnote", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response("{\"ok\":true}", { status: 200, headers: { "content-type": "application/json" } }));
@@ -151,12 +245,14 @@ describe("SaveFollow states (T2-20)", () => {
     const body = text();
     expect(body).toContain("Saved to your list");
     expect(body).toContain("does not save a dated thesis or start alerts");
-    // T2-20 exits (fix order item 11): the saved panel offers the list and a
-    // Done that dismisses it while the save button stays satisfied.
     expect(body).toContain("View saved list");
+    // P2-1: one "Done" on the page — the panel's — and the top button reads
+    // "Saved ✓" instead of a second Done.
+    expect(body.match(/Done/g)).toHaveLength(1);
+    expect(container!.querySelector('[data-testid="save-security"]')?.textContent).toBe("Saved ✓");
     await click('[data-testid="save-done"]');
     expect(container!.querySelector('[data-testid="save-result"]')).toBeNull();
-    expect(text()).toContain("Done");
+    expect(text()).not.toContain("Done");
   });
 
   it("shows the not-saved state with a primary retry and another-list exit", async () => {
@@ -166,6 +262,8 @@ describe("SaveFollow states (T2-20)", () => {
     expect(text()).toContain("Couldn't save to this list");
     expect(text()).toContain("Your list is unchanged");
     expect(text()).toContain("Choose another list"); // T2-20 exit (item 11)
+    // P2-6: the top button is not a second save action while Retry is shown.
+    expect(container!.querySelector<HTMLButtonElement>('[data-testid="save-security"]')?.disabled).toBe(true);
     await click('[data-testid="save-result"] button'); // Retry save is the panel's primary button
     expect(vi.mocked(fetch).mock.calls).toHaveLength(2);
   });

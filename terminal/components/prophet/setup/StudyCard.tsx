@@ -48,7 +48,7 @@ export function StudyCard({ symbol, group, lang }: {
         </div>
         <div className={`${styles.tile} ${styles.tileMissing}`}>
           <span>{setupFill(t("studyNameLeg"), { symbol })}</span>
-          <b>{t("studyNameMissing")}</b>
+          <b>{t("valueNotAvailable")}</b>
         </div>
       </div>
       {ctx.breadth !== null ? (

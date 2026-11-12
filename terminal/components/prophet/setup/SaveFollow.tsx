@@ -53,10 +53,13 @@ export function SaveFollow({ symbol }: { symbol: string }) {
           className={styles.primaryButton}
           data-testid="save-security"
           onClick={() => void save()}
-          disabled={phase === "working" || phase === "saved"}
+          /* P2-6: while the failure panel offers "Retry save", the top button
+             is not a second save action. P2-1: after a save the button says
+             "Saved ✓" — the panel's "Done" is the only Done on the page. */
+          disabled={phase === "working" || phase === "saved" || phase === "failed"}
         >
           {phase === "working" ? t("saveWorking")
-            : phase === "saved" ? t("saveDone")
+            : phase === "saved" ? t("saveSavedButton")
             : t("saveAction")}
         </button>
         <button

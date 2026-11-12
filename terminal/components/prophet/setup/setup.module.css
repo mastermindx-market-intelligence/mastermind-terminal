@@ -18,9 +18,10 @@
 .caseSurface { min-width: 0; }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
-/* The header is the case's whole first screen: it must leave the rail's Save
-   / Follow action above the 1440×900 fold (fix r2 M2), so its rhythm is
-   tighter than a generic card's. */
+/* T2-C5 header: breadcrumb, identity, honest headline, one state chip. No
+   clocks, no quote line, no verdict card — the dates live on the rows that
+   own them. Its rhythm is tighter than a generic card's so the first screen
+   reaches the tabs at phone width (P1-6). */
 .caseHead {
   display: flex;
   flex-direction: column;
@@ -42,14 +43,16 @@
   font: 600 12.5px/1 var(--font-ui);
   color: var(--link);
   cursor: pointer;
+  text-align: left;
 }
 .backButton:hover { text-decoration: underline; }
-.caseKicker {
-  margin: 0;
-  font: 600 10px/1 var(--font-ui);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+/* The crumb names the group and the kept selection; phone width keeps the
+   short form so it stays one line above the case. */
+.backLong { display: inline; }
+.backShort { display: none; }
+@media (max-width: 640px) {
+  .backLong { display: none; }
+  .backShort { display: inline; }
 }
 /* T2-03: the stance/verdict line is the large heading (the case's answer);
    the ticker is demoted to the eyebrow row beside the kicker. */
@@ -99,75 +102,6 @@
   white-space: nowrap;
 }
 .chipQuiet { border-style: dashed; color: var(--muted); }
-
-/* Verdict block — the case's honest headline state (G8). */
-.verdict {
-  margin-top: 2px;
-  padding: 8px 12px;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  background: rgba(5, 7, 12, 0.22);
-}
-.verdictLabel {
-  margin: 0 0 3px;
-  font: 600 9.5px/1 var(--font-ui);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.verdictUnavailable {
-  margin: 0;
-  font: 700 13.5px/1.3 var(--font-ui);
-  color: var(--warn);
-}
-.verdictBody {
-  margin: 3px 0 0;
-  font: 500 11.5px/1.45 var(--font-ui);
-  color: var(--text-2);
-}
-
-/* Two clocks (T2-16 vocabulary) — labeled, never merged. The served
-   assessment keeps a compact tile; the unserved quote clock is a header line
-   beside it (fix r2 M2: one tile, not two). */
-.clocks {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-top: 2px;
-}
-.clock {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 120px;
-  padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(5, 7, 12, 0.3);
-}
-.clock span {
-  font: 600 9px/1 var(--font-ui);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.clock b {
-  font: 600 11.5px/1.3 var(--font-ui);
-  color: var(--text);
-}
-.clockAside {
-  flex: 1 1 240px;
-  margin: 0;
-  min-width: 0;
-  font: 500 10.5px/1.4 var(--font-ui);
-  color: var(--muted);
-}
-.clockAside b {
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: var(--text-2);
-}
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
 .tabs {
@@ -225,19 +159,12 @@
   position: sticky;
   top: 8px;
 }
+/* Destinations without a rail (Evidence, Context) use the full width — a
+   reserved 316px column would otherwise sit empty beside their content. */
+.caseBodySolo { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 900px) {
   .caseBody { grid-template-columns: minmax(0, 1fr); }
   .caseRail { position: static; }
-}
-/* Round-3 fold budget: the case's Save/Follow button must be FULLY visible
-   above the hub's fixed disclaimer bar at 1440×900 — for a one-line and a
-   two-line stance heading alike. The entry check above it is tall whenever
-   the plan carries management notes, so on the two-column layout the
-   Save/Follow block moves to the top of the rail. DOM order is unchanged
-   (entry check → Save/Follow → model plan), so phones keep T2-12's reading
-   order and the action stays directly after the entry state there. */
-@media (min-width: 901px) {
-  .caseRail > .saveFollow { order: -1; }
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
@@ -333,28 +260,117 @@
 .pos { color: var(--up); }
 .neg { color: var(--down); }
 
-/* Supports / challenges pair */
-.pairGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-  min-width: 0;
+/* The one unavailable card (T2-C5): a warn mark in semantic ink beside the
+   title — never a colored container edge (2026-10-18 ruling). */
+.unavailableHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
-.pairCard {
+.warnMark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--warn);
+  border-radius: 50%;
+  font: 700 10px/1 var(--font-ui);
+  color: var(--warn);
+}
+.railItemValueWarn {
+  font-weight: 600;
+  color: var(--warn);
+}
+
+/* "You can still study" — the honest exit list (T2-C5). */
+.studyLinkList {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 11px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  min-width: 0;
-}
-.pairTitle {
+  gap: 2px;
   margin: 0;
-  font: 700 12.5px/1.2 var(--font-ui);
-  color: var(--text);
+  padding: 0;
+  list-style: none;
 }
+.studyLinkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  background: transparent;
+  font: 600 12px/1.3 var(--font-ui);
+  color: var(--text-2);
+  text-align: left;
+  cursor: pointer;
+}
+.studyLinkList li:last-child .studyLinkRow { border-bottom: none; }
+.studyLinkRow:hover { color: var(--text); }
+.studyLinkArrow { flex: none; color: var(--muted); }
+.studyChartLink {
+  align-self: flex-start;
+  font: 600 11.5px/1.4 var(--font-ui);
+  color: var(--link);
+}
+.studyChartLink:hover { text-decoration: underline; }
+
+/* The plan row: one closed, linked row; the line under it carries the date and
+   the not-permission-to-trade statement. */
+.planRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--line-2);
+  color: var(--text);
+  text-decoration: none;
+}
+.planRow:hover .planRowName { text-decoration: underline; }
+.planRowName {
+  font: 700 12.5px/1.3 var(--font-ui);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.planRowArrow { flex: none; color: var(--muted); }
+.planRowLink {
+  align-self: flex-start;
+  font: 600 11.5px/1.4 var(--font-ui);
+  color: var(--link);
+}
+.planRowLink:hover { text-decoration: underline; }
+
+/* Bottom return (P1-7): the long phone page ends with the way back, carrying
+   the same selection as the breadcrumb. */
+.backBottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 650 12px/1 var(--font-ui);
+  color: var(--text-2);
+  text-decoration: none;
+}
+.backBottom:hover { border-color: var(--line-3); color: var(--text); }
+@media (max-width: 640px) {
+  .backBottom { width: 100%; min-height: 44px; }
+}
+
+/* The membership line sits on the cards' own gutter. */
+.membershipLine { padding: 0 2px; }
 
 /* Rail cards */
 .railList {
@@ -387,41 +403,6 @@
   font-weight: 500;
   color: var(--muted);
 }
-.modelPlan :global(.obs-prophet-geometry) { border-radius: 10px; }
-/* Fix order item 3: the R/R ratio chip is GeometryRail's own attractor and no
-   Paper design for this surface shows it — hide it HERE only, without editing
-   Lane D's component. It is the second span of the rail's title row. */
-.modelPlan :global(.obs-prophet-geometry) > div:first-of-type > span + span { display: none; }
-
-/* Plan management note: real bullet markers (item 12). */
-.noteList {
-  margin: 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  list-style: disc outside;
-  font: 500 11px/1.55 var(--font-ui);
-  color: var(--text-2);
-}
-.noteList::marker { color: var(--muted); }
-
-/* Compact entry-state banner (T2-12 order): phone-width only, directly under
-   the header, so the amber entry state is met before the deep content. */
-.entryBanner {
-  display: none;
-  margin: 0;
-  padding: 9px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(5, 7, 12, 0.3);
-  font: 600 11px/1.5 var(--font-ui);
-  color: var(--warn);
-}
-@media (max-width: 640px) {
-  .entryBanner { display: block; }
-}
-
 /* Disclosure control shared by the case page's <summary> controls: a drawn
    marker instead of the native one, so the marker's left edge is the
    control's own left edge and can sit exactly on the card gutter. */
@@ -459,10 +440,6 @@ details[open] > .disclosureSummary::before { content: "▾"; }
   color: var(--link);
 }
 .sourcesSummary:hover { color: var(--text-2); }
-/* "Plan thesis (reported)" in the model-plan rail: same disclosure grammar,
-   the rail's own label typography. */
-.thesisSummary { padding-block: 2px; color: var(--muted); }
-.thesisSummary:hover { color: var(--text-2); }
 
 /* Touch-target floor at ≤640px for the whole case page: every disclosure
    control and every button is ≥44px (fix r2 B1 — the two summaries measured
@@ -494,8 +471,7 @@ details[open] > .disclosureSummary::before { content: "▾"; }
 }
 
 /* ── Actions (Save / Follow) ────────────────────────────────────────────── */
-/* Hook for the rail's desktop fold rule (see .caseRail > .saveFollow above).
-   Carries no styling of its own. */
+/* Save / Follow card: fills the rail column and never overflows it. */
 .saveFollow { min-width: 0; }
 .actions {
   display: flex;
@@ -563,44 +539,7 @@ details[open] > .disclosureSummary::before { content: "▾"; }
   color: var(--text-2);
 }
 
-/* ── Observation card (T2-22) ──────────────────────────────────────────── */
-.obsRows {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.obsRow {
-  display: flex;
-  gap: 10px;
-  font: 500 11.5px/1.5 var(--font-ui);
-  color: var(--text-2);
-}
-.obsRowLabel {
-  min-width: 96px;
-  flex-shrink: 0;
-  font: 600 9.5px/1.6 var(--font-ui);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.obsTriggerList {
-  margin: 0;
-  padding-left: 16px;
-  list-style: disc outside;
-  font: 500 11.5px/1.6 var(--font-ui);
-  color: var(--text-2);
-}
-/* Fix r2 P1: "What is known", "What is missing" and "Next useful check" use
-   ONE layout — a label-over-content block, the same grammar T2-22 draws. */
-.obsBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.obsBlock + .obsBlock { margin-top: 4px; }
+/* ── Observation evidence (Evidence tab) ───────────────────────────────── */
 .obsEvidence { margin: 0; }
 
 /* ── Membership / relationships (Context) ──────────────────────────────── */

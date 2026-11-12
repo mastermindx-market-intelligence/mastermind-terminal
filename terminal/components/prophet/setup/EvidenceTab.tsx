@@ -1,12 +1,14 @@
 "use client";
 /**
- * EvidenceTab (T2-04 / T2-16) — what is published and what this source does
- * not carry. The early-observation evidence block is the existing B03 renderer
- * (components/fin/ProphetObservationEvidence), reused read-only inside a
- * disclosure. Quarterly fundamentals and the information sequence are not
- * served: designed unavailable states, each naming what would be there (G12,
- * G13). The conclusion lives in the destination's rail (fix order item 7),
- * not as a third card here.
+ * EvidenceTab (T2-04) — what is actually published. At this head the source
+ * publishes no fundamentals, release times or revisions for the company, so
+ * the destination is ONE plain unavailable line (P1-2/P1-3): the per-field
+ * "not published" rows, the conclusion rail and the placeholder copy that
+ * described the slot are all gone.
+ *
+ * A member whose join carries an early observation keeps the served evidence
+ * disclosure — that is real content (the existing B03 renderer, reused
+ * read-only) and it is what "You can still study → Company evidence" means.
  */
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import ProphetObservationEvidence from "@/components/fin/ProphetObservationEvidence";
@@ -25,7 +27,7 @@ function ObservationEvidenceBlock({ symbol }: { symbol: string }) {
   const read = useProphetObservation(symbol, account);
   return (
     <details className={styles.card} data-testid="observation-evidence">
-      <summary className={styles.pairTitle}>{t("observationEvidence")}</summary>
+      <summary className={styles.disclosureSummary}>{t("observationEvidence")}</summary>
       <div className={styles.obsEvidence}>
         <ProphetObservationEvidence read={read} zh={lang === "zh"} />
       </div>
@@ -40,17 +42,7 @@ export function EvidenceTab({ symbol, showObservation }: { symbol: string; showO
   return (
     <div className={styles.caseMain} data-testid="evidence-tab" role="tabpanel" id="case-panel-evidence" aria-labelledby="case-tab-evidence">
       {showObservation ? <ObservationEvidenceBlock symbol={symbol} /> : null}
-
-      <section className={styles.card} data-testid="evidence-fundamentals">
-        <h4 className={styles.cardTitle}>{t("fundamentalsTitle")}</h4>
-        <span className={styles.badge}>{t("fundamentalsBadge")}</span>
-        <p className={styles.unavailableBody}>{t("fundamentalsBody")}</p>
-      </section>
-
-      <section className={styles.card} data-testid="evidence-sequence">
-        <h4 className={styles.cardTitle}>{t("sequenceTitle")}</h4>
-        <p className={styles.unavailableBody}>{t("sequenceBody")}</p>
-      </section>
+      <p className={styles.emptyCopy} data-testid="evidence-unavailable">{t("evidenceUnavailable")}</p>
     </div>
   );
 }

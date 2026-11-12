@@ -108,7 +108,7 @@ export const PROPHET_SECTOR_LEX = {
   setupMemberSince:    ["In this group since at least {date}", "至少自 {date} 起在该组"],
   setupRosterSince:    ["Roster effective {date}", "名单生效 {date}"],
   setupReported:       ["Reported from the Prophet index — not a recommendation.", "来自预言台指数的记录——不构成建议。"],
-  setupInGroups:       ["Member of {n} group(s)", "{n} 个组的成分"],
+  setupInGroups:       ["Member of {n} groups", "{n} 个组的成分"],
 
   // ── Sources & evidence disclosure ────────────────────────────────────────
   sourcesSummary:      ["Sources & evidence", "来源与证据"],
