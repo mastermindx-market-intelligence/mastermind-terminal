@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-11-12T02:59:56.263544+00:00",
+  "finishedAt": "2026-11-12T02:59:59.058445+00:00",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/f11_7RecurringBriefsEvidence.test.ts"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 2.795,
+  "logSha256": "ad76b1ef0a43df9fe6022de9be48802226bc9c1992c4ce39947e274f0b4a84cf"
+}

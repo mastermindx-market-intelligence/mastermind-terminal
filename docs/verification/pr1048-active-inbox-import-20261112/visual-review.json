@@ -1,0 +1,18 @@
+{
+  "reviewer": "assigned ChatGPT Web principal",
+  "reviewedOriginalArtifactImages": 8,
+  "views": [
+    "desktop1440-en-dark-list",
+    "desktop1440-zh-dark-list",
+    "mobile390-en-dark-list",
+    "mobile390-zh-dark-list",
+    "desktop1440-en-dark-empty",
+    "desktop1440-zh-dark-empty",
+    "mobile390-en-dark-empty",
+    "mobile390-zh-dark-empty"
+  ],
+  "result": "Readable existing list and empty states; Chinese glyphs readable; no visible clipping or missing-glyph boxes in the returned crops.",
+  "scope": "Original cropped images only; no tablet/light/full-page or independent font-witness claim.",
+  "producerActivation": false,
+  "productionAcceptance": false
+}

@@ -1,0 +1,28 @@
+node:assert:150
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: Symlink packet directory
++ actual - expected
+
++ '/private/tmp/pr1048-inbox-original-artifact-review-20261112-c3'
+- '/tmp/pr1048-inbox-original-artifact-review-20261112-c3'
+
+    at Object.readInboxPacket (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr1048-inbox-integration-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:130:10)
+    at [eval]:1:44
+    at runScriptInThisContext (node:internal/vm:209:10)
+    at node:internal/process/execution:446:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:444:60)
+    at evalFunction (node:internal/process/execution:279:30)
+    at evalTypeScript (node:internal/process/execution:291:3)
+    at node:internal/main/eval_string:74:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '/private/tmp/pr1048-inbox-original-artifact-review-20261112-c3',
+  expected: '/tmp/pr1048-inbox-original-artifact-review-20261112-c3',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.4
