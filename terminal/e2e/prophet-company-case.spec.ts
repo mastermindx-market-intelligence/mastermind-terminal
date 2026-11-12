@@ -46,6 +46,23 @@ async function expectCaseTouchTargets(page: Page) {
   }
 }
 
+/** M2 (round 3): the case's Save/Follow BUTTON — not its card — must be fully
+ * visible above the hub's fixed disclaimer bar in the initial scrollport: its
+ * bottom clears the bar's top by 8px. Measured for every fixture symbol, so a
+ * wrapped stance heading cannot push the action under the bar. */
+async function expectActionsClearDisclaimer(page: Page) {
+  const barTop = await page.locator(".flow-disclaimer")
+    .evaluate(el => el.getBoundingClientRect().top);
+  expect(barTop).toBeGreaterThan(0);
+  for (const testId of ["save-security", "follow-changes"]) {
+    const box = await page.getByTestId(testId).boundingBox();
+    expect(box, testId).not.toBeNull();
+    const bottom = box!.y + box!.height;
+    expect(bottom, `${testId} bottom ${bottom} vs disclaimer bar top ${barTop}`)
+      .toBeLessThanOrEqual(barTop - 8);
+  }
+}
+
 test.describe("Company case (Lane C)", () => {
   test("a plan member's case reads verdict-first across its destinations", async ({ page }) => {
     test.setTimeout(90_000);
@@ -84,12 +101,6 @@ test.describe("Company case (Lane C)", () => {
       const stanceSize = await page.getByTestId("case-stance")
         .evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize));
       expect(stanceSize).toBeGreaterThanOrEqual(30);
-      // M2 (fix r2): Save / Follow starts inside the first 900px of the
-      // 1440×900 fold — the case's next action is reachable without scrolling.
-      const saveBox = await page.getByTestId("save-security").boundingBox();
-      const followBox = await page.getByTestId("follow-changes").boundingBox();
-      expect(saveBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(900);
-      expect(followBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(900);
     }
 
     // Setup tab (default): the labeled study — market and group over the same
@@ -199,6 +210,34 @@ test.describe("Company case (Lane C)", () => {
     await expect(page.getByTestId("context-membership")).toBeVisible();
     await page.keyboard.press("ArrowLeft");
     await expect(page.getByTestId("case-tab-evidence")).toBeFocused();
+  });
+
+  test("the next action clears the disclaimer bar at 1440, at any headline length", async ({ page }) => {
+    test.setTimeout(90_000);
+    test.skip((page.viewportSize()?.width ?? 0) !== 1440,
+      "the fold budget is the 1440×900 contract");
+    await stubBoardWithCarr(page);
+    await stubObservationsUnavailable(page);
+    await withLang(page);
+
+    // CARR: a one-line stance, and the plan's management notes make the entry
+    // check the tall block above the action.
+    await page.goto(CARR_SETUP);
+    await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
+    const carrStance = page.getByTestId("case-stance");
+    expect(carrStance).toHaveCount(1);
+    expect((await carrStance.boundingBox())!.height, "CARR stance is one line").toBeLessThan(50);
+    await expectActionsClearDisclaimer(page);
+
+    // ADP: the 32px stance wraps to two lines and the header grows by a line —
+    // the round-3 regression had the button under the bar here (y 821).
+    await page.goto(ADP_SETUP);
+    await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
+    const adpStance = page.getByTestId("case-stance");
+    expect(await adpStance.evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize)))
+      .toBeGreaterThanOrEqual(30);
+    expect((await adpStance.boundingBox())!.height, "ADP stance is two lines").toBeGreaterThan(50);
+    await expectActionsClearDisclaimer(page);
   });
 
   test("a failed board read states unknown instead of a false absence, and retry recovers", async ({ page }) => {

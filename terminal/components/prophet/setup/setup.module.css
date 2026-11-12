@@ -229,6 +229,16 @@
   .caseBody { grid-template-columns: minmax(0, 1fr); }
   .caseRail { position: static; }
 }
+/* Round-3 fold budget: the case's Save/Follow button must be FULLY visible
+   above the hub's fixed disclaimer bar at 1440×900 — for a one-line and a
+   two-line stance heading alike. The entry check above it is tall whenever
+   the plan carries management notes, so on the two-column layout the
+   Save/Follow block moves to the top of the rail. DOM order is unchanged
+   (entry check → Save/Follow → model plan), so phones keep T2-12's reading
+   order and the action stays directly after the entry state there. */
+@media (min-width: 901px) {
+  .caseRail > .saveFollow { order: -1; }
+}
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
 /* 15px content gutter (T2-03): every card's text column, and the Sources &
@@ -484,6 +494,9 @@ details[open] > .disclosureSummary::before { content: "▾"; }
 }
 
 /* ── Actions (Save / Follow) ────────────────────────────────────────────── */
+/* Hook for the rail's desktop fold rule (see .caseRail > .saveFollow above).
+   Carries no styling of its own. */
+.saveFollow { min-width: 0; }
 .actions {
   display: flex;
   gap: 8px;

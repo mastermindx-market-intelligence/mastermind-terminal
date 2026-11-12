@@ -2,17 +2,20 @@
 /**
  * EntryCheckRail — the case's rail (T2-03), one shape per destination:
  *
- *   - Setup: the entry check's honest amber state, then Save/Follow (fix
- *     order item 5 — directly after the entry state, above the 1440 fold),
- *     then the read-only "Model plan" rail. Two owners, two states (T2-20
- *     #10 law): the ENTRY ASSESSMENT (a gate product) is not served by any
- *     wire; the MODEL PLAN's own terms ARE served by the board read and
- *     render through Lane D's GeometryRail, imported read-only and labeled
- *     reported. A board read that does not land is NEVER "this plan is not
- *     in the current board read" (a published-absence claim): it renders the
- *     T2-21 assessment-unavailable / status-unknown state with a retry (fix
- *     order item 1 — flowGetResult keeps the outcome; only status "data"
- *     reaches the ready phase). The rail never mints an entry decision.
+ *   - Setup: the entry check's honest amber state, then Save/Follow, then the
+ *     read-only "Model plan" rail. DOM order is entry check → action → plan
+ *     (phones keep T2-12's reading order); on the two-column layout the CSS
+ *     lifts the action to the top of the rail, because the round-3 fold rule
+ *     requires the BUTTON to sit fully above the fixed disclaimer bar at
+ *     1440×900 even when the stance heading wraps to two lines. Two owners,
+ *     two states (T2-20 #10 law): the ENTRY ASSESSMENT (a gate product) is
+ *     not served by any wire; the MODEL PLAN's own terms ARE served by the
+ *     board read and render through Lane D's GeometryRail, imported read-only
+ *     and labeled reported. A board read that does not land is NEVER "this
+ *     plan is not in the current board read" (a published-absence claim): it
+ *     renders the T2-21 assessment-unavailable / status-unknown state with a
+ *     retry (fix order item 1 — flowGetResult keeps the outcome; only status
+ *     "data" reaches the ready phase). The rail never mints an entry decision.
  *
  *   - Evidence (fix order item 7): "What can we conclude?" as per-field rows
  *     — reported growth, consensus surprise, matched revisions, entry
@@ -115,8 +118,8 @@ export function EntryCheckRail({ symbol, tab, planId, boardPhase, boardPlan, onR
         <p className={styles.cardFootnote}>{t("entryPriceNote")}</p>
       </section>
 
-      {/* Fix order item 5: Save/Follow sits directly after the entry state,
-          inside the fold at 1440 — it is the case's natural next action. */}
+      {/* The case's natural next action. It follows the entry state in the
+          DOM and leads the rail visually on desktop (round-3 fold rule). */}
       <SaveFollow symbol={symbol} />
 
       <section className={`${styles.card} ${styles.modelPlan}`} data-testid="model-plan-rail">

@@ -46,7 +46,7 @@ export function SaveFollow({ symbol }: { symbol: string }) {
   }
 
   return (
-    <section className={styles.card} data-testid="save-follow">
+    <section className={`${styles.card} ${styles.saveFollow}`} data-testid="save-follow">
       <div className={styles.actions}>
         <button
           type="button"
