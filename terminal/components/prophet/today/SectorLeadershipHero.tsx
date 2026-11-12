@@ -4,29 +4,37 @@
  * that opens the Today board: the LEADING sector's read against the market.
  *
  * The headline states the assessment in one sentence built only from the
- * published relative measure ("X is ahead of / behind / in line with the
- * market"); a group whose relative measure is null gets the designed
- * unavailable sentence, never an invented breadth or participation trend the
- * wire does not carry.
+ * published relative measure ("X is/are ahead of / behind / in line with the
+ * market"); the English verb follows the group noun (P2-3). A group whose
+ * relative measure is null gets the designed unavailable sentence, never an
+ * invented breadth or participation trend the wire does not carry.
  *
  * Laws:
  *   - Every measure nullable; a null renders its owner's reason in the shared
- *     not-stated vocabulary (contextNullKey), never a zero and never an
+ *     not-available vocabulary (contextNullKey), never a zero and never an
  *     invented number.
  *   - The owner's descriptive state label is mapped through the closed
  *     phase-vocabulary table (P4) — an unknown term renders verbatim.
  *   - Negative and positive measures carry semantic ink (--up / --down), by
  *     meaning, not by container color (P1).
- *   - Coverage counts are REPORTED facts, never a quality score or a rank.
- *   - One action per hero: open the group's member population. The numbers
- *     stay context; the journey carries the depth.
+ *   - P1-2: one plain line says WHY this group carries the hero (highest
+ *     ranked group with published members) and which group leads overall when
+ *     that is a different one, so the hero and the table below cannot read as
+ *     a contradiction.
+ *   - P1-5: breadth is unavailable for every group in this reading; the hero
+ *     states that once in muted words instead of a full stat tile.
+ *   - P1-3: plan counts are the Plans lane's; the hero carries no plan pill.
+ *   - P1-4: one as-of line for both sessions (TwoClockStrip), in warn ink when
+ *     they differ; there is no second, repeated caveat.
+ *   - P1-7: the one action is "Inspect sector →" — the group's member
+ *     population; full-width on a phone. No invented "next change to watch".
  *   - No colored container edges; status is text in semantic ink (2026-10-18).
  */
 import { useLang } from "@/lib/i18n";
 import type {
   SectorGroupContext, SectorGroupSummary, SectorMembersCompatibility,
 } from "@/lib/prophetSectorMembers";
-import { makeProphetT, ownerStateLabel } from "../prophetStrings";
+import { groupNameTakesPlural, makeProphetT, ownerStateLabel } from "../prophetStrings";
 import {
   contextNullKey, makeProphetSectorT, prophetSectorFill,
 } from "../sector/prophetSectorStrings";
@@ -60,10 +68,17 @@ function Stat({ label, value, tone, nullValue, testId }: {
   );
 }
 
-export function SectorLeadershipHero({ group, compatibility, onOpenGroup }: {
+export function SectorLeadershipHero({ group, compatibility, onOpenGroup, derivedFocus = false, leadGroup = null, leadUnpublished = false }: {
   group: SectorGroupSummary;
   compatibility: SectorMembersCompatibility;
   onOpenGroup: (groupId: string) => void;
+  /** The hero is the derived focus (top-return group with published members),
+   * not a deep link — only then does the rank line apply. */
+  derivedFocus?: boolean;
+  /** The highest-ranked group overall, when different from the hero. */
+  leadGroup?: string | null;
+  /** The overall leader's members were observed absent from this reading. */
+  leadUnpublished?: boolean;
 }) {
   const { lang } = useLang();
   const t = makeProphetT(lang);
@@ -71,9 +86,6 @@ export function SectorLeadershipHero({ group, compatibility, onOpenGroup }: {
   const ctx: SectorGroupContext = group.context;
   const localName = (lang === "zh" ? group.nameZh || group.name : group.name) || group.id;
 
-  const breadth = ctx.breadth !== null
-    ? `${ctx.breadth.aboveTrend}/${ctx.breadth.measured}`
-    : sectorT(contextNullKey(ctx.reasons.breadth));
   const windowLabel = ctx.windowSessions !== null
     ? prophetSectorFill(sectorT("contextWindow"), { n: ctx.windowSessions })
     : sectorT(contextNullKey(ctx.reasons.window_sessions));
@@ -82,12 +94,15 @@ export function SectorLeadershipHero({ group, compatibility, onOpenGroup }: {
   // Null → the designed unavailable sentence; the wire publishes no breadth
   // trend for this reading, so no "gaining participation" claim is invented.
   const relative = ctx.relativePp;
-  const assessment = relative === null
-    ? t("todayHeroUnavailable")
-    : prophetSectorFill(
-      t(relative > RELATIVE_FLAT ? "todayHeroAhead" : relative < -RELATIVE_FLAT ? "todayHeroBehind" : "todayHeroEven"),
-      { group: localName },
-    );
+  const plural = groupNameTakesPlural(localName);
+  const verbKey = relative === null
+    ? "todayHeroUnavailable"
+    : relative > RELATIVE_FLAT
+      ? (plural ? "todayHeroAheadPlural" : "todayHeroAhead")
+      : relative < -RELATIVE_FLAT
+        ? (plural ? "todayHeroBehindPlural" : "todayHeroBehind")
+        : (plural ? "todayHeroEvenPlural" : "todayHeroEven");
+  const assessment = prophetSectorFill(t(verbKey), { group: localName });
 
   const groupReturnTone = ctx.groupReturnPct === null ? undefined : ctx.groupReturnPct > 0 ? "up" : ctx.groupReturnPct < 0 ? "down" : undefined;
   const marketReturnTone = ctx.marketReturnPct === null ? undefined : ctx.marketReturnPct > 0 ? "up" : ctx.marketReturnPct < 0 ? "down" : undefined;
@@ -108,10 +123,19 @@ export function SectorLeadershipHero({ group, compatibility, onOpenGroup }: {
               </span>
             ) : null}
           </p>
+          {derivedFocus ? (
+            <p className={styles.heroRank} data-testid="prophet-today-rank">
+              {t("todayHeroRankLine")}
+              {leadGroup !== null ? ` · ${prophetSectorFill(
+                leadUnpublished ? t("todayHeroRankLeadUnpublished") : t("todayHeroRankLead"),
+                { group: leadGroup },
+              )}` : ""}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
-          className={styles.linkButton}
+          className={`${styles.linkButton} ${styles.heroAction}`}
           data-testid="prophet-today-open-group"
           aria-label={prophetSectorFill(t("todayOpenGroupAria"), { group: localName })}
           onClick={() => onOpenGroup(group.id)}
@@ -139,20 +163,24 @@ export function SectorLeadershipHero({ group, compatibility, onOpenGroup }: {
           tone={relativeTone}
           nullValue={relative === null}
         />
-        <Stat
-          label={sectorT("contextBreadth")}
-          value={breadth}
-          nullValue={ctx.breadth === null}
-        />
+        {ctx.breadth !== null ? (
+          <Stat
+            label={sectorT("contextBreadth")}
+            value={`${ctx.breadth.aboveTrend}/${ctx.breadth.measured}`}
+          />
+        ) : null}
       </div>
 
+      {/* P1-5: one muted line instead of a full unavailable stat tile. */}
+      {ctx.breadth === null ? (
+        <p className={styles.heroBreadth} data-testid="prophet-today-breadth-unavailable">
+          {t("todayHeroBreadthLine")}
+        </p>
+      ) : null}
+
+      {/* P1-3: plan counts belong to the Plans lane; only the coverage fact
+          this hero is about (how many members the read serves) stays. */}
       <div className={styles.coverage}>
-        <span className={styles.coverageChip}>
-          {t("todayOpenPlans")} <b data-testid="prophet-today-open-plans">{group.counts.openPlan}</b>
-        </span>
-        <span className={styles.coverageChip}>
-          {t("todayEarlyObs")} <b>{group.counts.earlyObservation}</b>
-        </span>
         <span className={styles.coverageChip}>
           {prophetSectorFill(t("todayServedMembers"), { n: group.counts.served })}
         </span>

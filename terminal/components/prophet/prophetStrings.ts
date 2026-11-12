@@ -678,23 +678,36 @@ const PROPHET_LEX = {
   todayHeroKicker:   ["Market & sector leadership", "市场与行业领涨"],
   // ZH joins the group name to the predicate with no space (the sentence is
   // one clause; the English template's space is an English word boundary).
+  // The English verb follows the group noun: "Defensives are ahead", "Housing
+  // Chain is ahead" (P2-3) — the hero picks the template by the name's number.
   todayHeroAhead:    ["{group} is ahead of the market.", "{group}跑赢市场。"],
   todayHeroBehind:   ["{group} is behind the market.", "{group}跑输市场。"],
   todayHeroEven:     ["{group} is in line with the market.", "{group}与市场同步。"],
+  todayHeroAheadPlural:  ["{group} are ahead of the market.", "{group}跑赢市场。"],
+  todayHeroBehindPlural: ["{group} are behind the market.", "{group}跑输市场。"],
+  todayHeroEvenPlural:   ["{group} are in line with the market.", "{group}与市场同步。"],
   todayHeroUnavailable: ["The leading sector's relative measure is not published for this reading.", "本次读数未发布领涨行业的相对表现。"],
+  // P1-2: why THIS group carries the hero, and who leads overall when that is
+  // a different group — the two modules then cannot read as a contradiction.
+  todayHeroRankLine: ["Highest-ranked group with published members", "已发布成员中排名最高的行业组"],
+  todayHeroRankLead: ["{group} leads overall", "整体排名第一：{group}"],
+  todayHeroRankLeadUnpublished: ["{group} leads overall (members not in this reading)", "整体排名第一：{group}（本次读数未含其成员）"],
+  // P1-5: breadth is unavailable for every group in this reading; the hero
+  // states it once in plain words instead of a full stat tile.
+  todayHeroBreadthLine: ["Participation (above trend): not available", "参与度（趋势上方）：暂不可用"],
+  todayBreadthUnavailable: ["Participation (above trend) isn't available for this reading.", "本次读数未提供参与度（趋势上方）。"],
   todayReturnVsSector: ["Return vs sector", "相对行业收益"],
   todayNotPublished: ["not published", "未发布"],
-  todayOpenGroup:    ["Open in Screener", "在筛选台中打开"],
-  todayOpenGroupAria:["Open {group}'s member population in the Screener", "在筛选台中打开 {group} 的成分列表"],
-  todayOpenPlans:    ["Open plans", "进行中计划"],
-  todayEarlyObs:     ["Early observation", "早期观察"],
+  todayOpenGroup:    ["Inspect sector", "查看行业"],
+  todayOpenGroupAria:["Inspect {group} in the Screener", "在筛选台中查看 {group}"],
+  todayRowResearch:  ["Research", "研究"],
   todayServedMembers:["{n} served members", "{n} 只已覆盖成分"],
-  dirLong:           ["Long", "做多"],
-  dirShort:          ["Short", "做空"],
-  todayOpenedOn:     ["Opened {date}", "开仓于 {date}"],
   todayObservedSince:["Under observation since {asof}", "观察始于 {asof}"],
   todayMemberSince:  ["Member since {date}", "成分加入于 {date}"],
-  todayPlansCount:   ["{n} open plans", "{n} 个进行中计划"],
+  // P0-1: plan membership stays visible as a neutral pointer; direction and
+  // open dates belong to the Plans lane, never under a sector headline.
+  todayAlsoInPlans:  ["Also in Model plans", "亦见于模型计划"],
+  todayAlsoInPlansAria: ["Open the Model plans lane", "打开模型计划分区"],
   todayEntryUnavailable: ["No entry assessment is published for this member.", "该成分暂无已发布的入场评估。"],
   todayCaseOpenSetup:["Company setup", "公司档案"],
   todayCaseCompare:  ["Compare", "对比"],
@@ -719,6 +732,17 @@ const PROPHET_LEX = {
 } as const;
 
 type ProphetKey = keyof typeof PROPHET_LEX;
+
+/** Does the group's name take a plural verb? "Defensives are ahead", "Housing
+ * Chain is ahead", "Consumer Staples (Equal-Weight) are ahead". The trailing
+ * parenthetical is a qualifier, not the head noun; "…ss" (Business) and
+ * mass nouns (Health Care, Retail) stay singular. Used only for English
+ * grammar — the ZH templates carry no verb. */
+export function groupNameTakesPlural(name: string): boolean {
+  const bare = name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const head = bare.split(/\s+/).pop() ?? bare;
+  return /s$/i.test(head) && !/ss$/i.test(head);
+}
 
 export function getProphetStr(lang: Lang, key: ProphetKey): string {
   const entry = PROPHET_LEX[key];

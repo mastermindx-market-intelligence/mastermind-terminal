@@ -7,7 +7,7 @@
  *   - Descriptive only. Sector strength is context, never a trade instruction:
  *     no "buy/enter/qualified" on descriptive states.
  *   - A member's Prophet state is REPORTED, never recommended.
- *   - Nulls in plain words ("not produced"), owner reason codes translated via
+ *   - Nulls in plain words ("Not available"), owner reason codes translated via
  *     a closed map with a generic fallback — raw slugs never face the reader.
  *   - Numbers carry meaning (+X% vs market, pp, sessions); one as-of per block.
  *   - Translated strings never appear in HTML title= attributes (CI-guarded).
@@ -29,7 +29,7 @@ export const PROPHET_SECTOR_LEX = {
   contextRelative:     ["Relative", "相对表现"],
   contextBreadth:      ["Above trend", "趋势上方"],
   contextWindow:       ["{n} sessions", "{n} 个交易日"],
-  contextNotProduced:  ["not produced", "未产出"],
+  contextNotProduced:  ["Not available", "暂不可用"],
   contextNotStated:    ["not stated", "未说明"],
   contextUnknown:      ["unknown", "未知"],
   contextClocks:       ["Sector reading {sector} · Prophet index {prophet}", "行业读数 {sector} · 预言台指数 {prophet}"],
@@ -40,7 +40,7 @@ export const PROPHET_SECTOR_LEX = {
   verdictCompatible:   ["Both readings cover the same session ({session}).", "两次读数覆盖同一交易日（{session}）。"],
   verdictStaleSector:  ["The sector reading is {gap} sessions older than the Prophet index — treat group measures as dated.", "行业读数比预言台指数旧 {gap} 个交易日——请将组内指标视为滞后数据。"],
   verdictStaleProphet: ["The Prophet index is {gap} sessions older than the sector reading — member states may lag the group.", "预言台指数比行业读数旧 {gap} 个交易日——成员状态可能滞后于行业。"],
-  verdictMixedBasis:   ["The readings were captured on different sessions ({sector} vs {prophet}) — comparisons span dates.", "两次读数采集于不同交易日（{sector} 与 {prophet}）——对比跨越了日期。"],
+  verdictMixedBasis:   ["The readings were captured on different sessions — comparisons span dates.", "两次读数采集于不同交易日——对比跨越了日期。"],
   verdictSectorDown:   ["The sector reading is unavailable — group context is not shown for this read.", "行业读数不可用——本次不显示行业背景。"],
   verdictProphetDown:  ["The Prophet index is unavailable — member states cannot be shown.", "预言台指数不可用——无法显示成员状态。"],
 

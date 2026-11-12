@@ -127,7 +127,9 @@ export function ProphetLanesView() {
               : tabLane === "options" ? "prophet-panel-options" : "prophet-panel-issue"
       }
       tabIndex={tabLane === rovingLane ? 0 : -1}
-      className={selected ? "on" : ""}
+      // P1-1: the module class, not a literal — `styles.on` is what the module
+      // CSS compiles `.navTabs button.on` to. A literal "on" matched nothing.
+      className={selected ? styles.on : ""}
       data-testid={testid}
       onMouseEnter={() => {
         if (tabLane === "plans") flowPrefetch("prophet_idx");
@@ -164,7 +166,7 @@ export function ProphetLanesView() {
         </div>
         <button
           type="button"
-          className={`${styles.moreButton}${secondaryActive ? ` on` : ""}`}
+          className={`${styles.moreButton}${secondaryActive ? ` ${styles.on}` : ""}`}
           data-testid="prophet-lane-more"
           aria-haspopup="true"
           aria-expanded={moreOpen}

@@ -9,9 +9,15 @@
  *   - The hero is the LEADING sector: the top-return group whose population is
  *     published. The bounded walk settles there (the fixtures publish 3 of 49;
  *     production publishes all and stops at the first candidate).
- *   - Nulls render the owner's reason ("not produced"), never a zero and never
- *     an invented number; the owner's phase vocabulary is mapped (P4); the
- *     member-level "Return vs sector" measure has a designed unavailable label.
+ *   - Nulls render the shared not-available vocabulary ("Not available"), never
+ *     a zero and never an invented number; the owner's phase vocabulary is
+ *     mapped (P4); the member-level "Return vs sector" measure has a designed
+ *     unavailable label.
+ *   - P0-1: a case card carries no trade direction, no open date and no plan
+ *     pill — plan membership is ONE neutral pointer to the Plans lane.
+ *   - P1-2/P1-3/P1-5: the hero says why it is the hero and who leads overall;
+ *     every row carries a visible Research action; breadth absent for every
+ *     group is stated once under the table, not as a column of nulls.
  *   - The compare selection is the URL contract's `sel`: chips, count, removal.
  *   - Committed actions call update() with the exact contract patches.
  */
@@ -115,18 +121,28 @@ describe("Today board — committed-fixture acceptance", () => {
     await renderBoard();
     const hero = host.querySelector('[data-testid="prophet-today-hero"]')!.textContent ?? "";
     // B1: the assessment sentence names the leading sector and its direction.
-    expect(hero).toContain("Defensives is ahead of the market.");
+    // P2-3: the verb follows the group noun ("Defensives are …").
+    expect(hero).toContain("Defensives are ahead of the market.");
     // P4: the owner's phase vocabulary is mapped for display.
     expect(host.querySelector('[data-testid="prophet-today-owner-label"]')!.textContent).toBe("Expansion");
     expect(hero).toContain("+10.4%");
     expect(hero).toContain("-5.6%");
     expect(hero).toContain("+16.0 pp");
-    // The fixture produces no breadth for ANY group: the owner's reason shows.
-    expect(hero).toContain("not produced");
+    // P1-5: the fixture produces no breadth for ANY group — one muted line in
+    // plain words, not a stat tile and not a column of pipeline vocabulary.
+    expect(host.querySelector('[data-testid="prophet-today-breadth-unavailable"]')!.textContent)
+      .toBe("Participation (above trend): not available");
     expect(hero).not.toContain("0/");
-    // Coverage counts are reported facts from the index, not derived here, and
-    // plan count is a secondary fact — never the hero's selection rule.
-    expect(host.querySelector('[data-testid="prophet-today-open-plans"]')!.textContent).toBe("6");
+    // P1-2: the hero says why it carries the hero, and that Housing leads
+    // overall while its members are not in this reading.
+    const rank = host.querySelector('[data-testid="prophet-today-rank"]')!.textContent ?? "";
+    expect(rank).toContain("Highest-ranked group with published members");
+    expect(rank).toContain("Housing Chain leads overall");
+    expect(rank).toContain("members not in this reading");
+    // P1-3: plan counts belong to the Plans lane — no plan pill in the hero.
+    expect(host.querySelector('[data-testid="prophet-today-open-plans"]')).toBeNull();
+    // P1-7: the one action is "Inspect sector →".
+    expect(host.querySelector('[data-testid="prophet-today-open-group"]')!.textContent).toBe("Inspect sector →");
     // The mixed-basis verdict, in plain words with both clocks.
     expect(host.querySelector('[data-testid="prophet-today-clocks"]')!.textContent).toContain("2026-11-06");
     expect(host.querySelector('[data-testid="prophet-today-verdict"]')!.textContent).toContain("different sessions");
@@ -135,9 +151,13 @@ describe("Today board — committed-fixture acceptance", () => {
   it("reports the group's cases without inventing entries, return or questions", async () => {
     await renderBoard();
     const clx = host.querySelector('[data-testid="prophet-today-case"][data-symbol="CLX"]')!;
-    expect(clx.textContent).toContain("Open plan");
-    expect(clx.textContent).toContain("Long");
-    expect(clx.textContent).toContain("Opened 2026-10-20");
+    // P0-1: no trading permission on a descriptive sector-strength board.
+    expect(clx.textContent).not.toContain("Long");
+    expect(clx.textContent).not.toContain("Opened");
+    expect(clx.textContent).not.toContain("Open plan");
+    // Plan membership survives as ONE neutral pointer to the Plans lane.
+    expect(clx.querySelector('[data-testid="prophet-today-case-plans"]')!.textContent)
+      .toBe("Also in Model plans →");
     expect(clx.textContent).toContain("No entry assessment is published");
     // M2: the member-level relative measure is not served — the designed
     // unavailable label, not a zero and not an invented question.
@@ -155,9 +175,19 @@ describe("Today board — committed-fixture acceptance", () => {
     expect(rows.length).toBe(8);
     expect(rows[0].textContent).toContain("Housing");
     expect(rows[0].textContent).toContain("+14.1%");
-    expect(rows[0].textContent).toContain("2"); // open plans count column
-    // Nulls in the reason vocabulary, never zeros.
-    expect(rows[0].textContent).toContain("not produced");
+    // P1-3: the plan-count columns are gone; every row carries a visible
+    // Research action instead of being silently clickable.
+    expect(rows[0].textContent).toContain("Research →");
+    expect(rows[0].textContent).not.toContain("Open plans");
+    // P1-5: breadth is absent for every group, so the column is dropped and the
+    // fact is stated once under the table.
+    expect(host.querySelector('[data-testid="prophet-today-table"]')!.textContent)
+      .not.toContain("Not available");
+    expect(host.querySelector('[data-testid="prophet-today-breadth-note"]')!.textContent)
+      .toBe("Participation (above trend) isn't available for this reading.");
+    // P1-2: the hero group's row is marked with a quiet fill, no coloured edge.
+    const heroRow = rows.find(row => row.textContent?.includes("Defensives"))!;
+    expect(heroRow.className).toContain("heroRow");
     // P1: negative and positive measures carry semantic ink by meaning.
     const defensivesRow = rows.find(row => row.textContent?.includes("Defensives"))!;
     expect(defensivesRow.querySelector(".numUp, [class*=numUp]")).not.toBeNull();

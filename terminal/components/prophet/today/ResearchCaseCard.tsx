@@ -3,45 +3,43 @@
  * ResearchCaseCard (T2-01 / SX06) — ONE member's Prophet case, reported.
  *
  * Laws:
+ *   - P0-1: a case card is NOT a position. It carries no trade direction, no
+ *     open date and no "Open plan" badge — under a "the sector is ahead"
+ *     headline those three read as trading permission drawn from descriptive
+ *     sector strength. Plan membership stays visible only as ONE neutral line
+ *     ("Also in Model plans →") that goes to the Plans lane, where direction
+ *     and open dates belong.
  *   - A member's state is REPORTED, never recommended: no buy/enter/qualified
  *     language, no confidence theater, no invented verdict.
  *   - Only wire fields render. The fields the wire does not carry for this
- *     member render their designed quiet absence ("not stated"), and the card
- *     says plainly that no entry assessment is published — an honest blank,
- *     not a guessed number.
+ *     member render their designed quiet absence ("not published"), and the
+ *     card says plainly that no entry assessment is published — an honest
+ *     blank, not a guessed number.
  *   - "Return vs sector" is carried by the wire for GROUPS only; for a member
  *     the card shows its designed unavailable label. The research question is
  *     likewise shown only when the read serves one — nothing is invented in
  *     its place (M2).
  *   - Two actions only: open the company's setup (the depth lives in the
- *     journey), and add/remove the member from the compare selection (`sel`).
+ *     journey), and add/remove the member from the compare selection (`sel`);
+ *     plus the one muted plans pointer when a plan exists.
  */
 import { useLang } from "@/lib/i18n";
 import type { SectorMember } from "@/lib/prophetSectorMembers";
 import { makeProphetT } from "../prophetStrings";
-import {
-  makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetSectorFill,
-} from "../sector/prophetSectorStrings";
+import { prophetSectorFill } from "../sector/prophetSectorStrings";
 import styles from "./today.module.css";
 
-export function ResearchCaseCard({ member, selected, selectionFull, onToggleCompare, onOpenSetup }: {
+export function ResearchCaseCard({ member, selected, selectionFull, onToggleCompare, onOpenSetup, onOpenPlans }: {
   member: SectorMember;
   selected: boolean;
   selectionFull: boolean;
   onToggleCompare: (symbol: string) => void;
   onOpenSetup: (symbol: string) => void;
+  onOpenPlans: () => void;
 }) {
   const { lang } = useLang();
   const t = makeProphetT(lang);
-  const sectorT = makeProphetSectorT(lang);
   const prophet = member.prophet;
-  const stateKey = PROPHET_STATE_LABEL_KEY[prophet.state] ?? "stateUnavailable";
-
-  const direction = prophet.plan?.direction === "long"
-    ? t("dirLong")
-    : prophet.plan?.direction === "short"
-      ? t("dirShort")
-      : null;
 
   return (
     <article
@@ -51,36 +49,17 @@ export function ResearchCaseCard({ member, selected, selectionFull, onToggleComp
     >
       <header className={styles.caseHead}>
         <span className={styles.caseSymbol}>{member.symbol}</span>
-        <span
-          className={`${styles.stateChip} ${prophet.state === "open_plan" ? styles.openPlan : prophet.state === "early_observation" ? styles.early : ""}`}
-        >
-          {sectorT(stateKey)}
-        </span>
       </header>
       <p className={styles.caseName}>
         {member.name ?? member.industry ?? member.symbol}
       </p>
 
       <dl className={styles.caseFacts}>
-        {prophet.plan !== null ? (
-          <>
-            {direction !== null ? (
-              <div>{direction}{prophet.plan.strategy !== null ? ` · ${prophet.plan.strategy}` : ""}</div>
-            ) : prophet.plan.strategy !== null ? (
-              <div>{prophet.plan.strategy}</div>
-            ) : null}
-            {prophet.plan.openedOn !== null ? (
-              <div>{prophetSectorFill(t("todayOpenedOn"), { date: prophet.plan.openedOn })}</div>
-            ) : null}
-          </>
-        ) : prophet.observation !== null ? (
+        {prophet.observation !== null ? (
           <div>{prophetSectorFill(t("todayObservedSince"), { asof: prophet.observation.asof })}</div>
         ) : null}
         {member.memberSince !== null ? (
           <div>{prophetSectorFill(t("todayMemberSince"), { date: member.memberSince })}</div>
-        ) : null}
-        {prophet.openPlanCount > 1 ? (
-          <div>{prophetSectorFill(t("todayPlansCount"), { n: prophet.openPlanCount })}</div>
         ) : null}
       </dl>
 
@@ -94,6 +73,19 @@ export function ResearchCaseCard({ member, selected, selectionFull, onToggleComp
       </dl>
 
       <p className={styles.caseNote}>{t("todayEntryUnavailable")}</p>
+
+      {/* P0-1: the one neutral plan pointer. No direction, no date, no pill. */}
+      {prophet.plan !== null ? (
+        <button
+          type="button"
+          className={styles.casePlansLink}
+          data-testid="prophet-today-case-plans"
+          aria-label={t("todayAlsoInPlansAria")}
+          onClick={onOpenPlans}
+        >
+          {t("todayAlsoInPlans")} →
+        </button>
+      ) : null}
 
       <div className={styles.caseActions}>
         <button

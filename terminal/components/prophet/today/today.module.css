@@ -168,6 +168,15 @@
   color: var(--muted);
 }
 .heroGroup { font-weight: 700; color: var(--text-2); }
+/* P1-2: why this group carries the hero, and who leads overall if not this one. */
+.heroRank {
+  margin: 6px 0 0;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+/* P1-7: the hero's one action. Muted link ink like the table foot; it becomes a
+   full-width button on a phone (see the ≤640 block). */
+.heroAction { padding-left: 0; align-self: flex-start; }
 .ownerLabel {
   display: inline-flex;
   align-items: center;
@@ -179,7 +188,9 @@
 }
 .heroStats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(96px, 1fr));
+  /* auto-fit, not a fixed 4: the breadth tile is present only when the read
+     publishes it, and an empty track must not leave a hole. */
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
 }
 .stat {
@@ -232,6 +243,12 @@
   font: 700 12px/1.2 var(--font-ui);
   font-variant-numeric: tabular-nums;
   color: var(--text);
+}
+/* P1-5: breadth unavailable for this reading — stated once, muted, plainly. */
+.heroBreadth {
+  margin: 0;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
 }
 
 /* ── Two-clock strip (T2-01 basis line) ────────────────────────────────── */
@@ -312,18 +329,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.stateChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--r-pill);
-  font: 600 10px/1.2 var(--font-ui);
-  color: var(--text-2);
-  white-space: nowrap;
-}
-.stateChip.openPlan { color: var(--link); }
-.stateChip.early { color: var(--text-2); }
 .caseFacts {
   display: flex;
   flex-direction: column;
@@ -365,6 +370,19 @@
   font: 500 10.5px/1.4 var(--font-ui);
   color: var(--muted);
 }
+/* P0-1: plan membership as ONE neutral pointer — no direction, no open date,
+   no coloured badge. The pill and the trading-permission read are gone. */
+.casePlansLink {
+  align-self: flex-start;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+}
+.casePlansLink:hover { color: var(--text-2); text-decoration: underline; }
+.casePlansLink:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
 .caseActions {
   display: flex;
   gap: 8px;
@@ -527,6 +545,25 @@
 .table tbody tr:focus-visible { outline: 2px solid var(--brand-2); outline-offset: -2px; }
 .numUp { color: var(--up); }
 .numDown { color: var(--down); }
+/* P1-2: the hero group's row, marked with a quiet fill only — no coloured
+   edge, no badge. The table and the hero can then be read as one statement. */
+.table tbody tr.heroRow td { background: rgba(255, 255, 255, 0.07); }
+.table tbody tr.heroRow:hover td { background: rgba(255, 255, 255, 0.1); }
+/* P1-3: a visible row action. The whole row stays the click target and the
+   only tab stop; this is its affordance, not a second control. */
+.researchCell { white-space: nowrap; }
+.researchAction {
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.01em;
+  color: var(--link);
+}
+/* P1-5: one plain statement under the table when breadth is absent for every
+   group, replacing a column of repeated "Not available" cells. */
+.tableNote {
+  margin: 0;
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
 .tableFoot {
   display: flex;
   align-items: center;
@@ -637,6 +674,9 @@
   .masthead h2 { font-size: 15.5px; }
   .hero { padding: 11px; }
   .heroHeadline { font-size: 17px; }
+  /* P1-7 / SX06: the hero's one action is a full-width button under the lead. */
+  .heroHead { flex-direction: column; align-items: stretch; }
+  .heroAction { width: 100%; justify-content: center; padding-left: 12px; }
   .heroStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .caseGrid { grid-template-columns: minmax(0, 1fr); }
   .caseButton { min-height: 44px; }
@@ -669,8 +709,17 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
   .table td { display: block; padding: 6px 0; border: 0; white-space: nowrap; }
-  .table td:nth-child(n + 4) { display: none; }
+  /* The breadth column is already dropped whenever the read has no breadth;
+     when a read does publish it, list mode still shows only name/return/relative
+     plus the visible Research action. */
+  .table td.breadthCell { display: none; }
   .table td.groupCell { flex: 1 1 auto; min-width: 0; white-space: normal; }
+  .table td.researchCell { flex: 0 0 auto; }
+  .researchAction { font-size: 11.5px; }
+  .tableNote { padding-top: 2px; }
+  /* P1-2: the hero row keeps its quiet mark in list mode, as a row fill. */
+  .table tbody tr.heroRow { background: rgba(255, 255, 255, 0.06); }
+  .table tbody tr.heroRow td { background: transparent; }
   .table tbody tr:hover td { background: transparent; }
   .table tbody tr:active td { color: var(--text); }
 }

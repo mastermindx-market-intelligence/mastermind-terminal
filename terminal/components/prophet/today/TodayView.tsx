@@ -165,13 +165,19 @@ export function TodayView({ state, update }: {
   // are withheld; production publishes every group and stops at the first.
   // The increment requires the 404 to belong to THIS candidate's read key, so a
   // stale status from the previous step can never skip a published population.
+  // The observed absence is recorded so the hero's rank line can say plainly
+  // that the overall leader's members are not in this reading (P1-2).
+  const [unpublished, setUnpublished] = useState<string[]>([]);
   useEffect(() => {
     if (state.group === null && casesFetch.read.status === "not_found"
-      && casesFetch.read.key === casesKey && walkIndex < candidates.length - 1) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- a data-driven state machine: the fetch outcome for candidate N is the external input that selects candidate N+1.
-      setWalkIndex(walkIndex + 1);
+      && casesFetch.read.key === casesKey && focusId !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the fetch outcome is the external input: remember which candidate was observed absent.
+      setUnpublished(prev => prev.includes(focusId) ? prev : [...prev, focusId]);
+      if (walkIndex < candidates.length - 1) {
+        setWalkIndex(walkIndex + 1);
+      }
     }
-  }, [casesFetch.read.status, casesFetch.read.key, casesKey, walkIndex, candidates.length, state.group]);
+  }, [casesFetch.read.status, casesFetch.read.key, casesKey, walkIndex, candidates.length, state.group, focusId]);
 
   const focusGroup = focusId !== null && indexReady !== null
     ? indexReady.groups.find(g => g.id === focusId) ?? null
@@ -187,11 +193,30 @@ export function TodayView({ state, update }: {
     ? [...indexReady.groups].sort(byReturnDesc).slice(0, LEADERSHIP_ROWS)
     : [], [indexReady]);
 
+  /** The display name for a group in the active language. */
+  const nameOf = (group: { id: string; name: string | null; nameZh: string | null }) =>
+    ((lang === "zh" ? group.nameZh || group.name : group.name) || group.id);
+
+  // P1-5: breadth is unavailable for every group in this reading — the table
+  // column is then dropped and the fact is stated once under the table.
+  const anyBreadth = indexReady !== null
+    && indexReady.groups.some(g => g.context.breadth !== null);
+
+  // P1-2: the overall leader (by group return), when it is not the hero group.
+  // Only meaningful for the derived focus: a deep-linked group is its own
+  // answer, not a ranking. `unpublished` records the groups the walk observed
+  // absent from this reading, so the line never guesses it.
+  const overallLead = state.group === null && focusGroup !== null && leadership.length > 0
+    && leadership[0].id !== focusGroup.id
+    ? leadership[0]
+    : null;
+
   const openGroup = (groupId: string) =>
     update({ lane: "sector", view: "population", group: groupId, symbol: null, q: "", state: null, offset: 0 });
   const openSetup = (symbol: string) =>
     update({ lane: "sector", view: "setup", symbol, plan: null });
   const openScreener = () => update({ lane: "screener", view: "overview" });
+  const openPlans = () => update({ lane: "plans" });
   const toggleCompare = (symbol: string) => update({ sel: toggleProphetSel(state.sel, symbol) });
 
   const selectionFull = state.sel.length >= 12;
@@ -257,6 +282,9 @@ export function TodayView({ state, update }: {
           group={focusGroup}
           compatibility={indexReady.compatibility}
           onOpenGroup={openGroup}
+          derivedFocus={state.group === null}
+          leadGroup={overallLead !== null ? nameOf(overallLead) : null}
+          leadUnpublished={overallLead !== null && unpublished.includes(overallLead.id)}
         />
       ) : null}
 
@@ -286,9 +314,13 @@ export function TodayView({ state, update }: {
       <section className={styles.tablePanel} aria-labelledby="prophet-today-table-title" data-testid="prophet-today-leadership">
         <div className={styles.sectionHead}>
           <h3 className={styles.sectionTitle} id="prophet-today-table-title">{t("todayLeadershipTitle")}</h3>
-          <span className={styles.sectionBasis}>
-            {prophetSectorFill(t("todayLeadershipBasis"), { date: sectorClock })}
-          </span>
+          {/* P1-4: the hero already states the sector session; the table's
+              as-of is dropped when it is the same clock. */}
+          {focusGroup === null ? (
+            <span className={styles.sectionBasis}>
+              {prophetSectorFill(t("todayLeadershipBasis"), { date: sectorClock })}
+            </span>
+          ) : null}
         </div>
         <div className={styles.tableScroll}>
           <table className={styles.table} data-testid="prophet-today-table">
@@ -297,20 +329,21 @@ export function TodayView({ state, update }: {
                 <th scope="col">{t("colGroup")}</th>
                 <th scope="col">{sectorT("contextGroupReturn")}</th>
                 <th scope="col">{sectorT("contextRelative")}</th>
-                <th scope="col">{sectorT("contextBreadth")}</th>
-                <th scope="col">{t("todayOpenPlans")}</th>
-                <th scope="col">{t("todayEarlyObs")}</th>
+                {anyBreadth ? <th scope="col">{sectorT("contextBreadth")}</th> : null}
+                <th scope="col">{t("todayRowResearch")}</th>
               </tr>
             </thead>
             <tbody>
               {leadership.map(group => {
                 const ctx = group.context;
-                const name = (lang === "zh" ? group.nameZh || group.name : group.name) || group.id;
+                const name = nameOf(group);
+                const isHero = focusGroup !== null && group.id === focusGroup.id;
                 return (
                   <tr
                     key={group.id}
                     tabIndex={0}
                     data-testid="prophet-today-leader-row"
+                    className={isHero ? styles.heroRow : undefined}
                     aria-label={prophetSectorFill(t("todayGroupRowAria"), { group: name })}
                     onClick={() => openGroup(group.id)}
                     onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openGroup(group.id); } }}
@@ -322,11 +355,19 @@ export function TodayView({ state, update }: {
                     <td className={ctx.relativePp === null ? styles.dimCell : ctx.relativePp > 0 ? styles.numUp : ctx.relativePp < 0 ? styles.numDown : undefined}>
                       {ctx.relativePp !== null ? ppSigned(ctx.relativePp) : sectorT(contextNullKey(ctx.reasons.relative_pp))}
                     </td>
-                    <td className={ctx.breadth === null ? styles.dimCell : undefined}>
-                      {ctx.breadth !== null ? `${ctx.breadth.aboveTrend}/${ctx.breadth.measured}` : sectorT(contextNullKey(ctx.reasons.breadth))}
+                    {anyBreadth ? (
+                      <td className={`${styles.breadthCell}${ctx.breadth === null ? ` ${styles.dimCell}` : ""}`}>
+                        {ctx.breadth !== null ? `${ctx.breadth.aboveTrend}/${ctx.breadth.measured}` : sectorT(contextNullKey(ctx.reasons.breadth))}
+                      </td>
+                    ) : null}
+                    {/* P1-3: a visible row action — the rows were clickable with
+                        no affordance. The row itself stays the ONE tab stop; this
+                        is its label, and a click bubbles to the row. */}
+                    <td className={styles.researchCell}>
+                      <span className={styles.researchAction} aria-hidden="true">
+                        {t("todayRowResearch")} →
+                      </span>
                     </td>
-                    <td>{group.counts.openPlan}</td>
-                    <td>{group.counts.earlyObservation}</td>
                   </tr>
                 );
               })}
@@ -339,12 +380,19 @@ export function TodayView({ state, update }: {
             {prophetSectorFill(t("todayLeadershipAll"), { n: indexReady.groups.length })} →
           </button>
         </div>
+        {/* P1-5: breadth unavailable for every group — stated ONCE, in plain
+            words, instead of a column of repeated pipeline vocabulary. */}
+        {!anyBreadth ? (
+          <p className={styles.tableNote} data-testid="prophet-today-breadth-note">
+            {t("todayBreadthUnavailable")}
+          </p>
+        ) : null}
       </section>
 
       <section aria-labelledby="prophet-today-cases-title">
         <div className={styles.sectionHead}>
           <h3 className={styles.sectionTitle} id="prophet-today-cases-title">
-            {prophetSectorFill(t("todayCasesTitle"), { group: focusGroup !== null ? ((lang === "zh" ? focusGroup.nameZh || focusGroup.name : focusGroup.name) || focusGroup.id) : "" })}
+            {prophetSectorFill(t("todayCasesTitle"), { group: focusGroup !== null ? nameOf(focusGroup) : "" })}
           </h3>
           <span className={styles.sectionBasis}>
             {prophetSectorFill(t("todayCasesBasis"), { asof: prophetClock })}
@@ -363,6 +411,7 @@ export function TodayView({ state, update }: {
                       selectionFull={selectionFull}
                       onToggleCompare={toggleCompare}
                       onOpenSetup={openSetup}
+                      onOpenPlans={openPlans}
                     />
                   ))}
                 </div>
@@ -380,6 +429,7 @@ export function TodayView({ state, update }: {
                           selectionFull={selectionFull}
                           onToggleCompare={toggleCompare}
                           onOpenSetup={openSetup}
+                          onOpenPlans={openPlans}
                         />
                       ))}
                     </div>

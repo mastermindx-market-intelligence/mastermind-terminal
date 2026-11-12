@@ -62,7 +62,8 @@ test("opens on Today: assessment and research cases", async ({ page }) => {
   const hero = page.getByTestId("prophet-today-hero");
   await expect(hero).toBeVisible({ timeout: 30_000 });
   await expect(hero).toContainText("Defensives");
-  await expect(hero).toContainText("Defensives is ahead of the market.");
+  // P2-3: the verb follows the group noun.
+  await expect(hero).toContainText("Defensives are ahead of the market.");
   await expect(hero).toContainText("Expansion");
   await expect(hero).toContainText("+10.4%");
   await expect(hero).toContainText("-5.6%");
@@ -71,10 +72,21 @@ test("opens on Today: assessment and research cases", async ({ page }) => {
   await expect(page.getByTestId("prophet-today-clocks")).toContainText("2026-11-09");
   await expect(page.getByTestId("prophet-today-verdict")).toContainText(/different sessions/i);
 
-  // Honesty: the fixture produces no breadth for ANY group — the hero says so
-  // in the owner's reason vocabulary, never a zero.
-  await expect(hero).toContainText("not produced");
-  await expect(page.getByTestId("prophet-today-open-plans")).toHaveText("6");
+  // P1-5: the fixture produces no breadth for ANY group — one muted line in
+  // plain words, never a zero and never a column of pipeline vocabulary.
+  await expect(page.getByTestId("prophet-today-breadth-unavailable"))
+    .toHaveText("Participation (above trend): not available");
+  await expect(hero).not.toContainText("0/");
+  // P1-2: the hero says why it carries the hero, and that Housing leads overall
+  // while its members are not in this reading.
+  const rank = page.getByTestId("prophet-today-rank");
+  await expect(rank).toContainText("Highest-ranked group with published members");
+  await expect(rank).toContainText("Housing Chain leads overall");
+  await expect(rank).toContainText("members not in this reading");
+  // P1-3: plan counts belong to the Plans lane — no plan pill in the hero.
+  await expect(page.getByTestId("prophet-today-open-plans")).toHaveCount(0);
+  // P1-7: the one action is "Inspect sector →".
+  await expect(page.getByTestId("prophet-today-open-group")).toHaveText("Inspect sector →");
 
   // B1: the leadership table sits directly under the assessment, BEFORE the
   // cases; every row is the sector journey in the address.
@@ -83,6 +95,27 @@ test("opens on Today: assessment and research cases", async ({ page }) => {
   await expect(table).toContainText("Housing");
   await expect(table).toContainText("+14.1%");
   await expect(page.getByTestId("prophet-today-leader-row").first()).toContainText("Housing");
+  // P1-3: every row carries a visible Research action; the plan-count columns
+  // are gone. P1-5: breadth is absent for every group, so the column is dropped
+  // and the fact is stated once under the table.
+  await expect(page.getByTestId("prophet-today-leader-row").first()).toContainText("Research →");
+  await expect(table).not.toContainText("Open plans");
+  await expect(table).not.toContainText("Early observation");
+  await expect(page.getByTestId("prophet-today-breadth-note"))
+    .toHaveText("Participation (above trend) isn't available for this reading.");
+  // P1-2: the hero group's row is marked with a quiet fill, no coloured edge.
+  // The table paints the fill on the cells; list mode (≤640) paints it on the
+  // row itself — either way exactly one row is marked.
+  const heroRowMark = await page.getByTestId("prophet-today-leader-row")
+    .evaluateAll((rows) => rows.map((row) => ({
+      text: row.textContent ?? "",
+      rowBg: getComputedStyle(row).backgroundColor,
+      cellBg: getComputedStyle(row.querySelector("td")!).backgroundColor,
+    })));
+  const marked = heroRowMark.filter(row =>
+    row.rowBg !== "rgba(0, 0, 0, 0)" || row.cellBg !== "rgba(0, 0, 0, 0)");
+  expect(marked).toHaveLength(1);
+  expect(marked[0].text).toContain("Defensives");
   // Research cases follow the table: wait for the settled walk to render the
   // first card, then read the DOM order (the order check must never race the
   // population walk's case read).
@@ -104,9 +137,12 @@ test("opens on Today: assessment and research cases", async ({ page }) => {
   // Research cases follow the table: the group's open plans, entry honesty on
   // every card and the member-level relative measure's designed absence.
   const clx = page.locator('[data-testid="prophet-today-case"][data-symbol="CLX"]');
-  await expect(clx).toContainText("Open plan");
-  await expect(clx).toContainText("Long");
-  await expect(clx).toContainText("Opened 2026-10-20");
+  // P0-1: a case card is not a position — no direction, no open date, no pill.
+  await expect(clx).not.toContainText("Long");
+  await expect(clx).not.toContainText("Opened");
+  await expect(clx).not.toContainText("Open plan");
+  // Plan membership survives as ONE neutral pointer to the Plans lane.
+  await expect(clx.getByTestId("prophet-today-case-plans")).toHaveText("Also in Model plans →");
   await expect(firstCase).toContainText("No entry assessment is published for this member.");
   // M2: "Return vs sector" carries the designed unavailable label — the wire
   // publishes that measure for groups, not members.
@@ -259,12 +295,14 @@ test("the board is bilingual: zh carries its own words", async ({ page }) => {
   await expect(page.getByTestId("prophet-today-board")).toContainText("预言台");
   await expect(page.getByTestId("prophet-today-board")).toContainText("找到领涨，再找个股。");
   await expect(page.getByTestId("prophet-today-board")).toContainText("仅作描述");
-  await expect(page.getByTestId("prophet-today-board")).toContainText("进行中计划");
+  await expect(page.getByTestId("prophet-today-board")).toContainText("研究");
   await expect(page.getByTestId("prophet-today-verdict")).toContainText("不同交易日");
   // P4: the owner's phase vocabulary is translated through our strings.
   await expect(page.getByTestId("prophet-today-owner-label")).toHaveText("扩张");
   const firstCase = page.getByTestId("prophet-today-case").first();
-  await expect(firstCase).toContainText("进行中计划");
+  // P0-1: no plan pill on a case card; the neutral plans pointer instead.
+  await expect(firstCase).not.toContainText("进行中计划");
+  await expect(firstCase.getByTestId("prophet-today-case-plans")).toHaveText("亦见于模型计划 →");
   await expect(firstCase).toContainText("该成分暂无已发布的入场评估。");
   await expect(firstCase).toContainText("相对行业收益");
   await expect(firstCase).toContainText("未发布");

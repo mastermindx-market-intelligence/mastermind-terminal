@@ -1,14 +1,16 @@
 "use client";
 /**
- * TwoClockStrip (T2-01 basis line) — both owners' clocks in one line, plus the
- * compatibility verdict when the two reads do not cover the same session.
+ * TwoClockStrip (T2-01 basis line, P1-4) — ONE as-of line for both sessions,
+ * plus the compatibility verdict in the same line.
  *
- * Laws (DESIGN_DOCTRINE, and the sector lane's same-grammar rule):
- *   - ONE clock line per panel: the sector reading's session and the Prophet
- *     index's as-of, stated together so the reader can weigh the basis before
- *     reading any number below it.
- *   - The verdict is plain words with the gap stated, no jargon; a compatible
- *     read states the shared session quietly.
+ * Laws (DESIGN_DOCTRINE Law 4, and the sector lane's same-grammar rule):
+ *   - ONE as-of line per panel: the sector reading's session and the Prophet
+ *     index's as-of are stated ONCE, together with the caveat when the two
+ *     reads do not cover the same session. The page previously printed the
+ *     dates in one line and repeated them in a second caveat; that repetition
+ *     is gone — the verdict never restates the dates.
+ *   - The mixed-basis caveat is warn ink; a compatible read states the shared
+ *     session quietly.
  *   - Unknown stamps say "unknown" — never a guessed date.
  *
  * The verdict switch mirrors SectorContextStrip (sector lane) deliberately:
@@ -41,7 +43,8 @@ export function TwoClockStrip({ compatibility }: { compatibility: SectorMembersC
       verdict = prophetSectorFill(t("verdictStaleProphet"), { gap: String(compatibility.sessionGap ?? "several") });
       break;
     case "mixed_basis":
-      verdict = prophetSectorFill(t("verdictMixedBasis"), { sector: sectorClock, prophet: prophetClock });
+      // The dates live in the one as-of line beside this verdict (P1-4).
+      verdict = t("verdictMixedBasis");
       break;
     case "sector_unavailable":
       verdict = t("verdictSectorDown");
@@ -54,15 +57,21 @@ export function TwoClockStrip({ compatibility }: { compatibility: SectorMembersC
 
   return (
     <div>
-      <p className={styles.clocks} data-testid="prophet-today-clocks">
-        {prophetSectorFill(t("contextClocks"), { sector: sectorClock, prophet: prophetClock })}
-      </p>
+      {/* ONE line (P1-4). Compatible: the verdict already names the shared
+          session. Different sessions: the two clocks are stated once here, and
+          the caveat follows without repeating them. */}
       <p
-        className={compatible ? styles.verdictQuiet : styles.verdict}
-        data-testid="prophet-today-verdict"
+        className={compatible ? styles.clocks : styles.verdict}
+        data-testid="prophet-today-clocks"
         role={compatible ? undefined : "status"}
       >
-        {verdict}
+        {compatible ? null : (
+          <>
+            {prophetSectorFill(t("contextClocks"), { sector: sectorClock, prophet: prophetClock })}
+            {" · "}
+          </>
+        )}
+        <span data-testid="prophet-today-verdict">{verdict}</span>
       </p>
     </div>
   );

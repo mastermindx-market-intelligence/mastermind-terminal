@@ -45,6 +45,21 @@ test("today is the default tab and every primary lane writes `tab`", async ({ pa
   await page.goBack();
   await expect(page.getByTestId("prophet-tab-today")).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("prophet-today-board")).toBeVisible();
+
+  // P1-1: the selected lane carries the module's `.on` styling. The generated
+  // class name is module-hashed, so the assertion is the COMPUTED style, not a
+  // string: the selected tab is filled, its unselected siblings are not.
+  const tabPaint = await page.getByRole("tab").evaluateAll(tabs => tabs.map(tab => ({
+    testid: tab.getAttribute("data-testid"),
+    selected: tab.getAttribute("aria-selected"),
+    background: getComputedStyle(tab).backgroundColor,
+  })));
+  const selectedTab = tabPaint.find(tab => tab.testid === "prophet-tab-today")!;
+  expect(selectedTab.selected).toBe("true");
+  expect(selectedTab.background).not.toBe("rgba(0, 0, 0, 0)");
+  for (const tab of tabPaint.filter(tab => tab.selected === "false")) {
+    expect(tab.background).not.toBe(selectedTab.background);
+  }
 });
 
 test("sector and symbol round-trip on the canonical keys", async ({ page }) => {
