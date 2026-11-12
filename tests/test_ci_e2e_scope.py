@@ -200,8 +200,9 @@ def test_required_check_never_launders_skipped_or_failed_scope():
         "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
     )
     assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
-    # Chromium serves only that capture now; F11 has its own browser job.
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    # The E18 and active-inbox captures are unconditional browser captures in
+    # this job, so Chromium installs on every event; F11 has its own browser job.
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
     assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
     f11_steps = {step["name"]: step for step in jobs["terminal-f11-evidence"]["steps"] if "name" in step}
     for name in ("Prepare Chromium for the F11 capture",

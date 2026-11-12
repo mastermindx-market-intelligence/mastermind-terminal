@@ -51,8 +51,9 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     assert not steps[prepare_index].get("continue-on-error", False)
     assert not steps[capture_index].get("continue-on-error", False)
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    # The browser now serves only this capture, so it follows the same plan.
-    assert steps[prepare_index]["if"] == condition
+    # The E18 and active-inbox captures drive a browser on EVERY event, so the
+    # install must stay unconditional even when the planner reuses both locks.
+    assert "if" not in steps[prepare_index]
     assert steps[capture_index]["if"] == condition
     unit_index = next(i for i, step in enumerate(steps)
                      if step.get("name") == "Validate fresh evidence through the unit readers")

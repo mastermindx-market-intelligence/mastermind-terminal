@@ -77,8 +77,12 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    # Chromium follows the selective capture; F11 keeps its browser in its own job.
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    # The PL6/VI capture is selective, but the E18 and active-inbox captures
+    # are unconditional browser captures in this job: Chromium installs on
+    # every event. F11 keeps its browser in its own job.
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert "if" not in by_name["Capture current-source E18 alert-management evidence"]
+    assert "if" not in by_name["Capture current-source recurring inbox evidence"]
     assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
     assert "Capture provider-closed F11 theses entry on this checkout" not in by_name
     f11_steps = jobs()["terminal-f11-evidence"]["steps"]

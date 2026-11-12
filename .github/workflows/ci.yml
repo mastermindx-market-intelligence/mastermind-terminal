@@ -424,10 +424,9 @@ jobs:
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
-        # Only the capture below drives a browser in this job. F11 moved to the
-        # parallel terminal-f11-evidence job, so a merge group whose planner
-        # reuses both current-source evidence locks no longer installs it here.
-        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        # The E18 and active-inbox captures qualify this checkout on EVERY
+        # event, so Chromium installs even when the PL6/VI planner can reuse
+        # both current-source evidence locks. F11 has its own browser job.
         timeout-minutes: 10
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
