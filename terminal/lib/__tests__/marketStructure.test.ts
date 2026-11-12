@@ -3,6 +3,8 @@ import {
   aggregate,
   signSensitivity,
   scenarioGrid,
+  r5DteBucket,
+  r5Stage0Alignment,
   emFrame,
   topology,
   expiryConcentration,
@@ -71,6 +73,20 @@ describe("aggregate", () => {
     const a = aggregate([]);
     expect(a.gammaMn).toBe(0);
     expect(a.nStrikes).toBe(0);
+    expect(a.gammaKnown).toBe(0);
+  });
+
+  it("counts a ladder whose gamma is entirely missing as unknown, not as zero strikes", () => {
+    const rows: MscStrikeRow[] = [
+      { strike: 90, gamma_net: Number.NaN, gamma_call: 1, gamma_put: 0 },
+      { strike: 100, gamma_net: undefined as unknown as number, gamma_call: 1, gamma_put: 0 },
+    ];
+    const a = aggregate(rows);
+    expect(a.gammaKnown).toBe(0);
+    expect(a.nStrikes).toBe(rows.length);
+    // The sum stays a number so other consumers keep compiling; the count is what
+    // separates "no finite gamma" from a genuinely flat book.
+    expect(a.gammaMn).toBe(0);
   });
 });
 
@@ -147,7 +163,7 @@ describe("scenarioGrid", () => {
 
   it("is antisymmetric in the spot axis when vanna and time are held at zero", () => {
     const g = scenarioGrid(aggregate(ROWS), { dsPct: [-2, 2], dVolPts: [0], dtDays: 0 });
-    expect(g.cells[0][0]).toBeCloseTo(-g.cells[0][1], 10);
+    expect(g.cells[0][0]).toBeCloseTo(-g.cells[0][1]!, 10);
   });
 
   it("reports the colour-scale anchor and lens availability", () => {
@@ -167,6 +183,271 @@ describe("scenarioGrid", () => {
     expect(g.hasCharm).toBe(false);
     expect(g.charmPerDayMn).toBeNull();
     expect(g.cells[0][0]).toBeCloseTo(-10, 10);
+    // A caller may ask for an IV row, but with no vanna lens that row was never measured.
+    expect(g.dVolPts).toEqual([0]);
+    expect(g.cells).toHaveLength(1);
+  });
+
+  it("fills every cell with null when no strike has a finite gamma", () => {
+    const rows: MscStrikeRow[] = [
+      { strike: 90, gamma_net: Number.NaN, gamma_call: 1, gamma_put: 0 },
+      { strike: 100, gamma_net: undefined as unknown as number, gamma_call: 1, gamma_put: 0 },
+    ];
+    const g = scenarioGrid(aggregate(rows), { dsPct: [-1, 0, 1], dVolPts: [5, 0, -5] });
+    expect(g.maxAbs).toBe(0);
+    expect(g.cells.length).toBeGreaterThan(0);
+    expect(g.cells.every((row) => row.length === 3 && row.every((cell) => cell === null))).toBe(true);
+  });
+
+  it("reports coverage for a windowed ladder and for one non-finite gamma row", () => {
+    const windowed = scenarioGrid(aggregate(ROWS, 12));
+    expect(windowed.coverage).toEqual({
+      known: 3,
+      offered: 3,
+      full: 12,
+      windowed: true,
+      complete: false,
+    });
+
+    const mixed: MscStrikeRow[] = [
+      ...ROWS,
+      { strike: 120, gamma_net: Number.NaN, gamma_call: 1, gamma_put: 0 },
+    ];
+    const partial = scenarioGrid(aggregate(mixed));
+    expect(partial.coverage).toEqual({
+      known: 3,
+      offered: 4,
+      full: null,
+      windowed: false,
+      complete: false,
+    });
+  });
+
+  // Snapshot of scenarioGrid(aggregate(ROWS)) at e0ffafc1, before the truth change.
+  // gamma 30, vanna 30, charm unused (dtDays 0): flow = −30·(ds + dv).
+  const FULL_LENS_CELLS = [
+    [-60, -90, -120, -150, -180, -210, -240],
+    [30, 0, -30, -60, -90, -120, -150],
+    [90, 60, 30, 0, -30, -60, -90],
+    [150, 120, 90, 60, 30, 0, -30],
+    [240, 210, 180, 150, 120, 90, 60],
+  ];
+
+  it("keeps an existing full-lens grid numerically unchanged", () => {
+    const g = scenarioGrid(aggregate(ROWS));
+    expect(g.dVolPts).toEqual([5, 2, 0, -2, -5]);
+    expect(g.dsPct).toEqual([-3, -2, -1, 0, 1, 2, 3]);
+    expect(g.cells).toEqual(FULL_LENS_CELLS);
+    expect(g.maxAbs).toBe(240);
+  });
+});
+
+describe("R5 Stage 0 scenario-conditioned alignment", () => {
+  const ASOF = "2026-09-18T20:00:00Z";
+  const scenario = {
+    spotPct: 1,
+    volPts: 2,
+    dtDays: 1,
+    materialityMn: 4,
+    positionTier: "naive_dealer_long_calls_short_puts/v1",
+  };
+
+  it("uses the frozen absolute-DTE buckets, not the gap-between-expiries tenor bands", () => {
+    expect(r5DteBucket(0)).toBe("0DTE");
+    expect(r5DteBucket(1)).toBe("1-2DTE");
+    expect(r5DteBucket(2)).toBe("1-2DTE");
+    expect(r5DteBucket(3)).toBe("3-7DTE");
+    expect(r5DteBucket(7)).toBe("3-7DTE");
+    expect(r5DteBucket(8)).toBe("8-30DTE");
+    expect(r5DteBucket(30)).toBe("8-30DTE");
+    expect(r5DteBucket(31)).toBe("31-90DTE");
+    expect(r5DteBucket(90)).toBe("31-90DTE");
+    expect(r5DteBucket(91)).toBe("91D+");
+    expect(r5DteBucket(-1)).toBeNull();
+  });
+
+  it("decomposes each tenor through the existing scenarioGrid math", () => {
+    const rows: MscExpiryRow[] = [
+      {
+        exp: "2026-09-18",
+        gamma_net: 10,
+        vanna_net: 4,
+        charm_net: 1,
+      },
+      {
+        exp: "2026-10-02",
+        gamma_net: -5,
+        vanna_net: 6,
+        charm_net: -2,
+      },
+    ];
+    const got = r5Stage0Alignment(rows, ASOF, scenario);
+    const d0 = got.buckets.find((r) => r.bucket === "0DTE")!;
+    const m = got.buckets.find((r) => r.bucket === "8-30DTE")!;
+
+    // 0DTE: gamma = -(10*1)=-10; vanna = -(4*2)=-8; charm=-(1*1)=-1.
+    expect(d0.gammaFlowMn).toBeCloseTo(-10, 10);
+    expect(d0.vannaFlowMn).toBeCloseTo(-8, 10);
+    expect(d0.charmFlowMn).toBeCloseTo(-1, 10);
+    expect(d0.totalFlowMn).toBeCloseTo(-19, 10);
+    expect(d0.alignment).toBe("aligned_negative");
+    expect(d0.alignmentStrength).toBeCloseTo(-10 * -8 / 80, 10);
+
+    // 14D: gamma = +5, vanna = -12, charm = +2 -> gamma/vanna oppose.
+    expect(m.gammaFlowMn).toBeCloseTo(5, 10);
+    expect(m.vannaFlowMn).toBeCloseTo(-12, 10);
+    expect(m.charmFlowMn).toBeCloseTo(2, 10);
+    expect(m.totalFlowMn).toBeCloseTo(-5, 10);
+    expect(m.alignment).toBe("opposed");
+
+    // Whole book reuses the same scenario math on the summed expiry state.
+    expect(got.wholeBook.totalFlowMn).toBeCloseTo(-24, 10);
+    expect(got.population).toBe("full_book_by_expiry");
+    expect(got.outcomeLabelsOpened).toBe(false);
+  });
+
+  it("fails a tenor Vanna aggregate closed when only some expiries publish it", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, vanna_net: 3, charm_net: 1 },
+      { exp: "2026-09-20", gamma_net: 5, charm_net: 2 },
+    ], ASOF, scenario);
+    const row = got.buckets.find((r) => r.bucket === "1-2DTE")!;
+    expect(row.present).toBe(true);
+    expect(row.expirations).toBe(2);
+    expect(row.gammaMn).toBe(15);
+    expect(row.vannaMn).toBeNull();
+    expect(row.vannaFlowMn).toBeNull();
+    expect(row.alignment).toBe("unavailable");
+    expect(got.coverage.vannaRows).toBe(1);
+  });
+
+  it("keeps missing vanna unavailable and never turns it into a zero-flow factor", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 2 },
+    ], ASOF, scenario);
+    const row = got.buckets.find((r) => r.bucket === "1-2DTE")!;
+    expect(row.present).toBe(true);
+    expect(row.vannaMn).toBeNull();
+    expect(row.vannaFlowMn).toBeNull();
+    expect(row.alignment).toBe("unavailable");
+    // The requested +2 vol-point shock needs Vanna. Missing Vanna therefore makes
+    // the combined flow unknown rather than silently treating that leg as zero.
+    expect(row.totalFlowMn).toBeNull();
+    expect(got.coverage.vannaRows).toBe(0);
+
+    // If the scenario explicitly asks for no IV shock, the missing Vanna lens is
+    // irrelevant and the known gamma + charm legs can still close.
+    const noVolShock = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 2 },
+    ], ASOF, { ...scenario, volPts: 0 });
+    expect(noVolShock.wholeBook.totalFlowMn).toBeCloseTo(-12, 10);
+  });
+
+  it("distinguishes one-factor dominance from both-factors-immaterial", () => {
+    const dominant = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 20, vanna_net: 1, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(dominant.wholeBook.alignment).toBe("one_factor_dominant");
+
+    const tiny = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(tiny.wholeBook.alignment).toBe("immaterial");
+  });
+
+  it("treats equality with the frozen materiality threshold as material", () => {
+    const got = r5Stage0Alignment([
+      // gamma flow = -5 at +1% spot; vanna flow = -6 at +2 vol points.
+      { exp: "2026-09-19", gamma_net: 5, vanna_net: 3, charm_net: 0 },
+    ], ASOF, { ...scenario, materialityMn: 5 });
+    expect(got.wholeBook.gammaFlowMn).toBeCloseTo(-5, 10);
+    expect(got.wholeBook.vannaFlowMn).toBeCloseTo(-6, 10);
+    expect(got.wholeBook.alignment).toBe("aligned_negative");
+  });
+
+  it("preserves all six buckets and marks empty ones absent rather than zero", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-18", gamma_net: 3, vanna_net: 2, charm_net: 1 },
+    ], ASOF, scenario);
+    expect(got.buckets.map((r) => r.bucket)).toEqual([
+      "0DTE", "1-2DTE", "3-7DTE", "8-30DTE", "31-90DTE", "91D+",
+    ]);
+    const absent = got.buckets.find((r) => r.bucket === "31-90DTE")!;
+    expect(absent.present).toBe(false);
+    expect(absent.gammaMn).toBeNull();
+    expect(absent.totalFlowMn).toBeNull();
+  });
+
+  it("refuses expired/invalid rows without reclassifying them as 0DTE", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-17", gamma_net: 99, vanna_net: 99, charm_net: 99 },
+      { exp: "not-a-date", gamma_net: 99, vanna_net: 99, charm_net: 99 },
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+    ], ASOF, scenario);
+    expect(got.coverage.inputRows).toBe(3);
+    expect(got.coverage.qualifiedRows).toBe(1);
+    expect(got.coverage.invalidOrExpiredRows).toBe(2);
+    expect(got.buckets.find((r) => r.bucket === "0DTE")!.present).toBe(false);
+  });
+
+  it("refuses duplicate expiry rows instead of double-counting the book", () => {
+    const rows: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+      { exp: "2026-09-19", gamma_net: 2, vanna_net: 2, charm_net: 2 },
+    ];
+    expect(() => r5Stage0Alignment(rows, ASOF, scenario)).toThrow(/unique expiration/);
+  });
+
+  it("requires explicit bounded shocks, materiality and a position-tier label", () => {
+    const rows: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 1, vanna_net: 1, charm_net: 1 },
+    ];
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, spotPct: 3.01 })).toThrow(/3%/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, volPts: -5.01 })).toThrow(/5pt/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, dtDays: -1 })).toThrow(/non-negative/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, materialityMn: -1 })).toThrow(/non-negative/);
+    expect(() => r5Stage0Alignment(rows, ASOF, { ...scenario, positionTier: " " })).toThrow(/declared/);
+    expect(() => r5Stage0Alignment(rows, "not-a-date", scenario)).toThrow(/valid YYYY-MM-DD/);
+  });
+});
+
+describe("R5 integration with current scenario coverage", () => {
+  const asof = "2026-09-18T20:00:00Z";
+  const scenario = { spotPct: 1, volPts: 2, dtDays: 1, materialityMn: 4, positionTier: "naive_dealer_long_calls_short_puts/v1" };
+
+  it("preserves known zero gamma while isolating finite Vanna and Charm", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: 0, vanna_net: 4, charm_net: 1 },
+    ], asof, scenario);
+    expect(got.wholeBook).toMatchObject({
+      present: true, gammaMn: 0, gammaFlowMn: 0,
+      vannaFlowMn: -8, charmFlowMn: -1, totalFlowMn: -9,
+      alignment: "one_factor_dominant",
+    });
+    expect(got.coverage).toMatchObject({ inputRows: 1, qualifiedRows: 1, invalidOrExpiredRows: 0 });
+  });
+
+  it("excludes nonfinite gamma without presenting an unmeasured book as zero", () => {
+    const got = r5Stage0Alignment([
+      { exp: "2026-09-19", gamma_net: Number.NaN, vanna_net: 4, charm_net: 1 },
+      { exp: "2026-09-20", gamma_net: Number.POSITIVE_INFINITY, vanna_net: 4, charm_net: 1 },
+    ], asof, scenario);
+    expect(got.wholeBook).toMatchObject({ present: false, gammaMn: null, gammaFlowMn: null, totalFlowMn: null, alignment: "unavailable" });
+    expect(got.coverage).toMatchObject({ inputRows: 2, qualifiedRows: 0, invalidOrExpiredRows: 2 });
+    expect(got.buckets.every(row => !row.present && row.totalFlowMn === null)).toBe(true);
+  });
+
+  it("does not promote displayable known subtotals into complete research inputs", () => {
+    const rows = [{
+      exp: "2026-09-19", gamma_net: 10, vanna_net: null, charm_net: 2,
+      exposure_support: { basis: "admitted_input_contracts", vanna: { known_contracts: 1, admitted_contracts: 2, known_net: 3 } },
+    }];
+    const got = r5Stage0Alignment(rows, asof, scenario);
+    expect(got.wholeBook).toMatchObject({ vannaMn: null, vannaFlowMn: null, totalFlowMn: null, alignment: "unavailable" });
+    expect(got.coverage.vannaRows).toBe(0);
+    expect(r5Stage0Alignment(rows, asof, { ...scenario, volPts: 0 }).wholeBook.totalFlowMn).toBe(-12);
+    expect(got.researchAuthority).toBe("research_only");
+    expect(got.outcomeLabelsOpened).toBe(false);
   });
 });
 
@@ -440,6 +721,71 @@ describe("hedgeProfile", () => {
     expect(p.rows).toEqual([]);
     expect(p.cumulative).toEqual([]);
     expect(p.maxAbsMn).toBe(0);
+  });
+
+  it("adds coverage counts without changing the finite series arithmetic", () => {
+    const p = hedgeProfile(ROWS, "gamma", 100);
+    expect(p.inputRows).toBe(3);
+    expect(p.knownRows).toBe(3);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(true);
+    // The histogram and anchored cumulative subtotals are byte-for-byte unchanged.
+    expect(p.rows.map((r) => [r.strike, r.hedgeMn])).toEqual([[90, 30], [100, -40], [110, -20]]);
+    expect(p.cumulative.map((c) => [c.strike, c.cumMn])).toEqual([[90, 30], [100, -40], [110, -60]]);
+  });
+
+  it("counts an observed zero as a known row rather than a missing one", () => {
+    const rows: MscStrikeRow[] = [{ strike: 100, gamma_net: 0, gamma_call: 0, gamma_put: 0 }];
+    const p = hedgeProfile(rows, "gamma", 100);
+    expect(p.rows).toEqual([{ strike: 100, hedgeMn: 0 }]);
+    expect(p.knownRows).toBe(1);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(true);
+  });
+
+  it("counts missing, null, NaN and invalid-strike rows as missing, never zero-filling", () => {
+    const rows = [
+      { strike: 90, gamma_net: 5, gamma_call: 5, gamma_put: 0 },
+      { strike: 100, gamma_call: 5, gamma_put: 0 } as MscStrikeRow,
+      { strike: Number.NaN, gamma_net: 7, gamma_call: 7, gamma_put: 0 },
+      { strike: 120, gamma_net: Number.NaN, gamma_call: 1, gamma_put: 0 },
+      null as unknown as MscStrikeRow,
+    ];
+    const p = hedgeProfile(rows, "gamma", 100);
+    expect(p.inputRows).toBe(5);
+    expect(p.knownRows).toBe(1);
+    expect(p.missingRows).toBe(4);
+    expect(p.complete).toBe(false);
+    // Only the fully-known row survives; the rest are excluded, not turned into zeros.
+    expect(p.rows).toEqual([{ strike: 90, hedgeMn: -5 }]);
+  });
+
+  it("reports an empty book as 0/0 coverage that is not complete", () => {
+    const p = hedgeProfile(null, "gamma", 100);
+    expect(p.inputRows).toBe(0);
+    expect(p.knownRows).toBe(0);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(false);
+  });
+
+  it("recomputes for a different book and spot without retaining prior data", () => {
+    const first = hedgeProfile(ROWS, "gamma", 100);
+    const second = hedgeProfile(
+      [
+        { strike: 50, gamma_net: -7, gamma_call: 0, gamma_put: -7 },
+        { strike: 150, gamma_net: 3, gamma_call: 3, gamma_put: 0 },
+      ],
+      "gamma",
+      90,
+    );
+    // The second call reflects only its own book and reference spot.
+    expect(second.rows.map((r) => [r.strike, r.hedgeMn])).toEqual([[50, 7], [150, -3]]);
+    expect(second.cumulative.map((c) => [c.strike, c.cumMn])).toEqual([[50, 7], [150, -3]]);
+    expect(second.inputRows).toBe(2);
+    expect(second.knownRows).toBe(2);
+    // The first result object is untouched (no memo/shared state carried over).
+    expect(first.rows.map((r) => r.strike)).toEqual([90, 100, 110]);
+    expect(first.knownRows).toBe(3);
   });
 });
 

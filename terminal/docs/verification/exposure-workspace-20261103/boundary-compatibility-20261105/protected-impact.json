@@ -1,0 +1,46 @@
+{
+  "repository_full_name": "mastermindx-market-intelligence/mastermind-terminal",
+  "base": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "head": "164d26bed0951212a58999388d68f0f67a459bbf",
+  "status": "ahead",
+  "ahead_by": 1,
+  "behind_by": 0,
+  "total_commits": 1,
+  "too_large": null,
+  "base_commit": {
+    "sha": "11531481b0a540ee96bcd86df418fd1e42715363",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/commits/11531481b0a540ee96bcd86df418fd1e42715363",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/11531481b0a540ee96bcd86df418fd1e42715363"
+  },
+  "merge_base_commit": {
+    "sha": "11531481b0a540ee96bcd86df418fd1e42715363",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/commits/11531481b0a540ee96bcd86df418fd1e42715363",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/commit/11531481b0a540ee96bcd86df418fd1e42715363"
+  },
+  "files": [
+    {
+      "filename": "ingest/fund_state_ops.py",
+      "status": "added",
+      "additions": 62,
+      "deletions": 0,
+      "changes": 62,
+      "previous_filename": null
+    },
+    {
+      "filename": "ops/nightly_fund.sh",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 6,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "tests/test_fund_state_ops.py",
+      "status": "added",
+      "additions": 61,
+      "deletions": 0,
+      "changes": 61,
+      "previous_filename": null
+    }
+  ]
+}

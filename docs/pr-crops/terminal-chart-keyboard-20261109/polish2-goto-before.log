@@ -1,0 +1,376 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx (6 tests | 6 failed) 153ms
+   × Go-to-date disclosure > opens a named popup with immediate input focus and disabled empty submission 57ms
+     → expected null to be 'true' // Object.is equality
+   × Go-to-date disclosure > returns focus on Escape from the Go button without moving the chart 22ms
+     → expected <div class="cfb-goto-pop">…(2)</div> to be null
+   × Go-to-date disclosure > submits through the existing date calculation and restores the trigger 17ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": 10,
+        "to": 110,
+      },
+    ]
+
+
+Number of calls: 1
+
+   × Go-to-date disclosure > preserves outside focus and has no delayed focus reclaim after dismissal 13ms
+     → expected <div class="cfb-goto-pop">…(2)</div> to be null
+   × Go-to-date disclosure > closes when focus leaves the disclosure, but moving back to its trigger does not reopen it 17ms
+     → expected <div class="cfb-goto-pop">…(2)</div> to be null
+   × Go-to-date disclosure > accepts a new command request through the same popup without delayed autofocus 26ms
+     → expected <body><div>…(2)</div></body> to be <input …(3)></input> // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > opens a named popup with immediate input focus and disabled empty submission
+AssertionError: expected null to be 'true' // Object.is equality
+
+- Expected: 
+"true"
+
++ Received: 
+null
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:32:61
+     30| describe("Go-to-date disclosure", () => {
+     31|   it("opens a named popup with immediate input focus and disabled empt…
+     32|     open(); expect(trigger().getAttribute("aria-expanded")).toBe("true…
+       |                                                             ^
+     33|     expect(trigger().getAttribute("aria-controls")).toBe(popup()!.id);
+     34|     expect(popup()!.getAttribute("role")).toBe("dialog");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > returns focus on Escape from the Go button without moving the chart
+AssertionError: expected <div class="cfb-goto-pop">…(2)</div> to be null
+
+- Expected: 
+null
+
++ Received: 
+<div
+  class="cfb-goto-pop"
+>
+  <input
+    class="cfb-date-input"
+    type="date"
+    value="2024-06-15"
+  />
+  <button
+    class="cfb-goto-go"
+  >
+    Go
+  </button>
+</div>
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:40:21
+     38|   it("returns focus on Escape from the Go button without moving the ch…
+     39|     open(); type("2024-06-15"); act(() => go().focus()); key(go(), "Es…
+     40|     expect(popup()).toBeNull(); expect(document.activeElement).toBe(tr…
+       |                     ^
+     41|   });
+     42|   it("submits through the existing date calculation and restores the t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > submits through the existing date calculation and restores the trigger
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": 10,
+        "to": 110,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:43:79
+     41|   });
+     42|   it("submits through the existing date calculation and restores the t…
+     43|     open(); type("2024-06-15"); key(input(), "Enter", true); expect(mo…
+       |                                                                               ^
+     44|     key(input(), "Enter"); expect(move).toHaveBeenCalledWith({ from: 1…
+     45|     expect(popup()).toBeNull(); expect(document.activeElement).toBe(tr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > preserves outside focus and has no delayed focus reclaim after dismissal
+AssertionError: expected <div class="cfb-goto-pop">…(2)</div> to be null
+
+- Expected: 
+null
+
++ Received: 
+<div
+  class="cfb-goto-pop"
+>
+  <input
+    class="cfb-date-input"
+    type="date"
+    value=""
+  />
+  <button
+    class="cfb-goto-go"
+  >
+    Go
+  </button>
+</div>
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:50:21
+     48|     open(); const outside = host.querySelector<HTMLButtonElement>("#ou…
+     49|     act(() => { outside.dispatchEvent(new MouseEvent("pointerdown", { …
+     50|     expect(popup()).toBeNull(); act(() => vi.advanceTimersByTime(100));
+       |                     ^
+     51|     expect(document.activeElement).toBe(outside);
+     52|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > closes when focus leaves the disclosure, but moving back to its trigger does not reopen it
+AssertionError: expected <div class="cfb-goto-pop">…(2)</div> to be null
+
+- Expected: 
+null
+
++ Received: 
+<div
+  class="cfb-goto-pop"
+>
+  <input
+    class="cfb-date-input"
+    type="date"
+    value=""
+  />
+  <button
+    class="cfb-goto-go"
+  >
+    Go
+  </button>
+</div>
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:56:100
+     54|     open(); act(() => trigger().focus()); expect(popup()).not.toBeNull…
+     55|     act(() => trigger().click()); expect(popup()).toBeNull();
+     56|     open(); act(() => host.querySelector<HTMLButtonElement>("#outside"…
+       |                                                                                                    ^
+     57|   });
+     58|   it("accepts a new command request through the same popup without del…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  lib/__tests__/chartGotoDateDisclosure.test.tsx > Go-to-date disclosure > accepts a new command request through the same popup without delayed autofocus
+AssertionError: expected <body><div>…(2)</div></body> to be <input …(3)></input> // Object.is equality
+
+- Expected
++ Received
+
++ <body>
++   <div>
++     <div
++       class="chart-frame-bar _frameBar_00d89f"
++     >
++       <div
++         class="cfb-left"
++       >
++         <button
++           class="cfb-range"
++         >
++           1D
++         </button>
++         <button
++           class="cfb-range"
++         >
++           5D
++         </button>
++         <button
++           class="cfb-range"
++         >
++           1M
++         </button>
++         <button
++           class="cfb-range"
++         >
++           3M
++         </button>
++         <button
++           class="cfb-range"
++         >
++           6M
++         </button>
++         <button
++           class="cfb-range"
++         >
++           YTD
++         </button>
++         <button
++           class="cfb-range"
++         >
++           1Y
++         </button>
++         <button
++           class="cfb-range"
++         >
++           5Y
++         </button>
++         <button
++           class="cfb-range"
++         >
++           All
++         </button>
++         <div
++           style="position: relative;"
++         >
++           <button
++             class="cfb-cal"
++             title="Go to date"
++           >
++             <svg
++               fill="none"
++               stroke="currentColor"
++               stroke-width="1.4"
++               viewBox="0 0 16 16"
++             >
++               <rect
++                 height="12"
++                 rx="1.5"
++                 width="13"
++                 x="1.5"
++                 y="2.5"
++               />
++               <path
++                 d="M1.5 6h13M5 1.5v2M11 1.5v2"
++               />
++             </svg>
++           </button>
++           <div
++             class="cfb-goto-pop"
++           >
+              <input
+                class="cfb-date-input"
+                type="date"
+                value=""
++             />
++             <button
++               class="cfb-goto-go"
++             >
++               Go
++             </button>
++           </div>
++         </div>
++       </div>
++       <div
++         class="cfb-right"
++       >
++         <span
++           class="cfb-clock num"
++         >
++           <span>
++             09:12:02
++           </span>
++            
++           <span
++             class="cfb-tz"
++           >
++             UTC-5
++           </span>
++         </span>
++         <button
++           aria-label="Extended trading hours"
++           class="cfb-chip dis"
++           disabled=""
++         >
++           ETH
++         </button>
++         <div
++           class="cfb-origin-host"
++         >
++           <button
++             aria-expanded="false"
++             aria-haspopup="dialog"
++             aria-label="Data origin for this chart"
++             class="cfb-chip cfb-chip-adj cfb-origin cfb-origin-pending"
++             data-origin-state="pending"
++             data-testid="cfb-origin"
++             type="button"
++           >
++             —
++           </button>
++         </div>
++         <span
++           aria-label="Trading currency unavailable"
++           class="cfb-chip"
++           data-testid="cfb-currency"
++         >
++           CCY?
++         </span>
++         <div
++           class="cfb-gear-host"
++         >
++           <button
++             aria-expanded="false"
++             aria-haspopup="dialog"
++             aria-label="Quick settings"
++             class="cfb-gear"
++             title="Quick settings"
++             type="button"
++           >
++             <svg
++               fill="none"
++               stroke="currentColor"
++               stroke-width="1.3"
++               viewBox="0 0 16 16"
++             >
++               <circle
++                 cx="8"
++                 cy="8"
++                 r="2.2"
++               />
++               <path
++                 d="M8 1.5v1.3M8 13.2v1.3M1.5 8h1.3M13.2 8h1.3M3.2 3.2l.9.9M11.9 11.9l.9.9M3.2 12.8l.9-.9M11.9 4.1l.9-.9"
++                 stroke-linecap="round"
+                />
++             </svg>
++           </button>
++         </div>
++       </div>
++     </div>
++     <button
++       id="outside"
++     >
++       Outside
++     </button>
++   </div>
++ </body>
+
+ ❯ lib/__tests__/chartGotoDateDisclosure.test.tsx:59:79
+     57|   });
+     58|   it("accepts a new command request through the same popup without del…
+     59|     render(1); expect(popup()).not.toBeNull(); expect(document.activeE…
+       |                                                                               ^
+     60|     key(input(), "Escape"); render(1); expect(popup()).toBeNull();
+     61|     render(2); expect(document.activeElement).toBe(input());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  09:11:59
+   Duration  2.12s (transform 915ms, setup 0ms, collect 1.23s, tests 153ms, environment 385ms, prepare 65ms)
+

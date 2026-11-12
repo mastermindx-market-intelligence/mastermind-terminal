@@ -1,0 +1,23 @@
+# Levels exact-price ticks under a crowded payload — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# capturedAtHead: be9bae24a6b89d2d66c337b570e9d88761f797b3
+# capturedAt: 2026-10-10T00:36:24.986Z
+# capturedAtHead is informational: the crops show the LevelsView.tsx pinned below, which
+# is whatever was on disk at capture time.
+label: before
+layoutFiles:
+  terminal/components/levels/LevelsView.tsx: "0bcc4a972466a90e2727fb3c9a7df631b8fd64b062c7dfd58a1bebe13f1a1254"
+theme: dark
+url: "/options?tab=levels"
+payload: FLOW_FIXTURE levels:SPY, call wall moved to 775.50 and the 770 cluster to 775.25 (as e2e/responsive.spec.ts)
+counts: rungs drawn, rungs moved off their exact price, exact-price marks (levels-rung-anchor), marks crossing label text
+crops:
+  levels-column-1440.png: { viewport: 1440x900, lang: en, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+  levels-column-1440-zh.png: { viewport: 1440x900, lang: zh, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+  levels-column-820.png: { viewport: 820x1180, lang: en, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+  levels-column-820-zh.png: { viewport: 820x1180, lang: zh, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+  levels-column-390.png: { viewport: 390x844, lang: en, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+  levels-column-390-zh.png: { viewport: 390x844, lang: zh, rungs: 8, moved: 3, anchors: 8, crossings: 21 }
+command: |
+  cd terminal
+  CROP_LABEL=before node e2e/tools/capture_levels_rung_anchor.cjs

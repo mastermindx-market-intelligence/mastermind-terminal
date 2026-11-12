@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Banks - Regional",
+  "sector": "Financial Services"
+ },
+ "quote_currency": "EUR",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "CBK.DE"
+}

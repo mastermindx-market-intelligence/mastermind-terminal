@@ -246,12 +246,34 @@ export function orderedSections(brief: PortfolioBrief): BriefSection[] {
  * - 403 → teaser (read tier from the body when present)
  * - anything else (incl. 503, 502, network throw modeled as 0) → unavailable
  */
+/** A malformed successful response must not crash the positions workspace. */
+export function isPortfolioBrief(value: unknown): value is PortfolioBrief {
+  const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
+  const text = (v: unknown) => typeof v === "string";
+  const count = (v: unknown) => typeof v === "number" && Number.isInteger(v) && v >= 0;
+  const pair = (v: unknown) => object(v) && text(v.en) && text(v.zh);
+  if (!object(value)) return false;
+  const v = value;
+  return (v.schema === "portfolio_brief.v1" || v.schema === "portfolio_brief.v2")
+    && text(v.asof) && text(v.generated_at) && typeof v.stale === "boolean"
+    && object(v.weighting) && text(v.weighting.mode) && text(v.weighting.label_en) && text(v.weighting.label_zh)
+    && object(v.book) && count(v.book.n) && count(v.book.covered)
+    && Array.isArray(v.book.uncovered) && v.book.uncovered.every(text)
+    && pair(v.headline) && Array.isArray(v.sections) && v.sections.every(section => object(section)
+      && text(section.key) && text(section.title_en) && text(section.title_zh)
+      && Array.isArray(section.lines) && section.lines.every(pair))
+    && (v.population === undefined || object(v.population)
+      && ["positions", "watchlist_union", "unspecified"].includes(String(v.population.mode))
+      && count(v.population.n) && text(v.population.label_en) && text(v.population.label_zh)
+      && text(v.population.disclosure_en) && text(v.population.disclosure_zh));
+}
+
 export function stateForResponse(
   status: number,
   body: unknown,
 ): BriefState {
   if (status === 200) {
-    return { kind: "ready", brief: body as PortfolioBrief };
+    return isPortfolioBrief(body) ? { kind: "ready", brief: body } : { kind: "unavailable" };
   }
   if (status === 401) {
     return { kind: "hidden" };

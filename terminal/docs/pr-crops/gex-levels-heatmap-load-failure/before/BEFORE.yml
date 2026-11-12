@@ -1,0 +1,72 @@
+# GEX desk, Levels and Heatmap failure-state truth: the defect, captured before the fix
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# These are Playwright failure screenshots, not crops from capture_gex_levels_heatmap_load_failure.cjs.
+# This PR's e2e specs ran against the product files at base 5503f970 (GexDeskView.tsx,
+# HeatSeekerCard.tsx, MarketStateCard.tsx, ExposureMatrix.tsx, MatrixConfluence.tsx,
+# StrikeLadder.tsx, GexHistory.tsx, matrixDoc.ts, LevelsView.tsx and HeatmapView.tsx reverted
+# to that commit). 12 of 15 runs failed on the defect; the 3 that passed are the
+# absence-preserving test (both manifest sources 404 -> "No data available"), which must hold
+# before and after.
+base: 5503f970757454bcff5eb44d8d24b1bc4e25f97d
+specs:
+  - terminal/e2e/options-gex-load-failure.spec.ts
+  - terminal/e2e/options-levels-load-failure.spec.ts
+  - terminal/e2e/discover-heatmap-load-failure.spec.ts
+projects:
+  - { name: desktop, width: 1440, height: 900, lang: en }
+  - { name: tablet, width: 820, height: 1180, lang: zh }
+  - { name: mobile, width: 390, height: 844, lang: en }
+theme: dark
+files:
+  gex-ladder-unavailable-desktop.png: &gexLadder
+    test: "a failed GEX snapshot read is a load error with an in-place Retry, never a coverage gap"
+    injected: { "gex:SPY": 503, "/api/flow/stream": aborted }
+    shows: "\"No strike snapshot for this name yet\" and \"SPY isn't in this nightly build\" for a read that did not land; the strip says LOADING forever"
+  gex-ladder-unavailable-tablet.png: *gexLadder
+  gex-ladder-unavailable-mobile.png: *gexLadder
+  gex-state-pick-unavailable-desktop.png: &gexRail
+    test: "a failed market-state or matrix read stays in its card and never takes the ladder down"
+    injected: { "gexstate:SPY": 503, "matrix:SPY": 503, "/api/flow/stream": aborted }
+    shows: "Market State reads \"State computing — nightly\" and the HeatSeeker card says \"No standout pick — load is shared across levels\" for reads that did not land; neither offers a Retry"
+  gex-state-pick-unavailable-tablet.png: *gexRail
+  gex-state-pick-unavailable-mobile.png: *gexRail
+  levels-unavailable-desktop.png: &levels
+    test: "a failed levels read is a load error with an in-place Retry, never an empty root"
+    injected: { "levels:SPY": 503 }
+    shows: "\"No levels for this root yet\" and \"No dealer-gamma levels to map for SPY\" for a read that did not land"
+  levels-unavailable-tablet.png: *levels
+  levels-unavailable-mobile.png: *levels
+  heatmap-unavailable-desktop.png: &heatmap
+    test: "a failed manifest read is a load error with an in-place Retry, never an empty market"
+    injected: { "flow:manifest": 503, "/data/manifest.json": aborted }
+    shows: "\"No data available\" and a breadth reading of \"0 / 0 (0%)\" for a universe that was never read"
+  heatmap-unavailable-tablet.png: *heatmap
+  heatmap-unavailable-mobile.png: *heatmap
+# Follow-up: the Heatmap painted from the PERSISTED manifest (dataCache's IndexedDB copy).
+# terminal/e2e/discover-heatmap-persisted-refresh-failure.spec.ts ran against lib/dataCache.ts and
+# components/heatmap/HeatmapView.tsx at base b7a3357b (both restored afterwards, sha256 checked).
+# All 6 failure runs (503 and refused, at each viewport; selected with -g "every refresh fails")
+# failed on the defect.
+# Why these show "Could not load" and not unlabelled tiles: the dev server double-mounts the board
+# (React StrictMode), so a second read of the manifest meets the first one's background refresh in
+# flight and was handed that refresh's failure, which withdrew the persisted tiles. A lone read
+# kept the tiles with no label instead (lib/__tests__/heatmapPersistedRefreshFailure.test.tsx, red
+# at this base). Both are the same defect: the cache never said the copy it served was stale and
+# that its refresh had failed.
+persistedRefresh:
+  base: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+  spec: terminal/e2e/discover-heatmap-persisted-refresh-failure.spec.ts
+  setup: "a healthy first visit writes /data/manifest.json through to IndexedDB; the record is re-stamped 6h old; both manifest sources then fail and the page reloads"
+  files:
+    heatmap-persisted-refresh-503-desktop.png: &persisted503
+      test: "tiles painted from the persisted manifest are labelled as the last read when every refresh fails (503)"
+      injected: { "flow:manifest": 503, "/data/manifest.json": 503 }
+      shows: "\"Could not load the heatmap\" for a board that holds an earlier session's copy: the persisted tiles are withdrawn instead of kept and labelled \"Could not refresh — showing the last read.\""
+    heatmap-persisted-refresh-503-tablet.png: *persisted503
+    heatmap-persisted-refresh-503-mobile.png: *persisted503
+    heatmap-persisted-refresh-refused-desktop.png: &persistedRefused
+      test: "tiles painted from the persisted manifest are labelled as the last read when every refresh fails (abort)"
+      injected: { "flow:manifest": aborted, "/data/manifest.json": aborted }
+      shows: "the same withdrawal when the connection is refused"
+    heatmap-persisted-refresh-refused-tablet.png: *persistedRefused
+    heatmap-persisted-refresh-refused-mobile.png: *persistedRefused

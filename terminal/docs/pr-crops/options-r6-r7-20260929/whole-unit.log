@@ -1,0 +1,5 @@
+Vitest result summary, rerun with the packaged evidence present. Full raw log retained externally.
+ Test Files  411 passed (411)
+      Tests  6692 passed | 4 todo (6696)
+   Start at  22:41:58
+   Duration  45.60s (transform 10.12s, setup 0ms, collect 25.74s, tests 57.69s, environment 11.58s, prepare 19.67s)

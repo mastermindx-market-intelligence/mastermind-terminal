@@ -1,0 +1,10 @@
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1232-breadth-current-web4/terminal/e2e/tools/qualify_sector_discovery.cjs
+  5:12   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:39   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:70   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:103  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  6:38   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 5 problems (5 errors, 0 warnings)
+

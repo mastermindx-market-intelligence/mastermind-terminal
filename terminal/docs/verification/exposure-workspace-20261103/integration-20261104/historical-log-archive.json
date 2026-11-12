@@ -1,0 +1,27 @@
+{
+  "schema": "lossless_evidence_archive.v1",
+  "reason": "Historical test-output collision with the account-boundary source guard; preserve exact output as a compressed artifact without changing the guard.",
+  "source_commit": "0182a45abccb9c0e77b2c8e4626431e89635b35f",
+  "source_blob": "e1f127fb3c399c8b93094c9bf833afd265efa095",
+  "original_path": "logs/full-unit-postwait-20261104.log",
+  "original_sha256": "8dd94ee8e8fe5165c59978e1c34c1101a3f385e51d1eee8518fa25121fc2cbd1",
+  "original_bytes": 336251,
+  "archive_path": "logs/full-unit-postwait-20261104.log.gz",
+  "archive_sha256": "db675bf99967e7ed6ef84f52e9f3b31cdf7992986fe79141de210e2e41b1730d",
+  "archive_bytes": 53592,
+  "compression": {
+    "format": "gzip",
+    "level": 9,
+    "mtime": 0
+  },
+  "decompression_byte_identical": true,
+  "previous_package_index_sha256": "c99a40177968eab126971d7b0d39151ce133cf343ce2e1e23626a6b1cd7ef384",
+  "ci_run": 41965639438,
+  "ci_job": 127041886722,
+  "preexisting_index_correction": {
+    "path": "README.md",
+    "previous_index_digest": "fec7287ef6f3c5cf7bd95cfceba3debe14a5fe1205b79990fb089af382203b8d",
+    "published_and_current_digest": "5b6fe94b6ebb2ae409411451d2db858aaef4ee2059786524dbeaa34621410b94",
+    "reason": "Index predates the already-published README; README bytes are unchanged."
+  }
+}

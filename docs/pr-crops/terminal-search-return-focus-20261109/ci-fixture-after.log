@@ -1,0 +1,15 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ✓ lib/__tests__/companySearchIdentity.test.tsx (3 tests) 221ms
+ ✓ lib/__tests__/sharedShellLazyFocus.test.tsx (4 tests) 246ms
+ ✓ lib/__tests__/searchReturnFocus.test.tsx (16 tests) 658ms
+
+ Test Files  3 passed (3)
+      Tests  23 passed (23)
+   Start at  08:05:51
+   Duration  2.49s (transform 1.22s, setup 0ms, collect 2.54s, tests 1.13s, environment 1.48s, prepare 284ms)
+
+
+Changed-file ESLint: exit 0, zero output/errors/warnings.

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/ticker-news.spec.ts",
+    "--list",
+    "--reporter=list"
+  ],
+  "exit": 1,
+  "logSha256": "33626673cb8f5d6311721e4b54363a27d119f4980a3dfd11a73f5861c77b7936",
+  "newerPacketFilesUnchanged": 103,
+  "originalPacketFilesUnchanged": 11,
+  "ownedPortClosed": true,
+  "schema": "terminal_pr910_invalid_capture_selector.v1",
+  "sourceStable": true,
+  "state": "REFUSED_BEFORE_OUTPUT_MUTATION"
+}

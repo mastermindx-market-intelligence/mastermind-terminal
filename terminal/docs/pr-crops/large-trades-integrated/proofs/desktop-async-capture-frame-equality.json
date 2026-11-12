@@ -1,0 +1,42 @@
+{
+  "fixedCaptureTime": "2026-10-11T11:00:00.000Z",
+  "transitions": {
+    "symbol": "NVDA",
+    "replayRailPresent": true,
+    "maximized": "rsi",
+    "labels": false
+  },
+  "equality": {
+    "before": {
+      "width": 1934,
+      "height": 1760
+    },
+    "after": {
+      "width": 1934,
+      "height": 1760
+    },
+    "differentBytes": 0,
+    "textEqual": true,
+    "frameEqual": true,
+    "text": [
+      "1,301",
+      "1,500",
+      "1,800",
+      "1,600",
+      "Large trades \u00b7 Test fixture \u00b7 AAPL \u00b7 SIMULATED \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+      "Minimum executed quantity: 100 shares \u00b7 Distinct orders: Not available",
+      "Synthetic executions for deterministic testing. This is not a market feed.",
+      "Synthetic fixture. No market transactions or investment evidence.",
+      "MASTERMIND",
+      "TERMINAL",
+      "AAPL",
+      "  5s",
+      "2026-10-11 04:00:00 UTC-7",
+      "Apple Inc",
+      "Large trades",
+      "TW \u00b7 Mastermind Candles",
+      "RSI"
+    ]
+  },
+  "scope": "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer"
+}

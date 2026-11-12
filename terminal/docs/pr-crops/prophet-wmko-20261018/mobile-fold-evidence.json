@@ -1,0 +1,89 @@
+{
+  "schema": "prophet.mobile-fold-evidence/v1",
+  "captured_at": "2026-10-19T01:23:08.424625+00:00",
+  "root": "prophet-wmko-miss-20261018",
+  "reviewed_predecessor": "1537f5fb4e1c29440989a0479300b02c51cfe8c0",
+  "source_sha256": {
+    "terminal/components/SignalButton.tsx": "d622510a7a077860b546fe82f55de5b1cfa1e842ed1f48731c732e747798763a",
+    "terminal/components/SignalButton.module.css": "bea96d31fa520c01b060b0d13e3e3e4d3e6965d055c78c4a149ae5f00b735601",
+    "terminal/e2e/prophet-early-observations.spec.ts": "a8fc1e62e1acf3da22ec1c9af64c32d9e4c0ff419d526529f7c8463c6adfc07c"
+  },
+  "fixture": "terminal/test-fixtures/prophet_wmko_observations_fixture.json",
+  "fixture_sha256": "0b5d42533151adcc6d71401e00c3b27a1b87e84949a6a49d11aefb9f4944253f",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "authority": "Local auth and transport fixtures only; not authenticated production proof. WATCH remains observation-only.",
+  "red": {
+    "test": "phone: the fold sits under the oracle cards and the strip survives the expanded chart",
+    "received_bottom": 875.390625,
+    "maximum_bottom": 845,
+    "exit": 1
+  },
+  "green": {
+    "mobile_chrome_and_wm_ko": {
+      "passed": 9,
+      "intentional_skips": 1,
+      "exit": 0
+    },
+    "launcher_workspace_units": {
+      "files": 2,
+      "passed": 11,
+      "exit": 0
+    },
+    "typegen_exit": 0,
+    "typecheck_exit": 0,
+    "desktop_tablet_wm_ko": {
+      "passed": 2,
+      "exit": 0
+    }
+  },
+  "geometry_contract": "The test measures the existing fully populated NVDA-chart fold budget, then requires dated KO/WM launcher heights to fit it, with full EN/ZH state labels and source dates. KO/WM market-history fixtures remain absent; no quote or observation is fabricated.",
+  "independent_source_review": {
+    "reviewer": "/root/prophet_independent_review",
+    "verdict": "PASS",
+    "blocking_findings": 0,
+    "scope": "The exact three-file diff whose hashes are above; no CI, merge or production claim."
+  },
+  "files": {
+    "docs/prophet-wmko-review-20261019/terminal-mobile-fold-red.log": {
+      "source": "prophet-mobile-fold-red-20261019.log",
+      "sha256": "4bf8a6000679bb841195a0f7a2873de530eaf0f40127d01853047306136eb2a0",
+      "bytes": 3423,
+      "source_sha256": "691455c057e3e5f2768b29919a61bf2c4995fb738a28bcd9d7bd65ff4996eea2",
+      "source_bytes": 3425,
+      "normalization": "Two trailing spaces removed from the published transcript; original run log remains byte-for-byte unchanged."
+    },
+    "docs/prophet-wmko-review-20261019/terminal-mobile-fold-green.log": {
+      "source": "prophet-mobile-fold-final-20261019.log",
+      "sha256": "ebe74e7247787ea0422b83c5a99b94789bb4a1f8ec1544725c0dd6cce453a462",
+      "bytes": 14294
+    },
+    "docs/prophet-wmko-review-20261019/terminal-mobile-unit-types-wide.log": {
+      "source": "prophet-mobile-final-unit-types-responsive-20261019.log",
+      "sha256": "3ea3d3a1d7a6f956094bab3665997572a0d8bccd4faac7dec3c4394da541153f",
+      "bytes": 14739
+    },
+    "terminal/docs/pr-crops/prophet-wmko-20261018/ko-launcher-fold-en.png": {
+      "source": "terminal/test-results/prophet-mobile-fold-final-20261019/prophet-early-observations-90658-le-at-every-supported-width-mobile/ko-launcher-fold-en.png",
+      "sha256": "d85b675223474bf5d6538d2de08aebbf85b3c767abdb7ebd41c95b358cb07586",
+      "bytes": 42713
+    },
+    "terminal/docs/pr-crops/prophet-wmko-20261018/ko-launcher-fold-zh.png": {
+      "source": "terminal/test-results/prophet-mobile-fold-final-20261019/prophet-early-observations-90658-le-at-every-supported-width-mobile/ko-launcher-fold-zh.png",
+      "sha256": "a8d0a98302a58039982016e3b3ff101dadef2480a4db4033e4764d1244db6b0b",
+      "bytes": 42618
+    },
+    "terminal/docs/pr-crops/prophet-wmko-20261018/wm-launcher-fold-en.png": {
+      "source": "terminal/test-results/prophet-mobile-fold-final-20261019/prophet-early-observations-90658-le-at-every-supported-width-mobile/wm-launcher-fold-en.png",
+      "sha256": "0b150cf137dc990a4c006b0cdf3b7cffa047a318716849d8d514e53ce46d4afe",
+      "bytes": 44272
+    },
+    "terminal/docs/pr-crops/prophet-wmko-20261018/wm-launcher-fold-zh.png": {
+      "source": "terminal/test-results/prophet-mobile-fold-final-20261019/prophet-early-observations-90658-le-at-every-supported-width-mobile/wm-launcher-fold-zh.png",
+      "sha256": "38c34e40b34f3ea1280e896bdeb4d719756481adf535d0b0f3d07be832c71a0c",
+      "bytes": 43151
+    }
+  }
+}

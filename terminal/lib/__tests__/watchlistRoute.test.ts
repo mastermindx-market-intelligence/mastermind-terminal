@@ -8,6 +8,8 @@ import type { DbResult, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 const H = vi.hoisted(() => ({
   user: { id: "e2e-user-route" } as { id: string } | null,
   failTable: null as string | null,
+  failReadTable: null as string | null,
+  readFailure: "error" as "error" | "null" | "throw",
 }));
 
 vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ get: () => undefined })) }));
@@ -35,6 +37,14 @@ vi.mock("@/lib/supabase/server", async () => {
       return {
         auth: { getUser: vi.fn(async () => ({ data: { user: H.user } })) },
         from: (table: string) => {
+          if (H.failReadTable === table) {
+            if (H.readFailure === "throw") throw new Error("transport failed");
+            if (H.readFailure === "error") return failedQuery();
+            const empty = Object.assign(Promise.resolve({ data: null, error: null }), {
+              select: () => empty, eq: () => empty, in: () => empty, order: () => empty,
+            });
+            return empty;
+          }
           const query = db.from(table);
           if (H.failTable !== table) return query;
           // Reads still work; only the mutating verbs fail, the way a policy or constraint error
@@ -71,7 +81,33 @@ beforeEach(() => {
   resetFixtureStores();
   H.user = { id: owner };
   H.failTable = null;
+  H.failReadTable = null;
+  H.readFailure = "error";
   vi.clearAllMocks();
+});
+
+describe("GET /api/watchlist — authoritative inventory", () => {
+  it.each(["watchlists", "watchlist_symbols"])("returns unavailable when %s fails, never partial or empty success", async (table) => {
+    H.failReadTable = table;
+    const response = await GET();
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "watchlists unavailable" });
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it.each(["null", "throw"] as const)("rejects a %s read result rather than inventing an empty inventory", async (failure) => {
+    H.failReadTable = "watchlists";
+    H.readFailure = failure;
+    expect((await GET()).status).toBe(503);
+  });
+
+  it("keeps successful empty ownership separate from unavailable", async () => {
+    H.user = { id: "another-subject-with-no-owned-lists" };
+    const response = await GET();
+    expect(response.status).toBe(200);
+    expect((await response.json()).lists).toEqual([]);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  });
 });
 
 describe("POST /api/watchlist — symbol actions", () => {

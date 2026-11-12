@@ -1,0 +1,84 @@
+/* Local task panes from N04–N07; the host strip is prototype tooling, not product navigation.
+   Colors come from a pinned canonical Macro theme snapshot. Light uses white material and shadow;
+   dark uses inset canvas, a luminance tier for unavailable states and quiet outlines. */
+* { box-sizing:border-box }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI',sans-serif; color:var(--text); background:var(--bg); font-size:14px; line-height:1.5 }
+button,input,select { font:inherit }
+button { cursor:pointer; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:10px 16px; min-height:44px }
+button:hover { background:var(--panel2) }
+button:disabled { cursor:not-allowed; opacity:.55 }
+:focus-visible { outline:3px solid var(--info); outline-offset:3px }
+button[aria-pressed=true],.primary { color:var(--text); border-color:var(--info); background:color-mix(in srgb,var(--info) 14%,var(--panel)) }
+.primary { font-weight:650 }
+p { margin:8px 0 16px; color:var(--muted) }
+h1 { margin:0 0 8px; font-size:36px; font-weight:630; line-height:1.18; letter-spacing:-.025em }
+h2 { font-size:19px; margin:0 0 14px; font-weight:620 }
+h3 { font-size:15px; margin:0 0 8px; font-weight:620 }
+.host { padding:12px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; justify-content:space-between; background:var(--panel); flex-wrap:wrap }
+.host strong { font-size:13px; font-weight:560 }
+.tools { display:flex; gap:8px }
+.host small { color:var(--muted) }
+.tasknav { display:flex; gap:8px; padding:18px 24px 0; max-width:1440px; margin:auto; flex-wrap:wrap }
+.tasknav button { border-color:transparent; background:transparent }
+.tasknav button[aria-current=step] { border-bottom-color:var(--info); border-radius:0; color:var(--text); font-weight:650 }
+.tasknav span { color:var(--muted); margin-right:8px }
+main { max-width:1440px; margin:auto; padding:30px 32px 36px; min-width:0 }
+.intro { margin-bottom:28px }
+.intro p { margin-bottom:8px }
+.contract { color:var(--text); font-variant-numeric:tabular-nums }
+.layout { display:grid; grid-template-columns:minmax(280px,390px) minmax(0,1fr); gap:24px; align-items:start }
+.layout.plan { grid-template-columns:minmax(0,1fr) minmax(280px,390px) }
+.stack { display:grid; gap:20px; min-width:0 }
+.panel { padding:24px; border:1px solid var(--line); border-radius:8px; background:var(--panel); min-width:0 }
+.notice { padding:24px; background:var(--panel2); border-left:3px solid var(--warn); border-radius:8px }
+.notice h2 { margin-bottom:4px }
+.notice button { margin-top:8px; width:100% }
+.row { display:flex; justify-content:space-between; gap:16px; align-items:baseline; margin:12px 0 }
+.row span,.label { color:var(--muted) }
+.value { font-variant-numeric:tabular-nums; white-space:nowrap }
+.hero { font-size:36px; font-weight:600; margin:4px 0 16px; letter-spacing:-.02em }
+.metrics { display:flex; gap:24px; justify-content:space-between; margin:22px 0; flex-wrap:wrap }
+.metrics .label { display:block; font-size:13px; margin-bottom:4px }
+.metrics strong { font-size:20px; font-weight:570; font-variant-numeric:tabular-nums }
+.group { margin:24px 0 }
+.group:first-of-type { margin-top:14px }
+.choices { display:flex; gap:8px; flex-wrap:wrap }
+.choices button { padding:9px 14px; flex:1 }
+.help { display:block; font-size:12px; color:var(--muted); margin-top:10px }
+.fieldrow { display:grid; grid-template-columns:1fr 110px; gap:16px; align-items:center; margin:18px 0 }
+input,select { width:100%; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:6px; min-height:44px; padding:8px 12px; min-width:0 }
+.wide { width:100%; margin-top:14px }
+.error { border-left:3px solid var(--act); padding:12px; color:var(--act); margin:12px 0; background:var(--panel2) }
+.chain { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; text-align:right }
+.chain th { color:var(--muted); font-weight:450; font-size:12px }
+.chain th,.chain td { padding:14px 8px; border-bottom:1px solid var(--line); white-space:nowrap }
+.chain th:first-child,.chain td:first-child { text-align:left }
+.chain tr:last-child td { border-bottom:0 }
+.selected-leg { padding:16px; border:1px solid var(--line); background:var(--panel2); border-radius:6px }
+.selected-leg .row { margin:4px 0 }
+.pill { display:inline-block; padding:4px 10px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted) }
+.chart { width:100%; min-width:0; overflow:hidden; margin:8px 0 0 }
+.chart svg { display:block; max-width:100% }
+.chart text { fill:var(--muted); font-family:inherit; font-size:11px }
+.chart .grid { stroke:var(--line) }
+.chart .payoff { fill:none; stroke:var(--info); stroke-width:2.5 }
+.chart .dot { fill:var(--info); stroke:var(--panel); stroke-width:2 }
+.chart-caption { margin:10px 0 0 }
+.footer { margin-top:24px; padding-top:22px; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:20px }
+.footer p { margin:0; font-size:12px }
+.footer .actions { display:flex; gap:10px; flex-wrap:wrap }
+.facts { margin:0; padding-left:22px; color:var(--muted) }
+.facts li { padding:5px 0 }
+dialog { width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--text); padding:28px; box-shadow:var(--popover-shadow) }
+dialog::backdrop { background:color-mix(in srgb,var(--bg) 75%,transparent) }
+dialog button { margin-top:20px }
+.comparison { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+.comparison section { padding:20px; border:1px solid var(--line); border-radius:6px }
+.comparison .hero { font-size:30px }
+html[data-theme=light] .panel { background:var(--panel); box-shadow:var(--card-shadow); border-color:var(--line) }
+html[data-theme=light] .notice { background:var(--panel); box-shadow:var(--card-shadow) }
+html[data-theme=light] .selected-leg { background:var(--panel2) }
+html[data-theme=light] .primary { color:var(--info); background:var(--panel); border-color:var(--info) }
+@media(max-width:900px) { .layout,.layout.plan { grid-template-columns:1fr } .plan .risk { grid-row:1 } .layout:not(.plan)>.controls { order:0 } h1 { font-size:30px } }
+@media(max-width:540px) { main { padding:24px 16px } .host { padding:12px 16px; gap:8px } .host strong { width:100% } .host .tools { margin-left:auto } .tasknav { padding:12px 12px 0; gap:0; display:grid; grid-template-columns:repeat(4,1fr) } .tasknav button { padding:8px 4px; font-size:13px } .tasknav span { display:none } h1 { font-size:28px } .panel,.notice { padding:20px } .layout { gap:16px } .chain thead { display:none } .chain tr { display:grid; grid-template-columns:repeat(3,1fr); padding:10px 0; border-bottom:1px solid var(--line) } .chain td { text-align:left; border:0; padding:6px } .chain td:before { content:attr(data-label); display:block; color:var(--muted); font-size:11px } .comparison { grid-template-columns:1fr } .footer { align-items:stretch; flex-direction:column } .footer button { width:100% } .footer .actions { flex-direction:column } .choices { gap:6px } .choices button { padding:9px 8px } .metrics { gap:16px } }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; animation:none!important; transition:none!important } }

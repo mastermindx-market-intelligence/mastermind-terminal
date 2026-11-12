@@ -1,0 +1,28 @@
+{
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "e2e/sector-constituent-evidence.spec.ts",
+    "--grep",
+    "listed holding opens|Chinese light board",
+    "--project=desktop",
+    "--workers=1",
+    "--reporter=list"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 23.191,
+  "completed_at": "2026-11-07T07:35:23.864263+00:00",
+  "log_sha256": "1a7bfce78e4a6573f9acc72542f8c361592e58f923d2f53cfed9ffdcb04669cb",
+  "scope": "desktop actions at1440x900; intact member region capture at1440x1600; synthetic fixtures",
+  "screenshots": [
+    {
+      "file": "desktop-member-mu-en-dark.png",
+      "sha256": "d28dd52af86fd9659c78c5f3d6798da254d23da6fafea5786a5847118434782c"
+    },
+    {
+      "file": "desktop-member-mu-zh-light.png",
+      "sha256": "674e5376475c33510710136b08d4f02ea2b32d718c2cec27121905d83efca421"
+    }
+  ]
+}

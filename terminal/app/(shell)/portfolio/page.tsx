@@ -1,9 +1,13 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL, SHARED_SHELL_DEV_SUBJECT } from "@/lib/shared-shell/devOpen";
 import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
 import SignupGate from "@/components/gates/SignupGate";
 import { readPositions } from "@/lib/portfolio";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+
+export const metadata = workspaceMetadata("Portfolio", "Mastermind Terminal");
 
 // W5: this page is the user's REAL portfolio.
 //
@@ -32,17 +36,35 @@ export default async function PortfolioPage() {
     const jar = await cookies();
     const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
     const faults = fixtureFaults(jar.get(FIXTURE_FAULT_COOKIE)?.value);
-    const read = await readPositions(createFixtureDb(key, faults), fixtureUserId(key));
+    const userId = fixtureUserId(key);
+    const read = await readPositions(createFixtureDb(key, faults), userId);
     return (
       <PortfolioViewMount
         positions={read.ok ? read.positions : []}
         unreadable={!read.ok}
+        // The SAME immutable id the seed was read under — owner and seed bind in one server
+        // result, so the client's write fence can never name a different account than the one
+        // this page rendered.
+        userId={userId}
         email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"}
       />
     );
   }
 
   const supabase = await createClient();
+  // Beta development mode (lib/shared-shell/devOpen.ts): the shared development
+  // subject's own RLS-visible book (typically empty), with no auth read at all.
+  if (isSharedShellDevOpen()) {
+    const read = await readPositions(supabase as never, SHARED_SHELL_DEV_SUBJECT);
+    return (
+      <PortfolioViewMount
+        positions={read.ok ? read.positions : []}
+        unreadable={!read.ok}
+        userId={SHARED_SHELL_DEV_SUBJECT}
+        email={SHARED_SHELL_DEV_EMAIL}
+      />
+    );
+  }
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <SignupGate surface="portfolio" />;
 
@@ -59,6 +81,9 @@ export default async function PortfolioPage() {
     <PortfolioViewMount
       positions={read.ok ? read.positions : []}
       unreadable={!read.ok}
+      // `user.id` is OWNERSHIP; the email above is presentation. The view fences every queued
+      // write and quote generation on this id, in the same result that scoped the seed read.
+      userId={user.id}
       email={user.email || ""}
     />
   );

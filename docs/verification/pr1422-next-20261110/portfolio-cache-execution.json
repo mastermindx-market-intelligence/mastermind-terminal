@@ -1,0 +1,173 @@
+{
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|zh: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|zh: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|zh: the committed edit retires the previous facts and re-reads the book"
+    }
+  ],
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/portfolio-event-refresh.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/portfolio-cache-artifacts"
+  ],
+  "completedAt": "2026-11-10T10:52:34.828925+00:00",
+  "exit": 0,
+  "images": {
+    "desktop-en-expansion-retired.png": "872be349f87b3bebaf00cd538163b5f47b2a630d63513cf9381fedabb3cb9e87",
+    "desktop-en-refreshed.png": "e4889cd96ad7ce123284f65c9d57a4077104d6856743448ea1fa79e93177ee48",
+    "desktop-zh-expansion-retired.png": "3b65a78d08cef7d9e51148dfeb03641d7ecc7b35decc8f69f46ff290ec7db6f9",
+    "desktop-zh-refreshed.png": "1a9c312aa07d41602ad49fd523995b11030b181b9daecd6089cdc472ddbf6dfd",
+    "mobile-en-refreshed.png": "98bc6b7828883c3053c8f166d6d55e22af49f977c25ef4c6ca1723de4abe747d",
+    "mobile-zh-refreshed.png": "e6674b51cbfe742452ec0097dc8ef9a9f9b6d742333c263291a7c2070fd87316",
+    "tablet-en-refreshed.png": "db5baf5b1ab70490572c890431404d11f4206061bbb32f9be4e82ddb042333dc",
+    "tablet-zh-refreshed.png": "953ba08895478d9d7b98f0d7cded71320cc77b950a2f35378dceb7d28a1d5955"
+  },
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/portfolio-cache-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T10:52:59.482838+00:00",
+    "sha256": "26e79d256414a1f0e154ea22990b29955d01494f18a66b521d44aadbd20f614b"
+  },
+  "logSha256": "c5a0424493b282fcb534dd6c2d7c060aebe4728ced1b3b20734dda4d4d9e6253",
+  "nextLockAbsent": true,
+  "port": 34227,
+  "portClosed": true,
+  "reportErrors": [],
+  "seconds": 89.086,
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+  "sourceCount": 3516,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T10:51:05.743730+00:00",
+  "stats": {
+    "duration": 84068.299,
+    "expected": 8,
+    "flaky": 0,
+    "skipped": 4,
+    "startTime": "2026-11-10T10:51:06.689Z",
+    "unexpected": 0
+  }
+}

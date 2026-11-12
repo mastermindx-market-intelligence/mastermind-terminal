@@ -386,6 +386,32 @@ export async function getRevisionVerifiedTranscript(
   return fetchRevisionFromRoot(root, ticker, id, options.fetcher ?? fetch, options.signal);
 }
 
+/**
+ * Resolve several exact calls of one company against ONE read of the commit
+ * marker, so every document in a comparison is bound to the same archive
+ * generation. Each requested ID keeps its own result; an absent or stale call
+ * is reported for that ID and never replaced by a neighbouring period.
+ */
+export async function getRevisionVerifiedTranscripts(
+  symbol: string,
+  rawIds: readonly string[],
+  options: { fetcher?: FetchLike; signal?: AbortSignal } = {},
+): Promise<
+  | { status: "ready"; generated_at: string; results: TranscriptRevisionResult[] }
+  | { status: "unavailable"; message: string }
+> {
+  const ticker = normalizeTranscriptTicker(symbol);
+  const ids = rawIds.map(normalizeTranscriptSearchId);
+  if (!ticker || !ids.length || ids.length > 8 || ids.some((id) => !id)) {
+    return { status: "unavailable", message: "Invalid transcript identity" };
+  }
+  const fetcher = options.fetcher ?? fetch;
+  const root = await fetchRoot(fetcher, options.signal);
+  if (root === "unavailable") return { status: "unavailable", message: "Transcript archive commit marker is unavailable" };
+  const results = await Promise.all(ids.map((id) => fetchRevisionFromRoot(root, ticker, id!, fetcher, options.signal)));
+  return { status: "ready", generated_at: root.generated_at, results };
+}
+
 function isOperator(segment: TxSegment): boolean {
   return segment.role.trim().toLowerCase() === "operator" || segment.speaker.trim().toLowerCase() === "operator";
 }

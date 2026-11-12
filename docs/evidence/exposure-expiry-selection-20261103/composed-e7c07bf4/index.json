@@ -1,0 +1,59 @@
+{
+  "scope": "Synthetic local route; no authenticated production or market acceptance",
+  "source_head": "e7c07bf49c8e13f1ea3518b9b997d3e0e6b3ebeb",
+  "protected_base": "c8a1d0e23255c2d5374258b52197bdf1aed85b27",
+  "browser_result": "9 passed (expiry EN/ZH plus archive refresh/failure across desktop/tablet/mobile)",
+  "unit_result": "83 passed, includes protected momentum consumer",
+  "retained_identical_images": 5,
+  "new_images": 7,
+  "images": [
+    {
+      "path": "desktop-missing-expiry-zh-dark.png",
+      "sha256": "572517977755bc74290446e89d5b22ba5aabea0f99c5b2c6e2bb6c7cef0c125c"
+    },
+    {
+      "path": "desktop-missing-expiry-zh-light.png",
+      "sha256": "4d4b5a73799d0ebe31556c414e2b6b6f7b4fbf17b9f2b5e846ed1e5e63936950"
+    },
+    {
+      "path": "../mobile-missing-expiry-zh-dark.png",
+      "sha256": "1032e6a5e0cf02683452223becd6e44622c6383683360de47aa9265009bbe530"
+    },
+    {
+      "path": "mobile-missing-expiry-zh-light.png",
+      "sha256": "0cf493d81d95b5e99976b1ee381c8aa321184e4f73467104351c6eaced38ba77"
+    },
+    {
+      "path": "../tablet-missing-expiry-zh-dark.png",
+      "sha256": "ab56260e27ac115201beb9ba65dc31bcccdf0aa36ba9b9513c437b97d27b6a21"
+    },
+    {
+      "path": "../tablet-missing-expiry-zh-light.png",
+      "sha256": "204a2414edef7546f6359f6216a75d5755d7e93ee0aebe2756828f268f1f34d3"
+    },
+    {
+      "path": "desktop-missing-expiry-en-dark.png",
+      "sha256": "2c023f69f5846651ada6dd6335624104a3ab626a030e25f13e70c6526006b509"
+    },
+    {
+      "path": "desktop-missing-expiry-en-light.png",
+      "sha256": "beab7ae826227da6261d3a8ec2ed846886fb819bb9c9252abe48858e589da6e5"
+    },
+    {
+      "path": "mobile-missing-expiry-en-dark.png",
+      "sha256": "aa83969bfc81209cccc45a0e741b11c3a5b77a1c186389fa65035a680285ae75"
+    },
+    {
+      "path": "../mobile-missing-expiry-en-light.png",
+      "sha256": "0dc6703afe1edd83a0d00341821495b92e5b29f2a4d169eeed785d0bd5b9bedb"
+    },
+    {
+      "path": "../tablet-missing-expiry-en-dark.png",
+      "sha256": "09c69e03c231efc8f456075d5ab4a9bea20d7254f9ae20e47fdece74eb96a1d9"
+    },
+    {
+      "path": "tablet-missing-expiry-en-light.png",
+      "sha256": "8f6174be11fe4620397455f5eff06272fe95caa7177cb82e46a6b0d761f683b5"
+    }
+  ]
+}

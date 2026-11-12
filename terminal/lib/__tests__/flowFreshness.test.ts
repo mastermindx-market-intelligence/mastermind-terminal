@@ -145,6 +145,23 @@ describe("US options session posture", () => {
     expect(usOptionsSessionState("2026-08-15", new Date("2026-08-15T14:00:00Z"))).toBe("last_session");
     expect(usOptionsSessionState(undefined, new Date("2026-08-11T14:00:00Z"))).toBe("last_session");
   });
+
+  it("ends the regular session at the NYSE early close and on full closures", () => {
+    // 2026-11-27 and 2026-12-24 close at 13:00 ET; 2026-11-26 is Thanksgiving.
+    expect(usOptionsSessionState("2026-11-27", new Date("2026-11-27T17:59:00Z"))).toBe("regular");
+    expect(usOptionsSessionState("2026-11-27", new Date("2026-11-27T18:00:00Z"))).toBe("last_session");
+    expect(usOptionsSessionState("2026-12-24", new Date("2026-12-24T19:30:00Z"))).toBe("last_session");
+    expect(usOptionsSessionState("2026-11-26", new Date("2026-11-26T16:00:00Z"))).toBe("last_session");
+  });
+
+  it("keeps the local open across the DST change", () => {
+    expect(usOptionsSessionState("2026-11-02", new Date("2026-11-02T14:29:00Z"))).toBe("last_session");
+    expect(usOptionsSessionState("2026-11-02", new Date("2026-11-02T14:30:00Z"))).toBe("regular");
+  });
+
+  it("fails closed outside the session projection", () => {
+    expect(usOptionsSessionState("2029-01-03", new Date("2029-01-03T16:00:00Z"))).toBe("last_session");
+  });
 });
 
 describe("fixture contract", () => {

@@ -1,0 +1,40 @@
+{
+  "at": "2026-11-10T05:48:48.443101+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-lazy-readiness/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "15840",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T05:48:51.413680+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://localhost:47768",
+    "hostname": "localhost",
+    "pid": 15840,
+    "port": 47768,
+    "startedAt": 1794289697440
+  },
+  "lockPresent": true,
+  "lockSha256": "23b49659703955f9773f80ed8e4d1b1cc9cb17525afc090fa099633133b57766",
+  "port": 47768,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

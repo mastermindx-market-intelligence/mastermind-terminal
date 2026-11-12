@@ -1,0 +1,36 @@
+{
+  "artifactSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9",
+  "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+  "sourceRecords": 408,
+  "range": {
+    "endNs": "1791207038243197233",
+    "startNs": "1791203397605792370"
+  },
+  "parameters": {
+    "minQuantity": 1000
+  },
+  "quantities": [
+    {
+      "quantity": 1200,
+      "reports": 4
+    },
+    {
+      "quantity": 1100,
+      "reports": 5
+    },
+    {
+      "quantity": 1200,
+      "reports": 6
+    }
+  ],
+  "footer": [
+    "Large trades \u00b7 Historical \u00b7 NVDA \u00b7 IEX \u00b7 This venue only \u00b7 shares \u00b7 2026-10-05",
+    "Minimum executed quantity: 1,000 shares \u00b7 Distinct orders: Not available",
+    "Partial coverage \u2014 totals describe the captured records.",
+    "Historical reconstruction from a later-acquired archive. Original decision-time availability is not established.",
+    "Data provided for free by IEX. By accessing or using IEX Historical Data, you agree to the IEX Historical Data Terms of Use.",
+    "https://www.iex.io/legal/hist-data-terms"
+  ],
+  "transport": "Explicit same-origin historical interception, not production publication",
+  "chartCoordinates": "OHLC from the same partial IEX executions; no candle-derived execution quantities"
+}

@@ -1,0 +1,61 @@
+{
+  "preservedFromRepositoryCommit": "0f077993fc1a1244531f825d3d829491f47d338c",
+  "previousCapturedAtHead": "961223d9e1713a5e4773b4422faa463f303843ef",
+  "reason": "Preserve complete previous active packet before PR1414 actual-source recapture; no historical evidence is relabeled.",
+  "files": [
+    {
+      "file": "EVIDENCE.yml",
+      "git_blob": "a04e41f8bafec2549359df8579a98d04de11672b",
+      "sha256": "4e007507824209e9ebddbbbacb742fd6e5af0dc235023a6364459f762ba691a7",
+      "bytes": 2127
+    },
+    {
+      "file": "desktop-en-condition.png",
+      "git_blob": "7ed790a117c182c6c64b57cceca44319daae5a3e",
+      "sha256": "d0308436804fbb9e06bdf92b9a73c53bb5ae904eeb856e79ee72fc5c6e2c55fd",
+      "bytes": 50612
+    },
+    {
+      "file": "desktop-en-typed-null.png",
+      "git_blob": "272028651352bee9c006be5bb665a1b345b57e2a",
+      "sha256": "ca6593db5288092d66f010db9209c9393c384d8d104230047e324df80dd9c3f1",
+      "bytes": 51134
+    },
+    {
+      "file": "desktop-zh-condition.png",
+      "git_blob": "88786cb1cf12ac28f3f0f3062e6b1dae30bf812a",
+      "sha256": "1de0e5cd47ca319a41f38380cedf5cec3ed5a94ac97b65f71b350c984666ec49",
+      "bytes": 52739
+    },
+    {
+      "file": "desktop-zh-typed-null.png",
+      "git_blob": "f2e47dc3d259081efe8e61655309a189b99fc967",
+      "sha256": "bc91fc6fcc176ac7fbe7d08807633bc4875019f5b6d32bc6e3652f098ebdf348",
+      "bytes": 54209
+    },
+    {
+      "file": "mobile-en-condition.png",
+      "git_blob": "9f82f94614a783c6bdf73a23c7efca0e898cb9a5",
+      "sha256": "1c5e165c827ad0479eb8c540ab5a1d9e46e2300b154bd0c7674473a84bd8adfe",
+      "bytes": 48110
+    },
+    {
+      "file": "mobile-en-typed-null.png",
+      "git_blob": "5eb2bf168fdfca4301eb71e3edd7f763654029f7",
+      "sha256": "c7d91384df75a0d196ee7c30b4115cdf5f58c8dcac6c976cab7774eac57d3bb6",
+      "bytes": 48544
+    },
+    {
+      "file": "mobile-zh-condition.png",
+      "git_blob": "417816078439771af789222e64fe67096e6b9b12",
+      "sha256": "76b9239b2c7ef2e923e3d4d4b28bb685a1a84298672012d13afc5b82447220e6",
+      "bytes": 52000
+    },
+    {
+      "file": "mobile-zh-typed-null.png",
+      "git_blob": "6972185f0a779f3fc0f8a1518f6834c94b4a89b4",
+      "sha256": "773c75c618a515fe49c1583c177114be5b2704d1c7b15c3ae9c06a02cc985aa4",
+      "bytes": 52811
+    }
+  ]
+}

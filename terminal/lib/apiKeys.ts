@@ -81,7 +81,7 @@ export async function listApiKeys(db: ApiKeysDb, userId: string): Promise<
 
 export type MintResult =
   | { ok: true; key: ApiKeyMeta; secret: string }
-  | { ok: false; status: "limit" | "unavailable" | "invalid_label"; error: string };
+  | { ok: false; status: "limit" | "unavailable" | "invalid_label" | "invalid_scopes"; error: string };
 
 const LABEL_MAX = 80;
 const CONTROL = /[\u0000-\u001f\u007f]/;
@@ -93,11 +93,24 @@ export function normalizeKeyLabel(value: unknown): string | null {
   return label;
 }
 
+export function normalizeKeyScopes(value: unknown): string[] | null {
+  if (value === undefined) return ["read"];
+  if (!Array.isArray(value)) return null;
+  if (value.length === 1 && value[0] === "read") return ["read"];
+  if (value.length === 2 && value.includes("read") && value.includes("watchlists:write")) {
+    return ["read", "watchlists:write"];
+  }
+  return null;
+}
+
 export async function mintApiKey(
   db: ApiKeysDb,
   userId: string,
   labelRaw: unknown,
+  scopesRaw?: unknown,
 ): Promise<MintResult> {
+  const scopes = normalizeKeyScopes(scopesRaw);
+  if (!scopes) return { ok: false, status: "invalid_scopes", error: "invalid_scopes" };
   const label = normalizeKeyLabel(labelRaw);
   if (!label) return { ok: false, status: "invalid_label", error: "invalid_label" };
 
@@ -123,7 +136,7 @@ export async function mintApiKey(
       key_salt,
       key_prefix,
       label,
-      scopes: ["read"],
+      scopes,
     })
     .select(META_FIELDS)
     .maybeSingle();

@@ -2,10 +2,14 @@
 # check_cnhk_fresh.sh — dead-man watcher for the nightly CN/HK refresh lane.
 #
 # Mirrors the Macro Dashboard healthcheck idiom (run_status.json heartbeat + staleness
-# limit + best-effort push): fails non-zero and alerts when either
-#   (1) the lane's local stamp (cnhk-src/cnhk_status.json last_success) is > 30h old, or
+# limit + best-effort push): fails non-zero and alerts when any of
+#   (1) the lane's local stamp (cnhk-src/cnhk_status.json last_success) is > 30h old,
 #   (2) the actually-served VPS sentinel files stopped advancing (> 48h mtime) — this
-#       catches silent rsync failures the local stamp cannot see.
+#       catches silent rsync failures the local stamp cannot see, or
+#   (3) the most recent run reported INCOMPLETE (stamp "exit" holds a nonzero rc). Neither
+#       (1) nor (2) could see the 2026-10-22 false-green: that run stamped a FRESH
+#       last_success and rsynced placeholder files, so both looked perfectly healthy while
+#       the deep caches were empty. (3) reports it on the day it happens.
 #
 # Alert channels: /tmp/mm_cnhk_watch.log ALERT line + macOS notification + optional
 # Telegram push when TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID are set in ~/.mm-fund.env.
@@ -54,6 +58,32 @@ PYEOF
     -1) add_fail "stamp has no last_success (lane runs but never fully succeeded)" ;;
     -2) add_fail "unreadable stamp at $STAMP" ;;
     *)  awk "BEGIN{exit !($AGE_H > $MAX_STAMP_AGE_H)}" && add_fail "STALE: last CN/HK success ${AGE_H}h ago (limit ${MAX_STAMP_AGE_H}h)" ;;
+  esac
+
+  # 1b. A run that reported INCOMPLETE. This is the check that catches the 2026-10-22
+  # false-green: the lane stamped a fresh last_success while a rejected Tushare token had
+  # zeroed the deep caches. last_success stays put until a run fully succeeds, so staleness
+  # alone only fires 30h later — by which time the data has been wrong for a day. Here the
+  # incomplete run is reported the day it happens.
+  INCOMPLETE=$("$PYBIN" - "$STAMP" <<'PYEOF'
+import json, sys
+try:
+    s = json.load(open(sys.argv[1]))
+except Exception:
+    print("unreadable"); raise SystemExit
+ex = s.get("exit")
+if not isinstance(ex, dict) or not ex:
+    print("none"); raise SystemExit          # pre-2026-10-21 stamp: no exit detail recorded
+bad = {k: v for k, v in ex.items() if v}
+if bad:
+    print("stage(s) " + " ".join(f"{k}={v}" for k, v in sorted(bad.items())))
+else:
+    print("none")
+PYEOF
+)
+  case "$INCOMPLETE" in
+    none|unreadable) ;;
+    *) add_fail "INCOMPLETE: last nightly ran but a required stage failed ($INCOMPLETE)" ;;
   esac
 fi
 

@@ -1,0 +1,29 @@
+{
+  "after": {
+    "listenerExit": 1,
+    "listenerStderr": "",
+    "listeners": "",
+    "lockHandles": "",
+    "lockHandlesExit": null,
+    "workspaceCwdHolders": []
+  },
+  "before": {
+    "listenerExit": 1,
+    "listenerStderr": "",
+    "listeners": "",
+    "lockHandles": "",
+    "lockHandlesExit": 1,
+    "workspaceCwdHolders": []
+  },
+  "lockPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-cycle-width-support-20261111-c3/terminal/.next/dev/lock",
+  "originalDriverPid": 51979,
+  "port": 57735,
+  "recordedAt": "2026-11-11T14:17:41.883381+00:00",
+  "removedStaleLock": {
+    "device": 16777247,
+    "inode": 77203238,
+    "sha256": "629f98bc5def0e9d1220803100f042c51001b119c9c2ed9753ee5ec8a6c0f4ee",
+    "size": 109
+  },
+  "state": "OWNED_CAPTURE_SETTLED"
+}

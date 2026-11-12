@@ -1,0 +1,65 @@
+# Complete original ticker-news capture: 14 passed, 7 authored project skips, no failures/flakes/retries.
+# Qualified unmodified artifact 13880173297 from CI 43018161734, original serial job 130514839227.
+# Actual runner: self-hosted ubuntu0-e2e-3; schema name does not imply GitHub-hosted execution.
+# Proof: docs/verification/pr1403-ticker-after1407-import-20261111/qualification.json
+# Prior packet retained at original source head and in the additive proof/prior directory.
+# Browser viewport sizes and element PNG dimensions are distinct.
+capturedAtHead: 204cdbc6f806b52fad93232dd8aa0b82ea9d3e3d
+layoutFiles:
+  - path: terminal/components/news/TickerNewsPanel.tsx
+    sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
+  - path: terminal/components/news/TickerNewsPanel.module.css
+    sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb
+crops:
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: live-feed
+    sha256: de91b52f5a7dfeae5e149d812d21afed7ce69e6f11512aeaf01a0eb97d54e5e3
+  - file: desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: live-feed
+    sha256: 05fa414585cc4344cbf331d034e666f9b53baae536aaad7b214c85f455f5b9b1
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: live-feed
+    sha256: 8dfafe5d85dc21c96eba188aafae74bf93e40e3ae5530e99f9848ba160a4c5fd
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: live-feed
+    sha256: b1d6553ac8d5b33194e0df38610b571e36324a4202510421737e26cfb9eb8bfa
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: live-feed
+    sha256: 76de39d18a3df8a7fe5e2fb33265a8721256b020d7370dae6516541b6b4e2452
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: live-feed
+    sha256: 6c02582628415fa14a238c4736dc5190669988aa95ddb71bf542fa6fe5fba4ee
+  - file: unavailable-desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    sha256: fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae
+  - file: unavailable-desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    sha256: 0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e
+  - file: unavailable-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    sha256: e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a
+  - file: unavailable-mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    sha256: 267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9

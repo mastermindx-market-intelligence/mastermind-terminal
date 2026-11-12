@@ -1,0 +1,59 @@
+{
+  "completedAt": "2026-11-10T04:48:50.262641+00:00",
+  "results": {
+    "chart-layers": {
+      "executionSha256": "708f71aa084a1aa1cf0a2c860cc214ca6a575f2624a5756e3b6393cf76cd212e",
+      "exit": 0,
+      "ownedServerStopped": true,
+      "seconds": 98.35,
+      "sourceStable": true,
+      "state": "QUALIFIED",
+      "stats": {
+        "duration": 92658.838,
+        "expected": 7,
+        "flaky": 0,
+        "skipped": 2,
+        "startTime": "2026-11-10T04:47:12.303Z",
+        "unexpected": 0
+      }
+    },
+    "workspace-library": {
+      "executionSha256": "8793f2fe466dfa0ecbc542554d281f047b993aa64c38540aed655bf10a0a3a70",
+      "exit": 0,
+      "ownedServerStopped": true,
+      "seconds": 313.11,
+      "sourceStable": true,
+      "state": "QUALIFIED",
+      "stats": {
+        "duration": 304218.98,
+        "expected": 16,
+        "flaky": 0,
+        "skipped": 2,
+        "startTime": "2026-11-10T04:38:56.058Z",
+        "unexpected": 0
+      }
+    },
+    "workspace-states": {
+      "executionSha256": "7bad4b9f1f984a899747db44778d9052e6928e98f0cf075c21f943cee8da678d",
+      "exit": 0,
+      "ownedServerStopped": true,
+      "seconds": 175.1,
+      "sourceStable": true,
+      "state": "QUALIFIED",
+      "stats": {
+        "duration": 162390.158,
+        "expected": 9,
+        "flaky": 0,
+        "skipped": 0,
+        "startTime": "2026-11-10T04:44:13.408Z",
+        "unexpected": 0
+      }
+    }
+  },
+  "schema": "terminal_pr1407_style_browser_qualification.v1",
+  "sourceEntries": 1981,
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T04:38:53.268473+00:00",
+  "state": "QUALIFIED"
+}

@@ -1,0 +1,9 @@
+{
+  "state": "EXISTING_APPEARANCE_TOKENS_WIRED_IN_HARNESS",
+  "harnessBlob": "1a9c2df6c732698d9b2fd2c14226571aab79ed8f",
+  "harnessSha256": "f24c19fe6f4df20564ac8c46ba97e60e5383fc5fef9c939710a8b6f00d668512",
+  "specBlob": "8d43865561aeae3b4c51a409a6a11ecec9070748",
+  "specSha256": "7b75db7faf95c5023c36b7108a107e2eb574792f33f52bcec4e823b10d8633b3",
+  "priorFixedProof": "Geometry valid; Light-labelled captures did not activate the actual light material",
+  "productPanelBlob": "e8365ed513c043b0adea8bc441d464914306d5d8"
+}

@@ -1,0 +1,68 @@
+schema: mastermind.terminal.ui_evidence.v1
+title: Research Workspace Market vNext integration and summary hierarchy
+operation: terminal-research-market-vnext-release-20260926-sol-001
+capability_state: BUILT_NOT_PROVEN
+paper:
+  file_id: 01M2WGNCX9475G79JRKJTCM08P
+  page_id: p-4-1
+  artboards: [NED-0, OG8-0]
+  read_method: Studio Direct paper_read get_screenshot with exact file and artboard IDs
+  observed_token_hash: 5ae876bc
+  mutation_performed: false
+source:
+  feature_head: 90791d2c56dd0a77aadce49fc11d61e8ebd58bc2
+  integrated_master: 61d55a7e1d12a9104f90d17bfa2cd8b16982ac6f
+  integration_head: 38eee8234af0d3820ada1d6dc9fddf3d402523e4
+  integration_tree: 77961f2620b7ac0821f6304789e3d40bad7c26cf
+  conflict_path: terminal/e2e/research-workspace-nav.spec.ts
+  conflict_resolution: Preserved both the Market tests and the accepted Ownership-family test verbatim.
+  source_branch: sol/research-market-vnext-20260924-sol-001
+surface:
+  route: /analysis?symbol=NVDA&page=technicals
+  theme: dark
+  fixture: marketBarsFixture through the canonical data route
+  production_data: false
+  captures: [desktop-en.png, tablet-en.png, mobile-en.png, mobile-zh.png]
+  note: Screenshots are local fixture evidence, not production acceptance.
+layout_repair:
+  before: Seasonality was below full indicator and pivot tables rather than in the overview.
+  after: State, rating and seasonality precede deep detail; desktop keeps the pivot map beside rating.
+  mobile_detail: Four summary metrics match OG8-0; SMA 20 remains available in the full moving-average table.
+  preserved: All canonical calculations, existing timeframes, full metric tables and source boundaries.
+  seasonality_top_px:
+    desktop_en: {before: 1562.21875, after: 659.71875}
+    tablet_en: {before: 1870.65625, after: 625.890625}
+    mobile_en: {before: 2578.90625, after: 675.28125}
+    mobile_zh: {before: 2526.90625, after: 641.28125}
+verification:
+  layout_red: Two expected desktop/mobile failures before repair.
+  layout_green: Three passes across desktop/tablet/mobile after repair.
+  full_unit: "390 files passed; 6271 tests passed; 4 todo; 0 failures"
+  research_workspace_browser: "16 passed; 2 intentional mobile-only skips; 0 failures"
+  typescript: PASS
+  focused_e2e_eslint: PASS
+  added_line_plain_language: "PASS; six pre-existing findings remain"
+  diff_check: PASS
+  whole_product_eslint: "Two pre-existing errors; no clean whole-file lint claim"
+  whole_product_eslint_findings:
+    - "TechnicalsPage.tsx toBars legacy any[]: @typescript-eslint/no-explicit-any"
+    - "TechnicalsPage.tsx legacy setIntraBars([]) effect: react-hooks/set-state-in-effect"
+  viewports: [1440x900, 820x1180, 390x844]
+  horizontal_document_overflow_px: 0
+  visual_review: "Commissioning Sol PASS on captured desktop, tablet and mobile hierarchy; not independent review"
+capture_sha256:
+  desktop-en.png: 1a02ccebe84383c0f9b0e390ba582c0575613503ebc4e53f03cebaf9b93eec2e
+  tablet-en.png: 42f15a236bd24bc1562894b517f649698c4b629b9f2072156d53b015dc1e297e
+  mobile-en.png: 63b73f2a6f4653d0203ed500fa1c38cabaaaae5c700b1b9896b463fc8e64608a
+  mobile-zh.png: 7626440f9b4d22cf3b4e0248faec3f5c1d50dfd90a24a82a02973b906261441d
+truth_boundaries:
+  - MACD is the existing canonical line, not an invented histogram implementation.
+  - Technical ratings remain descriptive, not trade signals.
+  - Pivot levels remain deterministic references, not forecasts.
+  - Seasonality remains historical recurrence with explicit small-sample limits.
+  - No duplicate indicator, navigation, data, or deployment owner is introduced.
+release_boundary:
+  hosted_ci: Required on the final published head; local results do not substitute.
+  independent_review: Not claimed by this evidence file.
+  protected_merge: Not performed by this local validation.
+  production_acceptance: Not performed; real served-browser proof remains owed.

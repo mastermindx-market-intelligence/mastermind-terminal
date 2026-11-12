@@ -1,0 +1,335 @@
+{
+  "schema": "company-search.alternate-listing-journey.v1",
+  "task": "P12.T25",
+  "candidate_head": "eeaf117983cf7a56bf715bdc60425b90bb2cf2ba",
+  "captured_source": "Actual working source, sealed in8934ed4bd then integrated unchanged with protectedb79b1e1; sourceFiles bind the tested product bytes",
+  "scope": "Real Next local dev Analysis preview, frozen existing public emits; no authenticated or served release acceptance",
+  "browser_report": "browser-report.json",
+  "stats": {
+    "startTime": "2026-11-03T01:48:07.661Z",
+    "duration": 34468.039000000004,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sourceFiles": {
+    "terminal/components/CompanyListingIdentity.tsx": "6d4347aafef93cfdaa1de89dada550f0f61953488e7166b146fdfc349bea77b7",
+    "terminal/components/CompanyListingIdentity.module.css": "29788c51e58e5e972be0335d490685cb8512a3fbd8bdbe35aa4663e2fe2f70a3",
+    "terminal/components/SearchModal.tsx": "d1522bfdaa7c5cd223e5024aa3698104ea404d9c46a5854b17e86da3ea570818",
+    "terminal/components/SearchModal.module.css": "c07ad2028e36b1c70be969a9ab55d8d289dfcfeeceb18be5c5de3d1b18bbbaa9",
+    "terminal/components/SymbolPicker.tsx": "0aa9f20b5f5a76b917dbb0e54bd3d5f467d8bb23bc8e642befe1fd10525f252f",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx": "6ec2cdc819392b1c9a13bc7bbd066d49955061d166f33d498be37c57a9af0c69",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b",
+    "terminal/lib/companySearchContext.ts": "ee780295ea796509bbfdf92688ddd522144cd38f0fb82925a8ca31acfdaf4b12",
+    "terminal/lib/dataCache.ts": "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be",
+    "terminal/lib/fund.ts": "37bb8a8631fcc5ee0dd748079e17397dfa520a707eb07f164de95122c0b25808",
+    "terminal/e2e/company-alternate-listing.spec.ts": "b673ffab36c303c2e026b63b2209bd9ba4ce31d58fe66e177af1ab1f51faf264",
+    "terminal/e2e/fixtures/company-search-published.json": "900676a7b5a57c44ec8602feb2d241746157cac2a75024e2d30587caf036fce0",
+    "terminal/playwright.company-search.config.ts": "1d674d1c5cbbdd9f857eadc750ddaf8188c3225901584f8f0c2690393a310d71"
+  },
+  "source_provenance": {
+    "manifest": {
+      "url": "https://app.mastermind-x.com/data/manifest.json",
+      "sha256": "b524c06d816823a550f5198faf2d8c7bef191c7385e44d2304323b94fb1e3e34"
+    },
+    "BABA": {
+      "url": "https://app.mastermind-x.com/data/BABA.fund.json",
+      "sha256": "9f391e4cba54cc1643114da1bfb81bf8e1a26a2973083775b6634535cdc6a7b8"
+    },
+    "9988.HK": {
+      "url": "https://app.mastermind-x.com/data/9988.HK.fund.json",
+      "sha256": "d0516c2cb24b3c33e79f3b37c93247cc0ed9c4392d2cfe04c19000042ca20bf2"
+    }
+  },
+  "cases": [
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "language": "zh",
+      "selected_listing_capture": "desktop-dark-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "bd355015c2a39bfd7f6407c4bfe67701033e0181799e99659d466e36f4df6fcd",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-desktop/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "858e01481d894062ee2367ce224a54b07c1f111ce34ebea1da2b7423ffeb3dd0",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-desktop/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "8df9814723056e5a009082e9600afb666e1e86ea23da720710724ff0b484b5d4",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-desktop/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "language": "zh",
+      "selected_listing_capture": "mobile-dark-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "e9edd4daa71b2e366a7d318f40b83594628cbd18c96bad996af6873574c36207",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-mobile/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "e87619dd1420eeeab6c7a7f12e137bfb87024949e4c37c4d654cd7f74fccbe89",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-mobile/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "6ff2a61ffb5a882b4c4172a890425857c609755749fcf414bc9f92b5abce4a53",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-mobile/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "tablet",
+      "theme": "dark",
+      "language": "zh",
+      "selected_listing_capture": "tablet-dark-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "e488e28492e7ba62f3786744eb88823aececc387f9046e285369810668b28575",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-tablet/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "da079d26e7ee155b50a57066ecdaf03f3c4a5d34e5926ee0b64f9213ec504ade",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-tablet/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "ae77f0a973ef7987cb102ab5646c662948303fa3a7bc3b91b7d793c7698f431b",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--529e5-ysis-→-exact-Back-and-query-tablet/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "desktop",
+      "theme": "dark",
+      "language": "en",
+      "selected_listing_capture": "desktop-dark-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "777a82189e321db4369875001f6c91ea7116e60da026a98df3202bd454a46e25",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-desktop/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "0c214404c6ee1aad80a72bb8a3fc3c1c6d7a7a2055d7053f29576288abe3bee0",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-desktop/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "0b50e5721f15390a558901c616d4dcacb46357004ca2abdc78b642b8a7b87785",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-desktop/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "dark",
+      "language": "en",
+      "selected_listing_capture": "mobile-dark-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "563787b2b851e54b6174a704964c0f4874369b340d9d8b52705c323f846d350f",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-mobile/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "455a48e1778a6aac0d9f908ae46028aa68e611e69e50f571a725baf987c79d54",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-mobile/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "8317ad113acfd155b60bbcf9d533c18dfcefeb6c47420db5f0bbbe44b302b945",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-mobile/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "tablet",
+      "theme": "dark",
+      "language": "en",
+      "selected_listing_capture": "tablet-dark-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "f9e9b77e82099930a8a17765a3fdac596985a7c6254db4a6a7002fa3513b836f",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-tablet/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "0ead4a5fe18dcd12c5d5f7bafbd7200ee0359bc5d15094fd11cde35bac16fa15",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-tablet/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "f906aeee5d5a11d2a28b64affa47f4734541eb7fd5c527b033fb9a7558c3cf1b",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--61668-ysis-→-exact-Back-and-query-tablet/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "desktop",
+      "theme": "light",
+      "language": "zh",
+      "selected_listing_capture": "desktop-light-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "0dc4e49a47602b985100f31ef4e02115f3046ca90bc55ee17e1b7b3f7c0a7a11",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-desktop/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "eb4114067c80231ef519016fefabac58e221c37757f82e505f1017a811df175f",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-desktop/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "16d4dd05e4e9a26b3885ef926c295b3435fe252369d76016d5765cd3be80d0e9",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-desktop/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "language": "zh",
+      "selected_listing_capture": "mobile-light-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "f5b8a8533dca2428483b4ed1f42b0bd59878de625eafb7a394def35da995006f",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-mobile/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "a659497a355f4cd043103250dfe4b8a2386641234c16aa0aba998326f829d5ee",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-mobile/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "da5f8f7e933d35e4fb98ae1a6d322b5b8e3e704d6d5dfb5810fb7fa342db4658",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-mobile/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "tablet",
+      "theme": "light",
+      "language": "zh",
+      "selected_listing_capture": "tablet-light-zh-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "9970dd572d321903ca6ee0b344fff22a821a693e40bcfdd3b6635e942f8f21ad",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-tablet/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "1bc6f02bc492a9b6ac6f9f82810ad6154d275348f824ca15d37e995a302e3bc2",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-tablet/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "fc0ff23176be5cf39336d3ebe3133f27944024a328c7277646d98dccae10ccd4",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--76fc8-ysis-→-exact-Back-and-query-tablet/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "desktop",
+      "theme": "light",
+      "language": "en",
+      "selected_listing_capture": "desktop-light-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "bd3a97b7573c1a206914329bf76cad9ff306c7ce0303f7ee250d6a94d48e6bdb",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-desktop/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "bc0e055a090c5a4688d32d14e26bc094262f3f7e4079a8275c8bf194a72bc7c7",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-desktop/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "4c65b50a01ba367e85e5018163ac27bd30d599570f8f423b87e376626cce61e6",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-desktop/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "mobile",
+      "theme": "light",
+      "language": "en",
+      "selected_listing_capture": "mobile-light-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "2398b8ae68d2fcd735bd4a92062e88fadd7e7ab08bdfe5bfd9ca7265ed78104d",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-mobile/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "31e78d515998d9e4ea239c6e8fdcd1b55a0d8532433ef96d1369302841933353",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-mobile/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "0a787e89aacf6ab394f2785ed9f8a7193bcdd2fed0bbe9ea36bd074ca50c6fbe",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-mobile/returned-search.png"
+        }
+      ]
+    },
+    {
+      "device": "tablet",
+      "theme": "light",
+      "language": "en",
+      "selected_listing_capture": "tablet-light-en-selected-listing.png",
+      "steps": [
+        {
+          "step": "selected-listing.png",
+          "sha256": "ca0e521e7be3787f3d3a4f2666f84a625d3740ce62e13dd1573182f6bcb8a8c9",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-tablet/selected-listing.png"
+        },
+        {
+          "step": "analysis-identity.png",
+          "sha256": "1e33564f507c0174464be7f485260318543311a16a4d4e96f031dafeab6a6b13",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-tablet/analysis-identity.png"
+        },
+        {
+          "step": "returned-search.png",
+          "sha256": "d881e111a1ea74c9ee54edf4c27749fde9a18aef19068ceebbeaa9408fde8aef",
+          "retained_path": "/Volumes/Mastermind/evidence/alternate-listing-20261103-01a19e35/journey-repaired/company-alternate-listing--c2a76-ysis-→-exact-Back-and-query-tablet/returned-search.png"
+        }
+      ]
+    }
+  ],
+  "interaction": "Desktop keyboard selects9988.HK and Enter opens; tablet/mobile actualtap selects and opens. Preview/Analysis/Back preserve fullticker,sourceHKEX,quote_currencyHKD,typedAlibaba query; aria-selected restored. Allapi locally503; unknownfunds/intel/bars404 preserve unavailable. No paid/private provider calls.",
+  "visual_repair": "Tablet selectedaction gap799.53125px failed proximity check; company-only flex shrink repaired; all12actualNext cells thenpassed zero retries",
+  "art_directions": {
+    "dark": "Raised neutralpanel with evenhairline, compact identity+nextaction",
+    "light": "White material againstcoolcanvas, firmhairline andsharedshadow, sameidentity andaction semantics"
+  },
+  "remaining": [
+    "ProtectedCIandmerge",
+    "Actualnormalreleaseinclusion",
+    "Lawfulsigned-in beta/production acceptance; heldChrome untouched"
+  ],
+  "production_proof": false
+}

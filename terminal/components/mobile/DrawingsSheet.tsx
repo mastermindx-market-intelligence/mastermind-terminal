@@ -17,8 +17,12 @@ export type DrawingsSheetProps = {
   onClose: () => void;
   /** The armed tool, so its tile reads as selected. */
   activeTool: DrawKind | null;
-  /** Activates the tool through the dock's own code path; the sheet then closes itself. */
-  onPick: (id: DrawKind) => void;
+  /**
+   * Activates the tool through the dock's own code path; the sheet then closes itself. Return
+   * `false` when the parent refuses it (drawings not ready, creation disabled) so the tool is
+   * not recorded as recently used.
+   */
+  onPick: (id: DrawKind) => boolean | void;
 };
 
 // TV presents Drawings at ~62% of the screen with the chart still live above it (IMG_2366) and
@@ -69,8 +73,8 @@ export default function DrawingsSheet({ open, onClose, activeTool, onPick }: Dra
   }, [category, favorites, needle, t]);
 
   const pick = (tool: RegisteredDrawingTool) => {
-    setRecents(pushDrawRecent(tool.id));
-    onPick(tool.id);
+    // Favorites list what the user actually drew with: a refused pick leaves recents untouched.
+    if (onPick(tool.id) !== false) setRecents(pushDrawRecent(tool.id));
     onClose();
   };
 

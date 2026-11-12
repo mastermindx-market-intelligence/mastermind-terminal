@@ -4,7 +4,8 @@
  *
  * Two levels, in the order people actually reach for them:
  *   1. a preset (theme default / colourblind-safe / monochrome heat / classic)
- *   2. a per-metric inflow/outflow colour pair, for anyone who wants to hand-tune one field
+ *   2. a per-metric signed colour pair: inflow/outflow for premium, positive/negative
+ *      exposure for modeled Greeks
  *
  * Colour inputs are native `<input type="color">` — they emit `#rrggbb`, which is exactly
  * the shape surfaceTheme validates before anything reaches setProperty.
@@ -227,13 +228,15 @@ export function SurfaceStylePopover({ lang, theme, open, onOpenChange, onChange 
           {THEME_METRICS.map((metric) => {
             const pair = effectivePair(theme, metric);
             const inherit = INHERIT_VAR[metric];
+            const positiveLabel = metric === "netprem" ? t("stylePos") : t("styleExposurePos");
+            const negativeLabel = metric === "netprem" ? t("styleNeg") : t("styleExposureNeg");
             return (
               <div className="obs-surf-style-row" key={metric}>
                 <span className="obs-surf-style-row-lbl">{t(METRIC_LABEL[metric])}</span>
                 <input
                   type="color"
                   className="obs-surf-style-pick"
-                  aria-label={`${t(METRIC_LABEL[metric])} — ${t("stylePos")}`}
+                  aria-label={`${t(METRIC_LABEL[metric])} — ${positiveLabel}`}
                   value={pair?.pos ?? PRESETS.classic![metric].pos}
                   style={pair ? undefined : { background: inherit.pos }}
                   onChange={(e) => setPair(metric, "pos", e.target.value)}
@@ -241,7 +244,7 @@ export function SurfaceStylePopover({ lang, theme, open, onOpenChange, onChange 
                 <input
                   type="color"
                   className="obs-surf-style-pick"
-                  aria-label={`${t(METRIC_LABEL[metric])} — ${t("styleNeg")}`}
+                  aria-label={`${t(METRIC_LABEL[metric])} — ${negativeLabel}`}
                   value={pair?.neg ?? PRESETS.classic![metric].neg}
                   style={pair ? undefined : { background: inherit.neg }}
                   onChange={(e) => setPair(metric, "neg", e.target.value)}

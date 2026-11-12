@@ -1,0 +1,18 @@
+/* Existing result row, expanded only for its native denominator convention. */
+.metricContext :global(.ci-paper-results-row) {
+  grid-template-columns: minmax(0, 1fr) 10px;
+  gap: 4px 9px;
+}
+.metricContext :global(.ci-paper-results-row) > span,
+.metricContext :global(.ci-paper-results-row) > strong,
+.metricContext :global(.ci-paper-results-row) > small {
+  display: block;
+  grid-column: 1;
+  max-width: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.metricContext :global(.ci-paper-results-row) > i {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+}

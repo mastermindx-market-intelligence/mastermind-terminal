@@ -102,6 +102,24 @@ describe("/api/event-workspace/[symbol]", () => {
     ]));
   });
 
+  it.each([403, 429, 500, 503])("returns retryable 503 when the publication marker returns HTTP %s", async (status) => {
+    installR2(() => new Response("unavailable", { status }));
+    const res = await GET(req(), params("AAPL"));
+    expect(res.status).toBe(503);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(await json(res)).toMatchObject({ ok: false, available: false, error: { code: "upstream_unavailable", retryable: true } });
+    expect(calls).toHaveLength(1);
+    expect(fetchOptions[0]).toMatchObject({ cache: "no-store", redirect: "error" });
+  });
+
+  it("keeps a genuine missing marker as non-retryable 404", async () => {
+    installR2(() => new Response("missing", { status: 404 }));
+    const res = await GET(req(), params("AAPL"));
+    expect(res.status).toBe(404);
+    expect(await json(res)).toMatchObject({ ok: false, error: { code: "not_found", retryable: false } });
+    expect(calls).toHaveLength(1);
+  });
+
   it("rejects traversal before any R2 call", async () => {
     installR2(() => new Response("unexpected"));
     for (const symbol of ["AAPL/../../secret", "AAPL%2Fsecret", "aapl", "AAPL?x=1"]) {

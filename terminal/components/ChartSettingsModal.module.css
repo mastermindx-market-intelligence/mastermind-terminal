@@ -1,0 +1,100 @@
+/* Scoped to chart settings: existing chart canvas, global chrome and other dialogs stay untouched. */
+.dialog:global(.sm-backdrop) {
+  position: fixed; inset: 0; margin: 0; width: 100%; height: 100dvh;
+  max-width: none; max-height: none; padding: 24px; border: 0;
+  background: transparent; color: var(--text); box-sizing: border-box;
+  overflow: hidden; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.dialog:not([open]) { display: none; }
+.dialog[open] { display: flex; align-items: center; justify-content: center; }
+.dialog::backdrop { background: var(--pop-scrim, rgba(5, 7, 11, .64)); }
+.dialog :global(.sm-modal) {
+  width: 780px; max-width: 100%; height: min(740px, calc(100dvh - 48px));
+  background: var(--panel); color: var(--text); border: 1px solid var(--line-3);
+  border-radius: 16px; box-shadow: var(--pop-shadow); isolation: isolate;
+}
+.dialog :global(.sm-header) { height: 68px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+.dialog :global(.sm-title) { color: var(--text); font-size: 20px; letter-spacing: -.025em; }
+.dialog :global(.sm-close) { width: 44px; height: 44px; color: var(--text-2); border-radius: 10px; }
+.dialog :global(.sm-close:hover) { color: var(--text); background: var(--panel-3); }
+.dialog :global(.sm-body) { flex-direction: column; }
+.dialog :global(.sm-tabs) {
+  width: 100%; box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 12px 20px; gap: 6px; overflow: visible; border-bottom: 1px solid var(--line);
+}
+.dialog :global(.sm-tab) {
+  min-width: 0; height: auto; min-height: 44px; padding: 10px;
+  justify-content: center; gap: 8px; text-align: center; color: var(--text-2);
+  border: 1px solid transparent; border-radius: 8px; font-size: 13px; line-height: 1.3;
+}
+.dialog :global(.sm-tab span) { display: block; white-space: normal; }
+.dialog :global(.sm-tab:hover) { background: var(--panel-2); color: var(--text); }
+.dialog :global(.sm-tab.on) { background: var(--panel-3); border-color: var(--line-3); color: var(--text); }
+.dialog :global(.sm-tab.on .sm-tab-icon) { color: var(--brand-2); }
+.dialog :global(.sm-content) {
+  padding: 20px 24px; scrollbar-gutter: stable; scrollbar-color: var(--line-3) transparent;
+  overscroll-behavior: contain; scroll-padding-block: 12px;
+}
+.dialog :global(.sm-section-list) { gap: 16px; padding: 0; }
+.dialog :global(.sm-section) { padding: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; }
+.dialog :global(.sm-section h3) { color: var(--text-2); font-size: 11px; font-weight: 600; margin-bottom: 10px; }
+.dialog :global(.sm-row) { gap: 12px; min-height: 48px; padding: 2px 0; }
+.dialog :global(.sm-row-label), .dialog :global(.sm-check-label) { color: var(--text); font-size: 13px; line-height: 1.5; }
+.dialog :global(.sm-check-label) { min-height: 44px; }
+.dialog :global(.sm-check-label input) { background: var(--panel); border-color: var(--line-3); border-radius: 5px; }
+.dialog :global(.sm-check-label input:checked) { background: var(--brand); border-color: var(--brand); }
+.dialog :global(.sm-check-label input:checked:after) { border-color: white; }
+.dialog :global(.sm-help) { color: var(--text-2); font-size: 12px; line-height: 1.5; }
+.dialog :global(.sm-select), .dialog :global(.sm-number) {
+  color: var(--text); background: var(--panel); border-color: var(--line-3);
+  border-radius: 8px; min-width: 150px; height: 40px; font-size: 13px; max-width: 100%;
+}
+.dialog :global(.sm-select.small) { min-width: 72px; }
+.dialog :global(.sm-number) { min-width: 96px; width: 96px; font-variant-numeric: tabular-nums; }
+.dialog :global(.sm-number-wrap) { color: var(--text-2); }
+.dialog :global(.sm-color-wrap) { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 9px; }
+.dialog :global(.sm-color-wrap input[type=color]) { inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.dialog :global(.sm-color-swatch) { width: 30px; height: 30px; border: 3px solid var(--panel); outline: 1px solid var(--line-3); }
+.dialog :global(.sm-color-pair), .dialog :global(.sm-color-pair.three) { gap: 4px; }
+.dialog :global(.sm-range) { height: 44px; width: 150px; accent-color: var(--brand); }
+.dialog :global(.sm-footer) { height: 76px; padding: 0 24px; gap: 12px; border-color: var(--line); background: var(--panel); }
+.dialog :global(.sm-template) { width: 150px; }
+.dialog :global(.sm-reset), .dialog :global(.sm-cancel), .dialog :global(.sm-ok) {
+  min-height: 40px; height: auto; padding: 10px 16px; font-size: 13px; line-height: 1.2;
+  border-radius: 8px; color: var(--text); border-color: var(--line-3); background: var(--panel-2);
+}
+.dialog :global(.sm-reset:hover), .dialog :global(.sm-cancel:hover) { color: var(--text); background: var(--panel-3); }
+.dialog :global(.sm-ok) { color: white; background: var(--brand); border-color: var(--brand); }
+.dialog :global(.sm-ok:hover) { background: var(--brand-hov); }
+.dialog :global(button:focus-visible), .dialog :global(select:focus-visible),
+.dialog :global(input:focus-visible), .dialog :global(.sm-color-wrap:focus-within) {
+  outline: 2px solid var(--brand-2); outline-offset: 3px;
+}
+@media (pointer: coarse) {
+  .dialog :global(.sm-select), .dialog :global(.sm-number), .dialog :global(.sm-reset),
+  .dialog :global(.sm-cancel), .dialog :global(.sm-ok) { min-height: 44px; }
+}
+@media (max-width: 640px) {
+  .dialog :global(.sm-modal) { height: 92dvh; max-height: 92dvh !important; border-bottom: 0; }
+  .dialog :global(.sm-header) { height: 60px; padding: 0 16px; }
+  .dialog :global(.sm-tabs) { padding: 10px; gap: 4px; }
+  .dialog :global(.sm-tab) { flex-direction: column; padding: 8px 3px; gap: 5px; min-height: 66px; font-size: 11px; }
+  .dialog :global(.sm-tab-icon) { width: 18px; height: 18px; }
+  .dialog :global(.sm-content) { padding: 12px; }
+  .dialog :global(.sm-section) { padding: 12px; }
+  .dialog :global(.sm-row) { gap: 8px; }
+  .dialog :global(.sm-select) { min-width: 116px; width: 132px; }
+  .dialog :global(.sm-select.small) { min-width: 64px; width: 64px; }
+  .dialog :global(.sm-range) { width: 116px; }
+  .dialog :global(.sm-footer) { flex-direction: column; align-items: stretch; height: auto; padding: 12px 16px; gap: 10px; }
+  .dialog :global(.sm-template-wrap), .dialog :global(.sm-footer-actions) { width: 100%; }
+  .dialog :global(.sm-template) { flex: 1; min-width: 0; width: auto; }
+  .dialog :global(.sm-reset) { display: inline-flex; align-items: center; justify-content: center; }
+  .dialog :global(.sm-footer-actions) { justify-content: flex-end; }
+  .dialog :global(.sm-cancel), .dialog :global(.sm-ok) { flex: 1; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog :global(.sm-modal), .dialog :global(.sm-tab), .dialog :global(.sm-close),
+  .dialog :global(.sm-color-swatch), .dialog :global(.sm-reset), .dialog :global(.sm-cancel),
+  .dialog :global(.sm-ok) { animation: none !important; transition: none !important; }
+}

@@ -30,7 +30,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { makeGexT } from "./gexStrings";
 import type { Lang } from "@/lib/i18n";
-import type { MatrixDoc } from "./matrixDoc";
+import type { MatrixDoc, MatrixRead } from "./matrixDoc";
+import { flowInvalidate } from "@/lib/flowClientCache";
 import {
   fmtMatrixCell,
   matrixCellTone,
@@ -51,7 +52,7 @@ const ALIGNMENT_THRESHOLD = 0.5; // % — levels within this are "aligned"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MatrixConfluenceProps {
-  fetchMatrix: (root: string) => Promise<MatrixDoc | null>;
+  fetchMatrix: (root: string) => Promise<MatrixRead>;
   metric: MatrixMetric;
   lang: Lang;
 }
@@ -59,6 +60,7 @@ interface MatrixConfluenceProps {
 interface IndexData {
   payload: MatrixDoc | null;
   loading: boolean;
+  /** The last read did not land. A published absence is NOT an error. */
   error: boolean;
 }
 
@@ -210,22 +212,38 @@ export function MatrixConfluence({ fetchMatrix, metric, lang }: MatrixConfluence
   });
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const seqRef = useRef(0);
 
   const fetchAll = useCallback(async () => {
+    const seq = ++seqRef.current;
     const results = await Promise.all(
-      CONF_INDICES.map(async (idx) => {
-        const payload = await fetchMatrix(idx);
-        return { idx, payload };
-      })
+      CONF_INDICES.map(async (idx) => ({ idx, read: await fetchMatrix(idx) }))
     );
+    // A poll and a Retry can overlap: only the latest round may paint.
+    if (seq !== seqRef.current) return;
     setData((prev) => {
       const next = { ...prev };
-      for (const { idx, payload } of results) {
-        next[idx] = { payload, loading: false, error: payload == null };
+      for (const { idx, read } of results) {
+        // A read that did not land keeps the last payload on screen and says so; only
+        // a published absence (or bytes that are not this index's matrix) clears it.
+        next[idx] = read.status === "unavailable"
+          ? { payload: prev[idx].payload, loading: false, error: true }
+          : { payload: read.status === "data" ? read.doc : null, loading: false, error: false };
       }
       return next;
     });
   }, [fetchMatrix]);
+
+  const failed = CONF_INDICES.filter((idx) => data[idx].error);
+  // Never read: alignment across a partial set is not judged at all.
+  const unread = failed.filter((idx) => data[idx].payload == null);
+  // Read before, failed now: the last read stays, labelled as such.
+  const stale = failed.filter((idx) => data[idx].payload != null);
+
+  const retryFailed = useCallback(() => {
+    for (const idx of CONF_INDICES) if (data[idx].error) flowInvalidate(`matrix:${idx}`);
+    void fetchAll();
+  }, [data, fetchAll]);
 
   useEffect(() => {
     void fetchAll();
@@ -243,7 +261,7 @@ export function MatrixConfluence({ fetchMatrix, metric, lang }: MatrixConfluence
   };
 
   const bucketRows = computeBucketRows(payloads, metric);
-  const alignments = detectAlignments(payloads);
+  const alignments = unread.length > 0 ? [] : detectAlignments(payloads);
 
   // Max abs value across visible cells — the scale the eye compares within this grid.
   const allMags = bucketRows.flatMap((r) =>
@@ -388,8 +406,17 @@ export function MatrixConfluence({ fetchMatrix, metric, lang }: MatrixConfluence
         })}
       </div>
 
+      {/* A failed read is named, never shown as "no alignment" */}
+      {failed.length > 0 && (
+        <div style={READ_ERROR} data-testid="gex-confluence-error" role="alert">
+          {unread.length > 0 && <span>{t("confluenceError").replace("{roots}", unread.join(", "))}</span>}
+          {stale.length > 0 && <span>{t("confluenceStale").replace("{roots}", stale.join(", "))}</span>}
+          <button type="button" className="btn btn-ghost load-retry" onClick={retryFailed}>{t("errorRetry")}</button>
+        </div>
+      )}
+
       {/* No alignment notice */}
-      {alignments.length === 0 && !anyLoading && (
+      {alignments.length === 0 && !anyLoading && unread.length === 0 && (
         <div style={NO_ALIGNMENT}>{t("confluenceEmpty")}</div>
       )}
 
@@ -582,6 +609,18 @@ const NO_ALIGNMENT: React.CSSProperties = {
   padding: "10px 14px",
   fontSize: 11,
   color: "var(--muted)",
+  textAlign: "center",
+};
+
+const READ_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  padding: "8px 14px",
+  fontSize: 11,
+  color: "var(--text-2)",
   textAlign: "center",
 };
 

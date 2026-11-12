@@ -107,17 +107,25 @@ function ema(src: number[], len: number): number[] {
   const out: number[] = new Array(src.length).fill(NaN);
   const k = 2 / (len + 1);
   let prev = NaN;
+  let finiteCount = 0;
+  let seedSum = 0;
   for (let i = 0; i < src.length; i++) {
-    if (i < len - 1) continue;
-    if (isNaN(prev)) {
-      // seed with SMA of the first `len` values
-      let s = 0;
-      for (let j = i - len + 1; j <= i; j++) s += src[j];
-      prev = s / len;
-    } else {
-      prev = src[i] * k + prev * (1 - k);
+    const v = src[i];
+    if (!isFinite(v)) {
+      if (isFinite(prev)) out[i] = prev;
+      continue;
     }
-    out[i] = prev;
+    if (isNaN(prev)) {
+      seedSum += v;
+      finiteCount++;
+      if (finiteCount === len) {
+        prev = seedSum / len;
+        out[i] = prev;
+      }
+    } else {
+      prev = v * k + prev * (1 - k);
+      out[i] = prev;
+    }
   }
   return out;
 }
@@ -279,10 +287,9 @@ function macd(src: number[], fast = 12, slow = 26, sig = 9) {
   const ef = ema(src, fast);
   const es = ema(src, slow);
   const line = src.map((_, i) => ef[i] - es[i]);
-  const signal = ema(
-    line.map((x) => (isNaN(x) ? 0 : x)),
-    sig
-  ).map((v, i) => (isNaN(line[i]) ? NaN : v));
+  // The signal EMA begins only after `sig` real MACD observations exist. Replacing
+  // the MACD warmup NaNs with zero would fabricate an early signal and early vote.
+  const signal = ema(line, sig);
   return { line, signal };
 }
 

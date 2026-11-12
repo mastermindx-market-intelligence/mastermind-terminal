@@ -1,0 +1,24 @@
+{
+  "schema": "iw2.source_review.v1",
+  "carrier": "mastermind-terminal#777",
+  "operation": "iw2-g1-retained-investigation-20261003-001",
+  "source": "supabase/migrations/0028_investigations.sql",
+  "source_sha256": "1a4f1589affc36d73343355fb247fee7430b9bbb18b026aa2b493f8caf74c3c6",
+  "review_sha256": "aadffaa7f2223ca8a8e83f112660ad15635de530e92672a3c613009e86d41d4a",
+  "run_id": "rs_20261004T060128Z_56814",
+  "requested_pool": "grok",
+  "requested_model": "grok-4.6",
+  "verdict": "PASS",
+  "scope": "Static source-only review of four tables, owner RLS and four RPC surfaces",
+  "adjudication": "Accepted for the unchanged SQL hash; combined with separately executed PostgreSQL concurrency, RLS, replay, CAS and backup/restore tests. Does not accept application or live G1.",
+  "worker_returncode": 0,
+  "cleanup_proven": true,
+  "residual_count": 0,
+  "production_acceptance": false,
+  "post_review_amendment": {
+    "type": "comments_only",
+    "current_file_sha256": "149e1a8ab0568430429e895031f8bd6314670879a647e75a30b8c103cb5187ea",
+    "executable_sql_unchanged": true,
+    "reason": "Complete readback comments and record the applied ledger receipt."
+  }
+}

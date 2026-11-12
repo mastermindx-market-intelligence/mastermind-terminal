@@ -1,0 +1,295 @@
+{
+  "sourceHead": "c82b70d2cfa676405db574315c93de84fe8bc13d",
+  "protectedBase": "d1f4f42f5b5d170bd65e75e57d24ffb891207ca4",
+  "capturedAt": "2026-11-03T10:56:39.257444+00:00",
+  "fixture": "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+  "scope": "Actual gex- scoped failure-state recapture on composed Sector return and awaited archive selection, 54 cases, dark EN/ZH at 1440x900,820x1180,390x844. Other boards and all earlier records remain historical. Synthetic local source evidence only.",
+  "layoutFiles": {
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/gexdesk/GexDeskView.tsx": "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b",
+    "terminal/components/gexdesk/HeatSeekerCard.tsx": "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a",
+    "terminal/components/gexdesk/MarketStateCard.tsx": "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2",
+    "terminal/components/gexdesk/StrikeLadder.tsx": "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596",
+    "terminal/components/gexdesk/gexStrings.ts": "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/components/levels/LevelsView.tsx": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+    "terminal/components/levels/levelsLabels.ts": "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9",
+    "terminal/lib/heatmapStrings.ts": "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  },
+  "previousManifestGexDeskSha256": "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02",
+  "newImages": 0,
+  "reusedIdenticalImages": 54,
+  "images": [
+    {
+      "case": "gex-ladder-absent-1440-zh.png",
+      "file": "gex-ladder-absent-1440-zh.png",
+      "sha256": "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea"
+    },
+    {
+      "case": "gex-ladder-absent-1440.png",
+      "file": "gex-ladder-absent-1440.png",
+      "sha256": "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e"
+    },
+    {
+      "case": "gex-ladder-absent-390-zh.png",
+      "file": "gex-ladder-absent-390-zh.png",
+      "sha256": "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282"
+    },
+    {
+      "case": "gex-ladder-absent-390.png",
+      "file": "gex-ladder-absent-390.png",
+      "sha256": "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece"
+    },
+    {
+      "case": "gex-ladder-absent-820-zh.png",
+      "file": "gex-ladder-absent-820-zh.png",
+      "sha256": "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0"
+    },
+    {
+      "case": "gex-ladder-absent-820.png",
+      "file": "gex-ladder-absent-820.png",
+      "sha256": "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64"
+    },
+    {
+      "case": "gex-ladder-retried-1440-zh.png",
+      "file": "gex-ladder-retried-1440-zh.png",
+      "sha256": "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06"
+    },
+    {
+      "case": "gex-ladder-retried-1440.png",
+      "file": "gex-ladder-retried-1440.png",
+      "sha256": "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2"
+    },
+    {
+      "case": "gex-ladder-retried-390-zh.png",
+      "file": "gex-ladder-retried-390-zh.png",
+      "sha256": "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c"
+    },
+    {
+      "case": "gex-ladder-retried-390.png",
+      "file": "gex-ladder-retried-390.png",
+      "sha256": "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d"
+    },
+    {
+      "case": "gex-ladder-retried-820-zh.png",
+      "file": "gex-ladder-retried-820-zh.png",
+      "sha256": "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9"
+    },
+    {
+      "case": "gex-ladder-retried-820.png",
+      "file": "gex-ladder-retried-820.png",
+      "sha256": "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705"
+    },
+    {
+      "case": "gex-ladder-unavailable-1440-zh.png",
+      "file": "gex-ladder-unavailable-1440-zh.png",
+      "sha256": "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7"
+    },
+    {
+      "case": "gex-ladder-unavailable-1440.png",
+      "file": "gex-ladder-unavailable-1440.png",
+      "sha256": "9aee73c5d2dfab354dbf12db8712a691438a816e2350231bd0e1bd9e8e8ea6c3"
+    },
+    {
+      "case": "gex-ladder-unavailable-390-zh.png",
+      "file": "gex-ladder-unavailable-390-zh.png",
+      "sha256": "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1"
+    },
+    {
+      "case": "gex-ladder-unavailable-390.png",
+      "file": "gex-ladder-unavailable-390.png",
+      "sha256": "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55"
+    },
+    {
+      "case": "gex-ladder-unavailable-820-zh.png",
+      "file": "gex-ladder-unavailable-820-zh.png",
+      "sha256": "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e"
+    },
+    {
+      "case": "gex-ladder-unavailable-820.png",
+      "file": "gex-ladder-unavailable-820.png",
+      "sha256": "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1"
+    },
+    {
+      "case": "gex-live-refresh-failed-1440-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-1440-zh.png",
+      "sha256": "852d83d0855985c7be6a304db84cc7467208e761c66a86b9a4324282be58e42d"
+    },
+    {
+      "case": "gex-live-refresh-failed-1440.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-1440.png",
+      "sha256": "ac65ec7c2086dae2be445518d4945f4dcc6e77f55f88c91d92b152ea546492c4"
+    },
+    {
+      "case": "gex-live-refresh-failed-390-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-390-zh.png",
+      "sha256": "e18df29364df880ae9f284b02a50f9a6e006f40700ffcf8eedd9754614545536"
+    },
+    {
+      "case": "gex-live-refresh-failed-390.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-390.png",
+      "sha256": "a6b3363b2dc492f59d220062eb6216dc1f1ce46d558129b90cfb8160fd3f0b57"
+    },
+    {
+      "case": "gex-live-refresh-failed-820-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-820-zh.png",
+      "sha256": "ab70637827b775f03f46e186bb475c7c9e5e35c8494bf49606bd649d79b93342"
+    },
+    {
+      "case": "gex-live-refresh-failed-820.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-refresh-failed-820.png",
+      "sha256": "8af7a9113c50f238444f643a02cbdc47e55fe64551af2a8a209b07c9a6e212e0"
+    },
+    {
+      "case": "gex-live-retried-1440-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-1440-zh.png",
+      "sha256": "06a21ec57c44abe1c050de6fe764a50b87ffb0e14b1c7bca97a9cbcc6b2c1728"
+    },
+    {
+      "case": "gex-live-retried-1440.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-1440.png",
+      "sha256": "e9562dc4b379d9e80e05a14faafa569547beb0c25a53646e6b8ef3d4b1448ff3"
+    },
+    {
+      "case": "gex-live-retried-390-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-390-zh.png",
+      "sha256": "06d33196cc884a3c449a1710e949a8f48f99c9713445317ebc443b9eaf64430a"
+    },
+    {
+      "case": "gex-live-retried-390.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-390.png",
+      "sha256": "ea4ded8cbaf8037c685e7c8a66c05652f920d6dd041e7a8a632d1711bb0b3e26"
+    },
+    {
+      "case": "gex-live-retried-820-zh.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-820-zh.png",
+      "sha256": "46132efc9acba3955161781c127bcb4729369bb63865c05f0cadf3db6a66f34e"
+    },
+    {
+      "case": "gex-live-retried-820.png",
+      "file": "operations/1254-archive-6c629ce9/gex-live-retried-820.png",
+      "sha256": "a567269fce50e3635fe269a662b6ca7734f492ebb135312de922c59feffeddc2"
+    },
+    {
+      "case": "gex-pick-absent-1440-zh.png",
+      "file": "gex-pick-absent-1440-zh.png",
+      "sha256": "9475f836c43af0bf9ed679a7b864a1b5514feb33781b246b9194ed1ad1fe2ab3"
+    },
+    {
+      "case": "gex-pick-absent-1440.png",
+      "file": "gex-pick-absent-1440.png",
+      "sha256": "1c8944de7b273d1037c83dca731eadd810be6b2da217040030413bb65062b7d0"
+    },
+    {
+      "case": "gex-pick-absent-390-zh.png",
+      "file": "gex-pick-absent-390-zh.png",
+      "sha256": "83a861936b5f54891aeb0a22eed290cccf19c05153bd30fe3629e8b6d38c711f"
+    },
+    {
+      "case": "gex-pick-absent-390.png",
+      "file": "gex-pick-absent-390.png",
+      "sha256": "f60f2c6e0c43572e3b7063c53a6f632b6e5cab9d22fa14373a80dd2f6262950e"
+    },
+    {
+      "case": "gex-pick-absent-820-zh.png",
+      "file": "gex-pick-absent-820-zh.png",
+      "sha256": "3718d3782ffbfe2932afa4d8cedf9362ff34f1fbe425ab8cd62c5b001dc2e622"
+    },
+    {
+      "case": "gex-pick-absent-820.png",
+      "file": "gex-pick-absent-820.png",
+      "sha256": "fbed39a12dfb90cddb7395e32f00552bab1a54628dedac2f73745d081d967436"
+    },
+    {
+      "case": "gex-rail-retried-1440-zh.png",
+      "file": "gex-rail-retried-1440-zh.png",
+      "sha256": "b75d79ef1cacaa5cbfa4b1afab4a55a03ba4460ab0693f48b70475119ac23c65"
+    },
+    {
+      "case": "gex-rail-retried-1440.png",
+      "file": "gex-rail-retried-1440.png",
+      "sha256": "6bd52f366393ed5b5a169cb4fbc0841c7afc2bc3bc6a4c5917d7db9f96bbc0bb"
+    },
+    {
+      "case": "gex-rail-retried-390-zh.png",
+      "file": "gex-rail-retried-390-zh.png",
+      "sha256": "d4cd1528e0110283889dc3160f2a7d0feb810e138aa3d1347a9733ed3c3f97bb"
+    },
+    {
+      "case": "gex-rail-retried-390.png",
+      "file": "gex-rail-retried-390.png",
+      "sha256": "ff7c5764502f64095440074c43362ad32ca15470672233b7daf0cb1e4d3df5b1"
+    },
+    {
+      "case": "gex-rail-retried-820-zh.png",
+      "file": "gex-rail-retried-820-zh.png",
+      "sha256": "5c42d9a274c158a2a4ea6d3eee3ab6bd898a6351628b09140761647a1c9b5feb"
+    },
+    {
+      "case": "gex-rail-retried-820.png",
+      "file": "gex-rail-retried-820.png",
+      "sha256": "1802950008aedc2ac519adc5c8f962eb3db4776c409ae231d5849223f3a6dab9"
+    },
+    {
+      "case": "gex-rail-unavailable-1440-zh.png",
+      "file": "gex-rail-unavailable-1440-zh.png",
+      "sha256": "db3c8733acf6db4d7f2764e46d54f15aaa24019dc224692d78f39f337290961e"
+    },
+    {
+      "case": "gex-rail-unavailable-1440.png",
+      "file": "gex-rail-unavailable-1440.png",
+      "sha256": "7e353be28702f67da7d69a53b776e6399b985536f5aed0f195b18a7913f61ed2"
+    },
+    {
+      "case": "gex-rail-unavailable-390-zh.png",
+      "file": "gex-rail-unavailable-390-zh.png",
+      "sha256": "ad16ba032d5d07cbea93c4dfaca4cd45f1cd4a0f320d8f51722f43e7a43712bd"
+    },
+    {
+      "case": "gex-rail-unavailable-390.png",
+      "file": "gex-rail-unavailable-820.png",
+      "sha256": "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a"
+    },
+    {
+      "case": "gex-rail-unavailable-820-zh.png",
+      "file": "gex-rail-unavailable-820-zh.png",
+      "sha256": "bd826ef353be6517617b622181e8e398a924682c7805a629f3abd5dd9c729e6c"
+    },
+    {
+      "case": "gex-rail-unavailable-820.png",
+      "file": "gex-rail-unavailable-820.png",
+      "sha256": "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a"
+    },
+    {
+      "case": "gex-state-refresh-failed-1440-zh.png",
+      "file": "gex-state-refresh-failed-1440-zh.png",
+      "sha256": "0b7901d267417a69f33cc92ef88133ee23bb0c13ca2b4bae72b9a341f0304b81"
+    },
+    {
+      "case": "gex-state-refresh-failed-1440.png",
+      "file": "gex-state-refresh-failed-1440.png",
+      "sha256": "719ff0505a324e5bd1be31f8d4fb4bbca0611c6750ccb65cd283f4540d65a7f5"
+    },
+    {
+      "case": "gex-state-refresh-failed-390-zh.png",
+      "file": "gex-state-refresh-failed-390-zh.png",
+      "sha256": "8d2b104bee8b8cb477b483909f6821f80806a35a1954a5ebb26ecc5eeefb8550"
+    },
+    {
+      "case": "gex-state-refresh-failed-390.png",
+      "file": "gex-state-refresh-failed-390.png",
+      "sha256": "5d3ed82d199a7bc8ad02ee9e90bb936b10d016a47e70e34b9f26b4a4dc352174"
+    },
+    {
+      "case": "gex-state-refresh-failed-820-zh.png",
+      "file": "gex-state-refresh-failed-820-zh.png",
+      "sha256": "cd51a1e0cc706cbd9518bebe08dbb2e5631c0086cf2fe00f52a81c4bbbf65578"
+    },
+    {
+      "case": "gex-state-refresh-failed-820.png",
+      "file": "gex-state-refresh-failed-820.png",
+      "sha256": "7f3e9b620ea7d5ec408e73650b7dccafa57847c90c42980532cbb63f15040b1f"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 46ms
+
+ Test Files  571 passed (571)
+      Tests  9440 passed | 4 todo (9444)
+   Start at  01:56:29
+   Duration  55.80s (transform 10.35s, setup 0ms, collect 28.68s, tests 74.61s, environment 22.02s, prepare 23.22s)

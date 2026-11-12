@@ -1,0 +1,311 @@
+.root {
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.sub {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+
+.segBtn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.segBtn.on {
+  background: var(--brand);
+  color: var(--text);
+  font-weight: 650;
+}
+
+.tableToggle {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.segBtn:focus-visible,
+.tableToggle:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip.on {
+  border-color: var(--brand);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chipName {
+  font-weight: 600;
+}
+
+.chipVal {
+  font-size: 11px;
+}
+
+.chipVal[data-sign="up"] { color: var(--up); }
+.chipVal[data-sign="down"] { color: var(--down); }
+
+.chartbox {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+}
+
+.svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-opacity: 0.55;
+}
+
+.grid0 {
+  stroke-opacity: 0.95;
+}
+
+.axisY,
+.axisX {
+  fill: var(--text-2);
+  font-family: var(--font-num);
+  font-size: 10px;
+}
+
+.axisY { text-anchor: end; }
+
+.line {
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.turn {
+  stroke-width: 1.6;
+}
+
+.emptyTxt {
+  fill: var(--text-2);
+  font-size: 12px;
+  font-family: var(--font-ui);
+}
+
+.note {
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.noteSecondary {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  font-size: 10.5px;
+}
+
+.noteSecondary::before {
+  content: "◦ ";
+}
+
+.root > .global-unavailable,
+.root > section {
+  margin-top: 14px;
+}
+
+.tableWrap {
+  margin-top: 12px;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--font-num);
+  font-size: 11.5px;
+}
+
+.th,
+.td,
+.thRow {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.th,
+.thRow {
+  color: var(--text-2);
+  font-weight: 650;
+  text-align: right;
+  position: sticky;
+  top: 0;
+  background: var(--panel-2);
+  z-index: 1;
+}
+
+.th:first-child,
+.thRow {
+  text-align: left;
+  position: static;
+}
+
+.td[data-sign="up"] { color: var(--up); }
+.td[data-sign="down"] { color: var(--down); }
+
+.tableWrap:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+/* ── carried theme rows table (wire v1.1) ─────────────────────────────────
+ * Reuses .tableWrap/.table/.th/.td/.thRow above; only the block chrome,
+ * the perf-date line and the in-cell detail link are new. Semantic tokens
+ * only — no accent stripe on the container. */
+
+.rowsBlock {
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.rowsHead {
+  margin: 0 0 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* The table block's own small date lines (B2): its as-of, and the perf date
+ * when that differs from the as-of. */
+.perfAsOf {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+/* The theme name links to its subsector detail page when a conforming
+ * chart_key exists — rendered as an <a> (href) or a button (onNavigate). */
+.themeLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link) 45%, transparent);
+  text-underline-offset: 2px;
+}
+
+.themeLink:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .root { padding: 16px 15px; }
+  .head { flex-direction: column; gap: 4px; }
+  .segBtn { padding: 0 11px; font-size: 12px; }
+  .tableWrap { max-height: 260px; }
+  .table { font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

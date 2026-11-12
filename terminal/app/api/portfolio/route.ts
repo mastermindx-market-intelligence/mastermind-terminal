@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -26,6 +27,12 @@ import { getCachedArtifact } from "@/lib/artifactCache";
 // `deletePosition` re-resolve ownership before issuing any statement, so a foreign id is a 404
 // rather than a write that RLS silently drops.
 //
+// OWNER PRECONDITION (Sol ruling, PR1044, 2026-10-20): the single body field that names an owner,
+// `expectedOwnerId`, is COMPARISON-ONLY, never auth — it is only diffed against the session's
+// userId to refuse a stale-owner write with a fixed safe 409 before any mutation, and is never
+// used to select, look up or authorize a user. Omission preserves legacy behavior for every
+// existing caller (Settings, PortfolioView).
+//
 // TWO-ORGANISMS LAW (UWP-R2): nothing here feeds a signal, score, ranker or alert. These rows are
 // the user's own record of what they hold, read back to them.
 
@@ -51,6 +58,12 @@ async function resolveDb(): Promise<{ db: PortfolioDb; userId: string } | null> 
 
 const unauthenticated = () => NextResponse.json({ error: "unauthenticated" }, { status: 401 });
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
+
+/** True when the OPTIONAL `expectedOwnerId` refusal precondition fires: the field is supplied and
+ *  does not strictly equal this session's userId — null, nonstring and malformed values included.
+ *  Absent (undefined) is legacy. Comparison-only; see the owner-precondition note in the header. */
+const expectedOwnerMismatch = (body: Record<string, unknown>, userId: string): boolean =>
+  body.expectedOwnerId !== undefined && body.expectedOwnerId !== userId;
 
 /**
  * Every position the signed-in user holds, open and closed, oldest first.
@@ -83,21 +96,18 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 // from a build pass (a live curl with a real session is not an available proof method here);
 // see the PR body for the unit + e2e fixture proof and the live-verification gap.
 const STOCKDATA_BASE = process.env.STOCKDATA_BASE || "https://www.mastermind-x.com";
-// MINOR (round-2 review): allow-list the credential forward origin to the configured
-// STOCKDATA_BASE host ONLY. The URL every artifact fetch hits is always built from this same
-// constant, so a same-origin request is already structural — but a plain `fetch()` with the
-// default `redirect: "follow"` would re-attach the SAME `Cookie` header to wherever a 3xx
-// response's `Location` points, including a host neither this route nor its operator chose.
-// `fetchArtifactUncached` below sets `redirect: "manual"` and treats any redirect as
-// `unreadable` rather than following it, so the caller's session cookie can never leave this
-// one configured host no matter what an artifact response claims.
-const STOCKDATA_HOST = (() => {
+// Credential trust is independent of STOCKDATA_BASE: a configured destination cannot approve
+// itself. Only the fixed HTTPS Macro origin may receive the caller's session cookies; URL
+// credentials are refused even on that origin. Redirects are handled separately below.
+const APPROVED_MACRO_ORIGIN = "https://www.mastermind-x.com";
+function mayForwardArtifactCookie(url: string): boolean {
   try {
-    return new URL(STOCKDATA_BASE).host;
+    const target = new URL(url);
+    return target.origin === APPROVED_MACRO_ORIGIN && !target.username && !target.password;
   } catch {
-    return null;
+    return false;
   }
-})();
+}
 const ARTIFACT_FANOUT_CAP = 60;
 const ARTIFACT_CONCURRENCY = 8;
 const ARTIFACT_TIMEOUT_MS = 2500;
@@ -130,15 +140,9 @@ async function callerAuthCookieHeader(): Promise<string | null> {
 async function fetchArtifactUncached(ticker: string, cookieHeader: string | null): Promise<ArtifactState> {
   try {
     const url = `${STOCKDATA_BASE}/stockdata/${encodeURIComponent(ticker.toUpperCase())}.json`;
-    // MINOR (round-2 review): never forward the caller's session cookie anywhere but the
-    // configured STOCKDATA_HOST. Two layers, since either one alone is not quite enough: the
-    // explicit host comparison catches a malformed/misconfigured STOCKDATA_BASE at the source,
-    // and `redirect: "manual"` (never auto-following, so the default `redirect: "follow"` can
-    // never re-send this same Cookie header to whatever host a 3xx `Location` names) catches a
-    // same-host artifact response that tries to redirect elsewhere after the fact.
-    const forwardCookie = cookieHeader && STOCKDATA_HOST && new URL(url).host === STOCKDATA_HOST
-      ? cookieHeader
-      : null;
+    // Check the initial destination before attaching cookies. Manual redirects also prevent an
+    // approved response from forwarding them to a different destination through its Location.
+    const forwardCookie = cookieHeader && mayForwardArtifactCookie(url) ? cookieHeader : null;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(ARTIFACT_TIMEOUT_MS),
       cache: "no-store",
@@ -220,7 +224,7 @@ async function buildRisk(positions: readonly Position[], cookieHeader: string | 
     artifacts = {};
   }
   return computePortfolioRisk(
-    positions.map((p) => ({ ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, status: p.status })),
+    positions.map((p) => ({ ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, entryCurrency: p.entryCurrency, status: p.status })),
     artifacts,
     // MAJOR 2: `coverageSource` reports whether the caller's OWN session cookie was present for
     // this fan-out, never whether any individual read happened to succeed — an anonymous caller
@@ -259,7 +263,7 @@ async function buildRiskBounded(
   }
 }
 
-export async function GET() {
+export async function GET(req?: Request) {
   const session = await resolveDb();
   if (!session) return unauthenticated();
   const read = await readPositions(session.db, session.userId);
@@ -267,9 +271,16 @@ export async function GET() {
     console.error("portfolio GET failed:", read.error);
     return fail("portfolio unavailable", 503);
   }
+  const bookKey = portfolioBookKey(read.positions);
+  const headers = { "Cache-Control": "private, no-store" };
+  // Canonical reads and mutation confirmation must not pay for optional artifact fanout.
+  // The default response remains additive-compatible for existing consumers.
+  if (req && new URL(req.url).searchParams.get("view") === "positions") {
+    return NextResponse.json({ positions: read.positions, bookKey }, { headers });
+  }
   const cookieHeader = await callerAuthCookieHeader();
   const risk = await buildRiskBounded(read.positions, cookieHeader);
-  return NextResponse.json({ positions: read.positions, risk });
+  return NextResponse.json({ positions: read.positions, bookKey, risk }, { headers });
 }
 
 export async function POST(req: Request) {
@@ -279,13 +290,18 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return fail("invalid JSON", 400);
+  // Comparison-only owner precondition (see header): refused BEFORE any action dispatch or store
+  // call, so create/update/close/reopen/delete all share the one early 409.
+  if (expectedOwnerMismatch(body, userId)) return fail("owner mismatch", 409);
   const action = body.action;
 
   if (action === "create") {
     const result = await createPosition(db, userId, {
+      clientPositionId: body.clientPositionId,
       ticker: body.ticker,
       shares: body.shares,
       entryPrice: body.entryPrice,
+      entryCurrency: body.entryCurrency,
       entryDate: body.entryDate,
       notes: body.notes,
       status: body.status,
@@ -309,6 +325,7 @@ export async function POST(req: Request) {
         ticker: body.ticker,
         shares: body.shares,
         entryPrice: body.entryPrice,
+      entryCurrency: body.entryCurrency,
         entryDate: body.entryDate,
         notes: body.notes,
         status: body.status,

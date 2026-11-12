@@ -19,6 +19,7 @@ import {
   openMastermindBrainForCompanySource,
 } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { acquireScrollLock } from "../../lib/scrollLock";
 
 type RequestPhase = "idle" | "loading" | "settled";
 
@@ -197,22 +198,18 @@ function ReceiptDialog({
     const scrollLeft = scrollContainer?.scrollLeft ?? 0;
     const windowX = window.scrollX;
     const windowY = window.scrollY;
-    const bodyOverflow = document.body.style.overflow;
-    const rootOverflow = document.documentElement.style.overflow;
     const background = [...document.body.children]
       .filter((child): child is HTMLElement => child !== wrap && child instanceof HTMLElement);
     const prior = background.map((child) => ({ child, hadInert: child.hasAttribute("inert") }));
 
     prior.forEach(({ child }) => child.setAttribute("inert", ""));
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
+    const releaseScrollLock = acquireScrollLock();
 
     return () => {
       prior.forEach(({ child, hadInert }) => {
         if (!hadInert) child.removeAttribute("inert");
       });
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = rootOverflow;
+      releaseScrollLock();
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollTop;
         scrollContainer.scrollLeft = scrollLeft;

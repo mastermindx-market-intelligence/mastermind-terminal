@@ -1,0 +1,29 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/search-selection-continuity.spec.ts:37:5 › ordinary search reveals long keyboard selections without moving the dialog (9.8s)
+  ✓  2 [desktop] › e2e/search-selection-continuity.spec.ts:63:5 › ordinary search keeps its query and selection across dialog and drawer presentations (9.9s)
+  ✓  3 [desktop] › e2e/search-selection-continuity.spec.ts:81:5 › Add ignores a no-match query and commits a deliberate valid symbol once (6.8s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  4 [tablet] › e2e/search-selection-continuity.spec.ts:37:5 › ordinary search reveals long keyboard selections without moving the dialog (8.1s)
+  -  5 [tablet] › e2e/search-selection-continuity.spec.ts:63:5 › ordinary search keeps its query and selection across dialog and drawer presentations
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  6 [tablet] › e2e/search-selection-continuity.spec.ts:81:5 › Add ignores a no-match query and commits a deliberate valid symbol once (7.6s)
+  ✓  7 [mobile] › e2e/search-selection-continuity.spec.ts:37:5 › ordinary search reveals long keyboard selections without moving the dialog (8.2s)
+  -  8 [mobile] › e2e/search-selection-continuity.spec.ts:63:5 › ordinary search keeps its query and selection across dialog and drawer presentations
+  ✓  9 [mobile] › e2e/search-selection-continuity.spec.ts:81:5 › Add ignores a no-match query and commits a deliberate valid symbol once (8.2s)
+
+  2 skipped
+  7 passed (1.2m)
+
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/search-selection-continuity.spec.ts:111:5 › Shared Companies keeps keyboard selection visible inside its own list (8.1s)
+  ✓  2 [tablet] › e2e/search-selection-continuity.spec.ts:111:5 › Shared Companies keeps keyboard selection visible inside its own list (3.3s)
+  ✓  3 [mobile] › e2e/search-selection-continuity.spec.ts:111:5 › Shared Companies keeps keyboard selection visible inside its own list (2.8s)
+
+  3 passed (23.2s)

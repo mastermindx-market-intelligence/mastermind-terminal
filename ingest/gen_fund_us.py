@@ -35,12 +35,19 @@ from pathlib import Path
 CA_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(CA_ROOT))
 from ingest.earnings_calendar import select_next_earnings_date  # noqa: E402
+from ingest.statement_history import merge_statement_history, annual_earnings_from_statements  # noqa: E402
+from ingest.reported_ownership import build_reported_ownership  # noqa: E402
 
 MACRO = Path(os.environ.get("MACRO_ROOT", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
 CACHE = MACRO / "data" / "us_fund"
 SITE = MACRO / "site" / "stockdata"
 TX_INDEX = CACHE / "_tx_index.json"
 OUT = CA_ROOT / "terminal" / "public" / "data"
+
+# Canadian selection (--canada). Kept in step with collect_us_fund.py; the collector owns the
+# manifest-driven universe, this emitter only ever publishes what the collector cached.
+CANADA_SUFFIX = ".TO"
+INDEX_PREFIX = "^"
 
 SCHEMA = "mastermind.fund/v1"
 
@@ -699,6 +706,11 @@ def build_fund(sym: str, cache: dict, site: dict, tx_ids: set[str] | None) -> di
             "statements": "yfinance",
             "estimates": "yfinance" if estimates else None,
             "dividends": "yfinance",
+            # True age of the underlying raw cache, carried from the collector's own stamp.
+            # `asof` above is the BUILD date and stays that way; a Canadian fund.json whose
+            # last successful fetch was months ago must not read as fresh just because it was
+            # regenerated tonight. Null whenever the cache carries no stamp — never invented.
+            "cache_fetched_at": cache.get("fetched_at") or None,
         },
         "profile": build_profile(cache, site),
         "stats": build_stats(cache),
@@ -816,20 +828,39 @@ def load_tx_index() -> dict:
 def main(argv: list[str]) -> None:
     only = None
     limit = 0
+    if "--canada" in argv and "--exclude-canada" in argv:
+        raise ValueError("Canadian scope flags are mutually exclusive")
     if "--only" in argv:
         only = [s.strip().upper() for s in argv[argv.index("--only") + 1].split(",") if s.strip()]
     if "--limit" in argv:
         limit = int(argv[argv.index("--limit") + 1])
 
-    OUT.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(argv[argv.index("--out") + 1]) if "--out" in argv else OUT
+    previous_dir = Path(argv[argv.index("--previous-dir") + 1]) if "--previous-dir" in argv else out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
     tx_map = load_tx_index()
 
     if only:
         syms = only
+    elif "--canada" in argv:
+        # Canadian scope is CACHE-driven, not manifest-driven: this emitter's job is to publish
+        # what the collector actually fetched, so a .TO name with no cache file yet (NA.TO,
+        # SGD.TO before their first collect) is correctly absent rather than emitted empty.
+        syms = sorted({p.stem for p in CACHE.glob("*.json")
+                       if not p.name.startswith("_")
+                       and p.stem.endswith(CANADA_SUFFIX)
+                       and not p.stem.startswith(INDEX_PREFIX)}
+                      | {s for s in tx_map
+                         if s.endswith(CANADA_SUFFIX) and not s.startswith(INDEX_PREFIX)})
+        print(f"gen_fund_us: --canada: {len(syms)} Canadian .TO cache names", flush=True)
     else:
         # cache glob ∪ tx-index: a transcript-indexed name must get a fund.json even if the raw
         # collect never succeeded for it, or its transcripts are unreachable in the UI.
         syms = sorted({p.stem for p in CACHE.glob("*.json") if not p.name.startswith("_")} | set(tx_map))
+    if not only:
+        syms = [symbol for symbol in syms if not symbol.endswith((".SS", ".SH", ".SZ", ".BJ", ".HK"))]
+    if "--exclude-canada" in argv:
+        syms = [symbol for symbol in syms if not symbol.endswith((".TO", ".V"))]
     if limit:
         syms = syms[:limit]
 
@@ -848,13 +879,23 @@ def main(argv: list[str]) -> None:
             site = json.loads(sf.read_text()) if sf.exists() else {}
             tx_ids = set(tx_map.get(sym) or []) or None
             fund = build_fund(sym, cache, site, tx_ids)
-            atomic_write(OUT / f"{sym}.fund.json", dump(fund))
+            if sym.endswith((".TO", ".V")) and not sym.startswith("^"):
+                previous_path = previous_dir / f"{sym}.fund.json"
+                previous = json.loads(previous_path.read_text()) if previous_path.exists() else {}
+                fund = merge_statement_history(fund, previous)
+                fund.setdefault("earnings", {})["fy"] = annual_earnings_from_statements(fund, prefer_diluted=True)
+                previous_reported = (previous.get("ownership") or {}).get("reported")
+                fund.setdefault("ownership", {})["reported"] = build_reported_ownership(
+                    cf, expected_ticker=sym, previous=previous_reported)
+            atomic_write(out_dir / f"{sym}.fund.json", dump(fund))
             ok += 1
         except Exception as exc:  # noqa: BLE001
             err += 1
             print(f"  ERR {sym}: {type(exc).__name__} {exc}", flush=True)
     print(f"gen_fund_us: {ok} emitted, {miss} no-cache, {err} errors "
           f"(tx_index {len(tx_map)} names)", flush=True)
+    if err:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

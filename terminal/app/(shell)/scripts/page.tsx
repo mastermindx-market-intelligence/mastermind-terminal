@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL } from "@/lib/shared-shell/devOpen";
 import { isPaidTier } from "@/lib/entitlement";
 import { PROPRIETARY_SCRIPT } from "@/lib/pine";
 import PineEditorMount from "@/components/mounts/PineEditorMount";
@@ -17,7 +19,7 @@ import SignupGate from "@/components/gates/SignupGate";
 // PineEditor the full list: the locked proprietary flagship (viewable, never editable)
 // prepended to the user's saved_scripts. auth reads cookies → auto-dynamic.
 
-export const metadata: Metadata = { title: "Scripts · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Scripts");
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 
@@ -44,6 +46,12 @@ export default async function ScriptsPage() {
         libraryUnavailable={!read.ok}
       />
     );
+  }
+
+  // Beta development mode (lib/shared-shell/devOpen.ts): the flagship-only editor
+  // under the synthetic dev identity — no auth read, so no login dependency.
+  if (isSharedShellDevOpen()) {
+    return <PineEditorMount scripts={[PROPRIETARY_SCRIPT as Script]} isPro={false} email={SHARED_SHELL_DEV_EMAIL} />;
   }
 
   const supabase = await createClient();

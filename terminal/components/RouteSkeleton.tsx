@@ -1,12 +1,14 @@
 import { BrandLockup } from "@/components/BrandMark";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
+import RouteLoadingStatus from "@/components/RouteLoadingStatus";
+import styles from "./RouteSkeleton.module.css";
 
 // Instant placeholder shown the moment a tab is clicked (via each route's loading.tsx),
 // while the server streams the real page. Reproduces the persistent chrome — topbar +
 // left nav rail (which highlights the destination tab via usePathname) + the mobile bar —
 // so switching feels immediate instead of freezing on the previous tab or blanking the
-// top bar on mobile. The body shimmers per variant.
+// top bar on mobile. Decorative placeholders pulse together per variant.
 //
 // `bare` mode renders ONLY the .main2 body (no .app2 grid / topbar / AppNav / MobileNav):
 // used by routes whose chrome is already owned by a layout (e.g. /flow), where re-emitting
@@ -23,25 +25,37 @@ export default function RouteSkeleton({
   const railRows = Array.from({ length: 9 });
   const tableRows = Array.from({ length: 11 });
   const body = (
-    <main className="main2">
-      <div className="skbody">
+    <main className={`main2 ${styles.workspace}`} data-route-loading={variant}>
+      <div className={styles.heading}>
+        <div className={`${styles.block} ${styles.title}`} aria-hidden="true" />
+        <RouteLoadingStatus />
+      </div>
+      <div className={styles.body} aria-hidden="true">
         {variant !== "table" && (
-          <div className="skrail">
+          <div className={styles.rail}>
             {railRows.map((_, i) => (
-              <div key={i} className="sk skrow" />
+              <div key={i} className={`${styles.block} ${styles.railRow}`} />
             ))}
           </div>
         )}
-        <div className="skmain">
+        <div className={styles.content}>
           {variant === "table" ? (
             <>
-              <div className="sk" style={{ height: 34, width: 280 }} />
+              <div className={styles.toolbar}>
+                <div className={styles.block} />
+                <div className={styles.block} />
+              </div>
               {tableRows.map((_, i) => (
-                <div key={i} className="sk" style={{ height: 42 }} />
+                <div key={i} className={styles.row}>
+                  <div className={styles.block} />
+                  <div className={styles.block} />
+                  <div className={styles.block} />
+                  <div className={styles.block} />
+                </div>
               ))}
             </>
           ) : (
-            <div className="sk" style={{ flex: 1, minHeight: 0 }} />
+            <div className={`${styles.block} ${styles.canvas}`} />
           )}
         </div>
       </div>

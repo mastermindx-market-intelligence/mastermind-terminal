@@ -1,0 +1,296 @@
+{
+  "schema": "mastermind.large_trades_integrated_local_verification.v1",
+  "recordedAt": "2026-10-11T13:15:54.732745+00:00",
+  "status": "LOCAL_ACCEPTANCE_PASSED_HOSTED_CI_AND_PRODUCTION_UNPROVEN",
+  "sourceCommit": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+  "sourceBundleSha256": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+  "sourceFileCount": 1710,
+  "sourceFilesMatchedToFullFeatureRun": {
+    "terminal/components/ChartPanel.tsx": "2ac3f6b132f23ffe6c08237357cca7c8493b875bd946259f1064cfe5e350f7a5",
+    "terminal/components/LargeTradesOverlay.tsx": "763253597cc3b017e81b2c254e517b2ba2ee41910b956325ab4c876815295067",
+    "terminal/components/LargeTradesOverlay.module.css": "8711801a87641519447de52925f2852dce2cbfb0160ee0794e59727e1ae6ff00",
+    "terminal/lib/largeTrades/visibility.ts": "5e9effb66fee7bdafb8c07c5897ef524c9665f441bea63bbdc9b3ab5faf1ca35",
+    "terminal/lib/largeTrades/snapshot.ts": "918c08178aa089599bd2ef71f9e26b9adedeb56e2f7d749ac8975a6eb0897bc0",
+    "terminal/lib/__tests__/largeTradesVisibility.test.ts": "83b8ce08692917d005ad4baf30b4f64052eb99d10d4e6473db7116b6e2d76436",
+    "terminal/lib/__tests__/largeTradesSnapshot.test.ts": "76c1837d024407259bc43db5747f5c60052fdc0632090786f0dd91d07964d5fd",
+    "terminal/e2e/large-trades.spec.ts": "9a91a69604b9f9a60d716a8ba1524a5c32bb0b13f1f2971108f87be2b9313679",
+    "terminal/lib/largeTrades/labels.ts": "24867923e4c5e5e0c2df9c82e84f22edc43f122a8fabd75f27a43c7f88dc2b3b",
+    "terminal/app/globals.css": "f18d02a2e2317946973ad981075a0726751d86ef3e74d1375d3f65f74a628cae"
+  },
+  "localGates": {
+    "startedAt": "2026-10-11T13:06:53.813863+00:00",
+    "endedAt": "2026-10-11T13:10:31.753116+00:00",
+    "privateReceiptSha256": "c5977d96e56e7396676d6d0f50c949b683ca8b5406b4a20875c0c355d9d7bcb8",
+    "runnerSha256": "4d9cc12b6f972c698cdbb8278fde5c3bcc4fe6f914cc40fc5fcf0e2a38c04172",
+    "runtime": {
+      "node": "v26.5.0",
+      "python": "3.14.7"
+    },
+    "commandPresentation": "Private output directories are presented relative to the repository; exact original commands are bound by the private receipt hash.",
+    "steps": [
+      {
+        "name": "next-typegen",
+        "command": [
+          "./node_modules/.bin/next",
+          "typegen"
+        ],
+        "startedAt": "2026-10-11T13:07:00.043733+00:00",
+        "endedAt": "2026-10-11T13:07:06.521216+00:00",
+        "seconds": 6.476201875018887,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+      },
+      {
+        "name": "typescript",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "--noEmit"
+        ],
+        "startedAt": "2026-10-11T13:07:18.581511+00:00",
+        "endedAt": "2026-10-11T13:07:54.122804+00:00",
+        "seconds": 35.540310041978955,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "terminal-unit",
+        "command": [
+          "npm",
+          "test",
+          "--",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=.large-trades-evidence/legacy-recaptures-0e8/final-local-gates-run1-vitest.json"
+        ],
+        "startedAt": "2026-10-11T13:08:05.819951+00:00",
+        "endedAt": "2026-10-11T13:08:51.042228+00:00",
+        "seconds": 45.221395250060596,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "6fdd5d5a52991c31ddd636c70049556eff6dcdf81bf20fd2cf7b1f6d66226fc4"
+      },
+      {
+        "name": "next-build",
+        "command": [
+          "./node_modules/.bin/next",
+          "build"
+        ],
+        "startedAt": "2026-10-11T13:09:03.461867+00:00",
+        "endedAt": "2026-10-11T13:09:50.766136+00:00",
+        "seconds": 47.302039874950424,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "fd69305fa2688ac5fda11c947b8d1536ad2a181f38b9e1a4142b7e6157b9eb50"
+      },
+      {
+        "name": "plain-language-self-check",
+        "command": [
+          "node",
+          "scripts/check_plain_language.mjs",
+          "--self-check"
+        ],
+        "startedAt": "2026-10-11T13:10:01.320102+00:00",
+        "endedAt": "2026-10-11T13:10:08.118511+00:00",
+        "seconds": 6.791992916027084,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "24cda5f8f3b651c996f217787394bdaeed8d89c8d2deb739191fc0fc7eacb83f"
+      },
+      {
+        "name": "plain-language-added-lines",
+        "command": [
+          "node",
+          "scripts/check_plain_language.mjs",
+          "--mode",
+          "enforce-added",
+          "--diff-file",
+          ".large-trades-evidence/legacy-recaptures-0e8/final-local-gates-run1-plain-language.diff"
+        ],
+        "startedAt": "2026-10-11T13:10:18.543523+00:00",
+        "endedAt": "2026-10-11T13:10:26.023490+00:00",
+        "seconds": 7.4784063750412315,
+        "status": "PASSED",
+        "exitCode": 0,
+        "sourceUnchanged": true,
+        "sourceBundleBefore": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "sourceBundleAfter": "aadd5988bf679ab791a5db8884abc5c38e8e3c5bf62ec6b5062ee9556717dbc5",
+        "logSha256": "58fb8887669e215728d150d37dc6c93ca38fb8bb01506cad358128ed3f85dc64"
+      }
+    ],
+    "unit": {
+      "filesPassed": 548,
+      "testsPassed": 9058,
+      "todo": 4,
+      "failed": 0,
+      "reportSha256": "d7d8164b1fb83faec6a244a9532f0b6b7166ba6ca9f6a2c829bc0d4f2535f06d",
+      "enforcedEvidenceFiles": [
+        {
+          "file": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+          "status": "passed",
+          "assertions": 4
+        },
+        {
+          "file": "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts",
+          "status": "passed",
+          "assertions": 7
+        },
+        {
+          "file": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+          "status": "passed",
+          "assertions": 5
+        },
+        {
+          "file": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+          "status": "passed",
+          "assertions": 6
+        },
+        {
+          "file": "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts",
+          "status": "passed",
+          "assertions": 3
+        },
+        {
+          "file": "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+          "status": "passed",
+          "assertions": 3
+        }
+      ]
+    },
+    "build": {
+      "passed": true,
+      "method": "Direct Next executable; package prebuild was not invoked.",
+      "warningCount": 1,
+      "warning": "Turbopack reported unexpected file in NFT list through next.config.ts -> lib/flowSource.ts -> app/api/flow/stream/route.ts. Build, its TypeScript phase, and all static generation completed successfully."
+    },
+    "cleanup": {
+      "observedAt": "2026-10-11T13:10:37.659212+00:00",
+      "listeners": [],
+      "fixtureProcesses": [],
+      "unresolvedFixtureProcesses": []
+    }
+  },
+  "featureBrowser": {
+    "passed": 46,
+    "intentionalSkips": 14,
+    "failed": 0,
+    "retries": 0,
+    "flaky": 0,
+    "reportErrors": 0,
+    "caseCountMeaning": "20 feature journeys across three projects; seven desktop-specific journeys skip tablet/mobile.",
+    "sourceWorkingTreeBase": "0c87bb10f237ecb18d074298299f027eb8b46783",
+    "matchingCommittedBytes": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "publicManifestSha256": "a7a7ef07b87974fa1d836cb358587731f4bb099ee88a9a5d042aa292ac302975"
+  },
+  "existingStudyAndLinkCompatibility": {
+    "passed": 32,
+    "skipped": 4,
+    "failed": 0,
+    "retries": 0,
+    "manifestSha256": "34c8341e0e087112dcdc61c9bf11abda3857d2a995184a897c1a4dc3bbcefd54",
+    "countingNote": "Separate regression run; not added to the feature matrix count."
+  },
+  "legacyVisualRecapture": {
+    "file": "docs/evidence/large-trades/integrated-visual-recapture.json",
+    "sha256": "89120d4bcfadc08302ec7f3880cb7c5966dd8736f23a33901899c35dc0fda3f6",
+    "totals": {
+      "freshImages": 281,
+      "byteIdenticalToBaseline": 240,
+      "changedFromBaseline": 41,
+      "historicalImagesPreserved": 57
+    }
+  },
+  "reviews": [
+    {
+      "privateReceiptSha256": "a3a0fcb9301324b8cce1f4c3b0b2b2efe274654247a33592a266cf9af2251ebf",
+      "receiptName": "independent-review.json"
+    },
+    {
+      "privateReceiptSha256": "02f0ffcc121d6cf81870ac18666f6951f0d6df692873bd9a85a52a87393d586d",
+      "receiptName": "public-release-packet-review.json"
+    },
+    {
+      "privateReceiptSha256": "78624175c44c07ac757238d175839d70db705649b9fc95fd92aac5bfcaaebd1d",
+      "receiptName": "root-conductor-pixel-review.json"
+    },
+    {
+      "privateReceiptSha256": "ac5eeb885595f2cd2890bb5cb66cc6d0f7202c344e2c3d5ed76f772efcc7005c",
+      "receiptName": "root-bpl-visual-review.json"
+    },
+    {
+      "privateReceiptSha256": "ac2262c5bbcc6937febe7233fc0f615dc21f892e3007ba5e6bc0c2fbb321f9bd",
+      "receiptName": "visual-review-and-release.json"
+    },
+    {
+      "privateReceiptSha256": "5f687832feb3a98d11ea2685e9d1dd0d706cd8f29e8066f220de0b6d7345e265",
+      "receiptName": "visual-intelligence-options-static-review.json"
+    },
+    {
+      "privateReceiptSha256": "4b7b1d27f0f5496522557817cf832f7c0e96f2451adf28a76fc4e6a6b66a8613",
+      "receiptName": "options-static-contract-resolution.json"
+    }
+  ],
+  "frozenRealDataEvidenceUnchanged": {
+    "docs/LARGE_TRADES_ABSORPTION.md": "2e00fdb6563abd00b993130e102536d9f4ecabaf973ab9c9a8c627020b84bf29",
+    "docs/evidence/large-trades/real-data-verification.json": "b93250ea73f29a575599e4c3b9eb06583c810beb9fa3d40cf5676e7739057033",
+    "docs/evidence/large-trades/independent-review.json": "5c57220577fd8153f6b5521d0b423bf15286485cbb13837915cb9324c654f654"
+  },
+  "currentBaseCompatibility": {
+    "observedAt": "2026-10-11T13:13:50.987253+00:00",
+    "sourceHead": "95a7cac298a99671eb392ff0050fb7b9223ead4e",
+    "protectedMaster": "9bc8a12b8e869a699d9bd3f0f90b160323d212b6",
+    "mergeBase": "0e8de334d3a772d3c8b035a1ce01d04b1316274a",
+    "syntheticMergeTree": "87454d9f99e11fb79833033de68d95845cc08fff",
+    "mergeTreeExitCode": 0,
+    "decision": "REVIEW_REUSE_ALLOWED for disjoint portfolio-target guard change; leave source branch unchanged pending actual repository enforcement. Hosted exact-candidate/current-base checks remain required."
+  },
+  "publicPacketBindings": {
+    "terminal/docs/pr-crops/large-trades-integrated/manifest.json": "a7a7ef07b87974fa1d836cb358587731f4bb099ee88a9a5d042aa292ac302975",
+    "terminal/docs/pr-crops/large-trades-integrated/review.json": "a5194dbcc3f54470068bd44c4e97686c99d6f1490b44b8562ac35e868814221d",
+    "terminal/docs/pr-crops/large-trades-integrated/README.md": "eda6673ab5aa895ffd22ee48a933546c9a73730b7a655eca7627ff0b8389e7e4",
+    "terminal/docs/pr-crops/large-trades-integrated/compatibility-e09/manifest.json": "34c8341e0e087112dcdc61c9bf11abda3857d2a995184a897c1a4dc3bbcefd54",
+    "docs/evidence/large-trades/release-handoff.md": "7850fea05d70028b08076ca6d8f92782bcb4aaa0c41421acac90a21217b3cbc0",
+    "docs/evidence/large-trades/ci-original-candidate.json": "5f558b9733022ead64fcf626b90866b7a519d7799b38aee5fd9283252ffe80d4",
+    "docs/evidence/large-trades/integrated-visual-recapture.json": "89120d4bcfadc08302ec7f3880cb7c5966dd8736f23a33901899c35dc0fda3f6"
+  },
+  "hostedCI": {
+    "status": "PENDING_NEW_EXACT_CANDIDATE",
+    "historicalSuccessfulHead": "604f48d3ca08cd1a2904c35ef2cbba865ac558b6",
+    "historicalRunId": 38131631918,
+    "requiredContexts": [
+      "Quote Hub tests",
+      "Terminal typecheck + tests",
+      "Ingest + signal-layer tests"
+    ],
+    "terminalAggregatorRequires": "The unit/typecheck job and all five browser shards must succeed."
+  },
+  "production": {
+    "status": "UNPROVEN",
+    "canonicalAccess": "The earlier public-key refusal remains unreconciled; no retry or alternate publisher was used.",
+    "publication": "Incumbent Macro owner must authenticate and atomically publish the admitted IEX historical envelopes.",
+    "fullCompletion": false
+  },
+  "limits": [
+    "Local fixtures and intercepted historical envelopes do not establish production or live availability.",
+    "The real IEX cohort is partial, historical, venue-only and denominated in shares; distinct-order counts are unavailable.",
+    "CME/MNQ rights and an itemized commercial quote remain pending.",
+    "Out-of-sample efficacy is NOT_ESTIMABLE for the currently admitted partial cohort.",
+    "Original handoff ZIP and screenshot-specific parity remain unavailable."
+  ]
+}

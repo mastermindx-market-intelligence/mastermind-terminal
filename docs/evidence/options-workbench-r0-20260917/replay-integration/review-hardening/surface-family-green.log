@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ✓ lib/__tests__/surfaceTheme.test.ts (35 tests) 5ms
+ ✓ lib/__tests__/replayEngine.test.ts (49 tests) 9ms
+ ✓ lib/__tests__/replayIndexIdentity.test.ts (5 tests) 3ms
+ ✓ lib/__tests__/surfaceContract.test.ts (93 tests) 27ms
+ ✓ lib/__tests__/flowClientCacheRefresh.test.ts (4 tests) 11ms
+ ✓ lib/__tests__/heatSeriesGeometry.test.ts (6 tests) 11ms
+ ✓ lib/__tests__/surfaceReplayMounted.test.tsx (22 tests) 1728ms
+
+ Test Files  7 passed (7)
+      Tests  214 passed (214)
+   Start at  19:48:27
+   Duration  6.61s (transform 2.71s, setup 0ms, collect 4.39s, tests 1.79s, environment 1.87s, prepare 2.58s)

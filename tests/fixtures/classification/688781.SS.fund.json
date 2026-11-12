@@ -1,0 +1,12 @@
+{
+ "asof": "2026-10-10",
+ "profile": {
+  "industry": null,
+  "sector": "A-share"
+ },
+ "quote_currency": "CNY",
+ "src": {
+  "statements": "tushare"
+ },
+ "ticker": "688781.SS"
+}

@@ -1,0 +1,40 @@
+$ ./node_modules/.bin/vitest run lib/__tests__/investorShellPreview.test.tsx -t compact input disabled
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr627/terminal
+
+ ❯ lib/__tests__/investorShellPreview.test.tsx (40 tests | 2 failed | 38 skipped) 56ms
+   × investor shell preview — existing shell, explicit presentation opt-in > keeps /analysis compact input disabled until its client owner hydrates 46ms
+     → expected false to be true // Object.is equality
+   × investor shell preview — existing shell, explicit presentation opt-in > keeps /discover compact input disabled until its client owner hydrates 9ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/investorShellPreview.test.tsx > investor shell preview — existing shell, explicit presentation opt-in > keeps /analysis compact input disabled until its client owner hydrates
+ FAIL  lib/__tests__/investorShellPreview.test.tsx > investor shell preview — existing shell, explicit presentation opt-in > keeps /discover compact input disabled until its client owner hydrates
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/investorShellPreview.test.tsx:155:29
+    153|     host.innerHTML = renderToString(element);
+    154|     const button = host.querySelector<HTMLButtonElement>("[data-invest…
+    155|     expect(button.disabled).toBe(true);
+       |                             ^
+    156|     button.click();
+    157|     expect(button.getAttribute("aria-pressed")).toBe("false");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 38 skipped (40)
+   Start at  03:57:53
+   Duration  1.61s (transform 401ms, setup 0ms, collect 615ms, tests 56ms, environment 537ms, prepare 80ms)
+
+
+exit=1

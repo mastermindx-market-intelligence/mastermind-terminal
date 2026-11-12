@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/futures-density.spec.ts:7:5 › dense source keeps offscreen gamma out of the DOM and preserves billion-dollar relative sizes (2.6s)
+  ✓  2 [tablet] › e2e/futures-density.spec.ts:7:5 › dense source keeps offscreen gamma out of the DOM and preserves billion-dollar relative sizes (1.3s)
+  ✓  3 [mobile] › e2e/futures-density.spec.ts:7:5 › dense source keeps offscreen gamma out of the DOM and preserves billion-dollar relative sizes (1.2s)
+
+  3 passed (31.4s)

@@ -1,0 +1,42 @@
+[dev] ✓ Ready in 388ms
+[warmup] /terminal?symbol=NVDA → 200 in 72ms
+[warmup] /options → 200 in 179ms
+[warmup] /portfolio → 200 in 490ms
+[warmup] /alerts → 200 in 723ms
+[warmup] /analysis → 200 in 1111ms
+[warmup] /discover → 200 in 973ms
+[warmup] /admin → 200 in 382ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 275ms
+[warmup] /login → 200 in 67ms
+[warmup] /reset-password → 200 in 325ms
+[warmup] /api/me → 200 in 133ms
+[warmup] /api/watchlist → 200 in 103ms
+[warmup] /api/layouts → 200 in 103ms
+[warmup] /api/watchlist/annotations → 409 in 85ms
+[warmup] 14 routes compiled in 5s
+capture DiscoverLeaders-1440.png … ok
+capture OptionsHubView-1440.png … ok
+capture SearchModal-1440.png … ok
+[dev:err] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+capture StockAnalysis-1440.png … ok
+capture AnalysisWorkspace-1440.png … ok
+capture ChartChrome-1440.png … ok
+capture DiscoverLeaders-1440-zh.png … ok
+capture OptionsHubView-1440-zh.png … ok
+capture SearchModal-1440-zh.png … ok
+capture StockAnalysis-1440-zh.png … ok
+capture AnalysisWorkspace-1440-zh.png … ok
+capture ChartChrome-1440-zh.png … ok
+capture DiscoverLeaders-390.png … ok
+capture OptionsHubView-390.png … ok
+capture SearchModal-390.png … ok
+capture StockAnalysis-390.png … ok
+capture AnalysisWorkspace-390.png … ok
+capture ChartChrome-390.png … ok
+capture DiscoverLeaders-390-zh.png … ok
+capture OptionsHubView-390-zh.png … ok
+capture SearchModal-390-zh.png … ok
+capture StockAnalysis-390-zh.png … ok
+capture AnalysisWorkspace-390-zh.png … ok
+capture ChartChrome-390-zh.png … ok
+{"visualEvidence":"terminal/docs/pr-crops/b-pl-6-batch-1/d08c-plan-compare-pl6-20261104-r1--operation.json","sha256":"b310f02bbc0291ec9ccfeae6bdc746df4f898d482d1170755299204a8712d39d","actualCases":24}

@@ -185,7 +185,7 @@ const AMBER_RGB = "rgb(232, 179, 57)";
  *  human reviewer. Crop tight around the marker's own bounding box instead. */
 async function cropMarker(page: Page, path: string) {
   const box = await page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     const r = (g as SVGGElement).getBoundingClientRect();
@@ -226,7 +226,7 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
   const sigLayer = page.locator("[data-sig-layer]").first();
   await expect(sigLayer.locator('circle[fill="none"]').first()).toBeAttached();
   const marker = await sigLayer.evaluate((svg) => {
-    const groups = [...svg.querySelectorAll("g")];
+    const groups = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')];
     const g = groups.find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     const outline = g.querySelector<SVGCircleElement>('circle[fill="none"]')!;
@@ -260,15 +260,17 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
 
   // ── the card: ONE extra amber line under the same amber verdict ──
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.locator("#intelligence-workspace");
   await expect(dialog).toBeVisible();
-  const line2 = dialog.locator(".sd-go .od-vline2");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
+  const oracle = dialog.getByTestId("workspace-oracle");
+  const line2 = oracle.getByTestId("workspace-oracle-disclosure");
   await expect(line2).toHaveText(
     zh ? "深度洗盘例外候选 — 铀矿商板块距高点 −38%"
        : "Washout override candidate — Uranium miners −38% from highs",
   );
   await expect(line2).toHaveCSS("color", AMBER_RGB);
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(
+  await expect(oracle.locator(".od-verdict")).toHaveText(
     zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked",
   );
   // the disclosure carries its own Tier-2 hover so the numbers are reachable from the card too
@@ -276,11 +278,16 @@ test("a qualifying ⊘ wears the amber override class on card, hover and chart",
     "title", zh ? /多数仍会止损离场 — 止损才是保护/ : /most still stop out — the stop is the protection/,
   );
   // the refusal is still a refusal: no tier/score row, and the history row still says BLOCKED
-  await expect(dialog.locator(".sd-go .sig-dims")).toHaveCount(0);
-  await expect(dialog.locator(".sd-go .sd-sigrow").first().locator(".sd-sig-badge"))
-    .toHaveText(zh ? "已拦截" : "BLOCKED");
-  await dialog.locator(".sd-go").screenshot({
+  await expect(oracle.locator(".sig-dims")).toHaveCount(0);
+  await oracle.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-washout-override-card.png`),
+  });
+  await dialog.getByRole("tab", { name: zh ? "动态" : "Activity", exact: true }).click();
+  const activity = dialog.getByTestId("workspace-activity");
+  await expect(activity.locator(".sd-sigrow").first().locator(".sd-sig-badge"))
+    .toHaveText(zh ? "已拦截" : "BLOCKED");
+  await activity.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-washout-override-history.png`),
   });
 });
 
@@ -298,7 +305,7 @@ test("a non-qualifying ⊘ renders exactly as it does today", async ({ page }, t
   expect(title).not.toContain("+22%");
 
   const readMarker = () => page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => el.querySelector('circle[fill="none"]') && el.querySelector("line"));
     if (!g) return null;
     return {
@@ -316,13 +323,15 @@ test("a non-qualifying ⊘ renders exactly as it does today", async ({ page }, t
   await cropMarker(page, testInfo.outputPath(`${testInfo.project.name}-washout-plain-marker.png`));
 
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.locator("#intelligence-workspace");
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".sd-go .od-vline2")).toHaveCount(0);
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
+  const oracle = dialog.getByTestId("workspace-oracle");
+  await expect(oracle.getByTestId("workspace-oracle-disclosure")).toHaveCount(0);
+  await expect(oracle.locator(".od-verdict")).toHaveText(
     zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked",
   );
-  await dialog.locator(".sd-go").screenshot({
+  await oracle.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-washout-plain-card.png`),
   });
 });
@@ -343,7 +352,7 @@ async function cropEntryMarker(page: Page, path: string, needle: string) {
   const box = await page.locator("[data-sig-layer]").first().evaluate((svg, needle) => {
     // find it by what it SAYS, not by shape: every marker rect carries a `stroke`
     // attribute (often "none"), so a shape selector would happily return the SELL pill.
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => (el.querySelector("title")?.textContent ?? "").includes(needle));
     if (!g) return null;
     const r = (g as SVGGElement).getBoundingClientRect();
@@ -363,7 +372,7 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   // ── the rail: the ORDINARY entry verdict, not the amber refusal card ──
   const signalButton = page.locator(".sig-btn");
   await signalButton.scrollIntoViewIfNeeded();
-  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "买入" : "Buy");
+  await expect(signalButton.locator(".sig-btn-go .sig-btn-vd")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
   await expect(signalButton.locator(".sig-btn-go .sig-btn-vd"))
     .not.toHaveText(zh ? "买点触发 — 趋势闸拦截" : "Entry trigger — regime-blocked");
   await expect(signalButton).toHaveAttribute(
@@ -386,7 +395,7 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   const entryLine = washoutOverrideCopy(OVERRIDE_CTX, zh, "entry")!.line;
   await expect(sigLayer.locator("title", { hasText: entryLine }).first()).toBeAttached();
   const marker = await sigLayer.evaluate((svg, needle) => {
-    const g = [...svg.querySelectorAll("g")]
+    const g = [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]
       .find((el) => (el.querySelector("title")?.textContent ?? "").includes(needle));
     if (!g) return null;
     const rect = g.querySelector<SVGRectElement>("rect")!;
@@ -418,10 +427,13 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
 
   // ── the card: the entry verdict PLUS the one disclosure line ──
   await signalButton.click();
-  const dialog = page.locator(".sd-scrim");
+  const dialog = page.locator("#intelligence-workspace");
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".sd-go .od-verdict")).toHaveText(zh ? "买入" : "Buy");
-  const line2 = dialog.locator(".sd-go .od-vline2");
+  await dialog.getByRole("tab", { name: zh ? "神谕" : "Oracle", exact: true }).click();
+  const oracle = dialog.getByTestId("workspace-oracle");
+  await expect(oracle.locator(".od-verdict")).toHaveText(zh ? "已确认买入" : "Confirmed Buy");
+  await expect(oracle.getByTestId("workspace-oracle-entry-availability")).toHaveAttribute("data-status", "UNAVAILABLE_DATA");
+  const line2 = oracle.getByTestId("workspace-oracle-disclosure");
   await expect(line2).toHaveText(
     zh ? "深度洗盘例外入场 — 铀矿商板块距高点 −38%"
        : "Washout override entry — Uranium miners −38% from highs",
@@ -430,11 +442,11 @@ async function assertTakenEntry(page: Page, zh: boolean, label: string, testInfo
   // the quality chip names the class and wears the same amber, so the exception is findable
   // from the card body too — and the TIER beside it proves the recipe graded this entry
   // (a null tier there would mean the fire took the refused path after all).
-  const quality = dialog.locator(".sd-go .sig-dim-v").first();
+  const quality = oracle.locator(".sig-dim-v").first();
   await expect(quality).toHaveText(zh ? "深度洗盘例外" : "Washout override");
   await expect(quality).toHaveCSS("color", AMBER_RGB);
-  await expect(dialog.locator(".sd-go .sig-dims")).toBeVisible();
-  await dialog.locator(".sd-go").screenshot({ path: testInfo.outputPath(`${tag}-card.png`) });
+  await expect(oracle.locator(".sig-dims")).toBeVisible();
+  await oracle.screenshot({ path: testInfo.outputPath(`${tag}-card.png`) });
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
 }

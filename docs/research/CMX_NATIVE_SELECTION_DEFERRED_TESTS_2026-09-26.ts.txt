@@ -1,0 +1,96 @@
+// Authored acceptance cases; execution deferred by the current feature-building commission.
+import { describe, expect, it } from "vitest";
+import type { SuiteRenderBundle, SuiteEvent } from "../indicator-canvas/types";
+import { buildLiveNativeObservations, extractNativeObservationFacts,
+  nativeObservationUtf8Bytes, projectNativeObservationPacket,
+  type LiveNativeObservationContext } from "../nativeObservationProjection";
+
+const bars = Array.from({ length: 10 }, (_, i) => ({ time: `2026-09-${String(i + 1).padStart(2, "0")}` }));
+const context = (selected: number | null): LiveNativeObservationContext => ({
+  symbol: "SYNTHETIC", timeframe: "D", pane_id: 0,
+  replay: { active: false, index: null }, bar_count: bars.length,
+  first_bar: bars[0].time, last_bar: bars.at(-1)!.time,
+  selected_bar: selected === null ? null : { index: selected, time: bars[selected].time },
+});
+function bundle(patch: Partial<SuiteRenderBundle> = {}): SuiteRenderBundle {
+  return { prims: [], events: [], tables: [], candlePaint: [], tooltips: new Map(), ...patch };
+}
+function live(b: SuiteRenderBundle, selected: number | null = 4): any {
+  return buildLiveNativeObservations(context(selected), ["rsix"], [{
+    suite: "rsix", bundle: b, bars, modules: [{ key: "eng", defaultOn: true }],
+  }], []);
+}
+
+describe("native selected-candle evidence", () => {
+  it("separates confirmation at the selected bar from a later-confirmed old anchor", () => {
+    const events: SuiteEvent[] = [
+      { type: "already_confirmed", dir: "bull", i: 1, confirmedAt: 4, p: 51 },
+      { type: "later_confirmation", dir: "bear", i: 2, confirmedAt: 8, p: 45 },
+    ];
+    const packet = live(bundle({ events }));
+    expect(packet.suites[0].events.map((e: any) => e.type)).toEqual(["later_confirmation", "already_confirmed"]);
+    const selected = packet.suites[0].selected_events;
+    expect(selected.index).toBe(4);
+    expect(selected.events.map((e: any) => e.type)).toEqual(["already_confirmed"]);
+    expect(selected.events[0]).toMatchObject({ age_bars: 5, age_from_selected_bars: 0 });
+    expect(selected.coverage).toEqual({ available: 2, eligible: 1, invalid: 0,
+      confirmed_later: 1, returned: 1, omitted: 0 });
+    expect(packet.basis.historical_selection).toBe("renderer_history_not_point_in_time_feed_attestation");
+  });
+  it("does not manufacture a selected event view without an exact selection", () => {
+    expect(live(bundle(), null).suites[0]).not.toHaveProperty("selected_events");
+  });
+  it("preserves a raw native NaN as a gap rather than dropping the whole series", () => {
+    const b = bundle({ prims: [{ kind: "poly", id: "rsix:eng:wave", color: "var(--up)",
+      pts: [{ i: 9, p: 52 }, { i: 4, p: Number.NaN }, { i: 8, p: Number.NaN }] }] });
+    const packet = live(b);
+    expect(packet.suites[0].series[0].samples).toEqual([
+      { index: 9, value: 52, age_bars: 0 }, { index: 8, value: null, age_bars: 1 },
+    ]);
+    expect(packet.suites[0].series[0].selected_sample).toEqual({ index: 4, value: null, age_bars: 5 });
+    expect(Number.isNaN((b.prims[0] as any).pts[1].p)).toBe(true);
+  });
+  it("never substitutes an older value for an absent selected sample", () => {
+    const packet = live(bundle({ prims: [{ kind: "poly", id: "wave", color: "var(--up)",
+      pts: [{ i: 3, p: 40 }, { i: 9, p: 60 }] }] }));
+    expect(packet.suites[0].series[0]).not.toHaveProperty("selected_sample");
+  });
+  it("selects the newest samples without reordering the source or breaking pointers", () => {
+    const b = bundle({ prims: [{ kind: "poly", id: "wave", color: "var(--up)",
+      pts: [{ i: 4, p: 44 }, { i: 9, p: 49 }, { i: 0, p: 40 }, { i: 8, p: 48 }] }] });
+    const extraction = extractNativeObservationFacts(b, { barCount: 10, eventTiming: [],
+      sourceRefs: { bundleRoot: "/bundle", timingRoot: "/event_timing" }, selectedIndex: 4 });
+    const row: any = extraction.groups.series[0].row;
+    expect(row.samples.map((s: any) => s.index)).toEqual([9, 8]);
+    expect(row.samples[0].source_ref).toBe("/bundle/prims/0/pts/1");
+    expect(row.selected_sample.source_ref).toBe("/bundle/prims/0/pts/0");
+    expect((b.prims[0] as any).pts.map((p: any) => p.i)).toEqual([4, 9, 0, 8]);
+  });
+  it("refuses duplicate source sample indices rather than choosing one", () => {
+    const extraction = extractNativeObservationFacts(bundle({ prims: [{ kind: "poly", id: "dup",
+      color: "var(--up)", pts: [{ i: 4, p: 1 }, { i: 4, p: 2 }] }] }), { barCount: 10, eventTiming: [] });
+    expect(extraction.groups.series).toEqual([]);
+    expect(extraction.counts.series.invalid).toBe(1);
+  });
+  it("continues past an oversized first candidate to a later fact that fits", () => {
+    const packet = live(bundle({ tables: [{ id: "dashboard", pos: "tr", columns: [], rows: [
+      { label: "large", cells: [{ text: "x".repeat(9000) }] },
+      { label: "small", cells: [{ text: "53.2" }] },
+    ] }] }), null);
+    expect(packet.suites[0].tables.map((t: any) => t.row_label)).toEqual(["small"]);
+    expect(packet.suites[0].coverage.tables).toMatchObject({ eligible: 2, returned: 1, omitted: 1 });
+    expect(nativeObservationUtf8Bytes(packet)).toBeLessThanOrEqual(7168);
+  });
+  it("keeps headless packet shape unchanged when no selection was requested", () => {
+    const extraction = extractNativeObservationFacts(bundle(), { barCount: 10, eventTiming: [] });
+    const result = projectNativeObservationPacket({ basePacket: { schema: "existing_headless" }, extraction, maxBytes: 12288 });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.packet).not.toHaveProperty("selected_events");
+  });
+  it("detaches selected event output from the renderer memo", () => {
+    const b = bundle({ events: [{ type: "cross", dir: "bull", i: 4, p: 50 }] });
+    const packet = live(b);
+    packet.suites[0].selected_events.events[0].native_value = -999;
+    expect(b.events[0].p).toBe(50);
+  });
+});

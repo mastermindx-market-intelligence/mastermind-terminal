@@ -42,6 +42,14 @@
 // missing field as the live value would make the same layout restore differently every time.
 // Unknown fields from a future version are ignored, and a malformed value falls back per field
 // rather than throwing — a bad row must never make the menu unusable.
+//
+// ── Study instances (E06) — a grammar extension INSIDE v2, not a new version ──
+// `inds` / `indParams` / `hidden` hold study INSTANCE ids (lib/studyInstances.ts). A primary
+// instance id is the type key itself, so every v1/v2 config already is a valid instance record and
+// loads with no extra study. An additional instance is `${type}__${token}`, which the
+// `workspace_layout.v1` envelope grammar accepts unchanged — hence no schema bump and no new field.
+
+import { pruneRetiredStudies } from "./studyInstances";
 
 export const LAYOUT_SCHEMA_VERSION = 2;
 
@@ -196,7 +204,16 @@ export function applyLayoutConfig(layout: NormalizedLayout, current: LayoutWorks
   const paneTfs = layout.panes
     ? (layout.paneTfs ?? panes.map(() => "D"))
     : current.paneTfs;
-  const inds = layout.inds ?? current.inds;
+  // E06: an ADDITIONAL study instance the loaded workspace no longer activates is retired — its id is
+  // never reused, so its params/eye records would otherwise leak into the device store forever.
+  // Primary (type-key) params stay device-wide exactly as before; legacy state is returned as-is.
+  const studies = pruneRetiredStudies({
+    inds: layout.inds ?? current.inds,
+    // Merge, don't replace: the layout owns the parameters of the studies it enables; parameters for
+    // everything else stay as the user has them on this device.
+    indParams: layout.indParams ? { ...current.indParams, ...layout.indParams } : current.indParams,
+    hidden: layout.hidden ?? current.hidden,
+  });
   return {
     panes,
     paneTfs,
@@ -204,11 +221,9 @@ export function applyLayoutConfig(layout: NormalizedLayout, current: LayoutWorks
     activePane: Math.min(layout.activePane ?? current.activePane, Math.max(0, panes.length - 1)),
     sync: layout.sync ?? current.sync,
     chartType: layout.chartType ?? current.chartType,
-    inds,
-    // Merge, don't replace: the layout owns the parameters of the studies it enables; parameters for
-    // everything else stay as the user has them on this device.
-    indParams: layout.indParams ? { ...current.indParams, ...layout.indParams } : current.indParams,
-    hidden: layout.hidden ?? current.hidden,
+    inds: studies.inds,
+    indParams: studies.indParams,
+    hidden: studies.hidden,
     compare: layout.compare ?? current.compare,
     compareCfg: layout.compareCfg ?? current.compareCfg,
     lockedVLine: layout.lockedVLine === undefined ? current.lockedVLine : layout.lockedVLine,

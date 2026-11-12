@@ -1,0 +1,124 @@
+{
+  "schema": "mastermind.screener_scan/v1",
+  "family": "technical",
+  "family_version": 1,
+  "generation": 1791669600,
+  "generated_at": "2026-10-10T22:00:00Z",
+  "complete": true,
+  "universe": { "source": "manifest", "as_of": "2026-10-09", "count": 12 },
+  "engines": {
+    "gc_v2_wo2": {
+      "indicator_id": "confluence_rsimacd_stochrsi_mtf",
+      "engine": "python:signal_layer.confluence_v2@v2",
+      "signal_era": "gc_v2_wo2",
+      "source_hash": "sha256:f27a407bea861a2217477beb98c398abc62845d2bcc38d331d4963c06471986d"
+    },
+    "gc_v2_wo2_flagship": {
+      "indicator_id": "confluence_rsimacd_stochrsi_mtf",
+      "engine": "python:signal_layer.confluence_v2@v2",
+      "signal_era": "gc_v2_wo2",
+      "source_hash": "sha256:82cac19cc362869202dee4a1b9e70a0a108f088aab46e765dbe3a4f624f5ec5c"
+    },
+    "gc_v2": {
+      "indicator_id": "confluence_rsimacd_stochrsi_mtf",
+      "engine": "python:signal_layer.confluence_v2@v2",
+      "signal_era": "gc_v2",
+      "source_hash": null
+    }
+  },
+  "timeframes": { "3D": { "engine": "gc_v2_wo2" } },
+  "rows": [
+    {
+      "sym": "NVDA", "mkt": "NASDAQ",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-09", "bar_open": "2026-10-08", "bar_closed": false },
+        "engine": "gc_v2_wo2_flagship", "bar_quality": "synthetic_open_deepstore", "score_basis": "full",
+        "state": { "position_hint": "long", "last_signal": "RECLAIM", "last_scored_signal": "REBUY",
+                   "last_scored_ts": "2026-09-21", "last_scored_basis": null, "bars_since_signal": 5,
+                   "extended": false, "strong_bull": false, "overbought": true, "weeklyBull": true, "above200": true }
+      } }
+    },
+    {
+      "sym": "ZM", "mkt": "NASDAQ",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-09", "bar_open": "2026-10-09", "bar_closed": false },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "long", "last_signal": "BUY", "last_scored_signal": "BUY",
+                   "last_scored_ts": "2026-10-09", "last_scored_basis": null, "bars_since_signal": 0,
+                   "extended": false, "strong_bull": false, "overbought": false, "weeklyBull": false, "above200": true }
+      } }
+    },
+    {
+      "sym": "0700.HK", "mkt": "HKEX",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-09", "bar_open": "2026-10-07", "bar_closed": true },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "flat", "last_signal": "BOTTOM_WATCH", "last_scored_signal": "SELL",
+                   "last_scored_ts": "2026-09-02", "last_scored_basis": "structure_stop", "bars_since_signal": 0,
+                   "extended": false, "strong_bull": false, "overbought": false, "weeklyBull": true, "above200": false }
+      } }
+    },
+    {
+      "sym": "QUIET", "mkt": "NYSE",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-09", "bar_open": "2026-10-07", "bar_closed": true },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "partial",
+        "state": { "position_hint": null, "last_signal": null, "last_scored_signal": null,
+                   "last_scored_ts": null, "last_scored_basis": null, "bars_since_signal": null,
+                   "strong_bull": null, "overbought": false, "weeklyBull": null, "above200": null }
+      } }
+    },
+    {
+      "sym": "OLDENG", "mkt": "NYSE",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-09", "bar_open": "2026-10-07", "bar_closed": true },
+        "engine": "gc_v2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "long", "last_signal": "BUY", "last_scored_signal": "BUY",
+                   "last_scored_ts": "2026-10-01", "last_scored_basis": null, "bars_since_signal": 2,
+                   "strong_bull": true, "overbought": false, "weeklyBull": true, "above200": true }
+      } }
+    },
+    {
+      "sym": "LAGGARD", "mkt": "NYSE",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-02", "bar_open": "2026-09-30", "bar_closed": true },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "long", "last_signal": "BUY", "last_scored_signal": "BUY",
+                   "last_scored_ts": "2026-09-30", "last_scored_basis": null, "bars_since_signal": 1,
+                   "strong_bull": true, "overbought": false, "weeklyBull": true, "above200": true }
+      } }
+    },
+    {
+      "sym": "7203.T", "mkt": "Japan",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-09-28", "bar_open": "2026-09-24", "bar_closed": true },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "flat", "last_signal": "SELL", "last_scored_signal": "SELL",
+                   "last_scored_ts": "2026-09-10", "last_scored_basis": null, "bars_since_signal": 6,
+                   "strong_bull": false, "overbought": false, "weeklyBull": false, "above200": false }
+      } }
+    },
+    {
+      "sym": "BTC-USD", "mkt": "Crypto", "sec": "Crypto",
+      "tf": { "3D": {
+        "status": "observed", "reason": "ok",
+        "cutoff": { "session": "2026-10-10", "bar_open": "2026-10-09", "bar_closed": null },
+        "engine": "gc_v2_wo2", "bar_quality": "real_ohlc", "score_basis": "full",
+        "state": { "position_hint": "long", "last_signal": "REBUY", "last_scored_signal": "REBUY",
+                   "last_scored_ts": "2026-10-06", "last_scored_basis": null, "bars_since_signal": 1,
+                   "strong_bull": false, "overbought": false, "weeklyBull": true, "above200": true }
+      } }
+    },
+    { "sym": "^TNX", "mkt": "US", "tf": { "3D": { "status": "unsupported", "reason": "rate_series" } } },
+    { "sym": "NEWCO", "mkt": "NYSE", "tf": { "3D": { "status": "unavailable", "reason": "insufficient_history" } } },
+    { "sym": "NOSLICE", "mkt": "NASDAQ", "tf": { "3D": { "status": "unavailable", "reason": "no_slice" } } },
+    { "sym": "BROKEN", "mkt": "NYSE", "wr": 0.64, "tf": { "1D": { "status": "observed", "reason": "ok" } } }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-next-composition-web4/terminal",
+  "exitCode": 1,
+  "finishedAt": "2026-11-10T16:23:27.918878+00:00",
+  "logSha256": "8046d9f6abb7e1e3ee4f6a3b45cd5579952483d299585890ac4c84f195f04741",
+  "next": "16.4.6",
+  "nextEnvPreimage": null,
+  "node": "v22.23.4",
+  "observer": "Finite caller; unchanged producer owns every browser/server and settlement.",
+  "port": 47285,
+  "producerPid": 59919,
+  "runtimePostProbes": "NOT_RUN: classify original return before any more runtime observation",
+  "schema": "terminal.pr1275.f11-next-composition-execution.v1",
+  "seconds": 39.567,
+  "sourceHead": "360c3acf4396384c321df95fc442024ccff58b8e",
+  "sourceTree": "38a4df7b21280409adeebe8eabe715965fd23d1c",
+  "startedAt": "2026-11-10T16:22:48.351766+00:00",
+  "state": "CAPTURE_FAILED_NO_REPLAY"
+}

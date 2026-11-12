@@ -1,0 +1,413 @@
+{
+  "completedAt": "2026-11-09T17:06:37.261024+00:00",
+  "files": [
+    {
+      "bytes": 61498,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/en-12h-fullscreen-settings.png",
+      "currentSha256": "7b94cd6eeed02435cd1077053a92651b0dd0ba51c00d3db84cfb7dd64328eacb",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/en-12h-fullscreen-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "426764d5c17399ac05a30ae60c2a0ec0e1efddef",
+      "priorIndexSha256": "e224df1fdecf655f2e1569bd816df15adf894027262962dded3eefea4fcce79d"
+    },
+    {
+      "bytes": 56857,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/en-12h-settings.png",
+      "currentSha256": "69d4333c014c8a9b8b78ae43e3696d9002acd4795a8623e63f416a7a15e8eb2c",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/en-12h-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "949233743646d3ad12a4fc3567ec76f5f408a9a8",
+      "priorIndexSha256": "19f82f059db1b591e32faa1b362223fb6a6654cab0521617050f06fb73cdbd1f"
+    },
+    {
+      "bytes": 52852,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/en-D-settings.png",
+      "currentSha256": "d890d8752ff6b8c5060df40b2ed85c462be81c5083e9630332b3bc212d4a11a3",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/en-D-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "f0f116bc580fb3591633c608647f79daa901c830",
+      "priorIndexSha256": "2abf0578130355c5bbbf26fcb73b96da053eca4ee8b4c3cff374805faf0f0601"
+    },
+    {
+      "bytes": 65431,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/zh-12h-fullscreen-settings.png",
+      "currentSha256": "b9cc585d8a0a158c24c66537cebca3c73976dcda97fc9c20fb67d296f8fc83bc",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/zh-12h-fullscreen-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "4bec475467ed11807ee75594b6173a3cb5f7c6ab",
+      "priorIndexSha256": "b37333fbb01995c9c16ae7b8d950c13616d8a85d0c1dbf1a3ce97c29b6f016c4"
+    },
+    {
+      "bytes": 59712,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/zh-12h-settings.png",
+      "currentSha256": "e62434375a039628ac839dd1ce24710cd00a8a343564ed6cb1fa953884d48648",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/zh-12h-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "784e168201f9e54ac2a1e6268bac7d7ee368af60",
+      "priorIndexSha256": "0a9513ceb13c812da33740e44cc5f7b13d400091f99a466be1f3158fa6a14f34"
+    },
+    {
+      "bytes": 55170,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/mobile-session-settings-20261019/zh-D-settings.png",
+      "currentSha256": "ec2a23e609bf79079725d56cda147d3be507fab20d77200e3b742cba2cc62e83",
+      "originalPath": "terminal/docs/pr-crops/mobile-session-settings-20261019/zh-D-settings.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "930f66b62d153b40de5e82721fd0b53734c80b5e",
+      "priorIndexSha256": "4b8ffa9a27ef853968cfee35b69832caec31900ca63708d811152db905b4ca92"
+    },
+    {
+      "bytes": 179093,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-en-dark-chart.png",
+      "currentSha256": "8542dec18ec1b543c57ba9628cec37187f5810ae894c42a3283a0d64890659a2",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-en-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "a9b16438d5225f585421cbfb24fad553126fb978",
+      "priorIndexSha256": "56aa8c0950190eaad5232fda6d1f245cd7cffb4fef0f5dc5b98e9d132a270460"
+    },
+    {
+      "bytes": 190194,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-en-dark.png",
+      "currentSha256": "0e49577bb6f2e662451404a9236b7cda230ccd58777d412244a5f2dcf2701917",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-en-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "22d07281e937271a03825faf3b3260082ba43360",
+      "priorIndexSha256": "81b2bc172b79fa0516a7f0f0a8719811d36735cf4e9cb50904dfc63bd469ce45"
+    },
+    {
+      "bytes": 180115,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-en-light-chart.png",
+      "currentSha256": "4f6fbb4c8969ef001478011ff7f796d4799dc4d5ef80e3e2ea3f21127af28b5f",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-en-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "2077ed33620b8b31cc1083d08f90571026b47ac9",
+      "priorIndexSha256": "6c8f702ffa838d97167ad69732201f0630a2b0fb4d8bfc9624796854709a4e5d"
+    },
+    {
+      "bytes": 189554,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-en-light.png",
+      "currentSha256": "e46dc9c4cc252955add0fe1c8ab34f4a9914f43b77a7823b914eb7e472159072",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-en-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "0dc67b0531de7f4327290c2cb971e081e9a371b1",
+      "priorIndexSha256": "b24c33194c033d393db5fc127cc489c816f1eef0278d100706c98dd437f44a39"
+    },
+    {
+      "bytes": 181300,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-zh-dark-chart.png",
+      "currentSha256": "b3aa922d5ca349c61e6423774d0246577f7377738c8d33cbade27b5d2c6ad51e",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-zh-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "74fcdb4d352026addfc841238efd0a4bebacb232",
+      "priorIndexSha256": "63a9b8d6a32733a870f3af178ab371afc0c8e90dae0b35ff6e2d2914dd2a5b68"
+    },
+    {
+      "bytes": 190667,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-zh-dark.png",
+      "currentSha256": "9565e7d5defefa432acf33d5dc845fb8add4f392133edcc08b7aa4d9094d5a96",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-zh-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "814aef4c4dd892115b5e3a0f28c270e0def02062",
+      "priorIndexSha256": "60f708fa10a5bc45fa21fdf8f52fc1934c9d0ce9045278882b9a540937ca0fb5"
+    },
+    {
+      "bytes": 182467,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-zh-light-chart.png",
+      "currentSha256": "7f5985c1d01523f76fb53b71f9068d9f5ee94ed8df7e74b1444208b037933691",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-zh-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "b089c0ac8d937783d2f2bc1b5a75df5dac6098b7",
+      "priorIndexSha256": "b356e5f262e4248aa14d2cd478bab73fe2548626a7a91d88ff821ee05bcb3371"
+    },
+    {
+      "bytes": 190212,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/desktop-zh-light.png",
+      "currentSha256": "27b7dcc9e8d3ee120f732f18d0aa5dc4934c5e2d8b3e79aab5f2b8ec65b9fb1a",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/desktop-zh-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "b7a6dc01bdfc7749293016f487eba5100f770a2c",
+      "priorIndexSha256": "3028d7e7eecde5fb2dfeaf2da3c73a32acf5b138f102570114eb865ae16be680"
+    },
+    {
+      "bytes": 75880,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-en-dark-chart.png",
+      "currentSha256": "66901c8dfb3be98f6bacc2a51e0cdc5ce5e136444ed2be33e693a1c5cee204e6",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-en-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "97392d9b54d67db4058f37501fceb3cd73a02493",
+      "priorIndexSha256": "c91882c7e192e47ac414c4a0a1d566ed8d5e60dd64675fa23f3a93f14226d433"
+    },
+    {
+      "bytes": 49214,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-en-dark.png",
+      "currentSha256": "79c8e9e80fb9eccac2497273706675e9d5b45f9cc5f7bb390fccbba6b8f04183",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-en-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "b56f7d6abd48afbe8ed384b80c3b5c84a38829bb",
+      "priorIndexSha256": "e767d5d23d88c3238d02aaf4b143103573c1f56a2687eade85f5e0a911b812ba"
+    },
+    {
+      "bytes": 71513,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-en-light-chart.png",
+      "currentSha256": "3bc255c99f5fd78f93fd78ce75377a9eb3a514686581b55433a7966e3947220d",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-en-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "0d5bb7e46b5fd1b0ffb70bda192ffd6b0966da54",
+      "priorIndexSha256": "9d94065e724c28e503e2b011199a7c1f1920d34cb6239bcbb3edb55190996536"
+    },
+    {
+      "bytes": 49549,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-en-light.png",
+      "currentSha256": "062c9c6676ad9de5b86c874e9905e957f6fd4971d73bc61fdbb84245491cae6e",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-en-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "e1963f81ecb9d1bb983ba2498faf1647d7d5decd",
+      "priorIndexSha256": "7878225cffd9794d861e06e6db7d2adb611f88baa311c00a63a1933ae1c8b102"
+    },
+    {
+      "bytes": 77853,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-zh-dark-chart.png",
+      "currentSha256": "84b2a5ff4726c93f7d2b253895ce1281267806a7906ec24d59c3ac9c926a2d1e",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-zh-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "5dbc2071c9028a41595ac83d12be7e3e56851abb",
+      "priorIndexSha256": "a0ac157be430f5783d22be9c0891a7bd3170dd72f2f4d07532823eccc20b0a06"
+    },
+    {
+      "bytes": 52992,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-zh-dark.png",
+      "currentSha256": "3dcd3fad906bec62ca94080ab630a1ad408679fc81b48d7e4350653b2401c69b",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-zh-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "71b9279ee02ea89539a720a0894e49ec7f433360",
+      "priorIndexSha256": "14c5ce9768f492bd0d656c1e5f5e8ec0bd7beadd57122819b50f1c5c97c2de65"
+    },
+    {
+      "bytes": 76807,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-zh-light-chart.png",
+      "currentSha256": "d05b781795109139c20fae93cd9e829cddcb565c5f1fc3cb7942c60020960b25",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-zh-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "fbfde08ba08712f9f82e37f0ac15a9d56da09a5b",
+      "priorIndexSha256": "760b3d6f9e419b22a6e4cf8024ba466799d568d4e0b1a81c4c5ecfd62e930a61"
+    },
+    {
+      "bytes": 53578,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/mobile-zh-light.png",
+      "currentSha256": "2370baa82891f9c73d2ad25976230cfd35e3749220ea53c9059c40f3b48080e3",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/mobile-zh-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "2dd597a480c25cd91ef2360ee5430fb046038070",
+      "priorIndexSha256": "a4271ce6047a572629e6e1e7838c45558429336a7a96387d4e819a050431eed6"
+    },
+    {
+      "bytes": 102240,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-en-dark-chart.png",
+      "currentSha256": "429ac48a0794172587ab6a64fb127735f3b1bdd44a17d76cd7226eb2fae3e5e7",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-en-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "98758908f7431b3deaf441a6fbe672fb19927c24",
+      "priorIndexSha256": "6ddb13ec794a34217c24aeb37f30850343654e2f0a06a414c6933d53725baf94"
+    },
+    {
+      "bytes": 89022,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-en-dark.png",
+      "currentSha256": "325bc248ae059d494fdc1e2efe33626560b530d24be1599ac4488378aca0700f",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-en-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "3d777f47d8a960d54dae6c4d0767c4dab4e53d61",
+      "priorIndexSha256": "d883c926626f05f95f2ec931ec869a4a53ad378aa94bdb0654b73d1a242daafd"
+    },
+    {
+      "bytes": 101077,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-en-light-chart.png",
+      "currentSha256": "3403fe2ca3859550e303327f4d376bbfce9a1124fa63e1dfe9a4a855a1e228af",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-en-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "bee926e5708d77cdb5cc412ca5e07ab7827fe266",
+      "priorIndexSha256": "4f4bd30589ad3188e669c5387c3d25ec876f746c568959ceaf4607391cf3491a"
+    },
+    {
+      "bytes": 89934,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-en-light.png",
+      "currentSha256": "59a2ec4c88c974aabe6603b9ea930517a32f299df6d8d811a3944011960e6ad5",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-en-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "ef0ae20b4e58e957f47c55fb07b6af01399a0a4c",
+      "priorIndexSha256": "6ef34531c4699f71780dc8691d2a17907d918bd7b3deb70a97d7835a436e1b15"
+    },
+    {
+      "bytes": 106913,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-zh-dark-chart.png",
+      "currentSha256": "69c055ce23fdf79e6c66705b30fa00e17db78da7d84cced9fd4bd861b0c5efdd",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-zh-dark-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "b840c52bdefd5c5bfbf11acda80040ab9a50d52a",
+      "priorIndexSha256": "2f970a536c6ec1799b4b2932cb35cc1375497c7c85c2f3b30e5205042a543dfe"
+    },
+    {
+      "bytes": 96358,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-zh-dark.png",
+      "currentSha256": "5b23a237ebe94de44badf034ccd14d2827d8ee50c338f2408b2a841eb5a9ddd2",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-zh-dark.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "42192ba6ad818213bfacc89ef391d54034b0749b",
+      "priorIndexSha256": "3d9e27d79648af361202f5bbe3e0278570ef05a068b13e381094a350590f5a71"
+    },
+    {
+      "bytes": 106004,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-zh-light-chart.png",
+      "currentSha256": "21d17d20e75d10840d539d913c696420a937b77fc0d1a19d9be337900ed23079",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-zh-light-chart.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "4599ea52e008813456ba3457f9a47635c99dc99d",
+      "priorIndexSha256": "9ee96fdd228ed7a08a87c5aaa158b48fa0dac1541f5248d29479d4a4e8da6e4d"
+    },
+    {
+      "bytes": 91341,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-chart-20261018/tablet-zh-light.png",
+      "currentSha256": "24b30e7675a3b0a63ab67e6097147356e132bc3821b81477270452b5d225015c",
+      "originalPath": "terminal/docs/pr-crops/overnight-chart-20261018/tablet-zh-light.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "07d48ded030c54c16cbcce3372216d1ba3c0cb66",
+      "priorIndexSha256": "da62b9d614f7402c7d10426f2b20077e37a9cbc7aae0a5e827c3f18fa689f359"
+    },
+    {
+      "bytes": 165957,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/desktop-en.png",
+      "currentSha256": "a2eb539728b5b611e88c727b4a5a480da523815a0752db2e8c79c5c5a474a811",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/desktop-en.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "203d1081060d44ba64c99ec893709e99a66dc560",
+      "priorIndexSha256": "02a2f527627f2675e4c34edfb10aa8defc12aca2aa49169f3e8716fc9d1f3abe"
+    },
+    {
+      "bytes": 168643,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/desktop-zh.png",
+      "currentSha256": "dee63f4a90695d79b156b6bb45ce595bc8564f0ac415af0e071491f493ff24d2",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/desktop-zh.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "125d2dcf2b81196ce8ac89dc82cddb995f6f8ae2",
+      "priorIndexSha256": "d9e58a4bed0d927a0c625e46ff81e6a93380c83ac76b1ae358163dfc0a5eedb1"
+    },
+    {
+      "bytes": 67507,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/mobile-en.png",
+      "currentSha256": "af80c1d52bf97b31a79e86588c9328b898c0a88832e2d86eb94e062c769b96b8",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/mobile-en.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "2f0faac43db2b6003317e35217b83abed4b9b6cb",
+      "priorIndexSha256": "64f4df164d78c0c2748024e442ab5622781f7218972ac95a3aaf434e15dd211b"
+    },
+    {
+      "bytes": 71228,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/mobile-zh.png",
+      "currentSha256": "3c5b32d43379ea9b707f0276fd58aa1bf35cb459531a36649e0e06eea61c3677",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/mobile-zh.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "1f8cf365d5bb3936e15dcd149719e89aaec08d7b",
+      "priorIndexSha256": "84125dfab40e4e654e5c9c8aa13cf3c779fd8122147bb273fb19cee1797ddb0c"
+    },
+    {
+      "bytes": 174057,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/desktop-daytime-completed.png",
+      "currentSha256": "9096d3e1726f1d798733bbb0d403395072dd01a780cce707669b3e3b9f34260a",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/desktop-daytime-completed.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "1ae376d46bb32464c4044b271cc3f281b8f85c4b",
+      "priorIndexSha256": "e76b221c22b9716f3858e147877ca09094aac5cd9e2b6011b5fe9d3e7231c2e3"
+    },
+    {
+      "bytes": 13883,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/desktop-daytime-completion.json",
+      "currentSha256": "be6dbd6f85a3e99eb9942d3c5dac53a78f93f5d1bb2513f11bc95f3cfad2251b",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/desktop-daytime-completion.json",
+      "previouslyTracked": true,
+      "priorIndexBlob": "7b78354c4bfd318eb0ab6444f3f2d6f2a244e8bd",
+      "priorIndexSha256": "3b0d58c88096fd3eca03f81fdfd6dab54978a3c0e93ad430ed3a0106845d9d05"
+    },
+    {
+      "bytes": 145690,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/desktop-daytime-pending.png",
+      "currentSha256": "4daacaad0e167424f02d9b50349f0a5230a8dc565f56cdabbf26d17eb5d12bb0",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/desktop-daytime-pending.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "766015fa68fc429224c3be90fc8b4db4acc009a3",
+      "priorIndexSha256": "1d9e331dacefe7d1425981447bf35b7445119436d641721dfe21206e542417f0"
+    },
+    {
+      "bytes": 70092,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/mobile-daytime-completed.png",
+      "currentSha256": "6438d977016c2b16da143b2aadf780efe9de89aa02e6919d5636e376ce496c01",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/mobile-daytime-completed.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "adb43cf51d5916f14d746ceaf3f8380e0da7b834",
+      "priorIndexSha256": "69f6624ac899486dac4d685ad2580aae1ee9d1e65b7767a7932e6d4fc4b9b91e"
+    },
+    {
+      "bytes": 13883,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/mobile-daytime-completion.json",
+      "currentSha256": "c8e532d6acf1d22e098b41c50b4432443bac53160f174e7923bda43fabd660aa",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/mobile-daytime-completion.json",
+      "previouslyTracked": true,
+      "priorIndexBlob": "805580857ee0824a3e26d4c531268593992792a8",
+      "priorIndexSha256": "9f05de0126a346f58f144bfb2b4d50a4f424b37b5ed3218b30b4dc42c6cf1de6"
+    },
+    {
+      "bytes": 54924,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/mobile-daytime-pending.png",
+      "currentSha256": "20701fcbfc5be74364841b974826430583843dbd27597f80102ea3dbaf9c4e40",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/mobile-daytime-pending.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "b17d49619ef0917fd601036e4a78a677a243a3d7",
+      "priorIndexSha256": "9f2a518356ebb3c0c5b495d59602ec9f7e18c308c2557184704610449de2e6d6"
+    },
+    {
+      "bytes": 98515,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/tablet-daytime-completed.png",
+      "currentSha256": "73e85e0fc0421f3fb9d445e60e88ca003f96482b6b6590554454cd6b8826b358",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/tablet-daytime-completed.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "c44c3a55b63c42c7ebc05138ac6076178e426529",
+      "priorIndexSha256": "4c65e128556e8cca306de896c6299d8bfed1f4d307a2b68d6a092fc6bbcd4141"
+    },
+    {
+      "bytes": 13882,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/tablet-daytime-completion.json",
+      "currentSha256": "8ed5136b09008a0541fd231345262b0785d031e06933beee45bb56bcdda5dca4",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/tablet-daytime-completion.json",
+      "previouslyTracked": true,
+      "priorIndexBlob": "1edb283de67f60d7d17cd0e1868ed23322832b29",
+      "priorIndexSha256": "a47b23eef227264f4c902dea3f3a50b8870f83ff0f31c18bdc0cff5913861d92"
+    },
+    {
+      "bytes": 81813,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/tiingo-24h-fastpath-20261021/tablet-daytime-pending.png",
+      "currentSha256": "ef5b6b77d272332cb498ddd1d97f613a1c6bcd9f7697796e6797045824bc69d3",
+      "originalPath": "terminal/docs/pr-crops/tiingo-24h-fastpath-20261021/tablet-daytime-pending.png",
+      "previouslyTracked": true,
+      "priorIndexBlob": "fcfec8e00473eacc973324ba8a999a9afb252143",
+      "priorIndexSha256": "39b2700d427a67f2e3060a61a047c294ec6f28d2afbc4f3655dbcdf33d9ad459"
+    },
+    {
+      "bytes": 101550,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/tablet-en.png",
+      "currentSha256": "aa771c71aeac4f8e6f12d5726c03e107a184152b7228a239915fc70f962c56c7",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/tablet-en.png",
+      "previouslyTracked": false
+    },
+    {
+      "bytes": 104997,
+      "currentCapturePath": "docs/verification/pr1268-source-integration-20261109/browser-r1/auxiliary-current-crops/overnight-history-20261019/tablet-zh.png",
+      "currentSha256": "37ba4be371ca738658369d3c0c766c0e1d670e328e90f55b86aa31b0b0f214ed",
+      "originalPath": "terminal/docs/pr-crops/overnight-history-20261019/tablet-zh.png",
+      "previouslyTracked": false
+    }
+  ],
+  "reason": "The six affected browser specs also write established historical packet paths. Current outputs are preserved separately; those established packets keep their exact integrated-index bytes. The intended twelve tiingo-24h-status images stay current.",
+  "relocatedNewFiles": 2,
+  "restoredTrackedFiles": 43,
+  "schema": "terminal_pr1268_auxiliary_current_capture_preservation.v1",
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:06:36.906082+00:00",
+  "state": "CURRENT_COPIES_PRESERVED_HISTORICAL_PACKET_BYTES_RESTORED"
+}

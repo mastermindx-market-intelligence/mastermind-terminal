@@ -46,11 +46,30 @@ const EOD_LEX = {
   cellPutWall:    ["Put wall", "看跌墙"],
   cellFlip:       ["Gamma flip", "伽马翻转"],
   cellExpMove:    ["Expected move", "预期波动"],
+  // W3S: the published band's own statement — the producer's numbers verbatim, and the
+  // method line that says the source names no method. Never framed as a stated level.
+  cellExpMoveMethodBand:     ["band ×{m}", "区间 ×{m}"],
+  cellExpMoveMethodHorizon:  ["{n}d horizon", "{n}日"],
+  cellExpMoveMethodUnstated: ["method not stated by source", "来源未说明方法"],
   cellMaxPain:    ["Max pain", "最大痛苦点"],
   cellIvPct:      ["IV percentile", "IV 百分位"],
   cellOiConf:     ["OI confirmed", "持仓确认"],
   cellAbsent:     ["—", "—"],
   cellAbsentNote: ["not published", "未发布"],
+  // A read that did not land, or has not landed yet, is not an unpublished value.
+  cellLoadFailedNote: ["could not load", "无法加载"],
+  cellReadingNote:    ["reading…", "读取中…"],
+  beltLoading:    ["Reading the settled structure…", "正在读取已结算的结构…"],
+  beltLoadError:  ["Could not load the settled structure", "无法加载已结算的结构"],
+  beltLoadErrorWhy: [
+    "The read did not reach the store, so this says nothing about whether {root} is published.",
+    "读取未能到达数据源，因此无法判断 {root} 是否已发布。",
+  ],
+  beltPartialError: [
+    "Some values could not load. They are not missing from the store — retry to read them again.",
+    "部分数值无法加载。它们并非数据源中缺失——可重试再次读取。",
+  ],
+  retry:          ["Retry", "重试"],
 
   // Per-cell hovers (Tier-2). Numbers and their meaning live here; the belt stays glanceable.
   tipCallWall: [
@@ -70,8 +89,8 @@ const EOD_LEX = {
     "由平值隐含波动率得出的、期权市场为下一交易日定价的波动区间——是区间而非目标。仅为仓位背景，非预测。",
   ],
   tipMaxPain: [
-    "The strike where the most open contracts would expire worthless. Published by the structure snapshot; display-only.",
-    "使最多未平仓合约到期归零的行权价。由结构快照发布；仅供展示。",
+    "The strike where the most open contracts would expire worthless. Based on settled options data; for context.",
+    "使最多未平仓合约到期归零的行权价。基于已结算的期权数据；仅供参考。",
   ],
   tipIvPct: [
     "Where this name's at-the-money implied vol sits within its own range over the past trading year. High = its options are dear for this name, not dear in absolute terms.",
@@ -82,7 +101,7 @@ const EOD_LEX = {
     "上一交易日有多少笔大额成交被隔夜未平仓量增加所印证——即新开仓而非平仓。",
   ],
   // The two stores can run different sessions; the fallback is disclosed, never silent.
-  srcFallback:    ["from the ladder snapshot", "取自梯图快照"],
+  srcFallback:    ["from the options ladder", "取自期权梯图"],
 
   // ── Dark Pool mini-panel ───────────────────────────────────────────────────
   dpTitle:        ["Dark pool", "暗池"],
@@ -146,8 +165,14 @@ const EOD_LEX = {
   ],
   dpUnavailable:  ["Off-exchange panel unavailable", "场外成交面板不可用"],
   dpUnavailableWhy: [
-    "The settled dark-pool artifact hasn't published yet. Nothing is being estimated in its place.",
+    "Settled dark-pool data hasn't been published yet. We don't estimate a replacement.",
     "已结算的暗池数据尚未发布。此处不会以任何估算值替代。",
+  ],
+  // The third fact: the read itself did not land. Says nothing about publication.
+  dpLoadError:    ["Could not load the off-exchange panel", "无法加载场外成交面板"],
+  dpLoadErrorWhy: [
+    "The read did not reach the store. Nothing is being estimated in its place.",
+    "读取未能到达数据源。此处不会以任何估算值替代。",
   ],
 
   // ── Vol regime chip ────────────────────────────────────────────────────────
@@ -155,7 +180,7 @@ const EOD_LEX = {
   volChipAria:    ["Market volatility regime", "市场波动率体制"],
   volChipAbsent:  ["Vol regime unavailable", "波动率体制不可用"],
   volChipAbsentWhy: [
-    "The settled vol-regime artifact hasn't published yet.",
+    "Settled volatility-regime data hasn't been published yet.",
     "已结算的波动率体制数据尚未发布。",
   ],
   volChipCadence: ["Index vol regime · settled close", "指数波动率体制 · 结算收盘"],

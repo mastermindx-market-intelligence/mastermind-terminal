@@ -1,0 +1,63 @@
+/* Options gates own scrolling within the shell's available content area. */
+.viewport {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 24px;
+  padding: 24px 20px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  color: var(--text);
+}
+.card {
+  box-sizing: border-box;
+  flex: none;
+  width: 100%;
+  max-width: 440px;
+  margin-block: auto;
+  padding: 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.brand { display: flex; justify-content: center; margin-bottom: 16px; }
+.eyebrow { margin-bottom: 12px; color: var(--text-2); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.title { margin: 0 0 10px; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.body { margin: 0 0 20px; color: var(--text-2); font-size: 13px; line-height: 1.6; }
+.features { display: grid; gap: 10px; margin: 0 0 24px; padding: 0; list-style: none; text-align: start; }
+.features li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; }
+.featureIcon { flex: none; width: 16px; height: 16px; margin-top: 2px; color: var(--text-2); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.actions { display: grid; gap: 8px; }
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+  cursor: pointer;
+}
+.secondary { border: 1px solid var(--line); color: var(--text); background: transparent; }
+.secondary:hover { background: var(--panel-2); }
+.action:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+.footnote { margin: 12px 0 0; color: var(--text-2); font-size: 11.5px; line-height: 1.5; }
+:global(html[data-lang="zh"]) .eyebrow { letter-spacing: 0; text-transform: none; }
+@media (max-width: 520px), (max-height: 520px) {
+  .viewport { padding: 20px 16px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .card { padding: 24px 20px; }
+}

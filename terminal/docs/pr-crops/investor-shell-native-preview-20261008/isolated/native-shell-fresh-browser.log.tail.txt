@@ -1,0 +1,45 @@
+
+    Error: expect(locator).toBeHidden() failed
+
+    Locator:  locator('.m-drawer.open')
+    Expected: hidden
+    Received: visible
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeHidden" with timeout 5000ms
+      - waiting for locator('.m-drawer.open')
+        14 × locator resolved to <div class="m-drawer open">…</div>
+           - unexpected value "visible"
+
+
+      46 |       await expect(page.locator(".m-drawer.open")).toBeVisible();
+      47 |       await page.keyboard.press("Escape");
+    > 48 |       await expect(page.locator(".m-drawer.open")).toBeHidden();
+         |                                                    ^
+      49 |     }
+      50 |     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      51 |     await page.screenshot({ path: testInfo.outputPath(`${route.startsWith("/analysis") ? "analysis" : "discover"}-${testInfo.project.name}.png`) });
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal/e2e/investor-shell-preview.spec.ts:48:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/investor-shell-fresh/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/investor-shell-fresh/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/investor-shell-fresh/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/investor-shell-fresh/investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [tablet] › e2e/investor-shell-preview.spec.ts:15:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner 
+    [tablet] › e2e/investor-shell-preview.spec.ts:15:7 › existing /discover uses the preview without losing its page or mobile owner 
+    [mobile] › e2e/investor-shell-preview.spec.ts:15:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner 
+    [mobile] › e2e/investor-shell-preview.spec.ts:15:7 › existing /discover uses the preview without losing its page or mobile owner 
+  4 skipped
+  10 passed (47.0s)

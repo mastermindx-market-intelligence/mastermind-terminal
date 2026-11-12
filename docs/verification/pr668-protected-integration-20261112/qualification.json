@@ -1,0 +1,90 @@
+{
+  "recordedAt": "2026-11-12T03:35:05.480575+00:00",
+  "headBefore": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceIndexBeforeNewEvidence": "9a9dbff26546ce89ecd24b2288024c8f44bb5ac4",
+  "ownedSourcePaths": [
+    "terminal/app/api/flow/stream/route.ts",
+    "terminal/components/prophet/ProphetPerfPanel.module.css",
+    "terminal/components/prophet/ProphetPerfPanel.tsx",
+    "terminal/components/prophet/ProphetView.tsx",
+    "terminal/components/prophet/prophetPerfStrings.ts",
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/e2e/prophet-perf-responsive.spec.ts",
+    "terminal/lib/__tests__/flowStreamRouteBoundary.test.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts",
+    "terminal/lib/flowSource.ts",
+    "terminal/test-fixtures/prophet_perf_fixture.json"
+  ],
+  "ownedSourceHashes": {
+    "terminal/app/api/flow/stream/route.ts": "3b655dc6e80445cfdeefc068fcb1636e4b3666961c6c78411a67468570fc0f45",
+    "terminal/components/prophet/ProphetPerfPanel.module.css": "753ec21b175f892e8c7195d920981aed95b528175c59eeb0c21fa8e07af082aa",
+    "terminal/components/prophet/ProphetPerfPanel.tsx": "da734b1d3da4724fb94d9a44a86b1d0188c599fdb62b111e2f6cca1f21074a87",
+    "terminal/components/prophet/ProphetView.tsx": "f578ff00a527295f5531426d8676680bc502ec4e1919fa70776b7f54debdd6c5",
+    "terminal/components/prophet/prophetPerfStrings.ts": "cdd914bc086b6a91ed5213a2e2e181aeeb80f49b61e8a70000392b10d1dd9997",
+    "terminal/components/prophet/prophetPerfTypes.ts": "6fadbdd2ac570daebb2cf179bc890f4b4350fcc0a8739aff275523bdada0b603",
+    "terminal/e2e/prophet-perf-responsive.spec.ts": "740a54d66c04e3ce0ddc5da90643c36bcaee5d90fb814218fc574a34d7ba41ce",
+    "terminal/lib/__tests__/flowStreamRouteBoundary.test.ts": "5ac57f56a3780a221884bfd58fabfa129a4961900f4619cd33bb265a10218cd1",
+    "terminal/lib/__tests__/prophetPerf.test.ts": "7730b95c7ac1296d0af8ba14428695263fe7510e5f8e3350ccc9db3aa29d0bb3",
+    "terminal/lib/flowSource.ts": "b483f472bafacec29c0c20a5221fb57b6f3a8807844570d42fd52c4ae4057db7",
+    "terminal/test-fixtures/prophet_perf_fixture.json": "188b0b31d8c56bba0cb9adee06772d4ebe7a9912880e31887c7c98a275f4561e"
+  },
+  "unitCasesPassed": 241,
+  "unitFiles": 13,
+  "typegenPassed": true,
+  "typescriptPassed": true,
+  "scopedEslintPassed": true,
+  "strictGmiCasesPassed": 5,
+  "browserStats": {
+    "startTime": "2026-11-12T03:20:55.515Z",
+    "duration": 63626.181,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "rootInspectedImages": [
+    "desktop-en-closed-unavailable.png",
+    "desktop-en-closed.png",
+    "desktop-en-open.png",
+    "desktop-en-page-open.png",
+    "desktop-zh-closed.png",
+    "desktop-zh-open.png",
+    "mobile-en-empty.png",
+    "mobile-en-ready.png",
+    "mobile-en-unavailable.png",
+    "mobile-zh-empty.png",
+    "mobile-zh-ready.png",
+    "mobile-zh-unavailable.png",
+    "tablet-en-ready.png"
+  ],
+  "currentPacket": {
+    "EVIDENCE.yml": "6668956b690910325a677b1175077edd7a9d12e075a04ad38f6693bbf0f2ab3a",
+    "mobile-zh-empty.png": "62564e6b202b3ca1963e1f6b4b40b8e43a7f1b352fc22ca735feef3aabf12450",
+    "mobile-en-unavailable.png": "e4ca456294813dbd9b8bbaa6b82fcad0b2eff0cc8ae8b8962b95438ecdd73b72",
+    "desktop-en-open.png": "03d528c36b1791cfa33a42b5c57e3fae14b6cf83f3fe5ada33119b1da8fb2c6f",
+    "desktop-en-page-open.png": "cfb905f6eacd4bc030c34622e4d4f179cdce995e3b73b7680d6e983007ebed26",
+    "desktop-en-closed.png": "967a6107da5bff3900406efa48697d825c680750f571886808f7c81758d52305",
+    "desktop-zh-open.png": "3e3d29dfd28a5c3682a3f6d1f10e9feedb2676556d7c743fe9e842d16e5ab5aa",
+    "tablet-en-ready.png": "40ceebd59b0b02f8d1faeb5a693df7e6714f51453fb022be28787ab4c1396a9b",
+    "mobile-zh-unavailable.png": "cee75b08b59c4ea77eee59f969e5e3332d5d36b4d3ecbfd4c9eee1e88b1d4120",
+    "mobile-zh-ready.png": "5d4962ba3c7ce056d6375f0b1f4476a61d262f18fa5c0ccaa6957a8f3444a487",
+    "mobile-en-empty.png": "62c60715c64925278daed5ad497c9601b0e2c0f65bb6232c76fba819bea6bc9b",
+    "desktop-en-closed-unavailable.png": "2c0751bcc704e0093df2645ae9a871062ad0afdaca817d7460cfa5156a92ae3c",
+    "desktop-zh-closed.png": "96cf2900ecaa92ec7ad37b3d89b3213992dcc21fbd61c05b43e60059998569dd",
+    "mobile-en-ready.png": "8f62b6c8fa9854f6d7ac65e6aa5b89b6539a8681ac3de3c559ee20593a2e021e"
+  },
+  "captureLifecycle": {
+    "portClosed": true,
+    "workspaceProcesses": [],
+    "devLockPresent": false
+  },
+  "browserLifecycle": {
+    "portClosed": true,
+    "devLockPresent": true
+  },
+  "draftRetained": true,
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "autoMergeRequested": false
+}

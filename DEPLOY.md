@@ -3,25 +3,28 @@
 **The live site (`app.mastermind-x.com`) is GIT-GATED. `origin/master` is the single source of truth.**
 
 As of 2026-07-09 the VPS build script (`/opt/terminal/terminal-build.sh`) builds **only `origin/master`**.
-Editing files under `/opt/terminal/terminal` directly (scp/rsync of a working tree) **does nothing** —
-the build ignores the working tree and overwrites it with `master` on every deploy. This exists because
-sessions were rsync'ing working trees straight to the box and silently overwriting each other's live work.
+Direct edits under `/opt/terminal/terminal` are not a deployment and can make the canonical
+source preflight refuse. Publish changes through protected `master`; do not scp or rsync a working
+tree over the live source.
 
 ## To ship a change — the ONLY supported flow
 
 1. **Branch + commit** your change (work in a git checkout, not on the box).
 2. **Open a PR** to `master` on `github.com/mastermindx-market-intelligence/mastermind-terminal`.
 3. **Merge to `master`** (get it reviewed / conflicts resolved against everyone else's merged work).
-4. **Deploy** — run the build on the VPS (it fetches + builds `origin/master`, zero-downtime, auto-rollback):
+4. **Deploy through the existing release owner.** The `vps-main-deploy` workflow resolves the
+   protected target and uses the shared build lock. If an attended manual invocation is needed,
+   reconcile any active or interrupted attempt first and pass the exact qualified target explicitly
+   (replace `FULL_PROTECTED_40_HEX_SHA` with that commit):
 
    ```sh
-   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh'
+   ssh root@146.190.142.17 'bash /opt/terminal/terminal-build.sh --target production --target-sha FULL_PROTECTED_40_HEX_SHA'
    ```
 
-That's it. Because everyone deploys the same committed `master`, nobody's work can be reverted by
-another session's deploy.
+A merge, running workflow, or successful build alone is not installed-generation acceptance.
+Read the release owner's final identity and recovery receipts.
 
-## Canonical source preflight — W2A status
+## Canonical source preflight
 
 `ops/terminal_release_preflight.py` plus
 `ops/terminal_source_audit.production.json` now define the reviewed read-only
@@ -30,16 +33,19 @@ requires the live marker, clean canonical checkout, accepted ref, all applicatio
 and runtime-code projections, and both installed wrappers to agree on one SHA. It
 publishes an immutable receipt and mutates no source, service, build, or data.
 
-**The incumbent `terminal-build.sh` does not call this gate yet.** W2A must first
-merge and produce a `CLEAN` production receipt. W2B then owns binding the gate to
-exact-target build/deploy/rollback behavior. Until that integration lands, do not
-claim that running the build command below has produced a W2A preflight receipt.
+The incumbent `terminal-build.sh` runs this preflight before fetch, reset, clean, build or
+service effects. Target and storage validation precede the shared build lock; under that lock,
+memory admission runs before the owner writes a preflight receipt or changes source. A memory
+refusal therefore produces no new `CLEAN` preflight receipt. Starting a workflow or acquiring
+the lock does not establish preflight or deployment acceptance.
 See [`ops/TERMINAL_RELEASE_PREFLIGHT.md`](ops/TERMINAL_RELEASE_PREFLIGHT.md).
 
 ## What the build script does (`terminal-build.sh`)
 
 `git fetch && reset --hard origin/master` in `/opt/terminal/.gitsrc` (a read-only-deploy-key checkout)
-→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`, `public/data`)
+→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`)
+→ stage `public/data`: production gets only the commit's git-tracked fixtures (`git archive HEAD -- terminal/public/data`,
+#1442), and beta gets its own beta-owned tree; the live production data tree is never in the build
 → `next build` in the stage → verify `BUILD_ID` → **atomic-swap `.next`** (live site stays up throughout;
 auto-rolls-back if health fails) → **runtime-code sync** (cron/systemd scripts, below) → sync
 `/opt/terminal/terminal` source back to `master`.
@@ -51,8 +57,10 @@ box copy in place.
 ## What a deploy ships — exact paths
 
 One `terminal-build.sh` run deploys **all** of the following from the same `origin/master` SHA.
-If the deploy fails (build error or health check), **nothing** moves — app and runtime code both
-stay on the previous state.
+A failed run is not proof that nothing changed. Read the owner's admission, recovery and acceptance
+verdicts: an early memory refusal precedes source and build effects, while a later failure may require
+restoration of the canonical checkout, dependency inputs, build and deployment marker. Runtime
+overlays have their own later effects; their state cannot be inferred from the workflow conclusion.
 
 | repo path | deployed to | how |
 |---|---|---|
@@ -79,6 +87,63 @@ host-owned runtime-data class: Git contains reviewed fixtures/snapshots under th
 live tree is continuously refreshed. The policy pins the exact Git tree shape, validates live metadata,
 and never treats mutable data content as implementation source. None of these exceptions permits an
 `rsync --delete` over host-owned runtime state.
+
+### When the installed builder is itself the blocker (self-update deadlock)
+
+Both the `vps-main-deploy` workflow and the manual command above execute the **installed** copy at
+`/opt/terminal/terminal-build.sh`, and only step 8 of a **successful production** deploy reinstalls it
+from the just-deployed generation ("effective next run"). Beta deploys never install it
+(`INSTALLS_GLOBAL_RUNTIME` is production-only), so beta traffic alone never advances the box copy.
+The production source-audit policy additionally pins that copy: the `terminal-build-wrapper` mapping
+compares `/opt/terminal/terminal-build.sh` **byte-exact** against the accepted generation's
+`ops/terminal-build.sh` blob, so an out-of-band replacement of the box copy fails the next
+current-generation preflight with `TRACKED_MODIFIED` before admission ever runs.
+
+That coupling can deadlock when a merged master change to the builder is *required* for the next
+production admission to pass. It happened once: the operator-installed `hardening.conf` /
+`storage.conf` `ExecStartPre` guards are refused outright by the pre-#1328 installed builder
+(`unsupported-service-launch-hook`), while master since #1328–#1340 admits exactly that pinned pair —
+so every `vps-main-deploy` run since the workflow's first execution (30/30 failures,
+2026-11-09T11:11Z → 2026-11-10T02:55Z; e.g.
+[run 42743708853](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42743708853))
+was refused by a box copy that predated the fix it needed.
+
+To identify which builder a failed run actually executed: the `source preflight CLEAN: accepted=<sha>`
+log line names the deployed generation, and the installed builder is byte-exact that generation's
+`git show <accepted>:ops/terminal-build.sh`. Read the refusal logic from that revision — not from
+current master — before changing any source.
+
+Breaking the deadlock (one-time release-owner action; never edit the box copy in place): verify a
+candidate copy of current master's `ops/terminal-build.sh` against its git blob, then run it **from a
+staging path** on the VPS with `--target production --target-sha <current protected master>`. The
+staging run performs the ordinary deploy end-to-end: the current-generation preflight still audits the
+untouched installed copy (CLEAN), the new admission code qualifies the pinned guards, and the
+deploy's own step 8 re-pins `/opt/terminal/terminal-build.sh` in-band. After that single run the
+workflow is self-sustaining again.
+
+Start that staging run detached (`nohup setsid bash <staging copy> --target production --target-sha
+<sha> > <log> 2>&1 < /dev/null &`) so a dropped SSH session cannot signal it mid-deploy, and confirm
+the `identity verified: intended=<sha> marker=<sha>` and `installed ops/terminal-build.sh` log lines
+before you call it done.
+
+How that incident was resolved (2026-11-10). The first staging runs of master's builder got past
+`unsupported-service-launch-hook`, but the production host lacked the prerequisites listed below, so
+each run stopped at the next refusal. Each of those refusals came before mutation, and production kept
+serving its last good generation. Once the prerequisites were in place, `next build` was OOM-killed
+until #1442 removed the live data tree from the build stage. The staging run of master `7f7f3698`
+then deployed at 20:57Z, and its step 8 re-pinned the box copy.
+
+#### Production host prerequisites checked by candidate admission
+
+These are host facts, not source, so a fresh or rebuilt production host must provide them before
+its first deploy. Each refusal names its code in the deploy log.
+
+| Requirement | Refusal when missing |
+|---|---|
+| Every directory on systemd's manager `PATH` exists and is owned `root:root`. Ubuntu's default manager `PATH` includes `/snap/bin`; on a host without snapd, create it as an empty `root:root` `0755` directory. | `safety-hook-manager-path-unreadable` / `safety-hook-manager-path-untrusted` |
+| The production unit declares `INVESTIGATION_API_ADMISSION=closed` exactly once and nowhere else. Use a drop-in such as `/etc/systemd/system/terminal.service.d/investigation-admission.conf` containing `[Service]` and `Environment=INVESTIGATION_API_ADMISSION=closed`, then `systemctl daemon-reload`; no restart is needed. Do not put the key in `.env`/`.env.local` or the manager environment. | `missing-explicit-closed`, `conflicting-admission-declaration`, `dotenv-admission-conflict`, `admission-key-in-manager-environment` |
+| `terminal/.env` and `terminal/.env.local`, where present, are regular files owned by the deploying user (root) and not group- or other-writable. A file copied in by another account keeps that account's owner; `chown root:root` it. Values are never read into the log. | `dotenv-foreign-owner`, `dotenv-group-or-other-writable`, `dotenv-not-regular` |
+| Build memory admission: `MemAvailable + SwapFree` from `/proc/meminfo` must meet the default **4096 MiB** floor (`BUILD_NODE_HEAP_MB=3072` plus 1024 MiB). This is an early capacity check, not a reservation or guarantee against a later OOM. Restore capacity and requalify through the same release owner; do not lower or disable the guard to replay a refusal. | Exit **75**, with `reason=insufficient-build-memory` below the floor or `reason=build-memory-unmeasurable` when the values cannot be read or parsed. Admission runs under the shared lock before preflight receipt, Git, dependency-install, build or swap effects. Inspect recorded capacity and process/lock ownership before retrying; this refusal itself requires no source or dependency rollback. |
 
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
@@ -112,38 +177,104 @@ cd /opt/terminal/terminal && npx esbuild ../ingest/webhook_delivery.ts --bundle 
 
 #### How a receiver verifies a delivery
 
-Every request carries three headers:
+Every request carries these headers:
 
 ```
-Mastermind-Webhook-Id:        <delivery id, a uuid>
-Mastermind-Webhook-Timestamp: <unix seconds, integer>
-Mastermind-Webhook-Signature: v1=<hex>
+Mastermind-Webhook-Id:          <delivery id, a uuid>
+Mastermind-Webhook-Timestamp:   <unix seconds, integer>
+Mastermind-Webhook-Signature:   v1=<hex>
+Mastermind-Webhook-Key-Version: <integer secret version>
+Mastermind-Webhook-Event-Id:    <event id>
+Mastermind-Webhook-Event-Type:  <event type>
 ```
 
 `<hex>` is `HMAC-SHA256(secret, "<timestamp>.<raw request body>")`, lower-case
 hex, over the **exact bytes received** — parse the JSON only after verifying,
 never re-serialize first. `secret` is the value returned once when the endpoint
-was created (Settings → Webhooks); it is shown once and cannot be shown again,
-so a lost secret means registering a new endpoint.
+was created or when its signing secret was rotated (Settings → Webhooks); it is
+shown once and cannot be shown again, so a lost secret means rotating or
+registering a new endpoint.
+
+After a rotation the previous secret keeps working for 24 hours. A second
+rotation is refused with `rotation_grace_active` / HTTP 409 until that grace
+expires; refusal leaves both keys, their version and expiry unchanged. During
+that window every delivery also carries:
+
+```
+Mastermind-Webhook-Signature-Previous: v1=<hex of the previous secret>
+```
+
+The current `Mastermind-Webhook-Signature` stays `v1=<hex>` so existing
+receivers keep verifying against the current secret. Switch the receiver to
+the new secret during those 24 hours; after the window the previous header is
+omitted.
+
+The HMAC authenticates the timestamp and raw body only. Event-id, event-type,
+key-version and delivery-id headers are metadata, not independently signed
+identity. For `alert.fired`, use the authenticated body's `fire_event_id`,
+reject a supplied `Mastermind-Webhook-Event-Id` that disagrees with it, and
+require the body's `team_id` to match the receiver's configured team. The
+deduplication scope is the configured endpoint and team plus that signed fire
+identity. Configure this scope alongside the receiver's secret; never obtain
+it from untrusted request headers. `Mastermind-Webhook-Id` stays the delivery
+id across retries, but its unsigned value must not decide whether to repeat a
+business action.
+
+An `alert.fired` body uses schema tag `mastermind.alert-fired/v1` and these
+fields: `fire_event_id`, `alert_id`, `user_id`, `team_id`, `fired_at`,
+`ticker`, `subject`, `subject_zh`, `summary_plain`, `summary_plain_zh`,
+`condition_plain`, `condition_plain_zh`, `value`, `evidence_url`.
+
+A personal alert fire is posted to a team endpoint only when that endpoint is
+on, it is subscribed to alert fires, the firing user is a current member of
+the team, and that user has turned on sending their own alert fires to the
+team's webhooks.
 
 A receiver must:
 
 1. Read the raw body as bytes, before any JSON parsing.
 2. Recompute the HMAC and compare it to the header with a **timing-safe**
    comparison (`crypto.timingSafeEqual`, `hmac.compare_digest`) — never `==`.
+   During the 24-hour rotation window, accept a match on either the current
+   signature or the previous signature.
 3. **Reject if `|now − timestamp| > 300` seconds.** That 300-second replay
    window is what stops a captured request from being replayed later; the
-   signature alone never expires. The delivery id is stable across retries of
-   the same event, so a receiver that also wants exactly-once handling should
-   treat `Mastermind-Webhook-Id` as an idempotency key rather than widening
-   the window.
-4. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
+   signature alone never expires.
+4. Only after HMAC/freshness verification, parse the body. For schema
+   `mastermind.alert-fired/v1`, bind identity and team as described above.
+   Atomically dedupe acceptance/business effects by configured endpoint, team
+   and signed `fire_event_id`; retain that event dedupe across delivery retries.
+   Changing unsigned headers cannot create a new event identity.
+5. A `mastermind.webhook-test/v1` body has no signed event identity. Treat it
+   as a connectivity test, not an exactly-once business event. Cache an
+   authenticated request fingerprint `SHA256(timestamp + "." + rawBody)` in
+   the configured endpoint/team scope, atomically through at least
+   `(timestamp + 300)` seconds since the epoch. Replaying the identical signed
+   request with changed headers gets the same cache key. A freshly signed retry
+   at a different timestamp can have a different key; no exactly-once guarantee
+   is claimed for test events. Never use the unsigned event-id header instead.
+6. Answer `2xx` to accept. Any other status, or no answer within 10 seconds,
    is retried at 1 min, 5 min, 30 min and 4 h; after the fifth attempt the
    delivery stops for good.
+
+The executable reference verifier is `terminal/lib/webhookReceiver.ts`, with
+actual-helper contract tests in `terminal/lib/__tests__/webhookReceiver.test.ts`.
+`verifyWebhookRequest` receives the exact UTF-8 raw body, timestamp, current/
+previous signature headers, optional event-id header, trusted receiver secrets,
+configured `endpointId`/`teamId`, and `nowMs`. It uses a timing-safe HMAC check
+before parsing, returns a scoped `dedupeKey`, and returns `replayUntilMs=null`
+for durable alert-event dedupe or a freshness-expiry timestamp for test replay
+caching. The helper does not store acceptance or execute business effects; the
+receiver must implement that atomic boundary itself. The event-type and
+key-version headers never override authenticated body schema or configured keys.
 
 Redirects are never followed, and the outbound connection is pinned to a
 pre-validated public address, so a receiver must answer on the address it
 registered.
+
+### Apply migration 0026 before the worker or panel expect the new columns
+
+The settings › Webhooks panel (`SAFE_ENDPOINT_COLUMNS` in `terminal/lib/webhooks.ts`) and the every-minute `webhook_delivery` worker (`ingest/webhook_delivery.ts` endpoint select) reference 0026's columns (`secret_version`, `secret_rotated_at`, `secret_previous_expires_at`). Until the seat applies 0026, PostgREST returns a missing-column error for those selects, and `isAbsentTableError` (`terminal/lib/teams.ts`) does not classify that shape as absence — the live Webhooks panel 503s and the worker exits 1. Apply 0026 in ledger order (after `0017`–`0023`) before relying on either surface; the seat applies it after the PR merges.
 
 ### Deliberately NOT deployed
 
@@ -160,28 +291,21 @@ registered.
 - Secrets live in `/opt/terminal/.env` / `terminal/.env.local` on the box (gitignored) — preserved across deploys.
 - `next.config.ts` sets `typescript.ignoreBuildErrors` + `eslint.ignoreDuringBuilds`, so the build won't
   catch type errors — run `tsc --noEmit` yourself before merging.
-- **Rollback restores the identity and the build together.** `.deployment-id` and the `.next` it names are
-  one deploy generation. Before the new marker is installed the previous one is snapshotted to
-  `.deployment-id.bak` (`cp -p`, exact bytes and metadata) — or `.deployment-id.absent` records that there
-  was none. **Every** failure after that point restores `.next.bak` **and** the marker as a pair: a failed
-  `.next` swap, a failed `systemctl restart`, or a failed health/identity check. They all route through one
-  guarded exit, so none of them can abort the script past rollback — the script runs under `set -e`, and a
-  bare failing command used to terminate the deploy with the marker already advanced. The failed build is
-  kept at `.next.broken` for diagnosis.
-  Two cases do **not** produce a clean rollback, and the script says so instead of pretending otherwise:
-  if the marker record is gone, or if the swap already happened and there is **no** `.next.bak` to return
-  to (a bootstrap deploy, or a previous run that died between the marker install and the swap). Both exit
-  non-zero and report the identity `UNRESOLVED`. In the second case the build that just failed its health
-  check is still live — treat the box as serving nothing provable until reconciled by hand.
-  Whenever the live `.next` was moved the service is restarted, **including** on the unresolved path:
-  `next start` resolves `.next/*` at request time, so a server left bound to a renamed directory serves
-  one build's chunks against another build's manifests.
-- **To force a rollback by hand:** stop `terminal`, `mv .next .next.broken && mv .next.bak .next`, then set
-  `.deployment-id` to the SHA that build was deployed from and restart. Note the rollback snapshot is
-  **not** available for this — `.deployment-id.bak` is purged on every successful deploy — so recover the
-  previous SHA from `git -C /opt/terminal/.gitsrc rev-parse HEAD~1` or the prior deploy's log line.
-  Swapping `.next.bak` back while leaving `.deployment-id` on the new commit is exactly the incoherent
-  state this machinery exists to prevent.
+- **Rollback restores a qualified generation, including dependencies.** Before production installs
+  changed dependencies, the owner snapshots `package.json`, `package-lock.json` and the original
+  `node_modules` tree. On a handled pre-swap failure, exit cleanup restores those inputs. On a
+  post-swap failure, generation rollback restores the build and marker, then restores dependency
+  inputs before any restart. The owner verifies the saved tree before returning the package files,
+  so a failed tree restore cannot falsely present accepted package files beside unqualified
+  dependencies. Successful acceptance discards the replaced generation's dependency snapshot.
+  If any restoration leg is incomplete, preserve the unresolved snapshot and recovery evidence.
+  The owner contains the selected service instead of treating the previous generation as safely
+  restored. Reactivation also requires prior identity and applicable closed-configuration checks;
+  a restart is not automatic merely because `.next.bak` exists. Beta uses its own transaction
+  and does not use the production dependency snapshot.
+- **For attended recovery, reconcile the exact accepted generation and the owner's recovery record**
+  before the next release attempt, including build, marker and dependency identity. Do not restore
+  only the two package files, delete an unresolved snapshot, or guess the prior SHA from `HEAD~1`.
 - **Verifying a deploy names three identities:** the intended `origin/master` SHA, the live
   `/opt/terminal/terminal/.deployment-id`, and the live `/opt/terminal/terminal/.next/BUILD_ID`. The
   deploy fails closed unless all three agree.
@@ -191,3 +315,79 @@ registered.
   complete, nothing more. The discriminating identity is the marker, and it is only trustworthy because
   rollback now restores it. For live proof from outside the box, read `?dpl=<full sha>` on
   `/_next/static/*` or `data-dpl-id` on `<html>` — never `BUILD_ID`.
+
+## Shared Shell production promotion
+
+The production profile stays off by default. After exact beta journey acceptance
+and normal protected source/CI qualification, the attended host configuration lane
+may install the landed `ops/terminal-shared-shell.conf` at
+`/etc/systemd/system/terminal.service.d/shared-shell.conf` (root-owned, non-writable
+by group/others) and daemon-reload. It declares only `MMX_SHARED_SHELL_BUILD=1`;
+it does not enable an already running or restored older app. Never install a
+runtime `MMX_SHARED_SHELL=1` override on production. Preserve all other unit drop-ins.
+
+Before building, the incumbent release owner checks the installed bytes against
+the exact admitted target commit and the effective unit BUILD flag, then derives
+the build flag. Missing activation keeps production off; any partial or modified
+activation refuses. Existing nonfeature service credential files remain supported;
+manager, passed/unset variables, unit environment files, Next dotenv files and the
+known npm/Next start path are checked without logging secret values. Next pins the feature flag into the resulting build. The
+owner rechecks activation before restart and verifies the admitted protocol,
+bridge, document, registry and source tuple before accepting an enabled generation.
+
+Promotion still uses the single normal transaction:
+`/opt/terminal/terminal-build.sh --target production --target-sha <qualified-40-hex>`.
+Its installed owner must first contain this reviewed activation support through
+the existing attended canonical-source installation path; the incumbent old owner
+unsets production's flag and self-updates only for a subsequent run. Do not treat
+a source merge or a drop-in alone as activation. Publish the app-origin bridge and
+Caddy framing/redirect exceptions through the normal Macro owner before promotion,
+preserving beta and foreign/no-opt-in/internal negatives. Final proof uses the real
+`app.mastermind-x.com` account, shared-shell status, document READY/navigation and
+private/no-store boundary. Beta proof alone is not default-production launch.
+
+### Frozen-node delivery host composition (source only, disabled by default)
+
+`OPTIONS_FROZEN_DELIVERY_ENABLED` is a separate explicit host capability. Absent,
+empty or `0` keeps frozen-node email/webhook delivery closed; malformed configured
+values fail instead of falling back. No deployment or channel activation is part
+of this source change. The email drain still separately requires its incumbent
+`ALERT_DRAIN_ENABLE`; existing non-node delivery defaults remain unchanged.
+
+The existing Macro drain and Terminal webhook worker use the same private
+`ingest/options_frozen_delivery_cli.py` entry, configured by absolute host-owned
+`OPTIONS_FROZEN_DELIVERY_PYTHON`, `OPTIONS_FROZEN_DELIVERY_SCRIPT`, and
+`OPTIONS_FROZEN_DELIVERY_ENV_FILE`. No path, credential, origin, permission or
+command is accepted from a row. The private file contains the same Supabase
+origin/service-role reference and the already-established `OPTIONS_FROZEN_*`
+Macro account/Python/Node/source-bundle paths. The CLI uses those existing
+account-policy and protected reconciliation interfaces; it does not activate
+source evaluation. A different DB origin refuses before account use. Requests
+travel over bounded local stdin/stdout, never secret-bearing argv or a new HTTP
+endpoint. No import performs IO. Installation and actual host credential/role
+admission remain separately required; source tests do not establish them.
+
+Email reselects the exact canonical row/event/principal/full payload and proves
+committed publication after disarm. It rechecks current account/category through
+the private policy CLI. The existing drain continues to own current recipient,
+entitlement, suppression, quiet hours and the mailer's unique ledger/SMTP unknown
+boundary. Row JSON grant fields and a formerly armed runtime are not delivery
+permission. Unknown evidence withholds rather than receiving delivery credit.
+
+Webhook delivery independently reselects the canonical delivery, current endpoint,
+team membership, channel opt-in and event filter, then checks the complete SQL
+projection against the committed canonical event. The signing secret is read
+only by the incumbent privileged webhook worker, never returned by the private
+policy CLI. Exact status/attempt/claim CAS and returned snapshot equality precede
+signing; policy is checked again after DNS. Existing URL validation, public-IP
+pinning and HMAC functions own transport. A selected `delivering` frozen row is
+never reclaimed merely because its lease is old. An unreturned claim or uncertain
+POST remains held for explicit reconciliation, not an automatic new POST or a
+claim of downstream exactly-once delivery. Legacy webhook retry behavior is
+unchanged. Current policy is observed before send; no cross-service transaction
+locks account revocation throughout an external delivery.
+
+The fixture and paired tests are explicitly synthetic: private PostgreSQL,
+actual private subprocesses/native account policy, blocked source fetch and an
+injected no-network SMTP/POST boundary. No live DB, email, webhook, provider,
+service installation or enrollment is performed by them.

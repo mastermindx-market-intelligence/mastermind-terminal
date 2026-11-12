@@ -1,0 +1,355 @@
+{
+  "schema": "terminal_axis_tick_precision_qualification.v1",
+  "operation": "terminal-axis-tick-precision-20261111-c3",
+  "base": "bec1e44956e628b271c49a0494c975efb89e9ae7",
+  "source_sha256": {
+    "terminal/components/charts/svgChart.ts": "d781e843d58fe61c31aff30463d129baf1652a13b295aa7d83cdfae8ed345afd",
+    "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx": "bd98c40e76043b209b691a4eeb3532438c739e6c464f549fdfab81a3b0f83488",
+    "terminal/components/sector-intelligence/SectorCycleLens.module.css": "78a930d2588235a3538ea49b392447086980e9b911f87e0b4fa00d2e7a85a90a",
+    "terminal/lib/__tests__/svgChart.test.ts": "c5470957b7d566ec75b614bf313a18a4359669fc3eb488f4287a24a78ee036bc",
+    "terminal/app/dev/sector-cycles/page.tsx": "4730d1da0aabe1d5c0613fa1e85f5a40d51ee140a4e53b5c3566497d976feddf",
+    "terminal/e2e/sector-cycle-lens.spec.ts": "cc65ffa79fa6995d61f2f848db4f451c3fb27688511e4f52347a52e76a6b53bf"
+  },
+  "browser_stats": {
+    "startTime": "2026-11-11T23:40:37.209Z",
+    "duration": 47184.770000000004,
+    "expected": 24,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "numeric_tests": 77,
+  "historical_members": 86,
+  "files": [
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/README.md",
+      "bytes": 5422,
+      "sha256": "0b7e0edd4e664afdbe1ce4dfee772f2218440cd863deaa6fb240557550665327"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r1-execution.json",
+      "bytes": 1720,
+      "sha256": "a5064b5e833faeaf8d70d92006431562fc5bfe0c8c0481a8ab771e666f3399cc"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r1-report.json",
+      "bytes": 85244,
+      "sha256": "b48af0310b1294adb6dbb094b64c63fbb9d68a50ee713770c8d46b6f3c92218f"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r1-source-before.json",
+      "bytes": 453,
+      "sha256": "5bd5e61fae3cc0ea36dfb221ce3cb8c0a69adf0b954d256e22174207c4c39ca5"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r1.log.gz",
+      "bytes": 1922,
+      "sha256": "5de944b5119fdf77ce49b59561893074e7d83d678b3f5b5e081d52ab5f55a2c2"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r2-execution.json",
+      "bytes": 2048,
+      "sha256": "ec7dd3f85a972ab6260bd3531b004e025c967d563bcbc754e6413f6fa3d8b05c"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r2-preflight-reconciliation.json",
+      "bytes": 753,
+      "sha256": "8160cc213b1d4104d24d8ad6f731b12ea21f0842fd409721e1d4d82dce8d8cd6"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r2-report.json",
+      "bytes": 34055,
+      "sha256": "51411873f707716bfdd1f74409df64d7fccc3ba13a6875aace01a09ce4c5a22b"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r2-source-before.json",
+      "bytes": 598,
+      "sha256": "59dc9eaffaa08c550f800b89b44302c220cc5cbc1c33ff48b40a2dd0ce1b4b76"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r2.log.gz",
+      "bytes": 805,
+      "sha256": "9e20b22c6a38ea990f4037d2ab092f83cca541b8a3669abbec70838cad602a2c"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-execution.json",
+      "bytes": 2497,
+      "sha256": "e2d71f55e433caa0829abab687a3bbc4bb10983f57d6ecf529be938a2cefc0bc"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-report.json",
+      "bytes": 34057,
+      "sha256": "9c7eeb62c5a72159fa091c69fb1427da68fede31a5a19053674d8ae5934e2a4d"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/cycles-measurement-empty-zh-desktop.png",
+      "bytes": 66722,
+      "sha256": "7b8eec5af1973159fc68dc3a3cf113cd02934a87de87205bbd0e3ca2e539c3e8"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/cycles-measurement-empty-zh-mobile.png",
+      "bytes": 54113,
+      "sha256": "482ceee41551c4e312d02d51a6f22821691ca99dc0ba0bc500fef49b1ff6c9b2"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/cycles-measurement-empty-zh-tablet.png",
+      "bytes": 62531,
+      "sha256": "674e858902f9fa7c6c26dd4ab016166cb6ab36cdca213fc5bda698559431fc54"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/cycles-measurement-table-en-desktop.png",
+      "bytes": 62934,
+      "sha256": "b691f70a846523d4428322f9a2f8a168de0ba7f122693d46826251a2da6f1d9b"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/cycles-measurement-table-en-mobile.png",
+      "bytes": 52494,
+      "sha256": "b336e55824752b7b1233eab6addab22260028908afde28e80fb378c0a58517dc"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/cycles-measurement-table-en-tablet.png",
+      "bytes": 58970,
+      "sha256": "79b3e4f568ad3721ab22b1fdc397cae770ea52d901cef5d7e967e98e4137e8df"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/cycles-measurement-table-zh-desktop.png",
+      "bytes": 66970,
+      "sha256": "c3b8086e28a4aea121096cc7457a5a2edcd9dc4652535f8049de520dc0c56437"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/cycles-measurement-table-zh-mobile.png",
+      "bytes": 54123,
+      "sha256": "35b7f0da285f786564ce153c174052e97f48722dda5d158c87694225214b2ec7"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/cycles-measurement-table-zh-tablet.png",
+      "bytes": 62666,
+      "sha256": "4ebc9983a5e8b5d7bfd2aba1df7dc0ba6ec2aae4b25423a4532582de50e03445"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/cycles-measurement-empty-en-desktop.png",
+      "bytes": 63270,
+      "sha256": "0f2ed77466b1bdc9b59067eaed263fd2aba145b9af1f3d0ba3ed8817ead7f7c9"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/cycles-measurement-empty-en-mobile.png",
+      "bytes": 53203,
+      "sha256": "60936d71cbdcefe89d1d32da8a85cd0518c2d867ace518cad48e86d98efe87ee"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/cycles-measurement-empty-en-tablet.png",
+      "bytes": 59268,
+      "sha256": "11c78fcb8e0aef9d6107871198b9a43c69c8d98f32ec2c2d68d80b350b0ca255"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-fullscreen-en-desktop.png",
+      "bytes": 106140,
+      "sha256": "2f81cbf8c374441e9a046363cec0b77f4a0365559fff5bd213863a6f0856247a"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-inline-en-desktop.png",
+      "bytes": 80214,
+      "sha256": "a0ac0d118e71515aa26fddee057c60c85a835f5dc43800ca1d35e2f56b0b0655"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/cycles-precision-fractional-fullscreen-en-mobile.png",
+      "bytes": 66180,
+      "sha256": "56778a91dad6e41d338d0fdd823f5e2f5eb1c0c66da0ee09f2e87e213104f87e"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/cycles-precision-fractional-inline-en-mobile.png",
+      "bytes": 65070,
+      "sha256": "87b0f01d7e8ea13f317ce2ea2109e9d2c98350acc77512c81901fc7c1dc612a4"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/cycles-precision-fractional-fullscreen-en-tablet.png",
+      "bytes": 113989,
+      "sha256": "648eb2c68d8486b73e704b0702dd4cdb0fe80310970c37baad00ad13c47d9e5a"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/cycles-precision-fractional-inline-en-tablet.png",
+      "bytes": 76144,
+      "sha256": "ebc8d95ec6e88497a5c94f0de8c4b99d17f3f4db892507ac5d81028b41a68b7c"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-fullscreen-en-desktop.png",
+      "bytes": 107963,
+      "sha256": "c048c09cada69ab4143bd869bff2c11347a776720fffcee261f912a21bbff777"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-inline-en-desktop.png",
+      "bytes": 80752,
+      "sha256": "5400f4895e4c7813e2606639916cf21ae0ae62cb3bcb6a310fec1faf0362fdca"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-fullscreen-en-mobile.png",
+      "bytes": 67956,
+      "sha256": "0d9ce0f7579e41c5ad356a6cfe632b87b47b70e85c5a7c019fb5c0b1bf5c50c2"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-inline-en-mobile.png",
+      "bytes": 65391,
+      "sha256": "442bc69bb5548e16886ffb99e6afe760ae2c3bb5254e123ccb70499e5b548d83"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-fullscreen-en-tablet.png",
+      "bytes": 115895,
+      "sha256": "666515a3dd5e7df4e926c374540408ca38a819c99e012440a5f12f25760e0375"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-inline-en-tablet.png",
+      "bytes": 76388,
+      "sha256": "0b524497ead744bba5424451fef6897e9ce9a95fee982f8f3923f9c4e1f1d14d"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-fullscreen-zh-desktop.png",
+      "bytes": 106915,
+      "sha256": "d978cc487cf983520318d8fb1042990b11819aefb0bf9af152bb64b82004ea92"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-inline-zh-desktop.png",
+      "bytes": 83556,
+      "sha256": "2ab6680292d7e03e55269221dc5faaff7d1780100d63d89b41159a72834349cf"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-fullscreen-zh-mobile.png",
+      "bytes": 67918,
+      "sha256": "8c06e0f1ecc9ecdfb7fdfa03ffc910c20e15927452f6fdf046f322fbf8127ce5"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "32108473f266d459a65621cab69c5416977c80e3dff5f7156d7f10c69eaeff5b"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-fullscreen-zh-tablet.png",
+      "bytes": 113450,
+      "sha256": "9a1d5ea0e3ff08a581ab97838b022b94740c50b91970a50987be8549043a8543"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-inline-zh-tablet.png",
+      "bytes": 79210,
+      "sha256": "32ebf7202c5cec517555085ad9aa250f1f67571e2c8765a14f81f5cacc713ee6"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/cycles-precision-fractional-fullscreen-zh-desktop.png",
+      "bytes": 105302,
+      "sha256": "635fe6faae9d7b333a3201063eac39531ba2263a435994d68cec326f0d7e0295"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/cycles-precision-fractional-inline-zh-desktop.png",
+      "bytes": 83132,
+      "sha256": "4deaf90d6f34913fe03bc3350274070844566cfdd4818a879b721cf5235fb4a3"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-fullscreen-zh-mobile.png",
+      "bytes": 66117,
+      "sha256": "7268052dffb9e695401c5a89462db64420b63e7510f11b8b1f0af95704a5fb56"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "2eaf4aa2f2349291250f89a347709f499a1c8c6122b1facd6f108d468f564259"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/cycles-precision-fractional-fullscreen-zh-tablet.png",
+      "bytes": 111756,
+      "sha256": "e7c1c3cc2df149636cb3dbc2fa780f416b52f686c24764eabc1f41e9683d29f2"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/cycles-precision-fractional-inline-zh-tablet.png",
+      "bytes": 78807,
+      "sha256": "815d0e3de06dc827491dfcfc7a288bb03088678bf676923a5481d648b2bb021a"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3-source-before.json",
+      "bytes": 738,
+      "sha256": "1c10bd9fa28625c6a75c60b5829bd29649eaee21b45ae6c77ef4da811afda1c7"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/browser-r3.log.gz",
+      "bytes": 639,
+      "sha256": "5f4e304b08eb065177900a0c59518a84e66617b84276c8324fa33cf13c34c0d1"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/css-overlap-receipt.json",
+      "bytes": 6770,
+      "sha256": "c7747f1f4735ed3d2e2aa5d38a97494367ad5ba31c22404af0234a0a7958a3a6"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/dependency-install.log.gz",
+      "bytes": 140,
+      "sha256": "cbea72339fbcb6109841d1d313b0c8ae782b5ec7850df23e4a88f9d820bc4532"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/historical-browser-files.json",
+      "bytes": 21913,
+      "sha256": "8a2f0f2a00cbb73102804174465a455e75d42b0a5d4c402c859f646929e964fd"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/historical-browser-r1-r2.tar.gz",
+      "bytes": 13423984,
+      "sha256": "22cc1252db3a2d8d49bf225ed5974649702fcddfabaf8ee2a8d766c5342d3816"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/lint-r1.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/lint-r2.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/lint-r3.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/raw-log-index.json",
+      "bytes": 3311,
+      "sha256": "b98b2c99915688700cbaba7605dae785d2238100a567d1d535eb1d04ab35825a"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/source-overlap-receipt.json",
+      "bytes": 143898,
+      "sha256": "95928ffea1aaee10dcc18b786b0e338129b6da530255da26403a5d075c97e4c0"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/typecheck-r1.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/typecheck-r2.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/unit-baseline.log.gz",
+      "bytes": 3007,
+      "sha256": "fb5cc3af71c98374529c75022188ec4cd31e48eb24328eee454f88d2b374eb1c"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/unit-final-r1.log.gz",
+      "bytes": 368,
+      "sha256": "c4905aeb9f912a4a4777951e8527073409f554bbed9dd271e466751ab377b61d"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/unit-final-r2.log.gz",
+      "bytes": 368,
+      "sha256": "972e6f7b5acb8438d7574abfdf0119dabdd5c53f744c17227551a9af27a02d68"
+    },
+    {
+      "path": "docs/verification/axis-tick-precision-20261111/visual-inspection.json",
+      "bytes": 3219,
+      "sha256": "29e4b366b6751653d26009e3fb7e1ec45cd4de44bd02603ffa0912914f8310e4"
+    }
+  ]
+}

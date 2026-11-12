@@ -1,0 +1,282 @@
+[WebServer] (node:7728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[warmup] /terminal?symbol=NVDA → 200 in 73ms
+[warmup] /options → 200 in 125ms
+[warmup] /portfolio → 200 in 67ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 117ms
+[warmup] /discover → 200 in 83ms
+[warmup] /admin → 200 in 75ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 56ms
+[warmup] /login → 200 in 83ms
+[warmup] /reset-password → 200 in 83ms
+[warmup] /api/me → 200 in 57ms
+[warmup] /api/watchlist → 200 in 31ms
+[warmup] /api/layouts → 200 in 28ms
+[warmup] 13 routes compiled in 1s
+
+Running 54 tests using 2 workers
+
+(node:7879) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7877) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:7959) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/options-companion.spec.ts:45:7 › [en] real chart + options companion, controls, native pins and restoration (6.4s)
+  ✓   2 [desktop] › e2e/options-companion.spec.ts:45:7 › [zh] real chart + options companion, controls, native pins and restoration (7.3s)
+[WebServer] (node:8143) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8229) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   3 [desktop] › e2e/options-companion.spec.ts:103:5 › wrong-root source is refused; explicit refresh recovers without a page reload (4.7s)
+[WebServer] (node:8272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8300) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   4 [desktop] › e2e/options-companion.spec.ts:115:5 › 0DTE never silently becomes the nearest later expiry (5.1s)
+[WebServer] (node:8340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8360) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   5 [desktop] › e2e/options-companion.spec.ts:124:5 › R9 structure brief opens its exact dominant contract for inspection (3.7s)
+  ✓   6 [desktop] › e2e/options-companion.spec.ts:135:5 › R7 scope edits stay pending until Apply and Cancel preserves the selected node (4.1s)
+[WebServer] (node:8423) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 [desktop] › e2e/options-companion.spec.ts:152:5 › R7 one-strike sparse matrix remains a real renderable scope (2.9s)
+[WebServer] (node:8470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   8 [desktop] › e2e/options-companion.spec.ts:164:5 › uncovered symbol does not inherit an index heatmap (3.2s)
+[WebServer] (node:8559) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   9 [desktop] › e2e/options-companion.spec.ts:173:5 › unentitled account never mounts an options data consumer (3.5s)
+[WebServer] (node:8615) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  10 [desktop] › e2e/options-companion.spec.ts:184:5 › keyboard grid inspection clears without closing, then Escape restores the opener (3.1s)
+[WebServer] (node:8667) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[WebServer] (node:8728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 [desktop] › e2e/options-companion.spec.ts:202:5 › switching the real chart symbol resets the pin and binds the new heatmap (4.4s)
+  ✓  12 [desktop] › e2e/options-companion.spec.ts:229:7 › [en] R6 partial totals retain known values on the Terminal route (4.3s)
+[WebServer] (node:8797) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8863) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [desktop] › e2e/options-companion.spec.ts:246:7 › [en] R6 declared missing expiry and R7 scope focus preserve transaction semantics (4.3s)
+  ✓  14 [desktop] › e2e/options-companion.spec.ts:264:7 › [en] R6 off-screen exact node reveal preserves scope and native chart (4.0s)
+[WebServer] (node:8948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8961) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:8981) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9017) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  15 [desktop] › e2e/options-companion.spec.ts:229:7 › [zh] R6 partial totals retain known values on the Terminal route (4.5s)
+  ✓  16 [desktop] › e2e/options-companion.spec.ts:246:7 › [zh] R6 declared missing expiry and R7 scope focus preserve transaction semantics (4.0s)
+[WebServer] (node:9097) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9133) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  17 [desktop] › e2e/options-companion.spec.ts:264:7 › [zh] R6 off-screen exact node reveal preserves scope and native chart (4.9s)
+(node:9228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9242) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  18 [desktop] › e2e/options-companion.spec.ts:284:5 › Market Memory on Terminal uses the dated archive and fails closed after a missing archive (6.6s)
+(node:9296) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9302) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9359) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9383) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 [tablet] › e2e/options-companion.spec.ts:45:7 › [en] real chart + options companion, controls, native pins and restoration (8.7s)
+  ✓  20 [tablet] › e2e/options-companion.spec.ts:45:7 › [zh] real chart + options companion, controls, native pins and restoration (7.2s)
+[WebServer] (node:9726) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9751) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9806) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9846) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  21 [tablet] › e2e/options-companion.spec.ts:103:5 › wrong-root source is refused; explicit refresh recovers without a page reload (4.5s)
+[WebServer] (node:9908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  22 [tablet] › e2e/options-companion.spec.ts:115:5 › 0DTE never silently becomes the nearest later expiry (5.7s)
+[WebServer] (node:9940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:9977) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10035) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  23 [tablet] › e2e/options-companion.spec.ts:124:5 › R9 structure brief opens its exact dominant contract for inspection (5.5s)
+[WebServer] (node:10112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10141) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  24 [tablet] › e2e/options-companion.spec.ts:135:5 › R7 scope edits stay pending until Apply and Cancel preserves the selected node (6.0s)
+[WebServer] (node:10189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10222) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 [tablet] › e2e/options-companion.spec.ts:152:5 › R7 one-strike sparse matrix remains a real renderable scope (4.8s)
+[WebServer] (node:10278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10308) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10329) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  26 [tablet] › e2e/options-companion.spec.ts:164:5 › uncovered symbol does not inherit an index heatmap (5.6s)
+[WebServer] (node:10413) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  27 [tablet] › e2e/options-companion.spec.ts:173:5 › unentitled account never mounts an options data consumer (5.5s)
+  -  29 [tablet] › e2e/options-companion.spec.ts:202:5 › switching the real chart symbol resets the pin and binds the new heatmap
+[WebServer] (node:10468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10528) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10554) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  28 [tablet] › e2e/options-companion.spec.ts:184:5 › keyboard grid inspection clears without closing, then Escape restores the opener (5.9s)
+[WebServer] (node:10645) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10699) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  30 [tablet] › e2e/options-companion.spec.ts:229:7 › [en] R6 partial totals retain known values on the Terminal route (6.1s)
+[WebServer] (node:10754) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  31 [tablet] › e2e/options-companion.spec.ts:246:7 › [en] R6 declared missing expiry and R7 scope focus preserve transaction semantics (4.9s)
+[WebServer] (node:10831) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10852) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  32 [tablet] › e2e/options-companion.spec.ts:264:7 › [en] R6 off-screen exact node reveal preserves scope and native chart (6.6s)
+  ✓  33 [tablet] › e2e/options-companion.spec.ts:229:7 › [zh] R6 partial totals retain known values on the Terminal route (5.2s)
+[WebServer] (node:11054) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11083) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11114) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  34 [tablet] › e2e/options-companion.spec.ts:246:7 › [zh] R6 declared missing expiry and R7 scope focus preserve transaction semantics (5.5s)
+  ✓  35 [tablet] › e2e/options-companion.spec.ts:264:7 › [zh] R6 off-screen exact node reveal preserves scope and native chart (5.1s)
+(node:11267) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11289) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11342) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11375) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11390) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11455) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11474) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  37 [mobile] › e2e/options-companion.spec.ts:45:7 › [en] real chart + options companion, controls, native pins and restoration (7.9s)
+  ✓  36 [tablet] › e2e/options-companion.spec.ts:284:5 › Market Memory on Terminal uses the dated archive and fails closed after a missing archive (9.4s)
+[WebServer] (node:11584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+(node:11604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11681) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11718) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11763) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  39 [mobile] › e2e/options-companion.spec.ts:103:5 › wrong-root source is refused; explicit refresh recovers without a page reload (4.6s)
+[WebServer] (node:11875) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  38 [mobile] › e2e/options-companion.spec.ts:45:7 › [zh] real chart + options companion, controls, native pins and restoration (7.7s)
+[WebServer] (node:11895) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11951) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:11973) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  40 [mobile] › e2e/options-companion.spec.ts:115:5 › 0DTE never silently becomes the nearest later expiry (5.8s)
+[WebServer] (node:12059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  41 [mobile] › e2e/options-companion.spec.ts:124:5 › R9 structure brief opens its exact dominant contract for inspection (4.5s)
+[WebServer] (node:12091) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12126) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  42 [mobile] › e2e/options-companion.spec.ts:135:5 › R7 scope edits stay pending until Apply and Cancel preserves the selected node (5.0s)
+[WebServer] (node:12289) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  43 [mobile] › e2e/options-companion.spec.ts:152:5 › R7 one-strike sparse matrix remains a real renderable scope (5.7s)
+[WebServer] (node:12426) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12489) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12543) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  44 [mobile] › e2e/options-companion.spec.ts:164:5 › uncovered symbol does not inherit an index heatmap (4.7s)
+  ✓  45 [mobile] › e2e/options-companion.spec.ts:173:5 › unentitled account never mounts an options data consumer (3.4s)
+  -  47 [mobile] › e2e/options-companion.spec.ts:202:5 › switching the real chart symbol resets the pin and binds the new heatmap
+[WebServer] (node:12711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  46 [mobile] › e2e/options-companion.spec.ts:184:5 › keyboard grid inspection clears without closing, then Escape restores the opener (4.1s)
+  ✓  48 [mobile] › e2e/options-companion.spec.ts:229:7 › [en] R6 partial totals retain known values on the Terminal route (4.0s)
+[WebServer] (node:12850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  49 [mobile] › e2e/options-companion.spec.ts:246:7 › [en] R6 declared missing expiry and R7 scope focus preserve transaction semantics (4.2s)
+  ✓  50 [mobile] › e2e/options-companion.spec.ts:264:7 › [en] R6 off-screen exact node reveal preserves scope and native chart (5.0s)
+[WebServer] (node:12972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12985) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:13038) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  51 [mobile] › e2e/options-companion.spec.ts:229:7 › [zh] R6 partial totals retain known values on the Terminal route (5.2s)
+  ✓  52 [mobile] › e2e/options-companion.spec.ts:246:7 › [zh] R6 declared missing expiry and R7 scope focus preserve transaction semantics (5.3s)
+[WebServer] (node:13182) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:13217) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:13271) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  53 [mobile] › e2e/options-companion.spec.ts:264:7 › [zh] R6 off-screen exact node reveal preserves scope and native chart (5.6s)
+[WebServer] (node:13419) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:13435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  54 [mobile] › e2e/options-companion.spec.ts:284:5 › Market Memory on Terminal uses the dated archive and fails closed after a missing archive (8.9s)
+[WebServer] (node:13529) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+  2 skipped
+  52 passed (2.5m)

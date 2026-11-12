@@ -1,0 +1,14 @@
+npm notice run terminal@0.1.0 npx
+npm notice run 'vitest' run lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts lib/__tests__/optionsLevelAxisEvidence.test.ts
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests) 5ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 5ms
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests) 95ms
+
+ Test Files  3 passed (3)
+      Tests  17 passed (17)
+   Start at  20:27:06
+   Duration  326ms (transform 47ms, setup 0ms, collect 66ms, tests 106ms, environment 0ms, prepare 80ms)

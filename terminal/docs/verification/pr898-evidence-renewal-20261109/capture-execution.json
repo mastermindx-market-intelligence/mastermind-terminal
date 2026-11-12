@@ -1,0 +1,351 @@
+{
+  "additionalImagesUnchanged": true,
+  "childCommand": [
+    "node",
+    "e2e/tools/capture_pl6_batch3.cjs"
+  ],
+  "completedAt": "2026-11-09T12:14:07.630963+00:00",
+  "exit": 0,
+  "expected": 20,
+  "frames": [
+    {
+      "file": "OptionsFlowBoard-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "FlowDesk-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "AlertDetail-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "HeatmapTreemap-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "PineLibrary-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "OptionsFlowBoard-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "FlowDesk-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "AlertDetail-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "HeatmapTreemap-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "PineLibrary-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "OptionsFlowBoard-390.png",
+      "status": "success"
+    },
+    {
+      "file": "FlowDesk-390.png",
+      "status": "success"
+    },
+    {
+      "file": "AlertDetail-390.png",
+      "status": "success"
+    },
+    {
+      "file": "HeatmapTreemap-390.png",
+      "status": "success"
+    },
+    {
+      "file": "PineLibrary-390.png",
+      "status": "success"
+    },
+    {
+      "file": "OptionsFlowBoard-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "FlowDesk-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "AlertDetail-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "HeatmapTreemap-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "PineLibrary-390-zh.png",
+      "status": "success"
+    }
+  ],
+  "images": {
+    "AlertDetail-1440-zh.png": {
+      "bytes": 36949,
+      "height": 411,
+      "sha256": "08334148e656f969d024255ae650af2fe27d32ada725bbe6ced6489263ffeeb1",
+      "width": 580
+    },
+    "AlertDetail-1440.png": {
+      "bytes": 36907,
+      "height": 411,
+      "sha256": "4d7034b83553595b33102334a15a49f45a64b2c225de59c9455c59a280863b81",
+      "width": 580
+    },
+    "AlertDetail-390-zh.png": {
+      "bytes": 36226,
+      "height": 430,
+      "sha256": "f18dfc8e5222e88e97ad5743ddb393bad7228f3e6c9c9c5543063b4567e67203",
+      "width": 378
+    },
+    "AlertDetail-390.png": {
+      "bytes": 36914,
+      "height": 467,
+      "sha256": "b3a2038558648d451664364daa3022cd44dd29ed6e546ef220bb9df673919aed",
+      "width": 378
+    },
+    "FlowDesk-1440-zh.png": {
+      "bytes": 56105,
+      "height": 602,
+      "sha256": "07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260",
+      "width": 746
+    },
+    "FlowDesk-1440.png": {
+      "bytes": 55292,
+      "height": 584,
+      "sha256": "302037dbe11130915b975b92d6bee22f46408c05e1cb96e24cba09f2fd0ad6d0",
+      "width": 746
+    },
+    "FlowDesk-390-zh.png": {
+      "bytes": 25275,
+      "height": 266,
+      "sha256": "22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3",
+      "width": 386
+    },
+    "FlowDesk-390.png": {
+      "bytes": 21373,
+      "height": 230,
+      "sha256": "d293e7990ced3b1c8de54cef74efbea4eb1ae61a75c8e82527b5ae9fa249311e",
+      "width": 386
+    },
+    "HeatmapTreemap-1440-zh.png": {
+      "bytes": 161706,
+      "height": 900,
+      "sha256": "c7d73e145830616bee7df43db3de568d253c2b9e8f534278bf1331b0105e8648",
+      "width": 1440
+    },
+    "HeatmapTreemap-1440.png": {
+      "bytes": 153649,
+      "height": 900,
+      "sha256": "f0073f45b4563618a8ce808211b183edca3d817d7443d7a8a708ab54392a6930",
+      "width": 1440
+    },
+    "HeatmapTreemap-390-zh.png": {
+      "bytes": 112845,
+      "height": 844,
+      "sha256": "dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12",
+      "width": 390
+    },
+    "HeatmapTreemap-390.png": {
+      "bytes": 106627,
+      "height": 844,
+      "sha256": "c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394",
+      "width": 390
+    },
+    "OptionsFlowBoard-1440-zh.png": {
+      "bytes": 114682,
+      "height": 653,
+      "sha256": "277ac2f2d846303d9c2c05b902bed6371ec76b44a848d081af54a3cb610aaf62",
+      "width": 1390
+    },
+    "OptionsFlowBoard-1440.png": {
+      "bytes": 111546,
+      "height": 653,
+      "sha256": "5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10",
+      "width": 1390
+    },
+    "OptionsFlowBoard-390-zh.png": {
+      "bytes": 62832,
+      "height": 524,
+      "sha256": "3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab",
+      "width": 390
+    },
+    "OptionsFlowBoard-390.png": {
+      "bytes": 58434,
+      "height": 496,
+      "sha256": "97a8694a7687205ad9c2f945be370269e0ee2aeb1252fad48e0bf1e93ccc5c3f",
+      "width": 390
+    },
+    "PineLibrary-1440-zh.png": {
+      "bytes": 38893,
+      "height": 803,
+      "sha256": "339bfb08142c48c2ad510f3eff30227e0996301ed979016e42e48c45bf4348f8",
+      "width": 310
+    },
+    "PineLibrary-1440.png": {
+      "bytes": 36772,
+      "height": 803,
+      "sha256": "47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b",
+      "width": 310
+    },
+    "PineLibrary-390-zh.png": {
+      "bytes": 7609,
+      "height": 246,
+      "sha256": "972aedc6292b85ab872cb44300d721a3fe5de26916dc6373029b65854c0b9a5b",
+      "width": 390
+    },
+    "PineLibrary-390.png": {
+      "bytes": 7187,
+      "height": 257,
+      "sha256": "222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16",
+      "width": 390
+    }
+  },
+  "logSha256": "2009abccecd3cba39a0769dbfcb90eefb786c74e85c99ac00e0aed6a1dccb2d6",
+  "manifestSha256": "957f7089218d34a85738e3a7e9a49e20d4edf70ef69db8abf9d6fa9604842200",
+  "node": "v26.5.0",
+  "originalBranchHead": "d5dcb1452778d4fd289ec9d6d056d9f28809177d",
+  "preservedAdditionalImages": {
+    "FlowDesk-detections-1440-zh.png": "3785a7252842787a719d5c0ac269a1dad2712930e2706aaa8afe25d8e58df8c3",
+    "FlowDesk-detections-1440.png": "d323e24e1f0dd62a0f403b26e2901819b3b4c5d4d75ed3b194d5ce968dbac4dc",
+    "FlowDesk-detections-390-zh.png": "b817b40d9224cfd498c3aa9d850a08554fd23953acf0bd303fe196e33564bc4e",
+    "FlowDesk-detections-390.png": "c4a25418f2f92cc0940935c387dd136d013757b2d07f5ef2499258b8e8f8efed",
+    "FlowDesk-detections-820-zh.png": "f415da28db7bb6baeb8edce1d98f8848896daac0548720239351397cd0e8e70b",
+    "FlowDesk-detections-820.png": "e02e2c44ba945fbcc7e49c9ebc98c2581767497bfe19435533780f422b85383d",
+    "FlowDesk-enriched-1440-zh.png": "8077611147b423f8ab47c1097e8098c8dc55bb01d94673ab6644fd27bb8bd3c4",
+    "FlowDesk-enriched-1440.png": "901b778a0dfecb3da6e543aa7acf125292457c62405d9ed9fbed7163df670f67",
+    "FlowDesk-enriched-390-zh.png": "c6ddd547b37d06116d3d1f28c1b8580c34a1292f957f56a527d4e6a4ef18c2e4",
+    "FlowDesk-enriched-390.png": "91c2af6cfe3e3f824503294b925a373c32fe28c21e5815bb1b02e25992ca7f47",
+    "FlowDesk-enriched-820-zh.png": "11bb2405628a07b5939e5b8f828f360517dddeab8ff60aa7b4f25aea0b0ad739",
+    "FlowDesk-enriched-820.png": "ae0a0e4756102299e3d3ca3c96df6c33519388b89f34bce8b42a5ae11958f63a",
+    "FlowDesk-inspector-1440-zh.png": "d842bee96aa00b7b05b444669c456d868f88328bfdc73eb02b83314526bb9534",
+    "FlowDesk-inspector-1440.png": "48935fc4007f742f804b4ae41f73f43e1df24aff58d23466f2d2d61ed3b88c0c",
+    "FlowDesk-inspector-390-zh.png": "b858ec999586b20338471164ee12f63ddb96c36e1b59cba1d96802063e8e6006",
+    "FlowDesk-inspector-390.png": "ca239ebf15a4ecb97df809c097a0294755a70deed888d809c2c09e5079e9588c",
+    "FlowDesk-inspector-820-zh.png": "064c646e7eb33dd1587559bfb56a69296d61d9d609ae77962969c3d02372d14c",
+    "FlowDesk-inspector-820.png": "9da9db766a03f5edf63ab2d940071e013176609cf8da4d9e6bf684f424be74e1"
+  },
+  "protectedMaster": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+  "receipts": [
+    {
+      "captureId": "pr898-master-integration-20261109",
+      "capturedAtHead": "d5dcb1452778d4fd289ec9d6d056d9f28809177d",
+      "files": [
+        {
+          "file": "OptionsFlowBoard-1440.png",
+          "sha256": "5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10"
+        },
+        {
+          "file": "FlowDesk-1440.png",
+          "sha256": "302037dbe11130915b975b92d6bee22f46408c05e1cb96e24cba09f2fd0ad6d0"
+        },
+        {
+          "file": "AlertDetail-1440.png",
+          "sha256": "4d7034b83553595b33102334a15a49f45a64b2c225de59c9455c59a280863b81"
+        },
+        {
+          "file": "HeatmapTreemap-1440.png",
+          "sha256": "f0073f45b4563618a8ce808211b183edca3d817d7443d7a8a708ab54392a6930"
+        },
+        {
+          "file": "PineLibrary-1440.png",
+          "sha256": "47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b"
+        },
+        {
+          "file": "OptionsFlowBoard-1440-zh.png",
+          "sha256": "277ac2f2d846303d9c2c05b902bed6371ec76b44a848d081af54a3cb610aaf62"
+        },
+        {
+          "file": "FlowDesk-1440-zh.png",
+          "sha256": "07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260"
+        },
+        {
+          "file": "AlertDetail-1440-zh.png",
+          "sha256": "08334148e656f969d024255ae650af2fe27d32ada725bbe6ced6489263ffeeb1"
+        },
+        {
+          "file": "HeatmapTreemap-1440-zh.png",
+          "sha256": "c7d73e145830616bee7df43db3de568d253c2b9e8f534278bf1331b0105e8648"
+        },
+        {
+          "file": "PineLibrary-1440-zh.png",
+          "sha256": "339bfb08142c48c2ad510f3eff30227e0996301ed979016e42e48c45bf4348f8"
+        },
+        {
+          "file": "OptionsFlowBoard-390.png",
+          "sha256": "97a8694a7687205ad9c2f945be370269e0ee2aeb1252fad48e0bf1e93ccc5c3f"
+        },
+        {
+          "file": "FlowDesk-390.png",
+          "sha256": "d293e7990ced3b1c8de54cef74efbea4eb1ae61a75c8e82527b5ae9fa249311e"
+        },
+        {
+          "file": "AlertDetail-390.png",
+          "sha256": "b3a2038558648d451664364daa3022cd44dd29ed6e546ef220bb9df673919aed"
+        },
+        {
+          "file": "HeatmapTreemap-390.png",
+          "sha256": "c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394"
+        },
+        {
+          "file": "PineLibrary-390.png",
+          "sha256": "222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16"
+        },
+        {
+          "file": "OptionsFlowBoard-390-zh.png",
+          "sha256": "3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab"
+        },
+        {
+          "file": "FlowDesk-390-zh.png",
+          "sha256": "22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3"
+        },
+        {
+          "file": "AlertDetail-390-zh.png",
+          "sha256": "f18dfc8e5222e88e97ad5743ddb393bad7228f3e6c9c9c5543063b4567e67203"
+        },
+        {
+          "file": "HeatmapTreemap-390-zh.png",
+          "sha256": "dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12"
+        },
+        {
+          "file": "PineLibrary-390-zh.png",
+          "sha256": "972aedc6292b85ab872cb44300d721a3fe5de26916dc6373029b65854c0b9a5b"
+        }
+      ],
+      "manifestSha256": "957f7089218d34a85738e3a7e9a49e20d4edf70ef69db8abf9d6fa9604842200",
+      "packet": "batch3"
+    }
+  ],
+  "schema": "pl6_batch3_actual_capture.v1",
+  "seconds": 60.67,
+  "sourceAfterSha256": "0f4a5efc76e8fd0468aad544e2a2bad135b60dfe985141738eb133b9649ce751",
+  "sourceBeforeSha256": "0f4a5efc76e8fd0468aad544e2a2bad135b60dfe985141738eb133b9649ce751",
+  "sourceStable": true,
+  "stagedSourceTree": "4d969f4ac49958781fc97368d56fb0342ef7c8c6",
+  "startedAt": "2026-11-09T12:13:06.965896+00:00",
+  "successfulFiles": 20,
+  "supervision": {
+    "closed": true,
+    "error": null,
+    "pid": 81665,
+    "serverPid": 81792,
+    "serverRefused": null,
+    "serverReportedStopped": true,
+    "serverSettled": true,
+    "signal": null,
+    "status": 0,
+    "timedOut": false
+  },
+  "supervisionDriver": "const fs=require(\"node:fs\"),path=require(\"node:path\");const {superviseLegacy}=require(\"./e2e/tools/capture_ci_evidence.cjs\");(async()=>{const dir=process.env.BATCH3_PROOF_RUNTIME;const result=await superviseLegacy(process.execPath,[\"e2e/tools/capture_pl6_batch3.cjs\"],{cwd:process.cwd(),env:process.env,stdio:[\"ignore\",\"inherit\",\"inherit\",\"ipc\"]},{deadlineMs:8*60_000,onState:value=>fs.appendFileSync(path.join(dir,\"supervision-events.ndjson\"),JSON.stringify(value)+\"\\n\")});fs.writeFileSync(path.join(dir,\"supervision.json\"),JSON.stringify({...result,error:result.error?{message:result.error.message,code:result.error.code}:null},null,2)+\"\\n\");if(result.error||result.signal||result.status!==0||result.timedOut||!result.closed||!result.serverSettled)process.exitCode=1;})().catch(error=>{console.error(error);process.exitCode=1;});",
+  "validationOperation": "terminal-pr898-native-validation-20261109"
+}

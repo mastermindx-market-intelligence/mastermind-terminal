@@ -1,0 +1,11 @@
+{
+  "operation": "lab-source-gate-fix-20261104-c3",
+  "status": "SOURCE_APPLIED_AWAITING_BROWSER_AND_CAPTURE_QUALIFICATION",
+  "applicationFile": "terminal/components/gexdesk/GexDeskView.tsx",
+  "beforeSha256": "d03a5c9baf6be1641dcd0049e517ae20fc34c2516b4464e42e467e7b552929b1",
+  "afterSha256": "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98",
+  "originalAndCompositeBytesEqual": true,
+  "newRegressionFile": "terminal/e2e/options-lab-source-state.spec.ts",
+  "newRegressionSha256": "a835ce9e3238b1049778e74426439d213760f3daaeff5aad92d71874275b4b72",
+  "priorCaptureReceiptSha256": "af280a2eaccc068c154aea19bc199e08bf4fdd672dbe7ac69e25afe3aec02fc2"
+}

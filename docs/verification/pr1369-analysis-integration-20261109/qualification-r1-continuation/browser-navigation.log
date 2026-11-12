@@ -1,0 +1,35 @@
+[warmup] /terminal?symbol=NVDA → 200 in 126ms
+[warmup] /options → 200 in 2308ms
+[warmup] /portfolio → 200 in 1014ms
+[warmup] /alerts → 200 in 838ms
+[warmup] /analysis → 200 in 191ms
+[warmup] /discover → 200 in 1944ms
+[warmup] /admin → 200 in 529ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 397ms
+[warmup] /login → 200 in 85ms
+[warmup] /reset-password → 200 in 434ms
+[warmup] /api/me → 200 in 445ms
+[warmup] /api/watchlist → 200 in 167ms
+[warmup] /api/layouts → 200 in 162ms
+[warmup] /api/watchlist/annotations → 409 in 126ms
+[warmup] 14 routes compiled in 9s
+[fixture-ready] prophet_idx fixture 200 in 426ms
+
+Running 12 tests using 1 worker
+
+  -   1 [desktop] › e2e/investigation-workspace.spec.ts:11:5 › mobile Analysis research actions stay in one row and retain both company-scoped routes
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   2 [desktop] › e2e/investigation-workspace.spec.ts:240:5 › Analysis research entries retain their responsive bilingual source evidence (3.4s)
+  ✓   3 [desktop] › e2e/market-ontology-context.spec.ts:175:5 › J1 saves A, inspects B, and reopens A with its exact source return (3.6s)
+  ✓   4 [desktop] › e2e/thesis-workspace.spec.ts:1361:5 › the context-bar theses link opens the thesis workspace with the symbol pre-filled (2.4s)
+  -   5 [tablet] › e2e/investigation-workspace.spec.ts:11:5 › mobile Analysis research actions stay in one row and retain both company-scoped routes
+  ✓   6 [tablet] › e2e/investigation-workspace.spec.ts:240:5 › Analysis research entries retain their responsive bilingual source evidence (2.2s)
+  ✓   7 [tablet] › e2e/market-ontology-context.spec.ts:175:5 › J1 saves A, inspects B, and reopens A with its exact source return (4.0s)
+  ✓   8 [tablet] › e2e/thesis-workspace.spec.ts:1361:5 › the context-bar theses link opens the thesis workspace with the symbol pre-filled (2.4s)
+  ✓   9 [mobile] › e2e/investigation-workspace.spec.ts:11:5 › mobile Analysis research actions stay in one row and retain both company-scoped routes (2.3s)
+  ✓  10 [mobile] › e2e/investigation-workspace.spec.ts:240:5 › Analysis research entries retain their responsive bilingual source evidence (3.5s)
+  ✓  11 [mobile] › e2e/market-ontology-context.spec.ts:175:5 › J1 saves A, inspects B, and reopens A with its exact source return (3.5s)
+  ✓  12 [mobile] › e2e/thesis-workspace.spec.ts:1361:5 › the context-bar theses link opens the thesis workspace with the symbol pre-filled (2.4s)
+
+  2 skipped
+  10 passed (48.6s)

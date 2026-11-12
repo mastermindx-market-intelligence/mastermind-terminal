@@ -8,6 +8,9 @@ pyyaml>=6.0
 jsonschema>=4.20
 pytest>=8.0
 
+# Qualified regional financial and reported-holder collection (dedicated lane venv).
+yfinance==1.4.1
+
 # Phase 1+ (not yet wired):
 #   vectorbt        # Apache-2.0 + Commons Clause — INTERNAL param sweeps only (D4)
 #   alpaca-py       # dev market-data feed (D1)

@@ -1,0 +1,20 @@
+{
+  "schema": "futures.candidate_regression/v1",
+  "sourceHead": "4c469196cf7271986d03d5ef0e463dfac7ed374e",
+  "terminalTree": "dc4f6114a761e300a0ff9db44a43a591871563fd",
+  "integratedMaster": "792405edce606d4047a6dc7dd7f4711f9e77aba6",
+  "fullTerminalTestsPassed": 10780,
+  "fullTerminalTestsFailed": 0,
+  "existingTodo": 4,
+  "terminalTestFilesPassed": 632,
+  "fullHubTestsPassed": 569,
+  "buildExit": 0,
+  "productionGuestProofExit": 0,
+  "closedOwnedPorts": [
+    3596,
+    3597
+  ],
+  "fullTerminalLogSha256": "c73c43af383da770655a8e08bbfa006e902a08a58b9397bd15a03a2eabb53071",
+  "buildLogSha256": "be4c6205ef06dbcae8e82f7bf12aab06d6f58f3f6b8e69e2636a5c7811bf7e29",
+  "scope": "Current-mainline candidate, local compiled production guest/privacy path. No live feed, paid-session proof, deployment or independent review."
+}

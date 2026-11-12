@@ -1,0 +1,161 @@
+{
+  "schema": "pr668.protected-integration.v1",
+  "files": {
+    "README.md": {
+      "bytes": 3595,
+      "sha256": "6d80db37d1613b907a71681be6347d1946d442fb6dfe691a5f3d167216d2197f"
+    },
+    "affected-unit.log": {
+      "bytes": 2385,
+      "sha256": "f46dcaf26f3ae35d9125bd33151be2416c4b916a924d96989bd51bce5b6a693b"
+    },
+    "dependency-install-intent.json": {
+      "bytes": 407,
+      "sha256": "b134caaf5ec479d59520edc5e535509fd5c85e0604fb3eb4c67950f8bd336297"
+    },
+    "dependency-install-result.json": {
+      "bytes": 612,
+      "sha256": "eec757b104592f3084bb15be7e3a0802516ca7386264ee3737121d8a2e1bea2d"
+    },
+    "dependency-install.log": {
+      "bytes": 149,
+      "sha256": "531976aaec5b5dc6914b59f02dfb4a4540fa595a205b8a722976832a86a349af"
+    },
+    "gmi-capture-intent.json": {
+      "bytes": 2981,
+      "sha256": "e4298bff69fec72f81cf6bcb5931c4fa03d52bc40696f980d3166478fe390b4d"
+    },
+    "gmi-capture-result.json": {
+      "bytes": 5948,
+      "sha256": "f2bc4fb502224bc054853192eeafc304b2d8acbe25d94e3e4c485f880b91b284"
+    },
+    "gmi-capture.log": {
+      "bytes": 770,
+      "sha256": "784173d954b7c7e0b39fc2b61377d1a56b3d968440db746af489de7915305193"
+    },
+    "gmi-consumer-intent.json": {
+      "bytes": 1360,
+      "sha256": "24ba4ec5c943c17daa2415905258e8b8d85692e5e160a3a08c09532bac0e953d"
+    },
+    "gmi-consumer-result.json": {
+      "bytes": 3313,
+      "sha256": "743efa41e4cf91cf8a93676439257b470f01a98652d0d76e833889fe51f28ef4"
+    },
+    "gmi-strict-reader.log": {
+      "bytes": 614,
+      "sha256": "c400a82a73d1e051c673276ae3ae77009dcebea4dad5f34497b15757a9a73af4"
+    },
+    "historical-gmi-packet/EVIDENCE.yml": {
+      "bytes": 3057,
+      "sha256": "d09da71f7525463ae48fab632a814b3c7130ba7847e2448517120fbdc677ec06"
+    },
+    "historical-gmi-packet/desktop-en-closed-unavailable.png": {
+      "bytes": 67364,
+      "sha256": "aa12d287597c27a8f9a06df89cf5e9b58e951ee78e5891b6cb634e283d796bcd"
+    },
+    "historical-gmi-packet/desktop-en-closed.png": {
+      "bytes": 67408,
+      "sha256": "00a679946a3044f32f7b43342ee637ee45d69ba8447f9f936d598aaa0335c0a6"
+    },
+    "historical-gmi-packet/desktop-en-open.png": {
+      "bytes": 50213,
+      "sha256": "cfa1d2b3af97d4269f7d1bb7cce1538edc400c36fc9498dbabb83baaa749457c"
+    },
+    "historical-gmi-packet/desktop-en-page-open.png": {
+      "bytes": 422256,
+      "sha256": "d8bb0d33e1e6939af523e1e666b9330ecd2bf4aef4fdffe2368cf4c4569d6c29"
+    },
+    "historical-gmi-packet/desktop-zh-closed.png": {
+      "bytes": 68005,
+      "sha256": "8b10daa77c1fb3c80ef434c8353bf0995fc65101d61178192be467b94176fd12"
+    },
+    "historical-gmi-packet/desktop-zh-open.png": {
+      "bytes": 55560,
+      "sha256": "76da5b83440ce36835102119e14f6a34c4ec88a565d93b544bf2e2cde9af85ee"
+    },
+    "historical-gmi-packet/mobile-en-empty.png": {
+      "bytes": 10750,
+      "sha256": "831a3b0b21aa4ce36db1561dd6e50bae65a32580d81f56e1a2a47f96daae18a5"
+    },
+    "historical-gmi-packet/mobile-en-ready.png": {
+      "bytes": 20715,
+      "sha256": "f9b30b1d2acd306d606ccb3d9566dbd2abf104277189374cf5404fb2793a63bb"
+    },
+    "historical-gmi-packet/mobile-en-unavailable.png": {
+      "bytes": 11046,
+      "sha256": "7e21cd48415b9c2819af2a2651363b518567fff9d8538083e0fee0ff41b2b9db"
+    },
+    "historical-gmi-packet/mobile-zh-empty.png": {
+      "bytes": 15847,
+      "sha256": "5deb19022248ee8ab62a5408e5caacf3e151fb8501b7a6543be217f2ccb5ae9d"
+    },
+    "historical-gmi-packet/mobile-zh-ready.png": {
+      "bytes": 27901,
+      "sha256": "c35303a6faf8752b2edd5226e0ed267cddf3e55ed0d632c61512e4aee05402c2"
+    },
+    "historical-gmi-packet/mobile-zh-unavailable.png": {
+      "bytes": 17407,
+      "sha256": "ef86aaf1acf196b28b44bc297a488053c2de38365894d2cf6bdf720dbefcd486"
+    },
+    "historical-gmi-packet/tablet-en-ready.png": {
+      "bytes": 19367,
+      "sha256": "a4e81765dd80287b19285f63f952c45555bd73c819107e0c24edb08efe2447b5"
+    },
+    "next-typegen.log": {
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    "owned-source-vs-protected.diff.gz": {
+      "bytes": 20330,
+      "sha256": "77dfc72cf4841ff440cd957456014b097c483ba83922053023930be76f971e77"
+    },
+    "prophet-seven-browser-report.json": {
+      "bytes": 16902,
+      "sha256": "b4774ea665a751060311eaa013ecadd703b3062be34349102bdb42f664626634"
+    },
+    "prophet-seven-browser.log": {
+      "bytes": 17544,
+      "sha256": "045b844d0b57ca2b72cc2f15f1b783cffc86c333f0f502b5af4577e89a21a8d9"
+    },
+    "qualification.json": {
+      "bytes": 4657,
+      "sha256": "282a48f27cd38570eccb420703f33171b3b4ea2605dcae0ad1878a758ceccc27"
+    },
+    "scoped-eslint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source-checks-result.json": {
+      "bytes": 2568,
+      "sha256": "44053d80caea056666e71cbed64b67bea41c419c71b40bb238c931c210425972"
+    },
+    "source-journal-composition-preflight.json": {
+      "bytes": 5140,
+      "sha256": "0c9479de32b102c0e9eb9536057762fea68cf28222a362630ab4f0b9d28d22dd"
+    },
+    "source-journal-conflict-resolution-intent.json": {
+      "bytes": 794,
+      "sha256": "efc60b2fe3da30f2277988554bd690ebd9fc9be59f597dcecb01d0fcc8d89440"
+    },
+    "source-journal-conflict-resolution-result.json": {
+      "bytes": 7105,
+      "sha256": "fe573bb6ab3445f68be918f5894d7d7406a30befb90ffc45adce205959f52ef7"
+    },
+    "source-journal-diff-qualification.json": {
+      "bytes": 944,
+      "sha256": "75ea07d6160da5c93896f26975c1a240a0dbff828b0468f1a8424d141b213cdb"
+    },
+    "source-journal-merge-intent.json": {
+      "bytes": 371,
+      "sha256": "c038718e7abeb762af49c971e6cc2eef963adb1ae41338e211ff4262db7207f8"
+    },
+    "source-journal-merge-result.json": {
+      "bytes": 774,
+      "sha256": "ed1a9d04fb3cc41f814ff8b6b7bb15c83056432e6fecab985421d5a77d4193d0"
+    },
+    "typescript.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+/* Local seasonal interactions; shared finance styles and chart math stay with their owners. */
+.toggle.toggle {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 10px;
+  line-height: 1.2;
+}
+.toggle:focus-visible, .sortButton:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+  opacity: 1;
+}
+.popup.popup {
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  scroll-padding: 4px;
+  overscroll-behavior: contain;
+}
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sortButton:hover { background: var(--panel-2); }
+.sortStart { justify-content: flex-start; }
+@media (max-width: 360px) {
+  .popup.popup { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

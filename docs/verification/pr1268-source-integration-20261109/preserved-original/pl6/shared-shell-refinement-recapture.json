@@ -1,0 +1,81 @@
+{
+  "schema": "mastermind.scoped_visual_recapture.v1",
+  "sourceHead": "680dca7c5bba63bafcb7fef9bbecbb214c292924",
+  "capturedAt": "2026-10-22T08:23:47.032770+00:00",
+  "profile": {
+    "MMX_SHARED_SHELL": "unset",
+    "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+    "TERMINAL_E2E_FIXTURE": "1"
+  },
+  "command": "env -u MMX_SHARED_SHELL -u MMX_INVESTOR_SHELL_PREVIEW CAPTURE_ONLY=AnalysisWorkspace,SearchModal,ChartChrome TERMINAL_CROP_PORT=3123 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/shared-shell-design-incumbent-capture-failures node e2e/tools/capture_pl6_batch1.cjs",
+  "sourceChanges": {
+    "terminal/components/AppNav.tsx": {
+      "before": "d0576cb59f754530614a4eb0191595854f44d95192b162c0cd612185123a9a5b",
+      "after": "84d322919afd8e53058e2a4a283db97257fb3607ab5bd90db53f1bf24beb7aa4"
+    },
+    "terminal/components/chrome/AppShell.tsx": {
+      "before": "11c0046a924e77f79a1406dabaea26af98b334e58c55ce13a724038497c1081d",
+      "after": "7054ce108b9701b29c8d608bc102f775858cb232b4289032d2afac66338cee43"
+    },
+    "terminal/components/chrome/shared-shell/shared-shell.css": {
+      "before": "b80774b979e8a4af15d838ce981e54097efc9d042386412a55d0c6a046c912c4",
+      "after": "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce"
+    }
+  },
+  "crops": {
+    "AnalysisWorkspace-1440.png": {
+      "sha256": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+      "bytes": 17759
+    },
+    "AnalysisWorkspace-1440-zh.png": {
+      "sha256": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+      "bytes": 16525
+    },
+    "AnalysisWorkspace-390.png": {
+      "sha256": "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595",
+      "bytes": 8375
+    },
+    "AnalysisWorkspace-390-zh.png": {
+      "sha256": "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781",
+      "bytes": 8941
+    },
+    "SearchModal-1440.png": {
+      "sha256": "cc20356e5af3172bf9c215e4ca2613724f65b5ebe538d9ab82a25449a76fd310",
+      "bytes": 20276
+    },
+    "SearchModal-1440-zh.png": {
+      "sha256": "574dc1bfb5abb4dbff39346de3d647a610c9a5595ce159662876e195a8a9ff97",
+      "bytes": 21304
+    },
+    "SearchModal-390.png": {
+      "sha256": "48e74a116b32337b8d93d4eb6b605fa33fa96eaebdcaa6e012953f0a72c65157",
+      "bytes": 26755
+    },
+    "SearchModal-390-zh.png": {
+      "sha256": "6bac0cf4350ecb244070ceed1b96e0776434058c4a2d7877482ea6d0b971d119",
+      "bytes": 27333
+    },
+    "ChartChrome-1440.png": {
+      "sha256": "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78",
+      "bytes": 4334
+    },
+    "ChartChrome-1440-zh.png": {
+      "sha256": "eb2207f84e05e7fb101bf49575f9726a305a3a8c9202e2704cb027c1e20b48f0",
+      "bytes": 4351
+    },
+    "ChartChrome-390.png": {
+      "sha256": "47d9bfce5e7296df1115ea50145fc05f96523d1ab2a292224b2ffbc331ae8bc2",
+      "bytes": 11158
+    },
+    "ChartChrome-390-zh.png": {
+      "sha256": "f61dc0d77e59f292d3fc9aca0be5aa9f7dedf3e5931f6461aa723df5f067de68",
+      "bytes": 11174
+    }
+  },
+  "visualReview": "Principal inspected desktop chart context, Chinese mobile chart context and Chinese mobile search; settled incumbent layout and legible controls.",
+  "qualification": "Actual scoped local deterministic fixture recapture. Historical full functional reports retain their original source identity; unchanged captures are retained. This is not authenticated beta acceptance.",
+  "results": {
+    "captured": 12,
+    "failed": 0
+  }
+}

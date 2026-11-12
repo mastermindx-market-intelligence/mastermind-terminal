@@ -1,0 +1,1690 @@
+{
+  "schema": "shared-shell.1240.coherent-inputs.v1",
+  "task": "P12.T25/T24/T21.S2",
+  "protected_base": "f0eebcadff9e70a7f861382e9b5761ad94283e39",
+  "protected_tree": "c34eb254758623d1d395ee4fca5004d468931a6a",
+  "input_sets": [
+    {
+      "name": "T25",
+      "source": "efd0408d87fb23b1739eade273e4a38d9d7bda79",
+      "files": [
+        {
+          "path": "terminal/components/CompanyListingIdentity.module.css",
+          "input_mode": "100644",
+          "input_blob": "e03b290915ad6a52e9b5c4fa7f9fcf5d20f977bd",
+          "result_mode": "100644",
+          "result_blob": "e03b290915ad6a52e9b5c4fa7f9fcf5d20f977bd",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/CompanyListingIdentity.tsx",
+          "input_mode": "100644",
+          "input_blob": "0cf806e8debbbc5f1929f5ea77d521c21462f103",
+          "result_mode": "100644",
+          "result_blob": "0cf806e8debbbc5f1929f5ea77d521c21462f103",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/SearchModal.module.css",
+          "input_mode": "100644",
+          "input_blob": "28de469168a4cccf7371feca66c5ec678d62999d",
+          "result_mode": "100644",
+          "result_blob": "28de469168a4cccf7371feca66c5ec678d62999d",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/SearchModal.tsx",
+          "input_mode": "100644",
+          "input_blob": "33ea3fb723bd9034dfc652a9bc07c8ecf893e67f",
+          "result_mode": "100644",
+          "result_blob": "33ea3fb723bd9034dfc652a9bc07c8ecf893e67f",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/SymbolPicker.tsx",
+          "input_mode": "100644",
+          "input_blob": "60219600e56550d7b0089f3300dd27e5496598b9",
+          "result_mode": "100644",
+          "result_blob": "60219600e56550d7b0089f3300dd27e5496598b9",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/chrome/shared-shell/ShellSearch.tsx",
+          "input_mode": "100644",
+          "input_blob": "e4e50d27ba25328812233bb90c1f3b536f87219a",
+          "result_mode": "100644",
+          "result_blob": "e4e50d27ba25328812233bb90c1f3b536f87219a",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+          "input_mode": "100644",
+          "input_blob": "be9253caa4d7e140d7d796db47d484f994ce0275",
+          "result_mode": "100644",
+          "result_blob": "be9253caa4d7e140d7d796db47d484f994ce0275",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+          "input_mode": "100644",
+          "input_blob": "9753a68f764e8e9ce3a9087c9cae327580ad132b",
+          "result_mode": "100644",
+          "result_blob": "9753a68f764e8e9ce3a9087c9cae327580ad132b",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+          "input_mode": "100644",
+          "input_blob": "bbf1b8bede7bfd61e168cce76584b62f466e8109",
+          "result_mode": "100644",
+          "result_blob": "1bfd54beedc802b451db8b8f51da79be14a338a1",
+          "equal": false
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-0c8e9d6aff8d5736bb1fd70c908322f0.json",
+          "input_mode": "100644",
+          "input_blob": "b2340a13b42a7e95edf3e919e41bb5ce7f11c72d",
+          "result_mode": "100644",
+          "result_blob": "b2340a13b42a7e95edf3e919e41bb5ce7f11c72d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-0c8e9d6aff8d5736bb1fd70c908322f0.png",
+          "input_mode": "100644",
+          "input_blob": "a285980e783e471439d91f3026a09061d9409552",
+          "result_mode": "100644",
+          "result_blob": "a285980e783e471439d91f3026a09061d9409552",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-255ec3283a27e181db0817d2c01dfb16.json",
+          "input_mode": "100644",
+          "input_blob": "542347e57724d125e7a325c49ac7b14610fef132",
+          "result_mode": "100644",
+          "result_blob": "542347e57724d125e7a325c49ac7b14610fef132",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-255ec3283a27e181db0817d2c01dfb16.png",
+          "input_mode": "100644",
+          "input_blob": "f66eff9850a26fb9d9ce0ed371eec15354629b36",
+          "result_mode": "100644",
+          "result_blob": "f66eff9850a26fb9d9ce0ed371eec15354629b36",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-7edc7e560f142c5c64b99cb4e57321a6.json",
+          "input_mode": "100644",
+          "input_blob": "16f05b9841f7f34babf6e6e92bd4ab84349911b1",
+          "result_mode": "100644",
+          "result_blob": "16f05b9841f7f34babf6e6e92bd4ab84349911b1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-7edc7e560f142c5c64b99cb4e57321a6.png",
+          "input_mode": "100644",
+          "input_blob": "c72b9fbbde3e44ce5a64518ba5736ec9929db518",
+          "result_mode": "100644",
+          "result_blob": "c72b9fbbde3e44ce5a64518ba5736ec9929db518",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-94a2b3daa0f7bc7e15df133e0820a9de.json",
+          "input_mode": "100644",
+          "input_blob": "373aa526229f0821d6860ac4e350be9540bbf8f8",
+          "result_mode": "100644",
+          "result_blob": "373aa526229f0821d6860ac4e350be9540bbf8f8",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-94a2b3daa0f7bc7e15df133e0820a9de.png",
+          "input_mode": "100644",
+          "input_blob": "72d0cd9b693c341b18104ba3ca3a0a3cb9a1d661",
+          "result_mode": "100644",
+          "result_blob": "72d0cd9b693c341b18104ba3ca3a0a3cb9a1d661",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-a6dc838bc1a5d9faac32fc11a6913459.json",
+          "input_mode": "100644",
+          "input_blob": "eae3922db41dd7e6f74a428b3f2f69dc79c0a41f",
+          "result_mode": "100644",
+          "result_blob": "eae3922db41dd7e6f74a428b3f2f69dc79c0a41f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-a6dc838bc1a5d9faac32fc11a6913459.png",
+          "input_mode": "100644",
+          "input_blob": "f1984f2d779323999e88b362c6b54745ec1ddd88",
+          "result_mode": "100644",
+          "result_blob": "f1984f2d779323999e88b362c6b54745ec1ddd88",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-a7849cb7aa686b4eae34a7f017604085.json",
+          "input_mode": "100644",
+          "input_blob": "0b353b737088419169c0e0988ea840a7aebe8f10",
+          "result_mode": "100644",
+          "result_blob": "0b353b737088419169c0e0988ea840a7aebe8f10",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-a7849cb7aa686b4eae34a7f017604085.png",
+          "input_mode": "100644",
+          "input_blob": "f7a63a5e6598b51b7a2268dec877d9f3954c74b0",
+          "result_mode": "100644",
+          "result_blob": "f7a63a5e6598b51b7a2268dec877d9f3954c74b0",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-b0452f6e3cc32be3b2fb9004b3710471.json",
+          "input_mode": "100644",
+          "input_blob": "0f04edfd708e89391c3135e97ddd57f72b995568",
+          "result_mode": "100644",
+          "result_blob": "0f04edfd708e89391c3135e97ddd57f72b995568",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-b0452f6e3cc32be3b2fb9004b3710471.png",
+          "input_mode": "100644",
+          "input_blob": "edcb05f75bd4da45d994cf43d61ca781daf8530f",
+          "result_mode": "100644",
+          "result_blob": "edcb05f75bd4da45d994cf43d61ca781daf8530f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-f90c2121bf5db3dde5301abec80c74ce.json",
+          "input_mode": "100644",
+          "input_blob": "86bec270490c4750f3f8e77c974e8b372d40e69d",
+          "result_mode": "100644",
+          "result_blob": "86bec270490c4750f3f8e77c974e8b372d40e69d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--case-f90c2121bf5db3dde5301abec80c74ce.png",
+          "input_mode": "100644",
+          "input_blob": "d202334e9c97af8fbe105d10009bb0dc5bf8ffcb",
+          "result_mode": "100644",
+          "result_blob": "d202334e9c97af8fbe105d10009bb0dc5bf8ffcb",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--operation.json",
+          "input_mode": "100644",
+          "input_blob": "b03de771a7bcbdaeefe3e1a1d0d2f3e2301c3ee9",
+          "result_mode": "100644",
+          "result_blob": "b03de771a7bcbdaeefe3e1a1d0d2f3e2301c3ee9",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--report.json",
+          "input_mode": "100644",
+          "input_blob": "f7635cb8ceaf889a9ad6c7053998a24c4324a1a8",
+          "result_mode": "100644",
+          "result_blob": "f7635cb8ceaf889a9ad6c7053998a24c4324a1a8",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a1--start.json",
+          "input_mode": "100644",
+          "input_blob": "eebc68b8c93ec65df0be0d9c2482296ab0935922",
+          "result_mode": "100644",
+          "result_blob": "eebc68b8c93ec65df0be0d9c2482296ab0935922",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-0c8e9d6aff8d5736bb1fd70c908322f0.json",
+          "input_mode": "100644",
+          "input_blob": "b2340a13b42a7e95edf3e919e41bb5ce7f11c72d",
+          "result_mode": "100644",
+          "result_blob": "b2340a13b42a7e95edf3e919e41bb5ce7f11c72d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-0c8e9d6aff8d5736bb1fd70c908322f0.png",
+          "input_mode": "100644",
+          "input_blob": "a285980e783e471439d91f3026a09061d9409552",
+          "result_mode": "100644",
+          "result_blob": "a285980e783e471439d91f3026a09061d9409552",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-255ec3283a27e181db0817d2c01dfb16.json",
+          "input_mode": "100644",
+          "input_blob": "542347e57724d125e7a325c49ac7b14610fef132",
+          "result_mode": "100644",
+          "result_blob": "542347e57724d125e7a325c49ac7b14610fef132",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-255ec3283a27e181db0817d2c01dfb16.png",
+          "input_mode": "100644",
+          "input_blob": "f66eff9850a26fb9d9ce0ed371eec15354629b36",
+          "result_mode": "100644",
+          "result_blob": "f66eff9850a26fb9d9ce0ed371eec15354629b36",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-7edc7e560f142c5c64b99cb4e57321a6.json",
+          "input_mode": "100644",
+          "input_blob": "16f05b9841f7f34babf6e6e92bd4ab84349911b1",
+          "result_mode": "100644",
+          "result_blob": "16f05b9841f7f34babf6e6e92bd4ab84349911b1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-7edc7e560f142c5c64b99cb4e57321a6.png",
+          "input_mode": "100644",
+          "input_blob": "c72b9fbbde3e44ce5a64518ba5736ec9929db518",
+          "result_mode": "100644",
+          "result_blob": "c72b9fbbde3e44ce5a64518ba5736ec9929db518",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-94a2b3daa0f7bc7e15df133e0820a9de.json",
+          "input_mode": "100644",
+          "input_blob": "373aa526229f0821d6860ac4e350be9540bbf8f8",
+          "result_mode": "100644",
+          "result_blob": "373aa526229f0821d6860ac4e350be9540bbf8f8",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-94a2b3daa0f7bc7e15df133e0820a9de.png",
+          "input_mode": "100644",
+          "input_blob": "72d0cd9b693c341b18104ba3ca3a0a3cb9a1d661",
+          "result_mode": "100644",
+          "result_blob": "72d0cd9b693c341b18104ba3ca3a0a3cb9a1d661",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-a6dc838bc1a5d9faac32fc11a6913459.json",
+          "input_mode": "100644",
+          "input_blob": "eae3922db41dd7e6f74a428b3f2f69dc79c0a41f",
+          "result_mode": "100644",
+          "result_blob": "eae3922db41dd7e6f74a428b3f2f69dc79c0a41f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-a6dc838bc1a5d9faac32fc11a6913459.png",
+          "input_mode": "100644",
+          "input_blob": "f1984f2d779323999e88b362c6b54745ec1ddd88",
+          "result_mode": "100644",
+          "result_blob": "f1984f2d779323999e88b362c6b54745ec1ddd88",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-a7849cb7aa686b4eae34a7f017604085.json",
+          "input_mode": "100644",
+          "input_blob": "0b353b737088419169c0e0988ea840a7aebe8f10",
+          "result_mode": "100644",
+          "result_blob": "0b353b737088419169c0e0988ea840a7aebe8f10",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-a7849cb7aa686b4eae34a7f017604085.png",
+          "input_mode": "100644",
+          "input_blob": "f7a63a5e6598b51b7a2268dec877d9f3954c74b0",
+          "result_mode": "100644",
+          "result_blob": "f7a63a5e6598b51b7a2268dec877d9f3954c74b0",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-b0452f6e3cc32be3b2fb9004b3710471.json",
+          "input_mode": "100644",
+          "input_blob": "0f04edfd708e89391c3135e97ddd57f72b995568",
+          "result_mode": "100644",
+          "result_blob": "0f04edfd708e89391c3135e97ddd57f72b995568",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-b0452f6e3cc32be3b2fb9004b3710471.png",
+          "input_mode": "100644",
+          "input_blob": "edcb05f75bd4da45d994cf43d61ca781daf8530f",
+          "result_mode": "100644",
+          "result_blob": "edcb05f75bd4da45d994cf43d61ca781daf8530f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-f90c2121bf5db3dde5301abec80c74ce.json",
+          "input_mode": "100644",
+          "input_blob": "86bec270490c4750f3f8e77c974e8b372d40e69d",
+          "result_mode": "100644",
+          "result_blob": "86bec270490c4750f3f8e77c974e8b372d40e69d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--case-f90c2121bf5db3dde5301abec80c74ce.png",
+          "input_mode": "100644",
+          "input_blob": "d202334e9c97af8fbe105d10009bb0dc5bf8ffcb",
+          "result_mode": "100644",
+          "result_blob": "d202334e9c97af8fbe105d10009bb0dc5bf8ffcb",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--operation.json",
+          "input_mode": "100644",
+          "input_blob": "2cc3bb32301056cb41a5c7651c25bd30cf31207f",
+          "result_mode": "100644",
+          "result_blob": "2cc3bb32301056cb41a5c7651c25bd30cf31207f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--report.json",
+          "input_mode": "100644",
+          "input_blob": "f7635cb8ceaf889a9ad6c7053998a24c4324a1a8",
+          "result_mode": "100644",
+          "result_blob": "f7635cb8ceaf889a9ad6c7053998a24c4324a1a8",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/t25-listing-pl6-20261103-a2--start.json",
+          "input_mode": "100644",
+          "input_blob": "e63facd472d94e103a5709b475f75a5e58db544e",
+          "result_mode": "100644",
+          "result_blob": "e63facd472d94e103a5709b475f75a5e58db544e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/browser-report.json",
+          "input_mode": "100644",
+          "input_blob": "e36888e7aeb92dadaf56f61816c40eb24659d5c2",
+          "result_mode": "100644",
+          "result_blob": "e36888e7aeb92dadaf56f61816c40eb24659d5c2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/capture-report.json",
+          "input_mode": "100644",
+          "input_blob": "700df2973cc068bc4f430144a911255aaf3880ee",
+          "result_mode": "100644",
+          "result_blob": "700df2973cc068bc4f430144a911255aaf3880ee",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/desktop-dark-en-analysis-identity.png",
+          "input_mode": "100644",
+          "input_blob": "326cef99474095bec6f803321b60b3ab6fbb4554",
+          "result_mode": "100644",
+          "result_blob": "326cef99474095bec6f803321b60b3ab6fbb4554",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/desktop-dark-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "58e5b7c79988a141fbb7521bdc271c690908da00",
+          "result_mode": "100644",
+          "result_blob": "58e5b7c79988a141fbb7521bdc271c690908da00",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/desktop-dark-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "3b6d1987eebae5e2dc96b5b1655247a8fab33086",
+          "result_mode": "100644",
+          "result_blob": "3b6d1987eebae5e2dc96b5b1655247a8fab33086",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/desktop-light-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "e52f57deb7de07e3a53c9f183b7c811a7b7269c3",
+          "result_mode": "100644",
+          "result_blob": "e52f57deb7de07e3a53c9f183b7c811a7b7269c3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/desktop-light-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "370b9282938677464c6888cef38946aaf5699bb4",
+          "result_mode": "100644",
+          "result_blob": "370b9282938677464c6888cef38946aaf5699bb4",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-dark-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "87e03602883124614fb4a52c08ff4ac447b1c5dc",
+          "result_mode": "100644",
+          "result_blob": "87e03602883124614fb4a52c08ff4ac447b1c5dc",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-dark-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "b6abe5dd929e3eca9069b92a141c4c40bca86c84",
+          "result_mode": "100644",
+          "result_blob": "b6abe5dd929e3eca9069b92a141c4c40bca86c84",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-light-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "798747de4e03ed222b5b06e21f9d7414c993068a",
+          "result_mode": "100644",
+          "result_blob": "798747de4e03ed222b5b06e21f9d7414c993068a",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-light-zh-analysis-identity.png",
+          "input_mode": "100644",
+          "input_blob": "db867db4b8583792b2899f22d51e21258498bccf",
+          "result_mode": "100644",
+          "result_blob": "db867db4b8583792b2899f22d51e21258498bccf",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-light-zh-returned-search.png",
+          "input_mode": "100644",
+          "input_blob": "b7e618833ebe942e42e576820363733a64bf00b4",
+          "result_mode": "100644",
+          "result_blob": "b7e618833ebe942e42e576820363733a64bf00b4",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/mobile-light-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "4453613611e840bcb1fb8aa2463b8eec632ae653",
+          "result_mode": "100644",
+          "result_blob": "4453613611e840bcb1fb8aa2463b8eec632ae653",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/protected-composition-20261103.json",
+          "input_mode": "100644",
+          "input_blob": "f2afa239d5e38b21520dba39e65848ad1416ae9f",
+          "result_mode": "100644",
+          "result_blob": "f2afa239d5e38b21520dba39e65848ad1416ae9f",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/source-qualification.json",
+          "input_mode": "100644",
+          "input_blob": "53cc668ad3921ac9bfcc885077c56958e8a3f4e9",
+          "result_mode": "100644",
+          "result_blob": "53cc668ad3921ac9bfcc885077c56958e8a3f4e9",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/tablet-dark-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "2bd72c90a92d97e2fecc85782992af8ee9751b76",
+          "result_mode": "100644",
+          "result_blob": "2bd72c90a92d97e2fecc85782992af8ee9751b76",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/tablet-dark-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "08913245322054fb629651b9c63ac489ac460deb",
+          "result_mode": "100644",
+          "result_blob": "08913245322054fb629651b9c63ac489ac460deb",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/tablet-light-en-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "87be144389095eb54ae79729d9bc2ee002d1a6b1",
+          "result_mode": "100644",
+          "result_blob": "87be144389095eb54ae79729d9bc2ee002d1a6b1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/tablet-light-zh-selected-listing.png",
+          "input_mode": "100644",
+          "input_blob": "5ac795d8a3aba28c0b54adbb3bc82c47e03b3e75",
+          "result_mode": "100644",
+          "result_blob": "5ac795d8a3aba28c0b54adbb3bc82c47e03b3e75",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/EVIDENCE.yml",
+          "input_mode": "100644",
+          "input_blob": "b1f6f3837263e414ee27fb32149c4d391fb2623e",
+          "result_mode": "100644",
+          "result_blob": "b1f6f3837263e414ee27fb32149c4d391fb2623e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/capture.cjs",
+          "input_mode": "100644",
+          "input_blob": "25bf2413448c770b17ce0ba260da23447dbd21ca",
+          "result_mode": "100644",
+          "result_blob": "25bf2413448c770b17ce0ba260da23447dbd21ca",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/desktop-en.png",
+          "input_mode": "100644",
+          "input_blob": "a5ef015d98b64f2478e2c0ff1009dc155a022b5e",
+          "result_mode": "100644",
+          "result_blob": "a5ef015d98b64f2478e2c0ff1009dc155a022b5e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/desktop-zh.png",
+          "input_mode": "100644",
+          "input_blob": "9ade82dba91c6ece776b0bcc11d5a3b14de272bb",
+          "result_mode": "100644",
+          "result_blob": "9ade82dba91c6ece776b0bcc11d5a3b14de272bb",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/mobile-en.png",
+          "input_mode": "100644",
+          "input_blob": "0e20babd930ee2d6d138ed0cdc7f09b681179fcf",
+          "result_mode": "100644",
+          "result_blob": "0e20babd930ee2d6d138ed0cdc7f09b681179fcf",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/mobile-zh.png",
+          "input_mode": "100644",
+          "input_blob": "c9f18b5249d959df1fd738c1fbe459e9779f2923",
+          "result_mode": "100644",
+          "result_blob": "c9f18b5249d959df1fd738c1fbe459e9779f2923",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/result.json",
+          "input_mode": "100644",
+          "input_blob": "9d2c3ff49dc7ae139f01e245df25463c2904f2c7",
+          "result_mode": "100644",
+          "result_blob": "9d2c3ff49dc7ae139f01e245df25463c2904f2c7",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/start.json",
+          "input_mode": "100644",
+          "input_blob": "5e4090a6c44847889fc6b2eb92fb574fd6218f23",
+          "result_mode": "100644",
+          "result_blob": "5e4090a6c44847889fc6b2eb92fb574fd6218f23",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/tablet-en.png",
+          "input_mode": "100644",
+          "input_blob": "6bdb7d5d6a92c06e795888dee18b0df4a6225cb7",
+          "result_mode": "100644",
+          "result_blob": "6bdb7d5d6a92c06e795888dee18b0df4a6225cb7",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/tablet-zh.png",
+          "input_mode": "100644",
+          "input_blob": "7f0e9b7b6907210ed1fc5abb5e2c7e4a5b6988e2",
+          "result_mode": "100644",
+          "result_blob": "7f0e9b7b6907210ed1fc5abb5e2c7e4a5b6988e2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+          "input_mode": "100644",
+          "input_blob": "b63b471675ef21aae7b8e34be367702204578009",
+          "result_mode": "100644",
+          "result_blob": "4ad49ecee466c85081b74f0e4a25bba20326283f",
+          "equal": false
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-7381784ee89146a99c2d47e0857cd8db.json",
+          "input_mode": "100644",
+          "input_blob": "bff26ac4e3bdf6ea003e128d0e8996549a933495",
+          "result_mode": "100644",
+          "result_blob": "bff26ac4e3bdf6ea003e128d0e8996549a933495",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-7381784ee89146a99c2d47e0857cd8db.png",
+          "input_mode": "100644",
+          "input_blob": "bb205eb75a0fa1e70bb2a524d319fc2b022b0a54",
+          "result_mode": "100644",
+          "result_blob": "bb205eb75a0fa1e70bb2a524d319fc2b022b0a54",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-997b1cb667944d5f31aa982480cd6617.json",
+          "input_mode": "100644",
+          "input_blob": "32bd6be529a1bc68866fd75f0cd5368e0e25c3d6",
+          "result_mode": "100644",
+          "result_blob": "32bd6be529a1bc68866fd75f0cd5368e0e25c3d6",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-997b1cb667944d5f31aa982480cd6617.png",
+          "input_mode": "100644",
+          "input_blob": "0494aee4d045384849f29b5d30905a3522c20396",
+          "result_mode": "100644",
+          "result_blob": "0494aee4d045384849f29b5d30905a3522c20396",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+          "input_mode": "100644",
+          "input_blob": "d057a83f1745e2baccd05e355a099f0e7669fa7d",
+          "result_mode": "100644",
+          "result_blob": "d057a83f1745e2baccd05e355a099f0e7669fa7d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+          "input_mode": "100644",
+          "input_blob": "6bd0c6d68b66478d87c366af097ac462ab425e92",
+          "result_mode": "100644",
+          "result_blob": "6bd0c6d68b66478d87c366af097ac462ab425e92",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--operation.json",
+          "input_mode": "100644",
+          "input_blob": "0b79e6cad3f8d9617136daf968058bf80420e634",
+          "result_mode": "100644",
+          "result_blob": "0b79e6cad3f8d9617136daf968058bf80420e634",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--raw-report.json",
+          "input_mode": "100644",
+          "input_blob": "31a909cb7abc372ec279dcfe1057e1d6225a1ec3",
+          "result_mode": "100644",
+          "result_blob": "31a909cb7abc372ec279dcfe1057e1d6225a1ec3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--report.json",
+          "input_mode": "100644",
+          "input_blob": "31a909cb7abc372ec279dcfe1057e1d6225a1ec3",
+          "result_mode": "100644",
+          "result_blob": "31a909cb7abc372ec279dcfe1057e1d6225a1ec3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a1--start.json",
+          "input_mode": "100644",
+          "input_blob": "f428af34cccb6d4e3221ea6cd78124bbd159f0e6",
+          "result_mode": "100644",
+          "result_blob": "f428af34cccb6d4e3221ea6cd78124bbd159f0e6",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-7381784ee89146a99c2d47e0857cd8db.json",
+          "input_mode": "100644",
+          "input_blob": "bff26ac4e3bdf6ea003e128d0e8996549a933495",
+          "result_mode": "100644",
+          "result_blob": "bff26ac4e3bdf6ea003e128d0e8996549a933495",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-7381784ee89146a99c2d47e0857cd8db.png",
+          "input_mode": "100644",
+          "input_blob": "bb205eb75a0fa1e70bb2a524d319fc2b022b0a54",
+          "result_mode": "100644",
+          "result_blob": "bb205eb75a0fa1e70bb2a524d319fc2b022b0a54",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-997b1cb667944d5f31aa982480cd6617.json",
+          "input_mode": "100644",
+          "input_blob": "33d4dae105f599783ca45a83c27d1b11db42afad",
+          "result_mode": "100644",
+          "result_blob": "33d4dae105f599783ca45a83c27d1b11db42afad",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-997b1cb667944d5f31aa982480cd6617.png",
+          "input_mode": "100644",
+          "input_blob": "2e95a5c3669ec004f3cf9ae5e0509afc48bf5aca",
+          "result_mode": "100644",
+          "result_blob": "2e95a5c3669ec004f3cf9ae5e0509afc48bf5aca",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-eb0837fd25a2a7a98fbc8e9b3999401d.json",
+          "input_mode": "100644",
+          "input_blob": "8e34ff095d4844c0787e3a06fd76455a98e99467",
+          "result_mode": "100644",
+          "result_blob": "8e34ff095d4844c0787e3a06fd76455a98e99467",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--case-eb0837fd25a2a7a98fbc8e9b3999401d.png",
+          "input_mode": "100644",
+          "input_blob": "8c19f30c87f6e2b1b73dde40fef56a0882d5c574",
+          "result_mode": "100644",
+          "result_blob": "8c19f30c87f6e2b1b73dde40fef56a0882d5c574",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--operation.json",
+          "input_mode": "100644",
+          "input_blob": "45e46bd93883b043dc6ba6e262f5be4d2c7e8be8",
+          "result_mode": "100644",
+          "result_blob": "45e46bd93883b043dc6ba6e262f5be4d2c7e8be8",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--raw-report.json",
+          "input_mode": "100644",
+          "input_blob": "73dc306e31c623fbbfa9c6d00a628fbf49a475b2",
+          "result_mode": "100644",
+          "result_blob": "73dc306e31c623fbbfa9c6d00a628fbf49a475b2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--report.json",
+          "input_mode": "100644",
+          "input_blob": "73dc306e31c623fbbfa9c6d00a628fbf49a475b2",
+          "result_mode": "100644",
+          "result_blob": "73dc306e31c623fbbfa9c6d00a628fbf49a475b2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/t25-listing-vi-20261103-a2--start.json",
+          "input_mode": "100644",
+          "input_blob": "29aa7d4d42fccbc8102ab9baed287f9038c67a2c",
+          "result_mode": "100644",
+          "result_blob": "29aa7d4d42fccbc8102ab9baed287f9038c67a2c",
+          "equal": true
+        },
+        {
+          "path": "terminal/e2e/company-alternate-listing.spec.ts",
+          "input_mode": "100644",
+          "input_blob": "44cce3eb0950724ee6d3db426076b54938ab8476",
+          "result_mode": "100644",
+          "result_blob": "44cce3eb0950724ee6d3db426076b54938ab8476",
+          "equal": true
+        },
+        {
+          "path": "terminal/e2e/fixtures/company-search-published.json",
+          "input_mode": "100644",
+          "input_blob": "b07ea693f913dec32dcc6a303eec997b3e7feb28",
+          "result_mode": "100644",
+          "result_blob": "b07ea693f913dec32dcc6a303eec997b3e7feb28",
+          "equal": true
+        },
+        {
+          "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+          "input_mode": "100644",
+          "input_blob": "a89bbff2db46624e72bc0df7fc9f80cadffe47f4",
+          "result_mode": "100644",
+          "result_blob": "a89bbff2db46624e72bc0df7fc9f80cadffe47f4",
+          "equal": true
+        },
+        {
+          "path": "terminal/e2e/tools/visualEvidenceSources.json",
+          "input_mode": "100644",
+          "input_blob": "4531421ae435417abb7870aa0b46c8ffb17ab6b7",
+          "result_mode": "100644",
+          "result_blob": "4531421ae435417abb7870aa0b46c8ffb17ab6b7",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/companyListingIdentity.test.tsx",
+          "input_mode": "100644",
+          "input_blob": "3066002eae4c30356501efc005cb147a45644e05",
+          "result_mode": "100644",
+          "result_blob": "3066002eae4c30356501efc005cb147a45644e05",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/companySearchContext.test.ts",
+          "input_mode": "100644",
+          "input_blob": "44f8afff3f7160b7358755e8a7b90d0f68244582",
+          "result_mode": "100644",
+          "result_blob": "44f8afff3f7160b7358755e8a7b90d0f68244582",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/companySearchIdentity.test.tsx",
+          "input_mode": "100644",
+          "input_blob": "3114cd6fe985086b093478bc29d814177082c024",
+          "result_mode": "100644",
+          "result_blob": "3114cd6fe985086b093478bc29d814177082c024",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/companySearchReturn.test.tsx",
+          "input_mode": "100644",
+          "input_blob": "61a1de1e6187a663ab1bac82255573db77c2e030",
+          "result_mode": "100644",
+          "result_blob": "61a1de1e6187a663ab1bac82255573db77c2e030",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/companySearchContext.ts",
+          "input_mode": "100644",
+          "input_blob": "2166bbbccb4d85667acc218ece36b75133c17b14",
+          "result_mode": "100644",
+          "result_blob": "2166bbbccb4d85667acc218ece36b75133c17b14",
+          "equal": true
+        },
+        {
+          "path": "terminal/playwright.company-search.config.ts",
+          "input_mode": "100644",
+          "input_blob": "9cdfb8a636b58b0dea9778a2d916d4060071ad57",
+          "result_mode": "100644",
+          "result_blob": "9cdfb8a636b58b0dea9778a2d916d4060071ad57",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "T24_product",
+      "source": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+      "files": [
+        {
+          "path": "terminal/components/AppNav.tsx",
+          "input_mode": "100644",
+          "input_blob": "c5f1de45c95f5ddae758e58da115b60189574ef0",
+          "result_mode": "100644",
+          "result_blob": "c5f1de45c95f5ddae758e58da115b60189574ef0",
+          "equal": true
+        },
+        {
+          "path": "terminal/components/MobileNav.tsx",
+          "input_mode": "100644",
+          "input_blob": "1a7e1ddc877dd07d8537945a7dee0f97c8b44337",
+          "result_mode": "100644",
+          "result_blob": "1a7e1ddc877dd07d8537945a7dee0f97c8b44337",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts",
+          "input_mode": "100644",
+          "input_blob": "4a0e9e4eabd04b9eb595a18ccaa44b1768fe19ca",
+          "result_mode": "100644",
+          "result_blob": "4a0e9e4eabd04b9eb595a18ccaa44b1768fe19ca",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/sharedShellRouteIdentity.test.ts",
+          "input_mode": "100644",
+          "input_blob": "45df0c8b95f948ed0704abe50a4f956299a0d91c",
+          "result_mode": "100644",
+          "result_blob": "45df0c8b95f948ed0704abe50a4f956299a0d91c",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/sharedShellNavigation.ts",
+          "input_mode": "100644",
+          "input_blob": "f9d857ddded83ec13d82b1d8e69be943bb5078a7",
+          "result_mode": "100644",
+          "result_blob": "f9d857ddded83ec13d82b1d8e69be943bb5078a7",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "T24_proof",
+      "source": "ab48fe545",
+      "files": [
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/1440-dark-en-back-crypto.png",
+          "input_mode": "100644",
+          "input_blob": "e376c686376e39e1ab2db945fdcac516dd2f8e3a",
+          "result_mode": "100644",
+          "result_blob": "e376c686376e39e1ab2db945fdcac516dd2f8e3a",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/1440-dark-en-china.png",
+          "input_mode": "100644",
+          "input_blob": "c9a214938212d3b7c8dec054c0338b67ee9a828d",
+          "result_mode": "100644",
+          "result_blob": "c9a214938212d3b7c8dec054c0338b67ee9a828d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/1440-dark-en-research-location.png",
+          "input_mode": "100644",
+          "input_blob": "a041027fec39e07fcc8444cfc7b8e73cd5106dc1",
+          "result_mode": "100644",
+          "result_blob": "a041027fec39e07fcc8444cfc7b8e73cd5106dc1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/1440-dark-en-today.png",
+          "input_mode": "100644",
+          "input_blob": "e7013ccbfc0cfa668c7abb12bed53d1d20a31e8c",
+          "result_mode": "100644",
+          "result_blob": "e7013ccbfc0cfa668c7abb12bed53d1d20a31e8c",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/1440-dark-en-vector.png",
+          "input_mode": "100644",
+          "input_blob": "7bde0892c47b14081c7343cf60f2f50834af5c1a",
+          "result_mode": "100644",
+          "result_blob": "7bde0892c47b14081c7343cf60f2f50834af5c1a",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/390-light-zh-back-crypto.png",
+          "input_mode": "100644",
+          "input_blob": "38969a44a4b9e8a0c177f2d7beaab69c9dcb4c4c",
+          "result_mode": "100644",
+          "result_blob": "38969a44a4b9e8a0c177f2d7beaab69c9dcb4c4c",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/390-light-zh-china.png",
+          "input_mode": "100644",
+          "input_blob": "a6fbd49c66883b8bc495dbf5a9a0e400546aae41",
+          "result_mode": "100644",
+          "result_blob": "a6fbd49c66883b8bc495dbf5a9a0e400546aae41",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/390-light-zh-research-location.png",
+          "input_mode": "100644",
+          "input_blob": "bc4c7f5514f74d20e9e26e3add4097666229ee73",
+          "result_mode": "100644",
+          "result_blob": "bc4c7f5514f74d20e9e26e3add4097666229ee73",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/390-light-zh-today.png",
+          "input_mode": "100644",
+          "input_blob": "eeb2e46d68b3c394faae6fd59ef41738b75c6030",
+          "result_mode": "100644",
+          "result_blob": "eeb2e46d68b3c394faae6fd59ef41738b75c6030",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/390-light-zh-vector.png",
+          "input_mode": "100644",
+          "input_blob": "a16e32e811250c20a343c7b124532736eda1a45e",
+          "result_mode": "100644",
+          "result_blob": "a16e32e811250c20a343c7b124532736eda1a45e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/README.md",
+          "input_mode": "100644",
+          "input_blob": "849aa55f6a7dd4dd14db8f701749f5fccce574d0",
+          "result_mode": "100644",
+          "result_blob": "849aa55f6a7dd4dd14db8f701749f5fccce574d0",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/capture-route-identity.mjs",
+          "input_mode": "100644",
+          "input_blob": "081bcd17cd6ebc969796031683b2d3f063602e0e",
+          "result_mode": "100644",
+          "result_blob": "081bcd17cd6ebc969796031683b2d3f063602e0e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/fabric-adjudication.json",
+          "input_mode": "100644",
+          "input_blob": "2283d657356acf17e1c1f291a2cea4c58f4b06c9",
+          "result_mode": "100644",
+          "result_blob": "2283d657356acf17e1c1f291a2cea4c58f4b06c9",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/fixture-source.json",
+          "input_mode": "100644",
+          "input_blob": "48e17298b9bce88a5471b850a698d5329e72f28e",
+          "result_mode": "100644",
+          "result_blob": "48e17298b9bce88a5471b850a698d5329e72f28e",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/qualification.json",
+          "input_mode": "100644",
+          "input_blob": "9206853a74a327963458df24413d723f2bc19c25",
+          "result_mode": "100644",
+          "result_blob": "9206853a74a327963458df24413d723f2bc19c25",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-route-identity-20261103/result.json",
+          "input_mode": "100644",
+          "input_blob": "5fac58bf03c39854c5ec50b2dc0ecf4cde906fa6",
+          "result_mode": "100644",
+          "result_blob": "5fac58bf03c39854c5ec50b2dc0ecf4cde906fa6",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "native_error",
+      "source": "498532c39486c203c27df3d7d843b40769ab3d29",
+      "files": [
+        {
+          "path": "terminal/app/error-return.module.css",
+          "input_mode": "100644",
+          "input_blob": "8566df086c08d0eeb4330e1311caf8a09f65ba1f",
+          "result_mode": "100644",
+          "result_blob": "8566df086c08d0eeb4330e1311caf8a09f65ba1f",
+          "equal": true
+        },
+        {
+          "path": "terminal/app/error.tsx",
+          "input_mode": "100644",
+          "input_blob": "514de9068b379f2d9441eea04bc51de2c600c1b9",
+          "result_mode": "100644",
+          "result_blob": "514de9068b379f2d9441eea04bc51de2c600c1b9",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/PACKET.md",
+          "input_mode": "100644",
+          "input_blob": "7e62c5869ffadd84ed0685a1aa43cdf030dede54",
+          "result_mode": "100644",
+          "result_blob": "7e62c5869ffadd84ed0685a1aa43cdf030dede54",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/RESULT.md",
+          "input_mode": "100644",
+          "input_blob": "f224c308f82b7dfbfcb59050b7bd8802b11d3141",
+          "result_mode": "100644",
+          "result_blob": "f224c308f82b7dfbfcb59050b7bd8802b11d3141",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/1440-dark-en-error.png",
+          "input_mode": "100644",
+          "input_blob": "ef572a396993479cbbed6174422f5f2546f4eda1",
+          "result_mode": "100644",
+          "result_blob": "ef572a396993479cbbed6174422f5f2546f4eda1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/1440-dark-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "6ab6813a6d7763d1c19975ccdf44bfce942ce860",
+          "result_mode": "100644",
+          "result_blob": "6ab6813a6d7763d1c19975ccdf44bfce942ce860",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/1440-light-en-error.png",
+          "input_mode": "100644",
+          "input_blob": "6eb2c0fb0a06abb2e8b715eff7627ab57de99ca7",
+          "result_mode": "100644",
+          "result_blob": "6eb2c0fb0a06abb2e8b715eff7627ab57de99ca7",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/1440-light-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "21ca37c657928385a76dfe6d5c45aabe2bcf6159",
+          "result_mode": "100644",
+          "result_blob": "21ca37c657928385a76dfe6d5c45aabe2bcf6159",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/390-dark-en-error.png",
+          "input_mode": "100644",
+          "input_blob": "578460ae0cc5af759aa507be389c2f48f36238a5",
+          "result_mode": "100644",
+          "result_blob": "578460ae0cc5af759aa507be389c2f48f36238a5",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/390-dark-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "1932b15a7c3dd6f647d0bd38253598e2b69ae430",
+          "result_mode": "100644",
+          "result_blob": "1932b15a7c3dd6f647d0bd38253598e2b69ae430",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/390-light-en-error.png",
+          "input_mode": "100644",
+          "input_blob": "012f2645566b8e4b7f71147d1170b244a50b8af5",
+          "result_mode": "100644",
+          "result_blob": "012f2645566b8e4b7f71147d1170b244a50b8af5",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/390-light-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "5bc3e13bbacbe20218af7fa6935644fdad3d0938",
+          "result_mode": "100644",
+          "result_blob": "5bc3e13bbacbe20218af7fa6935644fdad3d0938",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/820-light-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "fa2321b2c004a2497078221cde06b6df4b530784",
+          "result_mode": "100644",
+          "result_blob": "fa2321b2c004a2497078221cde06b6df4b530784",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/after/result.json",
+          "input_mode": "100644",
+          "input_blob": "c7cc728d0ae6b87c853b6259925c65ec287e82ba",
+          "result_mode": "100644",
+          "result_blob": "c7cc728d0ae6b87c853b6259925c65ec287e82ba",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/before/1440-light-en-error.png",
+          "input_mode": "100644",
+          "input_blob": "1ab98d36339cf9aff0fad53b72e667da096abe51",
+          "result_mode": "100644",
+          "result_blob": "1ab98d36339cf9aff0fad53b72e667da096abe51",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/before/390-light-zh-error.png",
+          "input_mode": "100644",
+          "input_blob": "1fe70c5727cb48ae77c1c78cdaac2c56206ab491",
+          "result_mode": "100644",
+          "result_blob": "1fe70c5727cb48ae77c1c78cdaac2c56206ab491",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/before/result.json",
+          "input_mode": "100644",
+          "input_blob": "d4223696fc79e843a4496edd47607eb2d1b6f1f3",
+          "result_mode": "100644",
+          "result_blob": "d4223696fc79e843a4496edd47607eb2d1b6f1f3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/capture-after.log",
+          "input_mode": "100644",
+          "input_blob": "377b1cd4d45a2598b4cb176fb3deda6b2a1fa9f9",
+          "result_mode": "100644",
+          "result_blob": "377b1cd4d45a2598b4cb176fb3deda6b2a1fa9f9",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/capture-details.log",
+          "input_mode": "100644",
+          "input_blob": "175c5e210354c7e67f51f3903c4a341e8680dcee",
+          "result_mode": "100644",
+          "result_blob": "175c5e210354c7e67f51f3903c4a341e8680dcee",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/capture-details.log-initial",
+          "input_mode": "100644",
+          "input_blob": "876f1cde3b30f363a0aadc8e9c7cabae3bfc3d2d",
+          "result_mode": "100644",
+          "result_blob": "876f1cde3b30f363a0aadc8e9c7cabae3bfc3d2d",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint-protected-baseline.log",
+          "input_mode": "100644",
+          "input_blob": "a5481c62d55705a1a83b29d0aebe1f5a0326bd24",
+          "result_mode": "100644",
+          "result_blob": "a5481c62d55705a1a83b29d0aebe1f5a0326bd24",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint-test.log",
+          "input_mode": "100644",
+          "input_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "result_mode": "100644",
+          "result_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint.log",
+          "input_mode": "100644",
+          "input_blob": "9c84f24efa841c34392d767c215c09157d3ca2a3",
+          "result_mode": "100644",
+          "result_blob": "9c84f24efa841c34392d767c215c09157d3ca2a3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/tests-final-css.log",
+          "input_mode": "100644",
+          "input_blob": "fc6afa274818bf4b555c638bc4b56e7e9518af99",
+          "result_mode": "100644",
+          "result_blob": "fc6afa274818bf4b555c638bc4b56e7e9518af99",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/tsc.log",
+          "input_mode": "100644",
+          "input_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "result_mode": "100644",
+          "result_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/typegen.log",
+          "input_mode": "100644",
+          "input_blob": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+          "result_mode": "100644",
+          "result_blob": "7bab5fceadb39ca7d44c9f1a13fba79599520d0b",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/details/dark-contrast.png",
+          "input_mode": "100644",
+          "input_blob": "ef572a396993479cbbed6174422f5f2546f4eda1",
+          "result_mode": "100644",
+          "result_blob": "ef572a396993479cbbed6174422f5f2546f4eda1",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/details/light-long-reference.png",
+          "input_mode": "100644",
+          "input_blob": "f0277f07d693db27e0ea84ae0849e156bbdff320",
+          "result_mode": "100644",
+          "result_blob": "f0277f07d693db27e0ea84ae0849e156bbdff320",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/details/no-owner.png",
+          "input_mode": "100644",
+          "input_blob": "9a2d6a531cf75d070da3652af9590b3c1b8fd1a2",
+          "result_mode": "100644",
+          "result_blob": "9a2d6a531cf75d070da3652af9590b3c1b8fd1a2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/details/result.json",
+          "input_mode": "100644",
+          "input_blob": "9186050213fa2fa5dcbe98768b6f9cb599b17cd0",
+          "result_mode": "100644",
+          "result_blob": "9186050213fa2fa5dcbe98768b6f9cb599b17cd0",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/details/unsafe-return.png",
+          "input_mode": "100644",
+          "input_blob": "d06afe24fbd968e6c7dd33f4de5d0167c781eec4",
+          "result_mode": "100644",
+          "result_blob": "d06afe24fbd968e6c7dd33f4de5d0167c781eec4",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/build-details.mjs",
+          "input_mode": "100644",
+          "input_blob": "6a8783a4fc3c5bba621c5f48119439d9e076029c",
+          "result_mode": "100644",
+          "result_blob": "6a8783a4fc3c5bba621c5f48119439d9e076029c",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/build-fixture.mjs",
+          "input_mode": "100644",
+          "input_blob": "1e8ddd9e5d020479a11ac0b6080af8339d9f838c",
+          "result_mode": "100644",
+          "result_blob": "1e8ddd9e5d020479a11ac0b6080af8339d9f838c",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/capture_component.py",
+          "input_mode": "100644",
+          "input_blob": "c2efe56556a2ca5377e5ba4c8587c1922bc7b129",
+          "result_mode": "100644",
+          "result_blob": "c2efe56556a2ca5377e5ba4c8587c1922bc7b129",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/capture_details.py",
+          "input_mode": "100644",
+          "input_blob": "eb928c3ac5939ae4dad37082094c755a7d1b89dc",
+          "result_mode": "100644",
+          "result_blob": "eb928c3ac5939ae4dad37082094c755a7d1b89dc",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/fixture-detail-entry.tsx",
+          "input_mode": "100644",
+          "input_blob": "0a402e4127ec126cea7751465a70ae4f70eeaebf",
+          "result_mode": "100644",
+          "result_blob": "0a402e4127ec126cea7751465a70ae4f70eeaebf",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/fixture-entry.tsx",
+          "input_mode": "100644",
+          "input_blob": "d90a219499cd0d440dd0869df084cc5b81a37705",
+          "result_mode": "100644",
+          "result_blob": "d90a219499cd0d440dd0869df084cc5b81a37705",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/fixture-prefs.ts",
+          "input_mode": "100644",
+          "input_blob": "d8781195c6284f03e6351cc5e719a19a72d67ee3",
+          "result_mode": "100644",
+          "result_blob": "d8781195c6284f03e6351cc5e719a19a72d67ee3",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/theme-owner-probe.json",
+          "input_mode": "100644",
+          "input_blob": "6a942152068addf2fa620f2fa80c15b80005218c",
+          "result_mode": "100644",
+          "result_blob": "6a942152068addf2fa620f2fa80c15b80005218c",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/fixture/theme-owner.probe.test.tsx",
+          "input_mode": "100644",
+          "input_blob": "5e2f6980c8801060964726765cfcbaef07aa7df2",
+          "result_mode": "100644",
+          "result_blob": "5e2f6980c8801060964726765cfcbaef07aa7df2",
+          "equal": true
+        },
+        {
+          "path": "terminal/docs/pr-crops/native-error-theme-20261103/source-proof.json",
+          "input_mode": "100644",
+          "input_blob": "eeaad1227e6799b58f3b34c5258fc41875d63b88",
+          "result_mode": "100644",
+          "result_blob": "eeaad1227e6799b58f3b34c5258fc41875d63b88",
+          "equal": true
+        },
+        {
+          "path": "terminal/lib/__tests__/errorPresentation.test.tsx",
+          "input_mode": "100644",
+          "input_blob": "eb115947f60ba3f644ffb50f8c90171d457430d7",
+          "result_mode": "100644",
+          "result_blob": "eb115947f60ba3f644ffb50f8c90171d457430d7",
+          "equal": true
+        }
+      ]
+    }
+  ],
+  "protected_1257_13_exact": [
+    {
+      "path": "terminal/app/(shell)/analysis/page.tsx",
+      "mode": "100644",
+      "git_blob": "68306b81e100a53241361a721915f2448d3bee80"
+    },
+    {
+      "path": "terminal/app/(shell)/layout.tsx",
+      "mode": "100644",
+      "git_blob": "0de1015cdc8678cccf4d7e65b7946076b23625f3"
+    },
+    {
+      "path": "terminal/app/data/[...path]/route.ts",
+      "mode": "100644",
+      "git_blob": "ec792b230f721bfe2ae926e45ab7fcafd8e02cea"
+    },
+    {
+      "path": "terminal/docs/verification/shared-shell-auth03-20261103.md",
+      "mode": "100644",
+      "git_blob": "e064197a9d2d17b65a0f1d0ac90a535304d27157"
+    },
+    {
+      "path": "terminal/e2e/options-shortlist-plan.spec.ts",
+      "mode": "100644",
+      "git_blob": "bf537a789440b7d661e396c654574f7aa635a246"
+    },
+    {
+      "path": "terminal/lib/__tests__/guestBundleBoundary.test.ts",
+      "mode": "100644",
+      "git_blob": "3674f06f71816efa206a865f1445e7c9f76646cb"
+    },
+    {
+      "path": "terminal/lib/__tests__/investorShellPreview.test.tsx",
+      "mode": "100644",
+      "git_blob": "f43eda6465b7fa14a20cd4d8605c80102b43fef8"
+    },
+    {
+      "path": "terminal/lib/__tests__/prophetFixtureReadiness.test.tsx",
+      "mode": "100644",
+      "git_blob": "f21fa06484f1aab4ee16b187d1c7a127ca1b35e5"
+    },
+    {
+      "path": "terminal/lib/__tests__/rsPivotShellIdentity.test.tsx",
+      "mode": "100644",
+      "git_blob": "079714fc1739e0e1566af869d5e01a1ab7f7f8da"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellClaimsIdentity.test.ts",
+      "mode": "100644",
+      "git_blob": "17103219f45ab282d8c78dd6d0cc36514bc83191"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellClaimsPages.test.tsx",
+      "mode": "100644",
+      "git_blob": "acd9b2c9efcf92db42d001aa70b46e3e61506a16"
+    },
+    {
+      "path": "terminal/lib/__tests__/shellFixtureIdentity.test.tsx",
+      "mode": "100644",
+      "git_blob": "849f7248318ac1cc324ae606e720c3424b79b2f7"
+    },
+    {
+      "path": "terminal/lib/shared-shell/memberIdentity.ts",
+      "mode": "100644",
+      "git_blob": "9c3f1bae59ebcf79870b7236cf9248b2cba5ccfc"
+    }
+  ],
+  "protected_1236_23": [
+    {
+      "group": "regional_navigation",
+      "path": "terminal/components/MobileNav.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "f3b077e31c204fec45ea130fd4c6d7b510ca344c",
+      "result_mode": "100644",
+      "result_blob": "1a7e1ddc877dd07d8537945a7dee0f97c8b44337",
+      "equal": false
+    },
+    {
+      "group": "regional_navigation",
+      "path": "terminal/lib/sharedShellNavigation.ts",
+      "protected_mode": "100644",
+      "protected_blob": "a58b0bd80bc7cbec6f1d2242658bd0c5c5e58c7e",
+      "result_mode": "100644",
+      "result_blob": "f9d857ddded83ec13d82b1d8e69be943bb5078a7",
+      "equal": false
+    },
+    {
+      "group": "regional_navigation",
+      "path": "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts",
+      "protected_mode": "100644",
+      "protected_blob": "319459a1c31b20c8a7f8d024d733339806a89813",
+      "result_mode": "100644",
+      "result_blob": "4a0e9e4eabd04b9eb595a18ccaa44b1768fe19ca",
+      "equal": false
+    },
+    {
+      "group": "clock",
+      "path": "terminal/components/workspaces/TodayWorkspace.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "362864a2acff04fa6403fde2bcc1f08a51248561",
+      "result_mode": "100644",
+      "result_blob": "362864a2acff04fa6403fde2bcc1f08a51248561",
+      "equal": true
+    },
+    {
+      "group": "clock",
+      "path": "terminal/lib/shared-shell/useReadingClock.ts",
+      "protected_mode": "100644",
+      "protected_blob": "f116e541d8caa72f20747ecc5d263b931a1e52ef",
+      "result_mode": "100644",
+      "result_blob": "f116e541d8caa72f20747ecc5d263b931a1e52ef",
+      "equal": true
+    },
+    {
+      "group": "clock",
+      "path": "terminal/lib/__tests__/readingClock.test.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "e0f0192b59f9c5bd2558137489912677ad667e17",
+      "result_mode": "100644",
+      "result_blob": "e0f0192b59f9c5bd2558137489912677ad667e17",
+      "equal": true
+    },
+    {
+      "group": "clock",
+      "path": "terminal/lib/__tests__/todayAttentionIntegration.test.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "48567f64d67923bb3cbcd5160a98083778edf890",
+      "result_mode": "100644",
+      "result_blob": "48567f64d67923bb3cbcd5160a98083778edf890",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/app/error-return.module.css",
+      "protected_mode": "100644",
+      "protected_blob": "2c089c4ca8f1431f7a67ee5d59757ef760035d1c",
+      "result_mode": "100644",
+      "result_blob": "8566df086c08d0eeb4330e1311caf8a09f65ba1f",
+      "equal": false
+    },
+    {
+      "group": "native",
+      "path": "terminal/app/error.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "536ea11642f5aed47710d2a0aa5dfd77dc6594a0",
+      "result_mode": "100644",
+      "result_blob": "514de9068b379f2d9441eea04bc51de2c600c1b9",
+      "equal": false
+    },
+    {
+      "group": "native",
+      "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/README.md",
+      "protected_mode": "100644",
+      "protected_blob": "4b43c8638120d9bcc8203d327c44a0c72808eaa5",
+      "result_mode": "100644",
+      "result_blob": "4b43c8638120d9bcc8203d327c44a0c72808eaa5",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/desktop-dark-en-error.png",
+      "protected_mode": "100644",
+      "protected_blob": "7d834eddebbf24b824df6af240271fdfe6ae7b61",
+      "result_mode": "100644",
+      "result_blob": "7d834eddebbf24b824df6af240271fdfe6ae7b61",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/mobile-light-zh-returned.png",
+      "protected_mode": "100644",
+      "protected_blob": "9717a0172cd45b4c6f83c0d8bddc889c6b08e2a8",
+      "result_mode": "100644",
+      "result_blob": "9717a0172cd45b4c6f83c0d8bddc889c6b08e2a8",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/mobile-zh-native-dark-error.png",
+      "protected_mode": "100644",
+      "protected_blob": "e6e01aff36723a356dbe3362e543e1dbcfcdfa73",
+      "result_mode": "100644",
+      "result_blob": "e6e01aff36723a356dbe3362e543e1dbcfcdfa73",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/result.json",
+      "protected_mode": "100644",
+      "protected_blob": "bfef60b1a6fc91b693786c39114ed71a306e49ab",
+      "result_mode": "100644",
+      "result_blob": "bfef60b1a6fc91b693786c39114ed71a306e49ab",
+      "equal": true
+    },
+    {
+      "group": "native",
+      "path": "terminal/lib/__tests__/errorReturnRecovery.test.tsx",
+      "protected_mode": "100644",
+      "protected_blob": "f0be091eb9058266e83b7bf2f65a6c6ce4d6e7a2",
+      "result_mode": "100644",
+      "result_blob": "f0be091eb9058266e83b7bf2f65a6c6ce4d6e7a2",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/app/api/investigations/baseline/route.ts",
+      "protected_mode": "100644",
+      "protected_blob": "1f49c8ab6dbba4fbe9d53ccc4a493dee402aa709",
+      "result_mode": "100644",
+      "result_blob": "1f49c8ab6dbba4fbe9d53ccc4a493dee402aa709",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/app/api/investigations/route.ts",
+      "protected_mode": "100644",
+      "protected_blob": "df263ca7160c109ef70d302738b37ef9677cec93",
+      "result_mode": "100644",
+      "result_blob": "df263ca7160c109ef70d302738b37ef9677cec93",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/lib/__tests__/investigationApiAdmission.test.ts",
+      "protected_mode": "100644",
+      "protected_blob": "5677e38a016cd167048e5894edda72861fc186e4",
+      "result_mode": "100644",
+      "result_blob": "5677e38a016cd167048e5894edda72861fc186e4",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/lib/__tests__/investigationsAdmissionRoute.test.ts",
+      "protected_mode": "100644",
+      "protected_blob": "f53a88306116f7b92a023e97d7c96518fd1115ed",
+      "result_mode": "100644",
+      "result_blob": "f53a88306116f7b92a023e97d7c96518fd1115ed",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/lib/investigationApiAdmission.ts",
+      "protected_mode": "100644",
+      "protected_blob": "6f8a93d5485e1615374f4fd12e3caf323bc0a6e9",
+      "result_mode": "100644",
+      "result_blob": "6f8a93d5485e1615374f4fd12e3caf323bc0a6e9",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/playwright.config.ts",
+      "protected_mode": "100644",
+      "protected_blob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "result_mode": "100644",
+      "result_blob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/vitest.config.ts",
+      "protected_mode": "100644",
+      "protected_blob": "312ab156e65c7df9cf85b10c2ca5edcbbacc229c",
+      "result_mode": "100644",
+      "result_blob": "312ab156e65c7df9cf85b10c2ca5edcbbacc229c",
+      "equal": true
+    },
+    {
+      "group": "guard",
+      "path": "terminal/e2e/drawing-save-concurrency.spec.ts",
+      "protected_mode": "100644",
+      "protected_blob": "975433b3011bef4d794e6e83d55ee7b425687d02",
+      "result_mode": "100644",
+      "result_blob": "975433b3011bef4d794e6e83d55ee7b425687d02",
+      "equal": true
+    }
+  ],
+  "intentional_overrides": "Only named T24 nav semantics and native-error presentation inputs override earlier corresponding protected blobs; their review/custody remain separate. All13T30repair paths exact.",
+  "release_mode": "CURRENT_CHECKOUT_RECORDS via incumbent capture_ci_evidence.cjs, actualcheckout+54newcaptures/50required; previousops/captures remainhistorical. No manifesthash restamp or oldgreen transfer.",
+  "limits": "No installer/beta/provider/SQL/authenticated reading/heldoperation. Source/CI/merge are distinct from rootinstalled/runtimeacceptance.",
+  "checks": {
+    "affected": "125PASS/11files:96product/navigation/error and29claims/layout; fulltscPASS",
+    "first_attempt": "7native-error fixturecases failedbecauseCWDwasreporoot; correct terminalCWD passes, no source repair",
+    "runtime_whitespace": "PASS changedruntime/e2e/lib; inheritedimportedprooflogs/fixtures whitespacepreserved"
+  },
+  "T24_handoff": {
+    "path": "terminal/docs/pr-crops/shared-shell-1240-coherent-20261103/t24-authored-semantic-verdict.json",
+    "sha256": "10d731f61fcfa873f0266908e337c2ed88deca5fed676f2dbe1531bde3bb011f",
+    "verdict": "PASS_SCOPED_AUTHORED_SEMANTIC_CHECK",
+    "independent": false,
+    "root_independent_adjudication": "pendingactualreturn"
+  },
+  "native_error_review": {
+    "path": "/Volumes/Mastermind/evidence/native-error-theme-p12t21s2-20261103/root-review-498532c3.json",
+    "head": "498532c39486c203c27df3d7d843b40769ab3d29",
+    "verdict": "PASS_SCOPED_LOCAL_SOURCE_AND_VISUAL",
+    "source_preimages_match_current": 21
+  },
+  "historical_blob_rules": "OriginalT25 commonEVIDENCE manifests contain unionedprotectedappendices, so2manifestblobsintentionallydiffer. Allother105T25source/proofinputs exact. Native42andT24product5/proof16exact. No oldcaptures/reportHashes overwritten."
+}

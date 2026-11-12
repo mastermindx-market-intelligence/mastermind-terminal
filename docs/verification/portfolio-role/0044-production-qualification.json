@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-24T20:44:19.996737+00:00",
+  "checks": {
+    "role_column_exact": true,
+    "role_constraint_exact": true,
+    "existing_columns_unchanged": true,
+    "existing_constraints_unchanged": true,
+    "table_owner_rls_acl_unchanged": true,
+    "all_policies_unchanged": true,
+    "triggers_unchanged": true,
+    "raw_receipt_unmodified": true
+  },
+  "qualified": true,
+  "raw_helper_exit": 6,
+  "raw_helper_status": "unverified",
+  "apply_count": 1,
+  "sql_sha256": "2db2e52171fd525ffbbe6d2e6e75dc7291da65ad1512e037dd5e5349f7fb2075",
+  "project_ref_sha256": "3c3fdb6cd955da0235540fa60d7ab8a35d9579e913aa5460bb962027ee1fed81",
+  "receipt_sha256": "41f412f4aefb96b5349d7f04eb19b8b79f488a706ecca142559aac944e2cdeaa",
+  "post_sha256": "a4194e418c41e87911fc30242b821b8dcdafd92758c72071e2aec4652d8c2cd7",
+  "browser_or_owner_label_mutation": false,
+  "original_receipt_retained_unmodified": true,
+  "published_receipt": "0044-apply-receipt-redacted.json changes ONLY project_ref; this is an explicitly redacted derivative, not the original receipt",
+  "preflight": "0044-preflight.json",
+  "post_catalog": "0044-post-catalog.json",
+  "qualification_query_repair": "First separate readonly qualification request HTTP400 from extra enclosing parenthesis in locally extracted predicate; corrected same-carrier SELECT succeeded. No migration replay."
+}

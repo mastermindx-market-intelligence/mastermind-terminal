@@ -1,0 +1,15 @@
+{
+  "desktopBeforeRetainedInCanonicalPacket": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc",
+  "files": {
+    "EVIDENCE.json": "df938d574652f72e73a922edf63657c31b61b812955ef861c9005058b196ad49",
+    "desktop-open.png": "405a8902bd9555f83230943c52155906601a7cf95e0e6ec2e034654643f46d79",
+    "desktop-zh.png": "80b5ef1a2182e15e3a27f87d8d1b03b58d0de806dab493ae56602f4644a78ca0",
+    "mobile-open.png": "af07f3b4d36610d75ccf3d84500ccf8b315e6eacca3b2b25b307402318ab097a",
+    "mobile-zh.png": "46675eec133dff5cb26a4984a0b67c2274991bf834598d45eebeba5189207cb3",
+    "tablet-open.png": "f6fe695ed2ace7140ba0477cee7116f5f1f5663644792de9bb977fd8ec3756b9",
+    "tablet-zh.png": "c69c9c5a3c73da8a22d6484a150c25bafd372461a698cf8e55cdf091908d9684"
+  },
+  "schema": "terminal_chart_layers_packet_history.v1",
+  "sourceHead": "3e376bb93c0cdd9dc55b110186fcfea62d0cd746",
+  "status": "HISTORICAL_NOT_RECAPTURED"
+}

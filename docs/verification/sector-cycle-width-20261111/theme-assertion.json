@@ -1,0 +1,4 @@
+{
+  "reason": "CSS minification serializes white as #fff; keep actual RGB background/foreground assertions and compare the secondary material token without a redundant white spelling assertion",
+  "specSha256": "33e87cae885620c2dc9ad94a0a5188e942eeeaf196a41225c82f4261542fe9c5"
+}

@@ -138,3 +138,46 @@ describe("Options Screener CSV", () => {
     })).toBe("mastermind-options-screener_hot-by_volume_2026-08-09_20260809T230000Z.csv");
   });
 });
+
+
+describe("D08A source-value qualification", () => {
+  it("keeps absent OI mid prices after real zero and positive marks in both sort directions", () => {
+    const rows: ScreenerOiSource[] = [
+      { root: "MISSING", right: "C", exp: "2026-11-06", strike: 100, oi: 100, oi_prev: 90, d_oi: 10, mid: null },
+      { root: "ZERO", right: "C", exp: "2026-11-06", strike: 100, oi: 100, oi_prev: 90, d_oi: 10, mid: 0 },
+      { root: "PRICED", right: "C", exp: "2026-11-06", strike: 100, oi: 100, oi_prev: 90, d_oi: 10, mid: 1.25 },
+    ];
+    expect(selectOiRows(rows, { root: "", group: "" }, "mid", 1).map((row) => row.root))
+      .toEqual(["ZERO", "PRICED", "MISSING"]);
+    expect(selectOiRows(rows, { root: "", group: "" }, "mid", -1).map((row) => row.root))
+      .toEqual(["PRICED", "ZERO", "MISSING"]);
+  });
+
+  it("withholds an undefined 0DTE premium share without erasing real zero ratios", () => {
+    const rows: ScreenerEventSource[] = [
+      { root: "NO_DENOM", group: "Index", group_zh: "指数", premium: 0, vol_gt_oi: null, zerodte: true },
+      { root: "HALF", group: "Index", group_zh: "指数", premium: 50, vol_gt_oi: null, zerodte: true },
+      { root: "HALF", group: "Index", group_zh: "指数", premium: 50, vol_gt_oi: null, zerodte: false },
+      { root: "ZERO", group: "Index", group_zh: "指数", premium: 0, vol_gt_oi: null, zerodte: true },
+      { root: "ZERO", group: "Index", group_zh: "指数", premium: 100, vol_gt_oi: null, zerodte: false },
+    ];
+    const sorted = selectZeroDteRows(rows, { root: "", group: "" }, "share", 1);
+    expect(sorted.map((row) => row.root)).toEqual(["ZERO", "HALF", "NO_DENOM"]);
+    expect(sorted.map((row) => row.zd_share)).toEqual([0, 0.5, null]);
+    expect(selectZeroDteRows(rows, { root: "", group: "" }, "share", -1).map((row) => row.root))
+      .toEqual(["HALF", "ZERO", "NO_DENOM"]);
+    const csv = buildOptionsScreenerCsv(sorted, {
+      preset: "zerodte", sortKey: "zerodte_share", sortDirection: "asc",
+      sourceSchema: "live_flow.feed/v1", sessionDate: "2026-10-30",
+    });
+    const [header, ...records] = csv.slice(1).split("\r\n");
+    const columns = header.split(",");
+    const rootIdx = columns.indexOf("root");
+    const shareIdx = columns.indexOf("zerodte_share");
+    const rowsByRoot = Object.fromEntries(records.filter(Boolean).map((line) => {
+      const cells = line.split(",");
+      return [cells[rootIdx], cells[shareIdx]];
+    }));
+    expect(rowsByRoot).toMatchObject({ ZERO: "0", HALF: "0.5", NO_DENOM: "" });
+  });
+});

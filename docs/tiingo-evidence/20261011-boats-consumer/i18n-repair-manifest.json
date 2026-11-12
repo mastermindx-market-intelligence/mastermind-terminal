@@ -1,0 +1,21 @@
+{
+  "copy_and_quote_behavior_unchanged": true,
+  "evidence_class": "SOURCE_SYNTHETIC",
+  "evidence_files": {
+    "i18n-boats-desktop-en.png": "b2bfd89f57965066aa45eef76000d23f8ca1d82c36924d4628137e76748978cf",
+    "i18n-boats-desktop-zh.png": "321d8da6c6fe7360500b23a519db22a3a81b2452006592263edf8ae4e466e4f6",
+    "i18n-boats-mobile-en.png": "bff1ffd102e417180ba9cdf0def16a64d4a38146e8595b9149d84f31ae78e6d9",
+    "i18n-boats-mobile-zh.png": "62f62b21f560606cdab5f43261589e2f68c5385cd0c21c2b7f113eff26ec5a27",
+    "i18n-boats-tablet-en.png": "d8f652c317814feb276433d02639f3aecb8cbf0d736da90eeb84420172b43c98",
+    "i18n-boats-tablet-zh.png": "5d1afd5a81f60ee01906609d500c785af16a9269bda8b29863265fa0d01cc864",
+    "terminal-boats-i18n-browser.log": "86153e104331121bdad7a027e383ab692a9d9f0dd78f0147ae7694e19dfdc8c5",
+    "terminal-boats-i18n-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal-boats-plain-language-green.log": "d8759f224b44d10022200e59c8a2f7642ed9de9189021a9324958e9ed403f6bf"
+  },
+  "previous_head": "07c777035b132e376b905a793065d1d611cc8918",
+  "schema": "mastermind.tiingo_i18n_repair_source_evidence/v1",
+  "source_files": {
+    "terminal/components/TerminalShell.tsx": "712bd55eb0d35c862fb676925a4bcee58f1048a332c3c321e54136e70b5155ee",
+    "terminal/lib/i18n.tsx": "8d9ee17bdc5bb429a116beb5622d9eb78926cb62a49d9930ea89dd9105324217"
+  }
+}

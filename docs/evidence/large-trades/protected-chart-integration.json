@@ -1,0 +1,717 @@
+{
+  "schema": "mastermind.large_trades.protected_chart_integration.v1",
+  "status": "LOCAL_GATES_PASSED_PENDING_FRESH_HOSTED_CI_AND_PROTECTED_INTEGRATION",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pullRequest": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/929",
+  "candidate": {
+    "sourceHead": "70b4778936bf90f8177c587b3de77b1b571339c9",
+    "sourceTree": "b458d7efd449da3e090e225304f9cb4b933e5b51",
+    "selectedSourceFiles": 1716,
+    "selectedSourceSha256": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+    "runtimeProductSourceUnchangedFrom": "be4b16f40e24f400217a3320b9deb9c14405bb52"
+  },
+  "protectedIntegration": {
+    "protectedCommit": "abf97eaa42d7f4e6f0062b43ba0c8a3a82ce56e3",
+    "protectedPullRequest": 940,
+    "integratedSource": "5c16b7b7d7533102a47c71bb651b274905b7740b",
+    "runtimeTextConflicts": 0,
+    "evidenceConflicts": 32,
+    "conflictResolutionReceiptSha256": "03e5873a14025299e8638143fa698291eee1b951d94d25cfba2dd5b633b07efc",
+    "scope": "Phone Replay status wrapping, measured header layout, and legacy pane drawing readiness.",
+    "laterProtectedDrift": {
+      "commit": "a16fa983c893fcc7f0e5c555e15541d161f03920",
+      "parent": "abf97eaa42d7f4e6f0062b43ba0c8a3a82ce56e3",
+      "pullRequest": 935,
+      "changedPaths": 17,
+      "status": "NON_MATERIAL_TO_LARGE_TRADES_AND_SIX_FAMILY_EVIDENCE",
+      "independentReviewSha256": "374f0d2d360d2b5bf6c70824d91741837ec2f6c51f68818bd0731d7b752bbcae",
+      "rootFullRead": true,
+      "scope": "Two local ThesisWorkspace status color values, one F11 capture helper and its F11 evidence; no overlap with Large Trades source or six capture-family dependencies.",
+      "decision": "Retain exact 70b captured-source identity and required fresh hosted CI on the actual candidate/base/tested merge. Integrate ancestry only if repository enforcement requires it; do not restamp captures."
+    }
+  },
+  "observedRegression": {
+    "head": "5c16b7b7d7533102a47c71bb651b274905b7740b",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "states": [
+      "English normal",
+      "English fullscreen",
+      "Chinese normal",
+      "Chinese fullscreen"
+    ],
+    "statuslineHeightCssPx": 74.875,
+    "inspectorTopFromChartCssPx": 56,
+    "paintedChangeAndVolumeOccludedCssPx": 10.875,
+    "replayChipVisible": true,
+    "actualCloseAndFullscreenActionsPassed": true,
+    "browserReceiptSha256": "19e1d68079bf16b687df9319cdfd159a23a0797182d5cbed6ff7645972512b81",
+    "custodyReceiptSha256": "866bcbd91c7a11f3651ec03d4ea104b678492f3ea7575e37ed1b47bd17c09cf7",
+    "classification": "Observed content occlusion; not a failed Close/fullscreen click path."
+  },
+  "repair": {
+    "commit": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+    "description": "Use this ChartPanel's painted header bottom in overlay coordinates during controls admission, and reposition through its existing statusline ResizeObserver.",
+    "admission": "max(0, plot.y + 48, statusHeaderBottom, viewport.y); preserve minimum 198 by 88 CSS pixels and co-hide when geometry is nonfinite or space insufficient.",
+    "changedSourceHashes": {
+      "terminal/components/ChartPanel.tsx": "3f04382e2938625cad3a383d258804763c5d931a445fc3bf63b3722ca5c0b9f8",
+      "terminal/components/LargeTradesOverlay.tsx": "0bf5273b86b7b219beb25a49142ff56ddf52c5ad6a24c9d4c17ca902e81b340a",
+      "terminal/lib/largeTrades/visibility.ts": "7cc84f7121482973de5c2b7759a9f28e9fb115cd5d20a758ff1c5cb244595e8f",
+      "terminal/lib/__tests__/largeTradesVisibility.test.ts": "3d0bb400851213b4abddb89e3681e4a423ef84a5311b4b145c7928e85eb789d3",
+      "terminal/e2e/large-trades.spec.ts": "3c25b497e1ebe3fc0a09ed0aa17eb01406da6b6146798033b7393c654ce0884b"
+    },
+    "preserved": "Price-pane ownership, marker projection and clipping, engine and transaction quantities, snapshot composition, source admission and authenticated route."
+  },
+  "verification": {
+    "focused": {
+      "status": "PASSED",
+      "files": 4,
+      "assertions": 68,
+      "typecheck": "tsc --noEmit passed",
+      "receiptSha256": "6e10af57ef45abf78792ce85743757b05222730bf55773ca95fa5abd6c42d58f",
+      "sourceUnchanged": true
+    },
+    "semanticReview": {
+      "status": "PASS_WITHIN_FIVE_PATH_SEMANTIC_SOURCE_SCOPE",
+      "receiptSha256": "844b10ed7b2c00a22d7808d91b473f6d65558336640ac512ed2f1fb17588ffba",
+      "rootRead": true,
+      "browserAcceptancePending": false,
+      "qualification": "Semantic source review was followed by separately bound focused phone and current matrix evidence."
+    },
+    "phone": {
+      "status": "ACCEPTED_WITHIN_FOCUSED_SCOPE",
+      "committedTestsPassed": 2,
+      "skipped": 0,
+      "retries": 0,
+      "privateFourStateProbeViolations": 0,
+      "browserReceiptSha256": "c7ff982573a925541a44fe9e7693f33459df426f3ea2a2f21d54d6d56ab2e572",
+      "custodyReceiptSha256": "57e274df7fa152cd12731a2d6439b5b1377012ffff2100a93aae65293f5cdd6b",
+      "rootViewedImages": [
+        "en-normal-inspector.png",
+        "zh-fullscreen-inspector.png"
+      ],
+      "controlledLayoutInput": "18px header text growth and restoration while inspection remains open; not a physical-device claim.",
+      "independentReviewSha256": "4730ed842287e9a76d5ba4d894434de998099dd36b2133918fa9355fd3eac538"
+    },
+    "matrix": {
+      "status": "PASSED",
+      "sourceHead": "70b4778936bf90f8177c587b3de77b1b571339c9",
+      "selectedSourceFiles": 1716,
+      "selectedSourceSha256": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+      "custodyReceiptSha256": "e812add558848deb6136312bcf1836a667871e54a0d2ae3ceb6e1a3e63b8bc4a",
+      "sourceUnchanged": true,
+      "runtimeIdleAtUtc": "2026-10-11T15:31:38.381090Z",
+      "groups": [
+        {
+          "label": "Large Trades fixture and real SPY native PNG",
+          "reportSha256": "7cb655c928d00fba6d476a61c2f192f3def717aa722103c4fe39df14a6a7c6b6",
+          "passed": 48,
+          "skipped": 18,
+          "failed": 0,
+          "flaky": 0,
+          "retryIndices": [
+            0
+          ],
+          "durationMs": 362163.213,
+          "plannedProjectSkips": {
+            "phone inspection follows a changing Replay status header en": 2,
+            "phone inspection follows a changing Replay status header zh": 2,
+            "large trade markers and inspection co-hide in a short price pane and return after resize": 2,
+            "large trade controls expose full targets and scrollable provenance at their admitted minimum": 2,
+            "native PNG freezes its admitted symbol and marker frame across asynchronous decoding": 2,
+            "native PNG waits while the requested symbol has no accepted native source": 2,
+            "large trades follow the price owner through an additional RSI instance and pane reorder": 2,
+            "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes": 2,
+            "native PNG refreshes pending pane geometry before freezing its execution frame": 2
+          }
+        },
+        {
+          "label": "Real SPY historical inspection",
+          "reportSha256": "4ef807993e7f7bd45fba3762f7764b504eb15cbca7d7307d94f5f9f1d924c565",
+          "passed": 3,
+          "skipped": 0,
+          "failed": 0,
+          "flaky": 0,
+          "retryIndices": [
+            0
+          ],
+          "durationMs": 17027.218,
+          "plannedProjectSkips": {}
+        },
+        {
+          "label": "EN/ZH Replay statusline",
+          "reportSha256": "4278a568648e180cd3fe60f95961a21b03e275e119b3f2ee7ea8d6be1ac2a0a9",
+          "passed": 6,
+          "skipped": 0,
+          "failed": 0,
+          "flaky": 0,
+          "retryIndices": [
+            0
+          ],
+          "durationMs": 53619.892,
+          "plannedProjectSkips": {}
+        },
+        {
+          "label": "Legacy pane drawing migration",
+          "reportSha256": "191c708de7a6a9dfa0f413dd40a6290e1f4f114e3d5b26d1da4b655d2d8585c6",
+          "passed": 3,
+          "skipped": 0,
+          "failed": 0,
+          "flaky": 0,
+          "retryIndices": [
+            0
+          ],
+          "durationMs": 13219.482,
+          "plannedProjectSkips": {}
+        }
+      ],
+      "environment": "Local owned fixture runtime. The three real SPY PNG cases and three separate historical inspection cases consume the admitted historical SPY envelope; surrounding application data is fixture-controlled."
+    },
+    "compatibility": {
+      "replayPassed": 6,
+      "drawingMigrationPassed": 3,
+      "scope": "EN/ZH Replay across desktop, tablet and mobile; original plus empty/cached-series drawing migration on desktop.",
+      "sourceBound": true,
+      "proof": "e812add558848deb6136312bcf1836a667871e54a0d2ae3ceb6e1a3e63b8bc4a"
+    },
+    "legacyCaptureFamilies": {
+      "status": "ALL_SIX_FULL_CAPTURE_COMMANDS_COMPLETED_AND_ARTIFACTS_VALIDATED",
+      "aggregateReceiptSha256": "40a3ffa55113adf2d527d7b12a61ccfd31ef9c62995a225067ed444f2d7ecead",
+      "sourceHead": "70b4778936bf90f8177c587b3de77b1b571339c9",
+      "sourceBundleSha256": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+      "freshActiveImages": 281,
+      "byteIdenticalToImmediateBefore": 255,
+      "changedFromImmediateBefore": 26,
+      "preservedHistoricalPngs": 57,
+      "bplNonActivePreservation": "Three iw2-capture desktop/mobile/tablet JSON files are preserved separately; they are not historical PNGs.",
+      "families": [
+        {
+          "family": "terminal-visual-intelligence",
+          "freshActiveImages": 6,
+          "byteIdenticalToImmediateBefore": 0,
+          "changedFromImmediateBefore": 6,
+          "byteIdenticalToOriginalBaseline": 0,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+            "sha256": "97ee3f0d324b4d7cec85e2b2f8ae21b698ceafddb6c01b1ad08a898584a75722"
+          },
+          "historicalPngsPreserved": 2,
+          "otherPreservedNonActiveFiles": 1,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        },
+        {
+          "family": "options-level-axis-labels",
+          "freshActiveImages": 5,
+          "byteIdenticalToImmediateBefore": 0,
+          "changedFromImmediateBefore": 5,
+          "byteIdenticalToOriginalBaseline": 0,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+            "sha256": "cf54697cc23f253a9ff303e42e46bf1cc04e0d1e6cec7d21b8d0cb22a2f28a46"
+          },
+          "historicalPngsPreserved": 0,
+          "otherPreservedNonActiveFiles": 3,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        },
+        {
+          "family": "b-pl-6-batch-1",
+          "freshActiveImages": 24,
+          "byteIdenticalToImmediateBefore": 23,
+          "changedFromImmediateBefore": 1,
+          "byteIdenticalToOriginalBaseline": 20,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+            "sha256": "90d4a43624c2048ec67a93a3b6f835823996f0e12d5b26cc553f87b6954c82cf"
+          },
+          "historicalPngsPreserved": 0,
+          "otherPreservedNonActiveFiles": 3,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        },
+        {
+          "family": "conductor-fit-badge-zh",
+          "freshActiveImages": 6,
+          "byteIdenticalToImmediateBefore": 6,
+          "changedFromImmediateBefore": 0,
+          "byteIdenticalToOriginalBaseline": 4,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/conductor-fit-badge-zh/EVIDENCE.yml",
+            "sha256": "4413cb1ab439eea5071ec461159973b65e82e3ebc400793e044f91540f9a855b"
+          },
+          "historicalPngsPreserved": 6,
+          "otherPreservedNonActiveFiles": 1,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        },
+        {
+          "family": "gex-levels-heatmap-load-failure",
+          "freshActiveImages": 114,
+          "byteIdenticalToImmediateBefore": 113,
+          "changedFromImmediateBefore": 1,
+          "byteIdenticalToOriginalBaseline": 102,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+            "sha256": "27f4b8b548ebc8209173e2847ef9839d6719898ab4922db1771add1ce92aab4b"
+          },
+          "historicalPngsPreserved": 25,
+          "otherPreservedNonActiveFiles": 2,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        },
+        {
+          "family": "eod-heatmap-flowdesk-load-failure",
+          "freshActiveImages": 126,
+          "byteIdenticalToImmediateBefore": 113,
+          "changedFromImmediateBefore": 13,
+          "byteIdenticalToOriginalBaseline": 114,
+          "manifest": {
+            "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+            "sha256": "7c4614e4398a17b95116aa319fb46bb51b94c4c53b127293c3bcef635cf71904"
+          },
+          "historicalPngsPreserved": 24,
+          "otherPreservedNonActiveFiles": 1,
+          "allCurrentImagesMatchSealedCaptureInventory": true
+        }
+      ],
+      "capturePhaseReceipts": [
+        {
+          "phase": "capture11",
+          "sha256": "c8ae6a89b89f113a7303a7a2e9f6a6f59f017723194df32edfb99812ae327eb8",
+          "originalStatus": "PASS_RUNTIME_IDLE",
+          "commands": [
+            {
+              "argv": [
+                "./node_modules/.bin/playwright",
+                "test",
+                "e2e/visual-intelligence.spec.ts",
+                "--project=desktop",
+                "--project=tablet",
+                "--project=mobile",
+                "--workers=1",
+                "--retries=0",
+                "--reporter=list,json",
+                "--output",
+                ".large-trades-evidence/legacy-recaptures-0e8/combined-940-70b-capture11-20261011T153244Z/command-1-output"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:32:48.831510+00:00",
+              "endedAtUtc": "2026-10-11T15:35:47.592253+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "8f18a9d44bf8c37c58b169fb35bd4ffa3ebc268197870007a7029eb95d19aa29"
+            },
+            {
+              "argv": [
+                "node",
+                "docs/pr-crops/options-level-axis-labels/capture.mjs"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:35:49.434823+00:00",
+              "endedAtUtc": "2026-10-11T15:36:07.438185+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "53d01dfde33750e12d8eb46aa47ffbb94f6206dc428f1863e96c39c2e6e5db29"
+            }
+          ]
+        },
+        {
+          "phase": "bpl24",
+          "sha256": "d2b96430d091257fb07c9ff1d2201efdcb336b6fd181a49729940e20950b0c29",
+          "originalStatus": "CAPTURE_COMMAND_PASS_PRIVATE_PARSER_FAILURE_RECONCILED",
+          "commands": [
+            {
+              "argv": [
+                "node",
+                "e2e/tools/capture_pl6_batch1.cjs"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:36:39.629320+00:00",
+              "endedAtUtc": "2026-10-11T15:37:43.554800+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "d65bc99c2585952e1886119de7dedd29cce640c49c4e809e3514c2ff44b2228a"
+            }
+          ]
+        },
+        {
+          "phase": "last246",
+          "sha256": "2ab8f5a257526ea4fad8a25e7e1e354af42cb803a5dd3b9c91c36059ee541213",
+          "originalStatus": "CAPTURED_PENDING_REVIEW_AND_GATES",
+          "commands": [
+            {
+              "argv": [
+                "node",
+                "e2e/tools/capture_conductor_fit_badge_zh.cjs"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:45:47.767435+00:00",
+              "endedAtUtc": "2026-10-11T15:46:37.060360+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "1aad168ab3fc9e961069199d5dd3884178ffb96d554a52fb94a067e448abaa28"
+            },
+            {
+              "argv": [
+                "node",
+                "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:46:51.392247+00:00",
+              "endedAtUtc": "2026-10-11T15:49:54.010706+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "9208cf3852178d5899e31c4a8e9720b22b99de9b8b4189e3f3b45657c5cb47e8"
+            },
+            {
+              "argv": [
+                "node",
+                "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+              ],
+              "exitCode": 0,
+              "startedAtUtc": "2026-10-11T15:50:09.150192+00:00",
+              "endedAtUtc": "2026-10-11T15:53:34.552076+00:00",
+              "sourceUnchanged": true,
+              "logSha256": "96816f1e294720451e8edd81b950b58e5d40586f70840bc559f8e47e89b2597a"
+            }
+          ]
+        }
+      ],
+      "representativeVisualReview": {
+        "receiptSha256": "afde10c2f2894211410d29028adef99b627c3e5add4cb90953fc66b5a26c8ed7",
+        "imagesActuallyViewed": 19,
+        "all281VisuallyInspected": false
+      },
+      "qualification": "Fresh means the complete capture command wrote the image during its recorded window. Byte identity to a previous PNG does not invalidate freshness. Historical PNGs and other non-active files are preserved separately."
+    },
+    "fullLocalGates": {
+      "receipt": {
+        "path": ".large-trades-evidence/legacy-recaptures-0e8/combined-940-70b-final-20261011T155548Z/custody-receipt.json",
+        "sha256": "3af37411614bcb024215d52ce42c693c9fede8ce571bfcf63850d1ee37785c44"
+      },
+      "unit": {
+        "passedFiles": 551,
+        "passedTests": 9138,
+        "todoTests": 4,
+        "totalTests": 9142,
+        "reportedDurationSeconds": 21.88,
+        "evidenceReaderLines": [
+          "✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 6ms",
+          "✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (6 tests) 23ms",
+          "✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 13ms",
+          "✓ lib/__tests__/visualIntelligenceEvidence.test.ts (3 tests) 12ms",
+          "✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 5ms",
+          "✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests) 8ms"
+        ],
+        "threeGlobalsFamilyReaderTests": 18,
+        "todoSource": "terminal/lib/__tests__/indicatorParity.test.ts",
+        "todoTopics": [
+          "Fast EMA seeding parity",
+          "Slow EMA seeding parity",
+          "Ribbon state derived from EMA parity",
+          "Rendered Bollinger population-versus-sample standard deviation"
+        ]
+      },
+      "typegenExitCode": 0,
+      "tscExitCode": 0,
+      "directNextBuildExitCode": 0,
+      "buildWarning": {
+        "count": 1,
+        "message": "Encountered unexpected file in NFT list; whole-project tracing warning",
+        "importTrace": [
+          "next.config.ts",
+          "lib/flowSource.ts",
+          "app/api/flow/stream/route.ts"
+        ],
+        "log": {
+          "path": ".large-trades-evidence/legacy-recaptures-0e8/combined-940-70b-final-20261011T155548Z/command-4.log",
+          "sha256": "570e210daa9622e32a3419c26983975cbb6b6deaab7168fa87ba2a238d1326b1"
+        },
+        "attribution": "Nonfatal warning observed in this build; no source or gate modification made to suppress it."
+      },
+      "status": "PASSED",
+      "commands": [
+        {
+          "argv": [
+            "./node_modules/.bin/vitest",
+            "run"
+          ],
+          "exitCode": 0,
+          "startedAtUtc": "2026-10-11T15:55:48.653854+00:00",
+          "endedAtUtc": "2026-10-11T15:56:17.246897+00:00",
+          "elapsedSeconds": 28.591,
+          "sourceUnchanged": true,
+          "logSha256": "d73dd8fa99c0bf48af324bfce67fd46b2e3729dfbac7b9d85515496918282bce"
+        },
+        {
+          "argv": [
+            "./node_modules/.bin/next",
+            "typegen"
+          ],
+          "exitCode": 0,
+          "startedAtUtc": "2026-10-11T15:56:17.700321+00:00",
+          "endedAtUtc": "2026-10-11T15:56:23.166909+00:00",
+          "elapsedSeconds": 5.464,
+          "sourceUnchanged": true,
+          "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+        },
+        {
+          "argv": [
+            "./node_modules/.bin/tsc",
+            "--noEmit"
+          ],
+          "exitCode": 0,
+          "startedAtUtc": "2026-10-11T15:56:23.603017+00:00",
+          "endedAtUtc": "2026-10-11T15:56:32.168848+00:00",
+          "elapsedSeconds": 8.564,
+          "sourceUnchanged": true,
+          "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "argv": [
+            "./node_modules/.bin/next",
+            "build"
+          ],
+          "exitCode": 0,
+          "startedAtUtc": "2026-10-11T15:56:32.624801+00:00",
+          "endedAtUtc": "2026-10-11T15:57:14.127468+00:00",
+          "elapsedSeconds": 41.333,
+          "sourceUnchanged": true,
+          "logSha256": "570e210daa9622e32a3419c26983975cbb6b6deaab7168fa87ba2a238d1326b1"
+        }
+      ],
+      "captureHelper18ReaderPlaceholder": "Original helper NOT_RUN state is preserved. The later full unit run explicitly passed those 18 tests plus 10 other family-reader tests across all six files."
+    },
+    "independentFinalReview": {
+      "ruling": "PASS_LOCAL_RELEASE_EVIDENCE_SCOPED",
+      "receiptSha256": "6c79f9b3922585cc35a2575ee250fc85f8e50e9b8cf481b03722bc0e9c559800",
+      "reviewedAtUtc": "2026-10-11 16:06:03 UTC",
+      "rootFullRead": true,
+      "blockingFindings": 0,
+      "selectedSourceFiles": 1716,
+      "sealedSourceSnapshotsCompared": 13,
+      "pairedFileReferencesRehashed": 46,
+      "activePngsValidated": 281,
+      "preservedHistoricalPngs": 57,
+      "allSixManifestSourcesMatched": true,
+      "qualification": "Independent local evidence ruling only. Hosted CI, protected merge, canonical deployment and authenticated production proof remain separate."
+    },
+    "currentFeatureReview": {
+      "status": "PASS_SCOPED_CURRENT_SOURCE_BOUND_BROWSER_EVIDENCE",
+      "receiptSha256": "cda1fcbc6938e12fed77d0f4d91e00dfaf15af078316edb797ed3f757ab3f0b8",
+      "rootReadFullNewSection": true,
+      "sourceBundle": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+      "sourceFiles": 1716,
+      "pngsViewed": 12,
+      "realNativePngViewports": 3,
+      "limits": [
+        "SPY numeric marker labels overlap in dense clusters, especially mobile, including the 1,000-share threshold exports. This review does not certify every label unobscured or collision-free.",
+        "Only the twelve identified PNGs were directly viewed. Other listed real-image hashes were verified without blanket visual inspection of all 104 prospective delivery images.",
+        "Full-shell screenshots include unrelated deterministic quote/watchlist/research-card fixtures whose values need not match the historical archive. These are test-environment surfaces; native PNGs are cleaner actual-execution illustrations.",
+        "No raw archive is reproduced in this receipt. Exact source hash does not imply complete archive coverage or live availability."
+      ],
+      "reviewerStopped": true
+    },
+    "bplSavedCaptureReconciliation": {
+      "status": "ACCEPTED",
+      "actualCaptureExit": 0,
+      "wrapperExit": 1,
+      "wrapperFailure": "Lowercase-only private filename audit matched zero uppercase BPL filenames",
+      "reconciliationSha256": "45e0618ba46cb2c5a7a2318249fa8019763a6d10601ae06db27d2786d9f7977b",
+      "originalFailureReceiptSha256": "d2b96430d091257fb07c9ff1d2201efdcb336b6fd181a49729940e20950b0c29",
+      "reconcilerSha256": "c4f2ad6c118f09905a97f0ba47b3be883d126c772a7256bccb4dcda3a80446bd",
+      "rootReadReconcilerAndReceipt": true,
+      "captureReexecuted": false,
+      "publicArtifactsMutatedDuringReconciliation": false,
+      "exactExpectedImages": 24,
+      "freshImages": 24,
+      "byteIdenticalToImmediateBefore": 23,
+      "changedImages": 1,
+      "matchedLayoutSources": 9,
+      "preservedNonActiveFiles": 3,
+      "finalIdleAtUtc": "2026-10-11T15:44:18.381562Z"
+    },
+    "runtimeCleanup": {
+      "finalObservedAtUtc": "2026-10-11T15:57:20.025869+00:00",
+      "listeners": [],
+      "fixtureProcesses": [],
+      "unresolvedFixtureProcesses": [],
+      "rootReconciledAtUtc": "2026-10-11T15:58:33.754047Z",
+      "rootCustodyReturned": true
+    },
+    "currentPacket": {
+      "status": "INCLUDED_AS_COMPANION_REPOSITORY_EVIDENCE",
+      "readme": "../../../terminal/docs/pr-crops/large-trades-protected-integration/README.md",
+      "files": 160,
+      "bytes": 20593594,
+      "pngs": 104,
+      "jsonAttachments": 53,
+      "manifestSha256": "61f2cc32a1d5600ba4de689f12f968a67f82317f43e812b4a628dfd1dc425537",
+      "readmeSha256": "e1ae868d46de216c6ea3cfcc90dc6cf67fce90b4c819eca768ab4cd4dde20b22",
+      "scopedReviewSha256": "f6b2a9279defa593bb1fce9005bf26b4cc1e0e3d1abd501c8c02ff33ec1843f0",
+      "independentPacketReview": {
+        "sha256": "c631c07be1d75920aa2b368b5229d6ffb741841e1a0be7561e8bd8b3acf6342d",
+        "status": "PASS_PREPARED_PACKET_SCOPE_WITH_DECLARED_PENDING_INTEGRATION_RECEIPT",
+        "rootFullRead": true,
+        "requiredCompanionResolvedBy": "This integration receipt is adopted with the reviewed packet and handoff."
+      }
+    },
+    "receiptPreparation": {
+      "aggregate": {
+        "preservedHelperAttempt": {
+          "pid": 34757,
+          "exitCode": 1,
+          "error": "TypeError: cannot use dict as a set element",
+          "cause": "The completed VI/Axis capture receipt stores a manifest identity object, while the formatter assumed its initial filename string.",
+          "correction": "Use the established per-family manifest filename and validate the stored manifest SHA when present.",
+          "noArtifactWrittenByFailedAttempt": true,
+          "noCaptureTestOrSourceChange": true
+        }
+      },
+      "bpl": {
+        "receiptSha256": "670f03b16011330052751e040877365e117f1bba37dbfe9a41f262b47254eec2",
+        "initialMetadataLookupFailure": "KeyError before audits or writes",
+        "narrowCorrection": "Look up the established wrapper filename.",
+        "sourceOrCaptureChanged": false
+      }
+    }
+  },
+  "startupAttempts": {
+    "preTestFailures": [
+      {
+        "testsExecuted": 0,
+        "observedFailure": "Playwright attempted a second server on the owned port before readiness and received EADDRINUSE",
+        "receiptSha256": "e21b36b5d84a21fa9bee9b8373183c813967ebbfe4bcf159d20f04547384dd50",
+        "idleAt": "2026-10-11T14:55:45.314510Z"
+      },
+      {
+        "testsExecuted": 0,
+        "observedFailure": "Bounded 120-second HTTP readiness check returned 404 throughout; deeper cause unresolved",
+        "receiptSha256": "dddf80befe2f53505c00b6b05f1294a4ad2be33d19a12b01e0ae8bae26959e07",
+        "idleAt": "2026-10-11T15:00:05.952518Z"
+      }
+    ],
+    "differentialDiagnostic": {
+      "receiptSha256": "0ccb4697d80dc8b05a8afb1e624b3219e7debbe90dd243d67fab2bf13131fc6f",
+      "observed": "Node fetch, Node with Python user-agent, and Python urllib all returned Terminal HTTP 200 after owned Ready log. Request-client restriction hypothesis falsified; earlier deeper Next cause unresolved.",
+      "idleAt": "2026-10-11T15:04:12.974136Z",
+      "sourceOrCacheMutation": false
+    },
+    "qualification": "Failed attempts executed zero tests. Later tests are separately reported; deeper cause of the earlier persistent 404 remains unresolved."
+  },
+  "priorHostedCi": {
+    "candidate": "ab7d882d4ee2cd20768aaf8205f8f6b21ec1eb3a",
+    "base": "9bc8a12b8e869a699d9bd3f0f90b160323d212b6",
+    "testedMerge": "03566eecca9dfb1bec79464368d971be887579b2",
+    "runId": 38142762042,
+    "conclusion": "success",
+    "qualification": "Historical combined-source CI only; does not certify the be4 repair or the #940 integration.",
+    "browser": {
+      "passed": 1564,
+      "skipped": 482,
+      "flaky": 1
+    },
+    "flake": "Portfolio edit-input readiness timed out before Save or the injected mutation; configured retry passed. No changed Large Trades source was attributed as cause. Failed-attempt screenshot/trace were not inspected."
+  },
+  "release": {
+    "productionProof": false,
+    "productionFeedReady": false,
+    "releaseIntent": "Actual PR 929 mergeCommit.oid after protected integration, with fresh protected-ref containment and served-generation reconciliation.",
+    "canonicalAccess": "Prior public-key denial has no evidenced same-owner recovery; no retry or alternate publisher."
+  },
+  "dataEvidence": {
+    "receipt": "real-data-verification.json",
+    "protocol": "../../LARGE_TRADES_ABSORPTION.md",
+    "oos": "NOT_ESTIMABLE_NO_ADMITTED_EXISTING_DATA_OOS_COHORT",
+    "scope": "Native partial-session historical IEX transactions; no qualified real quote response path, no live/MNQ or distinct-order claim.",
+    "currentSpy": {
+      "records": 302,
+      "executedShares": 26121,
+      "envelopeSha256": "c8f3acd1390bffa145441cb95dedbc5e3dafcbe08deed3a4c11691155b2b5b8b",
+      "sourceBindingSha256": "bdd7a794a5e8d78e0aa61273780c3f0cd7d38a0718fd9bfddb4ec67bb3bdb9e6",
+      "nativeExportCasesPassed": 3,
+      "historicalInspectionCasesPassed": 3,
+      "nativeExportDigests": [
+        {
+          "project": "desktop",
+          "sha256": "f96674a590b2851ed4e8750291253d1889d048c0234be52ce408eb01460bb1a9",
+          "width": 1934,
+          "height": 1816
+        },
+        {
+          "project": "tablet",
+          "sha256": "4d5b7cb25fad288c70ab5a5bffa3e0cb381753e5acae274ff610a75087baf5d7",
+          "width": 1640,
+          "height": 1686
+        },
+        {
+          "project": "mobile",
+          "sha256": "0c91bd1b41cd56b95649c1d3b4fc20c23d07042742fac58f584a8999c9e78935",
+          "width": 780,
+          "height": 1068
+        }
+      ],
+      "qualification": "Historical venue-only partial-session transactions, archive acquired later. No qualified quote response, original decision-time availability, live status, full-tape coverage, distinct-order count or OOS result."
+    }
+  },
+  "minimumBoundaryTestCorrection": {
+    "head": "70b4778936bf90f8177c587b3de77b1b571339c9",
+    "tree": "b458d7efd449da3e090e225304f9cb4b933e5b51",
+    "parent": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+    "testSha256": "392c1dca6f6009c8bd581ea5c701bfe85ad43d4719935247d2b9aee2985eb790",
+    "diagnosisSha256": "00320e44e4f7d9cca9d19ce45e576c99adf97d7b9e7a5ccb48e2bb42efe1d3f3",
+    "receiptSha256": "3e079b41601e72a9c44912d5ccfd33d090f119b5f81c80b94614640d2a1a8878",
+    "productSourceUnchangedFrom": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+    "priorAttempt": {
+      "candidate": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+      "passed": 44,
+      "skipped": 21,
+      "failed": 1,
+      "flaky": 0,
+      "custodyReceiptSha256": "4020963042a0ceca8b0672f8e051ce81ecee2f2590f9198c55c9016c58f5fc0f",
+      "diagnosisSha256": "00320e44e4f7d9cca9d19ce45e576c99adf97d7b9e7a5ccb48e2bb42efe1d3f3",
+      "diagnosis": "Narrow 198x137 canvas left 62.125px below the wrapped header, below the unchanged 88px control minimum. The fixed-height test setup was stale; co-hiding was correct. No newly admitted narrow minimum was exercised.",
+      "finalIdleAt": "2026-10-11T15:18:03.645422Z",
+      "nextCommandsRunInFailedBatch": false
+    },
+    "currentBoundaryResult": {
+      "passed": 1,
+      "skipped": 0,
+      "failed": 0,
+      "flaky": 0,
+      "retries": 0,
+      "durationMs": 15419.526,
+      "custodyReceiptSha256": "edef91f9567284f7ce945383aad6ed67291fb38ddfcb07b4eb0d0ef331e898dc",
+      "reportSha256": "7e7e87645cb9de31aad7bdf231e34bd529080e1ea0bd78b2d3278f0a57a91a05",
+      "narrow": {
+        "headerHeight": 74.875,
+        "admit": 164,
+        "reject": 162,
+        "controlsWidth": 198,
+        "controlsHeight": 89.046875,
+        "controlTop": 172.9375,
+        "headerBottom": 172.875
+      },
+      "wide": {
+        "admit": 137,
+        "reject": 135,
+        "controlsWidth": 904,
+        "controlsHeight": 89
+      },
+      "independentReview": {
+        "status": "PASS_WITHIN_ONE_FILE_TEST_CORRECTION_AND_FOCUSED_BOUNDARY_SCOPE",
+        "sha256": "3dfe5ec87869c053ef10cb9cfa60abffecb987ebd49c2a7acd1368d234e94dba",
+        "rootReadFullNewSection": true,
+        "candidate": "70b4778936bf90f8177c587b3de77b1b571339c9",
+        "bundle": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+        "broaderAcceptanceAtThatReviewTime": false
+      }
+    },
+    "retains": "Minimum 198 by 88 CSS pixels, all full-target pointer checks, exact 1,000,000,000 quantity, terms/provenance scrolling, and two-pixel admission/rejection separation.",
+    "explicitNegative": "The old 137px narrow pane must co-hide because its wrapped header leaves less than 88px."
+  },
+  "hostedCi": {
+    "status": "PENDING_FRESH_CURRENT_CANDIDATE_CHECKS",
+    "requiredContexts": [
+      "Quote Hub tests",
+      "Terminal typecheck + tests",
+      "Ingest + signal-layer tests"
+    ],
+    "requiredAppId": 15368,
+    "browserShardDependencyCount": 5,
+    "qualification": "All five browser shards feed the required Terminal aggregator. Record actual candidate head, current base, GitHub tested merge source, run and attempt after publication. Old ab7 CI is historical evidence only."
+  }
+}

@@ -1,0 +1,60 @@
+.coverage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 12px;
+  min-width: 0;
+  padding: 6px 12px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.identity {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+}
+.title { font-weight: 600; color: var(--fg, var(--text, inherit)); }
+.detail { min-width: 0; }
+.trade {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+  padding-left: 9px;
+  border-left: 1px solid var(--border);
+}
+.tradeIdentity { color: var(--muted); }
+.tradePrice {
+  color: var(--fg, var(--text, inherit));
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.dot {
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.fresh { background: var(--up, #16a34a); }
+.loading { animation: boatsPulse 1.8s ease-in-out infinite; }
+.stale { background: var(--warning, #d4a552); }
+.unavailable { background: var(--down, #d65f59); }
+@keyframes boatsPulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .loading { animation: none; }
+}
+@media (max-width: 640px) {
+  .coverage { gap: 2px 8px; padding: 6px 10px; }
+  .identity { flex-basis: 100%; }
+  .detail { padding-left: 13px; }
+  .trade { padding-left: 13px; border: 0; flex-basis: 100%; }
+}
+/* Keep the frame settings above the empty-chart overlay. */
+.frameBar { z-index: 7; }

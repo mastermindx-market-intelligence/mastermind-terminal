@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 279ms
+[warmup] /options → 200 in 464ms
+[warmup] /portfolio → 200 in 586ms
+[warmup] /alerts → 200 in 735ms
+[warmup] /analysis → 200 in 1270ms
+[warmup] /discover → 200 in 1241ms
+[warmup] /admin → 200 in 374ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 266ms
+[warmup] /login → 200 in 65ms
+[warmup] /reset-password → 200 in 328ms
+[warmup] /api/me → 200 in 255ms
+[warmup] /api/watchlist → 200 in 124ms
+[warmup] /api/layouts → 200 in 138ms
+[warmup] /api/watchlist/annotations → 409 in 128ms
+[warmup] 14 routes compiled in 6s
+Error in reporter Error: SOURCE_MISMATCH
+    at fail (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/tools/visualEvidence.cjs:28:29)
+    at Object.finishOperation (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/tools/visualEvidence.cjs:155:65)
+    at VisualEvidenceReporter.onEnd (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/tools/visualEvidenceReporter.cjs:41:26)
+    at ReporterV2Wrapper.onEnd (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:1697:40)
+    at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:1594:63
+    at wrapAsync (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:1626:18)
+    at Multiplexer.onEnd (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:1594:31)
+    at InternalReporter.onEnd (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:1761:40)
+    at finishTaskRun (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:5846:49)
+    at runTasks (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:5833:16)
+    at Object.runAllTestsWithConfig (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/runner/index.js:6514:18)
+    at runTests (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/cli/testActions.js:95:18)
+    at _Command.<anonymous> (/Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/node_modules/playwright/lib/program.js:53:7)

@@ -1,0 +1,138 @@
+{
+  "schema": "integrated_source_materialization.v1",
+  "phase": "APPLIED",
+  "time": "2026-11-05T09:04:20.338448+00:00",
+  "target_tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+  "options_head": "8e3362508aa2c451b7c02531097d0b9ee34653d9",
+  "exposure_head": "c9a57fc8dc6cb624309c3930c49319bbc980db2b",
+  "protected_base": "5d7b76376a8b3f5a8001f02d7f0ded29f5743798",
+  "scope": "All tracked terminal files except docs and design_refs; ignored next-env, .next, node_modules, local env preserved",
+  "tracked_scope_count": 3318,
+  "changes": [
+    {
+      "path": "terminal/components/fin/OracleDash.tsx",
+      "git_blob": "46797ff60f6c35f9362b9f48815d24a03a801d4f",
+      "mode": "100644",
+      "before_sha256": "3db4157de02ccf317b8e93b53b02859c7b29cac767cdfe224067ab202e3531cf",
+      "before_git_blob": "b7835daee4ac225eef6fc8990a1f3e01340dabf7",
+      "after_sha256": "306c57f14902fa72633d7af71293438973538c67f5bfb8d688984e6f28c99975",
+      "bytes_before": 60716,
+      "bytes_after": 60461
+    },
+    {
+      "path": "terminal/components/fin/StockEvidenceOverview.module.css",
+      "git_blob": "cd7a413d389b9bebcc78ffba1f034712a6e4980b",
+      "mode": "100644",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "76e7371b98af0ae492e6f4273cf9f430c9c41f111eb7cee223deebea822fdcac",
+      "bytes_before": null,
+      "bytes_after": 9442
+    },
+    {
+      "path": "terminal/components/fin/StockEvidenceOverview.tsx",
+      "git_blob": "8080c2fb9ac2f5dd8876c16b061f2cc8e958b0f9",
+      "mode": "100644",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "2c69d9bc1036b0f999154a97dd3ba1440c83cce5440c2fc6fd219a991499a7ed",
+      "bytes_before": null,
+      "bytes_after": 7556
+    },
+    {
+      "path": "terminal/e2e/intelligence-workspace.spec.ts",
+      "git_blob": "9f159b511540b0accb640f7dd88975e92d8e3f13",
+      "mode": "100644",
+      "before_sha256": "13c0f19f243915426b30bb7a42053ce6781767aaebdc2e8e5a8f4ae86bf8a24f",
+      "before_git_blob": "0c83da038098834b62a3e37970226dd0e54efb54",
+      "after_sha256": "5e9c6b4422384fe64916825dc0d970a4104bd69089406d12ee5cbce40e86d4b4",
+      "bytes_before": 15125,
+      "bytes_after": 25185
+    },
+    {
+      "path": "terminal/lib/__tests__/intelligenceActivity.test.ts",
+      "git_blob": "b4e130a24102f66afef71a5c3c730e8aede8747d",
+      "mode": "100644",
+      "before_sha256": "13acd18850f7e2f0388c1c1176d23d8e8b17d6eb872677c7a5c61911aeb2dc52",
+      "before_git_blob": "854c8559790a70fd4483ba48e7b80ec45f27bc0b",
+      "after_sha256": "c732158bae34a92f57669346808957e5ad1d275505ee93904d10a648c145642e",
+      "bytes_before": 2385,
+      "bytes_after": 10229
+    },
+    {
+      "path": "terminal/lib/__tests__/lexEvidenceProjection.test.ts",
+      "git_blob": "101f42de93693308637594b52cff8dedf29ad26e",
+      "mode": "100644",
+      "before_sha256": "2d73d3befa37ed505e631676ef3be0a486efadae2afa7fa16ba935a237970ff0",
+      "before_git_blob": "ae8baeff4f4684a670bf81c7d31f6241012e329c",
+      "after_sha256": "bcdc949dbdb0e05967e3e5788c2284996056fd014b2eb510c746d7640a23c080",
+      "bytes_before": 6531,
+      "bytes_after": 5271
+    },
+    {
+      "path": "terminal/lib/__tests__/stockEvidenceOverview.test.tsx",
+      "git_blob": "a2ae2c6bea9e8a3d145d1c9f6099140f7e8f8840",
+      "mode": "100644",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "57f44070d775dd39b850a882e02dc4db62d609761f4fdfe5ccc26c42b780f415",
+      "bytes_before": null,
+      "bytes_after": 4630
+    },
+    {
+      "path": "terminal/lib/__tests__/timeWindowHotPath.test.ts",
+      "git_blob": "49571c1d3f1e6934aaed593ab867c4028f45e49c",
+      "mode": "100644",
+      "before_sha256": null,
+      "before_git_blob": null,
+      "after_sha256": "6e1921f9a49a787f79ddc4f788e31ad9914f30706884379036c2c166fcb0e0f6",
+      "bytes_before": null,
+      "bytes_after": 2054
+    },
+    {
+      "path": "terminal/lib/intelligenceActivity.ts",
+      "git_blob": "e93d895f874daf3921acaba1faa8909aa42fc830",
+      "mode": "100644",
+      "before_sha256": "8404ab60ca50a25dbefe928666618f51222aaaf9a4e72e15b6ba40c293c6f664",
+      "before_git_blob": "847096350f918c679f1f7a5bb1acb850d2c3199d",
+      "after_sha256": "fc6f4a950e8bad9bcadf33d38e0c404c08f8ea24bd61a0c7f6ff85be69d1c82c",
+      "bytes_before": 2547,
+      "bytes_after": 8980
+    },
+    {
+      "path": "terminal/lib/timeWindow.ts",
+      "git_blob": "9ad37505fb04b1ff82dd2bc60eb225125d0ee075",
+      "mode": "100644",
+      "before_sha256": "63207e7ceb69483e95b486001f3748309016f437f376c6d4af3d6dca086121d3",
+      "before_git_blob": "4694c35150eccdebf08e537f152c1326ac56e8ff",
+      "after_sha256": "98b2e448401db693334fc594443e18ec236c9e6cbca4116764334aef66f706c2",
+      "bytes_before": 9337,
+      "bytes_after": 11185
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "git_blob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+      "mode": "100644",
+      "before_sha256": "bb09d98f2bf2647a1975dac07a0e85ab673473986145a1db0d30f22d38e5c076",
+      "before_git_blob": "808ab7de5c7751b198fe7ba8d667f4d1f077531e",
+      "after_sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "bytes_before": 7678,
+      "bytes_after": 7995
+    }
+  ],
+  "untracked_in_scope": [
+    "terminal/scripts/dist/score_personal_accuracy.env-test.mjs",
+    "terminal/scripts/dist/score_personal_accuracy.mjs"
+  ],
+  "generated_next_env": {
+    "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+    "retained": true
+  },
+  "retained_generated_script_ignore_evidence": [
+    ".gitignore:41:terminal/scripts/dist/\tterminal/scripts/dist/score_personal_accuracy.env-test.mjs",
+    ".gitignore:41:terminal/scripts/dist/\tterminal/scripts/dist/score_personal_accuracy.mjs"
+  ],
+  "completed_at": "2026-11-05T09:05:47.318692+00:00",
+  "exact_tracked_scope_count": 3318,
+  "source_manifest_after_sha256": "04aee37359b284d059683db515f02fddd46b8e2aade9b5162023b09a5a3340e4"
+}

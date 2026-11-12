@@ -1,0 +1,39 @@
+2026-10-21T13:42:48.9618451Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+2026-10-21T13:42:48.9639855Z 
+2026-10-21T13:42:48.9641746Z  FAIL  lib/__tests__/portfolioPageReadbackOrder.test.tsx > PortfolioView readback ordering (F08 page-side; macro#6819 5979873599) > a mount read that lands AFTER a chained close does not resurrect the open row (newest read wins)
+2026-10-21T13:42:48.9648776Z AssertionError: expected [ Array(1) ] to have a length of +0 but got 1
+2026-10-21T13:42:48.9649420Z 
+2026-10-21T13:42:48.9649947Z - Expected
+2026-10-21T13:42:48.9650366Z + Received
+2026-10-21T13:42:48.9650548Z 
+2026-10-21T13:42:48.9650703Z - 0
+2026-10-21T13:42:48.9651465Z + 1
+2026-10-21T13:42:48.9651618Z 
+2026-10-21T13:42:48.9652194Z  ❯ lib/__tests__/portfolioPageReadbackOrder.test.tsx:179:28
+2026-10-21T13:42:48.9864927Z     177|     expect(button("Reopen AAPL")).not.toBeNull();
+2026-10-21T13:42:48.9867120Z     178|     expect(container!.querySelector('[data-testid="targets-orphaned"]'…
+2026-10-21T13:42:48.9868866Z     179|     expect(clearButtons()).toHaveLength(0);                           …
+2026-10-21T13:42:48.9870233Z        |                            ^
+2026-10-21T13:42:48.9870835Z     180|   });
+2026-10-21T13:42:48.9871332Z     181| 
+2026-10-21T13:42:48.9871669Z 
+2026-10-21T13:42:48.9872121Z ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+2026-10-21T13:42:48.9872543Z 
+2026-10-21T13:42:48.9910912Z  Test Files  1 failed | 877 passed (878)
+2026-10-21T13:42:49.0002113Z       Tests  1 failed | 14888 passed | 4 todo (14893)
+2026-10-21T13:42:49.0003132Z    Start at  13:38:49
+2026-10-21T13:42:49.0016967Z    Duration  239.25s (transform 38.85s, setup 0ms, collect 130.19s, tests 277.16s, environment 106.62s, prepare 68.77s)
+2026-10-21T13:42:49.0017857Z 
+2026-10-21T13:42:49.0250805Z 
+2026-10-21T13:42:49.0261513Z ##[error]AssertionError: expected [ Array(1) ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ lib/__tests__/portfolioPageReadbackOrder.test.tsx:179:28
+
+
+2026-10-21T13:42:49.3329839Z ##[error]Process completed with exit code 1.

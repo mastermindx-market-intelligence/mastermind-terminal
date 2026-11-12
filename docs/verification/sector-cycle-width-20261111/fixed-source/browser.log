@@ -1,0 +1,33 @@
+[warmup] /terminal?symbol=NVDA → 200 in 344ms
+[warmup] /options → 200 in 4977ms
+[warmup] /portfolio → 200 in 1926ms
+[warmup] /alerts → 200 in 2594ms
+[warmup] /analysis → 200 in 3884ms
+[warmup] /discover → 200 in 4546ms
+[warmup] /admin → 200 in 1121ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 989ms
+[warmup] /login → 200 in 371ms
+[warmup] /reset-password → 200 in 1400ms
+[warmup] /api/me → 200 in 1275ms
+[warmup] /api/watchlist → 200 in 409ms
+[warmup] /api/layouts → 200 in 394ms
+[warmup] /api/watchlist/annotations → 409 in 395ms
+[warmup] 14 routes compiled in 25s
+[fixture-ready] prophet_idx fixture 200 in 1440ms
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (4.4s)
+  ✓   2 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (3.1s)
+  ✓   3 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (4.2s)
+  ✓   4 [desktop] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (3.5s)
+  ✓   5 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (2.4s)
+  ✓   6 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (2.7s)
+  ✓   7 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (2.9s)
+  ✓   8 [tablet] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (2.5s)
+  ✓   9 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions en dark (2.2s)
+  ✓  10 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions en dark (2.7s)
+  ✓  11 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives table transitions zh light (3.1s)
+  ✓  12 [mobile] › e2e/sector-cycle-lens.spec.ts:93:9 › cycles chart measurement survives empty transitions zh light (3.4s)
+
+  12 passed (1.7m)

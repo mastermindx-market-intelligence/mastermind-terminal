@@ -1,0 +1,249 @@
+{
+  "schema": "mastermind.sector_industry_summary_evidence.v1",
+  "operation": "sector-industry-summary-terminal-20260928-sol-001",
+  "parent": "mastermind-terminal#754 / #766; sector-intelligence-terminal-20260926-sol-001",
+  "capabilityState": "BUILT_NOT_PROVEN",
+  "pickupBase": "49d10c84635360aca9b5c2abb885c7af2e90a9f8",
+  "protectedProcedure": {
+    "repository": "mastermindx-market-intelligence/Mastermind",
+    "revision": "aebb2ed19e68bda072e38221638925d674b656dc",
+    "indexBlob": "94d1af402598894372858793a5b1931019c5fa77",
+    "skillpackVersion": "1.0.1",
+    "minimumBootstrapMajor": 1
+  },
+  "owner": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "revision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "files": [
+      {
+        "key": "sector",
+        "path": "site/sectordata/sector_central.json",
+        "asOf": "2026-09-25",
+        "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+        "bytes": 167883
+      },
+      {
+        "key": "confluence",
+        "path": "site/marketdata/subsector_confluence.json",
+        "asOf": "2026-09-25",
+        "sha256": "2dffa7eb83891a8dc7d12a6aecaf0669bb2cd66a7764667f2694a9c6c446bdde",
+        "bytes": 176646
+      },
+      {
+        "key": "themes",
+        "path": "site/neuralwebdata/theme_state.json",
+        "asOf": "2026-09-26",
+        "sha256": "70018e4ba78680a6510e80e770873957295f1eccd07879cf101d3928d9124e32",
+        "bytes": 39878
+      },
+      {
+        "key": "heatmap",
+        "path": "site/marketdata/sp500_heatmap.json",
+        "asOf": "2026-09-25",
+        "sha256": "beeadcf92f52b363ebed2ae458acf658702a8d0822e84ef3cc3531b278129961",
+        "bytes": 118755
+      }
+    ],
+    "transport": "immutable exact-owner local interception for browser qualification; authenticated production transport independently proven on Terminal #766, but this is not production proof of the new UI"
+  },
+  "capability": {
+    "defaultDiscoverRepresentation": "summary",
+    "technologyPopulation": 79,
+    "technologyIndustries": 11,
+    "exactSharedPopulation": true,
+    "companyDenominator": "industry names / selected-sector names",
+    "marketCapDenominator": "industry market cap / selected-sector market cap",
+    "participationDenominator": "advancing / observed names",
+    "performanceDenominator": "sum(size * return) / observed market cap",
+    "missingPerformanceRemainsMissing": true,
+    "oneNameLeaderDisclosure": true,
+    "subOnePercentShareDisclosure": true,
+    "atomicSummaryToTableDrillIn": true,
+    "newDataOrAuthorityPlane": false
+  },
+  "implementation": {
+    "aggregateSha256": "140208f49085b35ba6db0bea0a5c165a2cf11b2c67908c9d06c9e75986e79ff0",
+    "patchSha256": "de3524508752301b6409055ed8ad81146a061b839000bdc21c0d1a9e38353529",
+    "files": [
+      {
+        "path": "terminal/components/sector-intelligence/SectorIndustrySummary.tsx",
+        "sha256": "e958ac8f4c13c2698c3b20730d44edc72b32b54631bb1a5d11c615ceab41a81d",
+        "bytes": 16107
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIndustrySummary.module.css",
+        "sha256": "ad09a1068d92c3ff0b8e688d26859c0251e96ce47a1c7870e7c67395ca2aa102",
+        "bytes": 6437
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.tsx",
+        "sha256": "9d7e456d75ecb6051ea9d03bdb13aebea2f1f367b459814928963ac4dade4064",
+        "bytes": 15929
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorCentralDiscovery.module.css",
+        "sha256": "26e026784d4bdb14f48868fc760679c3a06a79f9039b337eda3416592cc8eb78",
+        "bytes": 7178
+      },
+      {
+        "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+        "sha256": "ea3677aaebb182b6dd73cdf0af1afb097220d571b7669fe5f188791f0b391d37",
+        "bytes": 31419
+      },
+      {
+        "path": "terminal/lib/sectorIntelligence.ts",
+        "sha256": "34f595eb44b56a68b2aee544b01df057a4f6b23d47cf10d57027dd838d9608d2",
+        "bytes": 14426
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorIndustrySummary.test.tsx",
+        "sha256": "6c17942eeec11d99d776dd2ff0d0936ace49b6f06166fd38d05284e7f93e6356",
+        "bytes": 6907
+      },
+      {
+        "path": "terminal/lib/__tests__/sectorCentralDiscovery.test.tsx",
+        "sha256": "199e909f69258db1e6c9096cf8f4e1a1197f3461a4f9789908d7627c64fef91f",
+        "bytes": 13121
+      },
+      {
+        "path": "terminal/e2e/tools/qualify_sector_discovery.cjs",
+        "sha256": "d136f57c0602b986d83c7382428f35e394196930e35ddcc6cc7d773c6cf35d0b",
+        "bytes": 14574
+      }
+    ]
+  },
+  "qualification": {
+    "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/qualification.json",
+    "passed": true,
+    "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "checks": 126,
+    "screenshots": 15,
+    "pageErrors": 0,
+    "transport": "local interception",
+    "productionProof": false,
+    "error": null
+  },
+  "validation": {
+    "fullTerminalUnit": {
+      "files": 406,
+      "passed": 6625,
+      "todo": 4
+    },
+    "completeSectorSurface": {
+      "files": 12,
+      "passed": 222
+    },
+    "focusedSummaryAndCentral": {
+      "files": 2,
+      "passed": 44
+    },
+    "typescript": "PASS",
+    "scopedEslint": "PASS",
+    "productionBuild": "PASS",
+    "plainLanguageSelfCheck": "PASS",
+    "forwardAddedLinesGuard": "PASS_ZERO_NEW_BLOCKERS",
+    "sectorBrowserParallel": {
+      "passed": 32,
+      "total": 33,
+      "workers": 12,
+      "residual": "single tablet first-render miss"
+    },
+    "sectorBrowserExactRerun": {
+      "passed": 1,
+      "total": 1,
+      "workers": 1,
+      "durationSeconds": 1.7
+    },
+    "diffHygiene": "PASS"
+  },
+  "evidence": {
+    "aggregateSha256": "015a66b4638402f1116842e2cab81fd8a737146a4a1cb5dc291a6de9598dae62",
+    "files": [
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/README.md",
+        "sha256": "2a849b1861f6f2b6dadee95fea1d71f34cd4cf33763cc878701c06986b5989a9",
+        "bytes": 5524
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-1440-en-light-breadth.png",
+        "sha256": "6509ccfe1d880e812e83c3f088f3ce43061d1223444d30e590611fe6028d27dc",
+        "bytes": 153210
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-1440-en-light-discover-summary.png",
+        "sha256": "080ef36e9563c0c1c7225d4208f5c3952e46fc6de6cb3d959fa73ee5d0920e79",
+        "bytes": 170745
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-1440-en-light-discover-table.png",
+        "sha256": "5b0b70d8049a1a166f5b403d457266b2dbc630e5409e067a545f02c13b0eb0b6",
+        "bytes": 153565
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-390-en-light-breadth.png",
+        "sha256": "28a7086939db4b2a6348df1512d8cdcf9a0f1fa25711ae854d421d28f1b34773",
+        "bytes": 171888
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-390-en-light-discover-summary.png",
+        "sha256": "ebe7892a226fd5d7c3847adc46139b09e755f3753e4affe79c6220fdd293433a",
+        "bytes": 294568
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-390-en-light-discover-table.png",
+        "sha256": "b1f1e034bd31e913271cab30100f0c8d97d5228c932f06dfd91cda18eae034d2",
+        "bytes": 894310
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-820-en-dark-breadth.png",
+        "sha256": "73f8ca55091b923181d4b200c42b760aa7bd0d05e74173e82de6adfe31411ce3",
+        "bytes": 167623
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-820-en-dark-discover-summary.png",
+        "sha256": "293d95b77227cd0875adda7db36d3e7e01bd3eff2d7d87b43f1ba1b8c20a38e1",
+        "bytes": 324497
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/chromium-820-en-dark-discover-table.png",
+        "sha256": "c9cea40d4d1c7feac5110cd7bfd59b8474d2dea75d2a28e3b5610a9c900ea3ba",
+        "bytes": 666928
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/qualification.json",
+        "sha256": "403f2e53da9c53dba034d6bdb6ae4563e95c03073086d9d9ad8643704c509ec5",
+        "bytes": 18000
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-1440-en-dark-breadth.png",
+        "sha256": "3e0607e99c5daa4833d48dbf477540ffe847ae61377ab04aed64df9d87b7ccd3",
+        "bytes": 219932
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-1440-en-dark-discover-summary.png",
+        "sha256": "066e6d57152f965048a9929b47d01fef146bff05da69124899f104f91d8d1663",
+        "bytes": 238322
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-1440-en-dark-discover-table.png",
+        "sha256": "84d22cb1188f0d6b4cf8042e3551fb119d1a8933d78a71d825841fd651a025f4",
+        "bytes": 219340
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-390-zh-light-breadth.png",
+        "sha256": "c85bf13087427f3798d0e7b34a15514b8ad924765a72820cacc4c8521ee433ba",
+        "bytes": 193397
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-390-zh-light-discover-summary.png",
+        "sha256": "ce854f540ab55f2c27e083edf93ccc6ee609ae566120840347cabd6488d18bc9",
+        "bytes": 342651
+      },
+      {
+        "path": "docs/pr-crops/sector-industry-summary-20260928/exact-owner-r1/webkit-390-zh-light-discover-table.png",
+        "sha256": "c278401706f5ead27a0ca6587b26f74502cad8b6166cccc40ef53eecc296b649",
+        "bytes": 1042038
+      }
+    ]
+  }
+}

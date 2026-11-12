@@ -1,0 +1,24 @@
+{
+  "files": {
+    "README.md": "b4ef16e44a72f3d90595ff694661317b670eddc1e69003111bc3febd9f1a2bfd",
+    "composition.json": "8ecbadeb8af5516a5d0767c971a941f5b774fa194bd251e5ed152e66da9ba1ff",
+    "delivery-readiness.json": "a224f4570eef009a6727fe1db4af3eca26a42cc828bfb5b0ce5d37d8027fafef",
+    "diff-self-check.json": "3f263d6984ab7cf6f61169abdac20d88cea28f522277c232693731d9e3d05279",
+    "inherited-diff-check.log": "c94775d67bfcf6731f547b4649799bdb052c8eacad56135bc7b4813f3eba0461",
+    "invalid-generated-validator.ts.txt": "339e01df8ecf663a47854b04a8d79d65597da95f7b76315341f74dad0bd7f8dd",
+    "product-and-evidence.json": "5192374578ee7ef2342b127ee69536950eb103eb1baee02e19802e94ecd79cdf",
+    "product-and-evidence.log": "556a22b05b9fad7a7497859d4380c18937bef1cc8dee6e4180c91eb58aeed767",
+    "qualification.json": "83a8cb2c45e48e22e2848081e86f527845ee79935cb41acb937aa26be291b50d",
+    "run-qualification.py": "122c4fce65eca2486f85fd36cd7c484ca719ece21bd1d84a092aaff0c5536b7b",
+    "source-after.json": "4742f225429a6b0f3b6d4729fd5eab42025f658ba718bb8480591fe295a41504",
+    "source-applicability.json": "9287eac1dabe0ae40166968beaa5ab1d967a6ee65830b7c97d16800dbb88c4b6",
+    "source-before.json": "4742f225429a6b0f3b6d4729fd5eab42025f658ba718bb8480591fe295a41504",
+    "typecheck-recovered.json": "a6c5d41c4070a4eb96a2f7dd212b2198480bc50942cf8471aabc592edea1bd89",
+    "typegen-cache-recovery.json": "329837e3164a9d05f3ae0b54f54e089006fad5156f2127103a98202b3396a34b",
+    "typegen-recovered.log": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+    "typegen.log": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+    "typescript-recovered.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typescript.log": "6e62a83e190c0462cddb7fa9d2aa470692d167245fe0070aee6cba31f26950dc"
+  },
+  "schema": "terminal_pr1407_protected_integration_inventory.v1"
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "mastermind.options_matrix_spot_reproducer/v1",
+  "source_repo": "mastermindx-market-intelligence/macro",
+  "source_commit": "ce33ec3d46b9a7dc5a94a4a854676f917f9ba9b7",
+  "source_path": "engine/options_matrix.py",
+  "function": "_extract_spot",
+  "source_sha256": "11146402f340c559673357b5b747918c89575eb572a057eb32bab1fa49e2883a",
+  "observed_at": "2026-09-23T23:30:40.941385+00:00",
+  "method": "Exact AST function executed against deterministic dataframe-shaped doubles; no vendor/credential/network calls; no production modification",
+  "results": [
+    {
+      "case": "valid underlying reference",
+      "got": 192.53,
+      "expected": 192.53,
+      "passes": true
+    },
+    {
+      "case": "missing underlying; option premiums must not substitute",
+      "got": 2.0,
+      "expected": null,
+      "passes": false
+    },
+    {
+      "case": "nonpositive underlying must be refused",
+      "got": -1.0,
+      "expected": null,
+      "passes": false
+    }
+  ],
+  "conclusion": "Canonical producer can mistake median option-premium close for underlying spot. Not yet established as the cause of the production null matrices."
+}

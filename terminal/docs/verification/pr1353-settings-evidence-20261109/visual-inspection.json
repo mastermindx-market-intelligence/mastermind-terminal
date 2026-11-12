@@ -1,0 +1,7 @@
+{
+  "findings": "Unavailable Alert state is rendered clearly. Populated Chinese mobile Targets shows the native NVDA values and readable controls; no Next indicator or material layout defect observed.",
+  "inspected": [
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390-zh.png",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png"
+  ]
+}

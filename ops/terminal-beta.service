@@ -1,0 +1,119 @@
+# terminal-beta.service — SOURCE ARTIFACT ONLY (authoring path ops/terminal-beta.service).
+#
+# No release owner and no worker installs, enables, starts, daemon-reloads or edits
+# this unit. The approved root provisions it out of band, together with the
+# beta-owned EnvironmentFile below. `ops/terminal-build.sh --target beta` only ever
+# inspects its declarations without logging environment values, controls only
+# this unit, and enables startup only after durable runtime acceptance.
+#
+# Why the prerequisites live OUTSIDE the audited app target: the bootstrap entrance
+# admits only a provably empty, never-accepted beta target (/opt/terminal/beta/...).
+# If the unit, its secret file or the build-time env were kept inside
+# /opt/terminal/beta/terminal, they would be indistinguishable from unknown target
+# data and the bootstrap would deadlock against its own prerequisites. So:
+#   unit                /etc/systemd/system/terminal-beta.service (this file)
+#   runtime secrets     /var/lib/mastermind-terminal-beta/host/environment
+#   build-time env      /var/lib/mastermind-terminal-beta/host/.env[.local]
+#   beta app target     /opt/terminal/beta/terminal              (audited live root)
+#   state parent        /var/lib/mastermind-terminal-beta (root:root 0750)
+#   lifecycle state     /var/lib/mastermind-terminal-beta/source-provisioned
+#   build lock marker   /var/lib/mastermind-terminal-beta/build-lock
+#
+# Accepted prerequisite states (all of them, exactly):
+#   bootstrap:   unit disabled + inactive + declares MMX_SHARED_SHELL=1;
+#                /opt/terminal/beta empty (or carrying only a matching
+#                .source-provisioned pointer); the beta service user exists and
+#                can traverse /opt/terminal (host state; the owner only publishes
+#                inside the beta target root and re-proves that scope every run).
+#   ordinary:    unit enabled + active + declares MMX_SHARED_SHELL=1; target
+#                runtime-accepted by this owner.
+#
+# Semantics that must not drift:
+#  * MMX_SHARED_SHELL=1 here is the runtime half of the build/runtime agreement the
+#    owner verifies; without it the status endpoint reports enabled=false and the
+#    generation is refused, which is the intended outcome.
+#  * PORT/--port 3001 is the tuple the owner health-checks; 127.0.0.1 only, so the
+#    beta candidate is never publicly reachable.
+#  * The read-only bind supplies the production publisher's runtime coverage as it
+#    already does in production. Beta build-generated coverage is intentionally
+#    hidden at runtime; nothing here copies, hardlinks or symlinks beta data into
+#    the production tree.
+#  * ProtectSystem=strict plus this narrow ReadWritePaths list is what keeps beta
+#    from writing production's real /opt/terminal/terminal tree, the mounted shared
+#    publisher, or anything else on the host. The writable surface is ONLY the Next
+#    cache directory (ReadWritePaths=.next/cache) — never all of .next: the
+#    executable build output and the build identity it carries stay read-only to
+#    the service user, whose ownership of the cache the release owner prepares
+#    explicitly (beta_prepare_next_cache) instead of assuming it. The rest of the
+#    beta-owned app/dependency/build tree is made READABLE/TRAVERSABLE for this
+#    user by the owner's beta_publish_runtime_readable (r and x bits only, never
+#    any group/other write, never through the data alias). Both production data
+#    aliases below stay enforced together: BindReadOnlyPaths supplies the mount
+#    inside this namespace and ReadOnlyPaths keeps the real production path
+#    non-writable for this unit. /opt/terminal itself must already be traversable
+#    by the service user — pre-existing production-owned host state this owner
+#    never chmods, and an explicit on-host service-user probe requirement.
+#  * Restart=no: a beta generation that fails acceptance is stopped and its
+#    evidence retained. A restart policy would re-advertise a runtime the owner
+#    never accepted.
+
+[Unit]
+Description=Mastermind Terminal — Shared Shell beta candidate (127.0.0.1:3001)
+Documentation=https://github.com/mastermindx-market-intelligence/mastermind-terminal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=terminal-beta
+Group=terminal-beta
+WorkingDirectory=/opt/terminal/beta/terminal
+
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=MMX_SHARED_SHELL=1
+# Parent-provisioned, beta-owned, never world-readable. Keys are never printed by
+# any release owner or worker. The leading "-" is deliberately absent: a missing
+# secret file must fail the unit, not silently start an unconfigured candidate.
+EnvironmentFile=/var/lib/mastermind-terminal-beta/host/environment
+
+ExecStart=/usr/bin/env node node_modules/next/dist/bin/next start --port 3001 --hostname 127.0.0.1
+
+Restart=no
+KillSignal=SIGTERM
+# Next.js completes its SIGTERM cleanup before returning 128 + SIGTERM.
+SuccessExitStatus=143
+TimeoutStopSec=30
+
+# Non-root dedicated service user, no privileges, no capabilities.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectHome=read-only
+ProtectSystem=strict
+
+# Shared production runtime data, read-only, inside this unit's namespace only.
+BindReadOnlyPaths=/opt/terminal/terminal/public/data:/opt/terminal/beta/terminal/public/data
+ReadOnlyPaths=/opt/terminal/terminal/public/data
+ReadWritePaths=/opt/terminal/beta/terminal/.next/cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=terminal-beta
+
+[Install]
+WantedBy=multi-user.target

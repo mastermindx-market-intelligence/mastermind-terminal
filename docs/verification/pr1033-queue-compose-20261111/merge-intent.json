@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-11T17:42:41.955661+00:00",
+  "operation": "terminal-1033-queue-compose-20261111-c3",
+  "workspace": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1033-queue-compose-20261111-c3",
+  "head": "0b4ffeb3ce65b76ec14003dbab5d61688b1dbb2f",
+  "accepted": "ed6529da70f124c2790c5ddf3b6d4482d739cb46",
+  "expected_conflicts": [
+    ".github/workflows/ci.yml"
+  ]
+}

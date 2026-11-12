@@ -1,0 +1,19 @@
+[warmup] /terminal?symbol=NVDA → 200 in 146ms
+[warmup] /options → 200 in 161ms
+[warmup] /portfolio → 200 in 55ms
+[warmup] /alerts → 200 in 57ms
+[warmup] /analysis → 200 in 51ms
+[warmup] /discover → 200 in 58ms
+[warmup] /admin → 200 in 49ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 41ms
+[warmup] /login → 200 in 90ms
+[warmup] /api/me → 200 in 118ms
+[warmup] /api/watchlist → 200 in 11ms
+[warmup] /api/layouts → 200 in 11ms
+[warmup] 12 routes compiled in 1s
+
+Running 1 test using 1 worker
+
+  ✓  1 [mobile] › e2e/chart-view-reset.spec.ts:46:5 › New chart tickers reserve space between the latest candle and symbol tag (2.3s)
+
+  1 passed (4.1s)

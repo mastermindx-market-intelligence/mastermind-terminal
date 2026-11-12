@@ -1,0 +1,27 @@
+legacy (pre-existing, not blocking)
+terminal/components/ChartLinkControl.tsx:167: raw_slug_interpolation: "status" — raw "status" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/alerts/AlertDryRunPanel.tsx:151: raw_slug_interpolation: "verdict" — raw "verdict" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/alerts/AlertDryRunPanel.tsx:263: raw_slug_interpolation: "status" — raw "status" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/alerts/AlertDryRunPanel.tsx:267: raw_slug_interpolation: "status" — raw "status" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/alerts/AlertTimeline.tsx:45: raw_slug_interpolation: "verdict" — raw "verdict" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/alerts/WatchingList.tsx:38: raw_slug_interpolation: "verdict" — raw "verdict" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/dataInspector/DataInspector.tsx:364: raw_slug_interpolation: "kind" — raw "kind" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/fin/FinComparePage.tsx:592: raw_slug_interpolation: "status" — raw "status" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/fin/ForecastPage.tsx:647: raw_slug_interpolation: "type" — raw "type" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/gexdesk/ExposureMatrix.tsx:505: raw_slug_interpolation: "state" — raw "state" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/news/TickerNewsPanel.tsx:191: raw_slug_interpolation: "status" — raw "status" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/components/settings/SectionAccount.tsx:547: raw_slug_interpolation: "kind" — raw "kind" field interpolated with no plain-language helper on the same line
+  route through a plainLabels helper (e.g. regimeLabel/classicCategoryLabel) or lib/i18n t()
+terminal/lib/visualIntelligenceCopy.ts:64: raw_state_enum: "DELAYED_15M" — raw state enum in a user-visible position
+  say "15-minute delayed" / "延迟15分钟" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)

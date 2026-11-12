@@ -1,0 +1,14 @@
+{
+  "sourceSha256": "db7ae7163a384a37da25ba664b1a8cebc1d39d3c7cf4f70398a68399fd2d98df",
+  "returncode": 0,
+  "counts": {
+    "tests": 252,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 8
+  },
+  "fixtureRoot": "/tmp/mmx-pr973-pg-batch-y3jabre3",
+  "fixtureStopped": true,
+  "logSha256": "81a666fed5e07330555b98e49d31145e73495e243d539d03a60344c310e3bb46",
+  "scope": "existing nine-file CI PostgreSQL pytest batch; separate drawing-audit command not rerun"
+}

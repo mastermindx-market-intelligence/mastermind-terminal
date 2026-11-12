@@ -1,0 +1,90 @@
+{
+  "schema": "protected_analysis_evidence_port.v1",
+  "phase": "APPLIED",
+  "at": "2026-11-05T09:43:54.698324+00:00",
+  "protected_source": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "accepted_capture_commit": "aeb0d475581854a3da3823259595acd8dbfe6b4d",
+  "protected_merge": "2ded360882b9c721e690907ff363b553781fb920",
+  "historical_capture_source": "246ae1579e88ff9c7583eff5061a404644bed05a",
+  "reason": "Complete the accepted exact Analysis source/evidence port; preserve six original images, strict test, runtime and recapture identity",
+  "changes": [
+    {
+      "path": "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+      "git_blob": "9753a68f764e8e9ce3a9087c9cae327580ad132b",
+      "before_sha256": "6a094541e7565c46d7f80f2b45b4d1ec3aa27886e51a7ec4a55488e86398b26a",
+      "after_sha256": "14d9b9ef58cde66d7658f2e043cbba02a3f6a43e8b60251072012ea94301a771",
+      "size": 3620
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/EVIDENCE.yml",
+      "git_blob": "b1f6f3837263e414ee27fb32149c4d391fb2623e",
+      "before_sha256": null,
+      "after_sha256": "a65e8d418d4660cde388b5e3e79c4a44f634de36d99a4f8b4a38f0721e5aefb3",
+      "size": 1959
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/capture.cjs",
+      "git_blob": "25bf2413448c770b17ce0ba260da23447dbd21ca",
+      "before_sha256": null,
+      "after_sha256": "45e54daf925db7b6ee1b1b18ab37abb393439ecf5dd0aab76cea01b4132ef07b",
+      "size": 2450
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/desktop-en.png",
+      "git_blob": "a5ef015d98b64f2478e2c0ff1009dc155a022b5e",
+      "before_sha256": null,
+      "after_sha256": "7c48b7b24b6999d5971706094670b4b67584bf4b3208cb7931bd1014d3ea7b0f",
+      "size": 72683
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/desktop-zh.png",
+      "git_blob": "9ade82dba91c6ece776b0bcc11d5a3b14de272bb",
+      "before_sha256": null,
+      "after_sha256": "878bcdbe83556da0aaf30a4a6ae62c5b7810da7e73e7ad717e8cd73ca0749157",
+      "size": 72702
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/mobile-en.png",
+      "git_blob": "0e20babd930ee2d6d138ed0cdc7f09b681179fcf",
+      "before_sha256": null,
+      "after_sha256": "93a22659176793246491d8bfd476d874372fa4904e32c453ded0b19004ec6876",
+      "size": 25080
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/mobile-zh.png",
+      "git_blob": "c9f18b5249d959df1fd738c1fbe459e9779f2923",
+      "before_sha256": null,
+      "after_sha256": "fa405dc3d7c85f1ba72f290d4862d667f6da510629fbd18c9db0321ea2a2174e",
+      "size": 26502
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/result.json",
+      "git_blob": "9d2c3ff49dc7ae139f01e245df25463c2904f2c7",
+      "before_sha256": null,
+      "after_sha256": "8e03850d31ecd1ac9e41b255f207bf520a384294619f78cfd111a96e12f06fa2",
+      "size": 1146
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/start.json",
+      "git_blob": "5e4090a6c44847889fc6b2eb92fb574fd6218f23",
+      "before_sha256": null,
+      "after_sha256": "746aa977b4f43507a7e26745df9e814c398d0969fb4d983b38f72c6d2bcecb92",
+      "size": 208454
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/tablet-en.png",
+      "git_blob": "6bdb7d5d6a92c06e795888dee18b0df4a6225cb7",
+      "before_sha256": null,
+      "after_sha256": "388a71b49ae4ed2aaa9c6fe88d328c05ca4dc4cc8628c819fb6062bad3a54b8d",
+      "size": 35421
+    },
+    {
+      "path": "terminal/docs/pr-crops/company-alternate-listing-20261103/theses-entry-20261103/tablet-zh.png",
+      "git_blob": "7f0e9b7b6907210ed1fc5abb5e2c7e4a5b6988e2",
+      "before_sha256": null,
+      "after_sha256": "f77e535a8810955f33f9be869bcf13312a99f01f1793ca83221221129f9c0e9f",
+      "size": 34281
+    }
+  ],
+  "completed_at": "2026-11-05T09:53:41.185757+00:00"
+}

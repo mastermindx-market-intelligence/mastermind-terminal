@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr646-stage0-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests | 57 skipped) 1306ms
+   ✓ paired Options integration proof > refuses a mixed current family declaration 358ms
+   ✓ momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations 727ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed | 57 skipped (60)
+   Start at  03:29:57
+   Duration  3.59s (transform 324ms, setup 0ms, collect 276ms, tests 1.31s, environment 0ms, prepare 601ms)
+

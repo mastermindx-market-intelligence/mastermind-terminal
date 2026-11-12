@@ -149,10 +149,12 @@ describe("plain-language guard — CI wiring", () => {
     // wiring it does not own.
   });
 
-  it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
+  it("A3. both guard steps run LAST — after the last vitest step and after the quarantine disclosure — inside the job that feeds the required check", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
-    const testStep = unit.indexOf("- run: npm test");
+    // Since the unit split, the last vitest step inside terminal-unit is the
+    // post-capture evidence validation; the other suites run in parallel shards.
+    const testStep = unit.indexOf("- name: Validate fresh evidence through the unit readers");
     const disclose = unit.indexOf(`- name: ${DISCLOSE_STEP}`);
     const selfCheck = unit.indexOf(`- name: ${SELF_CHECK_STEP}`);
     const enforce = unit.indexOf(`- name: ${ENFORCE_STEP}`);
@@ -168,10 +170,21 @@ describe("plain-language guard — CI wiring", () => {
 
     // The aggregate job's name is what master's branch protection keys on, and
     // it must still depend on terminal-unit — otherwise a red guard step would
-    // never reach the required check.
+    // never reach the required check. pr_scope sits in the same `needs` list
+    // because the fan-in reads its result/mode to admit a docs-only skip; the
+    // independent e2e selector and both shard jobs must also stay listed.
     const aggregate = jobBlock(text, "terminal");
     expect(aggregate).toContain("name: Terminal typecheck + tests");
-    expect(aggregate).toContain("needs: [terminal-unit, terminal-e2e]");
+    const needsLine = aggregate.match(/^\s*needs: \[([^\]]*)\]/m);
+    expect(needsLine).not.toBeNull();
+    const needs = needsLine![1].split(",").map((s) => s.trim());
+    expect(needs).toContain("terminal-unit");
+    expect(needs).toContain("terminal-e2e");
+    expect(needs).toContain("pr_scope");
+    expect(needs).toContain("e2e-scope");
+    expect(aggregate).toContain("e2e-scope:$SCOPE");
+    expect(aggregate).toContain("terminal-unit:$UNIT");
+    expect(aggregate).toContain("terminal-e2e:$E2E");
   });
 
   it("A4. the guard is invoked exactly twice inside terminal-unit (self-check, then enforce)", () => {

@@ -1,0 +1,54 @@
+{
+  "file": "/private/tmp/terminal-portfolio-verification-20261018/native-postgres-forward0036/a09-entry-unit-izcmmbky/0036_portfolio_entry_currency.sql",
+  "sha256": "ce3d8e8d90b2155c1a50d897d9836500ed2799230b6d7c3a7a1873ecbe944790",
+  "pre": [
+    {
+      "statement": "SELECT a.attname, format_type(a.atttypid,a.atttypmod) AS type, a.attnotnull, a.atthasdef FROM pg_attribute a WHERE a.attrelid='public.portfolio_positions'::regclass AND a.attname IN ('entry_currency','entry_currency_basis') AND NOT a.attisdropped ORDER BY a.attname",
+      "rows": []
+    },
+    {
+      "statement": "SELECT pg_get_constraintdef(oid), convalidated FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape'",
+      "rows": []
+    },
+    {
+      "statement": "SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='portfolio_entry_currency_receipt'",
+      "rows": []
+    },
+    {
+      "statement": "SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE t.tgrelid='public.portfolio_positions'::regclass AND t.tgname='portfolio_entry_currency_receipt' AND NOT t.tgisinternal",
+      "rows": []
+    },
+    {
+      "statement": "SELECT c.relrowsecurity, c.relforcerowsecurity FROM pg_class c WHERE c.oid='public.portfolio_positions'::regclass",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false
+        }
+      ]
+    }
+  ],
+  "post": [],
+  "applied_at": "2026-10-18T07:08:14Z",
+  "statements_n": 1,
+  "status": "failed",
+  "project_ref": "isolated-local-fixture",
+  "apply_mode": "statement-at-a-time",
+  "expected_objects": [
+    {
+      "kind": "trigger",
+      "name": "portfolio_entry_currency_receipt"
+    },
+    {
+      "kind": "function",
+      "name": "portfolio_entry_currency_receipt"
+    }
+  ],
+  "missing_after": [],
+  "failed_statement_index": 1,
+  "error": "HTTP 400: NOTICE:  trigger \"portfolio_entry_currency_receipt\" for relation \"public.portfolio_positions\" does not exist, skipping\nERROR:  portfolio fixture rollback after trigger\nCONTEXT:  PL/pgSQL function inline_code_block line 54 at RAISE\n",
+  "tool_version": "supabase_apply/1",
+  "readback_excluded": [],
+  "proof_class": "isolated_actual_postgres",
+  "production_effects": false
+}

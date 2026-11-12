@@ -1,0 +1,81 @@
+{
+  "schema": "turbopack_font_transport_fixture.v1",
+  "port": 3702,
+  "bind": "127.0.0.1",
+  "original_response_map_sha256": "0863e9151dab6e278d9eacf5d1560163b6fbe3bf2cac59e369199d7e4ba962fd",
+  "turbopack_response_map_sha256": "9022de643fe32ffd697908b07dca73d6b9faf2eafb7570d34076a55c1b16493f",
+  "font_files": {
+    "2c55a0e60120577a-s.0-dom-5bn10r2.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/2c55a0e60120577a-s.0-dom-5bn10r2.woff2",
+      "sha256": "fccca918fea40089dacadc7045861314d1a6bc91f1f323cc1eeb22ebcdb321b5",
+      "bytes": 25844
+    },
+    "9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/9c72aa0f40e4eef8-s.1y4-pdgsjb-pw.woff2",
+      "sha256": "aebf2ab4a4ce6810d73c1ac7be7cafb4e5ec4cee2d6db5fb3e09691747ec4bd6",
+      "bytes": 18744
+    },
+    "ad66f9afd8947f86-s.3lvt2whj97whp.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/ad66f9afd8947f86-s.3lvt2whj97whp.woff2",
+      "sha256": "a2e2c783ca6f9c20486e81e72a279203e86730bbf8f01ff6a5ee9dbd09e1c271",
+      "bytes": 11272
+    },
+    "5476f68d60460930-s.2uwcyprjm3xu3.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/5476f68d60460930-s.2uwcyprjm3xu3.woff2",
+      "sha256": "46dd4cdca58c26ae87cc6927657bf83b2e8abfc39ffd0ab176e301a8d28d22bf",
+      "bytes": 19044
+    },
+    "2bbe8d2671613f1f-s.0k62hbripvv8p.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/2bbe8d2671613f1f-s.0k62hbripvv8p.woff2",
+      "sha256": "8db00ff46c67b22cda8bed865acf7077651cac8d2841d5b40980556b48961931",
+      "bytes": 10280
+    },
+    "1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2",
+      "sha256": "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2",
+      "bytes": 85272
+    },
+    "83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "bytes": 48432
+    },
+    "13bf9871fe164e7f-s.2f7nqdagzwx2-.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/13bf9871fe164e7f-s.2f7nqdagzwx2-.woff2",
+      "sha256": "992eea2f70210457ddd1196de4df3240919ffe068ad188c79d985fba4565d3bf",
+      "bytes": 2020
+    },
+    "cc545e633e20c56d-s.176arc174-8zp.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/cc545e633e20c56d-s.176arc174-8zp.woff2",
+      "sha256": "af7486955880be1c2b972e9c766acffb776768d669b6576ed9a0919ce72e7ca6",
+      "bytes": 12064
+    },
+    "71b036adf157cdcf-s.0bp8oijd_gu96.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/71b036adf157cdcf-s.0bp8oijd_gu96.woff2",
+      "sha256": "3edf363dbf9d5fa0cdc784ae2b431a8a4152f4055a8a8858028c0bd668808273",
+      "bytes": 9084
+    },
+    "89b21bb081cb7469-s.1fby2rem9ngyr.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/89b21bb081cb7469-s.1fby2rem9ngyr.woff2",
+      "sha256": "1390e86cc2823e759358918c01c4fcc1b6e4f01bca915bdbeb6d68eb5c244405",
+      "bytes": 7468
+    },
+    "3fe682a82f50d426-s.0vfdmo25voy_0.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/3fe682a82f50d426-s.0vfdmo25voy_0.woff2",
+      "sha256": "7db7affbce1fdee69c1ffc2641bbca289b049867f524c9d861fe35ab6670bf29",
+      "bytes": 15204
+    },
+    "70bc3e132a0a741e-s.3t6q91iet4nsy.woff2": {
+      "source": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/test-fonts/70bc3e132a0a741e-s.3t6q91iet4nsy.woff2",
+      "sha256": "1e06740a02a443fb7f3eeda8fcaa685a0f6c620e3f01e6666e847295469ce3ad",
+      "bytes": 40480
+    }
+  },
+  "font_count": 13,
+  "css_changes": "Only13srcURLs; sameCSSkeys,families,weights,display,Unicodeandfontbytes",
+  "webpack_fixture_unchanged": true,
+  "source_basis": [
+    "https://github.com/vercel/next.js/blob/v16.2.9/crates/next-core/src/next_font/google/mod.rs",
+    "https://github.com/vercel/next.js/blob/v16.2.9/turbopack/crates/turbo-tasks-fetch/src/client.rs"
+  ]
+}

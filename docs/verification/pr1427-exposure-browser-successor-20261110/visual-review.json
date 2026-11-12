@@ -1,0 +1,32 @@
+{
+  "images": [
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-partial-mobile-zh.png",
+      "sha256": "57adf19bd4b23392ed83e41e5eced70eb213643f6410d3af9bf09b230b0ed25e"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-vanna-drawer.png",
+      "sha256": "c7b1eac0a0c72f05fb73771525def1bd745585156c061680cb77b8324334298e"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-workspace-desktop-en-light.png",
+      "sha256": "e8f62e15d5fba3a9119af411bbb8716ba4b14897eb3fa0d1ef9cc0605a1127e6"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-workspace-tablet-zh-dark.png",
+      "sha256": "22654b7de0e396b314a90f44d49160b634a8b356f35b122b9fb373737f933073"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/browser-artifacts/direct/exposure-matched-gamma-mobile-en.png",
+      "sha256": "90b43cb75d58973cad33a373bd7592a609f6ce6cffa71312dd08fc7992e14846"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/exposure-momentum-integration-20261110/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-d0199-rough-bars-and-drawer-in-zh-mobile/mobile-zh-expiry-charm-bars.png",
+      "sha256": "9c8519bed933652da4177586f4b4d9326aba820dd931eb781fd8ede304cc782e"
+    }
+  ],
+  "observations": "Visible selected-language labels, distinct light/dark workspace palettes, mobile partial-data and matched-Gamma content, and expiry source-state displays in the reviewed views. No new visual source correction identified in this sample.",
+  "schema": "terminal_pr1427_visual_review.v1",
+  "scope": "Representative actual fixture screenshots; not manual inspection of every matrix image, production, live account or signed-in S13 acceptance.",
+  "state": "SIX_REPRESENTATIVE_PNGS_INSPECTED"
+}

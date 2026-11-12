@@ -1,0 +1,12 @@
+ ✓ lib/__tests__/scrollLock.test.ts (4 tests) 3ms
+ ✓ lib/__tests__/useReplayColumns.test.ts (4 tests) 2ms
+ ✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 41ms
+ ✓ lib/__tests__/legacyLoginReturn.test.tsx (3 tests) 25ms
+ ✓ lib/__tests__/chartFrameBarClock.test.tsx (1 test) 19ms
+ ✓ lib/__tests__/futuresPollingReview.test.tsx (2 tests) 35ms
+
+ Test Files  1032 passed | 5 skipped (1037)
+      Tests  17523 passed | 47 skipped | 4 todo (17574)
+   Start at  23:54:10
+   Duration  25.64s (transform 62.18s, setup 0ms, collect 182.46s, tests 152.30s, environment 60.57s, prepare 43.08s)
+

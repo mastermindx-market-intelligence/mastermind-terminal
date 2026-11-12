@@ -1,0 +1,32 @@
+{
+  "method_sha256": "7f5b154e7d5048f0cf20e54429df68ba28e2fa58029c89f64e7f19486410a3e4",
+  "workflow_sha256": "f8be5efd51ecb61adc7eb16d167fcb3524f6b07c7360362891a5f3ad3e9a3136",
+  "assertions_weakened": false,
+  "server_started": false,
+  "projects": {
+    "desktop": {
+      "whole_count": 669,
+      "first_half_count": 335,
+      "second_half_count": 334,
+      "overlap_count": 0,
+      "missing_count": 0,
+      "whole_test_identity_sha256": "25a6f5c8ad6e3c9f4d3592365f44243291858a3f9a271d7d67ab2a8a11be7177"
+    },
+    "tablet": {
+      "whole_count": 669,
+      "first_half_count": 335,
+      "second_half_count": 334,
+      "overlap_count": 0,
+      "missing_count": 0,
+      "whole_test_identity_sha256": "0f94f1a2a6c5aeb3ba9a101ff1b0c45a106be257ea777ad98ee50ebfc4abf13b"
+    },
+    "mobile": {
+      "whole_count": 669,
+      "first_half_count": 335,
+      "second_half_count": 334,
+      "overlap_count": 0,
+      "missing_count": 0,
+      "whole_test_identity_sha256": "30bc7bfc0e9221d7b40760365e1258abe89ae0b0f2631fab1b7a5554454e191b"
+    }
+  }
+}

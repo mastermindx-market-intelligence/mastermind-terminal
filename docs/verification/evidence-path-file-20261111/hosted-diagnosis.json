@@ -1,0 +1,27 @@
+{
+  "actualCheckout": "017b342dacfd44865c55a3768899a256a76222c0",
+  "actualTree": "b805b806c81cf9685922c9f6341bdd840e324097",
+  "cause": "The preceding step exports the full path census as one environment variable; bash and later Node actions cannot start. The planner never executes.",
+  "errorLines": [
+    "2026-11-11T15:36:24.5960376Z ##[error]An error occurred trying to start process '/usr/bin/bash' with working directory '/home/runner/work/mastermind-terminal/mastermind-terminal/terminal'. Argument list too long",
+    "2026-11-11T15:36:24.8550394Z ##[error]An error occurred trying to start process '/home/runner/actions-runner/cached/2.338.2/externals/node24/bin/node' with working directory '/home/runner/work/mastermind-terminal/mastermind-terminal'. Argument list too long",
+    "2026-11-11T15:36:24.8675260Z ##[error]An error occurred trying to start process '/home/runner/actions-runner/cached/2.338.2/externals/node24/bin/node' with working directory '/home/runner/work/mastermind-terminal/mastermind-terminal'. Argument list too long"
+  ],
+  "failedStep": "Plan current-source evidence capture",
+  "head": "762a0f7b88e0470cbf932bad8208b84d71b79c92",
+  "job": 130622153024,
+  "logSha256": "918c017cabc2eb4c48f137e471214504fe3301259e48b0f08893a70861d0008c",
+  "loggedEnvironmentBytes": 439184,
+  "loggedEnvironmentSha256": "b9c76c4636b704a4eff8027031f20faced27c99a75028e0057f08b1657320fac",
+  "parents": [
+    "b6db0ca0ebfba1463746dc1eb6bdd6b50f4e19e7",
+    "762a0f7b88e0470cbf932bad8208b84d71b79c92"
+  ],
+  "paths": 2649,
+  "rawLogCapture": "ANSI-containing response was redirected directly to a file using the CLI documented flag; raw escape sequences were never emitted to a terminal.",
+  "reconstructedFileBytes": 439185,
+  "reconstructedFileSha256": "7d375829b2e58ea57fdda9f2131b58e3614f7d125d93f98b197aa9a7c5e0dff3",
+  "recordedAt": "2026-11-11T16:00:34.226815+00:00",
+  "run": 43049099269,
+  "schema": "terminal.pr1270.hosted_census_overflow.v1"
+}

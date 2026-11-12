@@ -1,0 +1,17 @@
+{
+  "schema": "terminal.vi_root_reconciliation.v1",
+  "action": "Restore active alias from its selected sealed native operation; no recapture and no digest change",
+  "selectedOperation": "options-combined-vi-20261104-c3",
+  "qualifiedNativeImage": "terminal/docs/pr-crops/terminal-visual-intelligence/options-combined-vi-20261104-c3--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+  "qualifiedSha256": "7e01a5918eb1c2ddb4dd6629d96fc23d029dbce917bce3e975de5bc41646ab84",
+  "priorUnqualifiedImage": "terminal/docs/pr-crops/terminal-visual-intelligence/options-combined-vi-final-20261104-c3--unqualified-desktop-context.png",
+  "priorUnqualifiedSha256": "fbd924293a7b24383baf4182ae123f7093d0edd80704bcf1d4b6058ed6b627af",
+  "evidenceManifestSha256": "f1b9beb8204985d12d679c618b7431aef1caea614b28b94182bfb6fa2915f21f",
+  "declaredSourceCount": 58,
+  "reuseLimit": "Historical native operation; 58 declared dependencies match. Not a new current-base 30-case browser run.",
+  "inputs": {
+    "protected": "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc",
+    "exposure": "6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b",
+    "options": "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  }
+}

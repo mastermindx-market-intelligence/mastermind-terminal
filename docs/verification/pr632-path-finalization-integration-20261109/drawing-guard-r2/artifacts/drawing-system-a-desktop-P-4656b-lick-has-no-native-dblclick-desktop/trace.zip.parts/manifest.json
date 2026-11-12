@@ -1,0 +1,95 @@
+{
+  "note": "Exact original failed-attempt diagnostic bytes. Reconstruct trace.zip from ordered parts; source and test outcomes are unchanged.",
+  "originalBytes": 55985343,
+  "originalGitBlob": "83ad8bea0924f37dc1d09dd7dde2a1cd0cb59b93",
+  "originalPath": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+  "originalSha256": "e2e868f5c5528502049acdf49a2c82a424b02c6e6216af3b73f06300c6bd4bb0",
+  "partBytes": 4194304,
+  "parts": [
+    {
+      "bytes": 4194304,
+      "file": "part-000.bin",
+      "offset": 0,
+      "sha256": "e48dc6310e2b47c7abe15b06979014562c7e57c1d6e8bb00eb1f59c629d7b563"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-001.bin",
+      "offset": 4194304,
+      "sha256": "120631ef509b58288e73149acd57ebef133991588632e2eaac6cf017938c8da9"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-002.bin",
+      "offset": 8388608,
+      "sha256": "0af86ca0d4d58f946c6a8bab2364bcf129f97b29af13caa86b31b82c097313d7"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-003.bin",
+      "offset": 12582912,
+      "sha256": "a85ec9d7fc955e217ff0e33c10ace009aa8169e857ac99f9449ea6e848f231d3"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-004.bin",
+      "offset": 16777216,
+      "sha256": "d7bcffd887fd8836943959332504941bca6ffeb1b31d7ae2e72360e118201843"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-005.bin",
+      "offset": 20971520,
+      "sha256": "934287c6870efcde21cd66afd2dc9fa8768dcc1a98b8ec749aefa16afdbf7c60"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-006.bin",
+      "offset": 25165824,
+      "sha256": "1ddee3feea91ecadd4e6168e1133a99dfcb2e71ce3aba1a9d4fbde8a0e9f3492"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-007.bin",
+      "offset": 29360128,
+      "sha256": "93d231ad33358fd616575db8e08d8bf6d96acaa14b093b804802643363021693"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-008.bin",
+      "offset": 33554432,
+      "sha256": "d553aaad3b4d4f601e746386eeb3a2cdb0b77b6f2765e19db02defbec3cc3946"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-009.bin",
+      "offset": 37748736,
+      "sha256": "a0afe61e7d5d8b870fbc9bf2995c191b9f93e42b1693a533a843f1765d492f96"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-010.bin",
+      "offset": 41943040,
+      "sha256": "64dd5f90d1c06ad56f859919b3603ecee21d647c5bcdae9c146d365efceb7e71"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-011.bin",
+      "offset": 46137344,
+      "sha256": "42dff8ea054f46cecaad2a47e0830a43714701a1e896824ced93244bdf114e52"
+    },
+    {
+      "bytes": 4194304,
+      "file": "part-012.bin",
+      "offset": 50331648,
+      "sha256": "c439e73f47350328c61a8e94541b8927e20da1bc8d3d56a3685cd0ef9c39b29e"
+    },
+    {
+      "bytes": 1459391,
+      "file": "part-013.bin",
+      "offset": 54525952,
+      "sha256": "0db5dc3ace745e8253a013040b0edd622d819a6344594d92b58c641651caa41a"
+    }
+  ],
+  "schema": "terminal_exact_diagnostic_trace_parts.v1"
+}

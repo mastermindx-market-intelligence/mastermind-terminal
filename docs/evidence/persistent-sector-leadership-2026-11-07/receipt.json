@@ -1,0 +1,118 @@
+{
+  "schema": "persistent-sector-leadership.terminal-ui-evidence/v1",
+  "verified_at_date": "2026-11-07",
+  "scope_issue": "https://github.com/mastermindx-market-intelligence/Mastermind/issues/1202#issuecomment-6695716256",
+  "base_commit": "df432b7da0222e0641aa1aff1c05b74cc499b5e7",
+  "operation_id": "persistent-sector-leadership-ui-20261107-c4",
+  "review": "SELF_REVIEWED",
+  "worker_source_commit": "ed951936e8d9fb4ac783e15207129f8e8cabb3d9",
+  "worker_response_sha256": "01bb3d56cb9e0a4b45ae7e7ba5951c2b37f7c74f61b62b13380474eec64aac42",
+  "parent_repairs": [
+    "Retain eleven selectable identities for validated all-null source packets.",
+    "Show localized unavailable reasons, actual as-known decision cutoff and knowledge mode.",
+    "Describe compatibility keys without claiming immutable generation.",
+    "Reset disclosure on source replacement and preserve zero values and truthful missingness.",
+    "Exercise actual reload and browser back in the existing journey."
+  ],
+  "validation": [
+    {
+      "check": "focused sector parser, failure, owner, gateway, refresh and dossier tests",
+      "result": "PASS",
+      "tests": 184,
+      "files": 7
+    },
+    {
+      "check": "Next type generation and TypeScript noEmit",
+      "result": "PASS"
+    },
+    {
+      "check": "ESLint on changed TS/TSX files",
+      "result": "PASS"
+    },
+    {
+      "check": "dossier component regression after TypeScript narrowing repair",
+      "result": "PASS",
+      "tests": 25
+    },
+    {
+      "check": "Playwright e2e/sector-leadership-dossier.spec.ts --workers=2",
+      "result": "PASS",
+      "tests": 39,
+      "duration_seconds": 107.58,
+      "viewports": [
+        "1440x900",
+        "820x1180",
+        "390x844",
+        "320px narrow"
+      ],
+      "locales_themes": [
+        "en-dark",
+        "zh-light"
+      ],
+      "journeys": [
+        "Discover -> detail -> sector change -> return/reload/browser back",
+        "Rotation -> detail",
+        "access withdrawal clears previous figures",
+        "keyboard disclosure and visible focus",
+        "all-null rows and source qualification details"
+      ]
+    }
+  ],
+  "images": [
+    {
+      "path": "desktop-overview-en-dark.png",
+      "sha256": "d1048cc5d1e2b80a736dcec3756704bf213eae78f994666cd95a2159fd1a0133",
+      "bytes": 161207,
+      "visual_review": "readable; no horizontal overflow or clipped source text in affected panel"
+    },
+    {
+      "path": "mobile-overview-zh-light.png",
+      "sha256": "aebeed65298e77c35e5e1a5a12326766416b4fd604666d63f64173d771dd5385",
+      "bytes": 83797,
+      "visual_review": "readable; no horizontal overflow or clipped source text in affected panel"
+    },
+    {
+      "path": "mobile-narrow-320-en-dark.png",
+      "sha256": "4d2ae91ef67ab042c64459feecd867562b9e792648918369277b91c1b7ec9108",
+      "bytes": 53893,
+      "visual_review": "readable; no horizontal overflow or clipped source text in affected panel"
+    }
+  ],
+  "source": [
+    {
+      "path": "terminal/components/sector-intelligence/SectorLeadershipDossier.tsx",
+      "sha256": "435ba59b9464bbd433e439f7214832c75bbca2d1a18c9e1fe7801e3db90ea9c2",
+      "git_blob_sha1": "a44d69aa6376f51ff3897f2ed60eb9da0932d37f"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorLeadershipDossier.module.css",
+      "sha256": "78d4633fe60a244349b28171580ab52e2454a032832037e043c2559ad2156ae9",
+      "git_blob_sha1": "0981eab031f98711a8fdc0f06fcf58b6febb2659"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sha256": "6ad07dc57c4cca316714e773705b93a80fc70032cc9bf940b6520810569876e6",
+      "git_blob_sha1": "0dd5192d31566f68b80dd238527a4ff019db8a34"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "sha256": "d10233dac91d9deb58c05e66fde2ac5b3a5742006c104342d4fcd3a1fe6fa7e3",
+      "git_blob_sha1": "a27a8afe057a9087eca5af23cf14a3a4c4e4b011"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorLeadershipDossier.test.tsx",
+      "sha256": "c810d33fc348079f65439ead8fa79bd98f21df46c5b24e098b5cd6be2998d641",
+      "git_blob_sha1": "1fd665f68018609b8178bb641b85a08a548760c6"
+    },
+    {
+      "path": "terminal/e2e/sector-leadership-dossier.spec.ts",
+      "sha256": "7feee41d4f216b94b9049749a66d99317ef3af47198f66066fde722cee6eb931",
+      "git_blob_sha1": "5ab736d84aff425ec53bca31a601fb5a6fc2054b"
+    }
+  ],
+  "limitations": [
+    "Browser evidence uses the existing local development auth/feed seams. It is not authenticated production acceptance.",
+    "No source generation, historical admission, mechanism, sector risk or forecast authority is invented.",
+    "Production producer/runtime availability and the cross-product live journey remain separate acceptance gates."
+  ]
+}

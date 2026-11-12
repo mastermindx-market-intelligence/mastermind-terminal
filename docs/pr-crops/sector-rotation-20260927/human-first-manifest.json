@@ -1,0 +1,142 @@
+{
+  "schema": "mastermind.sector_rotation_human_first_evidence.v1",
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parent_head": "b0705183b2452177a73848bc8c3e9741f541e26d",
+  "protected_skillpack": "b2e0b905bfac975766afda3cf65527897bc0e25a",
+  "skillpack_index_blob": "94d1af402598894372858793a5b1931019c5fa77",
+  "owner_source": {
+    "repository": "mastermindx-market-intelligence/macro",
+    "revision": "f94256971e49b6372645af3d329080d6e3747ea9",
+    "path": "site/sectordata/sector_central.json",
+    "as_of": "2026-09-25",
+    "sha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1"
+  },
+  "review_origin": {
+    "pull_request": 754,
+    "review_id": 5329681739,
+    "parent_comment": 5854550954
+  },
+  "source_files": [
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css",
+      "sha256": "a7e01b9b5a48d26cbb00d1e0aef90f4820b1f9175c3721b91aabca565060b4c2"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sha256": "6a7484acb5e75b458a50778dec2a2480a703a3fe4cb7f5588fac71103029a2e0"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorRotationMap.module.css",
+      "sha256": "2544de591071d88ccfc6a0a23cae79a1d36ea2164aa5c24298d09ee6bdc35096"
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorRotationMap.tsx",
+      "sha256": "504ee02b8d431a8ee4841309018949e9115c1776327d778133f43c823d5dde98"
+    },
+    {
+      "path": "terminal/e2e/tools/qualify_sector_rotation.cjs",
+      "sha256": "cfd023dad5798529488b58196057bedfb1dd8ca1749c3c576ad6bd5ea279d8ee"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorRotationMap.test.tsx",
+      "sha256": "eb6bfb9b8efd4de0e0af21cc9f557e25bdc9650307a37ca552e154dc941f5d60"
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "sha256": "8b539941127391903a09cc1d9c35d7ba19ae77de7ca92348b01eaa25ba96c5d4"
+    }
+  ],
+  "source_files_aggregate_sha256": "65e1906e86239af5d2cff469b60094afa032529db8d8bb9912094af0b74c08b6",
+  "tests": {
+    "targeted": "49/49",
+    "related_sector": "148/148",
+    "full_unit": "398 files / 6419 passed / 4 todo",
+    "typecheck": "pass",
+    "scoped_eslint": "pass",
+    "diff_check": "pass",
+    "plain_language_new_blockers": 0
+  },
+  "browser_runs": [
+    {
+      "name": "human-first-r1",
+      "passed": false,
+      "check_count": 8,
+      "failed_check_count": 0,
+      "page_error_count": 0,
+      "error": "AssertionError [ERR_ASSERTION]: chromium-1440-en-light: tactical state is separately labeled\n    at check (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_rotation.cjs:17:90)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_rotation.cjs:66:3",
+      "screenshot_count": 0,
+      "files": [
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r1/qualification.json",
+          "sha256": "0e37dafb51062c1f2b0f6739adc7d8c3d7fa5d8ef82c9e7cf0033f643c58ac48",
+          "bytes": 2852
+        }
+      ]
+    },
+    {
+      "name": "human-first-r2",
+      "passed": false,
+      "check_count": 14,
+      "failed_check_count": 0,
+      "page_error_count": 0,
+      "error": "Error: expect(page).toHaveURL(expected) failed\n\nExpected: \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=semiconductors&sectorSort=source\"\nReceived: \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=&sectorSort=source\"\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.url\" with timeout 5000ms\n    14 × unexpected value \"http://127.0.0.1:3157/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=light&sectorDiscoverySort=source&sectorRotationMode=list&sectorView=intelligence&group=&sectorSort=source\"\n\n    at captureRawStack (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)\n    at callMatcherAsStep (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)\n    at Object.toHaveURL (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_rotation.cjs:88:49",
+      "screenshot_count": 0,
+      "files": [
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r2/qualification.json",
+          "sha256": "dc32a706ff24ae03f52cee18cf11f39c15f4adcfe128f23eaa6ae7aa395ba070",
+          "bytes": 4656
+        }
+      ]
+    },
+    {
+      "name": "human-first-r3",
+      "passed": true,
+      "check_count": 101,
+      "failed_check_count": 0,
+      "page_error_count": 0,
+      "error": null,
+      "screenshot_count": 5,
+      "files": [
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/chromium-1440-en-light-rotation.png",
+          "sha256": "2572e4c785956c70fd6c3228b787579467f3581c960ba8ba234575fd7ce1c2d7",
+          "bytes": 151938
+        },
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/chromium-390-en-light-rotation.png",
+          "sha256": "ac427c256c5ec253db28b5827dba01105ecff2431ca2f33259c177a8ebad44b4",
+          "bytes": 122685
+        },
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/chromium-820-en-dark-rotation.png",
+          "sha256": "d5848852225bd9aea2b313bb4b4278dc17cd4ee43d08f358e7dd7a43661a2290",
+          "bytes": 144457
+        },
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/qualification.json",
+          "sha256": "397231d7f5e7f25519b85d16649eafcf9115c4c63e7014b43cdb6a7bff005db2",
+          "bytes": 18015
+        },
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/webkit-1440-en-dark-rotation.png",
+          "sha256": "d20375d77b01c4e9d4883b2802b6c030163891d93ae9df02ec481a373ad4f74d",
+          "bytes": 218694
+        },
+        {
+          "path": "docs/pr-crops/sector-rotation-20260927/human-first-r3/webkit-390-zh-light-rotation.png",
+          "sha256": "acbc4fe0340ef44d0871c38fb32e871ece8abb287228782757a4ccc63b9d1682",
+          "bytes": 147991
+        }
+      ]
+    }
+  ],
+  "boundaries": {
+    "transport": "exact-owner local interception",
+    "authenticated_production": false,
+    "independent_final_comprehension_acceptance": false,
+    "paper_modified": false,
+    "merged": false,
+    "deployed": false
+  }
+}

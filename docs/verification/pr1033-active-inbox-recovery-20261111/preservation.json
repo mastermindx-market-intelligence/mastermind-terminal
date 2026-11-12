@@ -1,0 +1,168 @@
+{
+  "original_head": "67fd92b80781ac95df7d238e9a674c0fd8f7b670",
+  "original_base": "50713efda7cbd06c60b6dce2f88b31cea5c005a2",
+  "protected_composition_base": "74c007125129090cc762f2bc4b1b152123326444",
+  "original_contribution_count": 34,
+  "original_postimages": [
+    {
+      "path": "terminal/app/api/briefs/deliveries/route.ts",
+      "git_blob": "2985035d3a4d93e5ce9ed32d653ab9791e100e58"
+    },
+    {
+      "path": "terminal/components/briefs/BriefsInbox.tsx",
+      "git_blob": "3bef51189042879d12968f2f75a662cda97e7aa1"
+    },
+    {
+      "path": "terminal/docs/briefs-explicit-language/COMPOSITION_2026-11-05.md",
+      "git_blob": "206c050ff480074a709f8a2d2d5c8b4d40b12b94"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/README.md",
+      "git_blob": "528faaf1b27c064012741302630e2dcbb64d19ac"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-en-dark.json",
+      "git_blob": "330d77c35d0ffe5ed4737dfea22937539401b048"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-en-dark.png",
+      "git_blob": "dca6a3208a6bb59728c4f88813361d93c959be3c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-zh-dark.json",
+      "git_blob": "089b9132510503b9b3e4ce9a3c1a6ee0db1047c7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-1440-zh-dark.png",
+      "git_blob": "cccbe465e7c5a2c74397dd126fbecb93ef398e37"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-390-en-dark.json",
+      "git_blob": "7202edcca198cf60806b0713bf8b5257c7551c7f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-390-en-dark.png",
+      "git_blob": "ec405b8327eff40951ec8e0aebfda6ae8d1dc608"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-390-zh-dark.json",
+      "git_blob": "17fe4e5aa808bd5c3a73889dd8fec1d4468b96c0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-390-zh-dark.png",
+      "git_blob": "acb9ba9f832cc8db2a86ce742f7cc1daca061fb0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-820-en-dark.json",
+      "git_blob": "8dc99126b8d9b6d1447b919a3ad4dc8bb837f4ec"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-820-en-dark.png",
+      "git_blob": "b52d5ce85fb6b73401fe50ed26043aa8485cfe51"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-820-zh-dark.json",
+      "git_blob": "4423f097de6226ac1331a753dcc91eec27c606fd"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/partial-820-zh-dark.png",
+      "git_blob": "45882be255056c5fe9427409afc1ecca9a435f27"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-en-dark.json",
+      "git_blob": "65684e99d432bc3e6bef3516955b2b88a8ddf18d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-en-dark.png",
+      "git_blob": "5d1f571b14b99d989ffd09acf14e249ab89c114e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-zh-dark.json",
+      "git_blob": "cc27226258e2c0b19845028d9f6fcf351261951e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-1440-zh-dark.png",
+      "git_blob": "5cb457c5afc1301a8b56788dd5ad097c377d50ca"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-en-dark.json",
+      "git_blob": "3e16841ae8716254259f6307c5c2ef317826e588"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-en-dark.png",
+      "git_blob": "4ff4fa68439355459c427fe1aa4340b53412ccd8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-zh-dark.json",
+      "git_blob": "69652c05c4d16be572ab7ce6782b15d5768007f9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-390-zh-dark.png",
+      "git_blob": "c4d1a3a676752142054f1260d1ad7f007ecc3825"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-en-dark.json",
+      "git_blob": "1188537a5ae605f7ffb533e6bbc40784da1580d9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-en-dark.png",
+      "git_blob": "ccb773eb5489e919313b9c83c55d6adbc9c91ba7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-zh-dark.json",
+      "git_blob": "6c7f4755f17db6ace419c9d88370cd6d184705d9"
+    },
+    {
+      "path": "terminal/docs/pr-crops/briefs-explicit-language/upgrade-820-zh-dark.png",
+      "git_blob": "6d874e1bf047404f1de4703e19110910069bed65"
+    },
+    {
+      "path": "terminal/e2e/briefs-inbox.spec.ts",
+      "git_blob": "e1223b1770e47136990f661a3a267dc11cf08697"
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefsInbox.deliveryOwnership.test.tsx",
+      "git_blob": "d0a7597b44bb51c4ca1059919249b08804a29c2c"
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefsInbox.test.tsx",
+      "git_blob": "73c1b03fa04b868b3880f5e36871266f94bf8c6a"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefsBody.test.ts",
+      "git_blob": "bad34fd715b03705f5048daefec0ddd9944ad57b"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefsRoute.test.ts",
+      "git_blob": "27787d5a17eda41fccc0fd683194f2b907e67461"
+    },
+    {
+      "path": "terminal/lib/briefs.ts",
+      "git_blob": "7cb140ef02f01108b51737e6341c69c1a8893142"
+    }
+  ],
+  "historical_mixed_packet_tree": "e94e96dbbf6a8031be853bd1d1ef3708e956b75e",
+  "historical_mixed_packet_files": 13,
+  "explicit_language_packet_tree": "16d46d4717e0bbe58e72e3d3c334e076c68dddaa",
+  "explicit_language_packet_files": 25,
+  "accepted_checks_base": "ffcc39bcdf89cb19b08444b8bb64cadbc1a3a5ec",
+  "upstream_delta_count": 335,
+  "upstream_owned_intersection": [],
+  "upstream_refresh_paths": [
+    "terminal/components/flowdesk/FeedPane.tsx",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx",
+    "terminal/components/prophet/optionsAlphaMeasuredEvidence.ts",
+    "terminal/e2e/flow-projection.spec.ts",
+    "terminal/e2e/options-positioning-matrix-header.spec.ts",
+    "terminal/e2e/tools/capture_b_f12_b5_1_sharing.cjs",
+    "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.cjs",
+    "terminal/e2e/tools/capture_f12_b5_2_team_workspaces.test.cjs",
+    "terminal/e2e/tools/capture_w9t_f13_9_team_rollup.cjs",
+    "terminal/lib/__tests__/b_f12_b5_1GrantsEvidence.test.ts",
+    "terminal/lib/__tests__/b_f12_b5_2TeamWorkspacesEvidence.test.ts",
+    "terminal/lib/__tests__/flowProjection.test.ts",
+    "terminal/lib/__tests__/flowProjectionControls.test.tsx",
+    "terminal/lib/__tests__/w9t_f13_9TeamRollupEvidence.test.ts",
+    "terminal/lib/flowProjection.ts"
+  ]
+}

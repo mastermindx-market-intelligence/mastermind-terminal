@@ -15,9 +15,12 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
+const assert = require("node:assert/strict");
+const { tmpdir } = require("node:os");
+const { startLegacyServer, settleLegacyServer, waitLegacyServer } = require("./capture_ci_evidence.cjs");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdirSync, mkdtempSync, copyFileSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
@@ -25,6 +28,7 @@ const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "b-f08-6-alert-prefs");
 const LAYOUT_FILES = [
+  "terminal/app/globals.css",
   "terminal/components/settings/SectionAlertDelivery.tsx",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/components/settings/icons.tsx",
@@ -53,6 +57,8 @@ const ONLY = (process.env.CAPTURE_ONLY || "")
   .filter(Boolean);
 
 mkdirSync(OUT, { recursive: true });
+const CAPTURE_OUT = mkdtempSync(join(tmpdir(), "mmx-b-f08-6-alert-prefs-"));
+console.log(`unpromoted capture directory ${CAPTURE_OUT}`);
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -62,8 +68,8 @@ function sha256File(rel) {
   return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
 }
 
-function layoutFilesBlock() {
-  return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
+function layoutFilesBlock(hashes) {
+  return LAYOUT_FILES.map((rel) => `  ${rel}: "${hashes[rel]}"`);
 }
 
 function cropName(state, width, lang) {
@@ -112,68 +118,14 @@ const FIELD_POST = {
   },
 };
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
+function startServer() { return startLegacyServer(ROOT, PORT); }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/dev/settings?s=alertDelivery`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
-
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
+async function waitForServer(timeoutMs, child) {
+  await waitLegacyServer(child, `${BASE}/dev/settings?s=alertDelivery`, timeoutMs);
 }
 
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -250,23 +202,24 @@ async function openSection(page, lang, width, state) {
   } else {
     await page.locator('button[data-alert-field="optin-on"]').waitFor({ state: "visible", timeout: 15_000 });
   }
-  await stripDevOverlay(page);
 }
 
 async function shoot(page, file) {
-  await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(120);
+  await assertNoNextIndicator(page, file);
   const card = page.locator(".acs-overlay.open .acs-card");
-  await card.screenshot({ path: join(OUT, file) });
+  await card.screenshot({ path: join(CAPTURE_OUT, file) });
 }
 
 async function main() {
   const capturedAtHead = currentGitHead();
+  assert.match(capturedAtHead, /^[0-9a-f]{40}$/);
+  const sourceHashes = Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)]));
   const child = startServer();
   const files = [];
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {
       const states = ["populated", "quiet-hours", "field-error", "unavailable"];
@@ -294,7 +247,7 @@ async function main() {
             } catch (err) {
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
+                await page.screenshot({ path: join(CAPTURE_OUT, `FAIL-${file}`), fullPage: false });
               } catch { /* ignore */ }
               throw err;
             } finally {
@@ -307,10 +260,20 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
   files.sort();
+  const expectedFiles = ["populated", "quiet-hours", "field-error", "unavailable"].flatMap(state => [1440, 390].flatMap(width => ["en", "zh"].map(lang => cropName(state, width, lang)))).sort();
+  assert.deepEqual(files, expectedFiles, "Capture requires the complete unique matrix");
+  assert.equal(new Set(files).size, expectedFiles.length);
+  assert.equal(currentGitHead(), capturedAtHead, "Source HEAD changed during capture");
+  for (const rel of LAYOUT_FILES) assert.equal(sha256File(rel), sourceHashes[rel], `Source changed: ${rel}`);
+  const captureFiles = Object.fromEntries(files.map(file => {
+    const bytes = readFileSync(join(CAPTURE_OUT, file));
+    assert.equal(bytes.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", file);
+    return [file, createHash("sha256").update(bytes).digest("hex")];
+  }));
   const evidence = [
     "# B-F08-6 Alert delivery — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -319,7 +282,7 @@ async function main() {
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
     "layoutFiles:",
-    ...layoutFilesBlock(),
+    ...layoutFilesBlock(sourceHashes),
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",
@@ -327,14 +290,17 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [SectionAlertDelivery]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f08_6_alert_prefs.cjs",
+    "captureFiles:",
+    ...files.map(file => `  ${file}: "${captureFiles[file]}"`),
     "files:",
     ...files.map((f) => `  - ${f}`),
     "",
   ].join("\n");
+  for (const file of files) copyFileSync(join(CAPTURE_OUT, file), join(OUT, file));
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);

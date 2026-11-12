@@ -1,0 +1,45 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/analysisBrainHost.test.tsx (6 tests) 26ms
+stderr | lib/__tests__/sectionAccountWriteFence.test.ts > SectionAccount — a foreign-only save through the real fence never shows the developer text > EN: the pane shows the acsErrGen sentence and never the developer text
+[accountPrefs] dropped keys the Terminal does not own [ 'alert_email_optin', 'tz' ]
+[accountPrefs] no owned key in patch [ 'alert_email_optin', 'tz' ]
+
+stderr | lib/__tests__/sectionAccountWriteFence.test.ts > SectionAccount — a foreign-only save through the real fence never shows the developer text > ZH: the pane shows the acsErrGen sentence and never the developer text
+[accountPrefs] dropped keys the Terminal does not own [ 'alert_email_optin', 'tz' ]
+[accountPrefs] no owned key in patch [ 'alert_email_optin', 'tz' ]
+
+ ✓ lib/__tests__/sectionAccountWriteFence.test.ts (4 tests) 75ms
+ ✓ lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 149ms
+ ✓ lib/__tests__/portfolioRiskHistoryView.test.tsx (5 tests) 42ms
+ ✓ lib/__tests__/useWorkspaceContextConsumer.test.tsx (7 tests) 27ms
+(node:41608) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ components/settings/__tests__/SectionDeveloper.test.tsx (3 tests) 51ms
+ ✓ lib/__tests__/brainWidgetRebinding.test.ts (1 test) 16ms
+ ✓ lib/__tests__/chartObjectTree.test.tsx (7 tests) 77ms
+(node:41632) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/brainWidgetCfgOnlyAppend.test.ts (2 tests) 17ms
+ ✓ lib/__tests__/alertTimelineEmptyGuard.test.ts (3 tests) 21ms
+ ✓ lib/__tests__/layoutMenuTeamRead.test.ts (3 tests) 30ms
+ ✓ lib/__tests__/portfolioViewFailedReread.test.ts (1 test) 45ms
+(node:41651) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/MarketOntologyContextStrip.test.tsx (4 tests) 42ms
+ ✓ lib/__tests__/retainedInvestigationLayout.test.tsx (4 tests) 34ms
+ ✓ lib/__tests__/onboardingSheetPrefsPending.test.ts (1 test) 37ms
+ ✓ lib/__tests__/useChartBusContext.test.tsx (3 tests) 17ms
+ ✓ lib/__tests__/watchingListEmptyGuard.test.ts (3 tests) 18ms
+ ✓ lib/__tests__/indicatorCanvasProfileBatch.test.ts (2 tests) 22ms
+ ✓ lib/__tests__/indicatorCanvasColumnsRender.test.ts (1 test) 10ms
+ ✓ lib/__tests__/indicatorCanvasSquareBatchRender.test.ts (2 tests) 17ms
+ ✓ lib/__tests__/assetLogos.test.tsx (3 tests) 33ms
+ ✓ lib/__tests__/indicatorCanvasCloudBatch.test.ts (2 tests) 12ms
+ ✓ lib/__tests__/useChartBusRebinding.test.tsx (1 test) 12ms
+ ✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 45ms
+
+ Test Files  480 passed (480)
+      Tests  7863 passed | 4 todo (7867)
+   Start at  17:32:39
+   Duration  39.41s (transform 7.40s, setup 0ms, collect 19.46s, tests 52.86s, environment 14.18s, prepare 15.18s)
+

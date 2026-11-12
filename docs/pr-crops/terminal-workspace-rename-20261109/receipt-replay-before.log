@@ -1,0 +1,34 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ❯ lib/__tests__/layoutRenameFocus.test.tsx (15 tests | 1 failed | 14 skipped) 114ms
+   × workspace rename keyboard continuity > preserves a newer draft in the same row when an earlier rename succeeds 113ms
+     → expected undefined to be 'First request' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/layoutRenameFocus.test.tsx > workspace rename keyboard continuity > preserves a newer draft in the same row when an earlier rename succeeds
+AssertionError: expected undefined to be 'First request' // Object.is equality
+
+- Expected: 
+"First request"
+
++ Received: 
+undefined
+
+ ❯ lib/__tests__/layoutRenameFocus.test.tsx:122:57
+    120|     await render({ feedback: { kind: "renamed", id: alpha.id, name: "F…
+    121|     expect(input()?.value).toBe("Newer draft"); expect(document.active…
+    122|     await edit("First request"); expect(input()?.value).toBe("First re…
+       |                                                         ^
+    123|     await edit("First request extended"); expect(input()?.value).toBe(…
+    124|     expect(document.activeElement).toBe(input()); expect(props.onRenam…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 skipped (15)
+   Start at  07:01:42
+   Duration  1.68s (transform 407ms, setup 0ms, collect 513ms, tests 114ms, environment 482ms, prepare 167ms)
+

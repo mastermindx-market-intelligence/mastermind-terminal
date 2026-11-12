@@ -1,0 +1,45 @@
+const COPY = {
+  net: ["Net", "净"], gross: ["Gross", "总"], abs: ["|Net|", "|净|"],
+  rotate: ["Rotate ⟳", "旋转 ⟳"], elevation: ["Elevation {deg}°", "仰角 {deg}°"],
+  window: ["±{w}% window", "±{w}% 窗口"], expiries: ["{n} expiries", "{n} 个到期日"],
+  spotPlane: ["Spot plane", "现货平面"],
+  vannaLocked: ["Vanna · locked", "Vanna · 锁定"],
+  vannaLockedTitle: ["Vanna and Charm are unavailable for this book", "此账本的 Vanna 与 Charm 不可用"],
+  axisCaption: ["STRIKE ↗ · EXPIRY ↖", "行权价 ↗ · 到期日 ↖"],
+  legendNet: ["NET GAMMA $M · CELL", "净 Gamma $M · 单元"],
+  legendGross: ["GROSS GAMMA $M · CELL", "总 Gamma $M · 单元"],
+  legendAbs: ["|NET GAMMA| $M · CELL", "|净 Gamma| $M · 单元"],
+  referenceSpot: ["reference spot {spot}", "参考现货 {spot}"],
+  unavailable: ["UNAVAILABLE", "不可用"],
+  notDrawnAsZero: ["Vanna · Charm — not drawn as zero", "Vanna · Charm — 不以零绘制"],
+  windowEyebrow: ["WINDOW", "窗口"],
+  windowLine: ["{shown} cells of {total} · ±{w}% · {e} of {eTotal} expiries", "{total} 个单元中的 {shown} 个 · ±{w}% · {eTotal} 个到期日中的 {e} 个"],
+  footerNet: ["Column height is the cell's net gamma from the {session} projection. Nothing is smoothed; clipping the window never changes a cell.", "柱高是 {session} 投影中该单元的净 Gamma。不做任何平滑；裁剪窗口从不改变任何单元。"],
+  footerGross: ["Column height is the cell's gross gamma from the {session} projection. Nothing is smoothed; clipping the window never changes a cell.", "柱高是 {session} 投影中该单元的总 Gamma。不做任何平滑；裁剪窗口从不改变任何单元。"],
+  footerAbs: ["Column height is the cell's absolute net gamma from the {session} projection. Nothing is smoothed; clipping the window never changes a cell.", "柱高是 {session} 投影中该单元净 Gamma 的绝对值。不做任何平滑；裁剪窗口从不改变任何单元。"],
+  sourceTag: ["exposure_projection/v2 · {identity} · sha {sha}", "exposure_projection/v2 · {identity} · sha {sha}"],
+  identityObserved: ["provider observed", "供应商观测"], identityApprox: ["provider approximation", "供应商近似"],
+  cell: ["CELL", "单元"], days: ["{n} day", "{n} 天"], daysPlural: ["{n} days", "{n} 天"],
+  oneCell: ["net gamma · one cell", "净 Gamma · 单个单元"], oneCellGross: ["gross gamma · one cell", "总 Gamma · 单个单元"],
+  strikeNet: ["Strike net", "行权价净额"], allExpiries: ["all {n}", "全部 {n} 个"],
+  expiryNet: ["Expiry net", "到期日净额"], grossInCell: ["Gross in cell", "单元总额"],
+  datedIdentity: ["Dated identity", "日期身份"],
+  providerObserved: ["Provider observed", "供应商观测"], providerApprox: ["Provider approximation", "供应商近似"],
+  vannaCharm: ["Vanna · Charm", "Vanna · Charm"], unavailableLower: ["unavailable", "不可用"],
+  provenance: ["CELL PROVENANCE", "单元来源"],
+  matchedChange: ["matched change vs {session} · same contracts", "与 {session} 的匹配变化 · 相同合约"],
+  changeUnavailable: ["Change unavailable", "变化不可用"],
+  caveatCells: ["Cells are the projection's own cells; the surface draws them unsmoothed.", "单元即投影自身的单元；曲面按原样绘制，不做平滑。"],
+  caveatVanna: ["Vanna and Charm are unavailable for this book and are not drawn as zero.", "此账本的 Vanna 与 Charm 不可用，且不以零绘制。"],
+  pinCell: ["Pin {cell}", "固定 {cell}"], openInExposure: ["Open in Exposure ↗", "在 Exposure 中打开 ↗"],
+  noProjectionTitle: ["No qualified projection for this session", "本交易日没有合格投影"],
+  noProjectionBody: ["The surface draws projection cells only; aggregate books have none.", "曲面只绘制投影单元；聚合账本没有单元。"],
+  emptyWindow: ["No cells inside ±{w}%", "±{w}% 内没有单元"],
+  widenWindow: ["Widen window", "扩大窗口"],
+} as const;
+export type ExposureSurfaceKey = keyof typeof COPY;
+export const exposureSurfaceT = (lang: "en" | "zh") => (key: ExposureSurfaceKey, vars?: Record<string, string | number>): string => {
+  let out: string = COPY[key][lang === "zh" ? 1 : 0];
+  if (vars) for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v));
+  return out;
+};

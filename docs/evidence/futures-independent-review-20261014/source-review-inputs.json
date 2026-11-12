@@ -1,0 +1,12 @@
+{
+  "head": "5ea5d2851477ba502c46d78af53b36cfe9fa211f",
+  "files": {
+    "hub/lib/futuresWorkspaceProjection.js": "7ca38237f92987a0597ea9d71430e49b1b9574811b535fede9b7a6e192d69d69",
+    "hub/lib/futuresPublication.js": "5f7b39cce63944086f50097e9102af8e8f34b2b0072565b21b7b1f95758ffe5d",
+    "terminal/lib/futuresSourceJoin.ts": "bade0e254aa3a868ab331e1157660ab8ce94ba967991052b785ff8eecc09c8c8",
+    "terminal/lib/futuresTransport.ts": "d8c6fc62054663b18394c65bc349faf0b88b85976247814bede8b5088e10c348",
+    "terminal/lib/futuresSourceRead.ts": "4508886df3171a1abd869cc98aae4701e78a186eefb072abef54c9da80e3982b",
+    "terminal/app/api/futures/route.ts": "59ea3b71995fb695faf448b9b0afacdb6295b8267228f0448f086d335014e66e",
+    "terminal/lib/futuresRequest.ts": "2c2d4c9f5f6c2c8c4cea70994e0e4db9fc9cfd49eeabfe0b05fe7b34c75cd4f1"
+  }
+}

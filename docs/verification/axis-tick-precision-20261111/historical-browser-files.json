@@ -1,0 +1,436 @@
+{
+  "archive": "historical-browser-r1-r2.tar.gz",
+  "archive_sha256": "22cc1252db3a2d8d49bf225ed5974649702fcddfabaf8ee2a8d766c5342d3816",
+  "files": [
+    {
+      "path": "browser-r1-results/.last-run.json",
+      "bytes": 635,
+      "sha256": "6f5f71764c8934c77526a8b28c9fc64922b27684c0fa5202b66afd9d316faaf1"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-inline-en-desktop.png",
+      "bytes": 80214,
+      "sha256": "a0ac0d118e71515aa26fddee057c60c85a835f5dc43800ca1d35e2f56b0b0655"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/error-context.md",
+      "bytes": 30160,
+      "sha256": "5e49fd02001e8eba4a39cfa65412bc095bfcb675de354de397ba256dbd356424"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/test-failed-1.png",
+      "bytes": 82112,
+      "sha256": "cc3c666a6ea62f0d6f71276f3d80b993a68575ebdc81dcaa5c099e2bedabab9e"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/trace.zip",
+      "bytes": 740260,
+      "sha256": "5eb532e81c060d7b73e8a3c4a2301cd00470886dff0aec2a9a2c3ff224855cb3"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/cycles-precision-fractional-inline-en-mobile.png",
+      "bytes": 65070,
+      "sha256": "87b0f01d7e8ea13f317ce2ea2109e9d2c98350acc77512c81901fc7c1dc612a4"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/error-context.md",
+      "bytes": 29558,
+      "sha256": "ffa88b3f4163e5d02c0b525b497ddea172aabf795c59226d2e2a3603a1e70919"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/test-failed-1.png",
+      "bytes": 64842,
+      "sha256": "3ad851461f241ab77ee1be81897249a447dc8ad9d716fec22490e355ce8e5451"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/trace.zip",
+      "bytes": 588666,
+      "sha256": "d3c2a31456c3596502d8ec43add050fa21ada0d8d20d2658ad51eeb64ca347c4"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/cycles-precision-fractional-inline-en-tablet.png",
+      "bytes": 76144,
+      "sha256": "ebc8d95ec6e88497a5c94f0de8c4b99d17f3f4db892507ac5d81028b41a68b7c"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/error-context.md",
+      "bytes": 27368,
+      "sha256": "453885950af970858ec315f32dd26b504384de8218c51fd9a04a36c233892a75"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/test-failed-1.png",
+      "bytes": 90002,
+      "sha256": "61847600175619fe6b291f0b7de72dca903d6dfd2051735a47c696c3878e6379"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/trace.zip",
+      "bytes": 775713,
+      "sha256": "34f2e71a8ae1ec090cb487fd2444e156b8d5bdd0c3ad2cfce0b81aac6a9de7d2"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-inline-en-desktop.png",
+      "bytes": 80752,
+      "sha256": "5400f4895e4c7813e2606639916cf21ae0ae62cb3bcb6a310fec1faf0362fdca"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/error-context.md",
+      "bytes": 30174,
+      "sha256": "71e4620bdd27c9a512b5706021311b5b6520d695b8bb36fe33b1c7322d7515b4"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/test-failed-1.png",
+      "bytes": 84198,
+      "sha256": "1ac25620bdba20af20f6eecf76d49184092d25f09524027bf25222ffc44e7974"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/trace.zip",
+      "bytes": 698685,
+      "sha256": "748c62cc93142d6c7beaa6022b5287d931a859ae0f7d3731ca44b4c141f6e953"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-inline-en-mobile.png",
+      "bytes": 65391,
+      "sha256": "442bc69bb5548e16886ffb99e6afe760ae2c3bb5254e123ccb70499e5b548d83"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/error-context.md",
+      "bytes": 29572,
+      "sha256": "ed72af559d1efcad1c68cb455ccf2cc2b1a883b7edf5ea6d24c1230983d8ad35"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/test-failed-1.png",
+      "bytes": 66388,
+      "sha256": "67097fcfe2db134893498db9aebd98b4cd4bc782dc5029b51efc644dd1379485"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/trace.zip",
+      "bytes": 590602,
+      "sha256": "b9c249178d0cdb93863c54f63c42be66218a10ac86cbef3390108686da822178"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-inline-en-tablet.png",
+      "bytes": 76388,
+      "sha256": "0b524497ead744bba5424451fef6897e9ce9a95fee982f8f3923f9c4e1f1d14d"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/error-context.md",
+      "bytes": 27382,
+      "sha256": "36048436eef3fee20d6a9662d23bf6b810698efb4a285a5fb31cd67602e0e56a"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/test-failed-1.png",
+      "bytes": 91836,
+      "sha256": "fc23e39125ee64861d0afc4a0e9c6b3206c87bf62fac10b03e98b5826da60fd6"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/trace.zip",
+      "bytes": 725694,
+      "sha256": "919e476af94f6aeb85b2d18c78813c808c5a739fbd5fd6d5a223a3c2d35d007b"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-inline-zh-desktop.png",
+      "bytes": 83556,
+      "sha256": "2ab6680292d7e03e55269221dc5faaff7d1780100d63d89b41159a72834349cf"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/error-context.md",
+      "bytes": 30033,
+      "sha256": "9eeb7d8901f25d9d15085bb04b9a2c7f8f80b72634b35bc1473b99c7c7faee5b"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/test-failed-1.png",
+      "bytes": 85666,
+      "sha256": "c505034f37c00faa2300b4587ff19ad00c1f06b4f1bf8bd4e9bb1555388903fc"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/trace.zip",
+      "bytes": 780328,
+      "sha256": "93f9be17fd0b4ef8def5a79b9bbe702980cc6757d8e4af474ff0bb60578648ba"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "32108473f266d459a65621cab69c5416977c80e3dff5f7156d7f10c69eaeff5b"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/error-context.md",
+      "bytes": 29429,
+      "sha256": "fa033ccccec2d539579ed09d71fdc0b3d9fc6a069a1a469ff66159ef9ceb590c"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/test-failed-1.png",
+      "bytes": 67292,
+      "sha256": "1723d6d4c8ae79160ee6ea38d79ebae0a650be2927112f6a193c01136cbfe722"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/trace.zip",
+      "bytes": 696580,
+      "sha256": "d5b5b19a0ce3fab77a413c1722f3da44d04c15194c42228b0c12fa8d0cc512b5"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-inline-zh-tablet.png",
+      "bytes": 79210,
+      "sha256": "32ebf7202c5cec517555085ad9aa250f1f67571e2c8765a14f81f5cacc713ee6"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/error-context.md",
+      "bytes": 27241,
+      "sha256": "91cd34126a2184c339709b4f091c04f9a897a63966dd9d52d83c683463abedda"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/test-failed-1.png",
+      "bytes": 92558,
+      "sha256": "7fbfdb77739bd04c42391af1e2de1f7746949a2271913e73b61ee31c95f3b6ee"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/trace.zip",
+      "bytes": 891310,
+      "sha256": "63a982714c5c858f2537ea1fb58fdbe761a4305ede630ea1342d33fa2321394e"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/cycles-precision-fractional-inline-zh-desktop.png",
+      "bytes": 83132,
+      "sha256": "4deaf90d6f34913fe03bc3350274070844566cfdd4818a879b721cf5235fb4a3"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/error-context.md",
+      "bytes": 30019,
+      "sha256": "5f73c914533137fd17e880973ba194936feba7103f792096ec71386f6820c274"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/test-failed-1.png",
+      "bytes": 83585,
+      "sha256": "cf7638e0c8cfc482ff5b9361eee08dfc4b2c2c8d3a9eb0e832ebb49496232beb"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/trace.zip",
+      "bytes": 822331,
+      "sha256": "9a4965bebaa7060921588cd836b1bee26f2237c725d59f6b7c636532cb326928"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "2eaf4aa2f2349291250f89a347709f499a1c8c6122b1facd6f108d468f564259"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/error-context.md",
+      "bytes": 29415,
+      "sha256": "6733c599c2b66f467971db81acd85d7e486d3e4c84375a0396ddb36af9c046ae"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/test-failed-1.png",
+      "bytes": 65767,
+      "sha256": "bb646d089cf0f62853d85035a3791e1bb030752ea6cbc46545b9ae813dcf46b1"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/trace.zip",
+      "bytes": 694682,
+      "sha256": "c1d1f34ced2409c520f41f573ca78927ed40fb7f3ebf2c5d6b78c5ee567130f5"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/cycles-precision-fractional-inline-zh-tablet.png",
+      "bytes": 78807,
+      "sha256": "815d0e3de06dc827491dfcfc7a288bb03088678bf676923a5481d648b2bb021a"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/error-context.md",
+      "bytes": 27227,
+      "sha256": "f6d8174c5f5cec51ca36abb5928d8e415497eac8032aeb72e48a7f1b78a9b30e"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/test-failed-1.png",
+      "bytes": 90661,
+      "sha256": "4207c93e7d9b04d079f80c69553d0d0492a643ed308aa321b767d51e770f17df"
+    },
+    {
+      "path": "browser-r1-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/trace.zip",
+      "bytes": 838019,
+      "sha256": "d3c56e7d8a6517d478a4533a276496b4142f527d0f3aeb2e94d79a7c276173bb"
+    },
+    {
+      "path": "browser-r2-results/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/cycles-measurement-empty-zh-desktop.png",
+      "bytes": 66722,
+      "sha256": "7b8eec5af1973159fc68dc3a3cf113cd02934a87de87205bbd0e3ca2e539c3e8"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/cycles-measurement-empty-zh-mobile.png",
+      "bytes": 54113,
+      "sha256": "482ceee41551c4e312d02d51a6f22821691ca99dc0ba0bc500fef49b1ff6c9b2"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/cycles-measurement-empty-zh-tablet.png",
+      "bytes": 62531,
+      "sha256": "674e858902f9fa7c6c26dd4ab016166cb6ab36cdca213fc5bda698559431fc54"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/cycles-measurement-table-en-desktop.png",
+      "bytes": 62934,
+      "sha256": "b691f70a846523d4428322f9a2f8a168de0ba7f122693d46826251a2da6f1d9b"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/cycles-measurement-table-en-mobile.png",
+      "bytes": 52494,
+      "sha256": "b336e55824752b7b1233eab6addab22260028908afde28e80fb378c0a58517dc"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/cycles-measurement-table-en-tablet.png",
+      "bytes": 58970,
+      "sha256": "79b3e4f568ad3721ab22b1fdc397cae770ea52d901cef5d7e967e98e4137e8df"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-desktop/cycles-measurement-table-zh-desktop.png",
+      "bytes": 66970,
+      "sha256": "c3b8086e28a4aea121096cc7457a5a2edcd9dc4652535f8049de520dc0c56437"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-mobile/cycles-measurement-table-zh-mobile.png",
+      "bytes": 54123,
+      "sha256": "35b7f0da285f786564ce153c174052e97f48722dda5d158c87694225214b2ec7"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-39e58--table-transitions-zh-light-tablet/cycles-measurement-table-zh-tablet.png",
+      "bytes": 62666,
+      "sha256": "4ebc9983a5e8b5d7bfd2aba1df7dc0ba6ec2aae4b25423a4532582de50e03445"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-desktop/cycles-measurement-empty-en-desktop.png",
+      "bytes": 63270,
+      "sha256": "0f2ed77466b1bdc9b59067eaed263fd2aba145b9af1f3d0ba3ed8817ead7f7c9"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-mobile/cycles-measurement-empty-en-mobile.png",
+      "bytes": 53203,
+      "sha256": "60936d71cbdcefe89d1d32da8a85cd0518c2d867ace518cad48e86d98efe87ee"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-c-401bf-s-empty-transitions-en-dark-tablet/cycles-measurement-empty-en-tablet.png",
+      "bytes": 59268,
+      "sha256": "11c78fcb8e0aef9d6107871198b9a43c69c8d98f32ec2c2d68d80b350b0ca255"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-fullscreen-en-desktop.png",
+      "bytes": 106928,
+      "sha256": "ad372e8fadf1a52377b1410286c6145b02c1c9c543c66f245e53899d21b5dff5"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-desktop/cycles-precision-fractional-inline-en-desktop.png",
+      "bytes": 80214,
+      "sha256": "a0ac0d118e71515aa26fddee057c60c85a835f5dc43800ca1d35e2f56b0b0655"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/cycles-precision-fractional-fullscreen-en-mobile.png",
+      "bytes": 67692,
+      "sha256": "fb280bcafa75cd4ecfbe10ba4467d2b42f97a7faed85c7194fae22b0e820b726"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-mobile/cycles-precision-fractional-inline-en-mobile.png",
+      "bytes": 65070,
+      "sha256": "87b0f01d7e8ea13f317ce2ea2109e9d2c98350acc77512c81901fc7c1dc612a4"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/cycles-precision-fractional-fullscreen-en-tablet.png",
+      "bytes": 111461,
+      "sha256": "9bb825be87398a47c8da2cc47407c26197d3ebefae780c23372d935bfd1fe8a2"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-6c93d-llscreen-fractional-en-dark-tablet/cycles-precision-fractional-inline-en-tablet.png",
+      "bytes": 76144,
+      "sha256": "ebc8d95ec6e88497a5c94f0de8c4b99d17f3f4db892507ac5d81028b41a68b7c"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-fullscreen-en-desktop.png",
+      "bytes": 108850,
+      "sha256": "eedaf0230de909a012f13ce24b04047e4bb4e3b13aac4cba1ec12055cb6efc84"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-desktop/cycles-precision-tiny-inline-en-desktop.png",
+      "bytes": 80752,
+      "sha256": "5400f4895e4c7813e2606639916cf21ae0ae62cb3bcb6a310fec1faf0362fdca"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-fullscreen-en-mobile.png",
+      "bytes": 69585,
+      "sha256": "f0a18558c56d1531e2d4586b499f2a8ed77a0b20a17a91c8b2a3ab832111c1b1"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-mobile/cycles-precision-tiny-inline-en-mobile.png",
+      "bytes": 65391,
+      "sha256": "442bc69bb5548e16886ffb99e6afe760ae2c3bb5254e123ccb70499e5b548d83"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-fullscreen-en-tablet.png",
+      "bytes": 113118,
+      "sha256": "534fc14d283df2be2d45341c7a34f2b649648e4de9e213dfb6bb5d9fe3ef8553"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-707f2-ves-fullscreen-tiny-en-dark-tablet/cycles-precision-tiny-inline-en-tablet.png",
+      "bytes": 76388,
+      "sha256": "0b524497ead744bba5424451fef6897e9ce9a95fee982f8f3923f9c4e1f1d14d"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-fullscreen-zh-desktop.png",
+      "bytes": 107681,
+      "sha256": "a36205306bd4d9acd540844acc25b2e90f7e54984726563e09ab80aff2213b26"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-desktop/cycles-precision-tiny-inline-zh-desktop.png",
+      "bytes": 83556,
+      "sha256": "2ab6680292d7e03e55269221dc5faaff7d1780100d63d89b41159a72834349cf"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-fullscreen-zh-mobile.png",
+      "bytes": 68717,
+      "sha256": "877cd5fbf032e639a43fa421e045fc2823423e23a4bcc2b342eaf2c87fd51097"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-mobile/cycles-precision-tiny-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "32108473f266d459a65621cab69c5416977c80e3dff5f7156d7f10c69eaeff5b"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-fullscreen-zh-tablet.png",
+      "bytes": 111819,
+      "sha256": "41bfdec3df8911ca85fef37fc7d6848d0c0e716f08208f8432dbabb92ec07f94"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-b835f-es-fullscreen-tiny-zh-light-tablet/cycles-precision-tiny-inline-zh-tablet.png",
+      "bytes": 79210,
+      "sha256": "32ebf7202c5cec517555085ad9aa250f1f67571e2c8765a14f81f5cacc713ee6"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/cycles-precision-fractional-fullscreen-zh-desktop.png",
+      "bytes": 105795,
+      "sha256": "3e2b73e12b7c98439097b134850ca4e1199cf09aa0ebe2033a4d89e69932d135"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-desktop/cycles-precision-fractional-inline-zh-desktop.png",
+      "bytes": 83132,
+      "sha256": "4deaf90d6f34913fe03bc3350274070844566cfdd4818a879b721cf5235fb4a3"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-fullscreen-zh-mobile.png",
+      "bytes": 66964,
+      "sha256": "e9c0b3e80ff07ee56b6202565eeba8cd896f70e589e86f63c8429950a902f734"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-mobile/cycles-precision-fractional-inline-zh-mobile.png",
+      "bytes": 65173,
+      "sha256": "2eaf4aa2f2349291250f89a347709f499a1c8c6122b1facd6f108d468f564259"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/cycles-precision-fractional-fullscreen-zh-tablet.png",
+      "bytes": 110229,
+      "sha256": "d6b97924223d3f0afb850b4cce3d4e634304ed14ece637da2f01c3788ae3891a"
+    },
+    {
+      "path": "browser-r2-results/sector-cycle-lens-cycles-t-be6e5-lscreen-fractional-zh-light-tablet/cycles-precision-fractional-inline-zh-tablet.png",
+      "bytes": 78807,
+      "sha256": "815d0e3de06dc827491dfcfc7a288bb03088678bf676923a5481d648b2bb021a"
+    }
+  ]
+}

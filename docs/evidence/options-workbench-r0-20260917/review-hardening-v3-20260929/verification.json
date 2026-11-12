@@ -1,0 +1,47 @@
+{
+  "pass": "independent-review repair v3 — cold index read failure",
+  "date": "2026-09-29",
+  "carrier": "mastermind-terminal#608",
+  "finding": {
+    "source": "independent read-only audit of integrated head 91f8acc1",
+    "severity": "blocker",
+    "summary": "#608 closed false-accrual at the FRAME read but left it open at the INDEX read one level above. A cold surface_idx:<ROOT> 503 admits no stamp at all, so frameError can never be set and the pane's empty-state ternary falls through to the accrual copy.",
+    "user_visible_falsehoods": [
+      "chart: 'No surface data yet — accruing. … Nothing is hidden.' — asserts absence on a transport failure",
+      "replay bar: 'this root has none for the selected day' — asserts absence again",
+      "replay bar: 'Refresh unavailable · retaining stored frames' — claims retention with nothing retained"
+    ]
+  },
+  "repair": {
+    "scope_lines_changed": 68,
+    "files": [
+      "terminal/components/surface/SurfacePane.tsx — consume indexError (already on the context, never read); readFailed = frameError || (indexError && indexDate == null)",
+      "terminal/components/surface/ReplayBar.tsx — guard the retention wording on hasFrames; give a failed index its own copy instead of borrowing absence copy",
+      "terminal/components/surface/surfaceStrings.ts — add replayIndexFailed / replayIndexFailedWhy in EN+ZH"
+    ],
+    "non_goals_held": "no replay redesign, no new identity or cache owner, no second poller, no broadening into #768 / Options Alpha"
+  },
+  "discriminating_red_green": [
+    {
+      "case": "reports a cold index transport failure as unavailable, not absence or retention",
+      "red_before_repair": "1 failed | 26 passed — expected 'Surface unavailable', received 'No surface data yet — accruing.Stamps are written as the session runs … Nothing is hidden.'",
+      "green_after_repair": "27 passed"
+    },
+    {
+      "case": "re-runs the admission contract at the render boundary, not just the label pair",
+      "why": "the audit found the render-boundary isSurfaceFrameForContext call was load-bearing but unproven — deleting it reddened nothing. Packet Task 1 requires verifying the validator at the render boundary as well as at fetch completion.",
+      "red_with_contract_removed": "1 failed | 27 passed (28) — degrading the boundary to the cheap root+stamp label pair paints the previous session's frame under the new session's date",
+      "green_with_contract_present": "28 passed"
+    }
+  ],
+  "gates_after_repair": {
+    "surface_family_vitest": { "files": 10, "tests_passed": 276, "exit": 0 },
+    "typecheck": { "exit": 0, "diagnostics": 0 },
+    "browser_matrix": { "tests_passed": 36, "exit": 0, "cold_server": true, "workers": 1, "retries": 0, "note": "expanded 30 -> 36; the 6 new cases are the cold-index failure across EN/ZH x desktop/tablet/mobile" }
+  },
+  "residue_not_fixed_deliberately": [
+    "SessionFlowPane.tsx renders sessionEmptyWhy with the same shape, but is outside #608's changed file set — flagged, not broadened into",
+    "replayContext live flag is derived without frame health; at the head with a healthy index and a failed same-stamp frame refresh the bar still reads LATEST STORED beside the pane's own refresh-unavailable banner",
+    "heatSeries per-band drawImage at fractional destination coordinates may leave sub-pixel seams at some zooms (cosmetic; the single-stretch predecessor could not)"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "state": "APPLIED",
+  "combined_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+  "base": "acd173eae60e1559c87603aee8fa70e35e661b65",
+  "changes": [
+    {
+      "path": "terminal/e2e/company-intelligence.spec.ts",
+      "expected_git_blob": "3d09aacccb30a32e4ca99b89864ce3cc7a0abcb0",
+      "preview_git_blob": "122749e095ef69098b71c687ca4456b042e7138d",
+      "before_sha256": "c949d1e759702ceed19d7d7c02357d6ef75eb16340208a3290191e1098f8a87f",
+      "after_sha256": "c69a79eebbbba60f944d4051138dbbde3a8b976e340ce47324b3105b1845335e"
+    },
+    {
+      "path": "terminal/e2e/market-risk-market-scope.spec.ts",
+      "expected_git_blob": "96c9c2631220e2b725f54728e4d877d0af4f5e7f",
+      "preview_git_blob": null,
+      "before_sha256": null,
+      "after_sha256": "fb24a97a9ae924c9f69aab7cccc2fd144e58a0ad898d4788e1fcef38c6f0d747"
+    },
+    {
+      "path": "terminal/lib/__tests__/earningsExpectationBoundary.test.tsx",
+      "expected_git_blob": "f44a36a4a0e404a47bf3ed35d2ec8eb85c4bc4b8",
+      "preview_git_blob": "b8ba8b8f585a4bbfbba882df7068eeec85671b60",
+      "before_sha256": "5eb624a3088cc7e14e6fe9091e898f66f15806789e5dc09a9aca933d63eebce6",
+      "after_sha256": "73756d1cdecf1e6744e92a3d56dae99d49d5b71ef7ae5811d7f873447e48f343"
+    },
+    {
+      "path": "terminal/lib/__tests__/eventWorkspace.test.ts",
+      "expected_git_blob": "4a72d2db2613dd0aac3ea0fa061908bda6f67c85",
+      "preview_git_blob": "fb727f704c54fc1ed710b09fb2a5f226daad05b1",
+      "before_sha256": "7d78b1374575dbd3f27abaf3fbc1524029a884dcf8625076e7bb8f07ad9ede15",
+      "after_sha256": "9138d2a183ba59f7818dc62a457fae8812ef3e4b82223cd4344d94b28d8cf138"
+    },
+    {
+      "path": "terminal/lib/__tests__/marketRiskMarketScope.test.tsx",
+      "expected_git_blob": "4112b3b72eec89458b2ac8359eacf05efab55bcf",
+      "preview_git_blob": null,
+      "before_sha256": null,
+      "after_sha256": "4b249a597a611fc911da85d39c2e23e09eb750e349b3ba848334f9500f5ebc69"
+    },
+    {
+      "path": "terminal/lib/earningsExpectationBoundary.ts",
+      "expected_git_blob": "7305d05bcee2d8456d09799718fdb674e2898df1",
+      "preview_git_blob": "2a0d2d716953535b42a1f17d80e1446a87cba938",
+      "before_sha256": "3df0cb75c1336dbf809800b30275be49356c70b4f06d1dc12b09e3c5a144ef83",
+      "after_sha256": "71b68cdc638fe7e28f21e5027307b7cc46ab3ffd13928ba1b5288be68a19e174"
+    },
+    {
+      "path": "terminal/lib/marketRisk.ts",
+      "expected_git_blob": "b71b0b7a6f8a1965bb93387601db1d5a843efbdd",
+      "preview_git_blob": "17af6d4186398fb7acdba075119bee443c0e63e5",
+      "before_sha256": "b4178a12297f08ce2d4cd300f597e445a0c93b90f025cd584dba077bf67196c3",
+      "after_sha256": "264172f4d17e753e7d9cc0e6bd78fc81f842679f0f15fc4f22c0d38ed99620d4"
+    }
+  ],
+  "effects": "Only seven exact protected/composed source files in non-Git preview; no managed branch source changes.",
+  "verified_files": 3320,
+  "applied_at": "2026-11-05T10:19:12.196233+00:00",
+  "source_manifest_sha256": "c5e31245ef8ed8d59f8f947a45abe9b6cb67be104eb20ec3d774f70c06de7d82"
+}

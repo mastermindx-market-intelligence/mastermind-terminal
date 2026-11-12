@@ -1,0 +1,516 @@
+{
+  "archivedParentFiles": 22,
+  "at": "2026-11-10T12:44:00.546358+00:00",
+  "newerPacketFiles": 103,
+  "newerPacketsUnchanged": true,
+  "ownedPaths": [
+    {
+      "currentSha256": "8425b227c496e6682fb673fd2393e509a198bd9c062afcf6942080709dea35da",
+      "originalSha256": "8425b227c496e6682fb673fd2393e509a198bd9c062afcf6942080709dea35da",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/README.md",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "ccf6d3fc41fd2d53efa361415d2eb40453bccdcbeaa4d5f966d8b56116564632",
+      "originalSha256": "ccf6d3fc41fd2d53efa361415d2eb40453bccdcbeaa4d5f966d8b56116564632",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/artifacts/.last-run.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "33bb19cf3a244245d330dffa9caee0ba5932b04d439964cff631868be8c9633e",
+      "originalSha256": "33bb19cf3a244245d330dffa9caee0ba5932b04d439964cff631868be8c9633e",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/error-context.md",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "5033815ffe879ffc974f90a5576c876be83f8d6a1e1651260b6457ca6d4ea7dd",
+      "originalSha256": "5033815ffe879ffc974f90a5576c876be83f8d6a1e1651260b6457ca6d4ea7dd",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/test-failed-1.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "3868d1572797e6635d9a14d094b385d37b17c741a7475002056b4bed7393ce3e",
+      "originalSha256": "3868d1572797e6635d9a14d094b385d37b17c741a7475002056b4bed7393ce3e",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/artifacts/ticker-news-ticker-News-ra-acc8b-esktop-tablet-mobile-matrix-desktop/trace.zip",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0a71a9cfdff5f515ccb4b5e03b213bb212285b09b3c221559a3265fbed7d91a5",
+      "originalSha256": "0a71a9cfdff5f515ccb4b5e03b213bb212285b09b3c221559a3265fbed7d91a5",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/browser-report.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "aec2666f5ed66b273d1f32cf9b56e2df407ad03ac22700abdddf9c9aa1b88f4a",
+      "originalSha256": "aec2666f5ed66b273d1f32cf9b56e2df407ad03ac22700abdddf9c9aa1b88f4a",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/execution.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "8ffc8e6dc8a38d4e493ce1836bd8faf604ecd28850a497d20cc3b2b2750574f9",
+      "originalSha256": "8ffc8e6dc8a38d4e493ce1836bd8faf604ecd28850a497d20cc3b2b2750574f9",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/invalid-selector.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+      "originalSha256": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/EVIDENCE.yml",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0",
+      "originalSha256": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d",
+      "originalSha256": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f",
+      "originalSha256": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a",
+      "originalSha256": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f",
+      "originalSha256": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/tablet-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68",
+      "originalSha256": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/tablet-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "dd10b1aba263b1e321b81d8412a411e55a9bd7f225d0f38f49992228929d5002",
+      "originalSha256": "dd10b1aba263b1e321b81d8412a411e55a9bd7f225d0f38f49992228929d5002",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/unavailable-desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "05e6fd90e60c8c2fc90706cf8ec09bea84e4e65c25812dc66b10a9986995bf26",
+      "originalSha256": "05e6fd90e60c8c2fc90706cf8ec09bea84e4e65c25812dc66b10a9986995bf26",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/unavailable-desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "771648561ad3e95496c44e305a6eec9e834f4b20f7316fb76ccf5060fc9cf7f0",
+      "originalSha256": "771648561ad3e95496c44e305a6eec9e834f4b20f7316fb76ccf5060fc9cf7f0",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/unavailable-mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1",
+      "originalSha256": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/returned-packet/unavailable-mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "originalSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/source-after.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "originalSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r1/source-before.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "originalSha256": "0586900fc60d6283889596bea301540d4eaa39d7d8b97a010652c6bbcd28e815",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2-preparation-not-run/source-before.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "a997aa9bedd3fe05d2fdbc7186aab1d4b26c6a9d32bbc10be0219f5725916063",
+      "originalSha256": "a997aa9bedd3fe05d2fdbc7186aab1d4b26c6a9d32bbc10be0219f5725916063",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2-preparation-reconciliation.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "originalSha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/artifacts/.last-run.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "774adcb30a267705cdceb4c74426c8f90171f5711c3c4d9d2542dd4cb04eee2e",
+      "originalSha256": "774adcb30a267705cdceb4c74426c8f90171f5711c3c4d9d2542dd4cb04eee2e",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/browser-report.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "b153f6210e9a4978dd1f80c564135316dd0b39657f51a20fa32e4e02a95db8e0",
+      "originalSha256": "b153f6210e9a4978dd1f80c564135316dd0b39657f51a20fa32e4e02a95db8e0",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/execution.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "281ab12ab614d49c7235c31abdb05420371c700c11ca2cdc36d03ce2f973094e",
+      "originalSha256": "281ab12ab614d49c7235c31abdb05420371c700c11ca2cdc36d03ce2f973094e",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/source-after.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "281ab12ab614d49c7235c31abdb05420371c700c11ca2cdc36d03ce2f973094e",
+      "originalSha256": "281ab12ab614d49c7235c31abdb05420371c700c11ca2cdc36d03ce2f973094e",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/browser-r2/source-before.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "b58d06a9fe524e1ef6d091dda82f88a1f19d27b506abc3d3a37dca1d51a73f38",
+      "originalSha256": "b58d06a9fe524e1ef6d091dda82f88a1f19d27b506abc3d3a37dca1d51a73f38",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/conflict-resolution.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0b07e5f305048fb7cf7ded07f1f7e60dc0bdac62f7234b480192facb84e92d93",
+      "originalSha256": "0b07e5f305048fb7cf7ded07f1f7e60dc0bdac62f7234b480192facb84e92d93",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/dependencies.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "e67f2032c68538441e59b41677584e6689b39374ffd0e62a3dbf2ffa6fcccf92",
+      "originalSha256": "e67f2032c68538441e59b41677584e6689b39374ffd0e62a3dbf2ffa6fcccf92",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/diff-check.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "e10d9c20216181948fa657535e70ed0286c4daa3078a1a2292a39b4d607cb3bb",
+      "originalSha256": "e10d9c20216181948fa657535e70ed0286c4daa3078a1a2292a39b4d607cb3bb",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/excluded-diagnostic-log-inventory.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "6d333993188e7af75e70f26f3832ea91650498ed4f49a6f47e41b03d32adbd11",
+      "originalSha256": "6d333993188e7af75e70f26f3832ea91650498ed4f49a6f47e41b03d32adbd11",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/integration-preparation.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0bedc09922c672553cf79a8f577ed77d63a1098c9bdf20b4bf5ec107298271ac",
+      "originalSha256": "0bedc09922c672553cf79a8f577ed77d63a1098c9bdf20b4bf5ec107298271ac",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/manifest-binding.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "5f0bc18e71bd1bb7c52d86826bb90e6e54d427fe0aaffffd9abaaa00c510475b",
+      "originalSha256": "5f0bc18e71bd1bb7c52d86826bb90e6e54d427fe0aaffffd9abaaa00c510475b",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/newer-packets-before.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d4033fd4f41072b276f52e37d0065615280d12c3526f0e91c20c9b144f6a52e1",
+      "originalSha256": "d4033fd4f41072b276f52e37d0065615280d12c3526f0e91c20c9b144f6a52e1",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/original-preservation.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "1b398d97172c83c2c63ccd27fc3022532905c1c53f9d3397ca5ae6dad334750d",
+      "originalSha256": "1b398d97172c83c2c63ccd27fc3022532905c1c53f9d3397ca5ae6dad334750d",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/EVIDENCE.yml",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "b86bb3830d8b169bae7eca754c5e01cc6d52d6416ebfb26bb3a021bd6bc568fa",
+      "originalSha256": "b86bb3830d8b169bae7eca754c5e01cc6d52d6416ebfb26bb3a021bd6bc568fa",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "3578225684ed98543b87199ae3ad86bc1ec60907c6cd71adbec584c906763a60",
+      "originalSha256": "3578225684ed98543b87199ae3ad86bc1ec60907c6cd71adbec584c906763a60",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "bcee5458d3d08cb2307f802f0fc71c455618423d3b730d857f059818a77c4372",
+      "originalSha256": "bcee5458d3d08cb2307f802f0fc71c455618423d3b730d857f059818a77c4372",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "e4f1bb95666eb501408f4c7621952b8061bfe9c588dfed89209f2aeb60b14e52",
+      "originalSha256": "e4f1bb95666eb501408f4c7621952b8061bfe9c588dfed89209f2aeb60b14e52",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "4433d0c07737a03fb13133a3c193a7f5cb7d1a2f3dca47f809f9fb1bf9a85987",
+      "originalSha256": "4433d0c07737a03fb13133a3c193a7f5cb7d1a2f3dca47f809f9fb1bf9a85987",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/tablet-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "3538ee609c399bef896b1c44f304d8dd43b42ca35bdea0c7328f277d9300f088",
+      "originalSha256": "3538ee609c399bef896b1c44f304d8dd43b42ca35bdea0c7328f277d9300f088",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/tablet-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "566f5fba352b3e8b8da817d6dc0d5d817e5efdcfab13e9116cdfa5ab2bac335b",
+      "originalSha256": "566f5fba352b3e8b8da817d6dc0d5d817e5efdcfab13e9116cdfa5ab2bac335b",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/unavailable-desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18",
+      "originalSha256": "99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/unavailable-desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3",
+      "originalSha256": "d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/unavailable-mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f",
+      "originalSha256": "dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/original/unavailable-mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+      "originalSha256": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/EVIDENCE.yml",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0",
+      "originalSha256": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d",
+      "originalSha256": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f",
+      "originalSha256": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a",
+      "originalSha256": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f",
+      "originalSha256": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/tablet-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68",
+      "originalSha256": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/tablet-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "334ebbd7d0403aad63cb322821699468c95a1e41bf19ac9963fad2da2f863078",
+      "originalSha256": "334ebbd7d0403aad63cb322821699468c95a1e41bf19ac9963fad2da2f863078",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/unavailable-desktop-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18",
+      "originalSha256": "99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/unavailable-desktop-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3",
+      "originalSha256": "d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/unavailable-mobile-en-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f",
+      "originalSha256": "dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/prior-packets/protected/unavailable-mobile-zh-dark.png",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "40abc1b89c1c6e793127496c97977b849f28233116f3052341f527c055955fb7",
+      "originalSha256": "40abc1b89c1c6e793127496c97977b849f28233116f3052341f527c055955fb7",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/qualification.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "660bfabcdb5a51573ca22651d1ed8d7953a2d25bf9bcebd6459f61ce08ff90eb",
+      "originalSha256": "660bfabcdb5a51573ca22651d1ed8d7953a2d25bf9bcebd6459f61ce08ff90eb",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/readiness-repair.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "dafcd91c69bbc057823738e19c2dad7ce79947e26fedfce4823d3179192e2b0f",
+      "originalSha256": "dafcd91c69bbc057823738e19c2dad7ce79947e26fedfce4823d3179192e2b0f",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/selector-repair.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "d652a3a4556ac8b84d79f99ec3c3c35c0b8fcdf712e3f3b9d36ec75a20dfeb0c",
+      "originalSha256": "d652a3a4556ac8b84d79f99ec3c3c35c0b8fcdf712e3f3b9d36ec75a20dfeb0c",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/execution.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "68df0d8689f8bc7cb779b9fd26141ca8069fc8485a986f48113b74df8bc40c47",
+      "originalSha256": "68df0d8689f8bc7cb779b9fd26141ca8069fc8485a986f48113b74df8bc40c47",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/source-after.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "68df0d8689f8bc7cb779b9fd26141ca8069fc8485a986f48113b74df8bc40c47",
+      "originalSha256": "68df0d8689f8bc7cb779b9fd26141ca8069fc8485a986f48113b74df8bc40c47",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/source-before.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "14a088ce7fc9aab0f5c1cf8e68542f4a257ecaee461fc60070d688ad68a53481",
+      "originalSha256": "14a088ce7fc9aab0f5c1cf8e68542f4a257ecaee461fc60070d688ad68a53481",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/source-consumers-r1/units.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "8bae858ba74c88b64f1a6f4abcfa841cef35fe03a3a35296c8adcd24eecb7154",
+      "originalSha256": "8bae858ba74c88b64f1a6f4abcfa841cef35fe03a3a35296c8adcd24eecb7154",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/ticker-news-browser-r1-lifecycle.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "ef989da3ccdeca8a3568d404228113c76ae2a8ba2e644733f9e7a40523e43312",
+      "originalSha256": "ef989da3ccdeca8a3568d404228113c76ae2a8ba2e644733f9e7a40523e43312",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/ticker-news-browser-r2-lifecycle.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "74045eb4ac74f9b2f60d7ed1f1aa2aa1d38675d9f77b4260537852166d55748b",
+      "originalSha256": "74045eb4ac74f9b2f60d7ed1f1aa2aa1d38675d9f77b4260537852166d55748b",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/validate-browser-r2.py",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "bae1ff88109978249238ebdc064797f73948fa16851cb39ce8d9552c86c4555b",
+      "originalSha256": "bae1ff88109978249238ebdc064797f73948fa16851cb39ce8d9552c86c4555b",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/validate-browser.py",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "c35c88fc280c50830636be6cdd445a7ddf362f54e895714c3a116da14c1ffd85",
+      "originalSha256": "c35c88fc280c50830636be6cdd445a7ddf362f54e895714c3a116da14c1ffd85",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/validate-source-consumers.py",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "71412610dbe8fa88e62a5661d82a65c3a801d9e4f5afdc150c8af710a756ea73",
+      "originalSha256": "71412610dbe8fa88e62a5661d82a65c3a801d9e4f5afdc150c8af710a756ea73",
+      "path": "docs/verification/pr910-ticker-news-integration-20261109/visual-review.json",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "4d7988f7700d0beeea8e7249136f2e65cf75166526f51d2b77b03c0b7669e0b0",
+      "originalSha256": "a94033e8809fc2770e3ad525004f1e0d3bda527581f30101a81733aa7d3114b1",
+      "path": "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+      "originalSha256": "f9ce8c69fa250a5275c1506b4f275012f3a6ba55fdad2fbccb4ed09ac68a3d8c",
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+      "originalSha256": "6351d9def9f1333a4d48bd14943c2ed4d0836babf984ebb6e50c32ecf18f4595",
+      "path": "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "originalSha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "originalSha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "path": "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "originalSha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "originalSha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "path": "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "6b22d07c2f3cb7147f007e05fc38218d25780eb2494599fc54ce14c941a6e167",
+      "originalSha256": "dd10b1aba263b1e321b81d8412a411e55a9bd7f225d0f38f49992228929d5002",
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+      "originalSha256": "05e6fd90e60c8c2fc90706cf8ec09bea84e4e65c25812dc66b10a9986995bf26",
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-desktop-zh-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "85e4856adc311220f9f23e785a7f544b38bd4ff98ce12f862f2ed1f4ad06eb61",
+      "originalSha256": "771648561ad3e95496c44e305a6eec9e834f4b20f7316fb76ccf5060fc9cf7f0",
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-en-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "92a3eb419ab731e5bd28b2acbe17504e70a78d4cfd1c4d384bc30429cae7d792",
+      "originalSha256": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1",
+      "path": "terminal/docs/pr-crops/ticker-news/unavailable-mobile-zh-dark.png",
+      "scope": "renewed active packet"
+    },
+    {
+      "currentSha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+      "originalSha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+      "path": "terminal/e2e/ticker-news.spec.ts",
+      "scope": "preserved original contribution"
+    },
+    {
+      "currentSha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+      "originalSha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+      "path": "terminal/lib/__tests__/tickerNewsEvidence.test.ts",
+      "scope": "preserved original contribution"
+    }
+  ],
+  "priorProofTree": "1e1582960661c8e40261ce372b9e8591632b4138",
+  "qualifiedSourceAndPacketsStable": true,
+  "schema": "terminal.pr910.final-preservation.v1",
+  "sourceAndPacketEntries": 2030
+}

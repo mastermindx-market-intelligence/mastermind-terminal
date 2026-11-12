@@ -1,0 +1,206 @@
+{
+  "schema": "mastermind.private.dbn_container_import_profile.v1",
+  "status": "OFFLINE_PRIVATE_PROFILE_IMPLEMENTED",
+  "scope": "Pure offline synthetic/unverified-historical bytes only; no file/network/decompression/public source authority.",
+  "source": {
+    "dbnLibrary": "0.71.0",
+    "commit": "d368005a636bae84bff443cd6ddae6430a0ffd00",
+    "wire": 3,
+    "normalizerPath": "ingest/cme_databento_trades.py",
+    "normalizerBytes": 30431,
+    "normalizerSha256": "879fbfa8ec0c16923330683f8a756f5782bc3127efbf9f88b15ff76dc90691fe",
+    "readerPath": "ingest/cme_dbn_container.py",
+    "readerBytes": 21588,
+    "readerSha256": "6799cc08732ac72655add13ca559721f3f36f93fb8594d95b23f36c53bbf09ba",
+    "testPath": "tests/test_cme_dbn_container.py",
+    "testBytes": 37340,
+    "testSha256": "be5890d1af3a944ead6745517f57051f5953401f6362d87a104388f7030da5ab",
+    "privateReaderOriginSha256": "b5eec33882bad4d4fb0e4f9857b32f26520819766b144c4fbc23bdb8d60f7a9a",
+    "privateTestOriginSha256": "bd43fb5986c48217eb0a45fab10d040115b5f88188352ab7a87519e4636cf07b"
+  },
+  "api": {
+    "parse": "parse_container(data: bytes, limits: Limits = Limits()) -> immutable ParsedContainer",
+    "normalize": "normalize_container(data: bytes, artifact: existing ArtifactBinding, mappings: tuple[DatedMapping,...], qualification_at_ns: int, publication_at_ns: int, *, metadata_range_semantics: str, limits: Limits = Limits()) -> immutable ContainerResult",
+    "view": "ContainerResult.at_knowledge(ns) refuses before declared publication; to_dict returns a fresh diagnostic copy.",
+    "rangeSemantics": "The bridge requires caller declaration half_open_query_ts_recv. Metadata also occurs in split files with endpoint semantics; parser preserves raw bounds, bridge does not infer semantics. Unknown or split semantics refuse this profile.",
+    "diagnosticObjects": "Frozen Python data objects and serialized reports are diagnostics, not transferable authentication tokens; normalize_container always parses original bytes."
+  },
+  "fixedLayout": [
+    {
+      "offset": 0,
+      "bytes": 3,
+      "field": "magic DBN"
+    },
+    {
+      "offset": 3,
+      "bytes": 1,
+      "field": "wire version 3"
+    },
+    {
+      "offset": 4,
+      "bytes": 4,
+      "field": "LE metadata payload length, excludes first 8"
+    },
+    {
+      "offset": 8,
+      "bytes": 16,
+      "field": "dataset NUL string GLBX.MDP3"
+    },
+    {
+      "offset": 24,
+      "bytes": 2,
+      "field": "LE schema 4 (trades)"
+    },
+    {
+      "offset": 26,
+      "bytes": 8,
+      "field": "LE start ns"
+    },
+    {
+      "offset": 34,
+      "bytes": 8,
+      "field": "LE end ns; UINT64_MAX unset"
+    },
+    {
+      "offset": 42,
+      "bytes": 8,
+      "field": "LE record query limit; 0 unset"
+    },
+    {
+      "offset": 50,
+      "bytes": 1,
+      "field": "stype_in 1 raw symbol"
+    },
+    {
+      "offset": 51,
+      "bytes": 1,
+      "field": "stype_out 0 instrument ID"
+    },
+    {
+      "offset": 52,
+      "bytes": 1,
+      "field": "ts_out boolean; must be 0"
+    },
+    {
+      "offset": 53,
+      "bytes": 2,
+      "field": "LE field-driven symbol string width"
+    },
+    {
+      "offset": 55,
+      "bytes": 53,
+      "field": "reserved: strict profile requires all zero"
+    },
+    {
+      "offset": 108,
+      "bytes": 4,
+      "field": "LE schema-definition length; only 0 supported"
+    },
+    {
+      "offset": 112,
+      "field": "symbols, partial, not_found: each u32 count and fixed-width strings; mapping array follows"
+    }
+  ],
+  "variableLayout": {
+    "mapping": "u32 count; each fixed-width raw_symbol, u32 interval count; each interval u32 YYYYMMDD inclusive start, u32 YYYYMMDD exclusive end, fixed-width canonical decimal u32 instrument ID string",
+    "tail": "Exactly 0..7 zero bytes to make metadata payload length divisible by 8. No extra full zero block.",
+    "recordRegion": "Zero or more exact 48-byte TradeMsg records, full contiguous body, length_words 12, rtype0, publisher1, actionT and sides A/B/N. No appended ts_out, mixed records, concatenated containers or trailing bytes.",
+    "zeroRecordPolicy": "Structurally valid empty container can parse; normalizer bridge refuses empty_container_normalization_unsupported because the unchanged record normalizer requires a nonempty artifact."
+  },
+  "strictProfile": {
+    "encoding": "Little endian; immutable bytes only; uncompressed only. Known compression magics refuse without decompression; an extension is never inspected or trusted.",
+    "canonicalCstrings": "Field-driven symbol width 1..256, normally71 (the pinned encoder also tests50). Nonempty printable non-space ASCII value, NUL termination and zero remainder. Empty arrays allow width1.",
+    "distinctions": "Reserved, string-padding and exact tail restrictions are our strict canonical import profile. The reference FSM decoder skips reserved bytes and is more permissive about trailing/padding bytes. Refusal here does not universally establish corruption.",
+    "declarations": "No duplicate requested-array entries/raw-symbol mappings, no overlapping/unsorted intervals; canonical numeric instrument IDs; dates must be valid in Python date's representable calendar. Query-limit count consistency is a declared-metadata check, not source completeness.",
+    "supportedBridge": "Explicit raw symbol requests, known mapping declarations consistent with each observed ts_recv date, no not_found contradiction, external mapped raw symbol equal to the declaration, independently supplied external dated DefinitionBinding still required."
+  },
+  "identity": {
+    "fullContainer": "Compute SHA256 over all supplied original immutable container bytes. ArtifactBinding sha256, byte_length and first_record_offset must agree.",
+    "metadata": "Artifact metadata_evidence.sha256 must hash exact header+metadata prefix [0,first_record_offset), including the 8-byte prelude. This is a content binding, not authentication.",
+    "observation": "Pass unchanged RecordBlock(full_container_sha256, absolute_byte_offset, exact_48_bytes) to the frozen normalize_batch. Distinct physical positions retain both records even all economics/times/sequence match.",
+    "multiExport": "Overlapping exports cannot be merged or deduplicated automatically. Metadata-only container changes change full-container identities without changing underlying record bytes."
+  },
+  "clocks": {
+    "preserved": "Every native record and source order is preserved; no timestamp sort, price rounding or invented nanoseconds.",
+    "queryRange": "Only ts_recv is checked against the explicitly declared half-open request interval. ts_event may regress or fall outside it.",
+    "knowledge": "Caller metadata/framing known_at_ns must be at or after acquisition. Existing normalization, mapping, definition, tick and acquisition knowledge must precede qualification, which precedes publication. Before publication the admission view contains no metadata/economic result.",
+    "authenticity": "Historical clocks remain caller-supplied and unverified. Fixtures are explicitly synthetic. Parsing does not prove actual producer version, normalization epoch, original receive authority or source completeness."
+  },
+  "budgets": {
+    "defaults": {
+      "containerBytes": 2097152,
+      "metadataBytes": 1048576,
+      "records": 4096,
+      "symbolWidth": 256,
+      "totalMetadataStrings": 1024,
+      "mappings": 64,
+      "totalMappingIntervals": 512,
+      "serializedOutputBytes": 16777216
+    },
+    "hardMaximum": {
+      "containerBytes": 4194304,
+      "metadataBytes": 1048576,
+      "records": 4096,
+      "symbolWidth": 256,
+      "totalMetadataStrings": 1024,
+      "mappings": 64,
+      "totalMappingIntervals": 512,
+      "serializedOutputBytes": 33554432
+    },
+    "counting": "Input cap includes header+metadata+records. Metadata counts are bounded within the declared metadata slice before iteration; total strings and intervals are counted across arrays. Record and identity limits cover the entire contiguous body. Normalized JSON is encoded incrementally with an exact byte cap; no truncation, eviction or partial complete result.",
+    "parsedObject": "The immutable structural object is bounded by input/count limits; its optional dictionary view is not a market/public projection. max_output_bytes applies to the sealed normalized JSON output."
+  },
+  "outputs": {
+    "outer": "structuralFramingValidated and canonicalProfileValidated describe this exact container's bytes only.",
+    "nested": "Original record-only metadataFramingReaderImplemented=false and all other original flags remain unchanged. Outer structural validation is separately reported.",
+    "always": {
+      "exportAuthenticityVerified": false,
+      "producerLibraryVersionAuthenticated": false,
+      "normalizationEpochAuthenticated": false,
+      "instrumentDefinitionsAuthenticated": false,
+      "rightsVerified": false,
+      "marketCompletenessVerified": false,
+      "publicConsumerEligible": false,
+      "volumeMeaning": "gross_as_reported",
+      "correctionCoverage": "unsupported",
+      "orderCount": null
+    },
+    "errors": "ContainerError has code/category/absolute offset. No prefix is returned for a later malformed record. Frozen normalizer projection refusal can return explicitly incomplete prefix diagnostics; output cap failure returns no complete result.",
+    "alwaysAppliesTo": "Normalized complete/private or refused-normalizer diagnostic results; structural-only and pre-publication refusal views intentionally expose fewer fields."
+  },
+  "primarySources": [
+    {
+      "path": "rust/dbn/src/encode/dbn/sync.rs",
+      "blob": "56d317b3361acd512439a7ba3639c94dede63910",
+      "sections": "130–249 lengths/padding;252–363 fixed strings/dates;796 width50",
+      "url": "https://github.com/databento/dbn/blob/d368005a636bae84bff443cd6ddae6430a0ffd00/rust/dbn/src/encode/dbn/sync.rs"
+    },
+    {
+      "path": "rust/dbn/src/decode/dbn/fsm.rs",
+      "blob": "0a8d753f95b1622fe5c4c39e9724b8e429c71b23",
+      "sections": "685–727 slice fencing;730–821 fixed metadata;824–962 arrays/mappings",
+      "url": "https://github.com/databento/dbn/blob/d368005a636bae84bff443cd6ddae6430a0ffd00/rust/dbn/src/decode/dbn/fsm.rs"
+    },
+    {
+      "path": "rust/dbn/src/metadata.rs",
+      "blob": "f4b34f5eceb11c82fcfda2fd2cab7988fe1a9e56",
+      "sections": "metadata query OR split-file bounds",
+      "url": "https://github.com/databento/dbn/blob/d368005a636bae84bff443cd6ddae6430a0ffd00/rust/dbn/src/metadata.rs"
+    },
+    {
+      "path": "rust/dbn/src/enums.rs",
+      "blob": "646a73fa25406e042efef04638b862107abd8da0",
+      "sections": "SType around580;Schema Trades around715",
+      "url": "https://github.com/databento/dbn/blob/d368005a636bae84bff443cd6ddae6430a0ffd00/rust/dbn/src/enums.rs"
+    },
+    {
+      "path": "rust/dbn/src/symbol_map.rs",
+      "blob": "8c30601dd8770d282ae4b69be20ae75066c26d8d",
+      "sections": "117–143 inclusive/exclusive dates",
+      "url": "https://github.com/databento/dbn/blob/d368005a636bae84bff443cd6ddae6430a0ffd00/rust/dbn/src/symbol_map.rs"
+    }
+  ],
+  "tests": "Deterministic bytes only; explicit golden fixed layout, hostile bounds/metadata/records, unchanged normalizer integration, clocks, quantities, artifact identity and immutable views. No real-data experiment.",
+  "adoption": "Integrated as a private offline API; hosted CI, protected merge, canonical deployment and real-data admission remain separate gates. No public source admission is changed.",
+  "verificationRecord": "cme-dbn-container-verification.json"
+}

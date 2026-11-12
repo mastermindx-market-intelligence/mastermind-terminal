@@ -20,18 +20,31 @@ export default function Tracker() {
   const prevPath = useRef<string>("");
   const maxScroll = useRef<number>(0);
   const started = useRef<boolean>(false);
+  const fingerprinted = useRef(false);
 
   // Embedded chart widgets (/embed/*) are iframed onto external dossier pages — they are companion
   // widgets, not tracked Terminal pages. Skip ALL analytics there so iframe loads never emit
   // pageviews/fingerprints. (Guard both effects; hooks still run unconditionally above.)
   const isEmbed = pathname.startsWith("/embed");
 
-  // One-time setup: fingerprint + global listeners.
+  // Global listeners belong only to non-embed routes; the root survives client navigation.
   useEffect(() => {
     if (isEmbed) return;
-    const compute = () => { try { setFingerprint(deviceFingerprint()); } catch {} };
-    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: object) => void }).requestIdleCallback;
-    if (ric) ric(compute, { timeout: 2000 }); else setTimeout(compute, 300);
+    let active = true;
+    const compute = () => {
+      if (!active || fingerprinted.current) return;
+      try { setFingerprint(deviceFingerprint()); fingerprinted.current = true; } catch {}
+    };
+    const idle = window as unknown as {
+      requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let idleJob: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    if (!fingerprinted.current) {
+      if (idle.requestIdleCallback) idleJob = idle.requestIdleCallback(compute, { timeout: 2000 });
+      else timer = setTimeout(compute, 300);
+    }
 
     const onScroll = () => {
       try {
@@ -71,13 +84,16 @@ export default function Tracker() {
     window.addEventListener("mm:track", onBus as EventListener);
 
     return () => {
+      active = false;
+      if (idleJob !== null) idle.cancelIdleCallback?.(idleJob);
+      if (timer !== null) clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("pagehide", onHide);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("mm:track", onBus as EventListener);
     };
-  }, []);
+  }, [isEmbed]);
 
   // Pageview + route changes (navigation order + dwell). Fires on first mount and each pathname change.
   useEffect(() => {

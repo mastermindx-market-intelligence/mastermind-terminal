@@ -12,12 +12,16 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
+const assert = require("node:assert/strict");
+const { tmpdir } = require("node:os");
+const { startLegacyServer, reportLegacyServer, waitLegacyServer, settleLegacyServer, captureRefusal } = require("./capture_ci_evidence.cjs");
+const { capturePanel, publishPacket } = require("./portfolioEvidenceCapture.cjs");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { pathToFileURL } = require("node:url");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -26,6 +30,16 @@ const LAYOUT_FILES = [
   "terminal/components/PortfolioView.tsx",
   "terminal/lib/portfolioRiskHistory.ts",
   "terminal/components/PortfolioRiskHistory.module.css",
+  "terminal/components/PortfolioWorkspace.tsx",
+  "terminal/components/PortfolioWorkspace.module.css",
+  "terminal/app/globals.css",
+  "terminal/e2e/tools/portfolioEvidenceCapture.cjs",
+  "terminal/e2e/tools/capture_b_f08_9_risk_history.cjs",
+  "terminal/e2e/fixtureStockdataServer.mjs",
+  "terminal/app/api/portfolio/risk-history/route.ts",
+  "terminal/app/api/portfolio/route.ts",
+  "terminal/lib/portfolio.ts",
+  "terminal/lib/portfolioMoney.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3561);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -34,8 +48,6 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const STATES = ["populated", "not-enough-history", "empty-book"];
-
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -50,55 +62,14 @@ function cropName(state, width, lang) {
 }
 
 function startServer(stockdataBase) {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-    STOCKDATA_BASE: stockdataBase,
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
+  const previous = process.env.STOCKDATA_BASE;
   try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
+    process.env.STOCKDATA_BASE = stockdataBase;
+    return startLegacyServer(ROOT, PORT);
+  } finally {
+    if (previous === undefined) delete process.env.STOCKDATA_BASE;
+    else process.env.STOCKDATA_BASE = previous;
   }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/portfolio`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
 async function newPage(browser, width, lang, storeKey, session) {
@@ -142,39 +113,19 @@ async function ensureLang(page, lang) {
   }, lang);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
-async function assertNoNextIndicator(page, file) {
-  await page.waitForTimeout(400);
-  await stripDevOverlay(page);
-  const n = await page.locator("[data-nextjs-dev-tools-button]").count();
-  if (n > 0) {
-    throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
+async function requireJson(response, operation) {
+  if (!response.ok()) {
+    const error = new Error(operation + ": HTTP " + response.status());
+    if ([401, 403].includes(response.status())) error.code = "CAPTURE_AUTH_REFUSED";
+    throw error;
   }
-}
-
-async function cropLocator(page, locator, outPath, pad = 18) {
-  const fresh = locator.first();
-  await fresh.waitFor({ state: "visible", timeout: 20_000 });
-  await page.waitForTimeout(250);
-  const box = await fresh.boundingBox();
-  const vp = page.viewportSize();
-  if (!box || !vp) throw new Error(`no box for ${outPath}`);
-  const x = Math.max(0, Math.floor(box.x - pad));
-  const y = Math.max(0, Math.floor(box.y - pad));
-  const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
-  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  return response.json();
 }
 
 async function seed(page, drafts) {
   for (const draft of drafts) {
     const res = await page.request.post(`${BASE}/api/portfolio`, { data: { action: "create", ...draft } });
-    if (!res.ok()) throw new Error(`seed ${draft.ticker} failed: ${res.status()}`);
+    await requireJson(res, "seed " + draft.ticker);
   }
 }
 
@@ -182,87 +133,158 @@ async function prepareState(page, state) {
   if (state === "empty-book") return;
   if (state === "populated") {
     await seed(page, [
-      { ticker: "ZZTA", shares: "100", entryPrice: "200" },
-      { ticker: "ZZTB", shares: "40", entryPrice: "50" },
+      { ticker: "ZZTA", shares: "100", entryPrice: "200", entryCurrency: "USD" },
+      { ticker: "ZZTB", shares: "40", entryPrice: "50", entryCurrency: "USD" },
     ]);
     return;
   }
   if (state === "not-enough-history") {
-    await seed(page, [{ ticker: "THIN", shares: "10", entryPrice: "20" }]);
+    await seed(page, [{ ticker: "THIN", shares: "10", entryPrice: "20", entryCurrency: "USD" }]);
   }
 }
 
 async function captureState(page, width, lang, state, outPath) {
   await prepareState(page, state);
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  // This timestamp is published only after the mounted client reads its book.
+  // Wait for that native state before clicking a React-owned navigation tab.
+  await page.locator('[data-portfolio="w5-positions"] header time[datetime]').first().waitFor({ state: "visible" });
   await ensureLang(page, lang);
+  const historyResponse = page.waitForResponse(response =>
+    new URL(response.url()).pathname === "/api/portfolio/risk-history"
+      && response.request().method() === "GET").then(
+    response => ({ response }), error => ({ error }));
+  const tab = page.locator("#portfolio-tab-risk");
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+  await page.locator("#portfolio-panel-risk").waitFor({ state: "visible" });
+  // Observe cancellation immediately so a prior navigation failure can still
+  // reach the producer\'s normal browser/server teardown without an unhandled rejection.
+  const observed = await historyResponse;
+  if (observed.error) throw observed.error;
+  const payload = await requireJson(observed.response, "read native risk history");
+  assert.equal(typeof payload.bookKey, "string");
+  assert.ok(payload.bookKey.length > 0);
+  const history = payload.history;
+  assert.equal(history.schema, "portfolio_risk_history.v1");
+  assert.equal(history.window.minimum, 126);
+  assert.equal(history.sources.riskFreeSource, "unreadable");
+  assert.equal(history.sources.riskFreeAsOf, null);
+  assert.equal(history.sharpe, null);
+  assert.equal(history.sortino, null);
   const loc = page.getByTestId("portfolio-risk-history");
   await loc.waitFor({ state: "visible", timeout: 30_000 });
+  await expect(loc).toHaveAttribute("data-coverage-status", history.coverageStatus);
+  await expect(loc).toHaveAttribute("data-history-n", String(history.window.n));
   if (state === "empty-book") {
+    assert.equal(history.counts.open, 0);
+    assert.equal(history.counts.included, 0);
+    assert.equal(history.window.n, 0);
+    assert.equal(history.coverageStatus, "empty");
+    assert.equal(history.beta, null);
     await page.getByTestId("risk-history-empty").waitFor({ state: "visible", timeout: 20_000 });
+  } else {
+    assert.equal(history.costCurrency, "USD");
+    assert.equal(history.counts.excluded, 0);
   }
   if (state === "not-enough-history") {
+    assert.equal(history.counts.open, 1);
+    assert.equal(history.counts.included, 1);
+    assert.deepEqual(history.included.map(row => row.ticker), ["THIN"]);
+    assert.equal(history.window.n, 19);
+    assert.equal(history.coverageStatus, "unavailable");
+    assert.equal(history.beta, null);
+    for (const metric of ["sharpe", "sortino", "beta"]) {
+      assert.equal(history[metric + "Reason"], "not enough history");
+    }
     await loc.getByText(lang === "zh" ? "至少需要 126 个对齐的交易日" : "At least 126 aligned sessions").first().waitFor({
       state: "visible",
       timeout: 20_000,
     });
   }
   if (state === "populated") {
-    await loc.getByText(lang === "zh" ? "夏普比率" : "Sharpe ratio").waitFor({ state: "visible", timeout: 20_000 });
-    // Production-partial card: RF unpublished, Sharpe/Sortino unread, beta still printed.
-    await loc.getByText(
-      lang === "zh" ? "三个月期国债收益率序列尚未发布" : "has not been published yet",
-    ).first().waitFor({ state: "visible", timeout: 20_000 });
+    assert.equal(history.counts.open, 2);
+    assert.equal(history.counts.included, 2);
+    assert.equal(history.cost.included, 22000);
+    assert.deepEqual(history.included.map(row => row.ticker).sort(), ["ZZTA", "ZZTB"]);
+    assert.equal(history.window.n, 139);
+    assert.equal(history.coverageStatus, "partial");
+    assert.ok(Number.isFinite(history.beta), "The native calculation must provide beta");
+    assert.equal(history.betaReason, null);
+    const unread = lang === "zh"
+      ? "暂时读不到三个月期国债收益率，因此无法计算该数字。贝塔仍按 SPY 计算。"
+      : "The three-month Treasury yield could not be read, so this figure cannot be computed. Beta still uses SPY.";
+    for (const metric of ["sharpe", "sortino"]) {
+      assert.equal(history[metric + "Reason"], "risk-free series could not be read");
+      await loc.locator(`[data-card="${metric}"]`).getByText(unread, { exact: true }).waitFor({ state: "visible" });
+    }
+    await expect(loc.locator('[data-card="beta"] b')).toHaveText(/^-?\d+(?:[.,]\d+)?$/);
+    for (const ticker of ["ZZTA", "ZZTB"]) {
+      await loc.getByTestId("risk-history-included").getByText(ticker, { exact: true }).waitFor({ state: "visible" });
+    }
   }
-  await loc.scrollIntoViewIfNeeded();
-  await cropLocator(page, loc, outPath, width === 390 ? 10 : 16);
+  const captured = await capturePanel(page, loc, { name: outPath, pad: width === 390 ? 10 : 16 });
+  return { ...captured, stateProof: {
+    coverageStatus: history.coverageStatus, costCurrency: history.costCurrency,
+    counts: history.counts, window: history.window, beta: history.beta,
+    sharpeReason: history.sharpeReason, sortinoReason: history.sortinoReason,
+    betaReason: history.betaReason, riskFreeSource: history.sources.riskFreeSource,
+  } };
 }
 
 async function main() {
   const capturedAtHead = currentGitHead();
-  const fixtureMod = await import(pathToFileURL(join(ROOT, "e2e", "fixtureStockdataServer.mjs")).href);
-  const fixture = await fixtureMod.startFixtureStockdataServer();
-  const child = startServer(fixture.url);
-  const files = [];
-  let failed = 0;
+  const sourceHashes = Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)]));
+  const stage = mkdtempSync(join(tmpdir(), "mmx-capture_b_f08_9_risk_history-"));
+  console.log("unpromoted capture directory " + stage);
+  const captures = [], failures = [];
+  let child, browser, fixture, fixtureMod;
   try {
-    await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
-    try {
-      for (const width of [1440, 390]) {
-        for (const lang of ["en", "zh"]) {
-          for (const state of STATES) {
-            const file = cropName(state, width, lang);
-            process.stdout.write(`capture ${file} … `);
-            const storeKey = `crop-rh-${state}-${width}-${lang}-${Date.now()}`;
-            const { context, page } = await newPage(browser, width, lang, storeKey, fixtureMod);
-            try {
-              await captureState(page, width, lang, state, join(OUT, file));
-              await assertNoNextIndicator(page, file);
-              files.push(file);
-              console.log("ok");
-            } catch (err) {
-              failed += 1;
-              console.log(`FAIL ${err && err.message ? err.message : err}`);
-              try {
-                await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
-              } catch { /* ignore */ }
-            } finally {
-              await context.close();
+    fixtureMod = await import(pathToFileURL(join(ROOT, "e2e", "fixtureStockdataServer.mjs")).href);
+    fixture = await fixtureMod.startFixtureStockdataServer(0, { ohlcMode: "public-fixture" });
+    child = startServer(fixture.url);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, BASE + "/portfolio", 180_000);
+    browser = await chromium.launch({ headless: true });
+    captureLoop: for (const width of [1440, 390]) {
+      for (const lang of ["en", "zh"]) {
+        for (const state of STATES) {
+          const file = cropName(state, width, lang);
+          process.stdout.write("capture " + file + " ... ");
+          const storeKey = "crop-risk-" + state + "-" + width + "-" + lang + "-" + Date.now();
+          const { context, page } = await newPage(browser, width, lang, storeKey, fixtureMod);
+          try {
+            const capture = await captureState(page, width, lang, state, join(stage, file));
+            writeFileSync(join(stage, file), capture.bytes);
+            captures.push({ file, ...capture });
+            console.log("ok " + JSON.stringify({ ...capture.geometry, stateProof: capture.stateProof }));
+          } catch (error) {
+            failures.push(error);
+            if (!captureRefusal(error)) {
+              try { await page.screenshot({ path: join(stage, "FAIL-" + file), fullPage: false }); }
+              catch (diagnosticError) { failures.push(diagnosticError); }
             }
+          } finally {
+            try { await context.close(); } catch (error) { failures.push(error); }
           }
+          if (failures.length) break captureLoop;
         }
       }
-    } finally {
-      await browser.close();
     }
+  } catch (error) {
+    failures.push(error);
   } finally {
-    stopServer(child);
-    await fixture.close();
+    if (browser) try { await browser.close(); } catch (error) { failures.push(error); }
+    if (child) try { await settleLegacyServer(child); } catch (error) { failures.push(error); }
+    if (fixture) try { await fixture.close(); } catch (error) { failures.push(error); }
   }
-
-  if (failed) process.exitCode = 1;
-  files.sort();
+  if (failures.length) throw new AggregateError(failures, "Capture did not qualify; staged diagnostics: " + stage);
+  assert.equal(currentGitHead(), capturedAtHead, "Source head changed during capture");
+  assert.deepEqual(Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)])), sourceHashes,
+    "Source bytes changed during capture");
+  const expectedFiles = [1440, 390].flatMap(width => ["en", "zh"].flatMap(lang =>
+    STATES.map(state => cropName(state, width, lang))));
+  const files = captures.map(capture => capture.file).sort();
   const evidence = [
     "# B-F08-9 Historical risk of today's book — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
@@ -271,7 +293,7 @@ async function main() {
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
     "layoutFiles:",
-    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`),
+    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${sourceHashes[rel]}"`),
     "theme: dark",
     "languages: [en, zh]",
     "viewports:",
@@ -287,8 +309,11 @@ async function main() {
       return `  ${name}: { url: "/portfolio", state: ${state} }`;
     }),
     "surfaces: [PortfolioRiskHistoryReadout]",
+    "fixture_ohlc_mode: public-fixture",
+    "risk_free_fixture_status: unreadable",
+    "# Public locally generated OHLC is fixture input, not credential-forwarding proof.",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f08_9_risk_history.cjs",
@@ -296,11 +321,14 @@ async function main() {
     ...files.map((name) => `  - ${name}`),
     "",
   ].join("\n");
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
-  console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
+  publishPacket(OUT, captures, expectedFiles, evidence);
+  writeFileSync(join(stage, "geometry.json"), JSON.stringify(captures.map(({ file, geometry, stateProof }) => ({ file, ...geometry, stateProof })), null, 2) + "\n");
+  console.log("wrote " + files.length + " qualified crops + EVIDENCE.yml (head " + capturedAtHead + ")");
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
+module.exports = { captureState, cropName, LAYOUT_FILES, STATES, prepareState };
+if (require.main === module) main().catch(error => {
+  console.error(error);
+  if (error instanceof AggregateError) for (const cause of error.errors) console.error(cause);
+  process.exitCode = 1;
 });

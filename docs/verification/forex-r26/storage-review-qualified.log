@@ -1,0 +1,14 @@
+........................................................................ [ 42%]
+........................................................................ [ 84%]
+...........................                                              [100%]
+=============================== warnings summary ===============================
+tests/test_supabase_migration_namespace.py::test_duplicate_prefix_is_detected
+  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/python.py:167: UserWarning: migration-namespace guard proof — synthetic duplicate 0099 fixture raised:
+  1 finding(s):
+    [DUPLICATE_PREFIX] 0099: two or more files share prefix 0099: ['0099_a.sql', '0099_b.sql']
+  
+  disclosures (nulls printed in plain words, never hidden):
+    result = testfunction(**testargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+171 passed, 1 warning in 13.85s

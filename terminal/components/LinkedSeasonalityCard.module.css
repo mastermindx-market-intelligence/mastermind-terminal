@@ -1,0 +1,9 @@
+.card { min-width: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.controls button { min-height: 36px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-md); background: transparent; color: var(--text); font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.controls button[aria-pressed="true"] { background: var(--panel-2); border-color: var(--brand-2); }
+.controls button:focus-visible, .open:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+.controls button:disabled { opacity: .55; cursor: default; }
+.status { margin: 0 0 10px; font-size: .8rem; line-height: 1.5; overflow-wrap: anywhere; color: var(--text-2); }
+.open { display: inline-block; margin-top: 10px; min-height: 36px; line-height: 1.5; overflow-wrap: anywhere; color: inherit; }
+@media (max-width: 820px) { .controls button, .open { min-height: 44px; } }

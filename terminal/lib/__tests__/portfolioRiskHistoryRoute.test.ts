@@ -14,7 +14,7 @@ import {
   FAULT_POSITIONS_READ,
 } from "@/lib/watchlistsFixtureDb";
 import { resetOhlcSeriesCache } from "@/lib/ohlcSeriesCache";
-import { RF_UNPUBLISHED_REASON, RF_UNREADABLE_REASON, historyCopy } from "@/lib/portfolioRiskHistory";
+import { RF_UNREADABLE_REASON, historyCopy } from "@/lib/portfolioRiskHistory";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
@@ -35,6 +35,7 @@ async function seedOpen(key: string, ticker: string, shares: number | null, entr
   const userId = fixtureUserId(key);
   await db.from("portfolio_positions").insert({
     user_id: userId, ticker, shares, entry_price: entryPrice, status: "open",
+    entry_currency: "USD", entry_currency_basis: { ticker, price: entryPrice },
   } as any);
 }
 
@@ -124,7 +125,8 @@ describe("GET /api/portfolio/risk-history", () => {
     const tickers = calls.map((c) => /\/ohlc\/([A-Za-z0-9.]+)\.json/.exec(c.url)?.[1]);
     expect(tickers).toContain("AAA");
     expect(tickers).toContain("SPY");
-    expect(tickers).toContain("DGS3MO");
+    expect(tickers).not.toContain("DGS3MO");
+    expect(tickers).not.toContain("us3m");
   });
 
   it("does not fetch OHLC for a short or unsized row", async () => {
@@ -139,18 +141,18 @@ describe("GET /api/portfolio/risk-history", () => {
     expect(tickers).toContain("AAA");
   });
 
-  it("sets the unpublished risk-free reason and still computes beta when DGS3MO and us3m 404", async () => {
+  it("keeps beta with unreadable RF when fixture credentials cannot reach Treasury", async () => {
     const res = await GET();
     const body = await res.json();
     expect(body.history.sharpe).toBeNull();
     expect(body.history.sortino).toBeNull();
-    expect(body.history.sharpeReason).toBe(RF_UNPUBLISHED_REASON);
-    expect(body.history.sources.riskFreeSource).toBe("unpublished");
+    expect(body.history.sharpeReason).toBe(RF_UNREADABLE_REASON);
+    expect(body.history.sources.riskFreeSource).toBe("unreadable");
     expect(body.history.beta).not.toBeNull();
     expect(body.history.coverageStatus).toBe("partial");
   });
 
-  it("does not type a 401/locked DGS3MO as unpublished; beta still computes", async () => {
+  it("does not probe legacy RF OHLC aliases; beta still computes", async () => {
     resetOhlcSeriesCache();
     calls = [];
     global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
@@ -187,7 +189,7 @@ describe("GET /api/portfolio/risk-history", () => {
     delete process.env.TERMINAL_E2E_FIXTURE;
     const { createClient } = await import("@/lib/supabase/server");
     (createClient as any).mockResolvedValue({
-      auth: { getUser: async () => ({ data: { user: null } }) },
+      auth: { getSession: async () => ({ data: { session: null } }) },
     });
     try {
       const res = await GET();
@@ -199,7 +201,7 @@ describe("GET /api/portfolio/risk-history", () => {
     }
   });
 
-  it("forwards the caller's session cookie and never a holdings POST", async () => {
+  it("never forwards session cookies to the loopback price fixture", async () => {
     const authCookieName = "sb-testref-auth-token";
     const authCookieValue = "base64-eyJhY2Nlc3NfdG9rZW4iOiJmYWtlIn0";
     const { cookies } = await import("next/headers");
@@ -209,9 +211,7 @@ describe("GET /api/portfolio/risk-history", () => {
     await GET();
     expect(calls.length).toBeGreaterThan(0);
     for (const c of calls) {
-      expect(c.init?.headers && (c.init.headers as Record<string, string>).Cookie).toBe(
-        `${authCookieName}=${authCookieValue}`,
-      );
+      expect(new Headers(c.init?.headers).has("Cookie")).toBe(false);
       expect(c.init?.redirect).toBe("manual");
       const headerNames = Object.keys((c.init?.headers ?? {}) as object).map((h) => h.toLowerCase());
       expect(headerNames).not.toContain("authorization");

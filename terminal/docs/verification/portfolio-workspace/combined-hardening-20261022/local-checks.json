@@ -1,0 +1,90 @@
+{
+  "schema": "portfolio.combined_release.local_checks.v1",
+  "integrated_head": "d2ce27ace2a1a3ad1b648ae105973d01d00364be",
+  "base": "516d0519ca39d4be3ef186d65261598dfc5f6042",
+  "keyboard_test_blob": "5c5c1e27e2132aa1779ab3c3f8a3ec3b20be5bf9",
+  "node": "v26.5.0",
+  "package_lock_blob": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+  "checks": [
+    {
+      "phase": "unit",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/portfolioTargets.test.ts",
+        "lib/__tests__/portfolioPageReadbackOrder.test.tsx",
+        "components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx",
+        "lib/__tests__/portfolioTargetsView.test.tsx",
+        "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts",
+        "lib/__tests__/portfolioRouteRisk.test.ts",
+        "lib/__tests__/artifactCache.test.ts",
+        "lib/__tests__/portfolioRiskHistoryRoute.test.ts",
+        "lib/__tests__/portfolioRoute.test.ts",
+        "--reporter=verbose"
+      ],
+      "exit_code": 0,
+      "started": "2026-10-22T05:53:23.677151+00:00",
+      "finished": "2026-10-22T05:53:28.045468+00:00",
+      "duration_seconds": 4.37
+    },
+    {
+      "phase": "lint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/portfolio-workspace.spec.ts",
+        "app/api/portfolio/route.ts",
+        "lib/__tests__/portfolioArtifactOrigin.test.ts"
+      ],
+      "exit_code": 0,
+      "started": "2026-10-22T05:53:28.046084+00:00",
+      "finished": "2026-10-22T05:53:30.415442+00:00",
+      "duration_seconds": 2.37
+    },
+    {
+      "phase": "typecheck",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit_code": 0,
+      "started": "2026-10-22T05:53:30.415986+00:00",
+      "finished": "2026-10-22T05:54:03.997637+00:00",
+      "duration_seconds": 33.58
+    },
+    {
+      "phase": "responsive",
+      "command": [
+        "./node_modules/.bin/playwright",
+        "test",
+        "e2e/portfolio-targets.spec.ts",
+        "e2e/portfolio-workspace.spec.ts",
+        "--grep",
+        "target feedback is actionable and accessible|tabs, filters and malformed optional analysis leave holdings usable",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json"
+      ],
+      "exit_code": 0,
+      "started": "2026-10-22T05:54:03.998632+00:00",
+      "finished": "2026-10-22T05:55:13.681968+00:00",
+      "duration_seconds": 69.68,
+      "stats": {
+        "startTime": "2026-10-22T05:54:04.388Z",
+        "duration": 69279.86099999999,
+        "expected": 15,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ]
+}

@@ -132,9 +132,10 @@ def main() -> None:
             volume = (pd.Series([float(v) if v not in (None, 0) else float("nan")
                                  for v in vol_raw], index=idx)
                       if any(v not in (None, 0) for v in vol_raw) else None)
+            bar_anchor = confluence.ipo_bar_anchor(close, sym)
             sig = confluence.compute_signals(
                 close,
-                bar_anchor=confluence.ipo_bar_anchor(close, sym),
+                bar_anchor=bar_anchor,
                 week_parity=confluence.ipo_week_parity(close, sym),
             )
             if sig.empty:
@@ -150,7 +151,8 @@ def main() -> None:
                 # that stamps the display class below, so one artifact load answers both
                 symbol=sym, override_gate=stamper)
             ind = contracts.indicator_contract(
-                sym, "3D", sig, bar_quality="real_ohlc", src_text="", honest_read=HONEST, v2=v2)
+                sym, "3D", sig, bar_quality="real_ohlc", src_text="", honest_read=HONEST, v2=v2,
+                bar_closed=contracts.three_day_bar_closed(close, bar_anchor))
             # washout-override pass over the emitted events: the display class on refused
             # fires that qualified, and the forward-ledger row for every stamped or TAKEN
             # fire (a taken one needs no stamp — build_v2 already emitted its context)

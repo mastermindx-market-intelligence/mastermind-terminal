@@ -1,0 +1,52 @@
+{
+  "schema": "forex_r26.ledger_followup_current_base_integration.v1",
+  "candidate_before": "3eb5500f3b3d8d151537cb93b7f3050c586a2664",
+  "base": "8196744cd837cbfd5924338439bd9a3f1f264c5c",
+  "already_accepted_ledger_owner_pr": 1103,
+  "ledger_owner_merge": "eb752cd653f3add2aa67cdcc7b588dae13c86843",
+  "resolved_paths": [
+    "supabase/migrations/README.md",
+    "supabase/migrations/RESERVATIONS.json"
+  ],
+  "resolution": "Exact accepted current-base ledger and README, byte-for-byte; retain only Forex documentation updates and original historical validation receipt.",
+  "application_replayed": false,
+  "scope": "Documentation and integration only; no database, deployment or customer-state action.",
+  "preserved": {
+    "supabase/migrations/README.md": "0dcf07eaf0929e5c4f106f404031ba39e5481c432148ec4af16f2cb60dc34016",
+    "supabase/migrations/RESERVATIONS.json": "9d1f5b1b294d5452cd3301ffb0bda0a7d6d72bd09c37077f1846a7205b8763c8",
+    "supabase/migrations/0038_forex_inactive_conditions.sql": "f7f2e50b11fd863f107abc8406c04d35ffa67f52bca6c885281340d6aff4adee",
+    "docs/verification/forex-r26/0038-apply-receipt.json": "ae690d9446be8ea65d703e5e1117e1e9d389065db5abc30bc4cf08982c1f1376"
+  },
+  "checks": [
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-m",
+        "pytest",
+        "tests/test_migration_ledger.py",
+        "tests/test_supabase_migration_namespace.py",
+        "-q"
+      ],
+      "returncode": 0,
+      "seconds": 0.938,
+      "log_sha256": "c78b675564667462d55ef8fa56acd2d5af3d6d8bad5068bce5f101e339c8ac32",
+      "retained_log": "/tmp/forex-r26-resume-20261021/1106-integration-check-1.log"
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check_supabase_migration_namespace.py",
+        "--strict"
+      ],
+      "returncode": 0,
+      "seconds": 0.048,
+      "log_sha256": "feed29922defd4a00b4065a12375c9a3037e8d0c6c0d3eb89370b7308f7ec0f0",
+      "retained_log": "/tmp/forex-r26-resume-20261021/1106-integration-check-2.log"
+    }
+  ],
+  "observed_at": "2026-10-21T22:42:47.818446+00:00",
+  "integrated_head_before_evidence_clarification": "0fa3328c89f5c6e405c228c2a2bad2d4ed522ad1",
+  "prior_review_disposition": "REQUEST_CHANGES on 3eb5500; both findings accepted and repaired, fresh independent repair review required.",
+  "0039_preserved_from_current_base": true,
+  "historical_validation_receipt": "0038-merge-ledger-validation.json"
+}

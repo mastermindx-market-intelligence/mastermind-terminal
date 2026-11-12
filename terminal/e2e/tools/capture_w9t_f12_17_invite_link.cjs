@@ -167,6 +167,7 @@ async function assertNoNextIndicator(page, file) {
 
 async function newPage(browser, lang, viewport) {
   const context = await browser.newContext({
+          reducedMotion: "reduce",
     viewport: VIEWPORTS[viewport],
     hasTouch: viewport === "mobile",
     locale: lang === "zh" ? "zh-CN" : "en-US",

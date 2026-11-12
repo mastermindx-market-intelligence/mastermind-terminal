@@ -1,0 +1,17 @@
+{
+  "sourceHead": "0dced0433f66d1c461f518060d30652a1f34deb7",
+  "exit": 0,
+  "captureCount": 6,
+  "sourceUnchanged": true,
+  "historicalAppendixPreserved": true,
+  "imageSha256": {
+    "mobile-zh.png": "d6465a9a34f1acc7d70ea98a1fb8da04cd21c1229194f7788484e88127cdf38a",
+    "desktop-zh.png": "e94258e0d27c9d03bef9b5c1cf1d167f4279936f06ed0bffc229b4abfe465383",
+    "desktop-en.png": "1fd2af8bd1365159ba67972d7af30e57f524af4b42d5bae0ae960b99fdf820d0",
+    "mobile-en.png": "30e1b7bfb189444a49c5d41d3f853ff0088c5f22b35be0c4bb74c2963e8fc59d",
+    "tablet-zh.png": "cc275b6a32c20a6d0e322453319837f8b1859291f7077e8bb1e018f00f2828f6",
+    "tablet-en.png": "78c9dc24efe04f3d85b81c73914fe040b7911bfce365ccfbce38bc6eca114d21"
+  },
+  "logSha256": "ba5dbacac28abc4788bc7cad76d7ef204fac514ed587ac302596e97389a9e8b7",
+  "scope": "Local fixture capture; no production or authenticated proof"
+}

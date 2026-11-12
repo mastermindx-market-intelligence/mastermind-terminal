@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
+import { readShellClaims } from "@/lib/shared-shell/memberIdentity";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
+import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
 import UnsupportedAnalysisRoute from "@/components/workspaces/UnsupportedAnalysisRoute";
 import SignupGate from "@/components/gates/SignupGate";
+import MemberVerificationUnavailable from "@/components/gates/MemberVerificationUnavailable";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_SUBJECT } from "@/lib/shared-shell/devOpen";
 import { parseAnalysisRoute } from "@/lib/analysisRoute";
 
 // Analysis workspace (Wave-2 IA) — the in-chart Fundamentals dashboard (MegaPane)
@@ -19,7 +23,7 @@ import { parseAnalysisRoute } from "@/lib/analysisRoute";
 // getClaims verifies the JWT locally (the same read the (shell) layout does for
 // chrome) — no Auth round-trip unless a refresh is due.
 
-export const metadata: Metadata = { title: "Analysis · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Analysis");
 
 interface AnalysisPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -32,6 +36,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
     <AnalysisWorkspaceMount initialSymbol={route.symbol} initialPage={route.page} />
   ) : route.kind === "theses" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:${route.thesisId ?? "new"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialThesisId={route.thesisId} />
+  ) : route.kind === "investigations" ? (
+    <InvestigationWorkspaceMount key={`${ownerKey}:${route.investigationId ?? "library"}:${route.revision ?? "head"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialInvestigationId={route.investigationId} initialRevision={route.revision} />
   ) : route.kind === "invalid_thesis" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
   ) : (
@@ -42,8 +48,15 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
     return workspace("local-preview");
   }
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (typeof data?.claims?.sub !== "string") return <SignupGate surface="analysis" />;
-  return workspace(data.claims.sub);
+  // Beta development mode (lib/shared-shell/devOpen.ts): the shared development
+  // subject stands in for the member before any claims read — unlike the local
+  // preview seam above, this one ships in the production bundle but only the
+  // beta runtime's flag pair can activate it.
+  if (isSharedShellDevOpen()) {
+    return workspace(SHARED_SHELL_DEV_SUBJECT);
+  }
+  const member = await readShellClaims();
+  if (member.state === "unavailable") return <MemberVerificationUnavailable />;
+  if (member.state === "guest") return <SignupGate surface="analysis" />;
+  return workspace(member.subjectId);
 }

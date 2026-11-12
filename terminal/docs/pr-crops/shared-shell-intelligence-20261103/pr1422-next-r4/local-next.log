@@ -1,0 +1,39 @@
+▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://127.0.0.1:34226
+- Network:       http://127.0.0.1:34226
+✓ Ready in 942ms
+✓ Running next.config.ts took 365ms
+- Experiments (use with caution):
+  ⨯ turbopackFileSystemCacheForDev
+
+ GET /api/shared-shell/status 200 in 160ms (next.js: 115ms, application-code: 44ms)
+○ Compiling /intelligence ...
+ GET /intelligence 200 in 7.9s (next.js: 7.3s, proxy.ts: 143ms, application-code: 460ms)
+ GET /prophet 200 in 1623ms (next.js: 1364ms, proxy.ts: 14ms, application-code: 246ms)
+ GET /sectors 200 in 1023ms (next.js: 884ms, proxy.ts: 16ms, application-code: 123ms)
+ GET /intelligence 200 in 137ms (next.js: 22ms, proxy.ts: 9ms, application-code: 106ms)
+ GET /intelligence 200 in 160ms (next.js: 39ms, proxy.ts: 12ms, application-code: 109ms)
+ GET /intelligence 200 in 114ms (next.js: 8ms, proxy.ts: 10ms, application-code: 97ms)
+ GET /intelligence 200 in 117ms (next.js: 6ms, proxy.ts: 13ms, application-code: 98ms)
+ GET /intelligence 200 in 116ms (next.js: 7ms, proxy.ts: 12ms, application-code: 97ms)
+ GET /intelligence 200 in 115ms (next.js: 7ms, proxy.ts: 11ms, application-code: 97ms)
+ GET /intelligence 200 in 90ms (next.js: 7ms, proxy.ts: 8ms, application-code: 74ms)
+ GET /prophet 200 in 87ms (next.js: 23ms, proxy.ts: 8ms, application-code: 56ms)
+ GET /api/flow?f=prophet_idx 200 in 312ms (next.js: 66ms, application-code: 246ms)
+ GET /api/flow?f=prophet_marks 200 in 26ms (next.js: 0.8ms, application-code: 25ms)
+ GET /api/flow?f=prophet_idx 200 in 22ms (next.js: 0.5ms, application-code: 22ms)
+ GET /api/flow?f=prophet_marks 200 in 21ms (next.js: 0.6ms, application-code: 20ms)
+ GET /api/nw?f=selection_cohort_us 401 in 1015ms (next.js: 24ms, application-code: 992ms)
+ GET /sectors 200 in 92ms (next.js: 39ms, proxy.ts: 9ms, application-code: 43ms)
+ GET /sectors?sector=xlk&group=semiconductors&sectorTheme=light 200 in 93ms (next.js: 8ms, proxy.ts: 9ms, application-code: 76ms)
+[analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+ POST /api/collect 204 in 81ms (next.js: 41ms, application-code: 40ms)
+ POST /api/collect 204 in 70ms (next.js: 0.8ms, application-code: 69ms)
+ GET /intelligence 200 in 96ms (next.js: 37ms, proxy.ts: 12ms, application-code: 48ms)
+ GET /_next/static/chunks/components_0yy2sm22aj4lg._.js 404 in 1165ms (next.js: 997ms, application-code: 169ms)
+ GET /sectors?sector=xlk&group=semiconductors&sectorTheme=light&tab=sectors&sectorWorkspace=detail&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&sectorCompany=MU&sectorSort=source 200 in 110ms (next.js: 12ms, proxy.ts: 8ms, application-code: 90ms)
+ POST /api/collect 204 in 14ms (next.js: 1.3ms, application-code: 13ms)
+ GET /_next/static/chunks/components_0yy2sm22aj4lg._.js 404 in 128ms (next.js: 12ms, application-code: 115ms)
+ GET /intelligence 200 in 68ms (next.js: 19ms, proxy.ts: 10ms, application-code: 39ms)
+ GET /intelligence 200 in 91ms (next.js: 8ms, proxy.ts: 9ms, application-code: 74ms)
+[?25h

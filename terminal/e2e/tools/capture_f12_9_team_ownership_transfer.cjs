@@ -273,6 +273,7 @@ async function main() {
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
+          reducedMotion: "reduce",
           viewport: VIEWPORTS[shot.viewport],
           hasTouch: shot.viewport === "mobile",
           locale: shot.lang === "zh" ? "zh-CN" : "en-US",
@@ -315,6 +316,20 @@ async function main() {
           }
           await shoot(page, shot.file);
           files.push(shot.file);
+          // The mobile invitation proof is a different scroll position from
+          // the owner's transfer control. Preserve both actual viewport states.
+          if (shot.viewport === "mobile" && shot.kind === "button") {
+            const control = page.locator('[data-testid="team-transfer-ownership"]');
+            await control.scrollIntoViewIfNeeded();
+            const box = await control.boundingBox();
+            if (!box || box.y < 0 || box.y + box.height > VIEWPORTS.mobile.height) {
+              throw new Error(`${shot.file}: transfer control is outside the viewport`);
+            }
+            const controlFile = shot.file.replace("-button.png", "-control.png");
+            measurements[controlFile] = await measureLayout(page);
+            await shoot(page, controlFile);
+            files.push(controlFile);
+          }
           console.log("ok");
         } catch (err) {
           console.log(`FAIL ${err && err.message ? err.message : err}`);

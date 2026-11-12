@@ -1,0 +1,78 @@
+.recovery:global(.center) {
+  min-height: 100dvh;
+  padding: var(--sp-6);
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: dark;
+  font-family: var(--font-ui);
+}
+
+.surface {
+  width: min(100%, 560px);
+  padding: var(--sp-6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel);
+}
+
+.surface :global(.mk) {
+  display: grid;
+  place-items: center;
+}
+
+.reference {
+  display: block;
+  margin-top: var(--sp-2);
+  color: var(--text-2);
+  font-size: var(--fs-label);
+  font-family: var(--font-code, monospace);
+  overflow-wrap: anywhere;
+}
+
+.returnRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.returnRow :global(.m-back-prom) {
+  min-height: 44px;
+  /* Error recovery is a stable action, not a live status signal. */
+  animation: none;
+}
+
+.actions {
+  flex-wrap: wrap;
+}
+
+.actions :global(.btn) {
+  min-height: 44px;
+}
+
+/* The light research workspace uses white material and a controlled shadow;
+   dark keeps its quiet luminance layers without a floating-card shadow. */
+.recovery[data-error-theme="light"] {
+  color-scheme: light;
+}
+
+.recovery[data-error-theme="light"] .surface {
+  box-shadow: var(--shadow-card);
+}
+
+.recovery[data-error-theme="light"] .returnRow :global(.m-back-prom) {
+  background: var(--panel-2);
+  border-color: var(--line-3);
+  box-shadow: none;
+  color: var(--link);
+}
+
+.recovery[data-error-theme="light"] .returnRow :global(.m-back-prom:hover),
+.recovery[data-error-theme="light"] .returnRow :global(.m-back-prom:active) {
+  background: var(--panel-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actions :global(.btn) {
+    transition: none;
+  }
+}

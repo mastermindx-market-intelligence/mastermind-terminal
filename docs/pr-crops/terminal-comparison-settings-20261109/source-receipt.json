@@ -1,0 +1,25 @@
+{
+  "base": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "product_head": "236c5c28db3d0bd545cd3f7c4e0cd841f9ca664d",
+  "verifiedFiles": 3378,
+  "mismatches": [],
+  "unitTests": 90,
+  "browserTests": 6,
+  "retries": 0,
+  "typecheckExit": 0,
+  "lintExit": 0,
+  "screenshots": [
+    {
+      "path": "docs/pr-crops/terminal-comparison-settings-20261109/desktop-en.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "61984fc7067d8dadc23611f5e424ba59f4e83fa4"
+    },
+    {
+      "path": "docs/pr-crops/terminal-comparison-settings-20261109/mobile-zh.png",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d313a410e7d1b329e66022b240f07a7e85ae7aa3"
+    }
+  ]
+}

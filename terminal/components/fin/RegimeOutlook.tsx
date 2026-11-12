@@ -631,7 +631,7 @@ function TimelinePanel({ intervals, asOf, forwardBuckets, view, zh }: TimelinePa
             const isYear = d.getUTCMonth() === 0;
             const showLabel = labelledTicks.has(d.getTime());
             return (
-              <g key={i}>
+              <g key={i} pointerEvents="none">
                 <line
                   x1={xp}
                   x2={xp}

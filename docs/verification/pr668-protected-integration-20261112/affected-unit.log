@@ -1,0 +1,24 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr668-protected-integration-20261112-c3/terminal[39m
+
+ [32m✓[39m lib/__tests__/selectionCohort.test.ts [2m([22m[2m19 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m lib/__tests__/prophetSourceVintage.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 52[2mms[22m[39m
+ [32m✓[39m lib/__tests__/prophetUrlState.test.ts [2m([22m[2m37 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowUpstreamUrlSegments.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowStreamRouteBoundary.test.ts [2m([22m[2m11 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowLeadersLocalSource.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 117[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowStreamLifetime.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 482[2mms[22m[39m
+ [32m✓[39m lib/__tests__/prophetPerf.test.ts [2m([22m[2m71 tests[22m[2m)[22m[90m 173[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowStreamSessionRenewal.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 582[2mms[22m[39m
+   [33m[2m✓[22m[39m SSE lifetime renewal through the real Supabase session path[2m > [22mnever spends the browser's refresh token while a stream is open [33m389[2mms[22m[39m
+ [32m✓[39m lib/__tests__/SelectionCohortCard.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[90m 49[2mms[22m[39m
+ [32m✓[39m lib/__tests__/flowUpstreamAbsence.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 632[2mms[22m[39m
+ [32m✓[39m lib/__tests__/prophetSourceVintageMounted.qualification.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[90m 199[2mms[22m[39m
+ [32m✓[39m lib/__tests__/prophetWorkspaceIntegration.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[90m 117[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[32m241 passed[39m[22m[90m (241)[39m
+[2m   Start at [22m 20:06:12
+[2m   Duration [22m 2.48s[2m (transform 2.44s, setup 0ms, collect 4.69s, tests 2.45s, environment 1.93s, prepare 1.09s)[22m
+

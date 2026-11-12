@@ -1,0 +1,32 @@
+[
+  {
+    "packet": "b-f12-b5-3-account-completeness",
+    "source_head": "793dd27a1bc88fe2bcf86fa2de9962034b0769a2",
+    "log_sha256": "69db9a91b530bd8373d512f68fd373c7917aa3aa5f10ef712b05e3eac270499c",
+    "files": {
+      "desktop-en-overview.png": "a8d800e42c66942acc57873b1a6160dd207d4a5d8ff0de8000dcc01df1cc67ac",
+      "desktop-en-password.png": "a53524f2ab1f483e6026f8158af5c81647b2bcae672a5d47bdf24b8282adb36f",
+      "desktop-zh-overview.png": "9c35a366316026b1399fef5d2ad73233857732bae781110cebbe5a3c72c4ec2c",
+      "desktop-zh-password.png": "08a5ac168b9530243df60c4f2f937d9f43b463715772b6584072668dd16adc63",
+      "mobile-en-overview.png": "8da0ed6c71ae5b485ea31fe41b3ce295e6b26c2125622b8da5bc13af4435c60b",
+      "mobile-en-password.png": "2a377dce42f564d37ddd04cc6f96b3834fed64367d397e903ac282196b11f5d8",
+      "mobile-zh-overview.png": "bbd42501d4d10572107550fabb1ffa9c69dd5d46ca7dc335d9c2051869c5e980",
+      "mobile-zh-password.png": "600abf93ea4e3e8962aab8e36ebd9c425296cfc79111ec75f79d1752fed6e7b6"
+    }
+  },
+  {
+    "packet": "b-f12-16-team-settings",
+    "source_head": "793dd27a1bc88fe2bcf86fa2de9962034b0769a2",
+    "log_sha256": "4aa1ba5798f6d2232b92322a1f22fdfa30daf722dc81b1faead71d34b26a0b8c",
+    "files": {
+      "desktop-en-member.png": "ad2bc15eef7f90745fd402407d03b5857535e1d49206e137996803b894025ad5",
+      "desktop-en-owner.png": "dc38312eb86ec0e5d3376dddeb4bc4e6d58789ce3bca3c1670afa9a06523e1ec",
+      "desktop-zh-member.png": "467410fb86991d91e4a850762171154e2ae0f1a39bfc727d77fce149c7b87db4",
+      "desktop-zh-owner.png": "d5c1fa4277e8df7ce5938001b6838eadfede62e39c7e81cd786baab4d3e78cc5",
+      "mobile-en-member.png": "e60cfe1b9a5c76c868384bc0fadb791b03ac1927bdc671f2dbb5b8b01201c7e4",
+      "mobile-en-owner.png": "1cfd1d3785e3484c8680553f1dd3830aab423b482aab952fe341387a3eb86d19",
+      "mobile-zh-member.png": "b2c183c1c034bf4a3b694e14b51a1fe0993a9e0d4b4174cdc176fd015f936e34",
+      "mobile-zh-owner.png": "a605642c26611b4167b3d3eb17ffe3a022617f1a8c0c3790415d4e3c0e2348e1"
+    }
+  }
+]

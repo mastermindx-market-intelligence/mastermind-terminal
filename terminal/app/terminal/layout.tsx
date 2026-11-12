@@ -1,5 +1,9 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import TerminalTfDeepLink from "@/components/TerminalTfDeepLink";
+
+export const metadata = workspaceMetadata("Terminal", "Mastermind Terminal");
 
 export default async function TerminalLayout({ children }: { children: React.ReactNode }) {
   // Gate on the env switch FIRST. `auth.getUser()` is a network round-trip to the Supabase
@@ -12,5 +16,7 @@ export default async function TerminalLayout({ children }: { children: React.Rea
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
   }
-  return <>{children}</>;
+  // `?tf=` (a Screener result's requested timeframe) is applied beside the page, through the
+  // shell's existing `mm:set-tf` seam — see components/TerminalTfDeepLink.tsx.
+  return <>{children}<TerminalTfDeepLink /></>;
 }

@@ -1,0 +1,40 @@
+[
+  {
+    "check": "evidence",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    ],
+    "log_sha256": "727fb8317971f77d07c78f93e79d3fb2d243042438b22c6e8287e436349c24d5"
+  },
+  {
+    "check": "lint",
+    "exit": 1,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/gexdesk/GexDeskView.tsx",
+      "components/researchlab/OptionsResearchLab.tsx",
+      "lib/dataCache.ts",
+      "lib/idbJsonStore.ts",
+      "lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "lib/__tests__/dataCachePersist.test.ts",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+    ],
+    "log_sha256": "0a15358a04b976671cc2b8e6bafc7c1114056756f4858e2c593face0f32c50fe"
+  },
+  {
+    "check": "typescript",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/original-lab-integration-20261104/source-tsconfig.json"
+    ],
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

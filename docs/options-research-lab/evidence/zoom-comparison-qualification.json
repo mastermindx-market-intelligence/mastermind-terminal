@@ -1,0 +1,108 @@
+{
+  "schema": "options-consumer-qualification-v1",
+  "parentCommit": "c299a03dda9c1ed56e6aceecf86b23531c3a7253",
+  "root": "01a118f3-fc4e-7941-b432-03703dccd19b",
+  "sourceHashes": {
+    "terminal/app/(shell)/options/page.tsx": "d25a5d207ba7987568a362d7bfca26fb32d387692188d8d3d36e349d74dd7681",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "03b58020b5f5aaad518acac2f5d863cb532cf71c4c25fc18d96a33edf899d9d3",
+    "terminal/lib/__tests__/researchLabView.test.tsx": "a922f1fb7e4b28e2e9f6c15a9e104866efad923f992654c62688769d68868d4c"
+  },
+  "viewportBefore": {
+    "route": "/options?tab=gex&view=matrix&research=1",
+    "application_source": "6bd2852f7316865dff487fc159b0976e67f1ee6a",
+    "phase": "before",
+    "viewport": [
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    ],
+    "allows_zoom": false
+  },
+  "viewportAfter": {
+    "time": "2026-10-08T22:40:52.999924+00:00",
+    "server": "local dev fixture",
+    "results": {
+      "/options?tab=gex&view=matrix&research=1": [
+        "width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover"
+      ],
+      "/terminal": [
+        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      ]
+    },
+    "status": "PASS",
+    "scope": "server-rendered route viewport only; physical pinch untested"
+  },
+  "viewportBrowser": {
+    "direct": "width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover",
+    "chartAfterClientNavigation": "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+    "optionsAfterClientNavigation": "width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover",
+    "scope": "Actual Chrome DOM metadata, direct entry and client navigation Options\u2192Chart\u2192Options; physical mobile gesture not measured",
+    "at": "2026-10-08T22:41:56.099Z"
+  },
+  "comparisonBrowser": {
+    "initial": [
+      "737 Call \u00b7 2026-07-10",
+      "715 Call \u00b7 2026-07-10",
+      "735 Call \u00b7 2026-07-10"
+    ],
+    "readded": [
+      "737 Call \u00b7 2026-07-10",
+      "735 Call \u00b7 2026-07-10",
+      "715 Call \u00b7 2026-07-10"
+    ],
+    "focus": {
+      "inComparison": true,
+      "text": "737 Call \u00b7 2026-07-10"
+    },
+    "viewport": "width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover",
+    "chineseOrder": [
+      "737 \u770b\u6da8 \u00b7 2026-07-10",
+      "735 \u770b\u6da8 \u00b7 2026-07-10",
+      "715 \u770b\u6da8 \u00b7 2026-07-10"
+    ],
+    "chineseFocus": {
+      "inComparison": true,
+      "text": "737 \u770b\u6da8 \u00b7 2026-07-10"
+    },
+    "scope": "Synthetic local fixture in Chrome; insertion/re-add order and EN/ZH focus return; no saved persistence claim",
+    "at": "2026-10-08T22:47:41.598Z"
+  },
+  "validation": {
+    "comparisonRegressionBefore": "2 failed, 4 passed",
+    "viewAndAdapterAfter": "20 passed",
+    "typecheck": "PASS",
+    "changedFileLint": "PASS",
+    "productionBuild": "PASS"
+  },
+  "logs": {
+    "comparison-order-red.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/comparison-order-red.log",
+      "sha256": "f3da68f62e36d27515e8442dad8f2a6dd81aa45b12aa7e90ed0da3652c4ea1b0"
+    },
+    "comparison-order-green.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/comparison-order-green.log",
+      "sha256": "df97240a00824eefc3e41d85bda28f06cede9d58c1432795196ef3655baf4dce"
+    },
+    "comparison-typecheck.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/comparison-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "comparison-eslint.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/comparison-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "comparison-build.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/comparison-build.log",
+      "sha256": "dbfb7d207fab260ccbf68e36425ccfe770cb6a018b87796d11fbb09085c0b4e0"
+    }
+  },
+  "cleanup": {
+    "temporaryTabsClosed": true,
+    "originalLanguageRestored": "en",
+    "originalFixtureRestored": true,
+    "fixtureServerStopped": true
+  },
+  "limits": [
+    "Synthetic local browser fixture; physical mobile pinch untested",
+    "No persisted selection or Saved Research admission",
+    "Independent review and authenticated release remain open"
+  ]
+}

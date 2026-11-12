@@ -157,7 +157,7 @@ test("the real Analysis shell hosts one-turn exact source sends in the existing 
     const host = window as Window & { MMBrain?: { testSend?: () => unknown } };
     return host.MMBrain?.testSend?.() ?? null;
   })).toBeNull();
-  await page.locator(".ci-lenses").getByRole("tab").nth(1).click();
+  await page.locator("#ci-tab-transcript").click();
   const search = page.locator(".ci-ts-search");
   await search.locator("input").fill("Exact source");
   await search.locator(".btn").click();

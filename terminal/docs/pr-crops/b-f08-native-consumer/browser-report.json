@@ -1,0 +1,409 @@
+{
+  "base_head": "5cd4809129e499b2814ed275402b6ba4f3173fcc",
+  "captured_at": "2026-10-19T08:15:05.300Z",
+  "source": "exact retained public TOL object through actual SHA/byte reader and existing /analysis API browser fixture seam",
+  "production": false,
+  "privateData": false,
+  "originalClock": {
+    "observed_at": "2026-08-18T20:46:57Z",
+    "source_available_at": "2026-08-18T20:46:57Z",
+    "state": "complete"
+  },
+  "object": {
+    "file": "workspaces/evt_cik0000794170_2026q3_results.json",
+    "bytes": 13754,
+    "sha256": "ef8eeb4bc5572f0bda12ce7933d47fe8cae25093ce29f07f32c350a4a5db8d16"
+  },
+  "sourceHashes": {
+    "components/fin/CompanyIntelligenceV2Current.tsx": "44be821def6a3afd3a430a899592cc753c029a4a8bd5033709ce3c1cbffa7c3f",
+    "components/fin/CompanyIntelligenceResultsLayout.tsx": "461f1a29d14377ea49ce3fc5d9aaab8a7269fb2582070bbdee6d868833b3e0c2",
+    "components/fin/CompanyIntelligenceResultsLayout.module.css": "232b4c873b527145c8638516dcf180a5cad515ea445d195ce428e05fc41e0b7e"
+  },
+  "checks": [
+    {
+      "name": "retained native object SHA and byte count",
+      "pass": true
+    },
+    {
+      "name": "actual immutable reader accepts TOL",
+      "pass": true
+    },
+    {
+      "name": "native clocks unchanged",
+      "pass": true
+    },
+    {
+      "name": "stale native TOL produces zero planned notifications",
+      "pass": true,
+      "detail": {
+        "rows": 0,
+        "unevaluable": 1,
+        "private_io": false
+      }
+    },
+    {
+      "name": "shared Company Intelligence CSS unchanged",
+      "pass": true
+    },
+    {
+      "name": "own local preview ready",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-en: exact native identity",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-en: complete literal denominator and basis",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-en: localized context label",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-en: source text wraps without clipping",
+      "pass": true,
+      "detail": [
+        {
+          "width": 1133,
+          "scrollWidth": 1133,
+          "whiteSpace": "normal",
+          "display": "block"
+        },
+        {
+          "width": 1133,
+          "scrollWidth": 1133,
+          "whiteSpace": "normal",
+          "display": "block"
+        }
+      ]
+    },
+    {
+      "name": "tol-1440-en: numeric formatting unchanged",
+      "pass": true,
+      "detail": [
+        "2508",
+        "2388",
+        "5.4",
+        "7.5"
+      ]
+    },
+    {
+      "name": "tol-1440-en: no horizontal overflow",
+      "pass": true,
+      "detail": {
+        "workspace": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "tol-1440-en: exact native receipt excerpt",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-en: receipt closes",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-zh: exact native identity",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-zh: complete literal denominator and basis",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-zh: localized context label",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-zh: source text wraps without clipping",
+      "pass": true,
+      "detail": [
+        {
+          "width": 1133,
+          "scrollWidth": 1133,
+          "whiteSpace": "normal",
+          "display": "block"
+        },
+        {
+          "width": 1133,
+          "scrollWidth": 1133,
+          "whiteSpace": "normal",
+          "display": "block"
+        }
+      ]
+    },
+    {
+      "name": "tol-1440-zh: numeric formatting unchanged",
+      "pass": true,
+      "detail": [
+        "2508",
+        "2388",
+        "5.4",
+        "7.5"
+      ]
+    },
+    {
+      "name": "tol-1440-zh: no horizontal overflow",
+      "pass": true,
+      "detail": {
+        "workspace": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "tol-1440-zh: exact native receipt excerpt",
+      "pass": true
+    },
+    {
+      "name": "tol-1440-zh: receipt closes",
+      "pass": true
+    },
+    {
+      "name": "tol-390-en: exact native identity",
+      "pass": true
+    },
+    {
+      "name": "tol-390-en: complete literal denominator and basis",
+      "pass": true
+    },
+    {
+      "name": "tol-390-en: localized context label",
+      "pass": true
+    },
+    {
+      "name": "tol-390-en: source text wraps without clipping",
+      "pass": true,
+      "detail": [
+        {
+          "width": 271,
+          "scrollWidth": 271,
+          "whiteSpace": "normal",
+          "display": "block"
+        },
+        {
+          "width": 271,
+          "scrollWidth": 271,
+          "whiteSpace": "normal",
+          "display": "block"
+        }
+      ]
+    },
+    {
+      "name": "tol-390-en: numeric formatting unchanged",
+      "pass": true,
+      "detail": [
+        "2508",
+        "2388",
+        "5.4",
+        "7.5"
+      ]
+    },
+    {
+      "name": "tol-390-en: no horizontal overflow",
+      "pass": true,
+      "detail": {
+        "workspace": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "tol-390-en: exact native receipt excerpt",
+      "pass": true
+    },
+    {
+      "name": "tol-390-en: receipt closes",
+      "pass": true
+    },
+    {
+      "name": "tol-390-zh: exact native identity",
+      "pass": true
+    },
+    {
+      "name": "tol-390-zh: complete literal denominator and basis",
+      "pass": true
+    },
+    {
+      "name": "tol-390-zh: localized context label",
+      "pass": true
+    },
+    {
+      "name": "tol-390-zh: source text wraps without clipping",
+      "pass": true,
+      "detail": [
+        {
+          "width": 271,
+          "scrollWidth": 271,
+          "whiteSpace": "normal",
+          "display": "block"
+        },
+        {
+          "width": 271,
+          "scrollWidth": 271,
+          "whiteSpace": "normal",
+          "display": "block"
+        }
+      ]
+    },
+    {
+      "name": "tol-390-zh: numeric formatting unchanged",
+      "pass": true,
+      "detail": [
+        "2508",
+        "2388",
+        "5.4",
+        "7.5"
+      ]
+    },
+    {
+      "name": "tol-390-zh: no horizontal overflow",
+      "pass": true,
+      "detail": {
+        "workspace": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "tol-390-zh: exact native receipt excerpt",
+      "pass": true
+    },
+    {
+      "name": "tol-390-zh: receipt closes",
+      "pass": true
+    },
+    {
+      "name": "zero browser page exceptions",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "tol-1440-en-results.png",
+      "sha256": "270bab6830a0db8ff5b6c38e86d3266d6da9dec1eefd945c3a00a586d186612f",
+      "bytes": 26027
+    },
+    {
+      "file": "tol-1440-zh-results.png",
+      "sha256": "a9de02cc9b07e962fe15bad67ec37307bc5847ece8e247e8d9bc76b39a2bc0fc",
+      "bytes": 24613
+    },
+    {
+      "file": "tol-390-en-results.png",
+      "sha256": "9f60032acce8f271364b3167c8a508585f543e0e394a7856bfb7b0f3d47876af",
+      "bytes": 23299
+    },
+    {
+      "file": "tol-390-zh-results.png",
+      "sha256": "4593db1cc7dd969534e7a9a3cf0083b6c7d5907000a7206f71a0ffce613b3557",
+      "bytes": 21962
+    }
+  ],
+  "pageErrors": [],
+  "requests": [
+    {
+      "label": "tol-1440-en",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-en",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-en",
+      "path": "/api/quote",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/quote",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-1440-zh",
+      "path": "/api/quote",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-en",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-en",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-en",
+      "path": "/api/quote",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/quote",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/event-workspace/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/company-intelligence/TOL",
+      "method": "GET"
+    },
+    {
+      "label": "tol-390-zh",
+      "path": "/api/quote",
+      "method": "GET"
+    }
+  ],
+  "browser": "149.0.7827.55",
+  "passed": true,
+  "ownPreviewStopped": true,
+  "capture_scope": "Four actual dark Results at-a-glance crops EN/ZH at desktop1440 and mobile390. Public native source only; local fixture identity; not production/private-account acceptance.",
+  "visual_inspection": [
+    "tol-1440-en-results.png",
+    "tol-1440-zh-results.png",
+    "tol-390-en-results.png",
+    "tol-390-zh-results.png"
+  ],
+  "visual_findings": "All four final crops inspected: four numeric metrics preserved; complete denominator and native convention wrap fully on mobile; EN/ZH label parity; no clipped source text or horizontal overflow. Native source prose stays verbatim English inside localized chrome.",
+  "temporary_harness_removed": true,
+  "preview_listener_absent_after_cleanup": true
+}

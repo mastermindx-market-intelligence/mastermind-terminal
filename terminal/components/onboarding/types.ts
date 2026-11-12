@@ -117,6 +117,11 @@ export interface WizardStash {
   plan: PlanKey;
   period: Period;
   confirmPending: boolean;
+  // Identity lookup may fail before a bound outbox record can be made. Preserve
+  // the existing wizard choice and its displayed actor through Done/close;
+  // the consumer still requires a matching real getUser response before use.
+  prefsPending?: boolean;
+  prefsActorEmail?: string;
   // W2: true once an in-sheet Stripe trial has started (Done copy → "trial live").
   trialActive: boolean;
   // W2: epoch seconds when the first charge lands (from subscribe/complete); null
@@ -184,6 +189,9 @@ export function normalizeWizardStash(value: unknown): WizardStash | null {
     plan: normalizePlanKey(raw.plan) ?? "pro",
     period: raw.period === "monthly" || raw.period === "annual" ? raw.period : "annual",
     confirmPending: raw.confirmPending === true,
+    ...(raw.prefsPending === true ? { prefsPending: true } : {}),
+    ...(typeof raw.prefsActorEmail === "string" && raw.prefsActorEmail.length > 0 && raw.prefsActorEmail.length <= 254
+      ? { prefsActorEmail: raw.prefsActorEmail } : {}),
     trialActive: raw.trialActive === true,
     trialEnd: typeof raw.trialEnd === "number" && Number.isFinite(raw.trialEnd) ? raw.trialEnd : null,
   };

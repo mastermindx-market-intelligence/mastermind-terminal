@@ -1,0 +1,168 @@
+{
+  "authority_ceiling": "research_internal_only",
+  "availability": {
+    "overlap": "OBSERVED_SHARED_CONCEPTS",
+    "status": "PARTIAL"
+  },
+  "can_add_candidates": false,
+  "can_escalate": false,
+  "can_gate": false,
+  "can_originate_signal": false,
+  "can_rank": false,
+  "can_size": false,
+  "cohort_scope": "us_standouts",
+  "concept_rights": {
+    "n_concepts_displayable": 0,
+    "n_concepts_total": 9,
+    "n_concepts_withheld": 9,
+    "withheld_reasons": {
+      "RIGHTS_FAMILY_UNRESOLVED": 4,
+      "RIGHTS_INTERNAL_ONLY": 5
+    }
+  },
+  "coverage": {
+    "missing_identity": [],
+    "missing_membership": [],
+    "missing_rights": [],
+    "missing_state": [
+      "us-fixture-1",
+      "us-fixture-2",
+      "us-fixture-3",
+      "us-fixture-4",
+      "us-fixture-5",
+      "us-fixture-6"
+    ],
+    "multi_theme": [
+      "us-fixture-1",
+      "us-fixture-2",
+      "us-fixture-3",
+      "us-fixture-5",
+      "us-fixture-6"
+    ],
+    "n_concepts": 9,
+    "n_identity_qualified": 6,
+    "n_selected": 6,
+    "n_shared_concepts": 3,
+    "no_recorded_membership": [],
+    "unmapped_local": []
+  },
+  "effective_at": "2026-10-05T20:00:00Z",
+  "explanation_id": "fixture-explanation-0001",
+  "generation_id": "fixture-generation-0001",
+  "known_at": "2026-10-05T23:30:00Z",
+  "limitations": [
+    "Fixture for Terminal development and tests only (NW_FIXTURE=1 / Playwright route mocks); shape mirrors macro engine/theme_graph/selection_cohort_projection.py v1.",
+    "Read-only nightly projection; it never ranks, sizes, gates, or mutates the cohort.",
+    "Concepts appear only when display rights resolve; withheld concepts leave no public identifiers.",
+    "Not an input to ranking, readiness, sizing, or board mutation.",
+    "Derived from the canonical read packet and may be honestly unavailable when the source is."
+  ],
+  "n_selected": 6,
+  "schema": "mastermind.selection_cohort_projection.v1",
+  "selected": [
+    {
+      "concepts_display": [],
+      "n_concepts": 3,
+      "n_concepts_withheld": 3,
+      "original_identity": {
+        "symbol": "FIXTURE1"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:1",
+      "selection_id": "us-fixture-1"
+    },
+    {
+      "concepts_display": [],
+      "n_concepts": 2,
+      "n_concepts_withheld": 2,
+      "original_identity": {
+        "symbol": "FIXTURE2"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:2",
+      "selection_id": "us-fixture-2"
+    },
+    {
+      "concepts_display": [],
+      "n_concepts": 2,
+      "n_concepts_withheld": 2,
+      "original_identity": {
+        "symbol": "FIXTURE3"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:3",
+      "selection_id": "us-fixture-3"
+    },
+    {
+      "concepts_display": [],
+      "n_concepts": 1,
+      "n_concepts_withheld": 1,
+      "original_identity": {
+        "symbol": "FIXTURE4"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:4",
+      "selection_id": "us-fixture-4"
+    },
+    {
+      "concepts_display": [],
+      "n_concepts": 4,
+      "n_concepts_withheld": 4,
+      "original_identity": {
+        "symbol": "FIXTURE5"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:5",
+      "selection_id": "us-fixture-5"
+    },
+    {
+      "concepts_display": [],
+      "n_concepts": 2,
+      "n_concepts_withheld": 2,
+      "original_identity": {
+        "symbol": "FIXTURE6"
+      },
+      "original_reasons": [
+        "fixture row"
+      ],
+      "reason_codes": [
+        "FIXTURE"
+      ],
+      "security_id": "fixture:security:6",
+      "selection_id": "us-fixture-6"
+    }
+  ],
+  "selection_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "source_schema": "mastermind.selection_cohort_read.v1",
+  "unavailable_reason": null,
+  "version": {
+    "basis": "AS_KNOWN_AT_SELECTION",
+    "corrects": null,
+    "number": 1
+  }
+}

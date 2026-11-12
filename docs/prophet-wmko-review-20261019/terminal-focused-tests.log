@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/prophet-wmko-terminal-20261018/terminal
+
+ ✓ lib/__tests__/prophetObservations.test.ts (18 tests) 6ms
+ ✓ lib/__tests__/prophetObservationCoverage.test.ts (15 tests) 7ms
+ ✓ lib/__tests__/prophetObservationsRoutes.test.ts (17 tests) 21ms
+ ✓ lib/__tests__/prophetObservationLauncher.test.tsx (4 tests) 30ms
+ ✓ lib/__tests__/useProphetObservation.test.tsx (12 tests) 50ms
+ ✓ lib/__tests__/prophetWorkspaceIntegration.test.tsx (7 tests) 73ms
+
+ Test Files  6 passed (6)
+      Tests  73 passed (73)
+   Start at  17:07:56
+   Duration  853ms (transform 324ms, setup 0ms, collect 557ms, tests 187ms, environment 663ms, prepare 346ms)
+

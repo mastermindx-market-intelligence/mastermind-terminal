@@ -1,0 +1,146 @@
+{
+  "currentComposition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "04174f0c329f74ca3315cd2bf501f206d5ac4d8a8750d08affbb28b18e8a7b0a"
+  },
+  "evidenceConsumers": {
+    "composition": {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-current.composition.json",
+      "selectedCases": 50,
+      "sha256": "04174f0c329f74ca3315cd2bf501f206d5ac4d8a8750d08affbb28b18e8a7b0a"
+    },
+    "passed": 45,
+    "receiptSha256": "90df4899215eb8b0ea7f95217df05806776ace89a1b66872b6021714a6fd68ae",
+    "reportSha256": "a4a7e51902c406181e07fa67179a290dfeab040da42033c1735fb6bdc48e52e0"
+  },
+  "findings": [
+    "No new material visual regression found within the 21 inspected current crops.",
+    "Six custom Options tags remain readable in all five scenarios.",
+    "Current AlertDetail has its localized heading and larger Close target; desktop and stacked phone fields and actions remain readable.",
+    "PL6 selected crops establish the entry-status chip, Options table, search result, chart status and analysis context bar rather than complete workspace content."
+  ],
+  "historicalProofFilesUnchanged": 144,
+  "readOnlyReasoningReview": {
+    "currentImagesInspected": 21,
+    "images": [
+      {
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+        "sha256": "1d5f5bef9ea35d047277d7f20b5a4bf0c439fc0f4955fdf2816e7ee6fa39d2bd"
+      },
+      {
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+        "sha256": "46cddff609913441da5388efa2ed3fa5b0c8ed2065c416dd2b6e099baa755a07"
+      },
+      {
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+        "sha256": "310df77c17bf5cd532d54ec07b435951548838536945dd33f58baeb261b998b9"
+      },
+      {
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+        "sha256": "301307d66d96042436ca0b95542057a7e21989fe7fcb84759dd921ee9e5c54c1"
+      },
+      {
+        "path": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+        "sha256": "ecaa54da94e6d47a919712c85ddfcb8831cf7e6c8bb19ae0bfb5cb0221587545"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-pl6--case-04addfb3086ee5fc6cec19d7edce782d.png",
+        "sha256": "56f1f611e857dd076fea00e4ac6a9b4d64084191e09ef31f07fa085d6176937d"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-pl6--case-0f8cd82e5d4bc245843916285d6c10fb.png",
+        "sha256": "a3f2d6d48c1d7c4c36d07b01e850453c3f0cb1bec0525981ffafde5065b0dfdd"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-pl6--case-f90c2121bf5db3dde5301abec80c74ce.png",
+        "sha256": "6261090bdaca7202d25094f9e3e0663274ad21759c113ddc27fa8cb30ee61361"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-pl6--case-730e269fd8c27611b9d4a4a826661962.png",
+        "sha256": "2d589b2e425b47743d0642130e577f4192d92f27ac33cdaeeaee211acb5eeb96"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-pl6--case-a6dc838bc1a5d9faac32fc11a6913459.png",
+        "sha256": "9979d3f0ed18f8ea24454cf8e070f452b8e092aa443d6edd72b847ef32f3490d"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-20261110091213632-1-vi--case-ee02b323aeba2da6a7cfcfdec67e90b2.png",
+        "sha256": "bfc1dcbc32a6b9b50c8c8cf0ae119b538301ce094df316c5ababc75debd9cb43"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-20261110091213632-1-vi--case-7381784ee89146a99c2d47e0857cd8db.png",
+        "sha256": "98d7f2885698a75d51a29ddc6ae9644bd8f008334b2aad4a403010e071bd00e4"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-20261110091213632-1-vi--case-997b1cb667944d5f31aa982480cd6617.png",
+        "sha256": "e405b67dd7664ccbe130e97c455a536b24e7b85ab51af9f96ec135e030608622"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png",
+        "sha256": "c107217c886f3bb02f2f9c35add9a5585197b95231d44238354a1ad2cf7b15a6"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png",
+        "sha256": "faca0f3888aa572577ec02c7525c3985f00a7e5778e8c152becb27e01e5117ed"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png",
+        "sha256": "4c3e59e025be61614f825096add01f690d0e4d31cc014aa613e55a9bf294b6e6"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png",
+        "sha256": "1263688ecb3d9fa758e188761e53f4d05ec5ab4d3bee9fdf9d0cc3469aafe1f8"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-1440.png",
+        "sha256": "5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/FlowDesk-390-zh.png",
+        "sha256": "22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/HeatmapTreemap-1440-zh.png",
+        "sha256": "d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13"
+      },
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-3/PineLibrary-390.png",
+        "sha256": "222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16"
+      }
+    ],
+    "priorComparators": [
+      {
+        "path": "docs/verification/pr632-protected-successor-20261110/ci-owner-current/runner-temp/terminal-ci-evidence/ci-20261110091213632-1-options.prior/mobile.png",
+        "sha256": "bb9920d5622becd873b43513e968c712f1820681c6ed0cde610b32db80bd1700"
+      },
+      {
+        "path": "docs/verification/pr632-protected-successor-20261110/ci-owner-current/runner-temp/terminal-ci-evidence/ci-20261110091213632-1-options.prior/desktop-left-percentage.png",
+        "sha256": "3d295c231e80a42858c602b093a36568b9dbad622b7cd52c25a173a1d6d30d7c"
+      },
+      {
+        "path": "docs/verification/pr632-protected-successor-20261110/ci-owner-current/runner-temp/terminal-ci-evidence/ci-20261110091213632-1-batch3.prior/AlertDetail-1440.png",
+        "sha256": "4d7034b83553595b33102334a15a49f45a64b2c225de59c9455c59a280863b81"
+      }
+    ],
+    "retainedComparatorsInspected": 3
+  },
+  "retainedLimitations": [
+    "The phone fullscreen control partly covers the native orange price badge, also visible in the retained prior packet.",
+    "Native upper percentage ticks overlap the upper symbol/legend region in the left-axis view, also present previously.",
+    "Custom-tag geometry checks do not establish absence of native canvas-label or whole-chart UI overlap.",
+    "The compact viewport and phone FlowDesk filter crop do not prove visibility of lower content outside their bounds."
+  ],
+  "rootDisplayed": [
+    "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+    "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png"
+  ],
+  "schema": "terminal_pr632_source_and_visual_inspection.v1",
+  "scope": "Local next-dev fixture profile, dark theme, shared shell 0 and investor preview 0. Options and AlertDetail payloads are intercepted fixtures. No production-data or production-browser acceptance is claimed.",
+  "sourceJoinBlobs": {
+    "terminal/components/ChartFrameBar.tsx": "5174fc31b3ac7af15e8b3fadaaa77fecdda02095",
+    "terminal/components/ChartPane.tsx": "44dee8337493d5c3dd926cda6ab7e23ad00e8c7c",
+    "terminal/components/ChartPanel.tsx": "7fcf87159e680ac7dba1ee9675a8b0e7319e2011",
+    "terminal/e2e/drawing-system.spec.ts": "936debed87409f2678be7d1b03a10dc5a2145e47"
+  }
+}

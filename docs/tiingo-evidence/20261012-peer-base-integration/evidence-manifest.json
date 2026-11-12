@@ -1,0 +1,9 @@
+{
+  "normalized_hosted_red_sha256": "857ac577ede3e026a27c193ce92374ae15ce13525d4d08c1db5cef08b733e255",
+  "original_hosted_red_sha256": "b3de822eff80b987d07c4793370a0ddf8f691d47918fa14af887626675097263",
+  "terminal-955-peer957-consumption.json": "239bad5fabaa897a5bfcbc9c0afdb87d03764560d821e8a64e36163996d255da",
+  "terminal-955-peer957-ledger-tests.log": "4c173abeaa38170aed235e0adf10f2fc033972bf4714a4a5db6421f4a6341432",
+  "terminal-boats-base857-affected-tests.log": "3c1f874e736f629d8ab3c06be65a069fcaca903d0785c4a531a8ba76eae8b5ac",
+  "terminal-boats-base857-responsive.log": "a3b61317da47180b5f4c3c698874bd03e6b42cf93fb91971ecb0b205054a50b1",
+  "terminal-boats-base857-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

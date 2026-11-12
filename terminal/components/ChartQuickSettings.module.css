@@ -1,0 +1,34 @@
+.menu {
+  min-width: min(240px, calc(100vw - 24px));
+  max-width: min(320px, calc(100vw - 24px));
+  max-height: min(560px, calc(100dvh - 96px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.menu button {
+  width: 100%;
+  text-align: left;
+}
+
+.menu button:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+  background: var(--pop-hover);
+}
+
+.menu button:disabled {
+  opacity: .38;
+  cursor: default;
+}
+
+.menu .submenu {
+  width: calc(100% - 16px);
+  margin: 4px 8px 8px;
+}
+
+@media (pointer: coarse) {
+  .menu button {
+    min-height: 44px;
+  }
+}

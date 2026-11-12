@@ -1,0 +1,18 @@
+{
+  "name": "consumer",
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/tickerNewsEvidence.test.ts",
+    "--minWorkers=1",
+    "--maxWorkers=2"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1403-ticker-import-20261111-c3/terminal",
+  "started_at": "2026-11-11T19:48:31.433149+00:00",
+  "completed_at": "2026-11-11T19:48:32.415588+00:00",
+  "rc": 0,
+  "log_sha256": "92e88065e96d0fef75aeae80f4f6236bc8b116c2d7c5543e2e955da78ddc4273",
+  "log_bytes": 508,
+  "tail": "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m\n\n RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-1403-ticker-import-20261111-c3/terminal\n\n \u2713 lib/__tests__/tickerNewsEvidence.test.ts (4 tests) 8ms\n\n Test Files  1 passed (1)\n      Tests  4 passed (4)\n   Start at  12:48:32\n   Duration  326ms (transform 25ms, setup 0ms, collect 25ms, tests 8ms, environment 0ms, prepare 52ms)\n\n"
+}

@@ -1,0 +1,36 @@
+feature: prophet-opportunity-box
+captured_at: 2026-09-20
+proof_tier: local-fixture-browser
+route: /options?tab=prophet
+producer_contract: prophet.entry_zone/v1
+fixture:
+  asset: AMKR
+  source_shape: current Macro producer fields
+  entry_zone:
+    low: 48.52
+    high: 48.91
+    chase_above: 50.30
+    state: live
+    stance: wait
+    sessions_remaining: 12
+captures:
+  - file: desktop-en.png
+    viewport: 1440x900
+    lang: en
+    document_width: 1440
+  - file: tablet-en.png
+    viewport: 820x1180
+    lang: en
+    document_width: 820
+  - file: mobile-en.png
+    viewport: 390x844
+    lang: en
+    document_width: 390
+  - file: mobile-zh.png
+    viewport: 390x844
+    lang: zh
+    document_width: 390
+notes:
+  - No horizontal document overflow at any captured contract viewport.
+  - Terminal is dark-only by product contract; no light-theme capture exists.
+  - This proves rendering and responsive composition only; it is not production data or deployment proof.

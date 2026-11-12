@@ -1,0 +1,49 @@
+{
+  "schema": "forex.close-proposal-qualification.v1",
+  "status": "OFFLINE_ADAPTER_QUALIFIED_NOT_INSTALLED",
+  "terminal_base": "725764d24ec0c003d2a68fe20a004523a9614ec2",
+  "macro_evaluator_commit": "e2169fe462017d849b525c16dd44d2f45a69393a",
+  "macro_evaluator_git_blob": "aea6b913a9642a34b6cfb26657c0c970ee639ede",
+  "macro_config_git_blob": "b6fc888269876242597da354aaa726c20ed95802",
+  "identity_functions_ast_unchanged_from_acquisition": true,
+  "tests_passed": 85,
+  "tests_skipped": 0,
+  "completed_at_utc": "2026-10-24T04:01:28.073959+00:00",
+  "source_sha256": "a95ee73bfde57a47712184f2ddc3732f2aea3efc543f9ef96bd85b9a7ade53fe",
+  "tests_sha256": "3ac6a2a304facc2e32e93c44a3449d58d62656d3d95420ed8fad1685f8e7d9d4",
+  "retained_result_sha256": "51b4288ba0535f117e14e5f99301bf9608c3673e02569f0dc6f129dafcd7d8ee",
+  "retained_log_sha256": "8d7d6d17741dadb579e8f99db4c3da47c9748ba0fb66ca6f6f59e820d4c91610",
+  "scope": [
+    "new inert adapter",
+    "deterministic contract tests",
+    "actual pinned evaluator and incumbent identity integration"
+  ],
+  "not_proven": [
+    "source adoption",
+    "SQL atomicity",
+    "independent review",
+    "activation",
+    "delivery"
+  ],
+  "original_refused_sql_run": "forex-r26-source-fence-proposal-20261024-sol-001",
+  "original_refused_sql_retry_allowed": false,
+  "no_engine_or_sql_edits": true,
+  "no_credentials_or_network_acquisition": true,
+  "source_image_env_absent": true,
+  "qualified_parent": "2b1bf5ecafad4796c2b8a6d52bb20327ab59fded",
+  "followup_checks": [
+    "pre-effect condition-version and event-ID binding through incumbent functions",
+    "typed identity-callback failure with zero enqueue calls",
+    "historical replay deadline inside immutable rule/source bounds",
+    "original replay cutoff may differ from current eligibility cutoff"
+  ],
+  "prior_qualification": {
+    "tests_passed": 76,
+    "tests_skipped": 0,
+    "completed_at_utc": "2026-10-24T03:06:34.314167+00:00",
+    "source_sha256": "27ccb04989efdd95dd1c847703c11a62e20f3f4928391ad645255ebd22c33089",
+    "tests_sha256": "c29487bc63602a60677cc6a1a097992d6026b3df062be924cce7fc091e95d7d2",
+    "retained_result_sha256": "18eb2a2f4df53e7d5ea1f4f9308a8cab8813cbd6992bc22eddcc30b3ebc25c16",
+    "retained_log_sha256": "9c837f895a113e8380ce2603127c792f5f600e3a248670388aab4dcad88c4212"
+  }
+}

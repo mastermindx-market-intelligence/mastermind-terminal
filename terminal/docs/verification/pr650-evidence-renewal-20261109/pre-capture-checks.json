@@ -1,0 +1,102 @@
+[
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_ci_evidence.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "pre-capture-check-0.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_ci_evidence.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "pre-capture-check-1.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/ci/plan-evidence-capture.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "pre-capture-check-2.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/ci/plan-evidence-capture.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "pre-capture-check-3.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.07,
+    "log": "pre-capture-check-4.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/capture_ci_evidence.test.cjs",
+      "scripts/ci/plan-evidence-capture.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 16.1,
+    "log": "pre-capture-check-5.log",
+    "logSha256": "1ac9774a3ac58e0d5277a51a18af5e232089ddee104d308bf971b1dbd5b4a51d"
+  },
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/uiCopyHumanization.test.ts",
+      "lib/__tests__/flowFreshness.test.ts",
+      "lib/__tests__/prophetOriginationDisclosure.test.ts",
+      "lib/__tests__/eodContextBeltLoadFailureState.test.tsx",
+      "lib/__tests__/eodCaptureIndicatorGate.test.ts",
+      "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-native-validation-20261109/terminal/test-results/pr650-recovery-20261109/source-tests-report.json"
+    ],
+    "exit": 0,
+    "seconds": 7.89,
+    "log": "pre-capture-check-6.log",
+    "logSha256": "c900d185cc8ae5af5896eda15b04fa510c8a41d5867b3bcb0b0ced3cde156f36"
+  },
+  {
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 136.05,
+    "log": "pre-capture-check-7.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

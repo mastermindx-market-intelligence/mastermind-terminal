@@ -1,0 +1,26 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/futures-gex-projection-20261011/terminal
+
+ ✓ lib/__tests__/optionsLevels.test.ts (29 tests) 26ms
+ ✓ lib/__tests__/futuresGexProjection.test.ts (56 tests) 38ms
+ ✓ lib/__tests__/priceTagPlacement.test.ts (21 tests) 15ms
+ ✓ lib/__tests__/futuresGexLens.test.ts (18 tests) 37ms
+ ✓ lib/__tests__/futuresSourceJoin.test.ts (53 tests) 1147ms
+ ✓ lib/__tests__/futuresGexLevels.test.ts (11 tests) 24ms
+ ✓ lib/__tests__/futuresBridgeHttp.test.ts (1 test) 237ms
+ ✓ lib/__tests__/futuresSampleView.test.ts (14 tests) 3ms
+ ✓ lib/__tests__/futuresWorkspace.test.ts (10 tests) 76ms
+ ✓ lib/__tests__/futuresApi.test.ts (17 tests) 238ms
+ ✓ lib/__tests__/futuresSourceRead.test.ts (14 tests) 118ms
+ ✓ lib/__tests__/futuresPage.test.ts (9 tests) 11ms
+ ✓ lib/__tests__/futuresReviewControls.test.ts (4 tests) 87ms
+ ✓ lib/__tests__/futuresResponse.test.ts (7 tests) 21ms
+ ✓ lib/__tests__/futuresSampleProduction.test.ts (3 tests) 4ms
+ ✓ lib/__tests__/futuresGexVisual.test.ts (4 tests) 44ms
+ ✓ lib/__tests__/futuresLabProduction.test.ts (1 test) 5ms
+
+ Test Files  17 passed (17)
+      Tests  272 passed (272)
+   Start at  18:06:18
+   Duration  7.37s (transform 2.99s, setup 0ms, collect 5.17s, tests 2.13s, environment 3ms, prepare 2.37s)

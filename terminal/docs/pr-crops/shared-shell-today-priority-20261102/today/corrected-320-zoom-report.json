@@ -1,0 +1,484 @@
+{
+  "sourceHead": null,
+  "kind": "ACTUAL_APPSHELL_TODAY_LOCAL_FIXTURE",
+  "clocks": {
+    "live": "2026-11-02T15:30:00Z",
+    "other": "2026-11-01T12:00:00Z"
+  },
+  "results": [
+    {
+      "width": 320,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "17 days ago · 10 sessions old — check source",
+            "ratio": 8
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1477,
+            "height": 434
+          },
+          "since": {
+            "top": 2328,
+            "height": 157
+          },
+          "watch": {
+            "top": 708,
+            "height": 186
+          },
+          "continuation": {
+            "top": 914,
+            "height": 504
+          },
+          "research": {
+            "top": 1931,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 304
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "17 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 6.32
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 1392,
+            "height": 396
+          },
+          "since": {
+            "top": 2204,
+            "height": 157
+          },
+          "watch": {
+            "top": 644,
+            "height": 186
+          },
+          "continuation": {
+            "top": 850,
+            "height": 483
+          },
+          "research": {
+            "top": 1808,
+            "height": 377
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "textZoom": 2,
+      "layout": {
+        "theme": "dark",
+        "lang": "en",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "17 days ago · 10 sessions old — check source",
+            "ratio": 8
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 3214,
+            "height": 761
+          },
+          "since": {
+            "top": 4761,
+            "height": 403
+          },
+          "watch": {
+            "top": 1402,
+            "height": 554
+          },
+          "continuation": {
+            "top": 1976,
+            "height": 1152
+          },
+          "research": {
+            "top": 3995,
+            "height": 745
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.0625
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "textZoom": 2,
+      "layout": {
+        "theme": "light",
+        "lang": "zh",
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 374
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "17 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 6.32
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ],
+        "sinceState": "teaser",
+        "positions": {
+          "strip": {
+            "top": 2329,
+            "height": 797
+          },
+          "since": {
+            "top": 3818,
+            "height": 308
+          },
+          "watch": {
+            "top": 1061,
+            "height": 302
+          },
+          "continuation": {
+            "top": 1383,
+            "height": 860
+          },
+          "research": {
+            "top": 3147,
+            "height": 651
+          }
+        },
+        "dom": [
+          "TodayWorkspace_watchJob",
+          "TodayWorkspace_continuationJob",
+          "TodayWorkspace_readingsJob",
+          "TodayWorkspace_researchJob",
+          "since",
+          "TodayWorkspace_coverageJob"
+        ],
+        "sourceJump": {
+          "active": "today-source-readings",
+          "top": 56.40625
+        },
+        "actionHref": "/analysis?symbol=AAPL&page=intelligence&ci_lens=sources&ci_event=evt_cik0000320193_2026q3_results&ci_generation=f709a0a6ec514282d5769e7d&ci_company=cik%3A0000320193&ci_fingerprint=cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "resizeExtraReads": 0
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    }
+  ]
+}

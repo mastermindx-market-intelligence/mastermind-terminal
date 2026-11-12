@@ -43,20 +43,20 @@ const GATEWAY = process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com";
 // slashes) so `threads/abc/../secret` can never slip through.
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
-// `threads/<id>` where <id> is a single, non-empty, path-safe segment — the sole
-// per-thread target, shared by GET (read) / PATCH (rename) / DELETE. Returns the joined
-// upstream path or null.
+// `threads/<id>` is shared by GET (read), PATCH (rename), and DELETE. Params are
+// already decoded: reject URL separators/escapes before interpolating the upstream
+// path. UUIDs and the existing bounded alphanumeric/underscore/hyphen IDs remain valid.
 function threadIdPath(segs: string[]): string | null {
   if (segs.length === 2 && segs[0] === "threads") {
     const id = segs[1];
-    if (id && !id.includes("/") && !id.includes("..")) return `threads/${id}`;
+    if (id && /^[A-Za-z0-9_-]{1,64}$/.test(id)) return `threads/${id}`;
   }
   return null;
 }
 
-// A run id as the gateway mints it: `uuid.uuid4().hex`. We validate by CHARSET rather than
-// by banning "/" and ".." the way threadIdPath does, because the resolved path is
-// interpolated into the upstream URL — so a segment containing "?" or "#" would not just be
+// A run id as the gateway mints it: `uuid.uuid4().hex`. Both run and thread ids use
+// a bounded charset because the resolved path is interpolated into the upstream
+// URL — so a segment containing "?" or "#" would not just be
 // an odd id, it would smuggle a query string (or truncate the path) into the gateway call.
 // Next decodes route params, so `%3F` arrives here as a literal "?"; this charset is what
 // stops it. Kept a little wider than 32 hex chars so a future id format does not 404, but
@@ -151,7 +151,7 @@ function guestOk(upstreamPath: string): boolean {
 // The caller decides what null means per path. We NEVER read or forward a client-supplied
 // Authorization header — the only Bearer this proxy sends is one minted here from the
 // server-verified session.
-async function sessionToken(): Promise<string | null> {
+async function sessionIdentity(): Promise<{ token: string; principal: string } | null> {
   const supabase = await createClient();
   const {
     data: { session },
@@ -160,7 +160,7 @@ async function sessionToken(): Promise<string | null> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!session || !user) return null;
-  return session.access_token;
+  return { token: session.access_token, principal: user.id };
 }
 
 // Resolve auth for a resolved upstream path: return the outbound headers to attach
@@ -170,8 +170,9 @@ async function sessionToken(): Promise<string | null> {
 async function authHeaders(
   req: Request,
   upstreamPath: string,
-): Promise<{ headers: Record<string, string> } | { error: Response }> {
-  const token = await sessionToken();
+): Promise<{ headers: Record<string, string>; principal: string | null } | { error: Response }> {
+  const identity = await sessionIdentity();
+  const token = identity?.token;
   if (!token && !guestOk(upstreamPath)) {
     return {
       error: NextResponse.json({ error: "unauthenticated" }, { status: 401 }),
@@ -179,7 +180,7 @@ async function authHeaders(
   }
   const headers: Record<string, string> = { ...idHeaders(req) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  return { headers };
+  return { headers, principal: token ? identity!.principal : null };
 }
 
 // SSE / JSON pass-through: relay upstream status + body untouched. Streaming bodies
@@ -284,6 +285,19 @@ export async function POST(
   const body = await req.text();
   if (body.length > maxBody) {
     return NextResponse.json({ error: "payload_too_large" }, { status: 413 });
+  }
+
+  // An Options selector is stateless and cannot cross an account change between
+  // staging and send. Treat the header only as an expectation, never authority.
+  if (upstreamPath === "stream") {
+    let parsed: unknown;
+    try { parsed = JSON.parse(body); } catch { /* Gateway retains malformed-body handling. */ }
+    if (parsed && typeof parsed === "object" && Object.prototype.hasOwnProperty.call(parsed, "options_question_reference")) {
+      const expected = req.headers.get("x-mm-options-principal");
+      if (!auth.principal || expected !== auth.principal) {
+        return NextResponse.json({ error: "options_question_principal_mismatch" }, { status: 403 });
+      }
+    }
   }
 
   try {

@@ -1,0 +1,53 @@
+{
+  "renderedSourceHead": "bffa04d428d29ff225958899050bc40753c61954",
+  "paperPage": "p-1G-0",
+  "unit": {
+    "files": 553,
+    "passed": 9108,
+    "existingTodo": 4
+  },
+  "browser": {
+    "chromiumPassed": 15,
+    "webkitPassed": 15,
+    "viewports": [
+      "desktop",
+      "tablet",
+      "mobile"
+    ]
+  },
+  "typescript": "PASS",
+  "changedSpecLint": "PASS",
+  "localProductionBuild": "PASS",
+  "capturePacks": [
+    {
+      "name": "account polish",
+      "count": 8,
+      "successfulLogSha256": "4a352973981e7fd1cb5f4e0273fb4868a03a1279adec3a7244f9af042e84bb74"
+    },
+    {
+      "name": "team settings",
+      "count": 8,
+      "successfulLogSha256": "230d9ae3b3c1752a900e978fe2bba23b42ee6215ed40072b6ae21828abcd8a95"
+    },
+    {
+      "name": "team roles",
+      "count": 16,
+      "successfulLogSha256": "b246091cc0632342e57d90af8a59b04efbfed4be30f83eef8d07edd8fd971e92"
+    },
+    {
+      "name": "team ownership transfer",
+      "count": 8,
+      "successfulLogSha256": "3b01ad5751c6f5d4c7413ae21684581d6b3aff4b63a6294f5d2787e3f72b1a45"
+    },
+    {
+      "name": "invite link",
+      "count": 16,
+      "successfulLogSha256": "183744415a9471bbe447f6d809f728196005f3104a185be2b5d4c1626ba09f54"
+    }
+  ],
+  "scopeProof": "r3-css-scope-proof.json",
+  "pixelProof": "r3-visual-proof.json",
+  "productionDeployed": false,
+  "ciStatus": "Not asserted by local verification",
+  "captureCaveat": "The first ownership-transfer capture landed on a local dev-harness 404 before any transfer action. Its process ended and failed screenshot/log were retained outside source. A newly started explicitly development-mode fixture capture completed all 8 frames; the invite capture then completed all 16. No app source or capture assertions were relaxed."
+}

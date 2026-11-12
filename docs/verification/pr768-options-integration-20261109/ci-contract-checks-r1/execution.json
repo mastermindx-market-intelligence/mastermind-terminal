@@ -1,0 +1,86 @@
+{
+  "completedAt": "2026-11-09T17:00:30.914950+00:00",
+  "pr": 768,
+  "renderingClosuresUnchanged": {
+    "browser": 71,
+    "browserQualificationSha256": "48f4d579a9c661e35f51e5070424a53f509ac1a480430ee9fda9afab8bb6df90",
+    "eod": 32,
+    "gex": 29
+  },
+  "results": {
+    "full-playwright-collection": {
+      "collection": [
+        {
+          "files": 293,
+          "tests": 4966
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal",
+      "exit": 0,
+      "logSha256": "7daaccffff3fe06bd8e7dfc17d83fa2d06536f98d8f30dfec427a91c395a7f3a",
+      "seconds": 11.49
+    },
+    "node-ci-entrypoints": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "e2e/tools/capture_visual_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal",
+      "exit": 0,
+      "logSha256": "d4acc7089cedaf999f48f6b07f38d459ff5dc09456524f57eddf14b88e467737",
+      "seconds": 18.82,
+      "totals": {
+        "cancelled": 0,
+        "fail": 0,
+        "pass": 231,
+        "skipped": 0,
+        "tests": 231
+      }
+    },
+    "python-browser-setup": {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_ci_browser_setup.py"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109",
+      "exit": 0,
+      "logSha256": "77a33dd1eae4050657fd9b1fe948582d92a3d45214e4019ff78e3058bb71c3b1",
+      "passed": 18,
+      "seconds": 0.9
+    }
+  },
+  "schema": "terminal_ci_contract_repair_validation.v1",
+  "sourceControlsAfter": {
+    ".github/workflows/ci.yml": "08bebbfa0b65a9aa19572eb0576346051ab1355edac67a09af1f140fc0936dee",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "ef3df937b0faa8d39693ed59539f23973ad250acd22df6ff4b8e0a8f99f1f174",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "d5d55f670e1fd4273fed5e2423da98ac2475f8a3509038ab83be2f75eb6b4002",
+    "terminal/e2e/tools/optionsExposureEvidence.cases.cjs": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "tests/test_ci_browser_setup.py": "3e882d849b1aa27a5f195ab6189d36476e30c28f61b7ceed03ea148819b93c26"
+  },
+  "sourceControlsBefore": {
+    ".github/workflows/ci.yml": "08bebbfa0b65a9aa19572eb0576346051ab1355edac67a09af1f140fc0936dee",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "ef3df937b0faa8d39693ed59539f23973ad250acd22df6ff4b8e0a8f99f1f174",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "d5d55f670e1fd4273fed5e2423da98ac2475f8a3509038ab83be2f75eb6b4002",
+    "terminal/e2e/tools/optionsExposureEvidence.cases.cjs": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "tests/test_ci_browser_setup.py": "3e882d849b1aa27a5f195ab6189d36476e30c28f61b7ceed03ea148819b93c26"
+  },
+  "sourceStable": true,
+  "state": "QUALIFIED"
+}

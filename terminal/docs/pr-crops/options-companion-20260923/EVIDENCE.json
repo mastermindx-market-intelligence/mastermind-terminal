@@ -1,0 +1,293 @@
+{
+  "schema": "mastermind.options_companion_evidence/v1",
+  "sourceHead": "f47fd5fb824fc816371e7ce5934e378a173629b5",
+  "capturedAt": "2026-10-11T19:01:19.000000+00:00",
+  "classification": "LOCAL_REAL_TERMINAL_ROUTE_WITH_EXPLICIT_FIXTURE_DATA_NOT_PRODUCTION_ACCEPTANCE",
+  "sourceFiles": {
+    "terminal/app/globals.css": "bde542d210a4c12e6e3390f0694fc373543baaebe6b8416d67f4b32eec6be007",
+    "terminal/components/ChartPane.tsx": "adb6b761040fff68563ff9527ca0029f38b1054d5e772d5d182ed62cf9f49441",
+    "terminal/components/ChartPanel.tsx": "3f20d366e3f7f66320d02a06c2e1ab8eef029f31023603d049ee5a9747ccaa1d",
+    "terminal/components/TerminalShell.tsx": "3f4f1ba186265f7c6311657bac6f7662b8e54cb7613765fa2fa9cf74e24e5131",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "40ee5ceda2162f57fe8227f2efbf504a24b922fcaab133b44707282eaf6fbcf9",
+    "terminal/components/options-companion/FlowCompanion.tsx": "3bb8cd81dce2bf6eedf83bc70f9334d8d98cf06b3508adfe7d9914f0f2f299f5",
+    "terminal/components/options-companion/MatrixCompanion.tsx": "e6e3cc43942fdf10cc1f0679be7926af6be6ae74aa7673107892e412a4f54fd3",
+    "terminal/components/options-companion/OptionsCompanion.module.css": "88524760e486df26cf083e28a6274370f69b852ffc1fff24810b2f946259ccc8",
+    "terminal/components/options-companion/OptionsCompanion.tsx": "b9d42a206dd70e7400df93d7cccfde296b0f335b3bdc79f3fb5dcc201577f46c",
+    "terminal/components/options-companion/OptionsRail.tsx": "c42c5b6fd2695575b9405ee3f9beed4e8a995c1a297effe469b48fbf5b9c3244",
+    "terminal/components/options-companion/VannaCompanion.tsx": "892eca220545743e3bd903b2ea2d669665b250a7cf2fd0aeb3b71d6981863171",
+    "terminal/components/options-companion/optionsStrings.ts": "2865c2ad8caecd99eae9eb65e94357a46beb47c3ee2dc027055772e4d0dfb807",
+    "terminal/components/options-companion/useOptionsSnapshot.ts": "9463d4369a450332828c886f8c0e7e2863212e1d9df5ad74c4b6c89fc7db92c7",
+    "terminal/components/shared/StrikeExpiryMatrix.tsx": "2d2113749c8f70e887935aa8c6efcf0d377b1152de35d161d417b64727a53f3e",
+    "terminal/components/shared/StrikeExpiryMatrixRail.module.css": "d336c7d788b512d478addc9fe64cf057cacd249d29ba7fae609d42bb75190a4c",
+    "terminal/components/ui/MobileSheet.tsx": "88ae17ba969d3eea7767a2286dd25a19896c56bda29a3c531a429bf38f64d3fe",
+    "terminal/e2e/mobile-chart-hub-upgrade.spec.ts": "b599314f2e24c90f2e4f1102f61d95d79c67f8d9485e7c244d9eaab4178bce06",
+    "terminal/e2e/options-companion.spec.ts": "7142bfa0cda609b39aa19e63f7090575376dc3c06b5942964816d9b6d571eeac",
+    "terminal/lib/__tests__/flowClientCache.test.ts": "6fba41e6fd28ece82a29e3f934b660b08dd2a61143c7e1cfb51452d07ceca283",
+    "terminal/lib/__tests__/optionsCompanion.test.ts": "aaf0697dc0e8abff440c4ae5c2790c9fcd9d4c86e26ca67cd61afbc603d5da9b",
+    "terminal/lib/__tests__/optionsCompanionUi.test.tsx": "373bc37f8526aebe67479ef5656fae0030d20fe8d036040c0ee737278338c8f1",
+    "terminal/lib/entitlement.ts": "c9b1ef65ce29ebe99da4972b8a4379d66b0b9d73698b79f34d5b7a33bbd52e14",
+    "terminal/lib/entitlementStore.ts": "0845c7747bcfe74fd546b0fd3fc957477c571dc606299eaecc15bda485d2adb3",
+    "terminal/lib/flowClientCache.ts": "1ba7481d7d277b7c6b2f74fcd03a773e0ca0727b0eb6703501a05650cd513a3b",
+    "terminal/lib/optionsAccess.ts": "caf05bba4c4036781417e9d2ece51c6cc43c06cd51809585bedad7adf558e469",
+    "terminal/lib/optionsChartPin.ts": "ca47972cb9a1b755e80f6512f0fa686dc1bf0ee74fc4a1b7de0a57b5a3d1b50d",
+    "terminal/lib/optionsCompanion.ts": "b5c4bfba600f85641850482114fcd8b82a864df3de18252d4687abcbda09916d"
+  },
+  "captures": [
+    {
+      "file": "desktop-en-gamma-pin.png",
+      "viewport": "desktop",
+      "lang": "en",
+      "state": "gamma-pin",
+      "sha256": "145456360a067a64fb3268723d7e020d6cfa98f45ff9f4bbb547eb2c5d5c87f2",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "file": "desktop-en-panel-light.png",
+      "viewport": "desktop",
+      "lang": "en",
+      "state": "panel-light",
+      "sha256": "68cdec936ff130c84b05b1e70fb74c589c9352bde575d7234a5c501a87390dac",
+      "dimensions": [
+        360,
+        818
+      ]
+    },
+    {
+      "file": "desktop-en-vanna.png",
+      "viewport": "desktop",
+      "lang": "en",
+      "state": "vanna",
+      "sha256": "fda869f2daa9c154d49e197d058bf0a3871337ae10ee4466aa2bd1481f17055d",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "file": "desktop-zh-gamma-pin.png",
+      "viewport": "desktop",
+      "lang": "zh",
+      "state": "gamma-pin",
+      "sha256": "462cfa9fa6b811e5ae1c2f084d3bf3b4054adb97c0cdd355991447ac867f56c3",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "file": "desktop-zh-panel-light.png",
+      "viewport": "desktop",
+      "lang": "zh",
+      "state": "panel-light",
+      "sha256": "11bb45cc1241eb855a040b4008c0b2d8d2c5635b5b561a5a6207fa5b79ffd2ce",
+      "dimensions": [
+        360,
+        818
+      ]
+    },
+    {
+      "file": "desktop-zh-vanna.png",
+      "viewport": "desktop",
+      "lang": "zh",
+      "state": "vanna",
+      "sha256": "526b042539ac8808c4e2569c4e45cdf3ea7bfa9e784af4eeb9b7e01b5cd20aa3",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "file": "tablet-en-gamma-pin.png",
+      "viewport": "tablet",
+      "lang": "en",
+      "state": "gamma-pin",
+      "sha256": "6fcd3c877a0c11bf64335e65f005e9b220297233d3c84273b403635017586796",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "file": "tablet-en-panel-light.png",
+      "viewport": "tablet",
+      "lang": "en",
+      "state": "panel-light",
+      "sha256": "633f7583e7230fc945be49a92eb0158e3e361edfbe6ad0237d791f5d9673a836",
+      "dimensions": [
+        820,
+        623
+      ]
+    },
+    {
+      "file": "tablet-en-vanna.png",
+      "viewport": "tablet",
+      "lang": "en",
+      "state": "vanna",
+      "sha256": "0ceb5c46cb7cc9cc7d63c448628d10155109f6b52cf9ec5e54fa5c00e4682b4d",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "file": "tablet-zh-gamma-pin.png",
+      "viewport": "tablet",
+      "lang": "zh",
+      "state": "gamma-pin",
+      "sha256": "4d7bc92ba514f4e15e7a48c9ce747d802df288c3a5022c55a7edb063b6825532",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "file": "tablet-zh-panel-light.png",
+      "viewport": "tablet",
+      "lang": "zh",
+      "state": "panel-light",
+      "sha256": "212fafc5e0db8616254605570d0e8cb53e09c9b5252bd729beb9449bd00dd7f3",
+      "dimensions": [
+        820,
+        623
+      ]
+    },
+    {
+      "file": "tablet-zh-vanna.png",
+      "viewport": "tablet",
+      "lang": "zh",
+      "state": "vanna",
+      "sha256": "e0fcda390dfe984612f945202c3b22facbedc0b83a7ba338be33b55f8f7bec02",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "file": "mobile-en-gamma-pin.png",
+      "viewport": "mobile",
+      "lang": "en",
+      "state": "gamma-pin",
+      "sha256": "3c7d22013eecd2d0ba21a90076174b815fefbaa614af8203659769a364c3267f",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "file": "mobile-en-panel-light.png",
+      "viewport": "mobile",
+      "lang": "en",
+      "state": "panel-light",
+      "sha256": "2f70923e271705f0215ccdc689b642d4d34c018fad651e7c5a4ea382b880ac61",
+      "dimensions": [
+        390,
+        422
+      ]
+    },
+    {
+      "file": "mobile-en-vanna.png",
+      "viewport": "mobile",
+      "lang": "en",
+      "state": "vanna",
+      "sha256": "87f272086e0ceda665c5a1366911127100eedbec160841115207387f0f358489",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "file": "mobile-zh-gamma-pin.png",
+      "viewport": "mobile",
+      "lang": "zh",
+      "state": "gamma-pin",
+      "sha256": "08155bf063550963d8a86952c79908486bbb830a46d35904092171df9244e6ef",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "file": "mobile-zh-panel-light.png",
+      "viewport": "mobile",
+      "lang": "zh",
+      "state": "panel-light",
+      "sha256": "7f205c393e4db186772f5a681cf1075770d52be8c82af37232df5a4ea80ad27c",
+      "dimensions": [
+        390,
+        422
+      ]
+    },
+    {
+      "file": "mobile-zh-vanna.png",
+      "viewport": "mobile",
+      "lang": "zh",
+      "state": "vanna",
+      "sha256": "9dbdf6bcd740a5dd5a9fd45e335b9615d737eb322488bc415b642f228bf404bc",
+      "dimensions": [
+        390,
+        844
+      ]
+    }
+  ],
+  "qualification": {
+    "companion": {
+      "file": "qualification/final-companion-799ee3f.log",
+      "sha256": "ad499fdb3d4b6fcbd4f0976f6ed8e4d4b5b0b1fc0c03376087ef6135f4127c56",
+      "summary": "28 passed"
+    },
+    "mobile_and_chart_regression": {
+      "file": "qualification/repair-browser.log",
+      "sha256": "ad3ac4e92ec87be5a4d648d874893f75a3342473ce3ab041cc223ad4e0b394e9",
+      "summary": "38 passed"
+    },
+    "visual_context": {
+      "file": "qualification/visual-recapture-321ef80.log",
+      "sha256": "6581add96fafeaaedbf693e34c6f2cf8cdd4dcfecb06de75b8a6752ea6046214",
+      "summary": "30 passed"
+    },
+    "crosshair": {
+      "file": "qualification/chart-view-recapture-321ef80.log",
+      "sha256": "5a6a42163d09f95acca9f4f21632bfc4f87810b253d8177ecefa5d7635ed3111",
+      "summary": "1 passed"
+    },
+    "unit": {
+      "file": "qualification/unit-label-reuse.log",
+      "sha256": "cee0a97b35c076082c1a6880c71a6965cc8d52e40fcff33c9d6ec08de35740ae",
+      "summary": "6117 passed",
+      "projection": "COMPACT_HISTORICAL_TRANSCRIPT_RECEIPT",
+      "originalTranscript": {
+        "commit": "e6fa93f44d075a7cbf3082a582c1af7e3010f151",
+        "path": "terminal/docs/pr-crops/options-companion-20260923/qualification/unit-label-reuse.log",
+        "sha256": "ef936263f1b6c091b1e48c01e73cde40efc4c00b0b05f5c5d0481d8bbeaff9ad"
+      }
+    },
+    "tsc": {
+      "file": "qualification/tsc-799ee3f.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS, empty diagnostic output; process exit separately verified"
+    },
+    "lint": {
+      "file": "qualification/lint-799ee3f.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary": "PASS, empty diagnostic output; process exit separately verified"
+    }
+  },
+  "visualReview": "Actual desktop Gamma/native pin, mobile sheet/native pin and scoped light material inspected. No chart replacement; required source controls and native pin confirmed by browser assertions.",
+  "limits": [
+    "Light crop is a companion-scoped material test, not a Terminal-wide light-mode release.",
+    "Vanna is the existing all-expiry signed profile, not a per-expiry heatmap.",
+    "Prior complete responsive run had 954 passes, 331 intentional skips and five failures; candidate-caused mobile failures repaired and requalified; full-suite green is not claimed.",
+    "Hosted required checks, primary production-source verification, accepted release and public live proof remain owed.",
+    "Production fallback source audit is dated; exact underlying reason must be reconciled through the existing producer owner."
+  ],
+  "sourceCompatibility": "Chart axis and visual-context captures used321ef80d; subsequent799ee3f changes only the phone Options label to existing bilingual copy and removes its unused global translation key. Those capture-owned source blobs are unchanged.",
+  "recapture": {
+    "at": "2026-10-11T19:01:19.000000+00:00",
+    "head": "f47fd5fb824fc816371e7ce5934e378a173629b5",
+    "reason": "merge of origin/master 292357daa into #723 (seat ruling D30)",
+    "command": "TERMINAL_E2E_PORT=35971 npx playwright test e2e/options-companion.spec.ts --workers=1 --retries=0"
+  }
+}

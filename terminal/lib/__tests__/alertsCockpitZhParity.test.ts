@@ -260,7 +260,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog).not.toBeNull();
     assertNoLeakedEnglish(dialog!, "drillback dialog");
     expect((dialog!.textContent ?? "").toLowerCase()).not.toContain("crossed your price line");
@@ -306,7 +306,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog, "expected the drillback dialog to open").not.toBeNull();
     const dialogText = dialog!.textContent ?? "";
     const occurrences = dialogText.split("NVDA").length - 1;
@@ -332,7 +332,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog).not.toBeNull();
     expect(dialog!.textContent ?? "").not.toContain("价格");
     expect(dialog!.textContent ?? "").toContain("触发时数值 72");
@@ -398,7 +398,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog).not.toBeNull();
     const leafWithText = (text: string) =>
       Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);
@@ -426,7 +426,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog).not.toBeNull();
     expect(dialog!.textContent ?? "").toContain("触发时价格 100");
     expect(dialog!.textContent ?? "").not.toContain("未记录触发价");
@@ -455,7 +455,7 @@ describe("AlertsCockpit — full composed ZH page never leaks English and never 
     expect(deliveryRow).not.toBeNull();
     await act(async () => { deliveryRow!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
 
-    const dialog = container.querySelector('[data-cockpit-state="drillback"]');
+    const dialog = document.body.querySelector('[data-cockpit-state="drillback"]');
     expect(dialog).not.toBeNull();
     const leafWithText = (text: string) =>
       Array.from(dialog!.querySelectorAll("*")).find((el) => el.textContent === text && el.children.length === 0);

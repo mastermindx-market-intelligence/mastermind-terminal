@@ -1,0 +1,35 @@
+{
+  "schema": "terminal.pr1426.exact-source-ci-reuse.v1",
+  "state": "EXACT_SOURCE_TREE_CI_REUSED",
+  "captureSourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "captureSourceTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "ciHead": "d41f601c4427c4ff15f3e9f0ccdeb1a51c902e62",
+  "ciTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+  "runId": 42850341427,
+  "jobId": 129950555784,
+  "attempt": 1,
+  "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42850341427/job/129950555784",
+  "typeGeneration": {
+    "name": "Run npx next typegen",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 6
+  },
+  "typecheck": {
+    "name": "Run npx tsc --noEmit",
+    "status": "completed",
+    "conclusion": "success",
+    "number": 7
+  },
+  "logExcerpt": [
+    "2026-11-10T16:09:44.9251424Z ##[group]Run npx tsc --noEmit",
+    "2026-11-10T16:09:44.9252438Z npx tsc --noEmit",
+    "2026-11-10T16:09:44.9285791Z shell: /usr/bin/bash -e {0}",
+    "2026-11-10T16:09:44.9286120Z ##[endgroup]",
+    "2026-11-10T16:11:26.0125562Z ##[group]Run node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs",
+    "2026-11-10T16:11:26.0127210Z node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs"
+  ],
+  "reason": "Exact full Git tree and current locked dependencies match the completed queue TypeScript stage. This repair changes only the original evidence packet and proof outside the Terminal TypeScript project; full TypeScript is reused with its original execution attribution, not rerun or restamped as local.",
+  "originalLog": "original-group-129950555784.decoded.log.gz",
+  "originalDecodedLogUtf8Sha256": "25371c281e5bd47e06cf288c7e947f2bc4ddc098cdf566ef7d8fd4d431d73ef3"
+}

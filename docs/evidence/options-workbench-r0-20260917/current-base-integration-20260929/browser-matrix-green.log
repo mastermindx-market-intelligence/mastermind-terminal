@@ -1,0 +1,20 @@
+[warmup] /terminal?symbol=NVDA → 200 in 91ms
+[warmup] /options → 200 in 1924ms
+[warmup] /portfolio → 200 in 787ms
+[warmup] /alerts → 200 in 893ms
+[warmup] /analysis → 200 in 1940ms
+[warmup] /discover → 200 in 1445ms
+[warmup] /admin → 200 in 905ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 442ms
+[warmup] /login → 200 in 93ms
+[warmup] /reset-password → 200 in 491ms
+[warmup] /api/me → 200 in 460ms
+[warmup] /api/watchlist → 200 in 181ms
+[warmup] /api/layouts → 200 in 174ms
+[warmup] 13 routes compiled in 10s
+
+Running 30 tests using 1 worker
+········[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+······················
+::notice title=🎭 Playwright Run Summary::  30 passed (1.4m)
+  30 passed (1.4m)

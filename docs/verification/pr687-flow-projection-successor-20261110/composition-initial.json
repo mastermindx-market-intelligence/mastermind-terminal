@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-10T16:50:07.977078+00:00",
+  "mergeBase": "098e4fcb48a91a5fac14255c07541b7f5665daee",
+  "mergeExitCode": 1,
+  "mergeHead": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "originalHead": "34ffd6b5e93162e63b812869ecce011f6357782d",
+  "originalPaths": [
+    "terminal/components/flowdesk/FeedPane.tsx",
+    "terminal/components/flowdesk/FlowProjectionStrip.tsx",
+    "terminal/lib/__tests__/optionsFlowBoards.test.ts",
+    "terminal/lib/flowProjection.ts"
+  ],
+  "protectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "state": "COMPOSED_WITH_CONFLICTS",
+  "unmergedPaths": [
+    "terminal/components/flowdesk/FeedPane.tsx"
+  ]
+}

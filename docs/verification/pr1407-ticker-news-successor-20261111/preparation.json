@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-11T08:28:54.962857+00:00",
+  "canonicalContinuation": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1407#issuecomment-6790959890",
+  "captureWrapperSha256": "6b98a2eb2a35724848c337f2a7c8735b3674afdf4c835df3bbe6ad32da21769b",
+  "existingWorkspaceRepair": "Retained; naturalCI4/4 guard pass at head5338557",
+  "head": "5338557e44e2a8b5ca789aac7cd295037db9692d",
+  "laterProtectedChange": "Screener44px consumer; no ticker-news source dependency delta",
+  "latestProtectedObserved": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "neighborPacketFiles": 103,
+  "parents": [
+    "c6f876e325a7c06160caf61f0d0f335e0c69a951"
+  ],
+  "port": 61981,
+  "priorPacketFiles": 11,
+  "protectedAncestor": "74c007125129090cc762f2bc4b1b152123326444",
+  "sourceEdits": 0,
+  "templatePath": "docs/verification/pr1426-ticker-news-integration-20261110/validate-browser.py",
+  "templateSha256": "2cc00f7ed3711aea204f9844f3dc4af09c5d6c79b3d61dc20f50d8b16569be9d",
+  "tree": "df6f2dfeb5587acd42d83847ea8582a9e1da0a39"
+}

@@ -1,0 +1,23 @@
+{
+  "run": "ss-nav-current-census-p12t24-20261102-001",
+  "root": "01a15e6c-42f8-7941-ac2b-296021932fbb",
+  "parent": "01a19e32-c36c-7b70-8765-354fc0453a5e",
+  "provider": "glm-5.3-flash",
+  "host": "ubuntu1",
+  "task_class": "C0_MECHANICAL/census",
+  "result_bytes": 16698,
+  "result_sha256": "03263e6160d16256aa1f46d3220f82cdd026c9d393b4b2c0ece59a8d543e1a34",
+  "verdict": "ACCEPTED_SCOPED_CENSUS",
+  "adjudication": [
+    "Verified priority branch descriptions against exact21d26605 sharedShellNavigation.ts supplied source.",
+    "Verified AppNav/MobileNav derive shared family from same helper and claim page for all on states.",
+    "Verified no explicit Today alias; macro.html directory is United States/brand and its prior Today assertion was catch-all.",
+    "Directory membership/group remains admission/presentation metadata, not a new nav family registry.",
+    "Report is an observed pre-repair census and regression inventory, not approval of old false Today states or a product acceptance claim."
+  ],
+  "implementation_checks": {
+    "route_identity_unit_tests": "30PASS",
+    "typecheck": "PASS",
+    "lint": "0errors; one inherited MobileNav _isTerminal warning"
+  }
+}

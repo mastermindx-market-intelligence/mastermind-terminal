@@ -1,0 +1,80 @@
+{
+  "completedAt": "2026-11-10T17:12:34.221417+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/ticker-news.spec.ts",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 2.83
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1426-news-evidence-web4/docs/verification/pr1426-ticker-news-integration-20261110/source-consumers-current/units.json"
+      ],
+      "exit": 0,
+      "logSha256": "1a3e0fd17063b48e2746d84134e5335f4f5329c4fbc3378647b42b2fc7588ea1",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 4,
+        "numPendingTests": 0,
+        "numTotalTests": 4,
+        "success": true
+      },
+      "seconds": 1.31
+    }
+  },
+  "reusedTypecheck": {
+    "attempt": 1,
+    "captureSourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+    "captureSourceTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+    "ciHead": "d41f601c4427c4ff15f3e9f0ccdeb1a51c902e62",
+    "ciTree": "0af51d3051bb9be1052b156f95b33fcaa3cb1957",
+    "jobId": 129950555784,
+    "logExcerpt": [
+      "2026-11-10T16:09:44.9251424Z ##[group]Run npx tsc --noEmit",
+      "2026-11-10T16:09:44.9252438Z npx tsc --noEmit",
+      "2026-11-10T16:09:44.9285791Z shell: /usr/bin/bash -e {0}",
+      "2026-11-10T16:09:44.9286120Z ##[endgroup]",
+      "2026-11-10T16:11:26.0125562Z ##[group]Run node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs",
+      "2026-11-10T16:11:26.0127210Z node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs"
+    ],
+    "originalDecodedLogUtf8Sha256": "25371c281e5bd47e06cf288c7e947f2bc4ddc098cdf566ef7d8fd4d431d73ef3",
+    "originalLog": "original-group-129950555784.decoded.log.gz",
+    "reason": "Exact full Git tree and current locked dependencies match the completed queue TypeScript stage. This repair changes only the original evidence packet and proof outside the Terminal TypeScript project; full TypeScript is reused with its original execution attribution, not rerun or restamped as local.",
+    "runId": 42850341427,
+    "schema": "terminal.pr1426.exact-source-ci-reuse.v1",
+    "state": "EXACT_SOURCE_TREE_CI_REUSED",
+    "typeGeneration": {
+      "conclusion": "success",
+      "name": "Run npx next typegen",
+      "number": 6,
+      "status": "completed"
+    },
+    "typecheck": {
+      "conclusion": "success",
+      "name": "Run npx tsc --noEmit",
+      "number": 7,
+      "status": "completed"
+    },
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42850341427/job/129950555784"
+  },
+  "schema": "terminal_pr1426_final_source_consumers.v1",
+  "sourceAndPacketEntries": 2062,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:12:26.935629+00:00",
+  "state": "QUALIFIED"
+}

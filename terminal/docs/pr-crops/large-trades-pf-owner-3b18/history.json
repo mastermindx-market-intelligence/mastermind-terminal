@@ -1,0 +1,88 @@
+{
+  "schema": "mastermind.large_trades.owner_witness_history.v1",
+  "laterPassDoesNotRelabelEarlierAttempts": true,
+  "originalOwnerReproduction": {
+    "passed": 2,
+    "failed": 3,
+    "scope": "Original independent owner reproduction before repair48ad; separate from harness runs."
+  },
+  "attempts": [
+    {
+      "run": 1,
+      "status": "FAIL_NO_RETRY_BEFORE_BROWSER",
+      "reason": "Pre-browser argv/cwd admission failure; no browser acceptance.",
+      "originalReceipt": {
+        "bytes": 13927,
+        "sha256": "0b6b8de4041d6d56efaeeee29bf82c580e4d4f1e25a8815a96626eb707058188"
+      },
+      "originalRecordedStatus": "FAIL_NO_RETRY"
+    },
+    {
+      "run": 2,
+      "status": "REFUSED_PRESTART_NO_RETRY_RUNTIME_RETURNED",
+      "reason": "Helper self-location prestart refusal; no app/browser launched.",
+      "originalReceipt": {
+        "bytes": 5428,
+        "sha256": "920b9b401d9ca19923b95746e447eddef029986bb485d143ff5f44fe86ecc581"
+      },
+      "originalRecordedStatus": "REFUSED_PRESTART_NO_RETRY_RUNTIME_RETURNED"
+    },
+    {
+      "run": 3,
+      "status": "FAIL_ANCILLARY_RESOURCE_CONSOLE_GATE_CASE2_NOT_RUN",
+      "reason": "Ancillary resource console failure; second case not run.",
+      "originalReceipt": {
+        "bytes": 227369,
+        "sha256": "0e8f87500b3fc01ffaff9b0cfa7814eb4375ef483a9678199714a8213a74e2ce"
+      },
+      "originalRecordedStatus": "FAIL_NO_RETRY"
+    },
+    {
+      "run": 4,
+      "status": "NOT_EXECUTED_STATIC_CLEANUP_ORDER_DEFECT",
+      "reason": "Prepared but never executed; static cleanup-order defect corrected in later harness.",
+      "adoptionSha256": "a6ae545ca6e3555562e0b55a07e9598aae16d343b12753f66e3835a9d8b378bd",
+      "startupSha256": "bf8559b86eeb0b74b45b12d089232a77e6d67bf58f33c5397c0decb5f949a563"
+    },
+    {
+      "run": 5,
+      "status": "FAIL_NVDA_INTEL_404_AND_NATIVE_PNG_OVERWRITE",
+      "reason": "Owner assertions passed; NVDA intel 404 failed the console gate and two native files were overwritten by screenshots.",
+      "originalReceipt": {
+        "bytes": 217985,
+        "sha256": "02dba0ebd8a352f31634fa074d69d07b0c02078514c47560e988d1fd7df9e3b3"
+      },
+      "originalRecordedStatus": "FAIL_NO_RETRY"
+    },
+    {
+      "run": 6,
+      "status": "FAIL_INITIAL_OVERLAY_ABSENT_BEFORE_BOTH_OWNERSHIP_JOURNEYS",
+      "reason": "Initial Large Trades overlay absent before both ownership journeys.",
+      "originalReceipt": {
+        "bytes": 226354,
+        "sha256": "96e6fb92e8e880941f4a303b534a82196e9cfe16faf9d5713ce58a35b356cc52"
+      },
+      "originalRecordedStatus": "FAIL_NO_RETRY"
+    },
+    {
+      "run": 7,
+      "status": "FAIL_SOURCE_OR_CLEANUP",
+      "reason": "Initial/final 10s process observations timed out. No app/browser launched; global idle was not established for that run.",
+      "originalReceipt": {
+        "bytes": 6464,
+        "sha256": "8d6347a9eb8dce2c1adffcc63cf7a16ed827b88363a2edd78eee366175e70d3d"
+      },
+      "originalRecordedStatus": "FAIL_SOURCE_OR_CLEANUP"
+    },
+    {
+      "run": 8,
+      "status": "FAIL_NO_RETRY",
+      "reason": "Both setup checks looked for an intentionally hidden nonfavorite 5s toolbar button. Case2 also recorded Brain usage 502.",
+      "originalReceipt": {
+        "bytes": 230096,
+        "sha256": "d6c2ec274e48c9234c89cc2ccb8bd4c111d1d1d9a79ee44eca92d1da8aec01ab"
+      },
+      "originalRecordedStatus": "FAIL_NO_RETRY"
+    }
+  ]
+}

@@ -56,9 +56,10 @@ export function ReplayBar({
   const t = makeSurfaceT(lang);
   // `sessionDate` comes from the context, not a prop, so the picker's value and the badge
   // can never disagree about which session is actually loaded.
-  const { state, dispatch, asOfStamp, live, archived, sessionDate } = useReplay();
+  const { state, dispatch, asOfStamp, live, archived, sessionDate, indexError } = useReplay();
   const { stamps, frame, playing, speed } = state;
   const hasFrames = stamps.length > 0;
+  const hasSelection = asOfStamp != null;
   const bands = sessionBands(stamps);
   const positions = frameClockPositions(stamps);
   const gaps = frameGapStats(stamps);
@@ -176,7 +177,7 @@ export function ReplayBar({
           aria-valuemin={1}
           aria-valuemax={Math.max(1, stamps.length)}
           aria-valuenow={hasFrames ? frame + 1 : 1}
-          aria-valuetext={hasFrames ? `${fmtStamp(asOfStamp)}, ${frame + 1} of ${stamps.length}` : t("replayNoFrames")}
+          aria-valuetext={state.missingStamp ? `${fmtStamp(state.missingStamp)} · ${t("replaySelectionUnavailable")}` : hasFrames ? `${fmtStamp(asOfStamp)}, ${frame + 1} of ${stamps.length}` : t("replayNoFrames")}
           aria-label={t("frameRailAria")}
           onPointerDown={(e) => {
             if (!hasFrames) return;
@@ -196,7 +197,7 @@ export function ReplayBar({
           {stamps.map((stamp, i) => (
             <span
               key={`${stamp}:${i}`}
-              className={`obs-surf-frame-dot${i === frame ? " is-current" : i < frame ? " is-past" : ""}`}
+              className={`obs-surf-frame-dot${hasSelection && i === frame ? " is-current" : i < frame ? " is-past" : ""}`}
               style={{ left: `${(positions[i] ?? 0) * 100}%` }}
               aria-hidden
               data-frame-position={(positions[i] ?? 0).toFixed(4)}
@@ -207,7 +208,9 @@ export function ReplayBar({
 
       {/* Time + frame counter + LIVE / archived-session badge */}
       <div style={READOUT} className="obs-surf-replay-readout">
-        {hasFrames ? (
+        {state.missingStamp ? (
+          <span role="status">{fmtStamp(state.missingStamp)} · {t("replaySelectionUnavailable")}</span>
+        ) : hasFrames ? (
           <>
             <span style={STAMP_TXT} className="num">{fmtStamp(asOfStamp)}</span>
             <span style={FRAME_TXT} className="num">
@@ -222,21 +225,28 @@ export function ReplayBar({
               </span>
             ) : live ? (
               <span className="obs-tag" style={LIVE_BADGE}>
-                <span className="obs-live-dot" style={{ width: 6, height: 6 }} />
                 {t("replayLive")}
               </span>
             ) : null}
           </>
         ) : (
-          /* Honest empty: name the state AND why the scrubber has nothing to move over. */
+          /* Honest empty: name the state AND why the scrubber has nothing to move over.
+             An index that never loaded is a READ FAILURE, so it must not borrow the
+             "this root has none for the selected day" copy, which asserts absence. */
           <span style={NO_FRAMES}>
             <span style={{ ...FRAME_TXT, color: "var(--text-2)", fontWeight: 600 }}>
-              {archived ? t("sessionEmptyArchive") : t("replayNoFrames")}
+              {indexError ? t("replayIndexFailed") : archived ? t("sessionEmptyArchive") : t("replayNoFrames")}
             </span>
-            <span style={NO_FRAMES_WHY}>{t("replayNoFramesWhy")}</span>
+            <span style={NO_FRAMES_WHY}>
+              {indexError ? t("replayIndexFailedWhy") : t("replayNoFramesWhy")}
+            </span>
           </span>
         )}
       </div>
+      {/* Retention is only claimable when something was actually admitted and kept. */}
+      {indexError && hasFrames && (
+        <span role="status" className="obs-surf-replay-error">{t("replayRefreshFailed")}</span>
+      )}
     </div>
   );
 }

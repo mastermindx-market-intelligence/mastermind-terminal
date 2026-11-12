@@ -206,6 +206,12 @@ def _real_preflight_owner_fixture(tmp_path: Path) -> tuple[Path, Path, Path, str
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Test")
 
+    # The real canonical checkout gitignores bytecode caches, which is precisely
+    # why residue there is invisible to `git status`/`git clean -fd` and survives
+    # every deploy.  Without this the fixture would report residue as untracked
+    # dirt and stop W2A for a reason production never sees.
+    (repo / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
+
     terminal = repo / "terminal"
     terminal.mkdir()
     (terminal / "app.py").write_text("print('canonical')\n", encoding="utf-8")
@@ -704,8 +710,132 @@ def test_real_w2a_through_owner_never_writes_runtime_bytecode(tmp_path: Path) ->
 
 def test_python_trust_decisions_use_isolated_interpreters() -> None:
     library = SCRIPT.read_text(encoding="utf-8")
-    assert 'python3 -B -E -s "$script"' in library
+    assert "python3 -B -E -s \\\n      -X pycache_prefix=" in library
     assert 'python3 -I - "$stdout_file" "$receipt_dir"' in library
+
+
+def test_trusted_script_runs_with_bytecode_cache_redirected_off_source() -> None:
+    """`-B` stops writes only; a source-adjacent .pyc is still READ and executed.
+
+    The redirect is what lets bundle selection tolerate cache residue at all, so
+    pin it in the library text next to the flags it protects.
+    """
+    library = SCRIPT.read_text(encoding="utf-8")
+    assert '-X pycache_prefix="$temporary/pycache" "$script"' in library
+
+
+def _poison_module_bytecode(module: Path) -> Path:
+    """Write a .pyc that this interpreter accepts as fresh but cannot unmarshal.
+
+    Valid magic plus the source's own mtime/size clears `_classify_pyc` and
+    `_validate_timestamp_pyc`, so the import machinery commits to the cache and
+    `_compile_bytecode` raises instead of falling back to the .py source.  Any
+    import that consults the source-adjacent cache therefore fails loudly.
+    """
+    import importlib.util
+    import struct
+
+    metadata = module.stat()
+    cached = Path(importlib.util.cache_from_source(str(module)))
+    cached.parent.mkdir(parents=True, exist_ok=True)
+    cached.write_bytes(
+        importlib.util.MAGIC_NUMBER
+        + struct.pack("<I", 0)
+        + struct.pack("<I", int(metadata.st_mtime) & 0xFFFFFFFF)
+        + struct.pack("<I", metadata.st_size & 0xFFFFFFFF)
+        + b"\xff\xff\xff\xffNOT-MARSHAL-DATA"
+    )
+    return cached
+
+
+def test_real_w2a_ignores_poisoned_source_bytecode_cache(tmp_path: Path) -> None:
+    """The residue tolerance must not hand an unhashed .pyc the executed code path."""
+    repo, ops, receipts, _accepted = _real_preflight_owner_fixture(tmp_path)
+    poisoned = _poison_module_bytecode(ops / "terminal_audit" / "model.py")
+    assert poisoned.is_file()
+
+    result = run_gen(
+        f"""
+        select_preflight_artifacts "{os.getuid()}" "{ops}"
+        rc=$?
+        [ "$rc" -eq 0 ] || exit "$rc"
+        run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "{repo}" "{receipts}"
+        """
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "bad marshal data" not in (result.stdout + result.stderr), (
+        "the preflight executed bytecode from the source tree instead of the "
+        "hashed .py sources"
+    )
+    assert poisoned.is_file(), "the owner mutated the canonical source bundle"
+
+
+def test_bundle_selection_tolerates_generated_python_cache(tmp_path: Path) -> None:
+    """Ignored cache residue must not refuse this owner its own canonical bundle.
+
+    `git clean -fd` cannot remove it, so a single stray import under canonical
+    `ops/` used to self-block every later release (#483).
+    """
+    clean = tmp_path / "clean-ops"
+    _write_pair(clean)
+    residue = tmp_path / "residue-ops"
+    _write_pair(residue)
+    cache = residue / "terminal_audit" / "__pycache__"
+    cache.mkdir()
+    (cache / "__init__.cpython-312.pyc").write_bytes(b"\x00cached\n")
+
+    digests = {}
+    for label, directory in (("clean", clean), ("residue", residue)):
+        result = run_gen(
+            f"""
+            select_preflight_artifacts "{os.getuid()}" "{directory}"
+            rc=$?
+            printf 'RUNTIME_SHA=%s\\n' "$PREFLIGHT_RUNTIME_SHA256"
+            exit "$rc"
+            """
+        )
+        assert result.returncode == 0, (
+            f"{label} bundle was refused: {result.stdout + result.stderr}"
+        )
+        match = re.search(r"^RUNTIME_SHA=([0-9a-f]{64})$", result.stdout, re.MULTILINE)
+        assert match, result.stdout
+        digests[label] = match.group(1)
+
+    assert digests["clean"] == digests["residue"], (
+        "bytecode cache residue changed the attested runtime digest"
+    )
+
+
+def test_bundle_selection_refuses_untrusted_bytecode_cache(tmp_path: Path) -> None:
+    owner = tmp_path / "owner-ops"
+    _write_pair(owner)
+    cache = owner / "terminal_audit" / "__pycache__"
+    cache.mkdir()
+    cache.chmod(0o777)
+    result = run_gen(f'select_preflight_artifacts "{os.getuid()}" "{owner}"')
+    assert result.returncode == 66, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    "artifact",
+    [
+        "model.cpython-312.pyc",
+        # SourcelessFileLoader and ExtensionFileLoader never consult
+        # cache_from_source, so sys.pycache_prefix cannot neutralise either one.
+        # The .py-only rule is the whole defence against them inside the runtime
+        # package; relaxing it would reopen execution of unhashed bytes.
+        "model.so",
+    ],
+)
+def test_bundle_selection_refuses_loose_bytecode_beside_sources(
+    tmp_path: Path, artifact: str
+) -> None:
+    """Tolerance covers the __pycache__ shape only, never the runtime tree itself."""
+    owner = tmp_path / "owner-ops"
+    _write_pair(owner)
+    (owner / "terminal_audit" / artifact).write_bytes(b"\x00loose\n")
+    result = run_gen(f'select_preflight_artifacts "{os.getuid()}" "{owner}"')
+    assert result.returncode == 66, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize("untrusted_part", ["directory", "policy", "runtime-file"])
@@ -844,3 +974,211 @@ def test_preflight_rejects_multiple_new_receipt_entries(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 64, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("inherited", "expected"),
+    [
+        ("", "--max-old-space-size=3072"),
+        ("--enable-source-maps", "--enable-source-maps --max-old-space-size=3072"),
+        ("--max-old-space-size=4096", "--max-old-space-size=4096"),
+        ("--trace-warnings --max_old_space_size=5120", "--trace-warnings --max_old_space_size=5120"),
+    ],
+)
+def test_build_node_options_raises_heap_unless_caller_chose_one(
+    inherited: str, expected: str
+) -> None:
+    result = run_gen(f'build_node_options "{inherited}"')
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == expected
+
+
+def test_next_build_runs_with_the_raised_heap_ceiling() -> None:
+    body = _deploy_body(code_only=True)
+    build_line = next(line for line in body.splitlines() if "npm run build" in line)
+    assert 'NODE_OPTIONS="$BUILD_NODE_OPTIONS"' in build_line
+    # The deployment-id contract (terminalBoot.test.ts A5) pins this exact run.
+    assert 'GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build' in build_line
+    computed = body.index('BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")')
+    assert computed < body.index("npm run build")
+
+
+def test_build_node_options_is_a_heap_limit_node_actually_applies() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node is not installed")
+    options = run_gen('build_node_options ""').stdout.strip()
+    probe = [node, "-e", "console.log(require('v8').getHeapStatistics().heap_size_limit)"]
+    raised = subprocess.run(
+        probe, capture_output=True, text=True, timeout=60,
+        env={**os.environ, "NODE_OPTIONS": options},
+    )
+    assert raised.returncode == 0, raised.stderr
+    limit_mb = int(raised.stdout.strip()) / (1024 * 1024)
+    assert limit_mb >= 3072, f"NODE_OPTIONS={options!r} left heap_size_limit at {limit_mb:.0f} MB"
+
+
+# --------------------------------------------------------------------------
+# build memory admission: refuse before the first effect, not OOM after it
+# --------------------------------------------------------------------------
+#
+# 2026-11-10: the staged `next build` was killed at 2.7 GB anonymous RSS on a
+# 3.9 GB host whose swap was nearly full, after `npm ci` had already replaced the
+# live dependency tree. The floor is the heap ceiling the owner grants the build
+# plus 1024 MiB. The session default in conftest.py disables the admission for
+# sandboxed deploys, so every test here states its own floor ("" = the default).
+
+DEFAULT_FLOOR = {"BUILD_MIN_AVAILABLE_MB": ""}
+
+
+def _meminfo(tmp_path: Path, *, available_kb: int | None, swap_free_kb: int | None) -> Path:
+    lines = ["MemTotal:        4014824 kB", "MemFree:          112344 kB"]
+    if available_kb is not None:
+        lines.append(f"MemAvailable:   {available_kb:>8} kB")
+    lines += ["Buffers:           20480 kB", "SwapTotal:       8388604 kB"]
+    if swap_free_kb is not None:
+        lines.append(f"SwapFree:       {swap_free_kb:>8} kB")
+    path = tmp_path / "meminfo"
+    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    return path
+
+
+def test_default_memory_floor_is_the_build_heap_ceiling_plus_headroom() -> None:
+    result = run_gen('echo "$BUILD_NODE_HEAP_MB $BUILD_MIN_AVAILABLE_MB_DEFAULT"')
+    heap, floor = (int(part) for part in result.stdout.split())
+    assert (heap, floor) == (3072, 4096)
+    assert floor == heap + 1024, (
+        "the build that was killed was still below its heap ceiling; a floor that "
+        "does not track the ceiling admits exactly that build"
+    )
+
+
+def test_memory_admission_refuses_the_incident_host_with_measured_numbers(
+    tmp_path: Path,
+) -> None:
+    # ~1 GiB reclaimable RAM and ~100 MiB of swap left: a 2.7 GB build cannot fit.
+    meminfo = _meminfo(tmp_path, available_kb=1048576, swap_free_kb=102400)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=75" in result.stdout, result.stdout + result.stderr
+    assert (
+        "[build] FATAL: build memory admission refused: reason=insufficient-build-memory "
+        "available_mb=1124 (MemAvailable_mb=1024 SwapFree_mb=100) required_mb=4096"
+    ) in result.stdout
+    assert "nothing was fetched, installed, built or swapped" in result.stdout
+    assert "admission OK" not in result.stdout
+
+
+def test_memory_admission_passes_a_healthy_host(tmp_path: Path) -> None:
+    # The same 3.9 GB host with its 8 GB swap mostly free.
+    meminfo = _meminfo(tmp_path, available_kb=2097152, swap_free_kb=8283652)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=0" in result.stdout, result.stdout + result.stderr
+    assert (
+        "[build] build memory admission OK: available_mb=10137 "
+        "(MemAvailable_mb=2048 SwapFree_mb=8089) required_mb=4096"
+    ) in result.stdout
+    assert "FATAL" not in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("available_kb", "swap_free_kb", "expected_rc"),
+    [
+        (4096 * 1024, 0, 0),            # exactly the floor is admitted
+        (4096 * 1024 - 1024, 0, 75),    # one MiB under is not
+        (0, 4096 * 1024, 0),            # swap counts in full
+        (2048 * 1024, 2047 * 1024, 75),
+    ],
+)
+def test_memory_admission_boundary_is_the_sum_of_available_and_swap(
+    tmp_path: Path, available_kb: int, swap_free_kb: int, expected_rc: int
+) -> None:
+    meminfo = _meminfo(tmp_path, available_kb=available_kb, swap_free_kb=swap_free_kb)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert f"RC={expected_rc}" in result.stdout, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("floor", "expected_rc", "expected_text"),
+    [
+        ("512", 0, "build memory admission OK: available_mb=1124"),
+        ("1124", 0, "required_mb=1124"),
+        ("1125", 75, "reason=insufficient-build-memory available_mb=1124"),
+        ("0", 0, "WARN: build memory admission DISABLED by BUILD_MIN_AVAILABLE_MB=0"),
+        ("lots", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("-1", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("0512", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("4096 ", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+    ],
+)
+def test_memory_floor_override_is_one_plain_number(
+    tmp_path: Path, floor: str, expected_rc: int, expected_text: str
+) -> None:
+    meminfo = _meminfo(tmp_path, available_kb=1048576, swap_free_kb=102400)
+    result = run_gen(
+        f'require_build_memory "{meminfo}"; echo "RC=$?"',
+        env={"BUILD_MIN_AVAILABLE_MB": floor},
+    )
+    assert f"RC={expected_rc}" in result.stdout, result.stdout + result.stderr
+    assert expected_text in result.stdout
+
+
+@pytest.mark.parametrize("missing", ["file", "MemAvailable", "SwapFree", "number"])
+def test_unmeasurable_memory_refuses_rather_than_admits(tmp_path: Path, missing: str) -> None:
+    if missing == "file":
+        meminfo = tmp_path / "absent-meminfo"
+    elif missing == "number":
+        meminfo = tmp_path / "meminfo"
+        meminfo.write_text("MemAvailable: plenty kB\nSwapFree: 8388604 kB\n", encoding="ascii")
+    else:
+        meminfo = _meminfo(
+            tmp_path,
+            available_kb=None if missing == "MemAvailable" else 8388608,
+            swap_free_kb=None if missing == "SwapFree" else 8388608,
+        )
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=75" in result.stdout, result.stdout + result.stderr
+    assert "reason=build-memory-unmeasurable" in result.stdout
+    assert f"source={meminfo}" in result.stdout
+    assert "admission OK" not in result.stdout
+
+
+def test_memory_admission_reads_a_final_line_without_a_newline(tmp_path: Path) -> None:
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemAvailable: 8388608 kB\nSwapFree: 0 kB", encoding="ascii")
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=0" in result.stdout, result.stdout + result.stderr
+    assert "available_mb=8192 (MemAvailable_mb=8192 SwapFree_mb=0)" in result.stdout
+
+
+def test_memory_admission_precedes_every_effect_of_either_profile() -> None:
+    body = _deploy_body(code_only=True)
+    call = "require_build_memory /proc/meminfo || exit $?"
+    assert body.count("require_build_memory") == 1
+    assert f"\n{call}\n" in body, (
+        "the memory admission must be an unconditional top-level statement: both "
+        "production and beta build on the same host"
+    )
+    admitted = body.index(call)
+    # under the shared lock and its release trap, so a refusal releases the hold ...
+    assert body.index('deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET"') < admitted
+    assert body.index("trap cleanup_deploy_attempt EXIT") < admitted
+    # ... and before the first workspace, receipt, Git, dependency, build or service effect.
+    effects = (
+        "ensure_beta_workspace",
+        "select_preflight_artifacts",
+        "prepare_preflight_receipt_dir",
+        "run_release_preflight",
+        "beta_bootstrap_admit",
+        'fetch_accepted_ref "$SRC"',
+        'git -C "$SRC" reset',
+        "beta_txn_begin",
+        "deps_snapshot_begin",
+        "npm ci",
+        "mktemp -d",
+        "npm run build",
+        "deploy_generation_begin",
+        "systemctl restart terminal",
+    )
+    for token in effects:
+        assert token in body, f"ordering anchor vanished: {token}"
+        assert admitted < body.index(token), f"memory admission occurs after {token}"

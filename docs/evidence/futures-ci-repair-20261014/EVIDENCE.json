@@ -1,0 +1,36 @@
+{
+  "schema": "futures.navigation_ci_repair/v1",
+  "base_head": "5ea5d2851477ba502c46d78af53b36cfe9fa211f",
+  "failed_hosted_job": 115271921632,
+  "failed_hosted_run": 38390097497,
+  "reproduced_failures": 5,
+  "after_unchanged_regression_tests_passed": 5,
+  "responsive_futures_browser_tests_passed": 27,
+  "typecheck_exit": 0,
+  "lint_exit": 0,
+  "lint_warning": "existing unused lang binding in OptionsWorkspace",
+  "source_sha256": {
+    "terminal/components/workspaces/OptionsWorkspace.tsx": "cace02a9445a046dced1c3cb53f39f2d2674633d0862092044bdf3ada7a2f1cf",
+    "terminal/components/workspaces/OptionsWorkspace.module.css": "10923c426672c9204027a5f6b77984d22ec02239e59bcd4008316c6355783738",
+    "terminal/lib/futuresUiCopy.ts": "e69ca0f45197c0496a7ca7340be8602186f45426c7e9eccea03edecd449a17d7",
+    "terminal/e2e/futures-workspace.spec.ts": "f4e039d006d2c91f6e2169173ba0600fd0b962571bd20fecaa01f4e86ee94e98"
+  },
+  "image_sha256": {
+    "desktop-options-inline-navigation.png": "4fca736c87828fed3a4fb846ebb21c8f99c7785f3a6dac34c845f839748680a5",
+    "mobile-options-inline-navigation.png": "c0ab55c30d65f55d4a134e37b45827c1b4aa2051b8eac5f34271456ba8d1b090",
+    "tablet-options-inline-navigation.png": "084cda78f8dbfacb1edfbd3379f8d8a83c891a3fe6d1b170bbe53bdbaaaaa966"
+  },
+  "review_children": [
+    {
+      "id": "terminal-futures-pr964-source-review-20261013-r1",
+      "state": "ACTIVE_OR_WAITING"
+    },
+    {
+      "id": "terminal-futures-pr964-domain-review-20261014-r1",
+      "state": "ACTIVE_OR_WAITING"
+    }
+  ],
+  "root_and_parent": "terminal-futures-gex-pr964",
+  "deployed": false,
+  "live_source_activated": false
+}

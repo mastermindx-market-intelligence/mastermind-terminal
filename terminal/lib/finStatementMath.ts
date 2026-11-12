@@ -111,14 +111,13 @@ export function isCumulativeShape(vals: NumArr | undefined): boolean {
 }
 
 /**
- * Fiscal-year token from a period label, for detecting a year boundary the labels cross
- * without a "Q1" column. Both label shapes in the contract end in the year:
- * "Q1 2023" (CN/HK generators) → "2023", "Q3 '26" (US backfill) → "26". Compared for
- * equality only — never parsed into a date — so the two shapes never have to agree.
+ * Fiscal quarter identity from either documented label shape: "Q1 2023" or "Q3 '26".
+ * Year tokens are compared as supplied, without inferring a century or a calendar date.
+ * An unparseable label cannot establish the immediately preceding cumulative base.
  */
-function fiscalYearToken(label: string | undefined): string | null {
-  const m = /(\d{2,4})\s*$/.exec(label ?? "");
-  return m ? m[1] : null;
+function fiscalQuarter(label: string | undefined): { quarter: number; year: string } | null {
+  const m = /^Q([1-4])\s+'?(\d{2}|\d{4})\s*$/.exec(label ?? "");
+  return m ? { quarter: Number(m[1]), year: m[2] } : null;
 }
 
 /**
@@ -126,8 +125,8 @@ function fiscalYearToken(label: string | undefined): string | null {
  *
  * A cell is emitted ONLY when its cumulative base is known:
  *   • label starts with "Q1"            → as-is (Q1 IS the first quarter of the fiscal year)
- *   • same fiscal year as the prior cell → raw[i] − raw[i−1]
- *   • otherwise (array starts mid-year, or a year boundary with no Q1 column) → null
+ *   • immediately preceding quarter in the same fiscal year → raw[i] − raw[i−1]
+ *   • otherwise (missing, repeated, reversed, or unparseable base period) → null
  *
  * WHAT CHANGED AND WHY: this used to fall back to the RAW cumulative value both when the
  * difference came out negative (`d >= 0 ? d : cur`) and whenever a base was missing. That
@@ -147,10 +146,11 @@ export function discreteQuarters(vals: NumArr, periods: readonly string[]): NumA
       out.push(vals[i] ?? null);
       continue;
     }
-    const yr = fiscalYearToken(label);
-    const prevYr = i > 0 ? fiscalYearToken(periods[i - 1]) : null;
-    // i === 0, or a fiscal year we entered without seeing its Q1 → no base to difference.
-    if (i === 0 || yr == null || prevYr == null || yr !== prevYr) {
+    const current = fiscalQuarter(label);
+    const previous = i > 0 ? fiscalQuarter(periods[i - 1]) : null;
+    // Adjacent array entries are not necessarily consecutive fiscal quarters.
+    if (!current || !previous || current.year !== previous.year
+        || current.quarter !== previous.quarter + 1) {
       out.push(null);
       continue;
     }
@@ -256,6 +256,7 @@ export interface IncomeView {
   periods: string[];
   cadence: StatementReportingCadence;
   sourceFamily: StatementSourceFamily;
+  sourceFamilyBasis?: StatementPeriodSet["source_family_basis"];
   /** Vendor statement family aligned to each period; historical HK issuers can change schema. */
   sourceFamilies: StatementSourceFamily[];
   /** True when this artifact explicitly says its values are already presentation-ready. */
@@ -441,10 +442,15 @@ export function financialFamilyDisclosure(
 
 /** Structural disclosure for a complete view, without describing mixed history as one family. */
 export function incomeViewFamilyDisclosure(
-  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies">,
+  view: Pick<IncomeView, "sourceFamily" | "sourceFamilies" | "sourceFamilyBasis">,
   zh: boolean,
 ): string | null {
   const families = view.sourceFamilies.length > 0 ? view.sourceFamilies : [view.sourceFamily];
+  if (view.sourceFamilyBasis === "profile_financial_historical_unqualified") {
+    return zh
+      ? "当前公司资料属于金融行业，但部分历史报表格式尚未验证。营业收入与营业费用保留来源口径，营业成本、毛利和 EBITDA 等工业企业项目暂不显示。"
+      : "The current company profile is financial-sector, but some historical statement formats are unqualified. Source-reported income and expenses are retained; industrial COGS, gross profit and EBITDA are withheld.";
+  }
   if (families.includes("ambiguous")) {
     return zh
       ? "来源行同时包含多套完整报表格式，且没有可验证的主格式。该期按不明确来源处理，并隐藏特定报表格式的工业企业项目。"
@@ -458,6 +464,27 @@ export function incomeViewFamilyDisclosure(
     : "This history spans industrial and financial-services statement formats. Operating expenses follow each period's source; industrial-only COGS, gross profit, and EBITDA are omitted from the combined view.";
 }
 
+type LegacyFiscalIdentity = {
+  year: number;
+  yearDigits: number;
+  period: number | null;
+};
+
+/** Parse only legacy fiscal labels; never infer fiscal identity or a century from dates. */
+function legacyFiscalIdentity(
+  label: string | undefined,
+  timeframe: "annual" | "quarterly",
+): LegacyFiscalIdentity | null {
+  if (timeframe === "annual") {
+    const match = /^(?:FY\s*)?(\d{4})$/.exec((label ?? "").trim());
+    return match ? { year: Number(match[1]), yearDigits: 4, period: null } : null;
+  }
+  const match = /^Q([1-4])\s+(?:(\d{4})|'(\d{2}))$/.exec((label ?? "").trim());
+  if (!match) return null;
+  const year = match[2] ?? match[3];
+  return { year: Number(year), yearDigits: year.length, period: Number(match[1]) };
+}
+
 /** Index of the prior fiscal year's economically comparable period, or null when unknown. */
 export function priorComparableIndex(
   set: StatementPeriodSet | null | undefined,
@@ -467,30 +494,60 @@ export function priorComparableIndex(
   const years = set?.fiscal_year;
   const kinds = set?.period_kind;
   const numbers = set?.period_number;
-  const n = set?.periods?.length ?? 0;
-  if (
-    years?.length === n && kinds?.length === n && numbers?.length === n &&
-    years[index] != null && kinds[index] != null
-  ) {
+  const periods = set?.periods ?? [];
+  const n = periods.length;
+  if (!Number.isInteger(index) || index < 0 || index >= n) return null;
+  const qualifiedComparable = (prior: number | null): number | null => {
+    if (prior == null) return null;
+    const durations = set?.period_duration_months;
+    const basis = set?.comparison_basis;
+    if (durations && (durations.length !== n || durations[index] == null ||
+        durations[prior] == null || durations[index] !== durations[prior])) return null;
+    if (basis && (basis.length !== n || !basis[index] || basis[index] !== basis[prior])) return null;
+    return prior;
+  };
+  // Partial metadata must not silently fall back to positional lag-four arithmetic.
+  if ((set?.period_duration_months || set?.comparison_basis) &&
+      (years?.length !== n || kinds?.length !== n || numbers?.length !== n)) return null;
+  const indices = Array.from({ length: n }, (_, i) => i);
+  const hasFiscalMetadata = [years, kinds, numbers].some((values) => (values?.length ?? 0) > 0);
+  if (hasFiscalMetadata) {
+    // Partial producer identity is unknown, not permission to override it with a display label.
+    if (
+      years?.length !== n || kinds?.length !== n || numbers?.length !== n ||
+      years[index] == null || kinds[index] == null
+    ) return null;
     const year = Number(years[index]);
     if (!Number.isFinite(year)) return null;
     const sameIdentity = (i: number, targetYear: number) =>
       Number(years[i]) === targetYear &&
       kinds[i] === kinds[index] &&
       (numbers[i] ?? null) === (numbers[index] ?? null);
-    // A fiscal-year-end transition can create two H1/FY observations with the same canonical
-    // identity. Choosing the nearest one would make YoY depend on array order, so both the current
-    // and prior identity must be unique.
-    const currentMatches = Array.from({ length: n }, (_, i) => i)
-      .filter((i) => sameIdentity(i, year));
-    const priorMatches = Array.from({ length: index }, (_, i) => i)
-      .filter((i) => sameIdentity(i, year - 1));
-    return currentMatches.length === 1 && priorMatches.length === 1
+    // Count both identities across the entire set; array order must not hide a duplicate.
+    const currentMatches = indices.filter((i) => sameIdentity(i, year));
+    const priorMatches = indices.filter((i) => sameIdentity(i, year - 1));
+    return qualifiedComparable(currentMatches.length === 1 && priorMatches.length === 1 && priorMatches[0] < index
       ? priorMatches[0]
-      : null;
+      : null);
   }
-  const lag = timeframe === "annual" ? 1 : 4;
-  return index >= lag ? index - lag : null;
+  if (timeframe === "quarterly" && statementCadence(set, timeframe) !== "quarterly") return null;
+  const identities = periods.map((label) => legacyFiscalIdentity(label, timeframe));
+  const current = identities[index];
+  if (!current) return null;
+  // Mixed short/full years cannot be reconciled without guessing a century.
+  if (identities.some((identity) => identity != null && identity.yearDigits !== current.yearDigits)) {
+    return null;
+  }
+  const sameIdentity = (i: number, targetYear: number) => {
+    const identity = identities[i];
+    return identity != null && identity.year === targetYear &&
+      identity.yearDigits === current.yearDigits && identity.period === current.period;
+  };
+  const currentMatches = indices.filter((i) => sameIdentity(i, current.year));
+  const priorMatches = indices.filter((i) => sameIdentity(i, current.year - 1));
+  return qualifiedComparable(currentMatches.length === 1 && priorMatches.length === 1 && priorMatches[0] < index
+    ? priorMatches[0]
+    : null);
 }
 
 /** Year-over-year percent changes using explicit fiscal identity when available. */
@@ -545,6 +602,7 @@ export function incomeView(
       periods,
       cadence,
       sourceFamily,
+      sourceFamilyBasis: set?.source_family_basis,
       sourceFamilies: periods.map((_, i) => set?.source_family_by_period?.[i] ?? sourceFamily),
       producerNormalized,
       income: EMPTY_INCOME,
@@ -587,6 +645,7 @@ export function incomeView(
     periods,
     cadence,
     sourceFamily,
+    sourceFamilyBasis: set?.source_family_basis,
     sourceFamilies,
     producerNormalized,
     income,
@@ -626,6 +685,11 @@ export function incomeChartValues(view: IncomeView): {
 export function cumulativeQuarterNote(view: IncomeView, zh: boolean): string | null {
   if (!view.cumulative) return null;
   if (view.market === "cn") {
+    if (view.producerNormalized && view.cadence === "mixed") {
+      return zh
+        ? "历史累计期间（H1、9M、FY）与数据商提供的独立季度按各自标签保留。不同期间长度或来源口径不计算同比；缺失项目显示为短横线。"
+        : "Historical YTD periods (H1, 9M, FY) and vendor-reported discrete quarters retain their own labels. Growth is withheld across different durations or source conventions; missing values show a dash.";
+    }
     return zh
       ? "中国内地财报按年初至今累计口径披露；可加总项目由相邻期差分得出。缺少累计基数或无法安全差分的每股收益显示为短横线。"
       : "Additive quarterly flows are differenced from the cumulative year-to-date totals mainland-China filings report. Missing bases and EPS that cannot be safely differenced show a dash.";
@@ -644,3 +708,4 @@ export function cumulativeQuarterNote(view: IncomeView, zh: boolean): string | n
   // shows no note rather than a sentence about somebody else's filing convention.
   return null;
 }
+

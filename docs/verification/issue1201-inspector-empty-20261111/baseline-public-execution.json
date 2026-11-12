@@ -1,0 +1,26 @@
+{
+  "phase": "baseline-public-controls",
+  "startedAt": "2026-11-11T07:45:12.906823+00:00",
+  "port": 63838,
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/issue1201-inspector-empty-capture.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261111-1201-c3/docs/verification/issue1201-inspector-empty-20261111/baseline-public-artifacts"
+  ],
+  "cssSha256": "649ba3f2d700a58e72ad1d8028bd580de6066b0b0047d0bf63c4cdcbc5d411af",
+  "captureSourceSha256": "65e298058e0242713c3164d05bde1aeca1cb8535d895f5be29e3a5bfccd3d1bf",
+  "MMX_SHARED_SHELL": "1",
+  "reasonForChangedAttempt": "Initial signed-in helper entered guest onboarding; use existing public appearance controls, no account or entitlement change",
+  "exitCode": 1,
+  "seconds": 259.202,
+  "completedAt": "2026-11-11T07:49:32.133477+00:00",
+  "cssUnchanged": true,
+  "ownedTemporarySpecRemoved": true,
+  "portClosedAfterOwnerReturn": true
+}

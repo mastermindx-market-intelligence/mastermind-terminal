@@ -1,0 +1,57 @@
+{
+  "kind": "actual-local-BFF-unauthenticated-negative-proof",
+  "mocked": false,
+  "production_proof": false,
+  "authenticated_positive_path_proven": false,
+  "checks": [
+    {
+      "query": "source=sector",
+      "expected": 401,
+      "status": 401,
+      "cacheControl": "private, no-store",
+      "body": {
+        "data": null,
+        "receipt": {
+          "source": "sector",
+          "path": "/sectordata/sector_central.json",
+          "status": "access",
+          "asOf": null,
+          "observedAt": null,
+          "stale": false,
+          "contentHash": null
+        }
+      },
+      "passed": true
+    },
+    {
+      "query": "source=confluence",
+      "expected": 401,
+      "status": 401,
+      "cacheControl": "private, no-store",
+      "body": {
+        "data": null,
+        "receipt": {
+          "source": "confluence",
+          "path": "/marketdata/subsector_confluence.json",
+          "status": "access",
+          "asOf": null,
+          "observedAt": null,
+          "stale": false,
+          "contentHash": null
+        }
+      },
+      "passed": true
+    },
+    {
+      "query": "source=unsupported",
+      "expected": 400,
+      "status": 400,
+      "cacheControl": "private, no-store",
+      "body": {
+        "error": "invalid_source"
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

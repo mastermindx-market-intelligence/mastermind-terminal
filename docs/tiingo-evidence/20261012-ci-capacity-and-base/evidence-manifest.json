@@ -1,0 +1,45 @@
+{
+  "schema": "tiingo_source_evidence_manifest.v1",
+  "files": {
+    "README.md": {
+      "bytes": 1955,
+      "sha256": "a0ff99bc2eebc50713aca0877c26ce9081c75de286c54db8df3f9ae38a38ebc4"
+    },
+    "local-and-coverage-test-results.json": {
+      "bytes": 1548,
+      "sha256": "09d8433ed8ce6de2874305dad37dce238532fceee1d1422c3bc911bc0daa90a6"
+    },
+    "mobile-exact-hosted-red-excerpt.json": {
+      "bytes": 3860,
+      "sha256": "a2b4b251354ec8d4991f5034a884d5a4ff97f8ffe956c1fa7884f4f10afaf625"
+    },
+    "tablet-exact-hosted-red-excerpt.json": {
+      "bytes": 4145,
+      "sha256": "5ce9cc878dfdccffa314075e80602a3cb4607697b6e0450bace52d1e773649a3"
+    },
+    "terminal-955-base8520-complete-shard-list-proof.json": {
+      "bytes": 1060,
+      "sha256": "b87f3ff4474d1313b2a5c2543573ab8483fbc58ce4f818edceace2f5ec719989"
+    },
+    "terminal-955-base8520-ledger-tests.log": {
+      "bytes": 809,
+      "sha256": "06cf6aae6cda9fd2aacfc60eb37dbc472d50a2888d215c92c78df1c3c2dd4922",
+      "original_retained_log_sha256": "24a92443e573ebcdca5a3ec5f5f9f7c3bcf579e96806498b62804ed7bae2ed3c",
+      "presentation_normalization": "trailing whitespace and final blank lines removed; original private tool output preserved"
+    },
+    "terminal-955-base8520-source-integration.json": {
+      "bytes": 10582,
+      "sha256": "308c4e2672d33bcdeaee2c7ba566c87d629b45c7b2db88e410facd77e45d2edc"
+    },
+    "terminal-955-base8520-tablet-repro.log": {
+      "bytes": 754,
+      "sha256": "dfcfb949e0e136a52265f96c53ae18a26e434c81d6145f0f0945ee8bec9a113f",
+      "original_retained_log_sha256": "aec41cd616776a5322afa6d87b851d7886a698a9a13eecd87ea03571ed058193",
+      "presentation_normalization": "trailing whitespace and final blank lines removed; original private tool output preserved"
+    },
+    "verify-complete-shard-list.py": {
+      "bytes": 1998,
+      "sha256": "7f5b154e7d5048f0cf20e54429df68ba28e2fa58029c89f64e7f19486410a3e4"
+    }
+  }
+}

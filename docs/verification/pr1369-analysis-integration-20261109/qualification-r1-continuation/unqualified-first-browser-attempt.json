@@ -1,0 +1,8 @@
+{
+  "originalExecution": "docs/verification/pr1369-analysis-integration-20261109/qualification-r1/execution.json",
+  "originalExecutionSha256": "51cbc769533ac33f53f1fd125ca88c6b66854cc412d85c8a2ce17fc67cfaeb81",
+  "passed": 0,
+  "reason": "Existing spec explicitly skips unless MMX_SHARED_SHELL=1; initial local driver supplied0. No lifetime behavior was accepted from this attempt.",
+  "reportSha256": "e7086d9d5a7185c1d653d8c21ca80e0f44d8eb6f0c3319cd67045f5344aa7aa3",
+  "skipped": 6
+}

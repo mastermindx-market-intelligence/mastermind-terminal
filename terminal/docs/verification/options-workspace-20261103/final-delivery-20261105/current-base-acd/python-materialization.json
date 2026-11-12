@@ -1,0 +1,26 @@
+{
+  "state": "APPLIED",
+  "combined_tree": "76427bdc7a98c00f0936eca9641ac444a040b8ab",
+  "changes": [
+    {
+      "path": "ingest/pull_macro_risk.py",
+      "before_sha256": "b21e58bdaec5edf2d9502f3715fe3a7a488110320726496b7f08485477de294c",
+      "after_sha256": "5367fcd97e867b63830acd9c0251d5a02e32bbb15b1a3f99b1a60ec2f608cbc0",
+      "git_blob": "6e47d435524740cb9c18bb3762df028682f2f3ef"
+    },
+    {
+      "path": "tests/test_market_risk_bridge.py",
+      "before_sha256": "585fc51150c26060a05747857ca7f2b4df2e3aeac3df14ab623ae9fdf158fa95",
+      "after_sha256": "a7d6443fef1457503b88383f3a1eba4ea6f29a3acc4c04d8323d69923bcbd0ea",
+      "git_blob": "f8fc0501eea0027c90b88b00e19e3f1a05342cde"
+    },
+    {
+      "path": "tests/test_market_risk_envelope_market.py",
+      "before_sha256": null,
+      "after_sha256": "7fd06b3122fd1bb482e4fb0f84e8d766af057f695ce6184976a0508ac15c70c9",
+      "git_blob": "5cedab5e9de4f037d3381289305cf03fc439f9e0"
+    }
+  ],
+  "applied_at": "2026-11-05T10:20:37.198492+00:00",
+  "purpose": "Exact protected Python producer and tests required by the current frontend market-scope regression. Non-Git preview only."
+}

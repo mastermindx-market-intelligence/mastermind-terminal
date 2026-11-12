@@ -1,0 +1,100 @@
+{
+  "schema": "options_r4_evidence_consumers.v1",
+  "completed_at": "2026-11-05T08:35:54.296767+00:00",
+  "checks": [
+    {
+      "profile": "original",
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts"
+      ],
+      "exit": 0,
+      "passed": 41,
+      "log_sha256": "cbb0b3c9b6a8036e3c61292b29b3d39d2baaa6c50e571ce3467937c821a99978"
+    },
+    {
+      "profile": "original",
+      "check": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/helpers/optionsVisualEvidence.ts"
+      ],
+      "exit": 0,
+      "passed": null,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "profile": "preview",
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts"
+      ],
+      "exit": 0,
+      "passed": 51,
+      "log_sha256": "8fdc259aa8b44ceea7b99718ee28b46836b1f1ee3503072ffd62e0d3c58a2ef0"
+    },
+    {
+      "profile": "preview",
+      "check": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/helpers/optionsVisualEvidence.ts"
+      ],
+      "exit": 0,
+      "passed": null,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "profile": "exposure",
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts"
+      ],
+      "exit": 0,
+      "passed": 38,
+      "log_sha256": "4c07144d3f9fa61cc357b33d6b6df397f7710278f124c37f2c84d59d3526d182"
+    },
+    {
+      "profile": "exposure",
+      "check": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts"
+      ],
+      "exit": 0,
+      "passed": null,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "expected_passed": {
+    "original": 41,
+    "preview": 51,
+    "exposure": 38
+  },
+  "source_stable": true,
+  "native_capture_count": 240,
+  "visual_browser_count": 30,
+  "supplemental_native_visual_count": 24,
+  "old_packets_retained": true
+}

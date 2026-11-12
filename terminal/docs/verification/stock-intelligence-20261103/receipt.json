@@ -1,0 +1,65 @@
+{
+  "product": "Terminal chart Intelligence workspace",
+  "base": "3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9",
+  "paper_file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+  "paper_page_id": "p-I-1",
+  "paper_board_id": "1MX1-0",
+  "verification": "Local product route /terminal?symbol=AMZN, with three public AMZN responses served unchanged from captured bytes. Authentication, charts, market risk and Prophet use the existing local Terminal harness.",
+  "inputs": {
+    "slice": {
+      "url": "https://app.mastermind-x.com/data/AMZN.slice.json",
+      "sha256": "fd18638f261bbe357866890ece35f523f2d14a4a302e6277522d0ffe0ce88362"
+    },
+    "intel": {
+      "url": "https://app.mastermind-x.com/data/AMZN.intel.json",
+      "sha256": "fc5f1a59aee79ff56329877dfa484a4684cc66f2f52eb0a2617334f2517727d5"
+    },
+    "backtest": {
+      "url": "https://app.mastermind-x.com/data/AMZN.backtest.json",
+      "sha256": "a47670b1220fc020edec19d18fe1fa18221b0387e1da0ea4288664df20520b6f"
+    }
+  },
+  "as_of": "2026-10-30",
+  "backtest": {
+    "sample_trades": 11,
+    "max_drawdown": -0.2974,
+    "sharpe": 0.4194,
+    "strategy_return": 0.493,
+    "buy_hold_return": 0.5889
+  },
+  "activity": {
+    "oracle_markers": 384,
+    "candidate_receipts": 1
+  },
+  "viewports": {
+    "desktop": [
+      1440,
+      900,
+      "en"
+    ],
+    "tablet": [
+      820,
+      1180,
+      "zh"
+    ],
+    "mobile": [
+      390,
+      844,
+      "en"
+    ]
+  },
+  "captures": {
+    "desktop-activity.webp": "76929d1fe1658736c25032f06dee30425d7a946874edad32bfbf0cba91946725",
+    "desktop-oracle.webp": "bb9edc95c1c5d38cd490d442274efdf58944ab00f0104a189cbab1c1e0580466",
+    "desktop-research.webp": "a5a6fc919a0b31c9f45437f1b3014a8947caec8d3c641a952ba3f76419f56519",
+    "desktop-summary.webp": "c9c4c18935d6f130c4e812d750b913a5bbe7d97030fc37fc65ef42342258b599",
+    "mobile-activity.webp": "8b040788adc76e5f4c2919600ad39fb6cb8911538c34affd7ca6426470c0878e",
+    "mobile-oracle.webp": "55887e7aa19bd0425cb687cc098c36147b147e574aaa337e6776af8e5a169e66",
+    "mobile-research.webp": "848bfe8532e06026da590b690d73420990aaf41fe36f82036e6b688e667839f1",
+    "mobile-summary.webp": "a91bf8d2955a095325f7f467754b8d53daa9bdab60b8e07b9e71086100438613",
+    "tablet-activity.webp": "0b3b3ada728735fc1a46ac71e26ceb016048e76b231599917527cfcc2c3e7a60",
+    "tablet-oracle.webp": "161c1be5249e5b35f5b70abb9c0edcfdf151638baeec82612c8410d18aee8159",
+    "tablet-research.webp": "1a887b824373732e1fafd21a1fb5bad29bb4a464308df589801e9bb98581d47f",
+    "tablet-summary.webp": "1b887afcadc8f9a0b73ec9f1684dfb881122bbf5c63b5027e3751049300ef060"
+  }
+}

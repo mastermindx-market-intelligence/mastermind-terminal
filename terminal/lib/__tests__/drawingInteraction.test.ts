@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import {
+  cloneDrawing,
+  constrainScreenAngle,
+  translateDrawingAnchors,
+} from "@/lib/drawing-engine/interaction";
 import type { Drawing } from "@/lib/drawings";
 
 const drawing: Drawing = {

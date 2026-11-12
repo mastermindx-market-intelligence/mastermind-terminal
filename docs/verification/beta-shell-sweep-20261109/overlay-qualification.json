@@ -1,0 +1,75 @@
+{
+  "schema": "beta_shell_sweep_evidence.v1",
+  "observed_at": "2026-11-09T08:35:32.477120+00:00",
+  "source_basis": "owned working tree; source digests below, not deployed proof",
+  "local_tests": {
+    "original_two_components": {
+      "failed_before": 7,
+      "log_sha256": "ef05b982706c8d315ccb3aab833aa5327d9e613a1be02eb0579d76d50849c215"
+    },
+    "expanded_four_components": {
+      "failed_before": 11,
+      "passed_before": 8,
+      "log_sha256": "e6653d4adfab04ad7b9e12fc4236f5e8259c2448661aa12a69c14d050c3b3d7d"
+    },
+    "after": {
+      "files": 6,
+      "passed": 69,
+      "failed": 0,
+      "command": "npm test -- lib/__tests__/sharedOverlayScrollLock.test.tsx lib/__tests__/scrollLock.test.ts lib/__tests__/sharedShellDirectoryConformance.test.tsx lib/__tests__/mobileSheetKeepMounted.test.tsx lib/__tests__/guidePanelReselection.test.tsx lib/__tests__/watchlistEventPlannerView.test.tsx"
+    },
+    "typecheck": "npx next typegen && npx tsc --noEmit: exit 0",
+    "eslint": "nine changed TypeScript/TSX files: exit 0"
+  },
+  "browser": {
+    "basis": "local Next development fixture; real shell and overlays; no live auth bypass",
+    "command": "MMX_SHARED_SHELL=1 TERMINAL_E2E_PORT=3186 CI=1 npm run test:e2e:responsive -- e2e/shared-shell-scroll-lock.spec.ts e2e/shared-shell-directory-hardening.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+    "passed": 22,
+    "failed": 0,
+    "skipped": 2,
+    "skip_reason": "pre-existing viewport-specific cases; no new skip or retry added"
+  },
+  "source_sha256": {
+    "terminal/components/GuidePanel.tsx": "502cdfde51e973b35c8895682feafaedb062ac1acbd9202186ec80b0fc991146",
+    "terminal/components/MobileNavModal.tsx": "7857c93e536a09f1533b7d2555e321e84868b92c72db56a1a19e188cdfa77f05",
+    "terminal/components/chrome/shared-shell/ShellDirectory.tsx": "ae22e5ea8c9a628610c24831c8aaebbd680b0d480ab964989150399079c9439c",
+    "terminal/components/events/WatchlistEventPlanner.tsx": "a6a09c808f41e748f31d88a3d986323ae9f858f0d8789a5102512cd25663d6fd",
+    "terminal/components/mobile/AnalysisHubSheet.tsx": "05768cbb20fda0b5edc80dfd12e70457d7256aa19e1db935024e001f45b160ab",
+    "terminal/components/ui/MobileSheet.tsx": "da7187ed8dddbfe44c5ba77ba72801e3636d795ff23ca147263fc39827725392",
+    "terminal/lib/__tests__/sharedOverlayScrollLock.test.tsx": "fdd48b7ce428b64d502b2d5418a0ba49393a571cb8414098f290ad418fb95c47",
+    "terminal/e2e/shared-shell-scroll-lock.spec.ts": "79ce2b27fb74170a016c4cef764bfd71c1c64d800aa6f2f5dca8001f9722c6f4",
+    "terminal/e2e/shared-shell-directory-hardening.spec.ts": "5e554794514a55197c101c7dab526605ade1affbd0bf701cc7432a36672d1fb8"
+  },
+  "screenshots": [
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/tools-open-desktop.png",
+      "sha256": "f71fc2a0d0d9fabb4a1688ed442311db6529e3f42ccfbefd9c9760178494da3e",
+      "viewport": "desktop"
+    },
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/workspace-restored-desktop.png",
+      "sha256": "0ed9f5f7d92608e4f6ab74c64942d8d65e1f4bc460b0cd594a1c7d7e18cb0518",
+      "viewport": "desktop"
+    },
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/tools-open-tablet.png",
+      "sha256": "a4972a2b0b5ca39811efdcdc3154473e3431df74cb840fd2d2efbc215a85aa56",
+      "viewport": "tablet"
+    },
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/workspace-restored-tablet.png",
+      "sha256": "d4d420b83a57b3732d7e4791d26de42db50064099e9fcf355a58b8af931b62b7",
+      "viewport": "tablet"
+    },
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/tools-open-mobile.png",
+      "sha256": "69c52a909e1243aca757ea379509b7490582414ba1b2aad5a0efdc48324b8b89",
+      "viewport": "mobile"
+    },
+    {
+      "path": "docs/verification/beta-shell-sweep-20261109/workspace-restored-mobile.png",
+      "sha256": "ca6b00207682e05491befa2b97fc31bf45847b47dbc5922e4eb2035e179f4015",
+      "viewport": "mobile"
+    }
+  ]
+}

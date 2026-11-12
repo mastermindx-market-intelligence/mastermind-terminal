@@ -1,0 +1,47 @@
+{
+  "operation": "options-alpha-investigation-workflow-20260930-sol-001",
+  "parent": "mastermind-terminal#599",
+  "carrier": "mastermind-terminal#667",
+  "base_head": "32d83c13180d0e3dc9e84d9cfda573599546e960",
+  "skillpack": "0c75bc308da39c099b42f10e30741bec416b5afc",
+  "source_sha256": {
+    "terminal/components/prophet/OptionsAlphaView.tsx": "d4f549c85c951e2780192ca5c46de0b475c774232c2c25e93373f3ddcd6cdcbd",
+    "terminal/components/prophet/OptionsAlphaInvestigation.tsx": "222c4a893e8f6375021811bb14c7082a99667d34b09dea5292302653b62d8e1a",
+    "terminal/components/prophet/OptionsAlphaInvestigation.module.css": "48534e16c5632176162a570b189d0da59486d3976846ee3efc15a54a163db0a7",
+    "terminal/e2e/options-alpha-investigation.spec.ts": "3bdc1f2a0ebd1971ed5089f0ec2b32ad89680ffccf2202b5308071889f023214"
+  },
+  "verification": {
+    "responsive_cases_passed": 45,
+    "projects": [
+      "desktop 1440x900",
+      "tablet 820x1180",
+      "mobile 390x844"
+    ],
+    "workers": 1,
+    "retries": 0,
+    "unit_tests_passed": 6633,
+    "unit_tests_todo": 4,
+    "unit_files_passed": 407,
+    "typescript": "PASS",
+    "scoped_eslint": "PASS",
+    "production_enabled": false,
+    "natural_source_observation": false,
+    "source_data": "declared synthetic events; native watchlist route/service with isolated database transport"
+  },
+  "logs": {
+    "investigation-verified-browser.log": "e4e600b58e08c7fe780ded3e97468b817ff54440ecd88f5d02dd506be00e3155",
+    "investigation-final-vitest.log": "4ca69d9dbe440d9325ee09cd6af3f121ab9394feb748e634c8953ce209b8251c",
+    "investigation-red.log": "03d6e45f299e4e8ca5232d539cb411fb30a33a20b013fa4c05bfd587c3eff888",
+    "investigation-snapshot-red.log": "1d691510a87df229cd0f8f609a9f7e8d675877edd1f2de5db61dae21df8934e1",
+    "investigation-contrast-red.log": "1a773cbcec62df8a476cfd53560212f3ddd18b9642f8ceb56d226c6f6cd9b1e5",
+    "investigation-inventory-race-red.log": "0397b3574932124c67bddbb15b2e29e78cdcaae1bc2483fbac6b77fc63ed96c7"
+  },
+  "screenshots": {
+    "desktop-dark-en.png": "feef5f84433218e304d5f74bc9f2867097e63fb0d7619703f85441557a5c7e46",
+    "desktop-dark-zh.png": "1e259bf6c6868695ad48e2b0c78e5b0a79d1ff933f5888531fadf64fa89c4ff2",
+    "tablet-dark-en.png": "155a0e73eedb369621d94218f5a46935b80669d24972b5ff2ab3829ef2b65e84",
+    "tablet-dark-zh.png": "98496514eb1b147927903928ef1e1b003836a10246736263466d5f944b5a624b",
+    "mobile-dark-en.png": "c822536fb1af8c12c0204845fcf597815a929a42e8f628deb609d7c67e291480",
+    "mobile-dark-zh.png": "aeeecac9e49ae12bff71d634c4343863f23c9968593afc609bf1820be940970e"
+  }
+}

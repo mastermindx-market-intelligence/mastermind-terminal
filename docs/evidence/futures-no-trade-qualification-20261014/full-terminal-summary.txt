@@ -1,0 +1,12 @@
+ ✓ lib/__tests__/assetLogos.test.tsx (3 tests) 41ms
+ ✓ lib/__tests__/futuresPollingReview.test.tsx (2 tests) 64ms
+ ✓ lib/__tests__/rsPivotChartReplay.test.tsx (1 test) 55ms
+ ✓ lib/__tests__/rsPivotRequest.test.tsx (1 test) 51ms
+ ✓ lib/__tests__/indicatorCanvasCloudBatch.test.ts (2 tests) 14ms
+ ✓ lib/__tests__/useChartBusRebinding.test.tsx (1 test) 18ms
+ ✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 61ms
+
+ Test Files  682 passed (682)
+      Tests  11332 passed | 4 todo (11336)
+   Start at  21:20:06
+   Duration  116.18s (transform 24.24s, setup 0ms, collect 71.97s, tests 146.58s, environment 44.32s, prepare 39.16s)

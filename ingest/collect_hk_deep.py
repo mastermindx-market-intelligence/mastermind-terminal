@@ -80,13 +80,13 @@ def main(argv: list[str]) -> None:
     if limit:
         want = want[:limit]
     cache: dict[str, str] = {}
-    if OUT.exists() and not force:
+    if OUT.exists():
         try:
             for r in pd.read_parquet(OUT).to_dict("records"):
                 cache[r["ticker"]] = r["payload"]
         except Exception:
             pass
-    todo = [t for t in want if t not in cache]
+    todo = [t for t in want if force or t not in cache]
     print(f"hk_deep: {len(want)} uncovered HK names, {len(todo)} to fetch (workers={workers}, force={force})", flush=True)
 
     got = done = 0
@@ -106,7 +106,15 @@ def main(argv: list[str]) -> None:
 
     df = pd.DataFrame([{"ticker": k, "payload": v} for k, v in sorted(cache.items())])
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUT, index=False)
+    if todo and got == 0:
+        raise SystemExit("HK deep collection returned no observations; existing cache unchanged")
+    if got:
+        temporary = OUT.with_name(f".{OUT.stem}.{os.getpid()}.tmp.parquet")
+        try:
+            df.to_parquet(temporary, index=False)
+            os.replace(temporary, OUT)
+        finally:
+            temporary.unlink(missing_ok=True)
     print(f"hk_deep.parquet: {len(df)} names", flush=True)
 
 

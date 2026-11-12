@@ -1,6 +1,27 @@
+// Screen-space drawing gestures: angle constraints and anchor translation.
+
+import type { DrawingAnchor } from "@/lib/chart-engine/drawingBridge";
+import type { EngineTime } from "@/lib/chart-engine/api";
 import type { Drawing, Pt } from "@/lib/drawings";
 
 export type ScreenPoint = { x: number; y: number };
+
+/** Build a pane-scoped bridge anchor from a persisted drawing point. */
+export function drawingPointToAnchor(
+  paneIndex: number,
+  point: Pt,
+  logical: number,
+  time: EngineTime | null,
+  futureSlot?: number,
+): DrawingAnchor {
+  return {
+    paneIndex,
+    time,
+    logical,
+    price: point.p,
+    ...(futureSlot != null && futureSlot >= 0 ? { future: { slot: futureSlot } } : {}),
+  };
+}
 
 /**
  * Constrain an endpoint to the nearest angular increment in screen space.

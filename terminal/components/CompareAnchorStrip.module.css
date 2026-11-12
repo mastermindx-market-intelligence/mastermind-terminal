@@ -1,0 +1,208 @@
+/* CompareAnchorStrip (E08) — comparison anchor + basis readout, mounted above the chart only while
+   compare legs exist. In normal flow (flex:none), so it never overlays chart content. Directional
+   colour comes from the --up/--down tokens only. */
+
+.strip {
+  flex: none;
+  position: relative;
+  z-index: 6;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+  font: 500 var(--fs-label)/1.35 var(--font-ui);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 6px 0 10px;
+}
+
+.title {
+  flex: none;
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--panel);
+  font-variant-numeric: tabular-nums;
+}
+.chip b { color: var(--text); font-weight: 600; }
+/* AC-E08-03: the chip border echoes the line look the chart draws for a leg that is not
+   like-for-like (long-dashed for incomparable, dotted for a caveat). */
+.chip[data-cmp-comparability="incomparable"] { border-style: dashed; border-color: var(--warn); }
+.chip[data-cmp-comparability="caveat"] { border-style: dotted; border-color: var(--line-3); }
+.markIncomparable,
+.markCaveat { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.markIncomparable { color: var(--warn); }
+.markCaveat { color: var(--text-2); }
+.flag {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px dashed currentColor;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+.flag[data-cmp-flag="caveat"] { border-style: dotted; }
+.flag b { color: inherit; }
+
+.dot {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.toggle,
+.btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--panel-3);
+  color: var(--text);
+  font: 600 var(--fs-label)/1 var(--font-ui);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t);
+}
+.toggle:hover,
+.btn:hover { border-color: var(--text-dim); }
+.toggle:focus-visible,
+.btn:focus-visible,
+.date:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 1px; }
+.btn[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+.panel {
+  max-height: 42vh;
+  overflow-y: auto;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--line-2);
+  background: var(--panel);
+}
+
+.policy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateLabel { color: var(--muted); margin-left: 4px; }
+
+.date {
+  min-height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-md);
+  background: var(--inset);
+  color: var(--text);
+  font: 500 var(--fs-label)/1 var(--font-num);
+  color-scheme: dark;
+}
+.date[aria-invalid="true"] { border-color: var(--warn); }
+
+.summary { margin: 8px 0 0; color: var(--text); }
+.hint { margin: 2px 0 0; color: var(--muted); }
+.noteLine { margin: 2px 0 0; min-height: 1em; color: var(--warn); }
+.note { margin: 6px 0 0; color: var(--text-2); }
+.foot { margin: 8px 0 0; color: var(--muted); }
+.pinAll { margin-top: 6px; }
+
+.legs {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.legHead { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+.legHead b { font-weight: 600; }
+
+.dim { color: var(--muted); }
+.warnText { color: var(--warn); }
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+/* Phone / tablet / coarse pointers: 44px tap floors, a taller bar. The width arm covers the whole
+   <=860px touch layout (tablet included), so the floor never depends on pointer emulation. */
+@media (pointer: coarse), (max-width: 860px) {
+  .bar { min-height: 44px; }
+  .toggle,
+  .btn,
+  .date { min-height: 44px; }
+  .btn,
+  .toggle { padding: 0 14px; }
+}
+
+/* <=860px the workspace's floating fullscreen control (.chart-fs-float, 40px square, absolute at
+   top:52px / right:9px of the workspace, z-index 7) is shown. Depending on the toolbar row above the
+   pane it lands on this bar (tablet) or on the first panel row (phone): both rows keep its column
+   clear so neither control is ever under the other. */
+/* Phone: the region keeps its accessible name, the bar drops its visible title, and the flag keeps
+   only the glyph + symbol on screen (its words stay in the accessibility tree), so the chip row
+   keeps usable width beside it. */
+@media (max-width: 640px) {
+  .title { display: none; }
+  .flagWords {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 860px) {
+  .bar,
+  .policy { padding-right: 56px; }
+  .panel { max-height: 36vh; }
+}

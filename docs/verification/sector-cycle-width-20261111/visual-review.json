@@ -1,0 +1,35 @@
+{
+  "findings": [
+    "Actual white/light surfaces and dark text are present in ZH light captures.",
+    "Chart, legend, controls, date cursor, and turns content remain visible within each panel.",
+    "Dark EN captures retain the incumbent palette and responsive wrapping."
+  ],
+  "images": [
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-mobile/cycles-measurement-empty-zh-mobile.png",
+      "sha256": "dc146d0751e6d8b93889094fa3d70b7f335320a322d88843caac12081107d72a"
+    },
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-tablet/cycles-measurement-empty-zh-tablet.png",
+      "sha256": "af0168507e225a194d067f97058316507fe2577ba963790c3933e29e1e392424"
+    },
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-desktop/cycles-measurement-table-en-desktop.png",
+      "sha256": "1a70b053148896366a8d4bbf1ed52ca22ce2e004aceee6f644f3e2e880341b8b"
+    },
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-15d28--empty-transitions-zh-light-desktop/cycles-measurement-empty-zh-desktop.png",
+      "sha256": "fe7dffcaffd04d86b1ddcda8dd847770c1dde605b325a7cf0b85b0971aa08e53"
+    },
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-mobile/cycles-measurement-table-en-mobile.png",
+      "sha256": "b64a66cb52b78d1a8736eb8a82c3018ba303822b2e086ef234c7281321d78c74"
+    },
+    {
+      "path": "docs/verification/sector-cycle-width-20261111/theme-paint-qualified/artifacts/sector-cycle-lens-cycles-c-27a9f-s-table-transitions-en-dark-tablet/cycles-measurement-table-en-tablet.png",
+      "sha256": "b3c2b2ce5e421a1c3de400369baf229d87b2a8854d194baf2216f228af4445f2"
+    }
+  ],
+  "scope": "Panel layout and actual theme paint at EN/dark and ZH/light across desktop/tablet/mobile; deterministic dev fixtures only",
+  "state": "ROOT_VISUAL_REVIEW_COMPLETED"
+}

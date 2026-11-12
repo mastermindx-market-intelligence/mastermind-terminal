@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "script": "prepare-production-turbopack-final-r4.py",
+      "sha256": "0fa8104c9c2fbb8a9b02f758cf6bf8df6a0b9f8bb3e100b6e953422716a950f6",
+      "started_at": "2026-11-05T10:02:59.194803+00:00",
+      "completed_at": "2026-11-05T10:03:47.149282+00:00",
+      "exit": 0
+    },
+    {
+      "script": "verify-production-turbopack-final-r4.py",
+      "sha256": "eff12ed173be422575302d9bfb75475a8197aec5edb1d90e06422067c7a2e8c5",
+      "started_at": "2026-11-05T10:03:47.176235+00:00",
+      "completed_at": "2026-11-05T10:05:23.866533+00:00",
+      "exit": 0
+    }
+  ],
+  "terminal": true
+}

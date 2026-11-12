@@ -1,0 +1,14 @@
+{
+  "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "indexTree": "9a9dbff26546ce89ecd24b2288024c8f44bb5ac4",
+  "startedAt": "2026-11-12T03:02:11.053412+00:00",
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "node": "v22.23.4",
+  "lockSha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+}

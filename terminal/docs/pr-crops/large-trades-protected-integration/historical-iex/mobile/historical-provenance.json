@@ -1,0 +1,32 @@
+{
+  "artifactSha256": "c8f3acd1390bffa145441cb95dedbc5e3dafcbe08deed3a4c11691155b2b5b8b",
+  "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+  "provenance": {
+    "acquiredAtNs": "1791353317000000000",
+    "attribution": "Data provided for free by IEX. By accessing or using IEX Historical Data, you agree to the IEX Historical Data Terms of Use.",
+    "conditionPolicy": "IEX_DEEP_PLUS_1_0_NATIVE_L_T_VOLUME_ALL_DEFINED_FLAGS_V1",
+    "coverage": "partial",
+    "dataMode": "historical",
+    "dataset": "HIST DEEP+ 1.0",
+    "delayMs": null,
+    "evidenceMode": "HISTORICAL_REPLAY",
+    "generatedAtNs": "1791712347072532000",
+    "provider": "IEX",
+    "receiptBasis": "archive_acquisition",
+    "scope": "venue",
+    "sequenceGaps": 0,
+    "sourceId": "iex-hist-dpls:20261005:2e41ba84c2a24ccd",
+    "sourceRef": "https://www.googleapis.com/download/storage/v1/b/iex/o/data%2Ffeeds%2F20261005%2F20261005_IEXTP1_DPLS1.0.pcap.gz?generation=1791255403745129&alt=media",
+    "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+    "termsUrl": "https://www.iex.io/legal/hist-data-terms",
+    "venue": "IEX"
+  },
+  "range": {
+    "endNs": "1791207038259009166",
+    "startNs": "1791202125849568972"
+  },
+  "sourceRecords": 302,
+  "executedQuantity": 26121,
+  "testTransport": "explicit same-origin interception; not production publication",
+  "chartCoordinates": "OHLC formed from these same partial IEX executions, with no gap filling"
+}

@@ -1,0 +1,37 @@
+[warmup] /terminal?symbol=NVDA → 200 in 136ms
+[warmup] /options → 200 in 2327ms
+[warmup] /portfolio → 200 in 984ms
+[warmup] /alerts → 200 in 921ms
+[warmup] /analysis → 200 in 1867ms
+[warmup] /discover → 200 in 2535ms
+[warmup] /admin → 200 in 768ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 483ms
+[warmup] /login → 200 in 158ms
+[warmup] /reset-password → 200 in 410ms
+[warmup] /api/me → 200 in 605ms
+[warmup] /api/watchlist → 200 in 240ms
+[warmup] /api/layouts → 200 in 223ms
+[warmup] /api/watchlist/annotations → 409 in 200ms
+[warmup] 14 routes compiled in 12s
+[fixture-ready] prophet_idx fixture 200 in 602ms
+
+Running 14 tests using 1 worker
+
+  -   1 [tablet] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  -   2 [tablet] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   3 [tablet] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (56.6s)
+  -   4 [tablet] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  -   5 [tablet] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓   6 [tablet] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (11.4s)
+  ✓   7 [tablet] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.7m)
+  -   8 [mobile] › e2e/ticker-news.spec.ts:367:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  ✓   9 [mobile] › e2e/ticker-news.spec.ts:459:5 › unavailable snapshot renders without rail overflow (26.2s)
+  ✓  10 [mobile] › e2e/ticker-news.spec.ts:491:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (49.3s)
+  -  11 [mobile] › e2e/ticker-news.spec.ts:561:5 › grouped reports expand inside the real rail without leaving ticker context
+  -  12 [mobile] › e2e/ticker-news.spec.ts:572:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓  13 [mobile] › e2e/ticker-news.spec.ts:618:5 › editorial views filter before display and keep grouped details in the selected context (9.6s)
+  ✓  14 [mobile] › e2e/ticker-news.spec.ts:663:5 › Chinese and Hong Kong tickers preserve original Chinese headlines (1.5m)
+
+  7 skipped
+  7 passed (6.5m)

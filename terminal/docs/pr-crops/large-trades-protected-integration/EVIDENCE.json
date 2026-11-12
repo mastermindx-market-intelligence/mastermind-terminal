@@ -1,0 +1,2868 @@
+{
+  "schema": "mastermind.large_trades.current_browser_evidence.v1",
+  "status": "PASSED_WITHIN_CURRENT_BROWSER_MATRIX_SCOPE",
+  "preparedAtUtc": "2026-10-11T15:44:08.678701+00:00",
+  "sourceHead": "70b4778936bf90f8177c587b3de77b1b571339c9",
+  "runtimeProductSourceUnchangedFrom": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+  "selectedSourceFiles": 1716,
+  "selectedSourceSha256": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+  "custodyReceiptSha256": "e812add558848deb6136312bcf1836a667871e54a0d2ae3ceb6e1a3e63b8bc4a",
+  "sourceUnchanged": true,
+  "runtimeIdleAtUtc": "2026-10-11T15:31:38.381090+00:00",
+  "reports": [
+    {
+      "group": "Large Trades",
+      "sourceReportSha256": "7cb655c928d00fba6d476a61c2f192f3def717aa722103c4fe39df14a6a7c6b6",
+      "stats": {
+        "startTime": "2026-10-11T15:23:33.028Z",
+        "duration": 362163.213,
+        "expected": 48,
+        "skipped": 18,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "group": "Real historical IEX inspection",
+      "sourceReportSha256": "4ef807993e7f7bd45fba3762f7764b504eb15cbca7d7307d94f5f9f1d924c565",
+      "stats": {
+        "startTime": "2026-10-11T15:29:42.814Z",
+        "duration": 17027.218,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "group": "EN/ZH Replay",
+      "sourceReportSha256": "4278a568648e180cd3fe60f95961a21b03e275e119b3f2ee7ea8d6be1ac2a0a9",
+      "stats": {
+        "startTime": "2026-10-11T15:30:06.580Z",
+        "duration": 53619.892,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "group": "Legacy drawing migration",
+      "sourceReportSha256": "191c708de7a6a9dfa0f413dd40a6290e1f4f114e3d5b26d1da4b655d2d8585c6",
+      "stats": {
+        "startTime": "2026-10-11T15:31:06.474Z",
+        "duration": 13219.482,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "cases": [
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4416
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3692
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 8605
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 12670
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3048
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3216
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7450
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9401
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4357
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7197
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 13368
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4823
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 8712
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9152
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 5420
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3351
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6716
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6235
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 10960
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4788
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header en",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 83
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header zh",
+      "project": "desktop",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 74
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7440
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4682
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 24110
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 17116
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 5243
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6200
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6638
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 12683
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9530
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 103
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 88
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3728
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7712
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 83
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 94
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7506
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7798
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 83
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 74
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 56
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header en",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 74
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header zh",
+      "project": "tablet",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 54
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection en dark",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3751
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "exact executions, reports and responsive inspection zh dark",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3210
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings cap quantity markers and expose adaptive warmup",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 11256
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "canonical replay excludes future executions and waits for price response",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9526
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "unavailable transaction source never turns coordinate candle volume into markers",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3064
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "an exact-arithmetic overflow is isolated as invalid evidence",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6085
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "the canonical language event retitles the mounted legend, inspector and settings",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 5154
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "settings normalize stored bounds and persist the exact applied criteria",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 14588
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 8792
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 77
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 53
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4493
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7634
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 78
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG waits while the requested symbol has no accepted native source",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 55
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "left price scale places executions after the native axis and exports the same plot",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3447
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3206
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 69
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 54
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "project": "mobile",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "durationMs": 54
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header en",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7973
+        }
+      ]
+    },
+    {
+      "group": 1,
+      "title": "phone inspection follows a changing Replay status header zh",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7458
+        }
+      ]
+    },
+    {
+      "group": 2,
+      "title": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 5020
+        }
+      ]
+    },
+    {
+      "group": 2,
+      "title": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4920
+        }
+      ]
+    },
+    {
+      "group": 2,
+      "title": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4614
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (en, dark)",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 8314
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (zh, dark)",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 6895
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (en, dark)",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9382
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (zh, dark)",
+      "project": "tablet",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 7394
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (en, dark)",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9870
+        }
+      ]
+    },
+    {
+      "group": 3,
+      "title": "Replay status stays readable inside its chart (zh, dark)",
+      "project": "mobile",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 9216
+        }
+      ]
+    },
+    {
+      "group": 4,
+      "title": "legacy indicator-pane drawing coordinates migrate into pane value space",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3207
+        }
+      ]
+    },
+    {
+      "group": 4,
+      "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (empty)",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 4314
+        }
+      ]
+    },
+    {
+      "group": 4,
+      "title": "legacy pane drawings wait for a usable scale and migrate automatically on its paint (cached)",
+      "project": "desktop",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "durationMs": 3893
+        }
+      ]
+    }
+  ],
+  "attachments": [
+    {
+      "path": "large-trades/desktop/large-trades-en-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 226349,
+      "sha256": "df8dca3970d3c386cd7a0bddc12254bf0c01bc7f68c38aa33e28e0be38863340",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-chart",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-en-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 280554,
+      "sha256": "3f0bc4111930ae89fb2443af6e1105ce47376cd935b2c24db997642fc99c3673",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection-overview",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-en-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 279918,
+      "sha256": "196f5b55a68c82ee77e7704b85ca19955ec3339381801256ba16b0d085cc0851",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-adverse-selling-continued.png",
+      "mime": "image/png",
+      "bytes": 280197,
+      "sha256": "873b1e33426c63ef50dc7f91df02b87ecc73ca931d5e6be14b04a5e5d4b4f05e",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-adverse-selling-continued",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-zh-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 229352,
+      "sha256": "ad86f7ff3fa445eb67f4d4ab68d0bddfa0290cb9dd1e47a22c06893061ea45be",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-chart",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-zh-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 283281,
+      "sha256": "8e0ba2d648f717e712893d74cd67a7de536f838e84043000ee64dd78698073ab",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection-overview",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-zh-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 282984,
+      "sha256": "4dfbfa96a02dd4efab8c9a3e5ea5e64f20cd7768054aeedc82626b4f916f919a",
+      "group": 1,
+      "project": "desktop",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-replay-pending.png",
+      "mime": "image/png",
+      "bytes": 262410,
+      "sha256": "f9c23b4da4e8b473a9a3cbc84b353a1afb034bea0bb1f5ece14c978d43e6053a",
+      "group": 1,
+      "project": "desktop",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-pending",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-replay-observed.png",
+      "mime": "image/png",
+      "bytes": 267231,
+      "sha256": "8954ce6f923b47842ef9c6ec66ef6c813a9e496a2e9752083a1096b83cff4c3b",
+      "group": 1,
+      "project": "desktop",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-observed",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/price-owned-dock-before-maximize.json",
+      "mime": "application/json",
+      "bytes": 380,
+      "sha256": "384c26ac8966da2ebda08551da512d601910c455e67ecd6cc64b526327bc16a1",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-nonprice-maximized-fixed.png",
+      "mime": "image/png",
+      "bytes": 205140,
+      "sha256": "95a294f5247624d04987106b98f059a8ab00f5d420ed78a18bb346a5a5fb5c24",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-nonprice-maximized-fixed",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/price-owned-dock-after-pointer-restore.json",
+      "mime": "application/json",
+      "bytes": 380,
+      "sha256": "384c26ac8966da2ebda08551da512d601910c455e67ecd6cc64b526327bc16a1",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-pointer-restore"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-price-restored-fixed.png",
+      "mime": "image/png",
+      "bytes": 232079,
+      "sha256": "7904a734752cc55244a70c4f0a9d43264d08742da13a1099146626be8a366693",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-price-restored-fixed",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-short-owner-co-hidden.png",
+      "mime": "image/png",
+      "bytes": 216006,
+      "sha256": "90bba701b86b6ccdcccb04cebe6764e79aa29b60fca245a7eb65c3d9f86f84c2",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "attachment": "large-trades-short-owner-co-hidden",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/short-owner-restored-dock-bounds.json",
+      "mime": "application/json",
+      "bytes": 380,
+      "sha256": "384c26ac8966da2ebda08551da512d601910c455e67ecd6cc64b526327bc16a1",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "attachment": "short-owner-restored-dock-bounds"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-short-owner-restored.png",
+      "mime": "image/png",
+      "bytes": 233384,
+      "sha256": "30282a690300183de4d1283fc3f26b80242760c3c55ce9a3cde5764f3bd66739",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade markers and inspection co-hide in a short price pane and return after resize",
+      "attachment": "large-trades-short-owner-restored",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-desktop-height-boundary-terms.png",
+      "mime": "image/png",
+      "bytes": 229129,
+      "sha256": "53a4bb093ae0aa51141bcc8847ef4a6f99c8daedff1f977ecd7c61ac45116f35",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "large-trades-desktop-height-boundary-terms",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/desktop-height-boundary-hit-footprints.json",
+      "mime": "application/json",
+      "bytes": 15977,
+      "sha256": "21135d45d5240d69c4f25791f476820b205653d15a66951ddbfca5c1ecb301e9",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "desktop-height-boundary-hit-footprints"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-narrow-width-and-height-boundary-terms.png",
+      "mime": "image/png",
+      "bytes": 88108,
+      "sha256": "6f39b71be543a2af65506e6992386805abcf252725926ca21e8b99d81bcf8f42",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "large-trades-narrow-width-and-height-boundary-terms",
+      "width": 261,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/narrow-width-and-height-boundary-hit-footprints.json",
+      "mime": "application/json",
+      "bytes": 20688,
+      "sha256": "0fe189445e32ed09218767c81a47ab3d188403632aa5a728e5047950c4d7a629",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "narrow-width-and-height-boundary-hit-footprints"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-boundary-restored.png",
+      "mime": "image/png",
+      "bytes": 86714,
+      "sha256": "f78bcd507d2ba521e080e17cffd0c346163c52e73dd3cab108fa53dfcfa9a945",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trade controls expose full targets and scrollable provenance at their admitted minimum",
+      "attachment": "large-trades-boundary-restored",
+      "width": 261,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-export-visible-chart.png",
+      "mime": "image/png",
+      "bytes": 228287,
+      "sha256": "3d21d4ee7b28c241945c09ace0569036a28c2f46cd6e0667636fcd427a0927ae",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-export-visible-chart",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export.png",
+      "mime": "image/png",
+      "bytes": 343481,
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-inspector-excluded.png",
+      "mime": "image/png",
+      "bytes": 343481,
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export-inspector-excluded",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-labels-off.png",
+      "mime": "image/png",
+      "bytes": 389235,
+      "sha256": "1d125d283be5e697e1c40dfe0c6ddd43a3cc430808bbe2b79864dcff8cf4ac53",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-labels-off",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-replay.png",
+      "mime": "image/png",
+      "bytes": 307718,
+      "sha256": "3451d087112272335ef790f4a33df290164ea64ec6980fe77b802162977429bb",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-replay",
+      "width": 1934,
+      "height": 1694
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-before-async-mutations.png",
+      "mime": "image/png",
+      "bytes": 339239,
+      "sha256": "046c43076bd8d1ad3afd2015e7e80b9f4c18caa5072df35f7a68e6a80b66c825",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "attachment": "large-trades-native-export-before-async-mutations",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/frozen-before-symbol-change.png",
+      "mime": "image/png",
+      "bytes": 339239,
+      "sha256": "046c43076bd8d1ad3afd2015e7e80b9f4c18caa5072df35f7a68e6a80b66c825",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "attachment": "frozen-before-symbol-change",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/async-capture-frame-equality.json",
+      "mime": "application/json",
+      "bytes": 1115,
+      "sha256": "21806bcc4b52195b2c7b4bbe8e61a1696d2db90bdcb2e53f5ed84c26cf93a64a",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG freezes its admitted symbol and marker frame across asynchronous decoding",
+      "attachment": "async-capture-frame-equality"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-left-axis-aligned.png",
+      "mime": "image/png",
+      "bytes": 228411,
+      "sha256": "ceb2078d4e43d6264881c31d28879707a9aa6a6bced673b2b2c803bb8f3873dc",
+      "group": 1,
+      "project": "desktop",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-left-axis-aligned",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-left-axis.png",
+      "mime": "image/png",
+      "bytes": 342348,
+      "sha256": "17a7f577c4e5ae9eb8d33716d45170c3337e96b92ed21e585caf7c1a8da5f78d",
+      "group": 1,
+      "project": "desktop",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-native-export-left-axis",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-real-iex.png",
+      "mime": "image/png",
+      "bytes": 340887,
+      "sha256": "f96674a590b2851ed4e8750291253d1889d048c0234be52ce408eb01460bb1a9",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "large-trades-native-export-real-iex",
+      "width": 1934,
+      "height": 1816
+    },
+    {
+      "path": "large-trades/desktop/native-iex-export-provenance.json",
+      "mime": "application/json",
+      "bytes": 1508,
+      "sha256": "d88030438778e3062036027c2170aefc470311caf4f7fd43fda76f9eb150a8a9",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-additional-rsi-maximized.png",
+      "mime": "image/png",
+      "bytes": 292257,
+      "sha256": "70f0ab06ce581e80437937d7e690bd840294fd04464f5fd7fd9f30e62623d8f2",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "attachment": "large-trades-additional-rsi-maximized",
+      "width": 1934,
+      "height": 1600
+    },
+    {
+      "path": "large-trades/desktop/large-trades-price-owner-after-rsi-reorder.png",
+      "mime": "image/png",
+      "bytes": 352306,
+      "sha256": "0b556ed3976e2c77f28463cb62a7befc3e8da893f135b741253a6431c9431222",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "attachment": "large-trades-price-owner-after-rsi-reorder",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/additional-rsi-owner-proof.json",
+      "mime": "application/json",
+      "bytes": 1062,
+      "sha256": "558f0072bafcf8b627af0f876d85a85f41ac1eecad5d68f6a9061c8674e6645d",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "attachment": "additional-rsi-owner-proof"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-additional-rsi-price-owner-restored.png",
+      "mime": "image/png",
+      "bytes": 231462,
+      "sha256": "46e5f2b523c8dee456f487033f6eeee280c721067d6395a92d0cbf634caa820d",
+      "group": 1,
+      "project": "desktop",
+      "test": "large trades follow the price owner through an additional RSI instance and pane reorder",
+      "attachment": "large-trades-additional-rsi-price-owner-restored",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-linked-aapl-owner.png",
+      "mime": "image/png",
+      "bytes": 282651,
+      "sha256": "1634db6142dcb8ef464d8f8b700de29794e8b207dbcbf7e985dae607be9488a3",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-linked-aapl-owner",
+      "width": 966,
+      "height": 1704
+    },
+    {
+      "path": "large-trades/desktop/large-trades-linked-nvda-owner.png",
+      "mime": "image/png",
+      "bytes": 284034,
+      "sha256": "1eeee55df482ed03d7cbd86efb69150baf43a92685bd1c124115f6e1c5b2344d",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-linked-nvda-owner",
+      "width": 966,
+      "height": 1704
+    },
+    {
+      "path": "large-trades/desktop/large-trades-linked-active-symbol-msft.png",
+      "mime": "image/png",
+      "bytes": 280448,
+      "sha256": "3c0d421ebcf0e9faec387ae186b8342524c92f4b5d19d5e82e762e233c5beca7",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-linked-active-symbol-msft",
+      "width": 966,
+      "height": 1704
+    },
+    {
+      "path": "large-trades/desktop/large-trades-regrouped-msft-owner.png",
+      "mime": "image/png",
+      "bytes": 280276,
+      "sha256": "d70a99962b38b0dc9252472630afc57fb1435a809562fef1638a71069957d3b8",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-regrouped-msft-owner",
+      "width": 966,
+      "height": 1704
+    },
+    {
+      "path": "large-trades/desktop/large-trades-rejoined-aapl-owner.png",
+      "mime": "image/png",
+      "bytes": 277686,
+      "sha256": "55a06e1935920f67b7142ad401ee55d5dd89b836e15c06f96b9305f700fef69e",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-rejoined-aapl-owner",
+      "width": 966,
+      "height": 1704
+    },
+    {
+      "path": "large-trades/desktop/linked-chart-execution-owners.json",
+      "mime": "application/json",
+      "bytes": 5964,
+      "sha256": "538c94bb39ed89288c42938041624ef0323023db0c7b7df4facf4e10c43d6f3c",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "linked-chart-execution-owners"
+    },
+    {
+      "path": "large-trades/desktop/large-trades-linked-distinct-owners-restored.png",
+      "mime": "image/png",
+      "bytes": 245082,
+      "sha256": "aa5f633fc8e03da0438c5b904ff8a93f205e51b5578f6e0b2a44a46ad0e2711e",
+      "group": 1,
+      "project": "desktop",
+      "test": "linked same-timeframe charts keep their own executions and PNG through active symbol and group changes",
+      "attachment": "large-trades-linked-distinct-owners-restored",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "large-trades/desktop/large-trades-before-pending-native-geometry.png",
+      "mime": "image/png",
+      "bytes": 344648,
+      "sha256": "f6588e8000e8d5e7066dcae494bc982a85a914f38f9259dd7b3209e2b198bcfe",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "attachment": "large-trades-before-pending-native-geometry",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-pending-native-price-height-220.png",
+      "mime": "image/png",
+      "bytes": 382870,
+      "sha256": "daa012d3bd72ee9eab23f2e13b19781601725b025d116c621ff59edb6c3132eb",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "attachment": "large-trades-pending-native-price-height-220",
+      "width": 1934,
+      "height": 1760
+    },
+    {
+      "path": "large-trades/desktop/large-trades-pending-native-price-height-100.png",
+      "mime": "image/png",
+      "bytes": 307872,
+      "sha256": "dc0a57aa34079d34b18e03491d4ce619f4217cd36d6b57ae15f6f190e9386bad",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "attachment": "large-trades-pending-native-price-height-100",
+      "width": 1934,
+      "height": 1600
+    },
+    {
+      "path": "large-trades/desktop/pending-native-geometry-proof.json",
+      "mime": "application/json",
+      "bytes": 6634,
+      "sha256": "e4fc2500e4dbeeb86ba457f2bb6cce91f762e448f1ab6ccf312fd7faf63efa41",
+      "group": 1,
+      "project": "desktop",
+      "test": "native PNG refreshes pending pane geometry before freezing its execution frame",
+      "attachment": "pending-native-geometry-proof"
+    },
+    {
+      "path": "large-trades/tablet/large-trades-en-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 159468,
+      "sha256": "d1257fb6936ded61d37690bf1aacbec3deeb1dd9bd2ba2f4e8c3f152a742adea",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-chart",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-en-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 184429,
+      "sha256": "2a5299591db92554dc66cf986feb167a8424ad3a070fb7e40ba68cdf3873dbb6",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection-overview",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-en-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 169480,
+      "sha256": "204b5d76dd187d07d3a13ea2528e7e57f15e4ac4c0e17877a3a210fe8a54e94c",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-adverse-selling-continued.png",
+      "mime": "image/png",
+      "bytes": 189738,
+      "sha256": "dbf016e9940a43388ccb44c904d3d604c7ce27e6fbe216f62fea95f963a025ee",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-adverse-selling-continued",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-zh-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 157759,
+      "sha256": "15e8eb243431f59776c6b2df1c8b240fb7604fa2d1c3086c41e407a548b6067f",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-chart",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-zh-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 178882,
+      "sha256": "92bd804d894a2a7ea095c2c4e525590e54b6e80af4c804db171353d7fbb4e201",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection-overview",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-zh-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 175728,
+      "sha256": "0d5719fc02aa2f63d4072fb18993518ca1198b7f5f5575478eb745da6f3d84f2",
+      "group": 1,
+      "project": "tablet",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-replay-pending.png",
+      "mime": "image/png",
+      "bytes": 164978,
+      "sha256": "5eebd124dd7f23c908d0d8f7058ee1d3c95ab55ffc164d318ae06e924aefcd40",
+      "group": 1,
+      "project": "tablet",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-pending",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-replay-observed.png",
+      "mime": "image/png",
+      "bytes": 170864,
+      "sha256": "a67fc634b7db3154f9af0b64323977e7d1ea949e72438b18164e54a915df39fd",
+      "group": 1,
+      "project": "tablet",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-observed",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/price-owned-dock-before-maximize.json",
+      "mime": "application/json",
+      "bytes": 385,
+      "sha256": "6e61bf530117df5f6e4dd2ea5ace88d1909b697c55ec55d9e5a2a3fc8d7b8efc",
+      "group": 1,
+      "project": "tablet",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize"
+    },
+    {
+      "path": "large-trades/tablet/large-trades-nonprice-maximized-fixed.png",
+      "mime": "image/png",
+      "bytes": 140378,
+      "sha256": "72b8eccbffe897ad348f07889e91cb3c3bca7fca71ae1761c11aab31e4187a66",
+      "group": 1,
+      "project": "tablet",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-nonprice-maximized-fixed",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/price-owned-dock-after-pointer-restore.json",
+      "mime": "application/json",
+      "bytes": 385,
+      "sha256": "6e61bf530117df5f6e4dd2ea5ace88d1909b697c55ec55d9e5a2a3fc8d7b8efc",
+      "group": 1,
+      "project": "tablet",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-pointer-restore"
+    },
+    {
+      "path": "large-trades/tablet/large-trades-price-restored-fixed.png",
+      "mime": "image/png",
+      "bytes": 160028,
+      "sha256": "0fa879ca9b87224565a8a36506c0d70904cc0caba7d0ab3ac4b64e28224b3e4d",
+      "group": 1,
+      "project": "tablet",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-price-restored-fixed",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-tablet-restore-and-fullscreen-fixed.png",
+      "mime": "image/png",
+      "bytes": 159945,
+      "sha256": "4eebb20d5a367edbb513c6d2c5bf0b37157c3c55a7b15339dd81ac51392d6813",
+      "group": 1,
+      "project": "tablet",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-tablet-restore-and-fullscreen-fixed",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-export-visible-chart.png",
+      "mime": "image/png",
+      "bytes": 161020,
+      "sha256": "14f2d1733da7c606c756fcf940aaa4634f57f1861409f67ad79aada59532c616",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-export-visible-chart",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export.png",
+      "mime": "image/png",
+      "bytes": 244926,
+      "sha256": "2dbcd77a9414d6094231eb00ec3ff3b9ac87c79349bd9305112525accdba1878",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export",
+      "width": 1640,
+      "height": 1158
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-inspector-excluded.png",
+      "mime": "image/png",
+      "bytes": 244926,
+      "sha256": "2dbcd77a9414d6094231eb00ec3ff3b9ac87c79349bd9305112525accdba1878",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export-inspector-excluded",
+      "width": 1640,
+      "height": 1158
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-labels-off.png",
+      "mime": "image/png",
+      "bytes": 251257,
+      "sha256": "cc2c1d255449ae77883cb2b2b2b6333a1d59f817dbda04b7d9cab7db2bb5fb7f",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-labels-off",
+      "width": 1640,
+      "height": 1158
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-replay.png",
+      "mime": "image/png",
+      "bytes": 210935,
+      "sha256": "560eb0c99b4a8cb3874737feb54a1b2950690bc3dc1ac39ab2acb915bcd0a492",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-replay",
+      "width": 1640,
+      "height": 1186
+    },
+    {
+      "path": "large-trades/tablet/large-trades-left-axis-aligned.png",
+      "mime": "image/png",
+      "bytes": 159675,
+      "sha256": "af67c17220b2771dc0679a078777e9c121b3b04a5e04116f57dca5f42a6e0e74",
+      "group": 1,
+      "project": "tablet",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-left-axis-aligned",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-left-axis.png",
+      "mime": "image/png",
+      "bytes": 243051,
+      "sha256": "6d9ac0fc010460f6521e45b4645a1e1da3147fe102c5b60a200b429c1b186811",
+      "group": 1,
+      "project": "tablet",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-native-export-left-axis",
+      "width": 1640,
+      "height": 1158
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-real-iex.png",
+      "mime": "image/png",
+      "bytes": 303050,
+      "sha256": "4d5b7cb25fad288c70ab5a5bffa3e0cb381753e5acae274ff610a75087baf5d7",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "large-trades-native-export-real-iex",
+      "width": 1640,
+      "height": 1686
+    },
+    {
+      "path": "large-trades/tablet/native-iex-export-provenance.json",
+      "mime": "application/json",
+      "bytes": 1508,
+      "sha256": "d88030438778e3062036027c2170aefc470311caf4f7fd43fda76f9eb150a8a9",
+      "group": 1,
+      "project": "tablet",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-en-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 103044,
+      "sha256": "25c21b507aff9fc7ba5bbcd48ba90645367827ed4fe8f14ca5bb74b901e4ac83",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-chart",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-en-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 99531,
+      "sha256": "ba35233eacac453b828a83aee1bf013406e059263912863306dc627b0e25d2eb",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection-overview",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-en-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 94910,
+      "sha256": "adf265aaf2b17fbc0e0c3c80f3e6b13b9072c6766050a3d29540418ff5e25e99",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-en-dark-inspection",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-adverse-selling-continued.png",
+      "mime": "image/png",
+      "bytes": 99401,
+      "sha256": "dece800f0d253e760fd699743999a32402fec3fb4f7d3d2b808440b40dfb1417",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection en dark",
+      "attachment": "large-trades-adverse-selling-continued",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-zh-dark-chart.png",
+      "mime": "image/png",
+      "bytes": 95686,
+      "sha256": "e77df292e9650ea984b6caf0fb4cce6f2ac00025dea1bae2338064a18c1b30c7",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-chart",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-zh-dark-inspection-overview.png",
+      "mime": "image/png",
+      "bytes": 98174,
+      "sha256": "7794032b29f6a56c0a1f0d9ffff2efb4846573924e44d1ee195d9d98de9fc302",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection-overview",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-zh-dark-inspection.png",
+      "mime": "image/png",
+      "bytes": 95006,
+      "sha256": "09740053a991b6136d75b5580fd29c66629683aada70f0efb7db8b5d5394a368",
+      "group": 1,
+      "project": "mobile",
+      "test": "exact executions, reports and responsive inspection zh dark",
+      "attachment": "large-trades-zh-dark-inspection",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-replay-pending.png",
+      "mime": "image/png",
+      "bytes": 91725,
+      "sha256": "e4b75fa7350147321f9961397f77721a7931dfcac2d76529cddabcc4fed74eca",
+      "group": 1,
+      "project": "mobile",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-pending",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-replay-observed.png",
+      "mime": "image/png",
+      "bytes": 90149,
+      "sha256": "13da6ddacbb58a3eb056d22bd0843bf73c51e288646c4139a545cef8556105b2",
+      "group": 1,
+      "project": "mobile",
+      "test": "canonical replay excludes future executions and waits for price response",
+      "attachment": "large-trades-replay-observed",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/price-owned-dock-before-maximize.json",
+      "mime": "application/json",
+      "bytes": 380,
+      "sha256": "cb65e23d4c5ce2afecd5533300c1f06ee83c507906516b99fec3c05ad55af4fc",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-before-maximize"
+    },
+    {
+      "path": "large-trades/mobile/phone-maximize-native-touch-events.json",
+      "mime": "application/json",
+      "bytes": 1153,
+      "sha256": "6f88a4ad24b13be71b040c1d2df5bf0ebac084d9251548a4be0f9c15fe2cfbf7",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "phone-maximize-native-touch-events"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-touch-maximized-fixed.png",
+      "mime": "image/png",
+      "bytes": 82295,
+      "sha256": "bcfb31334c4e1ed1eaae242f580e0e973756d7e5e40db956c1db026d8b8071a7",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-phone-touch-maximized-fixed",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-restore-native-touch-events.json",
+      "mime": "application/json",
+      "bytes": 1227,
+      "sha256": "0b2615d5c3463b4c077f9a2f80a7583f79d607b16e1b3bf46eee68209eb744b2",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "phone-restore-native-touch-events"
+    },
+    {
+      "path": "large-trades/mobile/price-owned-dock-after-phone-restore.json",
+      "mime": "application/json",
+      "bytes": 380,
+      "sha256": "ee2067d7ab97dbeff92d89a10c15a433689a8d409dadfcd76a94162dafd93cfd",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "price-owned-dock-after-phone-restore"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-touch-restored-fixed.png",
+      "mime": "image/png",
+      "bytes": 106115,
+      "sha256": "6c58f910ddd4eaeadaf8bb3640167af5ce171a0bac9138369143b11f775e4d76",
+      "group": 1,
+      "project": "mobile",
+      "test": "large trade markers clear synchronously when a nonprice pane is maximized and restore",
+      "attachment": "large-trades-phone-touch-restored-fixed",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-export-visible-chart.png",
+      "mime": "image/png",
+      "bytes": 96853,
+      "sha256": "89c1d3aed4001dcecde92ab95cd8468fc0400714d170f8df06081824e5d93a34",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-export-visible-chart",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export.png",
+      "mime": "image/png",
+      "bytes": 140823,
+      "sha256": "864faff5c9f9db7cb6885cb771bd4a0c8a47f8ee53bae5c5ab851319b6f95bce",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export",
+      "width": 780,
+      "height": 984
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-inspector-excluded.png",
+      "mime": "image/png",
+      "bytes": 140823,
+      "sha256": "864faff5c9f9db7cb6885cb771bd4a0c8a47f8ee53bae5c5ab851319b6f95bce",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+      "attachment": "large-trades-native-export-inspector-excluded",
+      "width": 780,
+      "height": 984
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-labels-off.png",
+      "mime": "image/png",
+      "bytes": 156875,
+      "sha256": "4877344e7a262030dc001e4617b1d6b47ad45ac26f1b14226153981442bc116a",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-labels-off",
+      "width": 780,
+      "height": 984
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-replay.png",
+      "mime": "image/png",
+      "bytes": 160499,
+      "sha256": "a611643f30303138271ad56a745f814105bab9762eebbda262e86a3beaf99891",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG preserves disabled quantity labels and canonical replay admission",
+      "attachment": "large-trades-native-export-replay",
+      "width": 780,
+      "height": 1012
+    },
+    {
+      "path": "large-trades/mobile/large-trades-left-axis-aligned.png",
+      "mime": "image/png",
+      "bytes": 102238,
+      "sha256": "10dad5e918cb0fc9964be634c00be34cb5fdb714009413bea22fb77516ebc7f9",
+      "group": 1,
+      "project": "mobile",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-left-axis-aligned",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-left-axis.png",
+      "mime": "image/png",
+      "bytes": 166239,
+      "sha256": "ef931ac2b22c578d7d5549d7b2ac6957a5bc236d61f2abd84eaf7afea24a7810",
+      "group": 1,
+      "project": "mobile",
+      "test": "left price scale places executions after the native axis and exports the same plot",
+      "attachment": "large-trades-native-export-left-axis",
+      "width": 780,
+      "height": 984
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-real-iex.png",
+      "mime": "image/png",
+      "bytes": 195832,
+      "sha256": "0c91bd1b41cd56b95649c1d3b4fc20c23d07042742fac58f584a8999c9e78935",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "large-trades-native-export-real-iex",
+      "width": 780,
+      "height": 1068
+    },
+    {
+      "path": "large-trades/mobile/native-iex-export-provenance.json",
+      "mime": "application/json",
+      "bytes": 1508,
+      "sha256": "d88030438778e3062036027c2170aefc470311caf4f7fd43fda76f9eb150a8a9",
+      "group": 1,
+      "project": "mobile",
+      "test": "native PNG retains complete IEX historical attribution and terms from the reviewed real archive",
+      "attachment": "native-iex-export-provenance"
+    },
+    {
+      "path": "large-trades/mobile/phone-header-normal-en.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "phone-header-normal-en"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-normal-en.png",
+      "mime": "image/png",
+      "bytes": 96280,
+      "sha256": "d4312d6e85434de3a8eca2b7337f7dfddc5ecfc141bf0dedbbe90969c3e41d2e",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "large-trades-phone-header-normal-en",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-fullscreen-en.json",
+      "mime": "application/json",
+      "bytes": 1306,
+      "sha256": "7b281ea8e3e4e24013f5faf779b5ace2d77e2555267bb69497789f1c00874ff6",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "phone-header-fullscreen-en"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-fullscreen-en.png",
+      "mime": "image/png",
+      "bytes": 74113,
+      "sha256": "fdd33f49e2ed895ad0f3f46c1a78732d8c345775969a31efdad0ab802294b199",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "large-trades-phone-header-fullscreen-en",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-restored-en.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "phone-header-restored-en"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-restored-en.png",
+      "mime": "image/png",
+      "bytes": 96274,
+      "sha256": "f6825194cb6cc20c34dac8a2a70aeb9e2b6233f50a0e574ac4bf0040d7dc5293",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "large-trades-phone-header-restored-en",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-text-scaled-en.json",
+      "mime": "application/json",
+      "bytes": 1331,
+      "sha256": "e687f557323ee68af52422955d38efe467e03f5daecb7f2e5f49ec14ea4877b9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "phone-header-text-scaled-en"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-text-scaled-en.png",
+      "mime": "image/png",
+      "bytes": 101752,
+      "sha256": "4195e1fdfb57cefc6da8a7afcf35f40690113678dc802328d588d4bce64d095f",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "large-trades-phone-header-text-scaled-en",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-text-restored-en.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "phone-header-text-restored-en"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-text-restored-en.png",
+      "mime": "image/png",
+      "bytes": 96275,
+      "sha256": "1b319b58565222a45a24740cdd48257d7a8350bdbb3ef9e943427cb838c0002b",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header en",
+      "attachment": "large-trades-phone-header-text-restored-en",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-normal-zh.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "phone-header-normal-zh"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-normal-zh.png",
+      "mime": "image/png",
+      "bytes": 94766,
+      "sha256": "b1944060d3bc6b7c7e605f485e375ae62d6824c9ad9aabcc8b44febcbbd77599",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "large-trades-phone-header-normal-zh",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-fullscreen-zh.json",
+      "mime": "application/json",
+      "bytes": 1306,
+      "sha256": "7b281ea8e3e4e24013f5faf779b5ace2d77e2555267bb69497789f1c00874ff6",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "phone-header-fullscreen-zh"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-fullscreen-zh.png",
+      "mime": "image/png",
+      "bytes": 81288,
+      "sha256": "7ca64c0e38a511ac2aa90df33fdb632ee477e279388c75f671383a99367ecc93",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "large-trades-phone-header-fullscreen-zh",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-restored-zh.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "phone-header-restored-zh"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-restored-zh.png",
+      "mime": "image/png",
+      "bytes": 94753,
+      "sha256": "2e79a8346b0d7133b1532683e5994e8bad7e3c7f46b308796f7169cece789fee",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "large-trades-phone-header-restored-zh",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-text-scaled-zh.json",
+      "mime": "application/json",
+      "bytes": 1331,
+      "sha256": "e687f557323ee68af52422955d38efe467e03f5daecb7f2e5f49ec14ea4877b9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "phone-header-text-scaled-zh"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-text-scaled-zh.png",
+      "mime": "image/png",
+      "bytes": 98923,
+      "sha256": "ef155ef6b2692ea3cd0ae42febabdf756d020e476be05e26ad0cd7d92c08290e",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "large-trades-phone-header-text-scaled-zh",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "large-trades/mobile/phone-header-text-restored-zh.json",
+      "mime": "application/json",
+      "bytes": 1308,
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "phone-header-text-restored-zh"
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-text-restored-zh.png",
+      "mime": "image/png",
+      "bytes": 94753,
+      "sha256": "2e79a8346b0d7133b1532683e5994e8bad7e3c7f46b308796f7169cece789fee",
+      "group": 1,
+      "project": "mobile",
+      "test": "phone inspection follows a changing Replay status header zh",
+      "attachment": "large-trades-phone-header-text-restored-zh",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "historical-iex/desktop/large-trades-real-iex-historical-chart.png",
+      "mime": "image/png",
+      "bytes": 291912,
+      "sha256": "e844ffc6c82980b53914fa7cf65b16d8d5355cfdad1137b869e1c756c8f6a457",
+      "group": 2,
+      "project": "desktop",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-chart",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "historical-iex/desktop/large-trades-real-iex-historical-overview.png",
+      "mime": "image/png",
+      "bytes": 305233,
+      "sha256": "85a1f1b1c23d5b499efcdcd0be3b54edb542e655458138c2566b265baef34714",
+      "group": 2,
+      "project": "desktop",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-overview",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "historical-iex/desktop/large-trades-real-iex-historical-inspection.png",
+      "mime": "image/png",
+      "bytes": 285553,
+      "sha256": "386ffa6a36fe3964e9711dbb6ad9a86fa4e9800da5bd42760ba681501fec3194",
+      "group": 2,
+      "project": "desktop",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-inspection",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "historical-iex/desktop/historical-provenance.json",
+      "mime": "application/json",
+      "bytes": 1501,
+      "sha256": "d1e206dc392119a8900b88c940556789358c889f73775a9f456bc70198a8b388",
+      "group": 2,
+      "project": "desktop",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "historical-provenance"
+    },
+    {
+      "path": "historical-iex/tablet/large-trades-real-iex-historical-chart.png",
+      "mime": "image/png",
+      "bytes": 210921,
+      "sha256": "830ee64a97c1fd181cd7ea972f342c5240d3628af27b9a12426d45a516b60455",
+      "group": 2,
+      "project": "tablet",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-chart",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "historical-iex/tablet/large-trades-real-iex-historical-overview.png",
+      "mime": "image/png",
+      "bytes": 200400,
+      "sha256": "2375a361e60b78f2da75c250cf0114d53c22fce7f597a99c238248f3a3f1f617",
+      "group": 2,
+      "project": "tablet",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-overview",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "historical-iex/tablet/large-trades-real-iex-historical-inspection.png",
+      "mime": "image/png",
+      "bytes": 185927,
+      "sha256": "e2f64e45a9cccdcb3e6789cda7a6066f9d4a9e3c4c081831d36991bc57828a18",
+      "group": 2,
+      "project": "tablet",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-inspection",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "historical-iex/tablet/historical-provenance.json",
+      "mime": "application/json",
+      "bytes": 1501,
+      "sha256": "d1e206dc392119a8900b88c940556789358c889f73775a9f456bc70198a8b388",
+      "group": 2,
+      "project": "tablet",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "historical-provenance"
+    },
+    {
+      "path": "historical-iex/mobile/large-trades-real-iex-historical-chart.png",
+      "mime": "image/png",
+      "bytes": 119369,
+      "sha256": "2cb1bf30b074596e10373313176b5a0f40abcaf12e807fe79d2bde4678f7b6a2",
+      "group": 2,
+      "project": "mobile",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-chart",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "historical-iex/mobile/large-trades-real-iex-historical-overview.png",
+      "mime": "image/png",
+      "bytes": 123166,
+      "sha256": "06312f2ab1d33eb1f1a4e7bd3daacaf4591b0aed5e63957a75cde43a8c6e2e97",
+      "group": 2,
+      "project": "mobile",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-overview",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "historical-iex/mobile/large-trades-real-iex-historical-inspection.png",
+      "mime": "image/png",
+      "bytes": 122600,
+      "sha256": "3a2dc254b4e3f696d8af640030a0e0658b7e4e4664a20a2f6fb6f4ef0882b9d0",
+      "group": 2,
+      "project": "mobile",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "large-trades-real-iex-historical-inspection",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "historical-iex/mobile/historical-provenance.json",
+      "mime": "application/json",
+      "bytes": 1501,
+      "sha256": "d1e206dc392119a8900b88c940556789358c889f73775a9f456bc70198a8b388",
+      "group": 2,
+      "project": "mobile",
+      "test": "decoded IEX archive retains historical provenance and inspectable executed shares",
+      "attachment": "historical-provenance"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3430,
+      "sha256": "b73598d9caf5a3ae1ba17e30e646b840e3f37885ba1752eff3955234a573ba82",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3285,
+      "sha256": "cd8e99c1ef802805b17378b16ca425568837ed39692ef46ef91e7ae1ce0aad00",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3299,
+      "sha256": "fa05f6ae692b6320c5597fe454a2e666e763f1f0b3227e68a64db2ad103f2085",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-en-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 215039,
+      "sha256": "741c0b57d54d79888801a883e5ef7ec514240dc346fb6364d8c6c1345cdff805",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "replay-status-restored",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3301,
+      "sha256": "3180c58b41e3008cd19e8239f5feee659870c372ddafbb16533d9c0fb08f9829",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3287,
+      "sha256": "3489e30affc8036f6c828c322c02f0f8699e072db7035d37aa0a403a7a0f5f6a",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3301,
+      "sha256": "3180c58b41e3008cd19e8239f5feee659870c372ddafbb16533d9c0fb08f9829",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/desktop/Replay-status-stays-readable-inside-its-chart-zh-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 217414,
+      "sha256": "13fb6a43794fdfe669b5b5eaa7a36685caf65de51ea890e25363982afbc528b3",
+      "group": 3,
+      "project": "desktop",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "replay-status-restored",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3271,
+      "sha256": "631c126dd13783191da5a791686834d604baa075c7fa086dd6f45e0cd0b34955",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3257,
+      "sha256": "20032a0516dfbabf3708802e8a911d79b724bb184347ffe32741d3ed77502827",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3271,
+      "sha256": "631c126dd13783191da5a791686834d604baa075c7fa086dd6f45e0cd0b34955",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-en-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 156408,
+      "sha256": "bdc32db0927d8b814c759fe48dee44858ead2bbcb3f5a27d61e223428ccd4f15",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "replay-status-restored",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3271,
+      "sha256": "631c126dd13783191da5a791686834d604baa075c7fa086dd6f45e0cd0b34955",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3257,
+      "sha256": "20032a0516dfbabf3708802e8a911d79b724bb184347ffe32741d3ed77502827",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3271,
+      "sha256": "631c126dd13783191da5a791686834d604baa075c7fa086dd6f45e0cd0b34955",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/tablet/Replay-status-stays-readable-inside-its-chart-zh-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 155894,
+      "sha256": "033be12d0035cb64e66b8c72f4bbe307f44b5e419bcb89948de426784de381fa",
+      "group": 3,
+      "project": "tablet",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "replay-status-restored",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3424,
+      "sha256": "d0f99cd3c224dd58e53b49b2fa89d62d53c5c178e077b0cbbbbd539dbe72954a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 98153,
+      "sha256": "9dccbdb144f95496146a58337f8268c37c8d276a4d1a5f693532fec575bd3c1c",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "replay-status-restored",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-4.json",
+      "mime": "application/json",
+      "bytes": 3406,
+      "sha256": "895d7c734466c90ec31dad68fe248ae2d1aa7f1fc7c6e9486408be0fc6fb6b1d",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-replay-status-fullscreen.png",
+      "mime": "image/png",
+      "bytes": 55809,
+      "sha256": "0e883ecd847c0a28bd11d1f37d7dd42fabfb4a4f8c1ebbf52eb0f963ceed7b70",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "replay-status-fullscreen",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-en-dark-statusline-geometry-5.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (en, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-2.json",
+      "mime": "application/json",
+      "bytes": 3424,
+      "sha256": "d0f99cd3c224dd58e53b49b2fa89d62d53c5c178e077b0cbbbbd539dbe72954a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-3.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-replay-status-restored.png",
+      "mime": "image/png",
+      "bytes": 96585,
+      "sha256": "11f7c8daf5b9a5476b353cba9fed86e2b6a34ceb858da2ec5c5f2565957d16fe",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "replay-status-restored",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-4.json",
+      "mime": "application/json",
+      "bytes": 3406,
+      "sha256": "895d7c734466c90ec31dad68fe248ae2d1aa7f1fc7c6e9486408be0fc6fb6b1d",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-replay-status-fullscreen.png",
+      "mime": "image/png",
+      "bytes": 55805,
+      "sha256": "5fbf3e77c50d3bdcb797722e0ae7d752bb53e0d7b90fec1af52c3c0515236879",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "replay-status-fullscreen",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "path": "replay/mobile/Replay-status-stays-readable-inside-its-chart-zh-dark-statusline-geometry-5.json",
+      "mime": "application/json",
+      "bytes": 3414,
+      "sha256": "f173a2d2c400914af5aed9fcb5e2ed3c88dd68cc8ae2b8259d84194e5194016a",
+      "group": 3,
+      "project": "mobile",
+      "test": "Replay status stays readable inside its chart (zh, dark)",
+      "attachment": "statusline-geometry"
+    }
+  ],
+  "scope": {
+    "runtime": "Locally owned deterministic test environment; no production proof.",
+    "realIex": "Three native SPY PNG cases and three separate historical inspection cases use the admitted 302-report/26,121-share envelope c8f3acd1390bffa145441cb95dedbc5e3dafcbe08deed3a4c11691155b2b5b8b.",
+    "shell": "Surrounding quote, watchlist and research-card values in whole-application screenshots are unrelated deterministic fixtures, not the IEX archive.",
+    "marketEvidence": "Historical, venue-only, partial session. Archive acquired after exchange events; original decision-time availability is not proven.",
+    "responseEvidence": "No qualified real quote response or tick metadata; real absorption and out-of-sample efficacy remain unproven.",
+    "overlap": "Dense markers and numeric labels can overlap, especially on mobile. Inspection preserves exact execution quantities.",
+    "attachmentValidation": "All included JSON parses and all PNG signatures checked; bounded literal scan found no absolute private workspace paths or selected credential patterns. Independent visual review is explicitly scoped.",
+    "excludes": "Raw market archive, private native sidecars, traces, complete environment-bearing test reports, hosted CI, deployment, live feed, CME/MNQ entitlements, distinct-order counts and predictive claims."
+  }
+}

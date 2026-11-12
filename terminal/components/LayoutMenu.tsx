@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import type { SavedLayout } from "@/lib/layouts";
 import { interpolateTeam } from "@/lib/teamSharedWorkflow";
 import StateSwitch from "@/components/StateSwitch";
+import layoutStyles from "./LayoutMenu.module.css";
 
 // The Saved-Workspaces popover body (W2A_WORKSPACE_UX_SPEC.md), extracted so the toolbar popover
 // and the responsive overflow ("More ▸ Workspaces") menu cannot drift apart. They previously carried
@@ -21,7 +22,7 @@ export type LayoutFeedback =
   | { kind: "idle" }
   | { kind: "saving" }
   | { kind: "saved"; name: string }
-  | { kind: "renamed" }
+  | { kind: "renamed"; id: string; name: string }
   | { kind: "duplicated" }
   | { kind: "imported" }
   | { kind: "error"; message: string }
@@ -104,6 +105,7 @@ export default function LayoutMenu({
   teams = [], teamRead = { ok: true }, onShare, onUnshare, pendingShare = null, onConfirmShare, onCancelShare,
 }: LayoutMenuProps) {
   const t = useT();
+  const menuId = useId();
   const writableTeams = teams.filter((team) => team.role === "owner" || team.role === "admin");
   const canShare = writableTeams.length > 0;
   // A team-directory outage arrives as `teams: []` plus `teamRead.ok: false`. That is unavailable,
@@ -138,8 +140,24 @@ export default function LayoutMenu({
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const moreRefs = useRef<Record<string, HTMLSpanElement | null>>({});
+  const moreRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const firstActionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const renameGroupRef = useRef<HTMLDivElement | null>(null);
+  const requestedRenameRef = useRef<{ id: string; name: string } | null>(null);
+  const renameReturnRef = useRef<{ id: string; from: Element } | null>(null);
+
+  // The row's action control is absent while its inline editor is mounted.
+  // Resolve the existing row ref only after that editor has left the DOM.
+  useLayoutEffect(() => {
+    if (!isOpen) { renameReturnRef.current = null; requestedRenameRef.current = null; return; }
+    if (renamingId !== null) return;
+    const intent = renameReturnRef.current;
+    renameReturnRef.current = null;
+    if (!intent || (document.activeElement !== document.body && document.activeElement !== intent.from)) return;
+    const target = moreRefs.current[intent.id];
+    if (target?.isConnected && target.getClientRects().length > 0
+      && !target.closest("[hidden], [inert], [aria-hidden='true']")) target.focus({ preventScroll: true });
+  }, [isOpen, renamingId]);
 
   // spec §4: "unfold | opening focuses the first sub-row (Open)". Accordion: opening one row
   // closes any other — `toggleRow` already only ever holds one id.
@@ -154,19 +172,29 @@ export default function LayoutMenu({
     setOpenRow(null);
     moreRefs.current[id]?.focus();
   }
-  function cancelRename() {
+  const cancelRename = useCallback((returnFocus = false) => {
+    const active = document.activeElement;
+    renameReturnRef.current = returnFocus && isOpen && renamingId && active && renameGroupRef.current?.contains(active)
+      ? { id: renamingId, from: active } : null;
+    requestedRenameRef.current = null;
     setRenamingId(null);
     setDraft("");
-  }
+  }, [isOpen, renamingId]);
   // A successful rename is decided asynchronously by TerminalShell (revision CAS round trip), so
   // the local rename-mode UI closes when that success actually lands — never on click, which would
   // close it before a `name_conflict`/`stale_revision` had a chance to keep it open for a retry.
   useEffect(() => {
-    if (feedback.kind === "renamed") { setRenamingId(null); setDraft(""); }
-  }, [feedback]);
+    const requested = requestedRenameRef.current;
+    if (feedback.kind !== "renamed" || !requested || feedback.id !== requested.id || feedback.name !== requested.name) return;
+    // Consume the result even when newer text keeps the editor open. Typing
+    // through the old successful name later must not replay its close request.
+    requestedRenameRef.current = null;
+    if (renamingId === requested.id && draft.trim() === requested.name) cancelRename(true);
+  }, [feedback, renamingId, draft, cancelRename]);
   function commitRename(l: SavedWorkspace) {
     const trimmed = draft.trim();
-    if (!trimmed || trimmed === l.name) { cancelRename(); return; }
+    if (!trimmed || trimmed === l.name) { cancelRename(true); return; }
+    requestedRenameRef.current = { id: l.id, name: trimmed };
     onRename(l, trimmed);
   }
 
@@ -178,59 +206,77 @@ export default function LayoutMenu({
     const defaultTeamId = shareTeamId || writableTeams[0]?.id || teams[0]?.id || "";
     return (
       <div key={l.id}
-           className={`ws-item${open ? " open" : ""}${blocked ? " blocked" : ""}${staleName === l.name ? " stale" : ""}`}
+           className={`ws-item ${layoutStyles.row}${open ? ` ${layoutStyles.open}` : ""}${staleName === l.name ? ` stale ${layoutStyles.stale}` : ""}`}
            data-layout-row={l.name} data-ws-state={l.rowState} data-ws-sharing={shared ? "team" : "private"}>
 
         {renamingId === l.id ? (
-          <div className="ws-rename">
+          <div className="ws-rename" ref={renameGroupRef}
+               onBlur={(event) => {
+                 if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) cancelRename();
+               }}
+               onKeyDown={(event) => {
+                 if (event.key !== "Escape") return;
+                 // IME owns its cancellation; keep it from reaching the outer sheet too.
+                 event.stopPropagation();
+                 if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+                 event.preventDefault(); cancelRename(true);
+               }}>
             <input autoFocus value={draft} aria-label={t("rename")} data-ws-rename-input
                    onFocus={(e) => e.currentTarget.select()}
                    onChange={(e) => setDraft(e.target.value)}
                    onKeyDown={(e) => {
+                     if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) { e.stopPropagation(); return; }
                      if (e.key === "Enter") { e.preventDefault(); commitRename(l); }
-                     else if (e.key === "Escape") { e.stopPropagation(); cancelRename(); }
-                   }}
-                   onBlur={cancelRename} />
+                   }} />
             <button type="button" aria-label={t("wsRenameSave")} data-ws-rename-commit
                     onMouseDown={(e) => e.preventDefault()} onClick={() => commitRename(l)}>
               <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
             </button>
             <button type="button" aria-label={t("wsCancel")} data-ws-rename-cancel
-                    onMouseDown={(e) => e.preventDefault()} onClick={cancelRename}>
+                    onMouseDown={(e) => e.preventDefault()} onClick={() => cancelRename(true)}>
               <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
         ) : (
-          <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
-               className="menu-row" disabled={blocked}
-               onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
-            <span className="ws-name">{l.name}</span>
-            {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
-            {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
-            {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
-            <span className="ws-more" role="button" tabIndex={0}
-                  ref={(el) => { moreRefs.current[l.id] = el; }}
-                  aria-label={`${t("wsRowActions")}: ${l.name}`}
-                  aria-expanded={open} aria-controls={`ws-subs-${l.id}`}
-                  data-ws-more={l.name}
-                  onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleRow(l.id); }
-                    else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
-                  }}>
-              <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
-            </span>
-          </Row>
+          <div className={`ws-heading ${layoutStyles.heading}`}>
+            <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
+                 className={`menu-row ws-open ${layoutStyles.openButton}`} disabled={blocked} data-ws-open={l.name}
+                 aria-label={`${t("wsOpen")}: ${l.name}`}
+                 aria-describedby={blocked ? `${menuId}-hint-${l.id}` : undefined}
+                 onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
+              <span className={`ws-row-copy ${layoutStyles.rowCopy}`}>
+                <span className={`ws-name ${layoutStyles.name}`}>{l.name}</span>
+                {(shared || blocked) && <span className={`ws-badges ${layoutStyles.badges}`}>
+                  {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
+                  {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
+                  {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
+                </span>}
+              </span>
+            </Row>
+            <button type="button" className={`ws-more ${layoutStyles.more}`} {...(rowAs === "button" ? { role: "menuitem" } : {})}
+                    ref={(el) => { moreRefs.current[l.id] = el; }}
+                    aria-label={`${t("wsRowActions")}: ${l.name}`}
+                    aria-expanded={open} aria-controls={`${menuId}-subs-${l.id}`}
+                    aria-describedby={blocked ? `${menuId}-hint-${l.id}` : undefined}
+                    data-ws-more={l.name}
+                    onClick={(e) => { e.stopPropagation(); toggleRow(l.id); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.stopPropagation();
+                      else if (e.key === "Escape" && open) { e.stopPropagation(); closeRow(l.id); }
+                    }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </button>
+          </div>
         )}
 
         {blocked && (
-          <div className="ws-hint" data-ws-hint>
+          <div className="ws-hint" id={`${menuId}-hint-${l.id}`} data-ws-hint>
             {l.rowState === "unsupported_floor" ? t("wsNeedsNewer") : t("wsCantOpen")}
           </div>
         )}
 
         {open && (
-          <div className="ws-subs" id={`ws-subs-${l.id}`} role="group" aria-label={l.name}
+          <div className="ws-subs" id={`${menuId}-subs-${l.id}`} role="group" aria-label={l.name}
                onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); closeRow(l.id); } }}>
             {!blocked && <>
               <button type="button" role="menuitem" className="menu-row" data-ws-act="open"
@@ -252,7 +298,7 @@ export default function LayoutMenu({
               )}
               {editable && (
                 <button type="button" role="menuitem" className="menu-row" data-ws-act="rename"
-                        onClick={() => { setDraft(l.name); setRenamingId(l.id); }}>
+                        onClick={() => { requestedRenameRef.current = null; renameReturnRef.current = null; setDraft(l.name); setRenamingId(l.id); }}>
                   <svg viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3M13.5 6.5l3 3" /></svg>{t("rename")}
                 </button>
               )}
@@ -293,7 +339,10 @@ export default function LayoutMenu({
           disabled={isGuest || saving}
           aria-label={t("saveCurrentAs")}
           onChange={(e) => onNameChange(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !isGuest && !saving) onSave(); }}
+          onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) { e.stopPropagation(); return; }
+            if (e.key === "Enter" && !isGuest && !saving) onSave();
+          }}
         />
         <button
           type="button"
@@ -317,7 +366,14 @@ export default function LayoutMenu({
       </button>
 
       {isGuest && (
-        <button ref={gateRowRef} type="button" role="menuitem" className="menu-row layout-gate" data-layout-gate onClick={onSignUp}>
+        <button
+          ref={gateRowRef}
+          type="button"
+          role="menuitem"
+          className="menu-row layout-gate"
+          data-layout-gate
+          onClick={() => { onPicked?.(); onSignUp(); }}
+        >
           <span>{t("gateLayouts")}</span>
           <span className="layout-gate-cta">{t("gateSignupCta")}</span>
         </button>
@@ -355,7 +411,7 @@ export default function LayoutMenu({
 
       {/* stale_revision — THE SIGNATURE SURFACE. Two peers, no primary, no modal. */}
       {feedback.kind === "stale" && (
-        <div className="ws-conflict" role="group" aria-labelledby="ws-stale-hd" data-ws-stale={feedback.name}>
+        <div className={`ws-conflict ${layoutStyles.recoveryCard}`} role="group" aria-labelledby="ws-stale-hd" data-ws-stale={feedback.name}>
           <b id="ws-stale-hd" role="alert">{t("wsChangedElsewhere")}</b>
           <p>{`${t("wsChangedElsewhereSub")} ${feedback.savedAgo}`}</p>
           <div className="ws-fork">
@@ -380,7 +436,7 @@ export default function LayoutMenu({
       )}
 
       {pendingShare && (
-        <div className="ws-conflict" role="group" data-ws-share-confirm={pendingShare.to}>
+        <div className={`ws-conflict ${layoutStyles.recoveryCard}`} role="group" data-ws-share-confirm={pendingShare.to}>
           <b>{pendingShare.to === "team" ? t("wsShareTitle") : t("wsUnshareTitle")}</b>
           <p>{pendingShare.to === "team" ? interpolateTeam(t("wsShareBody"), pendingShare.teamName) : t("wsUnshareBody")}</p>
           {pendingShare.to === "team" && writableTeams.length > 1 && (

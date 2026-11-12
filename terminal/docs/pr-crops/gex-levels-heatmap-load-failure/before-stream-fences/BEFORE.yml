@@ -1,0 +1,34 @@
+# GEX desk stream and rail failure states: the defect, captured before the fix
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# These are Playwright failure screenshots, not crops from capture_gex_levels_heatmap_load_failure.cjs.
+# The spec ran against the product files at base b7a3357b (GexDeskView.tsx, HeatSeekerCard.tsx,
+# MarketStateCard.tsx, flowStream.ts, flowClientCache.ts, flowBroadcast.ts and flowSource.ts
+# reverted to that commit; gexStrings.ts kept, because the spec reads its copy through makeGexT).
+# Run as a cold server (CI=1, --retries=0). 7 of 12 runs failed on the defect. The 5 that passed
+# are the ladder load-error test at all three viewports and the rail test at tablet and mobile,
+# where the card is tall enough for the old error layout; those must hold before and after.
+base: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+specs:
+  - terminal/e2e/options-gex-load-failure.spec.ts
+projects:
+  - { name: desktop, width: 1440, height: 900, lang: en }
+  - { name: tablet, width: 820, height: 1180, lang: zh }
+  - { name: mobile, width: 390, height: 844, lang: en }
+theme: dark
+files:
+  gex-state-error-below-fold-desktop.png:
+    test: "a failed market-state or matrix read stays in its card and never takes the ladder down"
+    injected: { "gexstate:SPY": 503, "matrix:SPY": 503, "/api/flow/stream": aborted }
+    shows: "the market-state error's Retry bottom is at 851.7 px and the card's fold at 838.8 px; the Retry is clipped and only reachable by scrolling the card"
+  gex-pick-absent-desktop.png: &pickAbsent
+    test: "an unpublished matrix says no pick is published, never that load is shared"
+    injected: { "matrix:SPY": 404, "/api/flow/stream": aborted }
+    shows: "\"No standout pick — load is shared across levels.\" for a matrix that was never published"
+  gex-pick-absent-tablet.png: *pickAbsent
+  gex-pick-absent-mobile.png: *pickAbsent
+  gex-live-refresh-failed-desktop.png: &liveStale
+    test: "a failed live refresh keeps the ladder, labels it, and Retry clears the label"
+    injected: { "/api/flow/stream": "last gex:SPY frame, then event: status {\"status\":\"unavailable\"}" }
+    shows: "the last ladder stays on screen with no label and no Retry after the producer reported a refresh that did not land"
+  gex-live-refresh-failed-tablet.png: *liveStale
+  gex-live-refresh-failed-mobile.png: *liveStale

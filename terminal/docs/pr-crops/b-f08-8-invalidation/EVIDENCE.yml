@@ -1,14 +1,20 @@
 # B-F08-8 event-impact invalidation — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a17ef1ac8c9488ae55a1b7bd08047bf1ea2ba871
-# capturedAt: 2026-09-13T05:21:56.540Z
+# capturedAtHead: 1aec81f3c6d378cb9edc2b9ecb8bda5ff12a90df
+# capturedAt: 2026-11-10T13:17:02.609Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# This packet restamps only the lock rows for files it touches (eventImpact.ts, EventImpactPanel.tsx, EventImpactPanel.module.css).
+# All listed images were captured from the source bytes locked below.
 layoutFiles:
-  terminal/lib/eventImpact.ts: "47a17507376aa0e2ff54a2df181f6efdc2c10256bdf1e99cd8b4e8f8f28a686b"
-  terminal/components/EventImpactPanel.tsx: "5c18bdc1f14f82ea00daaff1fb8eedd3e943dbf5304f8db2c800d78f44bb0e28"
+  terminal/lib/eventImpact.ts: "beaf21f644aaccc819187ff3ccd628e999e51797b1e75f2171d4194bff6581d8"
+  terminal/components/EventImpactPanel.tsx: "698d0de0e6b95f2644bee0912215065c566786b4a7bb51f088753e31b1c99e64"
   terminal/components/EventImpactPanel.module.css: "4f9c64066a829d5d33230caa507f8fd2c0d7479f49c8b5eee693b40bdd66cab7"
+  terminal/components/PortfolioView.tsx: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
+  terminal/components/PortfolioWorkspace.tsx: "9d990ffd5eedfd58f152df7bda75ea3931127f46185bbb83540731aef7f8ba51"
+  terminal/components/PortfolioWorkspace.module.css: "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/e2e/tools/portfolioEvidenceCapture.cjs: "c7129910d0592fe857794985aba35b1ba66e4d28f1cb6d1296038f091161e355"
+  terminal/e2e/tools/capture_b_f08_8_invalidation.cjs: "7ca6db04291ed1383525e497e0d0f2ddeb6f0254b99856e4f0b10860e125c885"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -16,7 +22,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [EventImpactPanel]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f08_8_invalidation.cjs

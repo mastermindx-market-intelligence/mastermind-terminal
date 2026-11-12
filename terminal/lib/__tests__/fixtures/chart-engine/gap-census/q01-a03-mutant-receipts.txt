@@ -1,0 +1,122 @@
+Q01-A03 mutant receipts — independent transform oracle (offset / sign / scale)
+BASE_SHA dd78c1e250b7c13560620f1c3a9ea5b66e29455e
+BRANCH   claude/ce-gap-census-1013 (checked out from origin/claude/ce-integrate4-1013)
+FUNCTION terminal/lib/chart-engine/canvas/scales.ts:222 export function coordinateOfDisplay(display, state)
+         the price->coordinate half of the transform; lines 238-240 hold the ratio / span / direction math.
+         canvas/model.ts:128 priceScaleMath.yOfPrice -> scales.ts:269 priceToCoordinate -> coordinateOfDisplay,
+         and BOTH the painted pixels (canvas/series.ts snap(proj.yOfPrice(...))) and SeriesHandle.priceToCoordinate
+         (canvas/model.ts:1052) go through that one function.
+ORACLE   lib/__tests__/chartEngineCanvasScaleTruth.test.ts:184 it.each(MODES)("painted close y matches priceToCoordinate in %s mode within 1 CSS px")
+CROSS    lib/__tests__/chartEngineScales.test.ts (T02-A01/T02-A02) recomputes the expected coordinate from
+         height + margins + range itself, so it is an independent oracle for the same transform.
+COMMAND  cd terminal && VITEST_MAX_THREADS=3 npx vitest run lib/__tests__/chartEngineCanvasScaleTruth.test.ts lib/__tests__/chartEngineScales.test.ts
+RESTORE  git checkout -- terminal/lib/chart-engine/canvas/scales.ts
+NOTE     mutants were applied to the implementation only and were never committed.
+
+=== MUTANT OFFSET (+1 px added to the returned coordinate) ===
+--- git diff --unified=1 terminal/lib/chart-engine/canvas/scales.ts
+@@ -239,3 +239,3 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
+   const inverseCoordinate = bottomPx + ratio * (internalHeight - 1);
+-  return state.inverted ? inverseCoordinate : height - 1 - inverseCoordinate;
++  return (state.inverted ? inverseCoordinate : height - 1 - inverseCoordinate) + 1;
+ }
+--- VERDICT cited oracle chartEngineCanvasScaleTruth.test.ts: GREEN — the cited oracle is blind to a common-mode offset
+ ✓ lib/__tests__/chartEngineCanvasScaleTruth.test.ts (6 tests) 48ms
+AssertionError: normal inv=false h=64 p=-45: expected 0.1172332942555688 to be less than or equal to 1e-9
+AssertionError: 11 vs 10: expected 0.09090909090909091 to be less than or equal to 1e-9
+AssertionError: 25 vs 24: expected 0.04 to be less than or equal to 1e-9
+ Test Files  1 failed | 1 passed (2)
+--- VERDICT independent recompute chartEngineScales.test.ts: RED
+ ❯ lib/__tests__/chartEngineScales.test.ts (19 tests | 3 failed) 16ms
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:100:13
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:113:5
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:155:5
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > inverts within 1e-9 relative across modes, inversion, heights, and prices
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > maps display-range edges onto the internal band
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A02 autoscale degenerate extents > honours margins: autoscaled min/max sit on the internal-band edges
+AssertionError: normal inv=false h=64 p=-45: expected 0.1172332942555688 to be less than or equal to 1e-9
+AssertionError: 11 vs 10: expected 0.09090909090909091 to be less than or equal to 1e-9
+AssertionError: 25 vs 24: expected 0.04 to be less than or equal to 1e-9
+ Test Files  1 failed | 1 passed (2)
+
+=== MUTANT SIGN (y direction inverted: the inverted/normal branches are swapped) ===
+--- git diff --unified=1 terminal/lib/chart-engine/canvas/scales.ts
+@@ -239,3 +239,3 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
+   const inverseCoordinate = bottomPx + ratio * (internalHeight - 1);
+-  return state.inverted ? inverseCoordinate : height - 1 - inverseCoordinate;
++  return state.inverted ? height - 1 - inverseCoordinate : inverseCoordinate;
+ }
+--- VERDICT cited oracle chartEngineCanvasScaleTruth.test.ts: RED
+ ❯ lib/__tests__/chartEngineCanvasScaleTruth.test.ts (6 tests | 4 failed) 43ms
+ ❯ lib/__tests__/chartEngineCanvasScaleTruth.test.ts:205:42
+ ❯ lib/__tests__/chartEngineCanvasScaleTruth.test.ts:205:42
+ ❯ lib/__tests__/chartEngineCanvasScaleTruth.test.ts:205:42
+ FAIL  lib/__tests__/chartEngineCanvasScaleTruth.test.ts > one autoscale truth (G2) > painted close y matches priceToCoordinate in normal mode within 1 CSS px
+ FAIL  lib/__tests__/chartEngineCanvasScaleTruth.test.ts > one autoscale truth (G2) > painted close y matches priceToCoordinate in log mode within 1 CSS px
+ FAIL  lib/__tests__/chartEngineCanvasScaleTruth.test.ts > one autoscale truth (G2) > painted close y matches priceToCoordinate in percent mode within 1 CSS px
+ FAIL  lib/__tests__/chartEngineCanvasScaleTruth.test.ts > one autoscale truth (G2) > painted close y matches priceToCoordinate in indexed100 mode within 1 CSS px
+AssertionError: expected 88.72727272727275 to be less than or equal to 1
+AssertionError: expected 85.65935456250304 to be less than or equal to 1
+AssertionError: expected 88.72727272727272 to be less than or equal to 1
+AssertionError: normal inv=false h=64 p=-45: expected 1.183673469387755 to be less than or equal to 1e-9
+ Test Files  2 failed (2)
+--- VERDICT independent recompute chartEngineScales.test.ts: RED
+ ❯ lib/__tests__/chartEngineScales.test.ts (19 tests | 4 failed) 17ms
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:100:13
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:113:5
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:155:5
+ ❯ lib/__tests__/chartEngineScales.test.ts:194:66
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > inverts within 1e-9 relative across modes, inversion, heights, and prices
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > maps display-range edges onto the internal band
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A02 autoscale degenerate extents > honours margins: autoscaled min/max sit on the internal-band edges
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A04 opposite-wheel restore > keeps the price under the pointer fixed while zooming
+AssertionError: expected 88.72727272727275 to be less than or equal to 1
+AssertionError: expected 85.65935456250304 to be less than or equal to 1
+AssertionError: expected 88.72727272727272 to be less than or equal to 1
+AssertionError: normal inv=false h=64 p=-45: expected 1.183673469387755 to be less than or equal to 1e-9
+ Test Files  2 failed (2)
+
+=== MUTANT SCALE (x1.01 on the internal span) ===
+--- git diff --unified=1 terminal/lib/chart-engine/canvas/scales.ts
+@@ -238,3 +238,3 @@ export function coordinateOfDisplay(display: number, state: PriceScaleState): nu
+   const ratio = (display - from) / (to - from);
+-  const inverseCoordinate = bottomPx + ratio * (internalHeight - 1);
++  const inverseCoordinate = bottomPx + ratio * (internalHeight - 1) * 1.01;
+   return state.inverted ? inverseCoordinate : height - 1 - inverseCoordinate;
+--- VERDICT cited oracle chartEngineCanvasScaleTruth.test.ts: GREEN — the cited oracle is blind to a common-mode span scale
+ ✓ lib/__tests__/chartEngineCanvasScaleTruth.test.ts (6 tests) 42ms
+AssertionError: normal inv=false h=64 p=-45: expected 0.0011111111111108901 to be less than or equal to 1e-9
+AssertionError: 9.209999999999994 vs 10: expected 0.07900000000000063 to be less than or equal to 1e-9
+AssertionError: 22.090000000000003 vs 24: expected 0.07958333333333319 to be less than or equal to 1e-9
+AssertionError: expected 1.25 to be less than or equal to 1
+ Test Files  1 failed | 1 passed (2)
+--- VERDICT independent recompute chartEngineScales.test.ts: RED
+ ❯ lib/__tests__/chartEngineScales.test.ts (19 tests | 4 failed) 17ms
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:100:13
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:113:5
+ ❯ expectRel lib/__tests__/chartEngineScales.test.ts:37:40
+ ❯ lib/__tests__/chartEngineScales.test.ts:155:5
+ ❯ lib/__tests__/chartEngineScales.test.ts:194:66
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > inverts within 1e-9 relative across modes, inversion, heights, and prices
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A01 priceToCoordinate / coordinateToPrice round-trip > maps display-range edges onto the internal band
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A02 autoscale degenerate extents > honours margins: autoscaled min/max sit on the internal-band edges
+ FAIL  lib/__tests__/chartEngineScales.test.ts > T02-A04 opposite-wheel restore > keeps the price under the pointer fixed while zooming
+AssertionError: normal inv=false h=64 p=-45: expected 0.0011111111111108901 to be less than or equal to 1e-9
+AssertionError: 9.209999999999994 vs 10: expected 0.07900000000000063 to be less than or equal to 1e-9
+AssertionError: 22.090000000000003 vs 24: expected 0.07958333333333319 to be less than or equal to 1e-9
+AssertionError: expected 1.25 to be less than or equal to 1
+ Test Files  1 failed | 1 passed (2)
+
+=== RESTORED (git checkout -- terminal/lib/chart-engine/canvas/scales.ts) — GREEN ===
+ ✓ lib/__tests__/chartEngineCanvasScaleTruth.test.ts (6 tests) 43ms
+ Test Files  2 passed (2)
+ ✓ lib/__tests__/chartEngineScales.test.ts (19 tests) 48ms
+ Test Files  2 passed (2)

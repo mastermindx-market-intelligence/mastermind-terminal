@@ -1,0 +1,41 @@
+........................................................................ [ 42%]
+........................................................................ [ 85%]
+...........F............                                                 [100%]
+=================================== FAILURES ===================================
+__ test_every_present_prefix_records_its_application_status_on_the_real_tree ___
+
+    def test_every_present_prefix_records_its_application_status_on_the_real_tree():
+        """The acceptance, on the real ledger: every .sql in this checkout has a row
+        that answers "applied in production?" one way or the other.
+        """
+        doc = load_reservations(RESERVATIONS_PATH)
+        on_disk = sorted(p.name for p in MIGRATIONS_DIR.glob("*.sql"))
+        findings = check_applied_fields_for_present_files(on_disk, doc)
+        assert findings == [], format_report(findings, [])
+    
+        prefixes = doc["prefixes"]
+        for name in on_disk:
+            prefix = parse_prefix(name)
+            entry = prefixes[prefix]
+            assert entry["applied_in_production"] in (True, False, None), prefix
+            assert entry["applied_date"] is None or isinstance(entry["applied_date"], str), prefix
+            # A null is only honest when the row says why it is null.
+            if entry["applied_in_production"] is None or entry["applied_date"] is None:
+>               assert "not recorded" in entry["note"], prefix
+E               AssertionError: 0038
+E               assert 'not recorded' in 'Claimed by draft PR #1100 opened 2026-10-21T12:17:40Z, read back at head b44b0552f7bee8be7cb3dfc7782274ef7437ee69 bef...er #1084. Existing alerts owner, inactive Forex rules, invoker RPCs and storage invariants. Not applied in production.'
+
+tests/test_supabase_migration_namespace.py:1701: AssertionError
+=============================== warnings summary ===============================
+tests/test_supabase_migration_namespace.py::test_duplicate_prefix_is_detected
+  /Users/chriswong/Library/Python/3.14/lib/python/site-packages/_pytest/python.py:167: UserWarning: migration-namespace guard proof — synthetic duplicate 0099 fixture raised:
+  1 finding(s):
+    [DUPLICATE_PREFIX] 0099: two or more files share prefix 0099: ['0099_a.sql', '0099_b.sql']
+  
+  disclosures (nulls printed in plain words, never hidden):
+    result = testfunction(**testargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_supabase_migration_namespace.py::test_every_present_prefix_records_its_application_status_on_the_real_tree
+1 failed, 167 passed, 1 warning in 14.31s

@@ -1,0 +1,28 @@
+[warmup] /terminal?symbol=NVDA → 200 in 190ms
+[warmup] /options → 200 in 285ms
+[warmup] /portfolio → 200 in 150ms
+[warmup] /alerts → 200 in 123ms
+[warmup] /analysis → 200 in 226ms
+[warmup] /discover → 200 in 157ms
+[warmup] /admin → 200 in 160ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 102ms
+[warmup] /login → 200 in 152ms
+[warmup] /reset-password → 200 in 142ms
+[warmup] /api/me → 200 in 117ms
+[warmup] /api/watchlist → 200 in 67ms
+[warmup] /api/layouts → 200 in 61ms
+[warmup] /api/watchlist/annotations → 409 in 111ms
+[warmup] 14 routes compiled in 2s
+
+Running 8 tests using 1 worker
+
+  ✓  1 [tablet] › e2e/options-gex-load-failure.spec.ts:118:5 › a failed market-state or matrix read stays in its card and never takes the ladder down (2.9s)
+  ✓  2 [tablet] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in en, above the geometry (2.6s)
+  ✓  3 [tablet] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in zh, above the geometry (3.0s)
+  ✓  4 [tablet] › e2e/responsive.spec.ts:1425:5 › Exposure desk replays an archived session's full ladder at every supported width (3.3s)
+  ✓  5 [mobile] › e2e/options-gex-load-failure.spec.ts:118:5 › a failed market-state or matrix read stays in its card and never takes the ladder down (3.1s)
+  ✓  6 [mobile] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in en, above the geometry (2.5s)
+  ✓  7 [mobile] › e2e/prophet-origination.spec.ts:267:7 › Prophet's detail panel discloses the reconstruction in zh, above the geometry (3.1s)
+  ✓  8 [mobile] › e2e/responsive.spec.ts:1425:5 › Exposure desk replays an archived session's full ladder at every supported width (2.6s)
+
+  8 passed (43.1s)
