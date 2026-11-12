@@ -1,0 +1,122 @@
+{
+  "task": "Read-only #678 branch integration qualification",
+  "snapshot": "2026-11-11T23:22:40.017830+00:00",
+  "source": {
+    "repository": "mastermindx-market-intelligence/mastermind-terminal",
+    "pr": 678,
+    "canonical": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/678#issuecomment-6745099340",
+    "head": "492a73948a947c3cccc2981e90a5cc227d96385f",
+    "headTree": "a433f60a71d428a7b0db8da69caffd768a4feae7",
+    "branch": "sol/skylit-r5-probability-weighting-20260919",
+    "base": "master",
+    "protectedObserved": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+    "protectedTree": "cdeb043fd7547aada354f1edfc500aed2fbad56a",
+    "qualifiedParent": "05a854d76ca46fce3c927b04a2f3f8f2ca48e89d",
+    "mergeable": "CONFLICTING",
+    "mergeStateStatus": "DIRTY",
+    "draft": true,
+    "auto": null,
+    "queue": null,
+    "labels": [],
+    "reviews": [],
+    "reviewRequests": []
+  },
+  "exactDelta": [
+    {
+      "path": "terminal/lib/marketStructure.ts",
+      "parentAndCurrentMasterBlob": "df86b849ebb13ba69d59ca0782d57922575f0f2c",
+      "qualifiedHeadBlob": "ca3db6d6cfce4febff23e7d3d66bd27db183ef9e",
+      "additions": 305,
+      "deletions": 2
+    },
+    {
+      "path": "terminal/lib/__tests__/marketStructure.test.ts",
+      "parentAndCurrentMasterBlob": "41576664a7975c77d89fc282986992812a3990d8",
+      "qualifiedHeadBlob": "f88d0040ec00871a3ec0d2538328287936bd569a",
+      "additions": 228,
+      "deletions": 0
+    }
+  ],
+  "custody": {
+    "priorNativePublication": "APPLIED/QUALIFIED, read back by raw ref, REST PR and native GraphQL in original canonical receipt; no later PR head or comments in current bounded read",
+    "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr678-probability-integration-20261109-c4",
+    "managedBranch": "sol/web-terminal-pr678-probability-integration-20261109-c4",
+    "managedStatus": {
+      "schema": "mastermind.studio_git_publish_status.v2",
+      "operation_id": "terminal-pr678-probability-integration-20261109-c4",
+      "branch": "sol/web-terminal-pr678-probability-integration-20261109-c4",
+      "local_head_sha": "492a73948a947c3cccc2981e90a5cc227d96385f",
+      "remote_head_sha": null,
+      "clean": true,
+      "publication_state": "NOT_APPLIED",
+      "ready_to_push": true,
+      "repository": "terminal"
+    },
+    "note": "Managed NOT_APPLIED concerns the separate local qualification branch; it does not reverse the settled original PR publication. Do not use same-branch managed push as if its destination were the original PR branch.",
+    "localRecords": [
+      {
+        "gitStateFiles": {
+          "locked": "mastermind-linked-worktree:v1 operation=terminal-pr678-probability-integration-20261109-c4 lane=web base=05a854d76ca46fce3c927b04a2f3f8f2ca48e89d\n",
+          "MERGE_HEAD": null,
+          "CHERRY_PICK_HEAD": null,
+          "REBASE_HEAD": null,
+          "BISECT_LOG": null
+        },
+        "indexLockExists": false
+      },
+      {
+        "ref": "05a854d76ca46fce3c927b04a2f3f8f2ca48e89d",
+        "sourceBlobRead": "100644 blob 41e2fbe73de34a2d0d7ed297eb8a9ae477611216\tterminal/lib/__tests__/exposureNodes.test.ts\n100644 blob 41576664a7975c77d89fc282986992812a3990d8\tterminal/lib/__tests__/marketStructure.test.ts\n100644 blob df86b849ebb13ba69d59ca0782d57922575f0f2c\tterminal/lib/marketStructure.ts\n100644 blob 2e162a8eb37dd72aad7a01e88c590370a324d0d1\tterminal/package-lock.json\n100644 blob 9dd3604673872fd8dee0b9828603e358f05dd048\tterminal/package.json\n",
+        "returncode": 0,
+        "stderr": ""
+      },
+      {
+        "ref": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+        "sourceBlobRead": "100644 blob 41e2fbe73de34a2d0d7ed297eb8a9ae477611216\tterminal/lib/__tests__/exposureNodes.test.ts\n100644 blob 41576664a7975c77d89fc282986992812a3990d8\tterminal/lib/__tests__/marketStructure.test.ts\n100644 blob df86b849ebb13ba69d59ca0782d57922575f0f2c\tterminal/lib/marketStructure.ts\n100644 blob 43172affa9516ddcbd6e8f7a59bb54888baa7e3b\tterminal/package-lock.json\n100644 blob df2e635a0abab248c90e33e3f89bd1f2581f6376\tterminal/package.json\n",
+        "returncode": 0,
+        "stderr": ""
+      },
+      {
+        "ref": "492a73948a947c3cccc2981e90a5cc227d96385f",
+        "sourceBlobRead": "100644 blob 41e2fbe73de34a2d0d7ed297eb8a9ae477611216\tterminal/lib/__tests__/exposureNodes.test.ts\n100644 blob f88d0040ec00871a3ec0d2538328287936bd569a\tterminal/lib/__tests__/marketStructure.test.ts\n100644 blob ca3db6d6cfce4febff23e7d3d66bd27db183ef9e\tterminal/lib/marketStructure.ts\n100644 blob 2e162a8eb37dd72aad7a01e88c590370a324d0d1\tterminal/package-lock.json\n100644 blob 9dd3604673872fd8dee0b9828603e358f05dd048\tterminal/package.json\n",
+        "returncode": 0,
+        "stderr": ""
+      }
+    ],
+    "followedReads": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Process started with PID 24734 (shell: /bin/zsh)\nInitial output:\n{\"relevantProofPaths\": [], \"count\": 0}\n{\"ref\": \"492a73948a947c3cccc2981e90a5cc227d96385f\", \"scripts\": {\"dev\": \"next dev\", \"dev:fixture\": \"FLOW_FIXTURE=1 next dev\", \"prebuild\": \"python3 ../scripts/build_data_coverage.py\", \"build\": \"next build\", \"start\": \"next start\", \"lint\": \"eslint\", \"test\": \"vitest run\", \"test:e2e:responsive\": \"playwright test\"}, \"testDependencies\": {\"eslint\": \"^9\", \"typescript\": \"^5\", \"vitest\": \"^2\"}}\n{\"ref\": \"492a73948a947c3cccc2981e90a5cc227d96385f\", \"testImports\": [\"import { describe, it, expect } from \\\"vitest\\\";\", \"import {\", \"  aggregate,\", \"  signSensitivity,\", \"  scenarioGrid,\", \"  r5DteBucket,\", \"  r5Stage0Alignment,\", \"  r5EmpiricalExpectation,\", \"  R5_ADV_METHOD,\", \"  emFrame,\", \"  topology,\", \"  expiryConcentration,\", \"  buildMarketStructure,\", \"  hedgeProfile,\", \"  termStructure,\", \"  tenorBand,\", \"  dailyHedging,\", \"  TILT_FRAGILE_ABS,\", \"  REACHABLE_EM,\", \"  type MscStrikeRow,\", \"  type MscExpiryRow,\", \"} from \\\"../marketStructure\\\";\", \"\"]}\n{\"ref\": \"6c5d71ebbd797897b50f8727588bd95e834517a8\", \"scripts\": {\"dev\": \"next dev\", \"dev:fixture\": \"FLOW_FIXTURE=1 next dev\", \"prebuild\": \"python3 ../scripts/build_data_coverage.py\", \"build\": \"next build\", \"start\": \"next start\", \"lint\": \"eslint\", \"test\": \"vitest run\", \"gen:sector-dossiers-validator\": \"node scripts/gen_sector_dossiers_validator.mjs\", \"test:e2e:responsive\": \"playwright test\"}, \"testDependencies\": {\"eslint\": \"^9\", \"typescript\": \"^5\", \"vitest\": \"^2\"}}\n{\"ref\": \"6c5d71ebbd797897b50f8727588bd95e834517a8\", \"testImports\": [\"import { describe, it, expect } from \\\"vitest\\\";\", \"import {\", \"  aggregate,\", \"  signSensitivity,\", \"  scenarioGrid,\", \"  r5DteBucket,\", \"  r5Stage0Alignment,\", \"  emFrame,\", \"  topology,\", \"  expiryConcentration,\", \"  buildMarketStructure,\", \"  hedgeProfile,\", \"  termStructure,\", \"  tenorBand,\", \"  dailyHedging,\", \"  TILT_FRAGILE_ABS,\", \"  REACHABLE_EM,\", \"  type MscStrikeRow,\", \"  type MscExpiryRow,\", \"} from \\\"../marketStructure\\\";\", \"\", \"// A tiny hand-computable book: call gamma +, put gamma \\u2212, net = call + put.\", \"const ROWS: MscStrikeRow[] = [\"]}\n{\"processesNamingOriginalWorkspace\": [], \"scope\": \"command-line match only; no assertion of global process absence\"}\n"
+        }
+      ],
+      "structuredContent": null,
+      "isError": false
+    },
+    "scopeLimit": "No tracked dirt, no in-progress Git operation, no index lock; original operation retention lock remains. No command-line process naming this workspace. This is bounded evidence, not a global claim that no hidden worker can exist."
+  },
+  "decision": {
+    "automaticUpdateBranch": "Not qualified: actual GitHub mergeable CONFLICTING/DIRTY. No test mutation was attempted.",
+    "nativeEndpoint": "PUT /repos/mastermindx-market-intelligence/mastermind-terminal/pulls/678/update-branch",
+    "expectedHeadSha": "492a73948a947c3cccc2981e90a5cc227d96385f",
+    "endpointDocumentation": "https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#update-a-pull-request-branch",
+    "endpointSemantics": "Merges latest base HEAD into PR branch. expected_head_sha guards the PR head, not a chosen base SHA; 202 means accepted, not read-back completion.",
+    "smallestExplicitIntegration": "Re-read/pin actual protected master and original PR head, verify the two master blobs still equal the accepted parent, compose master tree with only the two already-qualified head blobs, record explicit merge resolution with ordered parents [original PR head, pinned protected master]. Qualify immutable candidate; publish once by original native carrier to original branch under exact expected-head non-force CAS; read back commit/tree/parents and exact two-file diff. No retarget/Ready/auto/merge action.",
+    "hostRequirement": "Conflicts require explicit resolution, not necessarily a host worktree. AGENTS 6B permits native GitHub composition. Existing managed workspace can support focused verification, but its branch is not the PR branch."
+  },
+  "checks": {
+    "acceptedOldProof": "104 passed: marketStructure 88 (77 parent+7 original+4 regressions), exposureNodes 16; actual threshold red control, Next typegen, full TypeScript and affected ESLint/whitespace already accepted at exact 492.",
+    "newlyAffectedQualification": "Current master package.json and package-lock.json differ from the accepted runtime, so verify the integrated candidate under current matching runtime; do not claim old 104 results are new-composition execution.",
+    "minimalCommandFromTerminal": "npm test -- lib/__tests__/marketStructure.test.ts lib/__tests__/exposureNodes.test.ts",
+    "additional": "Existing Next typegen plus full TypeScript, ESLint for the two files, git diff --check, natural exact-head CI. No new browser/live-data study and no repeated threshold red-control required merely by unchanged helper bytes."
+  },
+  "retainedHolds": [
+    "Draft; researchAuthority=research_only; outcomeLabelsOpened=false; tailRenormalized=false",
+    "Any positive unsupported tail leaves full expectations null; 95% support floor is separate first-family study admission",
+    "Macro #7483 and real owner-input/ADV producer qualification remain to be re-adjudicated, not inferred from source integration",
+    "ADV method engine.validation.dollar_adv(window=21), 21-session rolling median",
+    "R12 preregistration/covariates before outcomes; original September data is historical",
+    "No release, production, predictive, trading or sizing acceptance from this source refresh"
+  ],
+  "mutations": "None. No branch update, retarget, review, enrollment, merge, test or capture."
+}

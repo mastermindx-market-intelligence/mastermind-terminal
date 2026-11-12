@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-12T00:06:44.860732+00:00",
+  "action": "construct explicit protected integration in a private index and consume by clean same-branch fast-forward",
+  "head": "492a73948a947c3cccc2981e90a5cc227d96385f",
+  "base": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "paths": {
+    "terminal/lib/marketStructure.ts": [
+      "df86b849ebb13ba69d59ca0782d57922575f0f2c",
+      "ca3db6d6cfce4febff23e7d3d66bd27db183ef9e"
+    ],
+    "terminal/lib/__tests__/marketStructure.test.ts": [
+      "41576664a7975c77d89fc282986992812a3990d8",
+      "f88d0040ec00871a3ec0d2538328287936bd569a"
+    ]
+  },
+  "remote_effect": "NONE"
+}

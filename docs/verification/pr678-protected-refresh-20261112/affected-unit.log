@@ -1,0 +1,16 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/marketStructure.test.ts lib/__tests__/exposureNodes.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr678-probability-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/exposureNodes.test.ts (16 tests) 12ms
+ ✓ lib/__tests__/marketStructure.test.ts (88 tests) 38ms
+
+ Test Files  2 passed (2)
+      Tests  104 passed (104)
+   Start at  17:08:37
+   Duration  1.92s (transform 170ms, setup 0ms, collect 273ms, tests 50ms, environment 1ms, prepare 2.41s)
+

@@ -1,0 +1,27 @@
+{
+  "at": "2026-11-12T00:05:33.391206+00:00",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr678-probability-integration-20261109-c4",
+  "head": "492a73948a947c3cccc2981e90a5cc227d96385f",
+  "protected": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "original_remote_ref": "refs/heads/sol/skylit-r5-probability-weighting-20260919",
+  "tracked_and_untracked_committable_status": "",
+  "source_blobs": {
+    "terminal/lib/marketStructure.ts": [
+      "df86b849ebb13ba69d59ca0782d57922575f0f2c",
+      "ca3db6d6cfce4febff23e7d3d66bd27db183ef9e"
+    ],
+    "terminal/lib/__tests__/marketStructure.test.ts": [
+      "41576664a7975c77d89fc282986992812a3990d8",
+      "f88d0040ec00871a3ec0d2538328287936bd569a"
+    ]
+  },
+  "hooks": {
+    "pre-commit": false,
+    "prepare-commit-msg": false,
+    "commit-msg": false,
+    "post-commit": false,
+    "post-merge": false
+  },
+  "cwd_holders": [],
+  "operation": "terminal-pr678-probability-integration-20261109-c4"
+}
