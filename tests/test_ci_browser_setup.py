@@ -17,9 +17,12 @@ PREPARE = "Prepare Chromium for original mock captures"
 CAPTURE = "Capture and validate evidence on this checkout"
 
 
+def _workflow():
+    return yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+
+
 def _steps():
-    workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
-    return workflow["jobs"]["terminal-unit"]["steps"]
+    return _workflow()["jobs"]["terminal-unit"]["steps"]
 
 
 def _prepare():
@@ -42,21 +45,32 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     prepare_index = next(i for i, step in enumerate(steps) if step.get("name") == PREPARE)
     capture_index = next(i for i, step in enumerate(steps) if step.get("name") == CAPTURE)
     assert prepare_index < capture_index
-    assert steps[capture_index]["run"] == "node e2e/tools/capture_ci_evidence.cjs"
+    # terminal-unit is the fan-in of the parallel capture shards.
+    assert steps[capture_index]["run"] == "node e2e/tools/capture_ci_evidence.cjs --fan-in"
     # Preserve the existing workflow budget for complete native evidence.
     assert steps[capture_index]["timeout-minutes"] == 85
     assert not steps[prepare_index].get("continue-on-error", False)
     assert not steps[capture_index].get("continue-on-error", False)
+    condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    # The E18 and active-inbox captures drive a browser on EVERY event, so the
+    # install must stay unconditional even when the planner reuses both locks.
     assert "if" not in steps[prepare_index]
-    assert steps[capture_index]["if"] == (
-        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    )
-    f11_index = next(i for i, step in enumerate(steps)
-                     if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
+    assert steps[capture_index]["if"] == condition
     unit_index = next(i for i, step in enumerate(steps)
                      if step.get("name") == "Validate fresh evidence through the unit readers")
-    assert prepare_index < capture_index < f11_index < unit_index
-    f11 = steps[f11_index]
+    assert prepare_index < capture_index < unit_index
+    # F11 runs in its own parallel job, after its own browser install.
+    assert not any(step.get("name") == "Capture provider-closed F11 theses entry on this checkout"
+                   for step in steps)
+    f11_steps = _workflow()["jobs"]["terminal-f11-evidence"]["steps"]
+    f11_prepare = next(i for i, step in enumerate(f11_steps)
+                       if step.get("name") == "Prepare Chromium for the F11 capture")
+    f11_index = next(i for i, step in enumerate(f11_steps)
+                     if step.get("name") == "Capture provider-closed F11 theses entry on this checkout")
+    assert f11_prepare < f11_index
+    assert f11_steps[f11_prepare]["run"] == _prepare()["run"]
+    assert f11_steps[f11_prepare]["timeout-minutes"] == 10
+    f11 = f11_steps[f11_index]
     assert "if" not in f11
     assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
     assert f11["timeout-minutes"] == 8
@@ -67,32 +81,9 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     # terminal-typecheck jobs so they never serialize behind capture.
     records = steps[unit_index]
     assert "if" not in records
-    assert "bash scripts/ci/evidence-lock-suites.sh" in records["run"]
+    assert "bash scripts/ci/evidence-lock-suites.sh evidence" in records["run"]
     assert 'npx vitest run "${suites[@]}"' in records["run"]
     assert not records.get("continue-on-error", False)
-
-
-def test_e18_current_source_capture_is_required_and_its_packet_is_retained():
-    steps = _steps()
-    index = {step["name"]: i for i, step in enumerate(steps) if "name" in step}
-    capture_index = index["Capture current-source E18 alert-management evidence"]
-    assert index[PREPARE] < capture_index < index[CAPTURE]
-    capture = steps[capture_index]
-    assert capture["run"] == "node e2e/tools/capture_e18_alert_management.cjs"
-    assert capture["timeout-minutes"] == 8
-    assert "if" not in capture
-    assert not capture.get("continue-on-error", False)
-    assert capture["env"] == {
-        "TERMINAL_CROP_PORT": "47283",
-        "TMPDIR": "${{ runner.temp }}/terminal-ci-evidence",
-    }
-    checkout_index = next(i for i, step in enumerate(steps)
-                          if step.get("run") == "node e2e/tools/capture_ci_evidence.cjs --checkout-only")
-    assert checkout_index < capture_index
-    artifact = steps[index["Retain current-checkout mock evidence and failure diagnostics"]]
-    assert artifact["if"] == "always()"
-    assert "${{ runner.temp }}/terminal-ci-evidence/" in artifact["with"]["path"].splitlines()
-    assert "terminal/docs/pr-crops/e18-alert-management/" in artifact["with"]["path"].splitlines()
 
 
 MOCK_INSTALLERS = r'''

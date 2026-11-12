@@ -82,6 +82,19 @@ describe("flowScore is unreachable from the client bundle", () => {
 
   it("no 'use client' module reaches lib/flowScore.ts, directly or transitively", () => {
     const offenders: string[] = [];
+    // The source graph is immutable during this assertion. Resolve each module once,
+    // while retaining a separate BFS and exact offending chain for every entry.
+    const adjacency = new Map<string, readonly string[]>();
+    const targetsOf = (file: string): readonly string[] => {
+      let targets = adjacency.get(file);
+      if (!targets) {
+        targets = importsOf(file)
+          .map((spec) => resolveSpecifier(file, spec))
+          .filter((target): target is string => target !== null);
+        adjacency.set(file, targets);
+      }
+      return targets;
+    };
 
     for (const entry of CLIENT_ENTRIES) {
       // BFS from this entry, recording the chain so a failure names the actual path.
@@ -89,9 +102,8 @@ describe("flowScore is unreachable from the client bundle", () => {
       const queue: Array<{ file: string; chain: string[] }> = [{ file: entry, chain: [entry] }];
       while (queue.length) {
         const { file, chain } = queue.shift()!;
-        for (const spec of importsOf(file)) {
-          const target = resolveSpecifier(file, spec);
-          if (!target || seen.has(target)) continue;
+        for (const target of targetsOf(file)) {
+          if (seen.has(target)) continue;
           if (target === SCORER) {
             offenders.push(chain.concat(target).map((f) => path.relative(ROOT, f)).join("\n      -> "));
             queue.length = 0;

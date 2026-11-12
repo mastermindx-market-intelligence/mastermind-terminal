@@ -1,0 +1,206 @@
+{
+  "schema": "pr1481-source-integration-check-v1",
+  "candidate": "c31abf59eb92a8cce34e684886ec8eb2b0b118eb",
+  "protected": "cbf6d90f2e43b7cdfa874e8999b8058800c68a88",
+  "mergeBase": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "candidateSourceAndFixturePathsPreserved": [
+    {
+      "path": "terminal/docs/specimens/news-flow.html",
+      "sha256": "0f44476412fe070bd0db172de6b4dc1598c2fb41036c73d6a9371c884056e496"
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefSharingReview.test.tsx",
+      "sha256": "3c218ee3dfb518b01a948035f1d78410a00d7357d44f7bdd846d2372f0c9b3a7"
+    },
+    {
+      "path": "terminal/lib/__tests__/__snapshots__/prophetOriginationDisclosure.test.ts.snap",
+      "sha256": "3718c6c1aa5123421915e8f6b76e655d9a250405284305da5d994af8b32f2071"
+    },
+    {
+      "path": "terminal/lib/__tests__/accountLifecycleRoutes.test.ts",
+      "sha256": "9e4a1589f4f7ecd8e247af40a449ebdd0a0a3203a1a133f2497e382ab2373cf9"
+    },
+    {
+      "path": "terminal/lib/__tests__/alertsMutationRaces.test.tsx",
+      "sha256": "4cb293e1c87c10cef2e1ad7bf800a283bce68736badf7d3d8a7dd3b660205e26"
+    },
+    {
+      "path": "terminal/lib/__tests__/analysisSectionHeadings.test.tsx",
+      "sha256": "8eb928a3a31493433a5aba8710c11c0a8ff5bf25d143ebd7c46b615fdb60abeb"
+    },
+    {
+      "path": "terminal/lib/__tests__/brainOpenIntent.test.ts",
+      "sha256": "8ee466c4bbba4f11d92d32f8c31cfdbd928dd3237c3e0cc9ed1ade982cd93181"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartEngineGapLifecycle.test.ts",
+      "sha256": "81c7c4a93e9781e267b17afc55e0c76c3350d73bba87c4debdcd955b6d798193"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartEnginePaneIdentity.test.ts",
+      "sha256": "40acdd1ca5a0e7eac90ab793a957c107b68405a99ce98f2ab8f722f77624e29b"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartEnginePineRendering.test.ts",
+      "sha256": "e465dc67329182c79c9c5054ac31b2db5d3f864f336e63124f993f7f4c800379"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartShortcutOwnership.test.tsx",
+      "sha256": "3c2dfbd8aed14c840f873608c11f630ce2611b234242bcdaf46dbe8774bc9f7a"
+    },
+    {
+      "path": "terminal/lib/__tests__/dependencySecurityConsumers.test.ts",
+      "sha256": "3482d34f75b737d8f8f2454a69dddf38f7034b9c7c4317590e5e51e0fd715915"
+    },
+    {
+      "path": "terminal/lib/__tests__/drawingSidebarAcceptedTool.test.tsx",
+      "sha256": "972def917d9104ee527cf937e04db09027ea873c5dd9734cb7a75f3ae8d2a6a7"
+    },
+    {
+      "path": "terminal/lib/__tests__/errorReturnRecovery.test.tsx",
+      "sha256": "1e618777fe87118b569db080aef50ea4d649481b2b57651e835a7745c77c2d86"
+    },
+    {
+      "path": "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx",
+      "sha256": "d07f17fcefa65ec650912fdc25f7405e5184bdc915f281be062d9bd84717d3a1"
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/sectorNativeDossierDrivers.master.v1.html",
+      "sha256": "3031af709bb97dba49318b4b80645e6863942cb57a843547ff679989e0ded757"
+    },
+    {
+      "path": "terminal/lib/__tests__/flowScoreBoundary.test.ts",
+      "sha256": "c2eedc9b1c7748700eb4fa0631b903fb929ef145260df7998837468ec40f091e"
+    },
+    {
+      "path": "terminal/lib/__tests__/indicatorSettingsAccessibility.test.tsx",
+      "sha256": "4ec3b1435713b11748c54de7b99540fd0de180215ca8523b3d4e189444a62c82"
+    },
+    {
+      "path": "terminal/lib/__tests__/onboardingSigninCompletion.test.tsx",
+      "sha256": "27ee997566a5c26effb78558005d47d4108980eda1cd788b197336858318907c"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsChartReturn.test.tsx",
+      "sha256": "7d6c0f22a8ddca09a82e7127db9d84551786a2806f7effba0ebae5e5814f214a"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsCompanionReceipts.test.tsx",
+      "sha256": "ae45abbb70170445be095451a3558c58393d4f7d7c4e80182d91c56656563bed"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+      "sha256": "fb92e9f986f3067ae0952a24172e9514dcd955b8fe0b2ee816f87fec0572f605"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsScopeExact.test.tsx",
+      "sha256": "966afd31cb7692c19b9188ba3522e4156fd3a6489af2b553c9cbe362e48584fd"
+    },
+    {
+      "path": "terminal/lib/__tests__/pineTimeClose.test.ts",
+      "sha256": "26cd7d801eae502a9ff5f61c0186fc902e8392c1d3c004f12a2600f44b4bb82c"
+    },
+    {
+      "path": "terminal/lib/__tests__/portfolioTreasuryHistory.test.ts",
+      "sha256": "3c8797eafa8619a2d1adef7d7d55bf1197c3dcaccd0a777863241cfbf03141d9"
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorCycleLensController.test.tsx",
+      "sha256": "2dbb6324cf52955c81d688e318c82f9f6e319360f1cc03a8d4fea6a336ba366d"
+    },
+    {
+      "path": "terminal/lib/__tests__/todayBreadthRecovery.test.tsx",
+      "sha256": "38e49b459c42b4adda3fb26801bef20d8910fcf6418eeec69cb7cb2ec42d5dee"
+    },
+    {
+      "path": "terminal/lib/__tests__/todayResearchAttention.test.tsx",
+      "sha256": "631e9adc51efc6f047207f0d9925310dbdaf5bb2392730d66743ccc6ef1b5afc"
+    },
+    {
+      "path": "terminal/lib/__tests__/todaySinceLastVisit.test.tsx",
+      "sha256": "920cbd6ee5458a07032f9d4ed817c1d82cb020f9ff2fa2f3591711463fb92115"
+    },
+    {
+      "path": "terminal/lib/__tests__/todayWatchAttention.test.tsx",
+      "sha256": "3decf59dd37c56151add569fb8588e307bf0d1d549a31ae6afa384f12be95325"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "sha256": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e"
+    },
+    {
+      "path": "terminal/package.json",
+      "sha256": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf"
+    },
+    {
+      "path": "terminal/vitest.config.ts",
+      "sha256": "ca4a00d62ba00722f73acd94411511507103fe115e139e4937c7ed833bd6b807"
+    }
+  ],
+  "protectedMasterPathsPreserved": [
+    ".github/workflows/ci.yml",
+    "docs/design/PROPHET_DESIGN_LOG.md",
+    "docs/design/PROPHET_SI_FIELD_REQUEST_2026-11-12.md",
+    "scripts/ci_pr_scope.py",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png",
+    "terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml",
+    "terminal/docs/pr-crops/e18-alert-management/EVIDENCE.yml",
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-desktop-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-mobile-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-mobile-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-tablet-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/results-tablet-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-desktop-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-mobile-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-mobile-zh.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-en.png",
+    "terminal/docs/pr-crops/e18-alert-management/review-tablet-zh.png",
+    "terminal/e2e/tools/capture_ci_evidence.cjs",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+    "terminal/e2e/tools/capture_visual_evidence.cjs",
+    "terminal/e2e/tools/capture_visual_evidence.test.cjs",
+    "terminal/e2e/tools/visualEvidence.test.cjs",
+    "terminal/scripts/ci/evidence-lock-suites.sh",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs",
+    "tests/test_ci_browser_setup.py",
+    "tests/test_ci_e2e_scope.py",
+    "tests/test_ci_e2e_shards.py",
+    "tests/test_ci_pr_scope.py",
+    "tests/test_ci_supersession.py",
+    "tests/test_merge_group_fast_lane_contract.py"
+  ],
+  "historicalFilesByteIdentical": 18,
+  "conflictsRemaining": [],
+  "evidenceTests": {
+    "before": {
+      "passed": 5,
+      "failed": 1,
+      "failure": "capture_ci_evidence.cjs changed without a current capture"
+    },
+    "after": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "visualInspection": {
+    "views": 8,
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "widths": [
+      1440,
+      390
+    ],
+    "states": [
+      "list",
+      "empty"
+    ],
+    "result": "All eight actual captures inspected: readable wrapped copy, visible review-sharing action, explicit degraded/last-good and email-unavailable disclosures; no visible clipping."
+  }
+}

@@ -1,0 +1,209 @@
+/* SectorBreadthChange (Paper R4 R7 · Brief breadth change, accepted 2026-11-12).
+ * Self-owned layout; colour/ink tokens come from the shell's --sn-* set with
+ * dark fallbacks so the card also renders standalone. The module-local
+ * --snb-* tokens are the board palette; light values ride the shell's
+ * data-sector-theme attribute, directional bars flip for the East-Asian
+ * red-up convention exactly like --sn-up/--sn-down. No coloured edge stripe. */
+
+.module {
+  --snb-upbar: #7e9a84;
+  --snb-downbar: #a87778;
+  --snb-axis: #4a4a4a;
+  --snb-rowline: #262626;
+  --snb-nrfill: #161616;
+  --snb-track: #2a2a2a;
+  --snb-levelfill: #8a8a8a;
+  --snb-noticebg: #1a1610;
+  --snb-noticeline: #5a4a2a;
+
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--sn-card, #121212);
+  border: 1px solid var(--sn-line, #343434);
+  border-radius: 12px;
+  box-shadow: var(--sn-shadow, none);
+  color: var(--sn-text, #f3f3f3);
+  font: 14px/1.45 var(--font-ui, system-ui, sans-serif);
+}
+.module * { box-sizing: border-box; }
+.module h2, .module p { margin: 0; }
+.module button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.module button:focus-visible { outline: 2px solid var(--brand-2, #9cbce9); outline-offset: 3px; }
+
+:global([data-sector-theme="light"]) .module {
+  --snb-upbar: #6dae87;
+  --snb-downbar: #d88a8a;
+  --snb-axis: #9aa3af;
+  --snb-rowline: #e3e6ea;
+  --snb-nrfill: #f3f5f8;
+  --snb-track: #e6e9ee;
+  --snb-levelfill: #7c8796;
+  --snb-noticebg: #fbf5e8;
+  --snb-noticeline: #e2c68e;
+}
+/* East-Asian red-up flips the directional bars with the shell's ink rule. */
+:global(html[data-updown="east"]) .module,
+:global(html[data-red-up="true"]) .module {
+  --snb-upbar: #a87778;
+  --snb-downbar: #7e9a84;
+}
+/* B12: the theme attribute sits on an ANCESTOR of .module (the sector shell's
+ * root), so the light flip must select that ancestor — `.module[data-sector-theme]`
+ * never matched and light east/west kept the dark bar palette. */
+:global(html[data-updown="east"]) :global([data-sector-theme="light"]) .module,
+:global(html[data-red-up="true"]) :global([data-sector-theme="light"]) .module {
+  --snb-upbar: #d88a8a;
+  --snb-downbar: #6dae87;
+}
+
+.num { font-family: var(--font-num, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+.up { color: var(--sn-up, #a8c2ad); }
+.down { color: var(--sn-down, #dea4a5); }
+
+/* ---- Header ---- */
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.headCopy { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.title { color: var(--sn-text, #f3f3f3); font-size: 18px; font-weight: 700; line-height: 23px; }
+.sub { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+.headSide { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; gap: 6px; }
+.asOf { color: var(--sn-muted, #b8b8b8); font-size: 12px; line-height: 16px; }
+.asOfDate { color: var(--sn-text, #f3f3f3); }
+.asOfStale { color: var(--sn-warn, #e7c37d); }
+/* B1: `.module button { color: inherit }` (0,1,1) outranks a bare `.measured`
+ * (0,1,0), so both links must be scoped through .module to keep --sn-link. */
+.module .measured { display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+  color: var(--sn-link, #9cbce9); font-size: 14px; font-weight: 500; line-height: 20px;
+  white-space: nowrap; }
+.measured svg { flex-shrink: 0; }
+
+/* ---- Stale notice ---- */
+.notice { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--snb-noticebg); border: 1px solid var(--snb-noticeline); border-radius: 8px; }
+.noticeIcon { flex-shrink: 0; display: inline-flex; color: var(--sn-warn, #e7c37d); }
+.noticeHead { color: var(--sn-warn, #e7c37d); font-size: 14px; font-weight: 500; line-height: 20px; }
+.noticeSub { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+
+/* ---- Answer line ---- */
+.answer { display: flex; align-items: baseline; gap: 20px; padding-bottom: 4px; flex-wrap: wrap; }
+.answerHead { color: var(--sn-text, #f3f3f3); font-size: 24px; font-weight: 700;
+  letter-spacing: -0.01em; line-height: 30px; }
+.answerSub { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; min-width: 0; }
+.answerSector { color: var(--sn-text, #f3f3f3); }
+
+/* ---- Table (wide) ---- */
+.table { display: flex; flex-direction: column; min-width: 0; }
+.tableStale { opacity: 0.72; }
+.thead { display: flex; align-items: flex-end; height: 36px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--sn-line, #343434); flex-shrink: 0; }
+.th { color: var(--sn-muted, #b8b8b8); font-size: 12px; line-height: 16px; flex-shrink: 0; }
+.thRank { width: 56px; }
+.thSector { width: 220px; }
+.thChange { flex: 1 1 324px; min-width: 324px; display: flex; justify-content: space-between; padding-right: 24px; }
+.thLevel { width: 144px; }
+/* B8: 180px wrapped "Not ranked: 8 members, 10 needed"; the board keeps it on
+ * one line, and the copy is not shortened. Level's own content needs 132px, so
+ * the width comes from its slack. */
+.thDirection { width: 234px; }
+.thMembers { flex: 1 1 0; text-align: right; }
+
+.row { display: flex; align-items: center; height: 52px; border-bottom: 1px solid var(--snb-rowline); flex-shrink: 0; }
+.rowNotRanked { background: var(--snb-nrfill); padding-inline: 8px; }
+.row:last-child { border-bottom: none; }
+
+.rank { width: 56px; flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+.sector { width: 220px; flex-shrink: 0; color: var(--sn-text, #f3f3f3);
+  font-size: 15px; font-weight: 600; line-height: 20px; overflow-wrap: anywhere; }
+
+/* Diverging change bar: half-track per 25 pp; the axis sits at the centre. */
+.changeCell { display: flex; align-items: center; flex: 1 1 324px; min-width: 324px; padding-right: 24px; }
+.barTrack { position: relative; width: 300px; max-width: 100%; height: 14px; flex-shrink: 1; }
+.barAxis { position: absolute; top: -6px; left: 50%; width: 1px; height: 26px; background: var(--snb-axis); }
+.barPos { position: absolute; top: 0; left: calc(50% + 1px); height: 14px; border-radius: 2px; background: var(--snb-upbar); }
+.barNeg { position: absolute; top: 0; right: 50%; height: 14px; border-radius: 2px; background: var(--snb-downbar); }
+.value { flex: 1 1 0; min-width: 56px; text-align: right; font-size: 15px; font-weight: 500; line-height: 20px; }
+.valueMissing { color: var(--sn-muted, #b8b8b8); }
+
+.level { display: flex; align-items: center; gap: 12px; width: 144px; flex-shrink: 0; }
+.levelPct { width: 56px; flex-shrink: 0; text-align: right; color: var(--sn-text, #f3f3f3);
+  font-size: 14px; line-height: 20px; }
+.levelTrack { position: relative; width: 64px; height: 4px; flex-shrink: 0;
+  border-radius: 2px; background: var(--snb-track); }
+.levelFill { position: absolute; top: 0; left: 0; height: 4px; border-radius: 2px; background: var(--snb-levelfill); }
+.levelMissing { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+
+.direction { display: flex; align-items: center; gap: 6px; width: 234px; flex-shrink: 0; }
+.direction svg { flex-shrink: 0; }
+.dirWord { font-size: 14px; line-height: 20px; }
+.dirWeeks { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+.notRankedCopy { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; }
+
+.members { flex: 1 1 0; text-align: right; color: var(--sn-muted, #b8b8b8);
+  font-size: 14px; line-height: 20px; }
+.membersNotRanked { color: var(--sn-muted, #b8b8b8); }
+
+/* ---- Footer ---- */
+.footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; }
+.footerCopy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.basis { color: var(--sn-text, #f3f3f3); font-size: 13px; font-weight: 500; line-height: 18px; }
+.method { color: var(--sn-muted, #b8b8b8); font-size: 12px; line-height: 18px; }
+.count { flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 12px; line-height: 18px; }
+
+/* ---- Unavailable (the honest line, verbatim) ---- */
+.unavailable { display: flex; flex-direction: column; gap: 8px;
+  border-top: 1px solid var(--sn-line, #343434); padding: 20px 0 4px; }
+.unavailableLine { color: var(--sn-text, #f3f3f3); font-size: 16px; font-weight: 600; line-height: 22px; }
+.unavailableSub { color: var(--sn-muted, #b8b8b8); font-size: 14px; line-height: 20px; max-width: 640px; }
+.module .unavailableLink { display: inline-flex; align-items: center; gap: 6px; padding-top: 4px; min-height: 32px;
+  color: var(--sn-link, #9cbce9); font-size: 14px; font-weight: 500; line-height: 20px; }
+.unavailableLink svg { flex-shrink: 0; }
+
+/* ---- Compact (phone) layout: stacked rows, condensed copy ---- */
+.moduleCompact { gap: 16px; padding: 20px 16px; }
+.compactHead { flex-direction: column; align-items: flex-start; gap: 6px; }
+.compactSub { font-size: 13px; line-height: 18px; }
+.compactHeadSide { flex-direction: column; align-items: flex-start; gap: 2px; }
+.compactAsOf { font-size: 12px; line-height: 16px; }
+.noticeCompact { align-items: flex-start; gap: 8px; padding: 10px 12px; }
+.noticeCopyCompact { display: flex; flex-direction: column; gap: 2px; }
+.noticeHeadCompact { font-size: 13px; line-height: 18px; }
+.noticeSubCompact { font-size: 13px; line-height: 18px; }
+.answerCompact { flex-direction: column; align-items: flex-start; gap: 4px; }
+.answerHeadCompact { font-size: 20px; line-height: 26px; }
+.answerSubCompact { font-size: 13px; line-height: 18px; }
+
+.rowsCompact { display: flex; flex-direction: column; min-width: 0; border-top: 1px solid var(--sn-line, #343434); }
+.rowCompact { display: flex; flex-direction: column; gap: 8px; padding-block: 12px;
+  border-bottom: 1px solid var(--snb-rowline); }
+.rowCompact:last-child { border-bottom: none; }
+.rowNotRankedCompact { background: var(--snb-nrfill); padding-inline: 8px; }
+.rowLine1 { display: flex; align-items: baseline; gap: 8px; }
+.rankCompact { width: 22px; flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 20px; }
+.sectorCompact { flex: 1 1 0; min-width: 0; color: var(--sn-text, #f3f3f3);
+  font-size: 15px; font-weight: 600; line-height: 20px; overflow-wrap: anywhere; }
+.valueCompact { flex-shrink: 0; font-size: 15px; font-weight: 500; line-height: 20px; }
+.barWrapCompact { display: flex; padding-left: 30px; min-width: 0; }
+.barTrackCompact { position: relative; flex: 1 1 0; min-width: 0; height: 8px; }
+.barAxisCompact { position: absolute; top: -3px; left: 50%; width: 1px; height: 14px; background: var(--snb-axis); }
+.barPosCompact { position: absolute; top: 0; left: calc(50% + 1px); height: 8px; border-radius: 2px; background: var(--snb-upbar); }
+.barNegCompact { position: absolute; top: 0; right: 50%; height: 8px; border-radius: 2px; background: var(--snb-downbar); }
+/* E1/E2: a missing change keeps a dash centred where the zero axis would be,
+ * at both widths, and draws NO axis stroke — the stroke through the dash read
+ * as a "+". The dash is the only element in the bar slot. */
+.barMissingWide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.barMissingCompact { display: flex; align-items: center; justify-content: center; width: 100%; height: 14px; }
+.barMissingDash { color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px; }
+.rowLine3 { display: flex; justify-content: space-between; gap: 12px; padding-left: 30px; }
+/* B9: the share label holds one line; the not-ranked copy takes the wrap. */
+.shareNowCompact { flex-shrink: 0; color: var(--sn-muted, #b8b8b8); font-size: 13px; line-height: 18px;
+  white-space: nowrap; }
+.shareNowMissing { color: var(--sn-muted, #b8b8b8); }
+.shareNowValue { color: var(--sn-text, #f3f3f3); }
+.directionCompact { flex-shrink: 0; font-size: 13px; line-height: 18px; white-space: pre; }
+.notRankedCopyCompact { flex: 1 1 0; min-width: 0; color: var(--sn-muted, #b8b8b8);
+  font-size: 13px; line-height: 18px; white-space: normal; text-align: right; }
+
+.footerCompact { flex-direction: column; gap: 4px; }
+.footerMeasured { padding-top: 8px; }

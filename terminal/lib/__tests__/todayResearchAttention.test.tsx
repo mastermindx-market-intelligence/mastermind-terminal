@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import TodayResearchAttention from "@/components/workspaces/TodayResearchAttention";
 import { readingHref, saveBrowserReadingProgress } from "@/lib/shared-shell/readingProgress";
 import type { ReadingSelection } from "@/lib/shared-shell/readingContracts";
@@ -37,7 +37,7 @@ const FIVE_ITEMS = [
 ];
 
 type Held = { url: string; init?: RequestInit; resolve: (response: Response) => void };
-let held: Held[], root: Root, container: HTMLDivElement, onUnauthenticated: ReturnType<typeof vi.fn>;
+let held: Held[], root: Root, container: HTMLDivElement, onUnauthenticated: Mock<() => void>;
 let scope: { current: AbortController | null };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 async function flush() { for (let n = 0; n < 6; n++) await act(async () => { await Promise.resolve(); }); }

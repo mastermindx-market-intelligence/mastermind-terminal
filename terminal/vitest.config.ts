@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
+  // Preserve JSON fixture values, including IEEE-754 signed zero. Vite 6's
+  // stringify:auto re-serializes top-level values and turns -0 into +0, which
+  // changes canonical financial digests and the producer's exact wire values.
+  json: { stringify: false },
   test: {
     // Fixture-only opt-in for the Investigation API admission gate
     // (lib/investigationApiAdmission.ts): the suites below drive the real route

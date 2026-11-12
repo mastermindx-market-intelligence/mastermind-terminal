@@ -89,7 +89,7 @@ interface RailProps {
   enabled?: boolean;
   access?: "loading" | "allowed" | "locked";
   pinned?: { root: string; price: number; session: string; label: string } | null;
-  onPin?: ReturnType<typeof vi.fn>;
+  onPin?: React.ComponentProps<typeof OptionsRail>["onPin"];
   replayActive?: boolean;
 }
 function makeRail(props: RailProps) {

@@ -493,7 +493,7 @@ def test_required_aggregate_rejects_unsuccessful_expanded_matrix(matrix_result):
         ["bash", "-c", step["run"]],
         env={**os.environ, "EVENT": "pull_request", "PR_SCOPE": "success",
              "PR_MODE": "full", "SCOPE": "success", "UNIT": "success",
-             "TYPECHECK": "success", "UNITS": "success", "E2E": matrix_result,
+             "F11": "success", "TYPECHECK": "success", "UNITS": "success", "E2E": matrix_result,
              # The prod lane is held at its passing state so that the dev
              # matrix result alone decides this gate.
              "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4"},
@@ -521,8 +521,8 @@ GATE_STEP = "Assert all event-required Terminal checks passed"
 GATE_RESULTS = ("success", "failure", "cancelled", "skipped", "timed_out", "unknown", "")
 # Playwright's default testMatch: these are the files it would load on its own.
 PLAYWRIGHT_TEST_FILE = re.compile(r"\.(spec|test)\.[cm]?[jt]sx?\Z")
-DOCS_PR = ("github.event_name == 'pull_request' && needs.pr_scope.result == 'success' "
-           "&& needs.pr_scope.outputs.mode == 'docs'")
+DOCS_PR = ("needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs' "
+           "&& (github.event_name == 'pull_request' || github.event_name == 'merge_group')")
 
 
 def allowlist() -> list[str]:
@@ -1069,7 +1069,7 @@ def assert_merge_group_production_shape(jobs: dict[str, Any]) -> None:
     assert matrix_coverage_errors(prod, set(RESPONSIVE)) == []
     assert "github.event_name != 'merge_group'" in jobs["terminal-e2e"]["if"]
     run = next(step["run"] for step in jobs["terminal"]["steps"] if step.get("name") == GATE_STEP)
-    assert run.count('[ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then') == 1
+    assert run.count('[ "$EVENT" = "merge_group" ] && [ "$docs_only" -ne 1 ] && [ "$PRODBUILD_COUNT" != "4" ]; then') == 1
     assert run.count('[ "$EVENT" != "merge_group" ] && [ "$PRODBUILD_COUNT" = "0" ]') == 2
     expected_needs = {
         "terminal-e2e-build": ["pr_scope", "e2e-scope"],
@@ -1113,7 +1113,7 @@ def test_mutations_cannot_remove_or_reroute_merge_group_production(job, mutation
         step = next(step for step in jobs["terminal"]["steps"] if step.get("name") == GATE_STEP)
         if job == "terminal-e2e-build":
             step["run"] = step["run"].replace(
-                'if [ "$EVENT" = "merge_group" ] && [ "$PRODBUILD_COUNT" != "4" ]; then',
+                'if [ "$EVENT" = "merge_group" ] && [ "$docs_only" -ne 1 ] && [ "$PRODBUILD_COUNT" != "4" ]; then',
                 'if [ "$EVENT" = "pull_request" ] && [ "$PRODBUILD_COUNT" = "unexpected" ]; then',
             )
         else:
@@ -1155,7 +1155,7 @@ def run_gate(**overrides: str) -> subprocess.CompletedProcess:
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
-        "SCOPE": "success", "UNIT": "success", "TYPECHECK": "success",
+        "SCOPE": "success", "UNIT": "success", "F11": "success", "TYPECHECK": "success",
         "UNITS": "success", "E2E": "success",
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4", **overrides,
     }

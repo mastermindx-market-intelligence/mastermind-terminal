@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import TodaySinceLastVisit, { STORAGE_KEY, ownerSlot } from "@/components/workspaces/TodaySinceLastVisit";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -14,7 +14,7 @@ vi.mock("next/link", () => ({ default: ({ children, ...props }: React.AnchorHTML
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => { throw new Error("TodaySinceLastVisit must not own identity"); } }));
 
 type Held = { url: string; init?: RequestInit; resolve: (response: Response) => void; reject: (error: Error) => void };
-let held: Held[]; let root: Root; let container: HTMLDivElement; let unauthenticated: ReturnType<typeof vi.fn>;
+let held: Held[]; let root: Root; let container: HTMLDivElement; let unauthenticated: Mock<() => void>;
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status, headers: { "Content-Type": "application/json" } });
 async function flush() { for (let n = 0; n < 4; n++) await act(async () => { await Promise.resolve(); }); }
 async function answer(index: number, value: unknown, status = 200) { await act(async () => { held[index].resolve(json(value, status)); }); await flush(); }

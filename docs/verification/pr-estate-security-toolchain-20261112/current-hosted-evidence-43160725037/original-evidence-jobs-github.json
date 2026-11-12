@@ -1,0 +1,410 @@
+[
+  {
+    "id": 130991416557,
+    "run_id": 43160725037,
+    "workflow_name": "CI",
+    "head_branch": "sol/web-terminal-pr-estate-security-toolchain-20261112-c3",
+    "run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTOzwKM8AAAAef7Jk7Q",
+    "head_sha": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/jobs/130991416557",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037/job/130991416557",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T05:21:35Z",
+    "started_at": "2026-11-12T05:21:37Z",
+    "completed_at": "2026-11-12T05:41:36Z",
+    "name": "Terminal unit + typecheck (shard)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-12T05:21:38Z",
+        "completed_at": "2026-11-12T05:21:38Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-12T05:21:38Z",
+        "completed_at": "2026-11-12T05:22:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-12T05:22:38Z",
+        "completed_at": "2026-11-12T05:22:42Z"
+      },
+      {
+        "name": "Retain actual checkout and observed event identities",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-12T05:22:42Z",
+        "completed_at": "2026-11-12T05:22:42Z"
+      },
+      {
+        "name": "Run npm ci",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-12T05:22:42Z",
+        "completed_at": "2026-11-12T05:22:55Z"
+      },
+      {
+        "name": "Check immutable evidence orchestration (synthetic)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-12T05:22:55Z",
+        "completed_at": "2026-11-12T05:23:05Z"
+      },
+      {
+        "name": "Record PR-touched paths for the evidence drift gate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-12T05:23:05Z",
+        "completed_at": "2026-11-12T05:23:05Z"
+      },
+      {
+        "name": "Plan current-source evidence capture",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-12T05:23:05Z",
+        "completed_at": "2026-11-12T05:23:05Z"
+      },
+      {
+        "name": "Prepare Chromium for original mock captures",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-11-12T05:23:05Z",
+        "completed_at": "2026-11-12T05:23:30Z"
+      },
+      {
+        "name": "Capture current-source E18 alert-management evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-12T05:23:30Z",
+        "completed_at": "2026-11-12T05:24:18Z"
+      },
+      {
+        "name": "Capture current-source recurring inbox evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-12T05:24:18Z",
+        "completed_at": "2026-11-12T05:24:38Z"
+      },
+      {
+        "name": "Capture and validate evidence on this checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-12T05:24:38Z",
+        "completed_at": "2026-11-12T05:37:41Z"
+      },
+      {
+        "name": "Capture provider-closed F11 theses entry on this checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-12T05:37:41Z",
+        "completed_at": "2026-11-12T05:41:08Z"
+      },
+      {
+        "name": "Validate fresh evidence through the unit readers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-12T05:41:08Z",
+        "completed_at": "2026-11-12T05:41:26Z"
+      },
+      {
+        "name": "Disclose quarantined e2e journeys",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-12T05:41:26Z",
+        "completed_at": "2026-11-12T05:41:26Z"
+      },
+      {
+        "name": "Plain-language guard self-check",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-12T05:41:26Z",
+        "completed_at": "2026-11-12T05:41:27Z"
+      },
+      {
+        "name": "Plain-language guard (forward-only, added lines block)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-11-12T05:41:27Z",
+        "completed_at": "2026-11-12T05:41:30Z"
+      },
+      {
+        "name": "Retain current-checkout mock evidence and failure diagnostics",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-11-12T05:41:30Z",
+        "completed_at": "2026-11-12T05:41:34Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 35,
+        "started_at": "2026-11-12T05:41:34Z",
+        "completed_at": "2026-11-12T05:41:35Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 36,
+        "started_at": "2026-11-12T05:41:35Z",
+        "completed_at": "2026-11-12T05:41:35Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 37,
+        "started_at": "2026-11-12T05:41:35Z",
+        "completed_at": "2026-11-12T05:41:35Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/check-runs/130991416557",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000589071,
+    "runner_name": "GitHub Actions 1000589071",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 130991417439,
+    "run_id": 43160725037,
+    "workflow_name": "CI",
+    "head_branch": "sol/web-terminal-pr-estate-security-toolchain-20261112-c3",
+    "run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTOzwKM8AAAAef7JoXw",
+    "head_sha": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/jobs/130991417439",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037/job/130991417439",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T05:21:35Z",
+    "started_at": "2026-11-12T05:21:37Z",
+    "completed_at": "2026-11-12T05:44:14Z",
+    "name": "Terminal e2e serial (shard)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-12T05:21:38Z",
+        "completed_at": "2026-11-12T05:21:39Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-12T05:21:39Z",
+        "completed_at": "2026-11-12T05:22:38Z"
+      },
+      {
+        "name": "Bind lane workers and ports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-12T05:22:38Z",
+        "completed_at": "2026-11-12T05:22:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-12T05:22:38Z",
+        "completed_at": "2026-11-12T05:22:43Z"
+      },
+      {
+        "name": "Run npm ci",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-12T05:22:43Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Run npx next typegen",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Resolve Playwright version",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:23:02Z"
+      },
+      {
+        "name": "Install Playwright browsers (apt bounded, browser-only fallback)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9,
+        "started_at": "2026-11-12T05:23:02Z",
+        "completed_at": "2026-11-12T05:23:02Z"
+      },
+      {
+        "name": "Ensure browser present on cache hit",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-12T05:23:02Z",
+        "completed_at": "2026-11-12T05:23:27Z"
+      },
+      {
+        "name": "Run npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers=\"$TERMINAL_E2E_WORKERS\"",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-12T05:23:27Z",
+        "completed_at": "2026-11-12T05:27:18Z"
+      },
+      {
+        "name": "Capture current ticker News evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-12T05:27:18Z",
+        "completed_at": "2026-11-12T05:40:06Z"
+      },
+      {
+        "name": "Qualify investor shell opt-in",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-12T05:40:06Z",
+        "completed_at": "2026-11-12T05:41:22Z"
+      },
+      {
+        "name": "Qualify Shared Shell beta presentation",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-12T05:41:22Z",
+        "completed_at": "2026-11-12T05:43:34Z"
+      },
+      {
+        "name": "Validate bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-12T05:43:34Z",
+        "completed_at": "2026-11-12T05:43:35Z"
+      },
+      {
+        "name": "Retain bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-12T05:43:35Z",
+        "completed_at": "2026-11-12T05:43:36Z"
+      },
+      {
+        "name": "Qualify Intelligence native beta routes (fixture browser)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-11-12T05:43:36Z",
+        "completed_at": "2026-11-12T05:44:07Z"
+      },
+      {
+        "name": "Upload Intelligence fixture-browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-11-12T05:44:07Z",
+        "completed_at": "2026-11-12T05:44:09Z"
+      },
+      {
+        "name": "Upload responsive QA screenshots",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-11-12T05:44:09Z",
+        "completed_at": "2026-11-12T05:44:11Z"
+      },
+      {
+        "name": "Post Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 36,
+        "started_at": "2026-11-12T05:44:11Z",
+        "completed_at": "2026-11-12T05:44:11Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 37,
+        "started_at": "2026-11-12T05:44:11Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38,
+        "started_at": "2026-11-12T05:44:12Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39,
+        "started_at": "2026-11-12T05:44:12Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/check-runs/130991417439",
+    "labels": [
+      "ubuntu-24.04"
+    ],
+    "runner_id": 1000589090,
+    "runner_name": "GitHub Actions 1000589090",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  }
+]

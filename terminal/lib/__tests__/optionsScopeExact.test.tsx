@@ -72,7 +72,7 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); element.remove(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
 function Harness({ root: r = "SPY", lang = "en" as "en" | "zh", onPin, onPrefs }: {
-  root?: string; lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; onPrefs?: ReturnType<typeof vi.fn>;
+  root?: string; lang?: "en" | "zh"; onPin?: React.ComponentProps<typeof MatrixCompanion>["onPin"]; onPrefs?: React.ComponentProps<typeof MatrixCompanion>["onPrefs"];
 }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
   const noop = React.useCallback(() => {}, []);
@@ -86,7 +86,7 @@ function Harness({ root: r = "SPY", lang = "en" as "en" | "zh", onPin, onPrefs }
 // PP2-UI-c repair 1: holds prefs outside the companion so the second Apply in
 // n2b can observe the propagated norm without remounting.
 function PrefsHarness({ initial, onPrefs, lang = "en" as "en" | "zh" }: {
-  initial: MatrixPreferences; onPrefs?: ReturnType<typeof vi.fn>; lang?: "en" | "zh";
+  initial: MatrixPreferences; onPrefs?: React.ComponentProps<typeof MatrixCompanion>["onPrefs"]; lang?: "en" | "zh";
 }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>(initial);
   const handle = React.useCallback((next: MatrixPreferences) => {
@@ -98,7 +98,7 @@ function PrefsHarness({ initial, onPrefs, lang = "en" as "en" | "zh" }: {
       t={optionsT(lang)} pinned={null} onPin={() => {}} replayActive={false} />
   </LangProvider>;
 }
-async function renderOnce(payload: unknown, lang: "en" | "zh" = "en", opts: { root?: string; onPin?: ReturnType<typeof vi.fn>; onPrefs?: ReturnType<typeof vi.fn> } = {}) {
+async function renderOnce(payload: unknown, lang: "en" | "zh" = "en", opts: { root?: string; onPin?: React.ComponentProps<typeof MatrixCompanion>["onPin"]; onPrefs?: React.ComponentProps<typeof MatrixCompanion>["onPrefs"] } = {}) {
   fetchSnapshot.mockResolvedValue(asData(payload));
   await act(async () => root.render(<Harness root={opts.root} lang={lang} onPin={opts.onPin} onPrefs={opts.onPrefs} />));
   await act(async () => { await Promise.resolve(); await Promise.resolve(); });
