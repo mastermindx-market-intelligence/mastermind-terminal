@@ -5,8 +5,9 @@ import { expect, test, type Page } from "@playwright/test";
  *
  * The legacy `/options?tab=prophet` suite proves the board on the mount every
  * fixture environment serves; this focused configuration runs its own dev
- * server with MMX_SHARED_SHELL=1 and the page's development-only
- * TERMINAL_E2E_FIXTURE seam, so the CANONICAL spellings are proven in a real
+ * server with MMX_SHARED_SHELL=1. In every fixture server the page's
+ * development-only TERMINAL_E2E_FIXTURE seam, opted into per request by the
+ * cookie set below, lets the CANONICAL spellings be proven in a real
  * browser: `tab` (today default), `sector`, `symbol` and the REPEATABLE `sel`.
  *
  * The board itself is proven once, on the legacy mount
@@ -14,6 +15,12 @@ import { expect, test, type Page } from "@playwright/test";
  * the `sel` round-trip, the one-row lane bar and the disclosure that keeps
  * Options Alpha / Issue Desk reachable at phone widths.
  */
+
+// Opts this spec's requests into /prophet's development-only fixture seam; other
+// fixture journeys (no cookie) keep the real shared-shell mount.
+test.beforeEach(async ({ context, baseURL }) => {
+  await context.addCookies([{ name: "mm_e2e_prophet_canonical", value: "1", url: baseURL ?? "http://127.0.0.1" }]);
+});
 
 async function withLang(page: Page, lang: "en" | "zh" = "en") {
   await page.addInitScript(langCode => {
