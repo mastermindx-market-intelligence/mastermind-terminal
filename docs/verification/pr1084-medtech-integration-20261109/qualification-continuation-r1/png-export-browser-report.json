@@ -1,0 +1,399 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/large-trades.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+      "--grep",
+      "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3542",
+      "url": "http://127.0.0.1:3542/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "large-trades.spec.ts",
+      "file": "large-trades.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9181,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:29:54.482Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "large-trades-export-visible-chart",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-export-visible-chart-fee300007afb989d78bc0fd977374be21e2212b5.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-0",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-readiness-0-891e31d6569fd10597b0f460404577a99fe4c69d.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-1",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-readiness-1-a14204db60236f6ccefb470e829063b06163c56d.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-inspector-excluded",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-inspector-excluded-c3e8c7451bbbf166f02ed9f704d14e380399430f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "54e2e0ceb2b6e88a86b5-34981ee4de9507405f03",
+          "file": "large-trades.spec.ts",
+          "line": 743,
+          "column": 5
+        },
+        {
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6515,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:30:04.518Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "large-trades-export-visible-chart",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-export-visible-chart-38e31210aa9d657dc2c014e9a7590ac15e30ad2a.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-0",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-readiness-0-24f487b794c01d2b7a2a4a517ca099ea68c3b538.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-1",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-readiness-1-e7dffb83b61130736864c7da43e4a4364e8eab6f.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-inspector-excluded",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-inspector-excluded-ab586256afaa8804d2e80f6e0877fd420548b7ec.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "54e2e0ceb2b6e88a86b5-255781af3cfba1af178d",
+          "file": "large-trades.spec.ts",
+          "line": 743,
+          "column": 5
+        },
+        {
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5831,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:30:11.760Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "large-trades-export-visible-chart",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-export-visible-chart-e6b40892403f59a0fc159bb1f234fb2133f33ccb.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-0",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-readiness-0-228e0480e75c599f48038bb622097e49e1dd197a.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-readiness-1",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-readiness-1-490d3ed7160326c7c88a1f33ab3806dc2601d673.png"
+                    },
+                    {
+                      "name": "large-trades-native-export-inspector-excluded",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-inspector-excluded-700fb78f377a1033683388b4d4b14649ff347ff4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "54e2e0ceb2b6e88a86b5-6797be9693821a7e2656",
+          "file": "large-trades.spec.ts",
+          "line": 743,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T15:29:47.623Z",
+    "duration": 30395.806,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

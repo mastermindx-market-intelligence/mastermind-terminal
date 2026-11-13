@@ -1,0 +1,1942 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/medtech-watchdesk.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3540",
+      "url": "http://127.0.0.1:3540/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "medtech-watchdesk.spec.ts",
+      "file": "medtech-watchdesk.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "records, native De Novo detail, source sheet, filters and browser Back",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3337,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:37.652Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/watchdesk-dark-7dc6a9b604c129302139f87ec529ad3548a1e35e.png"
+                    },
+                    {
+                      "name": "record-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/record-dark-e71fcfa2a8d2af307a4cdbedd851a0976fee0434.png"
+                    },
+                    {
+                      "name": "source-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/source-dark-70a160d8ca344cee90a7e0631a0ff4973da385cb.png"
+                    },
+                    {
+                      "name": "empty-search",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/empty-search-e3d2b3daa4769b8f8a79361d1bc5c01a55063d8b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-9a74e2d00d0ba2caf128",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 167,
+          "column": 5
+        },
+        {
+          "title": "confirmed exact watch persists and review applies to only one revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3171,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:47.036Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-dialog",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/watch-dialog-ad2b4a58ed9d38037554f38ad615ccf98939f1c0.png"
+                    },
+                    {
+                      "name": "my-watches",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/my-watches-3310a9033e0ad8d9c52a39dc75aa82ce4cd58a48.png"
+                    },
+                    {
+                      "name": "change-review",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/change-review-af0e05450268a944f1b9eb04c6e2aeca5447afea.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-ab19594dbaa6c57e0fc2",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 194,
+          "column": 5
+        },
+        {
+          "title": "review after a staged refresh reconciles after record navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1400,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:50.220Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "review-after-refresh-and-back",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-review-a-363d5-les-after-record-navigation-desktop/attachments/review-after-refresh-and-back-ce035410cff00a1232d689c9c632dc278fc77c6a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-a5c2181c83cedb3d1df9",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2462,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:51.632Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-desktop/attachments/watch-conflict-b3a6f491a12a8d9123b98c56c9329caafbba73bf.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-a4ed173246b71ebc0147",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 252,
+          "column": 5
+        },
+        {
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1476,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:54.105Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "save-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-desktop/attachments/save-unavailable-329d748773bb02913117b87f58e7d7766904262b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-e7b22defd3ed4fdd306c",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1151,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:55.592Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "generation-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/attachments/generation-conflict-2b27036e4a17e5ffac7e5e5e9686dbb427894d1f.png"
+                    },
+                    {
+                      "name": "refresh-unavailable-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/attachments/refresh-unavailable-retained-71f9ecacfce43a01aa177c05cfcb31986e15a0b3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-4bea28f50dd43abc398a",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "detail and history remain visible when a replacement detail fails",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1474,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:56.750Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "detail-refresh-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-desktop/attachments/detail-refresh-retained-4618bba2bbfa8ce13f5c8c2931db9bedc0023d12.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-2ebd9222329875142b00",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 317,
+          "column": 5
+        },
+        {
+          "title": "failed watch reconciliation retains the last saved rows and disables edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1359,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:58.232Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "saved-watches-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-desktop/attachments/saved-watches-retained-7f35abfb15db5883c2cfd2b952b0365ccbe28320.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-2688cd865d3f51adb7d9",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 340,
+          "column": 5
+        },
+        {
+          "title": "source and watch failures are distinct from empty results",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 982,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:26:59.601Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-and-account-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-desktop/attachments/source-and-account-unavailable-927fb67989b035d02aace1c4de42b50520d43676.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-cef31e9b206b33fc230d",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 361,
+          "column": 5
+        },
+        {
+          "title": "paid-access denial clears the source view",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 904,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:00.594Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "subscription-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-paid-access-denial-clears-the-source-view-desktop/attachments/subscription-required-c264b584c21c21162f184ffe34b8d0c61ea08028.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-01ea28d72eba1ea07699",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 373,
+          "column": 5
+        },
+        {
+          "title": "signed-out shell does not load account data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 887,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:01.512Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "sign-in-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-desktop/attachments/sign-in-required-01accc27282c0d757cdfaf6fb191131aac3e7a10.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-5199ac895723aaa69dfe",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 381,
+          "column": 5
+        },
+        {
+          "title": "shared language in the supported dark shell en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1542,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:02.410Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/watchdesk-en-dark-541d3c2d031f1389da4f02b977e8ab3f8f3e4c63.png"
+                    },
+                    {
+                      "name": "record-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/record-en-dark-646ec115eb36d8d6f1de9c5154911d5d8d19b117.png"
+                    },
+                    {
+                      "name": "watch-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/watch-en-dark-066127b4361fb5e3c8a9c0e781160289a8661889.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-a1782d8907b7f615bcb0",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        },
+        {
+          "title": "shared language in the supported dark shell zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2211,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:03.959Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/watchdesk-zh-dark-9c96a5ebfa3e2da005e8a2457daee2d134b157d1.png"
+                    },
+                    {
+                      "name": "record-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/record-zh-dark-7199648f716b702eb7c6db9dbcc988e7a2a4b5d7.png"
+                    },
+                    {
+                      "name": "watch-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/watch-zh-dark-a66290358f2872278607d6b21dff5c7c7cbe3e9e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-8f377d3a80ddd3ab6ced",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        },
+        {
+          "title": "records, native De Novo detail, source sheet, filters and browser Back",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1843,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:06.673Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/watchdesk-dark-3e51d570ea0f4ddf84063265b9a95d22fffd0033.png"
+                    },
+                    {
+                      "name": "record-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/record-dark-860776df042d4b4f39a64f6b29d98dea1375ecb1.png"
+                    },
+                    {
+                      "name": "source-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/source-dark-6207f0290dcb3e9d7b6de28e923bd61242dfc66d.png"
+                    },
+                    {
+                      "name": "empty-search",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/empty-search-0930ae56a7f08e5287c923abea955222e523f816.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-5d9a42adaeccbcbade01",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 167,
+          "column": 5
+        },
+        {
+          "title": "confirmed exact watch persists and review applies to only one revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2154,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:08.906Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-dialog",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/watch-dialog-781345dc0370f644e6eab5e819a801c6c85c9987.png"
+                    },
+                    {
+                      "name": "my-watches",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/my-watches-b1dce7300c8cd874979fcf1d9c74c551c495881b.png"
+                    },
+                    {
+                      "name": "change-review",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/change-review-7e3023498022fb775aab36fa2d8a8f1b93c3e54e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-2b40b49031513930b38d",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 194,
+          "column": 5
+        },
+        {
+          "title": "review after a staged refresh reconciles after record navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1123,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:11.072Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "review-after-refresh-and-back",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-review-a-363d5-les-after-record-navigation-tablet/attachments/review-after-refresh-and-back-78c95833c9d351f138e2649a5639addce9ac9b22.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-f34d7d1bf33b685e390f",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2394,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:12.204Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-tablet/attachments/watch-conflict-eb78ea4683f6a50a325bea7eddc3eeac1c8d9474.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-5e908eeddabb4fd2e4b5",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 252,
+          "column": 5
+        },
+        {
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:14.611Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "save-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-tablet/attachments/save-unavailable-43fc2df6b7e710c6895ba39069f11d685edddf23.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-6f80e2d27daabaa13738",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1224,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:16.097Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "generation-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/attachments/generation-conflict-b216e6d0b3b09bf0563de22a0b9ef022843b22ca.png"
+                    },
+                    {
+                      "name": "refresh-unavailable-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/attachments/refresh-unavailable-retained-37aa26807d22f2c829b468ecfe175aa6f0d2667e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-1e635b8d475be7c5b471",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "detail and history remain visible when a replacement detail fails",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1547,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:17.331Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "detail-refresh-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-tablet/attachments/detail-refresh-retained-935112aa8ec59037784b43a9d9483fc255ca612f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-1890d97cf12b46ad591f",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 317,
+          "column": 5
+        },
+        {
+          "title": "failed watch reconciliation retains the last saved rows and disables edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1590,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:18.887Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "saved-watches-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-tablet/attachments/saved-watches-retained-22c05f2f95f945adb7e51b11bda883d4102a612f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-5ec5062ea8181a4037f6",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 340,
+          "column": 5
+        },
+        {
+          "title": "source and watch failures are distinct from empty results",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1082,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:20.488Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-and-account-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-tablet/attachments/source-and-account-unavailable-b2d92d08f6a24d455752dd8b89915a961257dad4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-68b9451be51cc3b5a2a1",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 361,
+          "column": 5
+        },
+        {
+          "title": "paid-access denial clears the source view",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1042,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:21.579Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "subscription-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-paid-access-denial-clears-the-source-view-tablet/attachments/subscription-required-8bca1f25ac96bc94e88ad6bfd8abcbedcd77d602.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-390fe0a4bb15babb6fb8",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 373,
+          "column": 5
+        },
+        {
+          "title": "signed-out shell does not load account data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 874,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:22.636Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "sign-in-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-tablet/attachments/sign-in-required-c0c0afed7d8f352e4634847b9c78c14a243f9a09.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-83dc755d695b2eee59ce",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 381,
+          "column": 5
+        },
+        {
+          "title": "shared language in the supported dark shell en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1543,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:23.525Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/watchdesk-en-dark-97e33ba938564124fc711591e4798e9580ed73f5.png"
+                    },
+                    {
+                      "name": "record-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/record-en-dark-20a92f1a208df4be944fe73b193d60d3d097e91b.png"
+                    },
+                    {
+                      "name": "watch-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/watch-en-dark-2202fce512e348ad7ac0ef16705e0db57fde1bf2.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-7b06e5340f6a9a4dc939",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        },
+        {
+          "title": "shared language in the supported dark shell zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2193,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:25.076Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/watchdesk-zh-dark-d850c5aee8c58366d28451018e5ea890732f9647.png"
+                    },
+                    {
+                      "name": "record-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/record-zh-dark-9110107c19409901e325d4c46945550845c76688.png"
+                    },
+                    {
+                      "name": "watch-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/watch-zh-dark-c4f388faefbe554642a20a476bf172df8385703e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-2df1d54e92154b2f0318",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        },
+        {
+          "title": "records, native De Novo detail, source sheet, filters and browser Back",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1824,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:27.788Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/watchdesk-dark-fbf98a89785962fbc095c5065a634a0e46b348fc.png"
+                    },
+                    {
+                      "name": "record-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/record-dark-998a7837b4f6c2faec32b750271fff6fbe882a3f.png"
+                    },
+                    {
+                      "name": "source-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/source-dark-87e380895743c2b30fbfe4cde1f733f3b9e68f23.png"
+                    },
+                    {
+                      "name": "empty-search",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/empty-search-dd8658acf83ff8150f4f45392dae2111a73d2f1f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-cf612e95327140e4301a",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 167,
+          "column": 5
+        },
+        {
+          "title": "confirmed exact watch persists and review applies to only one revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2190,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:29.966Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-dialog",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/watch-dialog-5552f58475e1bc481029d587f0f27956a270eab8.png"
+                    },
+                    {
+                      "name": "my-watches",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/my-watches-ae1532ed49d55956ba3e8c62f818e91c68cda405.png"
+                    },
+                    {
+                      "name": "change-review",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/change-review-90592cf6621bf9fc2dfb638980e4959fb512d206.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-7f77bb9e5402f0625091",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 194,
+          "column": 5
+        },
+        {
+          "title": "review after a staged refresh reconciles after record navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1158,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:32.165Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "review-after-refresh-and-back",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-review-a-363d5-les-after-record-navigation-mobile/attachments/review-after-refresh-and-back-972f5a2e77e17202e90af226bc43817329573ef6.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-423164ef63edbaac3a28",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2295,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:33.336Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watch-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-mobile/attachments/watch-conflict-79820c0d2b67995d39ca1b9b5ba20e970731d4b9.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-fdb92b7baf12ba50b181",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 252,
+          "column": 5
+        },
+        {
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1255,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:35.642Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "save-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-mobile/attachments/save-unavailable-45e92c66b5147b2e9b002c8d69699b611be09827.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-64890f1155689d292e04",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 279,
+          "column": 5
+        },
+        {
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1439,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:36.905Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "generation-conflict",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/attachments/generation-conflict-cfedf9cf1b97d4b29844d5f75bffd19420cc79b2.png"
+                    },
+                    {
+                      "name": "refresh-unavailable-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/attachments/refresh-unavailable-retained-9c48649f701197e08b14d32ef019ba37bdc71a23.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-ccdb4ba0b410cd2d95c8",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "detail and history remain visible when a replacement detail fails",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1529,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:38.357Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "detail-refresh-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-mobile/attachments/detail-refresh-retained-ebafded1433cffdd157bfcf4c828618731f24eed.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-81bf05745c81fa365dd3",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 317,
+          "column": 5
+        },
+        {
+          "title": "failed watch reconciliation retains the last saved rows and disables edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1431,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:39.894Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "saved-watches-retained",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-mobile/attachments/saved-watches-retained-1604afd69253f7071e91d2a4669d99d192740e6f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-a6f86f031e59b6a26514",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 340,
+          "column": 5
+        },
+        {
+          "title": "source and watch failures are distinct from empty results",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1040,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:41.333Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-and-account-unavailable",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-mobile/attachments/source-and-account-unavailable-04f37bbba94faaa8c08192edb5185062cef7f05d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-f59ed15e6757f0053654",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 361,
+          "column": 5
+        },
+        {
+          "title": "paid-access denial clears the source view",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 948,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:42.385Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "subscription-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-paid-access-denial-clears-the-source-view-mobile/attachments/subscription-required-4c3c87e7da7ac675dea2e6bb2d772f5ac7fe3aa5.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-416b7202d898933f384d",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 373,
+          "column": 5
+        },
+        {
+          "title": "signed-out shell does not load account data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 783,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:43.342Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "sign-in-required",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-mobile/attachments/sign-in-required-efbff45b53853f122c56b755ca428433da6cb6ca.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-a50b75d55b5a9712d2cf",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 381,
+          "column": 5
+        },
+        {
+          "title": "shared language in the supported dark shell en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1529,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:44.135Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/watchdesk-en-dark-589981447db10f2d3409e500f019507ae958b96d.png"
+                    },
+                    {
+                      "name": "record-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/record-en-dark-7e9178835b8391ecfd8724da512f38e406af4669.png"
+                    },
+                    {
+                      "name": "watch-en-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/watch-en-dark-21fa479ef4d39a5d0127320b6fc31c2ffb949d5b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-486a1ceb00cf15f9a45b",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        },
+        {
+          "title": "shared language in the supported dark shell zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2210,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:27:45.671Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "watchdesk-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/watchdesk-zh-dark-2a2ee8757bee7249cb77bf24e22756dbb4335985.png"
+                    },
+                    {
+                      "name": "record-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/record-zh-dark-6d756cfee8c27739c0ef779d436c2228a8802641.png"
+                    },
+                    {
+                      "name": "watch-zh-dark",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/watch-zh-dark-f6a438662eb2d5357952e153ea5f0ba22d8302a4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "409b95ad290567aff392-1fcaef82f6606bdc63c4",
+          "file": "medtech-watchdesk.spec.ts",
+          "line": 389,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T15:25:57.946Z",
+    "duration": 110238.43,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

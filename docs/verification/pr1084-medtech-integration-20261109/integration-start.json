@@ -1,0 +1,17 @@
+{
+  "schema": "terminal_pr1084_source_integration.v1",
+  "head": "00381734b54d2ada1f777b5a7b3a15b12f57981a",
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "startedAt": "2026-11-09T15:22:09.934774+00:00",
+  "takeoverComment": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1084#issuecomment-6743660339",
+  "sourceScope": "Source integration only; immutable 0037 and applied receipt preserved; migration queue qualification and live acceptance remain held.",
+  "mergeExit": 1,
+  "stdout": "Auto-merging supabase/migrations/README.md\nAuto-merging terminal/components/workspaces/DiscoverWorkspace.tsx\nCONFLICT (content): Merge conflict in terminal/components/workspaces/DiscoverWorkspace.tsx\nAuto-merging terminal/e2e/large-trades.spec.ts\nCONFLICT (content): Merge conflict in terminal/e2e/large-trades.spec.ts\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "stderr": "",
+  "conflicts": [
+    "terminal/components/workspaces/DiscoverWorkspace.tsx",
+    "terminal/e2e/large-trades.spec.ts"
+  ],
+  "headAfter": "00381734b54d2ada1f777b5a7b3a15b12f57981a",
+  "mergeHead": "03af393ce05c12282003a3919cc473c032264922"
+}

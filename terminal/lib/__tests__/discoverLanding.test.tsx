@@ -81,7 +81,7 @@ describe("Discover tool tabs", () => {
     try {
       await act(async () => root.render(<DiscoverWorkspace />));
       const tabs = Array.from(host.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-      expect(tabs).toHaveLength(7);
+      expect(tabs).toHaveLength(8);
 
       const expectPanels = (activeKey: string) => {
         for (const tab of tabs) {

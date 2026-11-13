@@ -7,6 +7,7 @@ import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-s
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 const RSPivotStudy = dynamic(() => import("@/components/workspaces/RSPivotStudy"));
 const CatalystOpportunityWorkspace = dynamic(() => import("@/components/catalyst-opportunity/CatalystOpportunityWorkspace"));
+const MedTechWatchdesk = dynamic(() => import("@/components/medtech/MedTechWatchdesk"), { ssr: false });
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
@@ -42,12 +43,13 @@ const TABS: WorkspaceTab[] = [
   { key: "heatmap", labelKey: "wtHeatmap" },
   { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
   { key: "catalysts", labelKey: "Catalysts", zhLabel: "\u50ac\u5316\u5242" },
+  { key: "medtech", labelKey: "MedTech", zhLabel: "医疗科技" },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
   { key: "rs-pivot", labelKey: "RS · 30m Pivot", zhLabel: "相对强度·30分钟枢轴" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "sectors", "catalysts", "leaders", "radar", "rs-pivot"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "catalysts", "medtech", "leaders", "radar", "rs-pivot"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -148,6 +150,7 @@ export default function DiscoverWorkspace() {
               {key === "heatmap" && <HeatmapPageRoot />}
               {key === "sectors" && <SectorIntelligenceWorkspace />}
               {key === "catalysts" && <CatalystOpportunityWorkspace />}
+              {key === "medtech" && <MedTechWatchdesk />}
               {key === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
               {key === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
               {key === "rs-pivot" && <RSPivotStudy />}

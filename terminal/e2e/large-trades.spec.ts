@@ -755,6 +755,7 @@ test("native PNG includes visible executions, quantity labels and provenance but
   await page.clock.setFixedTime(new Date("2026-10-11T11:00:00Z"));
   await openFixture(page);
   await expect(page.locator(".pane.on > .pane-hd > b")).toHaveText("Apple Inc");
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect.poll(() => page.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
   await settledTradeChart(page);
   await capture(page, info, "large-trades-export-visible-chart");

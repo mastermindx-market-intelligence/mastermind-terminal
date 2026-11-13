@@ -106,3 +106,52 @@ describe("Discover chooser focus continuity", () => {
     expect(document.activeElement).not.toBe(host.querySelector("h1"));
   });
 });
+
+describe("MedTech on the current Discover tab owner", () => {
+  const expectPanels = (activeKey: string) => {
+    const tabs = [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    expect(tabs).toHaveLength(8);
+    for (const tab of tabs) {
+      const panel = document.getElementById(tab.getAttribute("aria-controls")!)!;
+      const active = tab.id === `wtab-${activeKey}`;
+      expect(panel.getAttribute("role")).toBe("tabpanel");
+      expect(panel.getAttribute("aria-labelledby")).toBe(tab.id);
+      expect(panel.hidden).toBe(!active);
+      expect(panel.childElementCount).toBe(active ? 1 : 0);
+      expect(tab.getAttribute("aria-selected")).toBe(String(active));
+    }
+  };
+
+  it("keeps MedTech between Catalysts and Leaders in keyboard history and returns focus to the chooser", async () => {
+    window.history.replaceState(null, "", "/discover?tab=catalysts&origin=fixture#revision");
+    await render();
+    expectPanels("catalysts");
+    selected().focus();
+
+    for (const [key, active] of [["ArrowRight", "medtech"], ["ArrowRight", "leaders"], ["ArrowLeft", "medtech"]]) {
+      await act(async () => selected().dispatchEvent(new KeyboardEvent("keydown", {
+        key, bubbles: true, cancelable: true,
+      })));
+      expect(selected().id).toBe(`wtab-${active}`);
+      expect(document.activeElement).toBe(selected());
+      expectPanels(active);
+      expect(window.location.search).toBe(`?tab=${active}&origin=fixture`);
+      expect(window.location.hash).toBe("#revision");
+    }
+
+    await activate(button("Discover ←"));
+    expect(host.querySelector('[role="tablist"]')).toBeNull();
+    expect(document.activeElement).toBe(host.querySelector("h1"));
+    expect(window.location.search).toBe("?origin=fixture");
+    expect(window.location.hash).toBe("#revision");
+  });
+
+  it("admits a direct MedTech URL without stealing existing shell focus", async () => {
+    window.history.replaceState(null, "", "/discover?tab=medtech&origin=direct#revision");
+    await render();
+    expect(selected().id).toBe("wtab-medtech");
+    expect(selected().textContent).toBe("MedTech");
+    expectPanels("medtech");
+    expect(document.activeElement).toBe(external);
+  });
+});

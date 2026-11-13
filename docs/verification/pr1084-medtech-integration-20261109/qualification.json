@@ -1,0 +1,45 @@
+{
+  "affectedLintPassed": true,
+  "appliedReceiptSha256": "087902b037282c94aefab098839f52217342075ddf6d109e419fd00a15c6bf65",
+  "autoMergeEligible": false,
+  "browserPassed": {
+    "catalyst": 9,
+    "medtech": 39,
+    "pngExport": 3
+  },
+  "executionRecords": {
+    "dependencies.json": "ba252ebda6f8d19b92964020f438fd234cfeb618044e0465d03b9da018c81214",
+    "integration-start.json": "bfb96faab258e9869c1eba7bc2d183473c6fba9cb845ce32f036c7a4211c1c03",
+    "qualification-continuation-r1/catalyst-lifecycle-readback.json": "bf80fbcdc424af2ebd5622ccb514263237229ac73ed9e3c5e566ebaa0e5f4b7c",
+    "qualification-continuation-r1/execution.json": "859e5ce89f51982f861f251925204c75d2f8f78d0ff1eee088d0b2857c0a6794",
+    "qualification-r1/execution.json": "50e05fa06bfe1ba80da3655d8165237227406aebe3924da6f075586ce710630b",
+    "visual-review.json": "4e182f2d29072433abcaf626f133bbf740285598640597e1a2096c01225bc775"
+  },
+  "failures": 0,
+  "historicalImages": {
+    "desktop-change-review.png": "badc0f63022744e5af5d25bf996b3e90917879edebc6abd7a5d564bee2e6c020",
+    "desktop-record-dark.png": "c9c5a9e0e5e5581687d0eef96cadafaac59fd20477ebd7c1972e0fb24f165046",
+    "desktop-review-after-refresh-and-back.png": "430534fa475f1913c44ef26dc81044c50ab6a8bbe2e621f19eb54224ab17f477",
+    "desktop-saved-watches-retained.png": "a7dd20475b9f6e1803a909b0c5b8dab556e27e403a2cb55be6ebc375a63c8842",
+    "desktop-watchdesk-dark.png": "d0ce019d9c9a769bf7b28324c80778af7f8a73844334f1db096017b643be7063",
+    "mobile-change-review.png": "168a4de497e8ebf2c34259533f27dec6d020010dee249545810dd60c9bc82b8c",
+    "mobile-record-dark.png": "009bfe2647d841f436a639d4a3df0eceb88bdd3825bd3f16174ed6e64042fe8a",
+    "mobile-review-after-refresh-and-back.png": "dc458c9cffac547e4faa90e992a34ecf0b2567e0ca59d87ac3c08e1938f23770",
+    "mobile-saved-watches-retained.png": "725dd5301b401b9fa9330d61fca7f4af756a5d52d1d02e6ec02d44763c4f9e6f",
+    "mobile-watchdesk-dark.png": "23d4f4053e7098b4980e804cc8f6b913eec2eddcf980fe7d3df7146a213aa357"
+  },
+  "medtechUnitPassed": 58,
+  "namespacePassed": 97,
+  "originalHead": "00381734b54d2ada1f777b5a7b3a15b12f57981a",
+  "preparedAt": "2026-11-09T15:35:49.158564+00:00",
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "releaseHold": "Protected migration merge-group ownership remains unqualified; existing denied queue-read fence and actual solo landing/ledger follow-up remain binding.",
+  "retries": 0,
+  "schema": "terminal_pr1084_source_qualification.v1",
+  "skips": 0,
+  "sourceEntries": 1947,
+  "sourceSha256": "96bdd0d435ffd4d76ee867be892e1dd0f57d8371f64d26c231e15a64b5ff3c4e",
+  "sqlSha256": "c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406",
+  "state": "SOURCE_QUALIFIED_MIGRATION_RELEASE_HELD",
+  "typecheckPassed": true
+}

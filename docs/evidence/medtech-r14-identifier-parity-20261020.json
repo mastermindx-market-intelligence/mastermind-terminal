@@ -1,0 +1,85 @@
+{
+  "schema": "medtech.identifier_parity_qualification/v1",
+  "qualified_at": "2026-10-20T05:38:15.537792Z",
+  "prior_candidate": "ecd2fb6bc3de4212df0e7479712092e412f46441",
+  "candidate_file_sha256": {
+    "terminal/lib/medtechServer.ts": "cdcd7848a6f185c172ad45733c34d1eaf789b6a82603cf1b451f4300ed4a4a00",
+    "terminal/lib/medtechWatches.ts": "eb4b5641dfe08e7b222549b469c148bf9310c830f904243625393dfb7d6cf9c2",
+    "terminal/lib/__tests__/medtechServer.test.ts": "74d777a25f2eff72544fac39e7c91071cf7907078fcd00f37a51013bcbc498f3",
+    "terminal/lib/__tests__/medtechWatches.test.ts": "667a046c1f2169ede76f244b120f8b78da91f37ad7096357286ba66f76488d8f",
+    "supabase/migrations/0037_medtech_watches.sql": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "scripts/qualify_medtech_watches.py": "c34138b2cc19ed0a26aea432f0eabc1d6832da7b91279c8b4b0a1a1c98dc09ac"
+  },
+  "focused_tests": {
+    "command": "npx vitest run lib/__tests__/medtechServer.test.ts lib/__tests__/medtechWatches.test.ts",
+    "cwd": "terminal",
+    "passed": 52,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "typescript": {
+    "command": "npx tsc --noEmit",
+    "cwd": "terminal",
+    "exit_code": 0
+  },
+  "regression_control": {
+    "prior_gateway_and_account_failed": 10,
+    "prior_gateway_and_account_passed": 42,
+    "prior_gateway_exit_code": 1,
+    "prior_sql_exit_code": 1,
+    "prior_sql_failure": "De Novo exact-event insertion violates medtech_watches_subject"
+  },
+  "sql_qualification": {
+    "schema": "medtech.local_sql_qualification/v1",
+    "qualified_at": "2026-10-20T05:36:23.506206Z",
+    "migration_sha256": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "qualifier_sha256": "c34138b2cc19ed0a26aea432f0eabc1d6832da7b91279c8b4b0a1a1c98dc09ac",
+    "checks_passed": 31,
+    "checks": [
+      "migration executes twice and repairs inherited grants",
+      "authenticated table privileges are limited",
+      "both tables force RLS",
+      "database sets subscription baseline and version",
+      "table-wide truncation is refused and owner data survives",
+      "other account cannot read",
+      "other account cannot update",
+      "other account cannot delete",
+      "cross-account insert refused",
+      "anonymous table access refused",
+      "subscription baseline immutable",
+      "watch subject immutable",
+      "first CAS edit advances version",
+      "stale CAS edit makes no change",
+      "duplicate review retains one receipt",
+      "review clock is server-owned",
+      "review cannot reference another account's watch",
+      "other account cannot read reviews",
+      "existing review revision updates are denied",
+      "fresh review insert must match its event watch",
+      "PMA family accepts its parent and supplements",
+      "PMA family rejects another application",
+      "native FDA identifier can be watched and reviewed: fda-510k-DEN230001",
+      "native FDA identifier can be watched and reviewed: fda-pma-N12345",
+      "native FDA identifier can be watched and reviewed: fda-pma-N12345-S001",
+      "invalid or inexact FDA identifiers are rejected by SQL",
+      "family review identifiers must still be exact FDA identifiers",
+      "application families remain limited to parent P numbers",
+      "concurrent quota allows exactly one final insertion",
+      "quota remains 50",
+      "deleting a watch cascades only its review state"
+    ],
+    "database": "disposable local PostgreSQL",
+    "production_applied": false,
+    "migration_applied_twice": true,
+    "broad_default_and_prior_table_grants_tested": true
+  },
+  "production_applied": false,
+  "production_deployed": false,
+  "live_account_proven": false,
+  "namespace_suite": {
+    "command": "GITHUB_EVENT_NAME=pull_request PR_NUMBER=1084 python3 -m pytest tests/test_supabase_migration_namespace.py -q",
+    "passed": 97,
+    "failed": 0,
+    "exit_code": 0
+  }
+}
