@@ -10,9 +10,17 @@ import { readIntradaySourceStamp, sectorIntradayEnvelope } from "./sectorIntrada
 export const SECTOR_FEEDS = ["sector", "generation", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 export const FINVIZ_FEEDS = ["finviz"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[number];
+/** Proxy-only sources (COO ruling 65): the entitled gateway serves them, but no
+ * workspace surface fetches them. SECTOR_FEEDS and FINVIZ_FEEDS stay the exact
+ * workspace fetch lists. Prophet's company Setup reads rotation_read through
+ * this same proxy, so no second route copies the cookie filter or the size cap. */
+export const PROXY_ONLY_SOURCES = ["rotation_read"] as const;
+export type ProxyOnlySource = typeof PROXY_ONLY_SOURCES[number];
+export type ProxySource = SectorFeed | ProxyOnlySource;
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
 export interface FeedReceipt {
-  source: SectorFeed;
+  /** The one field widened for proxy-only sources; workspace feeds stay SectorFeed. */
+  source: ProxySource;
   path: string;
   status: FeedStatus;
   asOf: string | null;
@@ -250,16 +258,37 @@ export function sourceDate(data: unknown): string | null {
  * `2026-10-22` would make two different observations indistinguishable and would replace a source
  * clock with a transport convenience. No other feed's stamp changes.
  */
-export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
+export function feedSourceStamp(source: ProxySource, data: unknown): string | null {
   if (source === "intraday") return readIntradaySourceStamp(data);
   if (source === "generation") return strictDay(object(data).source_session);
+  // rotation_read keeps its strict as_of day: sourceDate already reads as_of first.
   return sourceDate(data);
+}
+/** si.rotation_read/v1 (COO ruling 57 contract): the weekly house-basket rotation
+ * read, served proxy-only. Strict envelope admission: the exact schema id, a
+ * closed status set, a strict as_of day, a bounded groups array whose rows each
+ * carry a non-empty string group_id and a house family (exactly sector or theme),
+ * and a plain companies map. The 10_000-row bound is the same bound every other
+ * owner collection uses in this module (`bounded` below and ownerRows); the
+ * contract population is 49 house baskets. Anything else is not the envelope. */
+export function rotationReadEnvelope(data: unknown): boolean {
+  const root = object(data);
+  if (root.schema !== "si.rotation_read/v1") return false;
+  if (root.status !== "ok" && root.status !== "stale" && root.status !== "unavailable") return false;
+  if (!strictDay(root.as_of)) return false;
+  if (!Array.isArray(root.groups) || root.groups.length > 10_000) return false;
+  for (const value of root.groups) {
+    const row = object(value);
+    if (typeof row.group_id !== "string" || row.group_id.length === 0) return false;
+    if (row.family !== "sector" && row.family !== "theme") return false;
+  }
+  return root.companies !== null && typeof root.companies === "object" && !Array.isArray(root.companies);
 }
 /** Exact read-only owner envelopes, qualified against Macro's published source files.
  * Never recursively discover a look-alike record inside rankings, metadata or a basket.
  * This is a consumer boundary, not a dossier/schema producer or authority manifest.
  */
-export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolean {
+export function readableOwnerEnvelope(source: ProxySource, data: unknown): boolean {
   // The native generation has a separate closed receipt/core/history reader at
   // the gateway and component boundary; never admit it as a static envelope.
   if (source === "generation") return false;
@@ -277,6 +306,7 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
   if (source === "relative_trend") return sectorRotationRelativeTrend(data) !== null;
   if (source === "holdings") return sectorHoldingsCoverage(data) !== null;
   if (source === "intraday") return sectorIntradayEnvelope(data);
+  if (source === "rotation_read") return rotationReadEnvelope(data);
 
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
