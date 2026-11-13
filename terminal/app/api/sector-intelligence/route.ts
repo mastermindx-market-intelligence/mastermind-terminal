@@ -349,9 +349,14 @@ async function readIncumbent(req: Request): Promise<Response> {
       const generation = key === "generation" ? sectorNativeGeneration(parsed.data, step.audience) : null;
       if (key === "generation" ? !generation : !readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid", "payload_invalid");
       const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
+      // rotation_read v1 carries no boolean `stale`: its closed status field is
+      // the freshness verdict, so any status other than "ok" ("stale" or
+      // "unavailable") reads stale on the receipt. Every other source keeps the
+      // existing boolean/qualification reads unchanged.
       const receipt: FeedReceipt = { ...fetchedReceipt, status: "ready", asOf: feedSourceStamp(key, parsed.data),
         observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false
-          || (generation !== null && generation.receipt.qualification === "stale"),
+          || (generation !== null && generation.receipt.qualification === "stale")
+          || (key === "rotation_read" && object(parsed.data).status !== "ok"),
         contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
       // Transport factual identity/membership/measurements only, never vendor prose.
       const owner = object(parsed.data);

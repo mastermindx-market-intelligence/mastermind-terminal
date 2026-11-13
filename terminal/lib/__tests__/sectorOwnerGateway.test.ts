@@ -817,6 +817,30 @@ describe("rotation_read proxy-only source through the same authenticated gateway
     expect(response.headers.get("vary")).toBe("Cookie");
   });
 
+  // COO ruling 69: the v1 contract has no boolean `stale` — its closed status
+  // field is the freshness verdict. The receipt must never say fresh when the
+  // file says stale or unavailable; HTTP 200, receipt.status "ready" and the
+  // relayed body stay unchanged.
+  it.each([["ok", false], ["stale", true], ["unavailable", true]])(
+    "reports a %s file as receipt.stale=%s with the body relayed unchanged", async (status, stale) => {
+      const data = { ...rotationRead, status };
+      upstream.mockResolvedValue(Response.json(data));
+      const response = await GET(request("rotation_read")), result = await response.json();
+      expect(response.status).toBe(200);
+      expect(result.data).toEqual(data);
+      expect(result.receipt).toMatchObject({ source: "rotation_read", path: ROTATION_PATH, status: "ready", asOf: "2026-11-06", stale });
+      expect(upstream).toHaveBeenCalledTimes(1);
+    });
+
+  it("leaves an existing source's receipt unchanged: a normal sector body still reads stale false", async () => {
+    upstream.mockResolvedValue(Response.json(payload));
+    const response = await GET(request("sector")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.data).toEqual(payload);
+    expect(result.receipt).toMatchObject({ source: "sector", path: "/sectordata/sector_central.json", status: "ready", asOf: "2026-09-25", stale: false });
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
   it.each([
     ["wrong schema id", { ...rotationRead, schema: "si.rotation_read/v2" }],
     ["missing groups", { ...rotationRead, groups: undefined }],

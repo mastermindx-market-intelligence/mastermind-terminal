@@ -146,7 +146,7 @@ describe("rotation_read proxy-only source (COO rulings 57/65)", () => {
     expect(readableOwnerEnvelope("rotation_read", rotationRead)).toBe(true);
     expect(feedSourceStamp("rotation_read", rotationRead)).toBe("2026-11-06");
   });
-  it("admits stale and unavailable panels as envelopes; the reader shows them as unavailable", () => {
+  it("admits stale and unavailable panels as envelopes", () => {
     expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, status: "stale" })).toBe(true);
     expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, status: "unavailable" })).toBe(true);
   });
