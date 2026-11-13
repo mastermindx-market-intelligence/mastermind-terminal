@@ -504,6 +504,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const { lang } = useLang();
   const [qualificationTime, setQualificationTime] = useState(Date.now);
   const [showLegacySnapshot, setShowLegacySnapshot] = useState(false);
+  const legacyOpenRef = useRef<HTMLButtonElement>(null);
+  const legacyCloseRef = useRef<HTMLButtonElement>(null);
+  const legacyFocusTarget = useRef<"open" | "close" | null>(null);
   useEffect(() => {
     const recheck = () => setQualificationTime(Date.now());
     const timer = window.setInterval(recheck, 60_000);
@@ -526,6 +529,14 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     && props.legacySnapshot?.status === "ready" && !!props.legacySnapshot.asOf
     && props.legacySnapshot.rows.length > 0;
   const usingLegacy = legacyAvailable && showLegacySnapshot;
+  // Explicit view changes replace their triggering button. Keep the keyboard
+  // return path on the replacement control without moving focus on feed updates.
+  useEffect(() => {
+    const target = legacyFocusTarget.current;
+    legacyFocusTarget.current = null;
+    if (target === "close" && usingLegacy) legacyCloseRef.current?.focus();
+    if (target === "open" && !usingLegacy) legacyOpenRef.current?.focus();
+  }, [usingLegacy, showLegacySnapshot]);
   const activeStatus = usingLegacy ? props.legacySnapshot!.status : props.status;
   const activeRows = usingLegacy ? props.legacySnapshot!.rows : props.rows;
   const activeAsOf = usingLegacy ? props.legacySnapshot!.asOf : props.asOf;
@@ -609,7 +620,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     <div className={styles.empty} role="status">
       <p>{emptyCopy}</p>
       <button type="button" onClick={props.onSources}>{t("sources")} →</button>
-      {legacyAvailable && <button type="button" data-testid="rotation-legacy-open" onClick={() => setShowLegacySnapshot(true)}>
+      {legacyAvailable && <button ref={legacyOpenRef} type="button" data-testid="rotation-legacy-open" onClick={() => { legacyFocusTarget.current = "close"; setShowLegacySnapshot(true); }}>
         {t("legacyAction")} · {props.legacySnapshot?.asOf}
       </button>}
     </div>
@@ -641,7 +652,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     </header>
     {usingLegacy && <div className={styles.legacyNotice} role="status" data-testid="rotation-legacy-notice">
       <div><strong>{t("legacyTitle")} · {activeAsOf}</strong><p>{t("legacyNotice")}</p></div>
-      <button type="button" data-testid="rotation-legacy-close" onClick={() => setShowLegacySnapshot(false)}>{t("legacyReturn")}</button>
+      <button ref={legacyCloseRef} type="button" data-testid="rotation-legacy-close" onClick={() => { legacyFocusTarget.current = "open"; setShowLegacySnapshot(false); }}>{t("legacyReturn")}</button>
     </div>}
     {synthesis && <div className={styles.answer} data-testid="rotation-answer">
       <span>{t("answerLabel")}</span><p>{synthesis}</p>
