@@ -656,9 +656,93 @@ const PROPHET_LEX = {
   cohortWithheldInternal:   ["licensed for internal use only", "仅限内部使用授权"],
   cohortWithheldUnresolved: ["display rights not yet confirmed", "展示权限尚未确认"],
   cohortNamesPending:       ["Theme names appear here once plain-language labels are published.", "通俗主题名称发布后将在此显示。"],
+
+  // ── Prophet Today board (Lane A, T2-01/SX01/T2-18/T2-10/SX06/SX08) ────────
+  // HONESTY: the board is descriptive market-to-sector context. Nulls use the
+  // sector lane's shared not-stated vocabulary; nothing recommends a trade.
+  tabToday:          ["Today", "今日"],
+  tabScreener:       ["Screener", "筛选"],
+  lanePlans:         ["Plans", "计划"],
+  // Lane navigation: three primary lanes ride one row at every width; at
+  // phone widths the two secondary lanes live behind this disclosure.
+  laneMore:          ["More", "更多"],
+  laneMoreAria:      ["More Prophet lanes", "更多预言台分区"],
+  laneNavPrimaryAria:["Prophet lanes", "预言台分区"],
+  // In-body title (P3): the design's Prophet title and subtitle, since the
+  // shell header belongs to shared chrome.
+  todayTitle:        ["Prophet", "预言台"],
+  todaySubtitle:     ["Find leadership. Then find the names.", "找到领涨，再找个股。"],
+  todayDescriptive:  ["Descriptive only — not trading guidance", "仅作描述——不构成交易指引"],
+  todayCaptured:     ["Captured {date}", "采集于 {date}"],
+  // SX01 hero: the leading sector's assessment, stated from published fields.
+  todayHeroKicker:   ["Market & sector leadership", "市场与行业领涨"],
+  // ZH joins the group name to the predicate with no space (the sentence is
+  // one clause; the English template's space is an English word boundary).
+  // The English verb follows the group noun: "Defensives are ahead", "Housing
+  // Chain is ahead" (P2-3) — the hero picks the template by the name's number.
+  todayHeroAhead:    ["{group} is ahead of the market.", "{group}跑赢市场。"],
+  todayHeroBehind:   ["{group} is behind the market.", "{group}跑输市场。"],
+  todayHeroEven:     ["{group} is in line with the market.", "{group}与市场同步。"],
+  todayHeroAheadPlural:  ["{group} are ahead of the market.", "{group}跑赢市场。"],
+  todayHeroBehindPlural: ["{group} are behind the market.", "{group}跑输市场。"],
+  todayHeroEvenPlural:   ["{group} are in line with the market.", "{group}与市场同步。"],
+  todayHeroUnavailable: ["The leading sector's relative measure is not published for this reading.", "本次读数未发布领涨行业的相对表现。"],
+  // P1-2: why THIS group carries the hero, and who leads overall when that is
+  // a different group — the two modules then cannot read as a contradiction.
+  todayHeroRankLine: ["Highest-ranked group with published members", "已发布成员中排名最高的行业组"],
+  todayHeroRankLead: ["{group} leads overall", "整体排名第一：{group}"],
+  todayHeroRankLeadUnpublished: ["{group} leads overall (members not in this reading)", "整体排名第一：{group}（本次读数未含其成员）"],
+  // P1-5: breadth is unavailable for every group in this reading; the hero
+  // states it once in plain words instead of a full stat tile.
+  todayHeroBreadthLine: ["Participation (above trend): not available", "参与度（趋势上方）：暂不可用"],
+  todayBreadthUnavailable: ["Participation (above trend) isn't available for this reading.", "本次读数未提供参与度（趋势上方）。"],
+  todayReturnVsSector: ["Return vs sector", "相对行业收益"],
+  todayNotPublished: ["not published", "未发布"],
+  todayOpenGroup:    ["Inspect sector", "查看行业"],
+  todayOpenGroupAria:["Inspect {group} in the Screener", "在筛选台中查看 {group}"],
+  todayRowResearch:  ["Research", "研究"],
+  todayServedMembers:["{n} served members", "{n} 只已覆盖成分"],
+  todayObservedSince:["Under observation since {asof}", "观察始于 {asof}"],
+  todayMemberSince:  ["Member since {date}", "成分加入于 {date}"],
+  // P0-1: plan membership stays visible as a neutral pointer; direction and
+  // open dates belong to the Plans lane, never under a sector headline.
+  todayAlsoInPlans:  ["Also in Model plans", "亦见于模型计划"],
+  todayAlsoInPlansAria: ["Open the Model plans lane", "打开模型计划分区"],
+  todayEntryUnavailable: ["No entry assessment is published for this member.", "该成分暂无已发布的入场评估。"],
+  todayCaseOpenSetup:["Company setup", "公司档案"],
+  todayCaseCompare:  ["Compare", "对比"],
+  todayCaseCompareShort: ["Compare", "对比"],
+  todayCaseCompareRemoveShort: ["Selected", "已选"],
+  todayCaseCompareAria:["Add {symbol} to the compare selection", "将 {symbol} 加入对比选择"],
+  todayCaseCompareRemove:["Remove {symbol} from the compare selection", "将 {symbol} 移出对比选择"],
+  todaySelected:     ["Selected to compare", "已选对比"],
+  todaySelectedCount:["{n} of 12 selected", "已选 {n} / 12"],
+  todaySelectionFull:["Selection is full (12) — remove one to add another.", "选择已满（12）——请先移除一项再添加。"],
+  todayCasesTitle:   ["Research cases — {group}", "研究案例 — {group}"],
+  todayCasesBasis:   ["Member states as of {asof}", "成分状态截至 {asof}"],
+  todayCasesNone:    ["No open plans or early observations in this group yet.", "该行业组暂无进行中计划或早期观察。"],
+  todayStillDeveloping: ["Still developing", "仍在发展"],
+  todayCasesMore:    ["{n} further cases", "另有 {n} 个案例"],
+  todayLeadershipTitle: ["Sector leadership", "行业领涨"],
+  todayLeadershipBasis: ["Group measures as of {date}", "组内指标截至 {date}"],
+  todayLeadershipShown:["Showing {shown} of {total} groups", "显示 {shown} / {total} 个行业组"],
+  todayLeadershipAll:["View all {n} groups in the Screener", "在筛选台查看全部 {n} 个行业组"],
+  colGroup:          ["Group", "行业组"],
+  todayGroupRowAria: ["Open {group}'s member population", "打开 {group} 的成分列表"],
 } as const;
 
 type ProphetKey = keyof typeof PROPHET_LEX;
+
+/** Does the group's name take a plural verb? "Defensives are ahead", "Housing
+ * Chain is ahead", "Consumer Staples (Equal-Weight) are ahead". The trailing
+ * parenthetical is a qualifier, not the head noun; "…ss" (Business) and
+ * mass nouns (Health Care, Retail) stay singular. Used only for English
+ * grammar — the ZH templates carry no verb. */
+export function groupNameTakesPlural(name: string): boolean {
+  const bare = name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const head = bare.split(/\s+/).pop() ?? bare;
+  return /s$/i.test(head) && !/ss$/i.test(head);
+}
 
 export function getProphetStr(lang: Lang, key: ProphetKey): string {
   const entry = PROPHET_LEX[key];
@@ -681,6 +765,26 @@ export function makeProphetT(lang: Lang): (key: ProphetKey) => string {
 export function phaseWhy(lang: Lang, phase: string | null | undefined): string | null {
   if (phase === "overtime") return getProphetStr(lang, "phaseOvertimeWhy");
   return null;
+}
+
+/**
+ * The sector owner's phase vocabulary, mapped for both languages (P4). The
+ * wire carries the owner's English label verbatim; this closed map is the ONLY
+ * translation, and an unknown term renders as-is — never an invented
+ * translation.
+ */
+const OWNER_STATE_LABELS: Readonly<Record<string, readonly [string, string]>> = {
+  Peak: ["Peak", "峰值"],
+  Expansion: ["Expansion", "扩张"],
+  Downturn: ["Downturn", "下行"],
+  Trough: ["Trough", "谷底"],
+  Recovery: ["Recovery", "复苏"],
+};
+
+export function ownerStateLabel(lang: Lang, raw: string): string {
+  const entry = OWNER_STATE_LABELS[raw];
+  if (!entry) return raw;
+  return lang === "zh" ? entry[1] : entry[0];
 }
 
 export type { ProphetKey };
