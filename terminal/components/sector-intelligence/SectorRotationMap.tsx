@@ -40,6 +40,8 @@ export interface SectorRotationMapProps {
   rows: readonly Row[];
   status: FeedStatus;
   asOf: string | null;
+  /** An independently qualified, dated legacy source offered only by explicit user choice. */
+  legacySnapshot?: { rows: readonly Row[]; status: FeedStatus; asOf: string | null };
   /** Macro's measured_group_read coverage receipt; absence renders nothing. */
   measured?: MeasuredRead | null;
   risk?: FeedPayload;
@@ -134,7 +136,13 @@ const COPY = {
   loading: ["Loading the rotation snapshot…", "正在加载轮动快照…"],
   access: ["Rotation data requires access.", "轮动数据需要访问权限。"],
   invalid: ["The rotation snapshot could not be read safely.", "无法安全读取轮动快照。"],
+  feedUnavailable: ["The native rotation generation is unavailable. Review sources for its status.", "原生板块轮动数据暂不可用。请查看来源状态。"],
+  feedError: ["The rotation source request failed. Review sources for the cause.", "板块轮动数据请求失败。请查看来源以了解原因。"],
   empty: ["No readable sector rotation rows are available.", "暂无可读取的板块轮动数据。"],
+  legacyAction: ["View dated Sector Central snapshot", "查看带日期的板块中心快照"],
+  legacyTitle: ["Legacy Sector Central snapshot", "旧版板块中心快照"],
+  legacyNotice: ["This uses a separate dated sector/SPY source, not an accepted native-generation read. Native history and measured coverage are not inferred.", "这里采用独立日期的板块/SPY来源，并非已验证的原生版本读取。不会推断原生历史或实测覆盖率。"],
+  legacyReturn: ["Return to native feed", "返回原生数据源"],
   noMatches: ["No sectors match this display filter.", "没有板块符合此显示筛选。"],
   sources: ["Review sources", "查看来源"],
   missingCoordinates: ["missing one or both relative-strength coordinates", "缺少一个或两个相对强度坐标"],
@@ -495,17 +503,33 @@ function sign(value: number | null, digits = 1, suffix = "%"): string {
 export default function SectorRotationMap(props: SectorRotationMapProps) {
   const { lang } = useLang();
   const [qualificationTime, setQualificationTime] = useState(Date.now);
+  const [showLegacySnapshot, setShowLegacySnapshot] = useState(false);
   useEffect(() => {
     const recheck = () => setQualificationTime(Date.now());
     const timer = window.setInterval(recheck, 60_000);
     window.addEventListener("focus", recheck);
     return () => { window.clearInterval(timer); window.removeEventListener("focus", recheck); };
   }, []);
+  // A recovered native generation always wins; switching to the independent weekly method
+  // also clears the user's explicit legacy-preview choice.
+  useEffect(() => {
+    if (props.status === "ready" || props.method === "relative_trend_ema") setShowLegacySnapshot(false);
+  }, [props.status, props.method]);
   const t = (key: keyof typeof COPY) => COPY[key][lang === "zh" ? 1 : 0];
   // Options R1 W2A: the method is explicit; the incumbent relative return stays the default and is never relabelled.
   const trendMethod = props.method === "relative_trend_ema";
   const trend = trendMethod && props.relativeTrendStatus === "ready" ? props.relativeTrend ?? null : null;
-  const points = useMemo(() => props.status === "ready" ? sectorRotationPoints(props.rows) : [], [props.rows, props.status]);
+  // Never substitute the independent Central artifact for a refused native generation.
+  // A separate, dated legacy view requires a user gesture and an already-ready legacy feed;
+  // no extra request, auth bypass, cross-source history, or inferred measurement is introduced.
+  const legacyAvailable = !trendMethod && ["unavailable", "invalid", "error"].includes(props.status)
+    && props.legacySnapshot?.status === "ready" && !!props.legacySnapshot.asOf
+    && props.legacySnapshot.rows.length > 0;
+  const usingLegacy = legacyAvailable && showLegacySnapshot;
+  const activeStatus = usingLegacy ? props.legacySnapshot!.status : props.status;
+  const activeRows = usingLegacy ? props.legacySnapshot!.rows : props.rows;
+  const activeAsOf = usingLegacy ? props.legacySnapshot!.asOf : props.asOf;
+  const points = useMemo(() => activeStatus === "ready" ? sectorRotationPoints(activeRows) : [], [activeRows, activeStatus]);
   const trendPoints = useMemo(() => trend ? relativeTrendPoints(points, trend) : [], [points, trend]);
   const filtered = useMemo(() => filterRotationPoints(points, props.query), [points, props.query]);
   const filteredIds = new Set(filtered.map(point => point.id));
@@ -519,8 +543,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const trendSelected = trendPoints.find(point => point.id === props.selected) || null;
   const language = lang === "zh" ? "zh" : "en";
   const synthesis = useMemo(() => trend ? relativeTrendSynthesis(trendPoints, language) : rotationSynthesis(points, language), [trend, trendPoints, points, language]);
-  const receipt = rotationReceipt(trend ? trend.asOf : props.asOf, points.length, language);
-  const measuredLine = measuredCoverageReceipt(props.measured, props.asOf, language);
+  const receipt = rotationReceipt(trend ? trend.asOf : activeAsOf, points.length, language);
+  const measuredLine = usingLegacy ? null : measuredCoverageReceipt(props.measured, props.asOf, language);
   const riskRead = props.risk?.receipt.status === "ready" && !props.risk.receipt.stale
     ? qualifyRiskEnvelope(props.risk.data, undefined, qualificationTime) : null;
   const riskCopy = riskEnvelopeCopy(riskRead?.envelope ?? null, lang === "zh");
@@ -532,7 +556,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const historyIndex = historyPoints.length ? Math.min(historyCursor ?? historyPoints.length - 1, historyPoints.length - 1) : -1;
   const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
   // The daily history trail belongs to the incumbent method; the trend method carries its own weekly trail.
-  const historyConnected = !trendMethod && props.historyStatus === "ready" && props.history !== null && !!historical;
+  const historyConnected = !usingLegacy && !trendMethod && props.historyStatus === "ready" && props.history !== null && !!historical;
   const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain) : null;
   const recentCycleTurns = historyConnected && historical && historySeries
     ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
@@ -553,7 +577,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const trendUnplaced = trendFiltered.filter(point => point.placement.state !== "placed");
   const context = trend
     ? rotationContextLabel({ basis: "benchmark_relative_trend", benchmark: trend.method.benchmark, asOf: trend.asOf, method: ROTATION_METHOD_RELATIVE_TREND, vintage: trend.vintage }, language)
-    : rotationContextLabel({ basis: "benchmark_relative", benchmark: ROTATION_BENCHMARK, asOf: props.asOf, method: ROTATION_METHOD_INCUMBENT }, language);
+    : rotationContextLabel({ basis: "benchmark_relative", benchmark: ROTATION_BENCHMARK, asOf: activeAsOf, method: ROTATION_METHOD_INCUMBENT }, language);
   const shown = rotationShownReceipt(filtered.length, points.length, language,
     trend ? { label: t("trendMethodShort"), vintage: trend.vintage, endpointPolicy: t("trendEndpointPolicy") } : undefined);
   const trendTrail = trend && trendSelected ? relativeTrendTrailPath(trendSelected.trail, domain) : null;
@@ -576,12 +600,19 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     event.preventDefault();
     const next = keys[target]; props.onSelect(next); refs.current[next]?.focus({ preventScroll: true });
   };
-  const emptyCopy = props.status === "loading" ? t("loading") : props.status === "access" ? t("access")
-    : props.status === "invalid" || props.status === "error" ? t("invalid") : t("empty");
+  const emptyCopy = activeStatus === "loading" ? t("loading") : activeStatus === "access" ? t("access")
+    : activeStatus === "invalid" ? t("invalid") : activeStatus === "unavailable" ? t(trendMethod ? "trendUnavailable" : "feedUnavailable")
+    : activeStatus === "error" ? t("feedError") : t("empty");
 
-  if (props.status !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation">
+  if (activeStatus !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation">
     <div className={styles.header}><h2>{t("title")}</h2></div>
-    <div className={styles.empty} role="status"><p>{emptyCopy}</p><button type="button" onClick={props.onSources}>{t("sources")} →</button></div>
+    <div className={styles.empty} role="status">
+      <p>{emptyCopy}</p>
+      <button type="button" onClick={props.onSources}>{t("sources")} →</button>
+      {legacyAvailable && <button type="button" data-testid="rotation-legacy-open" onClick={() => setShowLegacySnapshot(true)}>
+        {t("legacyAction")} · {props.legacySnapshot?.asOf}
+      </button>}
+    </div>
   </section>;
 
   const methodSwitch = props.onMethod ? <div className={styles.mode} role="group" aria-label={t("methodGroup")}>
@@ -608,6 +639,10 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
       <p className={styles.receipt} data-testid="rotation-context">{context} · {universe.counts.placed} {t("placedCount")}{universe.counts.boundary ? ` · ${universe.counts.boundary} ${t("boundaryCount")}` : ""}{universe.counts.unavailable ? ` · ${universe.counts.unavailable} ${t("unavailableCount")}` : ""}</p>
       {!trend && measuredLine && <p className={styles.receipt} data-testid="rotation-measured-coverage">{measuredLine}</p>}
     </header>
+    {usingLegacy && <div className={styles.legacyNotice} role="status" data-testid="rotation-legacy-notice">
+      <div><strong>{t("legacyTitle")} · {activeAsOf}</strong><p>{t("legacyNotice")}</p></div>
+      <button type="button" data-testid="rotation-legacy-close" onClick={() => setShowLegacySnapshot(false)}>{t("legacyReturn")}</button>
+    </div>}
     {synthesis && <div className={styles.answer} data-testid="rotation-answer">
       <span>{t("answerLabel")}</span><p>{synthesis}</p>
       <p className={styles.context} data-testid="rotation-risk-context">{riskCopy.caption}</p>
@@ -716,7 +751,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div>}
 
-    {!trendMethod && <section className={styles.history} data-testid="rotation-history" aria-label={t("historyTitle")}>
+    {!usingLegacy && !trendMethod && <section className={styles.history} data-testid="rotation-history" aria-label={t("historyTitle")}>
       <header><div><span>{t("historySource")}</span><h3>{t("historyTitle")}</h3></div>
         <small>{props.history?.asOf ? rotationHistoryDate(props.history.asOf, language) : t("unknownDate")}</small></header>
       {historyConnected && historical ? <>
@@ -749,7 +784,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     </section>}
 
 
-    <section className={styles.nativeEpisodes} data-testid="rotation-native-episodes" aria-label={t("nativeEpisodeTitle")}>
+    {!usingLegacy && <section className={styles.nativeEpisodes} data-testid="rotation-native-episodes" aria-label={t("nativeEpisodeTitle")}>
       <h3>{t("nativeEpisodeTitle")}</h3>
       {nativeEpisodes ? <>
         <p>{t("nativeEpisodeCaveat")}</p>
@@ -779,7 +814,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <small>{event.provenance === "RECONSTRUCTED_REPLAY" ? t("nativeEpisodeReplay") : t("nativeEpisodeUnmarked")}</small>
           </li>)}</ol> : <p>{t("nativeEpisodeEmpty")}</p>}
       </> : <p>{t("nativeEpisodeUnavailable")}</p>}
-    </section>
+    </section>}
 
     <div className={styles.disclosures}>
       <details data-rotation-method><summary>{t("method")}</summary><div className={styles.methodBody}>
@@ -795,7 +830,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             {t("unavailableObservationDate")} {props.risk.receipt.asOf}
           </p>}
         </div><p>{t("sourceBoundary")}</p>{trend ? <p>{t("displayOnly")}</p> : <p>{t("currentOnly")} {t("displayOnly")}</p>}
-        {!trendMethod && <p><strong>{historyConnected ? t("historyTitle") : t("noTrail")}</strong> · {historyConnected ? t("historyProvenance") : t("noTrailCopy")}</p>}
+        {!usingLegacy && !trendMethod && <p><strong>{historyConnected ? t("historyTitle") : t("noTrail")}</strong> · {historyConnected ? t("historyProvenance") : t("noTrailCopy")}</p>}
 
         {trend ? <p>{trendMeasured.length} / {points.length} {t("trendCoordinates")}{universe.counts.unavailable
           ? ` · ${universe.counts.unavailable} ${t("trendMissingCoordinates")}` : ""}{universe.counts.boundary
