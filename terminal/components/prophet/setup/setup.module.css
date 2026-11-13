@@ -1,0 +1,609 @@
+/* Company case (Lane C) — reuses observatory.css's Prophet grammar (cards,
+   radius, quiet chips, tabular numbers) and globals.css tokens. No new token
+   root, no colored container edges (2026-10-18 ruling): hierarchy comes from
+   spacing, type and surface depth; status is labeled text in semantic ink
+   (amber --warn for unavailable assessment states, never a container color).
+   Responsive contract: desktop main+rail grid → single column below 900px,
+   44px touch targets, zero horizontal overflow at 320px. */
+
+.case {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Hook for the case-page-wide touch-target contract (every disclosure
+   control and button at ≤640px). Carries no styling of its own. */
+.caseSurface { min-width: 0; }
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+/* T2-C5 header: breadcrumb, identity, honest headline, one state chip. No
+   clocks, no quote line, no verdict card — the dates live on the rows that
+   own them. Its rhythm is tighter than a generic card's so the first screen
+   reaches the tabs at phone width (P1-6). */
+.caseHead {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(112deg, rgba(41, 98, 255, 0.10), rgba(255, 255, 255, 0.02));
+}
+.backButton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: transparent;
+  font: 600 12.5px/1 var(--font-ui);
+  color: var(--link);
+  cursor: pointer;
+  text-align: left;
+}
+.backButton:hover { text-decoration: underline; }
+/* The crumb names the group and the kept selection; phone width keeps the
+   short form so it stays one line above the case. */
+.backLong { display: inline; }
+.backShort { display: none; }
+@media (max-width: 640px) {
+  .backLong { display: none; }
+  .backShort { display: inline; }
+}
+/* T2-03: the stance/verdict line is the large heading (the case's answer);
+   the ticker is demoted to the eyebrow row beside the kicker. */
+.caseCompany {
+  margin: 0;
+  font: 700 13px/1.3 var(--font-ui);
+  letter-spacing: 0.01em;
+  color: var(--text-2);
+}
+.caseCompany b {
+  font-weight: 760;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+/* T2-03 (node 1CUU-0): the stance line is the case's display heading at the
+   designed ~32px; the ticker stays the smaller eyebrow above it. The step
+   down keeps the same hierarchy at tablet and phone widths (T2-12). */
+.caseTitle {
+  margin: 2px 0 0;
+  font: 760 32px/1.18 var(--font-ui);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+@media (max-width: 900px) {
+  .caseTitle { font-size: 25px; }
+}
+@media (max-width: 640px) {
+  .caseTitle { font-size: 21px; }
+}
+.caseChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 3px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--r-pill);
+  background: rgba(5, 7, 12, 0.35);
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.chipQuiet { border-style: dashed; color: var(--muted); }
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--line-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 10px 12px 9px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font: 600 12.5px/1 var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+}
+.tab:hover { color: var(--text-2); }
+.tabOn {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+/* Touch-target floor at ≤640px: tabs and the back control are 44px (the
+   verifier measured 34/36px — fix order item 2). */
+@media (max-width: 640px) {
+  .tab { min-height: 44px; }
+  .backButton { min-height: 44px; }
+}
+
+/* ── Body grid: main column + rail ─────────────────────────────────────── */
+.caseBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 316px;
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+.caseMain {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.caseRail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  position: sticky;
+  top: 8px;
+}
+/* Destinations without a rail (Evidence, Context) use the full width — a
+   reserved 316px column would otherwise sit empty beside their content. */
+.caseBodySolo { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 900px) {
+  .caseBody { grid-template-columns: minmax(0, 1fr); }
+  .caseRail { position: static; }
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+/* 15px content gutter (T2-03): every card's text column, and the Sources &
+   method disclosure that sits between cards, share it. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.22);
+  min-width: 0;
+}
+.cardTitle {
+  margin: 0;
+  font: 700 13.5px/1.2 var(--font-ui);
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.cardIntro {
+  margin: 0;
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+.badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 4px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pill);
+  background: rgba(5, 7, 12, 0.35);
+  font: 600 10px/1 var(--font-ui);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.badgeWarn { color: var(--warn); }
+.unavailableBody {
+  margin: 0;
+  font: 500 11.5px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+.unavailableNote {
+  margin: 0;
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.cardFootnote {
+  margin: 2px 0 0;
+  font: 500 10.5px/1.45 var(--font-ui);
+  color: var(--text-dim);
+}
+
+/* Stat tiles (study card) — served numbers left, missing leg labeled. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(5, 7, 12, 0.3);
+  min-width: 0;
+}
+.tile span {
+  font: 600 9px/1.2 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tile b {
+  font: 700 14px/1.1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.tile small {
+  font: 500 10px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.tileMissing b {
+  font: 600 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.pos { color: var(--up); }
+.neg { color: var(--down); }
+
+/* The one unavailable card (T2-C5): a warn mark in semantic ink beside the
+   title — never a colored container edge (2026-10-18 ruling). */
+.unavailableHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.warnMark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--warn);
+  border-radius: 50%;
+  font: 700 10px/1 var(--font-ui);
+  color: var(--warn);
+}
+.railItemValueWarn {
+  font-weight: 600;
+  color: var(--warn);
+}
+
+/* "You can still study" — the honest exit list (T2-C5). */
+.studyLinkList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.studyLinkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-2);
+  background: transparent;
+  font: 600 12px/1.3 var(--font-ui);
+  color: var(--text-2);
+  text-align: left;
+  cursor: pointer;
+}
+.studyLinkList li:last-child .studyLinkRow { border-bottom: none; }
+.studyLinkRow:hover { color: var(--text); }
+.studyLinkArrow { flex: none; color: var(--muted); }
+.studyChartLink {
+  align-self: flex-start;
+  font: 600 11.5px/1.4 var(--font-ui);
+  color: var(--link);
+}
+.studyChartLink:hover { text-decoration: underline; }
+
+/* The plan row: one closed, linked row; the line under it carries the date and
+   the not-permission-to-trade statement. */
+.planRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--line-2);
+  color: var(--text);
+  text-decoration: none;
+}
+.planRow:hover .planRowName { text-decoration: underline; }
+.planRowName {
+  font: 700 12.5px/1.3 var(--font-ui);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.planRowArrow { flex: none; color: var(--muted); }
+.planRowLink {
+  align-self: flex-start;
+  font: 600 11.5px/1.4 var(--font-ui);
+  color: var(--link);
+}
+.planRowLink:hover { text-decoration: underline; }
+
+/* Bottom return (P1-7): the long phone page ends with the way back, carrying
+   the same selection as the breadcrumb. */
+.backBottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  align-self: flex-start;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 650 12px/1 var(--font-ui);
+  color: var(--text-2);
+  text-decoration: none;
+}
+.backBottom:hover { border-color: var(--line-3); color: var(--text); }
+@media (max-width: 640px) {
+  .backBottom { width: 100%; min-height: 44px; }
+}
+
+/* The membership line sits on the cards' own gutter. */
+.membershipLine { padding: 0 2px; }
+
+/* Rail cards */
+.railList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.railItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line-2);
+}
+.railItem:last-child { padding-bottom: 0; border-bottom: none; }
+.railItemLabel {
+  font: 600 9.5px/1 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.railItemValue {
+  font: 600 11.5px/1.4 var(--font-ui);
+  color: var(--text);
+}
+.railItemValueMissing {
+  font-weight: 500;
+  color: var(--muted);
+}
+/* Disclosure control shared by the case page's <summary> controls: a drawn
+   marker instead of the native one, so the marker's left edge is the
+   control's own left edge and can sit exactly on the card gutter. */
+.disclosureSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  cursor: pointer;
+  padding-block: 4px;
+}
+.disclosureSummary::-webkit-details-marker { display: none; }
+.disclosureSummary::before {
+  content: "▸";
+  flex: none;
+  width: 8px;
+  font-size: 9.5px;
+  line-height: 1;
+  color: var(--muted);
+}
+details[open] > .disclosureSummary::before { content: "▾"; }
+
+/* Sources & method sheet (T2-16): one row per source, its own clock on the
+   right — never merged into a single "as of". The sheet is inset to the
+   cards' own 15px content gutter (fix r2 P2), so the "▸ Sources & method"
+   control starts on the same text column as the cards above and below it. */
+.sourcesSheet {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 15px;
+}
+.sourcesSummary {
+  font: 650 11.5px/1.2 var(--font-ui);
+  color: var(--link);
+}
+.sourcesSummary:hover { color: var(--text-2); }
+
+/* Touch-target floor at ≤640px for the whole case page: every disclosure
+   control and every button is ≥44px (fix r2 B1 — the two summaries measured
+   12px and 10px; the tabs, back, save and follow controls are covered here
+   too, so no control on the page can regress below the floor). */
+@media (max-width: 640px) {
+  .caseSurface summary {
+    min-height: 44px;
+    padding-block: 8px;
+  }
+  .caseSurface button { min-height: 44px; }
+}
+.sourceRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line-2);
+  font: 500 11px/1.5 var(--font-ui);
+}
+.sourceRow:last-child { padding-bottom: 0; border-bottom: none; }
+.sourceName { color: var(--text-2); }
+.sourceClock {
+  flex-shrink: 0;
+  font: 600 10.5px/1.5 var(--font-ui);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ── Actions (Save / Follow) ────────────────────────────────────────────── */
+/* Save / Follow card: fills the rail column and never overflows it. */
+.saveFollow { min-width: 0; }
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.primaryButton {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--r);
+  background: var(--text);
+  font: 650 12px/1 var(--font-ui);
+  color: #0b0d12;
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease-out);
+}
+.primaryButton:hover:not(:disabled) { opacity: 0.88; }
+.primaryButton:disabled { opacity: 0.55; cursor: default; }
+.ghostButton {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 650 12px/1 var(--font-ui);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.ghostButton:hover:not(:disabled) { border-color: var(--line-3); color: var(--text); }
+.ghostButton:disabled { opacity: 0.55; cursor: default; }
+@media (max-width: 640px) {
+  .primaryButton, .ghostButton { min-height: 44px; }
+}
+
+/* Save/follow result panels (T2-20 states) */
+.resultPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 13px;
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.3);
+}
+.resultTitle {
+  margin: 0;
+  font: 700 12.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.resultBody {
+  margin: 0;
+  font: 500 11.5px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+
+/* ── Observation evidence (Evidence tab) ───────────────────────────────── */
+.obsEvidence { margin: 0; }
+
+/* ── Membership / relationships (Context) ──────────────────────────────── */
+.groupList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.groupRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(5, 7, 12, 0.3);
+}
+.groupName {
+  font: 700 12px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.groupMeta {
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Loading skeleton (T2-21 #7 — bars, no words inside) ───────────────── */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 4px 0;
+}
+.skeletonBar {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05));
+  background-size: 200% 100%;
+  animation: skeletonSweep 1.4s ease infinite;
+}
+.skeletonBar:nth-child(1) { width: 62%; }
+.skeletonBar:nth-child(2) { width: 88%; }
+.skeletonBar:nth-child(3) { width: 44%; }
+@keyframes skeletonSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar { animation: none; }
+}
+.a11yLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.emptyCopy {
+  margin: 0;
+  padding: 4px 2px;
+  font: 500 12px/1.5 var(--font-ui);
+  color: var(--muted);
+}

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import populationWire from "../lib/__tests__/fixtures/sector_population.captured.v11_page1.json";
 import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
+import { stubBoardWithCarr, stubObservationsUnavailable } from "./prophetCaseFixtures";
 import { sectorFixture } from "./fixtures/sector-company-v3";
 
 /**
@@ -34,71 +35,18 @@ const enterSectorLane = async (page: Page) => {
   await expect(page.getByTestId("prophet-sector-lane")).toBeVisible();
 };
 
-/** The REAL CARR-BULL-20261016 board row, byte-for-byte from the Prophet index
- * capture the v1 member fixtures were generated from (Macro `prophet-si`
- * `site/prophet/index.json`, asof 2026-11-09, source_asof 2026-11-06; plan row
- * sha256 bcdb39369d807417503c65e25dc3ad62fe4b64d0b9f513a0e75678f2847e7808),
- * projected onto exactly the 19 keys the committed board rows carry — every
- * value verbatim, nothing invented. Every level, date, state and the thesis
- * are already public in Macro `origin/main` at `site/prophet/plans/
- * CARR-BULL-20261016.json` and `site/prophet/states/
- * CARR-BULL-20261016.json` (verified 2026-11-11). The committed fixture board
- * is the 2026-07-07 generation and does not contain this plan; the review
- * caught the previous stub relabelling the SBUX template row as CARR, which
- * put Starbucks' levels and thesis on Carrier's setup. */
-const REAL_CARR_BOARD_PLAN = {
-  id: "CARR-BULL-20261016",
-  asset: "CARR",
-  direction: "BULL",
-  entry: 56.47,
-  invalidation: 52.26,
-  targets: [62.785, 69.1],
-  trigger: 56.77,
-  option_contract: null,
-  _r_unit: 4.21,
-  _conviction_score: 53,
-  _signal_date: "2026-10-20",
-  phase: "pre_trigger",
-  management_confidence: 32.3,
-  recommended_action: "wait",
-  last_price: 52.38,
-  state: {
-    phase: "pre_trigger",
-    management_confidence: 32.3,
-    recommended_action: "wait",
-    components: { validity: 0.1, progress: 0.0, pace: 24.9, retention: 50.0, overlay: 27.0 },
-    geometry: {
-      dist_to_stop_r: 0.029, dist_to_t1_r: 1.5, dist_to_t2_r: 3.0, horizon_pct_used: 42.2,
-      p1: -0.6477, p2: -0.3238, p3: null, move_r: -0.971, mfe_r: 0.002, mae_r: -0.971,
-    },
-    change_reason: "",
-  },
-  what_to_do_now: [
-    "A PIT price range or closing print touched the $55.72–$56.47 zone. This is not proof of order execution or of the separate closing trigger confirming.",
-    "Any position remains conditional on the plan's separate trigger and risk rules, including the $52.26 invalidation boundary.",
-  ],
-  profit_plan: [
-    { level: 62.785, label: "T1", action: "Scale out 40%, trail stop to entry", status: "ACTIVE" },
-    { level: 69.1, label: "T2", action: "Close remaining 60%, exit full position", status: "PENDING" },
-  ],
-  thesis: "CARR — conviction 53/100 (neutral) Entry grade: strong. Drivers: entry. Cautions: Earnings in 5 days. The result can override the setup, so size down.; Its Industrials (Equal-Weight) basket is below its long-term trend. Size down: the tape is rewarding leaders, and this basket is not one.. Trust tier: Event edge: insider buying (lone FDR survivor) + earnings-surprise PEAD context + revisions — a confluence read, not a standalone alpha. Options positioning (as of 2026-10-21): the heaviest call open interest sat at $57.00, about 0.9% above the entry — dealer hedging tends to add friction into that level, which is a place price stalls, not a target. DISPLAY-ONLY: machine-generated from factor scores; no forward return guarantee; display-tier artifact.",
-};
+/** The REAL CARR-BULL-20261016 board row behind stubBoardWithCarr lives in
+ * e2e/prophetCaseFixtures.ts (byte-for-byte from the Prophet index capture
+ * the v1 member fixtures were generated from — Macro `prophet-si`
+ * `site/prophet/index.json`, asof 2026-11-09; every level, date, state and
+ * the thesis already public in Macro `origin/main` at
+ * `site/prophet/plans/CARR-BULL-20261016.json`, verified 2026-11-11). The
+ * committed fixture board is the 2026-07-07 generation and does not contain
+ * this plan; the review caught the previous stub relabelling the SBUX
+ * template row as CARR, which put Starbucks' levels and thesis on Carrier's
+ * setup. */
 
-/** The board read extended by the REAL CARR plan row (above) at the browser
- * seam, so the Setup's plan join selects genuine 2026-11-09 evidence. */
-async function stubBoardWithCarr(page: Page) {
-  await page.route(
-    url => url.pathname === "/api/flow" && url.searchParams.get("f") === "prophet_idx",
-    async route => {
-      const response = await route.fetch();
-      const board = await response.json() as { plans: Record<string, unknown>[] };
-      if (!board.plans.some(plan => plan.id === "CARR-BULL-20261016")) {
-        board.plans.push(REAL_CARR_BOARD_PLAN);
-      }
-      await route.fulfill({ response, json: board });
-    },
-  );
-}
+
 
 test.describe("Prophet-side journey (no sector-side dependency)", () => {
   test("lane → picker → population → real Setup → sources, all in the address", async ({ page }) => {
@@ -265,14 +213,33 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Deliberately NOT asserted: entry, invalidation, targets, conviction and
     // the thesis text. #1477 removes that trade ticket, and no test of ours may
     // lock it in — this only proves the plan is named and its panel mounted.
-    await expect(setup.locator(".obs-prophet-analysis").first()).toBeVisible();
+    await expect(page.getByTestId("case-tabs")).toBeVisible();
+    const unavailable = page.getByTestId("case-unavailable");
+    await expect(unavailable).toHaveCount(1);
+    await expect(unavailable).toContainText("Research case unavailable");
+    for (const label of ["Verdict headline", "Entry assessment", "Not available", "Unavailable"]) {
+      await expect(unavailable).toContainText(label);
+    }
+    await expect(setup.locator('[data-testid="case-verdict"], [data-testid="entry-check"]')).toHaveCount(0);
+    const rail = page.getByTestId("model-plan-rail");
+    await expect(page.getByTestId("prophet-sector-plan-link")).toBeVisible();
+    await expect(rail).toContainText("CARR-BULL-20261016");
+    for (const price of ["$56.47", "$52.26", "$62.78", "$69.10"]) {
+      await expect(setup).not.toContainText(price);
+    }
+    await expect(setup).not.toContainText(/conviction|53\/100|size down/i);
+    await expect(setup.getByText(/^(Entry|Stop|Target(?: [12])?)$/i)).toHaveCount(0);
+    await expect(setup.locator('[data-testid="geometry-rail"], [data-testid="plan-thesis"]')).toHaveCount(0);
+    await expect(rail).not.toContainText("Industrials (Equal-Weight) basket");
+    const railText = await rail.innerText();
+    expect(railText).not.toContain("SBUX");
+    expect(railText).not.toContain("104.30");
     const setupText = await setup.innerText();
-    expect(setupText).toContain("CARR");
     // The membership shown is the one the reader is investigating: CARR sits
     // in Housing AND Industrials and Housing is memberOf[0] in the capture —
     // arriving from the Industrials population must show Industrials' own
-    // group context ("What {group} is doing", clocks, return), never
-    // Housing's. also_in_groups is never rendered, so "Housing" can only
+    // group context (study card, clocks, return), never Housing's. The
+    // Context tab is not open on this default view, so "Housing" can only
     // reach the screen through the wrong-membership pick (review M1).
     expect(setupText).not.toContain("Housing");
 
@@ -318,6 +285,13 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // have happened — not left on the document body.
     await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
     expect(await page.evaluate(() => document.activeElement?.tagName ?? "")).toBe("H3");
+    // The bottom return follows the same in-lane accessibility contract.
+    await page.getByTestId("prophet-sector-open-CARR").click();
+    await expect(page.getByTestId("prophet-sector-setup-back-bottom")).toHaveAttribute("href", /prophetSymbol=CARR/);
+    await page.getByTestId("prophet-sector-setup-back-bottom").click();
+    await expect(page).toHaveURL(/prophetSymbol=CARR/);
+    await expect(returnedRow).toContainText("CARR");
+    await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
   });
 
   test("a member without a plan gets an honest Setup, never a manufactured signal", async ({ page }) => {
@@ -346,14 +320,30 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.getByTestId("prophet-sector-open-ALLE").click();
     const setup = page.getByTestId("prophet-sector-setup");
     await expect(setup).toBeVisible({ timeout: 15_000 });
-    await expect(setup).toContainText("ALLE setup");
-    // The owner's reason, translated — not a raw code, not a stance.
+    // The header names the company and reports the no-plan stance in plain
+    // words; the owner's reason stays translated — not a raw code, not a
+    // stance beyond what the index reports.
+    await expect(page.getByTestId("case-header")).toContainText("ALLE");
+    await expect(page.getByTestId("case-stance")).toHaveText("Case not published yet");
+    await expect(page.getByTestId("case-state-chip")).toHaveText("No plan");
     await expect(setup).toContainText(/no plan for this symbol/i);
-    // The existing chart destination, and no board panel anywhere.
+    // The labeled group/market study replaces the old unlabeled return pair
+    // (G10): market and group are named, the company's own leg is honestly
+    // not produced.
+    await expect(page.getByTestId("study-card")).toContainText("Not available");
+    // The entry rail carries the missing-terms state and no plan rail.
+    await expect(page.getByTestId("entry-check")).toHaveCount(0);
+    await expect(page.getByTestId("case-unavailable")).toContainText("Entry assessment");
+    await expect(page.getByTestId("case-unavailable")).toContainText("Unavailable");
+    await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
+    // The existing chart destination (attached to the next-check block, fix
+    // order item 16), and no board panel anywhere.
     await expect(page.getByTestId("prophet-sector-chart-link")).toHaveAttribute("href", /\/analysis\?symbol=ALLE/);
     await expect(setup.locator(".obs-prophet-analysis")).toHaveCount(0);
     await page.getByTestId("prophet-sector-setup-back").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible();
+    await expect(page).toHaveURL(/prophetView=population/);
+    await expect(page).toHaveURL(/prophetSymbol=ALLE/);
   });
 
   test("a roster plan missing from today's board states the drift plainly", async ({ page }) => {
@@ -379,6 +369,9 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
   test("keyboard-only travel reaches the Setup without a pointer", async ({ page }) => {
     test.setTimeout(60_000);
     await withLang(page);
+    // The developing-observation card reads the observation source; keep this
+    // journey hermetic with a deterministic unavailable answer.
+    await stubObservationsUnavailable(page);
     await page.goto("/options?tab=prophet");
     // Land on the page, walk the tab order into the lane, through the
     // leadership table, the focus and into the population.
@@ -396,7 +389,9 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     // Early observation members show the observation line, not a plan panel.
-    await expect(page.getByTestId("prophet-sector-setup-observation")).toBeVisible();
+    await expect(page.getByTestId("case-state-chip")).toHaveText("Early observation");
+    await expect(page.getByTestId("case-unavailable-dates")).toContainText("Latest observation 2026-11-06");
+    await expect(page.getByTestId("prophet-sector-setup").locator(".obs-prophet-analysis")).toHaveCount(0);
   });
 
   test("the fail-closed group read (group null) states unavailability, never an empty list", async ({ page }) => {
@@ -754,7 +749,18 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByTestId("prophet-sector-member-table")).toContainText("至少 2026-08-13");
     await page.getByTestId("prophet-sector-open-CARR").click();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId("prophet-sector-setup")).toContainText("CARR 研究起点");
+    // The case header and its states read natively in Chinese: kicker, stance,
+    // the unavailable verdict, and the tab destinations (History has no Paper
+    // design and is deliberately absent).
+    await expect(page.getByTestId("case-header")).toContainText("CARR · Carrier Global");
+    await expect(page.getByTestId("case-header")).toContainText("案例尚未发布");
+    await expect(page.getByTestId("case-stance")).toHaveText("案例尚未发布");
+    await expect(page.getByTestId("case-state-chip")).toHaveText("进行中计划");
+    await expect(page.getByTestId("case-verdict")).toHaveCount(0);
+    await expect(page.getByTestId("case-unavailable")).toContainText("研究案例不可用");
+    await expect(page.getByTestId("case-unavailable")).toContainText("结论标题");
+    await expect(page.getByTestId("case-tabs")).toContainText("研究");
+    await expect(page.getByTestId("case-tabs")).toContainText("证据");
   });
 
   test("a >100-member group pages: Next/Prev issues the new offset and the rows change", async ({ page }) => {
