@@ -1,0 +1,83 @@
+{
+  "started_at": "2026-11-12T00:08:13.804642+00:00",
+  "head": "d06340a252167f1e0432ab0b6773011593567647",
+  "tree": "b312f61468271c32ddac31cfd8cbe2f6b0054dc0",
+  "protected": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "source_before": {
+    "terminal/lib/marketStructure.ts": "1cd9e4ac8a5bd0897b03c9a1eeda730961bc928b4604085aef68cf50db19d881",
+    "terminal/lib/__tests__/marketStructure.test.ts": "648bac022ca96edbb6b1e1e27bb1ffdaa6689ea1c270f8e81908db75f7379349",
+    "terminal/lib/__tests__/exposureNodes.test.ts": "63f50b48d7f2b63bc27ba71d17095093dbb34f5df4eb8534a6f4b56a07ce35c0",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "source_after": {
+    "terminal/lib/marketStructure.ts": "1cd9e4ac8a5bd0897b03c9a1eeda730961bc928b4604085aef68cf50db19d881",
+    "terminal/lib/__tests__/marketStructure.test.ts": "648bac022ca96edbb6b1e1e27bb1ffdaa6689ea1c270f8e81908db75f7379349",
+    "terminal/lib/__tests__/exposureNodes.test.ts": "63f50b48d7f2b63bc27ba71d17095093dbb34f5df4eb8534a6f4b56a07ce35c0",
+    "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+    "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4"
+  },
+  "source_stable": true,
+  "results": [
+    {
+      "name": "dependency-install",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/npm",
+        "ci",
+        "--prefer-offline",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "returncode": 0,
+      "log": "dependency-install.log",
+      "log_sha256": "f21f08a6013ab86160a3db78753563fdf1ce6f8492bef43391a6d417780a76f1"
+    },
+    {
+      "name": "typegen",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "returncode": 0,
+      "log": "typegen.log",
+      "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "name": "affected-unit",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/npm",
+        "test",
+        "--",
+        "lib/__tests__/marketStructure.test.ts",
+        "lib/__tests__/exposureNodes.test.ts"
+      ],
+      "returncode": 0,
+      "log": "affected-unit.log",
+      "log_sha256": "b84a7bbb24d6e557291b4d2438fe313e4637e859547c0d2bfdbdf58fb2434fd5"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "returncode": 0,
+      "log": "typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "affected-lint",
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/marketStructure.ts",
+        "lib/__tests__/marketStructure.test.ts"
+      ],
+      "returncode": 0,
+      "log": "affected-lint.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

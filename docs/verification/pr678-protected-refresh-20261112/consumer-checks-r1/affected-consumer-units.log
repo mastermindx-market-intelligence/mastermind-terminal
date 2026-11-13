@@ -1,0 +1,70 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr678-probability-integration-20261109-c4/terminal
+
+ ✓ lib/__tests__/optionsExposureBrowserReport.test.ts (11 tests) 33ms
+ ✓ lib/__tests__/optionsExposureEvidence.test.ts (54 tests) 667ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (11 tests) 255ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (12 tests) 322ms
+ ✓ lib/__tests__/optionsExposureR5Successor.test.ts (21 tests) 55562ms
+   ✓ hosted R5 browser successor > accepts the complete actual packet and retains the eod native identity 2735ms
+   ✓ hosted R5 browser successor > accepts the complete actual packet and retains the gex native identity 2074ms
+   ✓ hosted R5 browser successor > keeps native preflight distinct from current browser acceptance 4759ms
+   ✓ hosted R5 browser successor > rejects current EOD drift in native preflight, including the nonselected family 1151ms
+   ✓ hosted R5 browser successor > rejects current GEX drift in native preflight, including the nonselected family 1220ms
+   ✓ hosted R5 browser successor > rejects current producer drift in native preflight, including the nonselected family 1810ms
+   ✓ hosted R5 browser successor > does not return a legacy null when the declared current root is missing 302ms
+   ✓ hosted R5 browser successor > does not accept a predecessor declaration as the current root 2425ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-artifacts/playwright/.last-run.json 1873ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-artifacts/playwright/.last-run.json 1804ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-integration/.last-run.json 1834ms
+   ✓ hosted R5 browser successor > rejects a missing hidden exporter member: docs/verification/pr646-r5-browser-ci-20261110/prior-browser-root-expiry/.last-run.json 1875ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/browser-execution.json 1933ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/lifecycle.json 2097ms
+   ✓ hosted R5 browser successor > rejects changed captured bytes without rewriting their digest: terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110/expiry-journeys/browser-report.json 2502ms
+   ✓ probability browser successor boundaries > requires new browser proof while retaining strict native-only preflight 7668ms
+   ✓ probability browser successor boundaries > rejects probability-input drift through the eod current owner 5028ms
+   ✓ probability browser successor boundaries > rejects probability-input drift through the gex current owner 5459ms
+   ✓ probability browser successor boundaries > cannot downgrade by restoring both R5 declarations while successor history remains 6813ms
+ ✓ lib/__tests__/optionsExposureEvidenceOwner.test.ts (60 tests) 106069ms
+   ✓ current EOD owner and native reader > selects the same qualified manifest and preserves its actual capture identity 4828ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/FlowFreshnessReceipt.tsx 1654ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/flowdesk/InspectorPane.tsx 1535ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/components/gexdesk/GexSummaryBar.tsx 1142ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/lib/dte.ts 1297ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/e2e/exposure-partial-totals.spec.ts 2265ms
+   ✓ current EOD owner and native reader > refuses reuse after mounted desk source drift: terminal/public/data/gex_fixture.json 2610ms
+   ✓ current EOD owner and native reader > refuses a corrupted selected image through the actual owner 3676ms
+   ✓ current EOD owner and native reader > refuses a changed descriptor rather than recapturing over history 2540ms
+   ✓ current EOD owner and native reader > refuses a removed declaration even when the historical root remains a valid raw manifest 2512ms
+   ✓ paired Options integration proof > refuses a mixed current family declaration 2299ms
+   ✓ paired Options integration proof > refuses a complete-image receipt with an incomplete frame matrix 2565ms
+   ✓ paired Options integration proof > refuses a current receipt without settled native-server proof 3301ms
+   ✓ expiry integration with retained EOD identity > selects the fresh GEX packet through the shared owner without relabeling EOD 5242ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExpiryBars.tsx 2238ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/components/gexdesk/ExposureExpiryDrawer.tsx 2773ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/lib/expiryTermStructure.ts 3913ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/exposure-expiry-greeks.spec.ts 2556ms
+   ✓ expiry integration with retained EOD identity > refuses retained EOD when expiry consumer proof drifts: terminal/e2e/responsive.spec.ts 6608ms
+   ✓ expiry integration with retained EOD identity > keeps validating the prior Options GEX descriptor 550ms
+   ✓ expiry integration with retained EOD identity > refuses to assign the fresh GEX identity to EOD 3604ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the eod owner 21316ms
+   ✓ momentum browser successor with retained native evidence > refuses changed momentum runtime source through the gex owner 5665ms
+   ✓ momentum browser successor with retained native evidence > cannot downgrade by removing both successor declarations 4411ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-successor.json 599ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: qualification.json 1479ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/qualification.json 1700ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: browser-report.json 2386ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/browser-report.json 1629ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: lifecycle.json 1311ms
+   ✓ momentum browser successor with retained native evidence > refuses corrupt successor payload: expiry-journeys/lifecycle.json 1112ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: joint 1203ms
+   ✓ momentum browser successor with retained native evidence > binds actual new screenshot bytes: /expiry-journeys 1331ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: browser-report.json 945ms
+   ✓ momentum browser successor with retained native evidence > still validates historical browser payload: expiry-journeys/browser-report.json 1089ms
+
+ Test Files  6 passed (6)
+      Tests  169 passed (169)
+   Start at  17:51:37
+   Duration  107.72s (transform 1.36s, setup 0ms, collect 7.93s, tests 162.91s, environment 1ms, prepare 1.17s)
+

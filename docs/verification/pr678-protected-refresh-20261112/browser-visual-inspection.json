@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-12T01:13:18.541686+00:00",
+  "images": [
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/probability-weighting-integration-20261112/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-desktop/desktop-en-expiry-charm-bars.png",
+      "sha256": "7758180c9382212f43ab837bc5203182aa1fbaeca95693c2a0b443ee1db0d1d5"
+    },
+    {
+      "path": "terminal/docs/verification/exposure-workspace-20261103/probability-weighting-integration-20261112/expiry-journeys/browser-artifacts/playwright/exposure-expiry-greeks-Exp-ad69b-rough-bars-and-drawer-in-en-mobile/mobile-en-expiry-vanna-drawer.png",
+      "sha256": "de33920a372d4e2ad81bd17b3b9bd2577b87496f262809e0dae8dba28a849327"
+    }
+  ],
+  "inspection": "Root viewed these actual final PNGs. Desktop Charm labels and signed bars are legible. Mobile Vanna drawer preserves missing-value disclosure and readable selected-expiry output. No layout defect was observed in these samples.",
+  "scope": "local fixture-browser evidence; no production or study acceptance"
+}

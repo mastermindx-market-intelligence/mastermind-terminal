@@ -1,0 +1,21 @@
+{
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/exposure-workspace.spec.ts",
+    "e2e/options-exposure-workspace.spec.ts",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "e2e/options-research-question.spec.ts",
+    "e2e/exposure-partial-totals.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr678-probability-integration-20261109-c4/terminal/docs/verification/exposure-workspace-20261103/probability-weighting-integration-20261112/browser-artifacts/playwright",
+    "--reporter=list,json"
+  ],
+  "pid": 21977,
+  "startedAt": "2026-11-12T00:33:14.578846+00:00"
+}

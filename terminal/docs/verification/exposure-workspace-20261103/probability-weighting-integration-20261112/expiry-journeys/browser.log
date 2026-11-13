@@ -1,0 +1,30 @@
+[warmup] /terminal?symbol=NVDA → 200 in 93ms
+[warmup] /options → 200 in 1596ms
+[warmup] /portfolio → 200 in 717ms
+[warmup] /alerts → 200 in 594ms
+[warmup] /analysis → 200 in 1055ms
+[warmup] /discover → 200 in 1473ms
+[warmup] /admin → 200 in 369ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 272ms
+[warmup] /login → 200 in 99ms
+[warmup] /reset-password → 200 in 303ms
+[warmup] /api/me → 200 in 345ms
+[warmup] /api/watchlist → 200 in 150ms
+[warmup] /api/layouts → 200 in 203ms
+[warmup] /api/watchlist/annotations → 409 in 137ms
+[warmup] 14 routes compiled in 7s
+[fixture-ready] prophet_idx fixture 200 in 465ms
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (3.4s)
+  ✓  2 [desktop] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (3.0s)
+  ✓  3 [desktop] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (2.0s)
+  ✓  4 [tablet] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (3.4s)
+  ✓  5 [tablet] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (3.2s)
+  ✓  6 [tablet] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (2.2s)
+  ✓  7 [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in en (2.6s)
+  ✓  8 [mobile] › e2e/exposure-expiry-greeks.spec.ts:74:5 › Exposure desk carries expiry Vanna/Charm through bars and drawer in zh (3.0s)
+  ✓  9 [mobile] › e2e/responsive.spec.ts:1441:5 › Exposure desk renders expiry VEX and CHEX from the enriched owner payload (1.9s)
+
+  9 passed (48.5s)

@@ -1,0 +1,28 @@
+{
+  "eod": {
+    "selection": "qualified",
+    "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/EVIDENCE.yml",
+    "sha256": "44496380c94609f0d1257f13b1e2800f7dce22d822dad3107f49400decf6ed1a",
+    "capturedAtHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+    "captureRevision": "options-integration-20261109",
+    "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+    "sources": 32,
+    "plan": {
+      "required": false,
+      "changed": []
+    }
+  },
+  "gex": {
+    "selection": "qualified",
+    "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110/qualified-root/EVIDENCE.yml",
+    "sha256": "0bd14c56aeb5378a275375d52b8fa8f1d5fafda1377d03c7da627eaf4b9bfed9",
+    "capturedAtHead": "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4",
+    "captureRevision": "expiry-greeks-integration-20261110",
+    "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+    "sources": 29,
+    "plan": {
+      "required": false,
+      "changed": []
+    }
+  }
+}

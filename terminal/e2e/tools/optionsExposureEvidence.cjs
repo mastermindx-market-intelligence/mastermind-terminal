@@ -4,6 +4,7 @@
 const { createHash } = require("node:crypto");
 const { existsSync, readFileSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");
+const { isDeepStrictEqual } = require("node:util");
 const BASE = "11531481b0a540ee96bcd86df418fd1e42715363";
 const CURRENT_REVISION = "options-navigation-r4";
 
@@ -30,6 +31,27 @@ const R5_EXPIRY_QUALIFICATION = "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8ab
 const R5_BROWSER_EXPORTER = "terminal/e2e/tools/qualify_r5_alignment_browser.py";
 const R5_BROWSER_EXPORTER_SHA = "51a56f988c76e8db33c6e8ff2e0a2af04c8cc33f3d98a8b929ceea8596c3d44e";
 const R5_BROWSER_SNAPSHOT = "6776d53923408ddb8568f86f47b3925effb134c2511757ccbfa66150ad392d72";
+
+// Browser-only probability successor; both retained native maps stay current.
+const PROBABILITY_REVISION = "probability-weighting-integration-20261112";
+const PROBABILITY_ACTUAL_GIT = {
+    head: "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    headTree: "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    indexTree: "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    mergeHead: null,
+};
+const PROBABILITY_PROTECTED_MASTER = "6c5d71ebbd797897b50f8727588bd95e834517a8";
+const PROBABILITY_PUBLISHED_BASIS = "a1e58b46da592bf03b1279e57cd1aff315946c0c";
+const PROBABILITY_INTEGRATED_HEADS = ["492a73948a947c3cccc2981e90a5cc227d96385f", "6c5d71ebbd797897b50f8727588bd95e834517a8"];
+const PROBABILITY_R5_ROOTS = {
+    eod: "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d",
+    gex: "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e",
+};
+// Current browser qualification requires actual immutable proof at these pins.
+const PROBABILITY_DESCRIPTOR = "8857cb3aa8e5c9b06461764eaaf3a4777222a07b41538d48d49de69b858372c7";
+const PROBABILITY_BROWSER_QUALIFICATION = "d9eecf57ecfa66346d7e3a44924a727dd0768bf78de327a5b8466339273f3b3e";
+const PROBABILITY_EXPIRY_QUALIFICATION = "5b15e42763f287c44514b88212516b41374c14932ee7b62beda15bd984bf4bc9";
+const PROBABILITY_BROWSER_PORT = 3912;
 
 const PREVIOUS_PACKET_INVENTORY = {
     gex: "c9f0aa2c43cb06d0590fb065d7b0a97f019e247c13757cc9a672f665eed12670",
@@ -444,6 +466,9 @@ function qualifiedOptionsExposurePacket(repo, kind, crops) {
         crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
     const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+    if (existsSync(probabilityDirectory(repo)) || text.includes(PROBABILITY_REVISION) ||
+        text.includes("exposureProbabilityBrowser20261112"))
+        return readProbabilitySuccessor(repo, kind, crops, text);
     if (text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111") ||
         existsSync(r5BrowserDirectory(repo)))
         return readR5BrowserSuccessor(repo, kind, crops, text);
@@ -732,25 +757,26 @@ function requireIntegrationBrowserReport(report, proof) {
     check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
 }
 function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
-    check(["master", "ui-copy", "options-integration", "expiry-greeks", "exposure-momentum", "r5-alignment"].includes(revision), "INTEGRATION_BROWSER_REVISION");
-    const r5 = revision === "r5-alignment";
-    const successor = revision === "ui-copy", momentum = revision === "exposure-momentum", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry || momentum || r5;
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
-    check(sha(join(dir, "qualification.json")) === (r5 ? R5_BROWSER_QUALIFICATION : momentum ? MOMENTUM_BROWSER_QUALIFICATION : expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
+    check(["master", "ui-copy", "options-integration", "expiry-greeks", "exposure-momentum", "r5-alignment", "probability-weighting"].includes(revision), "INTEGRATION_BROWSER_REVISION");
+    const r5 = revision === "r5-alignment", probability = revision === "probability-weighting";
+    const successor = revision === "ui-copy", momentum = revision === "exposure-momentum", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry || momentum || r5 || probability;
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", probability ? PROBABILITY_REVISION : r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
+    check(sha(join(dir, "qualification.json")) === (probability ? PROBABILITY_BROWSER_QUALIFICATION : r5 ? R5_BROWSER_QUALIFICATION : momentum ? MOMENTUM_BROWSER_QUALIFICATION : expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
     check(proof.schema === "exposure_master_integration_browser.v1" &&
-        proof.branchHead === (r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
-        proof.protectedMaster === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
+        proof.branchHead === (probability ? PROBABILITY_ACTUAL_GIT.head : r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
+        proof.protectedMaster === (probability ? PROBABILITY_PROTECTED_MASTER : r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (probability || !options || proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
         (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
     if (r5) requireR5HostedIdentity(proof);
+    if (probability) requireProbabilityBrowserIdentity(proof);
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
         ...((successor || options) ? ["browser.log"] : [])]);
     for (const [name, digest] of Object.entries(proof.files))
         check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
     const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
     check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
-    const currentInputs = (momentum || r5) ? momentumBrowserInputs() : options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
+    const currentInputs = (momentum || r5 || probability) ? momentumBrowserInputs() : options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
     requireSourceKeys(proof.currentSources, currentInputs);
     for (const [path, digest] of Object.entries(proof.currentSources))
         check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
@@ -761,9 +787,10 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
     const execution = json(join(dir, "browser-execution.json"));
     check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
         execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
-        (!(successor || options) || (execution.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
+        (!(successor || options) || ((probability || execution.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY)) &&
             execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
     if (r5) requireR5HostedIdentity(execution);
+    if (probability) requireProbabilityBrowserIdentity(execution);
     const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
     check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
@@ -781,6 +808,7 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
             /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
     const report = json(join(dir, "browser-report.json"));
     if (r5) requireR5ReportOwner(report);
+    if (probability) requireProbabilityReportOwner(report);
     requireIntegrationBrowserReport(report, proof);
     return proof;
 }
@@ -1091,27 +1119,28 @@ function requireExpiryGreeksScreenshotSet(artifactFiles) {
         "EXPIRY_INTEGRATION_JOURNEY_SCREENSHOT_SET");
 }
 function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, revision = "expiry-greeks") {
-    check(["expiry-greeks", "exposure-momentum", "r5-alignment"].includes(revision), "EXPIRY_BROWSER_REVISION");
-    const momentum = revision === "exposure-momentum", r5 = revision === "r5-alignment";
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
-    check(sha(join(dir, "qualification.json")) === (r5 ? R5_EXPIRY_QUALIFICATION : momentum ? MOMENTUM_EXPIRY_QUALIFICATION : EXPIRY_INTEGRATION_JOURNEYS), "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
+    check(["expiry-greeks", "exposure-momentum", "r5-alignment", "probability-weighting"].includes(revision), "EXPIRY_BROWSER_REVISION");
+    const momentum = revision === "exposure-momentum", r5 = revision === "r5-alignment", probability = revision === "probability-weighting";
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", probability ? PROBABILITY_REVISION : r5 ? R5_BROWSER_REVISION : momentum ? MOMENTUM_BROWSER_REVISION : EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
+    check(sha(join(dir, "qualification.json")) === (probability ? PROBABILITY_EXPIRY_QUALIFICATION : r5 ? R5_EXPIRY_QUALIFICATION : momentum ? MOMENTUM_EXPIRY_QUALIFICATION : EXPIRY_INTEGRATION_JOURNEYS), "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
-    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === (r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : EXPIRY_INTEGRATION_PRIOR) &&
-        proof.protectedMaster === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_PROTECTED) &&
-        proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_DEPENDENCY),
+    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === (probability ? PROBABILITY_ACTUAL_GIT.head : r5 ? R5_BROWSER_HEAD : momentum ? MOMENTUM_BROWSER_HEAD : EXPIRY_INTEGRATION_PRIOR) &&
+        proof.protectedMaster === (probability ? PROBABILITY_PROTECTED_MASTER : r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_PROTECTED) &&
+        (probability || proof.integratedDependency === (r5 ? R5_BROWSER_MASTER : momentum ? MOMENTUM_BROWSER_MASTER : EXPIRY_INTEGRATION_DEPENDENCY)),
         "EXPIRY_INTEGRATION_JOURNEY_IDENTITY");
     if (r5) requireR5HostedIdentity(proof);
+    if (probability) requireProbabilityBrowserIdentity(proof);
     requireExpiryGreeksBrowserCases(proof);
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json", "browser.log"]);
     for (const [name, digest] of Object.entries(proof.files))
         check(sha(join(dir, name)) === digest, "EXPIRY_INTEGRATION_JOURNEY_FILE:" + name);
     const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
-    const inputs = (momentum || r5) ? momentumExpiryInputs() : expiryGreeksJourneyInputs();
+    const inputs = (momentum || r5 || probability) ? momentumExpiryInputs() : expiryGreeksJourneyInputs();
     requireSourceKeys(proof.currentSources, inputs);
     check(proof.files["source-before.json"] === proof.files["source-after.json"], "EXPIRY_INTEGRATION_JOURNEY_SOURCE_STABILITY");
     for (const [path, digest] of Object.entries(proof.currentSources))
         check(before[path] === digest && after[path] === digest, "EXPIRY_INTEGRATION_JOURNEY_RECORDED_SOURCE:" + path);
-    for (const path of (momentum || r5) ? momentumBrowserInputs() : optionsIntegrationBrowserInputs())
+    for (const path of (momentum || r5 || probability) ? momentumBrowserInputs() : optionsIntegrationBrowserInputs())
         check(proof.currentSources[path] === joint.currentSources[path], "EXPIRY_INTEGRATION_JOINT_SOURCE:" + path);
     if (requireCurrent) selectWholeFingerprint([{ sources: proof.currentSources }], Object.fromEntries(inputs.map(path => [path, sha(join(repo, path))])));
     const execution = json(join(dir, "browser-execution.json"));
@@ -1120,6 +1149,7 @@ function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, revision
         execution.integratedDependency === proof.integratedDependency && execution.logSha256 === proof.files["browser.log"],
         "EXPIRY_INTEGRATION_JOURNEY_EXECUTION");
     if (r5) requireR5HostedIdentity(execution);
+    if (probability) requireProbabilityBrowserIdentity(execution);
     const overrides = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
     check(sameKeys(Object.keys(execution.fixtureOverrides ?? {}), overrides) &&
@@ -1135,6 +1165,7 @@ function verifyExpiryGreeksJourneys(repo, joint, requireCurrent = true, revision
     requireExpiryGreeksScreenshotSet(execution.artifactFiles);
     const report = json(join(dir, "browser-report.json")), passed = [];
     if (r5) requireR5ReportOwner(report);
+    if (probability) requireProbabilityReportOwner(report);
     check(!report.errors?.length && report.stats.expected === 9 && report.stats.unexpected === 0 &&
         report.stats.flaky === 0 && report.stats.skipped === 0, "EXPIRY_INTEGRATION_JOURNEY_REPORT");
     function visit(suite) {
@@ -1411,12 +1442,155 @@ function readR5BrowserSuccessor(repo, kind, crops, text) {
     return readR5BrowserPair(repo, kind, crops, roots, true);
 }
 
+function probabilityDirectory(repo) {
+    return join(repo, "terminal/docs/verification/exposure-workspace-20261103", PROBABILITY_REVISION);
+}
+
+function requireProbabilityWorktreeIdentity(value) {
+    check(value.sourceIdentity === "stable-composed-working-tree" &&
+        isDeepStrictEqual(value.actualGit, PROBABILITY_ACTUAL_GIT) &&
+        value.publishedBasis === PROBABILITY_PUBLISHED_BASIS &&
+        isDeepStrictEqual(value.integratedSourceHeads, PROBABILITY_INTEGRATED_HEADS) &&
+        value.capturedSourceTree === undefined && value.integratedDependency === undefined,
+        "PROBABILITY_WORKTREE_IDENTITY");
+}
+
+function requireProbabilityBrowserIdentity(value) {
+    requireProbabilityWorktreeIdentity(value);
+    check(value.operation === "terminal-pr678-probability-browser-current-20261112" &&
+        value.branchHead === PROBABILITY_ACTUAL_GIT.head && value.protectedMaster === PROBABILITY_PROTECTED_MASTER &&
+        value.checkoutCommit === PROBABILITY_ACTUAL_GIT.head && value.checkoutTree === PROBABILITY_ACTUAL_GIT.headTree &&
+        value.mergeHead === PROBABILITY_ACTUAL_GIT.mergeHead &&
+        value.indexTreeAtStart === PROBABILITY_ACTUAL_GIT.indexTree && value.indexTreeAtEnd === PROBABILITY_ACTUAL_GIT.indexTree &&
+        value.workflowRunId === undefined && value.workflowRunAttempt === undefined &&
+        value.workflowJob === undefined && value.exporter === undefined, "PROBABILITY_BROWSER_IDENTITY");
+}
+
+function readProbabilityPredecessor(repo, kind, crops) {
+    const roots = {};
+    for (const family of ["gex", "eod"]) {
+        const file = join(probabilityDirectory(repo), "prior-roots", family + ".EVIDENCE.yml");
+        check(sha(file) === PROBABILITY_R5_ROOTS[family], "PROBABILITY_PRIOR_ROOT:" + family);
+        roots[family] = readFileSync(file, "utf8");
+    }
+    // Only prior browser applicability is historical; both native maps remain current.
+    const selected = readR5BrowserPair(repo, kind, crops, roots, false);
+    return { roots, selected };
+}
+
+function probabilityDeclaration(kind) {
+    return "# Current browser proof is the probability successor; native capture identities remain immutable.\n" +
+        yamlBlock("exposureProbabilityBrowser20261112", {
+            revision: PROBABILITY_REVISION, selectedFamily: kind, descriptorSha256: PROBABILITY_DESCRIPTOR,
+            eodDescriptorSha256: OPTIONS_INTEGRATION_PACKET.eod, gexDescriptorSha256: EXPIRY_INTEGRATION_PACKET,
+            browserCapturedAtHead: PROBABILITY_ACTUAL_GIT.head, publishedBasis: PROBABILITY_PUBLISHED_BASIS,
+            browserQualificationSha256: PROBABILITY_BROWSER_QUALIFICATION, expiryQualificationSha256: PROBABILITY_EXPIRY_QUALIFICATION,
+        }) + "\n";
+}
+
+function readProbabilitySuccessor(repo, kind, crops, text) {
+    const { roots, selected } = readProbabilityPredecessor(repo, kind, crops);
+    const dir = probabilityDirectory(repo), path = join(dir, "browser-successor.json");
+    check(sha(path) === PROBABILITY_DESCRIPTOR, "PROBABILITY_SUCCESSOR_DESCRIPTOR");
+    const descriptor = json(path);
+    check(descriptor.schema === "exposure_probability_browser_successor.v1" && descriptor.revision === PROBABILITY_REVISION,
+        "PROBABILITY_SUCCESSOR_IDENTITY");
+    requireProbabilityBrowserIdentity(descriptor);
+    check(sameKeys(Object.keys(descriptor.native ?? {}), ["gex", "eod"]) &&
+        descriptor.native.eod.revision === OPTIONS_INTEGRATION_REVISION &&
+        descriptor.native.eod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        descriptor.native.gex.revision === EXPIRY_INTEGRATION_REVISION &&
+        descriptor.native.gex.descriptorSha256 === EXPIRY_INTEGRATION_PACKET, "PROBABILITY_RETAINED_NATIVE_IDENTITY");
+    check(descriptor.history?.descriptorSha256 === R5_BROWSER_DESCRIPTOR &&
+        descriptor.history.jointQualificationSha256 === R5_BROWSER_QUALIFICATION &&
+        descriptor.history.expiryQualificationSha256 === R5_EXPIRY_QUALIFICATION &&
+        sameKeys(Object.keys(descriptor.history.roots ?? {}), ["gex", "eod"]), "PROBABILITY_SUCCESSOR_HISTORY");
+    for (const family of ["gex", "eod"]) {
+        const prior = descriptor.history.roots[family];
+        check(prior.path === "prior-roots/" + family + ".EVIDENCE.yml" && prior.sha256 === PROBABILITY_R5_ROOTS[family],
+            "PROBABILITY_HISTORY_ROOT:" + family);
+        const current = family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8");
+        check(current === probabilityDeclaration(family) + roots[family], "PROBABILITY_CURRENT_ROOT:" + family);
+    }
+    check(sameKeys(Object.keys(descriptor.browser ?? {}), ["joint", "expiry"]), "PROBABILITY_BROWSER_SET");
+    check(/^[0-9a-f]{64}$/.test(descriptor.sourceSnapshot?.sha256) &&
+        Number.isInteger(descriptor.sourceSnapshot.files) && descriptor.sourceSnapshot.files > 0, "PROBABILITY_BROWSER_SNAPSHOT");
+    for (const stage of ["joint", "expiry"]) {
+        const binding = descriptor.browser[stage], relative = stage === "joint" ? "qualification.json" : "expiry-journeys/qualification.json";
+        const expected = stage === "joint" ? PROBABILITY_BROWSER_QUALIFICATION : PROBABILITY_EXPIRY_QUALIFICATION;
+        const stageDir = stage === "joint" ? dir : join(dir, "expiry-journeys");
+        check(binding.qualification === relative && binding.sha256 === expected && sha(join(dir, relative)) === expected,
+            "PROBABILITY_BROWSER_QUALIFICATION:" + stage);
+        const execution = json(join(stageDir, "browser-execution.json"));
+        check(binding.lifecycleSha256 === execution.lifecycleSha256 && sha(join(stageDir, "lifecycle.json")) === binding.lifecycleSha256,
+            "PROBABILITY_LIFECYCLE_BINDING:" + stage);
+        requireProbabilityLifecycle(json(join(stageDir, "lifecycle.json")), execution);
+        for (const name of ["source-before.json", "source-after.json"]) {
+            check(sha(join(stageDir, name)) === descriptor.sourceSnapshot.sha256, "PROBABILITY_WHOLE_SOURCE_STABILITY");
+            const snapshot = json(join(stageDir, name));
+            check(Object.keys(snapshot).length === descriptor.sourceSnapshot.files &&
+                Object.values(snapshot).every(value => /^[0-9a-f]{64}$/.test(value)), "PROBABILITY_WHOLE_SOURCE_SET");
+        }
+        const lastRun = json(join(stageDir, "browser-artifacts/playwright/.last-run.json"));
+        check(lastRun.status === "passed" && lastRun.failedTests?.length === 0 &&
+            Object.hasOwn(execution.artifactFiles, "browser-artifacts/playwright/.last-run.json"), "PROBABILITY_HIDDEN_RESULT");
+        if (stage === "expiry") check(Object.keys(execution.artifactFiles).filter(file => file.endsWith("/trace.zip")).length === 9,
+            "PROBABILITY_EXPIRY_TRACES");
+    }
+    const browser = verifyIntegrationBrowserRecord(repo, "probability-weighting", true);
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser, true, "probability-weighting");
+    return selected;
+}
+
+function requireProbabilityReportOwner(report) {
+    check(report.config?.workers === 1 && report.config.metadata?.actualWorkers === 1 &&
+        (report.config.metadata.gitCommit === undefined || report.config.metadata.gitCommit.hash === PROBABILITY_ACTUAL_GIT.head),
+        "PROBABILITY_REPORT_OWNER");
+}
+
+function requireProbabilityLifecycle(lifecycle, execution) {
+    check(lifecycle.state === "OWNED_SERVER_STOPPED" && lifecycle.listenerClosed === true &&
+        lifecycle.port === execution.port && lifecycle.port === PROBABILITY_BROWSER_PORT &&
+        lifecycle.listener?.exit === 1 && lifecycle.listener.stdout === "" && lifecycle.listener.stderr === "" &&
+        Array.isArray(lifecycle.workspaceCwdHolders) && lifecycle.workspaceCwdHolders.length === 0 &&
+        lifecycle.lockUnlinked === false && lifecycle.error === undefined, "PROBABILITY_BROWSER_SETTLEMENT");
+    if (lifecycle.lockPresent === false) {
+        check(lifecycle.lockAbsent === true && lifecycle.lockRetained === false, "PROBABILITY_BROWSER_LOCK_ABSENT");
+        return;
+    }
+    const lock = lifecycle.lock, checks = lifecycle.checks, owned = lifecycle.ownedServerObservation;
+    check(lifecycle.lockPresent === true && lifecycle.lockAbsent === false && lifecycle.lockRetained === true &&
+        /^[0-9a-f]{64}$/.test(lifecycle.lockSha256) &&
+        Number.isInteger(lock?.pid) && lock.pid > 1 && lock.port === execution.port &&
+        lock.hostname === "127.0.0.1" && lock.appUrl === "http://127.0.0.1:" + execution.port &&
+        owned?.pid === lock.pid && owned.playwrightPid === execution.playwrightPid &&
+        owned.lockSha256 === lifecycle.lockSha256 && Array.isArray(owned.ancestry) &&
+        owned.ancestry.length >= 2 && owned.ancestry[0].pid === lock.pid &&
+        owned.ancestry.at(-1).pid === execution.playwrightPid &&
+        owned.ancestry.slice(0, -1).every((row, i) => row.ppid === owned.ancestry[i + 1].pid) &&
+        new Set(owned.ancestry.map(row => row.pid)).size === owned.ancestry.length &&
+        owned.listenerPids?.includes(lock.pid) &&
+        JSON.stringify(checks?.pid?.command) === JSON.stringify(["ps", "-p", String(lock.pid), "-o", "pid=,ppid=,comm="]) &&
+        checks.pid.exit === 1 && checks.pid.stdout === "" && checks.pid.stderr === "" &&
+        Array.isArray(checks.lock?.command) && checks.lock.command.length === 2 && checks.lock.command[0] === "lsof" &&
+        checks.lock.command[1].endsWith("/terminal/.next/dev/lock") &&
+        checks.lock.exit === 1 && checks.lock.stdout === "" && checks.lock.stderr === "" &&
+        Number.isInteger(lifecycle.lockIdentityBeforeChecks?.inode) && lifecycle.lockIdentityBeforeChecks.inode > 0 &&
+        Number.isInteger(lifecycle.lockIdentityBeforeChecks.device) && lifecycle.lockIdentityBeforeChecks.device >= 0 &&
+        isDeepStrictEqual(lifecycle.lockIdentityBeforeChecks, lifecycle.lockIdentityAfterChecks),
+        "PROBABILITY_BROWSER_LOCK_SETTLEMENT");
+}
+
 /** Validate retained native/history prerequisites; this never qualifies current browser proof. */
 function verifyExpiryIntegrationNativePrerequisites(repo) {
     const kind = "gex", crops = require("./" + harness(kind).split("/").at(-1)).expectedFiles();
     const roots = Object.fromEntries(["gex", "eod"].map(family => [family,
         readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
-    if (existsSync(r5BrowserDirectory(repo)) || Object.values(roots).some(text =>
+    if (existsSync(probabilityDirectory(repo)) || Object.values(roots).some(text =>
+        text.includes(PROBABILITY_REVISION) || text.includes("exposureProbabilityBrowser20261112")))
+        readProbabilityPredecessor(repo, kind, crops);
+    else if (existsSync(r5BrowserDirectory(repo)) || Object.values(roots).some(text =>
         text.includes(R5_BROWSER_REVISION) || text.includes("exposureR5Browser20261111")))
         readR5BrowserPair(repo, kind, crops, roots, false);
     else readMomentumBrowserPair(repo, kind, crops, roots, false);
@@ -1431,11 +1605,11 @@ function verifyExpiryIntegrationNativePrerequisites(repo) {
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
-    const history = existsSync(r5BrowserDirectory(repo)) || existsSync(momentumBrowserDirectory(repo)) || Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
+    const history = existsSync(probabilityDirectory(repo)) || existsSync(r5BrowserDirectory(repo)) || existsSync(momentumBrowserDirectory(repo)) || Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
     let text;
     try { text = readFileSync(join(root, "EVIDENCE.yml"), "utf8"); }
     catch (error) { if (error.code === "ENOENT" && !history) return null; throw error; }
-    const declared = /exposureR5Browser20261111|r5-alignment-20261110|exposureMomentumBrowser20261110|exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
+    const declared = /exposureProbabilityBrowser20261112|probability-weighting-integration-20261112|exposureR5Browser20261111|r5-alignment-20261110|exposureMomentumBrowser20261110|exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 

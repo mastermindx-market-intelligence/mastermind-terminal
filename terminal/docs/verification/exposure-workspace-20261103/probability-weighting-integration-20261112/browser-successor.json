@@ -1,0 +1,65 @@
+{
+  "actualGit": {
+    "head": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+    "headTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "indexTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+    "mergeHead": null
+  },
+  "branchHead": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "browser": {
+    "expiry": {
+      "lifecycleSha256": "92feea1bbbbde446d69bf24b8e22ce3d8a7ff7ee5e07f5ba92c8204086cef759",
+      "qualification": "expiry-journeys/qualification.json",
+      "sha256": "5b15e42763f287c44514b88212516b41374c14932ee7b62beda15bd984bf4bc9"
+    },
+    "joint": {
+      "lifecycleSha256": "664cae8b45a5827627b6cf991f3d66b09ba48a8cbbaba1b12e7f3ce137184754",
+      "qualification": "qualification.json",
+      "sha256": "d9eecf57ecfa66346d7e3a44924a727dd0768bf78de327a5b8466339273f3b3e"
+    }
+  },
+  "checkoutCommit": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "checkoutTree": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "history": {
+    "descriptorSha256": "0da98d3fa6a70e752421d2156552a41cf68e6be22bf86ec932f5833a71fe5193",
+    "expiryQualificationSha256": "c807d61f338f2955c3c1b51a0ce094cca8ae0e8630fe8abd00f08b04951e540e",
+    "jointQualificationSha256": "f3f748d1c47d2e8582e62637775171290f1847145fb4dfd69936211e7707546d",
+    "roots": {
+      "eod": {
+        "path": "prior-roots/eod.EVIDENCE.yml",
+        "sha256": "398ee08642c4db5eb7ee1648e5865e42146fd98aec9f96a208727bfe003d832d"
+      },
+      "gex": {
+        "path": "prior-roots/gex.EVIDENCE.yml",
+        "sha256": "0ffb688481f64075b6a07181900c709d4c58afe60cd6dce0e1e1c948bc6abf9e"
+      }
+    }
+  },
+  "indexTreeAtEnd": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "indexTreeAtStart": "813cdf5335cd28cf772533e50efdb18a501f0d4b",
+  "integratedSourceHeads": [
+    "492a73948a947c3cccc2981e90a5cc227d96385f",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "mergeHead": null,
+  "native": {
+    "eod": {
+      "descriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+      "revision": "options-integration-20261109"
+    },
+    "gex": {
+      "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+      "revision": "expiry-greeks-integration-20261110"
+    }
+  },
+  "operation": "terminal-pr678-probability-browser-current-20261112",
+  "protectedMaster": "6c5d71ebbd797897b50f8727588bd95e834517a8",
+  "publishedBasis": "a1e58b46da592bf03b1279e57cd1aff315946c0c",
+  "revision": "probability-weighting-integration-20261112",
+  "schema": "exposure_probability_browser_successor.v1",
+  "sourceIdentity": "stable-composed-working-tree",
+  "sourceSnapshot": {
+    "files": 3788,
+    "sha256": "1f0c674caebf15711f3304d01d6fa42fe829c97c08b93e65150377ddb9674413"
+  }
+}

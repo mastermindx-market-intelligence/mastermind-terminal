@@ -1,0 +1,14 @@
+{
+  "candidate": "d06340a252167f1e0432ab0b6773011593567647",
+  "tree": "b312f61468271c32ddac31cfd8cbe2f6b0054dc0",
+  "parents": [
+    "492a73948a947c3cccc2981e90a5cc227d96385f",
+    "6c5d71ebbd797897b50f8727588bd95e834517a8"
+  ],
+  "source_delta": [
+    "terminal/lib/__tests__/marketStructure.test.ts",
+    "terminal/lib/marketStructure.ts"
+  ],
+  "source_numstat": "228\t0\tterminal/lib/__tests__/marketStructure.test.ts\n305\t2\tterminal/lib/marketStructure.ts",
+  "remote_effect": "NONE"
+}

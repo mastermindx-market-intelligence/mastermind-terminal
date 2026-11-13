@@ -5,6 +5,8 @@ import {
   scenarioGrid,
   r5DteBucket,
   r5Stage0Alignment,
+  r5EmpiricalExpectation,
+  R5_ADV_METHOD,
   emFrame,
   topology,
   expiryConcentration,
@@ -448,6 +450,232 @@ describe("R5 integration with current scenario coverage", () => {
     expect(r5Stage0Alignment(rows, asof, { ...scenario, volPts: 0 }).wholeBook.totalFlowMn).toBe(-12);
     expect(got.researchAuthority).toBe("research_only");
     expect(got.outcomeLabelsOpened).toBe(false);
+  });
+});
+
+describe("R5 empirical probability weighting", () => {
+  const ASOF = "2026-09-18T20:00:00Z";
+  const rows: MscExpiryRow[] = [
+    { exp: "2026-09-19", gamma_net: 10, vanna_net: 4, charm_net: 1 },
+  ];
+  const expectation = {
+    dtDays: 1,
+    materialityMn: 1,
+    positionTier: "naive_dealer_long_calls_short_puts/v1",
+  };
+
+  it("reproduces exact weighted scenario arithmetic when all mass is supported", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.5 },
+      { spot_pct: -1, vol_pts: -2, empirical_weight: 0.5 },
+    ], expectation);
+
+    expect(got.distributionWeight).toBeCloseTo(1);
+    expect(got.supportedWeight).toBeCloseTo(1);
+    expect(got.unsupportedWeight).toBeCloseTo(0);
+    expect(got.tailRenormalized).toBe(false);
+
+    // Gamma and vanna cancel across the symmetric shock pair; charm is -1 in
+    // both scenarios. Because all probability mass is supported, conditional
+    // and full-distribution expectations are identical.
+    expect(got.wholeBook.conditionalExpectedGammaFlowMn).toBeCloseTo(0, 10);
+    expect(got.wholeBook.conditionalExpectedVannaFlowMn).toBeCloseTo(0, 10);
+    expect(got.wholeBook.conditionalExpectedCharmFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.fullExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.alignmentMass.aligned_negative).toBeCloseTo(0.5);
+    expect(got.wholeBook.alignmentMass.aligned_positive).toBeCloseTo(0.5);
+    expect(got.outcomeLabelsOpened).toBe(false);
+  });
+
+  it("reports expected absolute flow and canonical ADV-normalized participation", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.5 },
+      { spot_pct: -1, vol_pts: -2, empirical_weight: 0.5 },
+    ], {
+      ...expectation,
+      advDollars: 100_000_000,
+      advMethod: R5_ADV_METHOD,
+    });
+
+    // Scenario totals are -19 and +17, so signed expectation=-1 while
+    // expected absolute mechanical demand=18. $18mn / $100mn ADV = 18%.
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedAbsTotalFlowMn).toBeCloseTo(18, 10);
+    expect(got.wholeBook.conditionalExpectedTotalFlowPctAdv).toBeCloseTo(-1, 10);
+    expect(got.wholeBook.conditionalExpectedAbsTotalFlowPctAdv).toBeCloseTo(18, 10);
+    expect(got.wholeBook.fullExpectedAbsTotalFlowPctAdv).toBeCloseTo(18, 10);
+    expect(got.liquidity.advDollars).toBe(100_000_000);
+    expect(got.liquidity.method).toBe(R5_ADV_METHOD);
+  });
+
+  it("refuses unlabeled or invalid ADV denominators", () => {
+    const samples = [{ spot_pct: 1, vol_pts: 1, empirical_weight: 1 }];
+    expect(() => r5EmpiricalExpectation(rows, ASOF, samples, {
+      ...expectation,
+      advDollars: 100_000_000,
+    })).toThrow(/advMethod/);
+    expect(() => r5EmpiricalExpectation(rows, ASOF, samples, {
+      ...expectation,
+      advDollars: 0,
+      advMethod: R5_ADV_METHOD,
+    })).toThrow(/advDollars/);
+  });
+
+  it("keeps unsupported empirical tail mass explicit and nulls full expectation", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 0.75 },
+      { spot_pct: 4, vol_pts: 1, empirical_weight: 0.25 },
+    ], expectation);
+
+    expect(got.supportedWeight).toBeCloseTo(0.75);
+    expect(got.unsupportedWeight).toBeCloseTo(0.25);
+    expect(got.tailRenormalized).toBe(false);
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).not.toBeNull();
+    expect(got.wholeBook.fullExpectedGammaFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedVannaFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedCharmFlowMn).toBeNull();
+    expect(got.wholeBook.fullExpectedTotalFlowMn).toBeNull();
+    expect(got.wholeBook.alignmentMass.aligned_negative).toBeCloseTo(0.75);
+  });
+
+  it("preserves missing Greek coverage inside supported probability mass", () => {
+    const missingVanna: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 1 },
+    ];
+    const got = r5EmpiricalExpectation(missingVanna, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: 1 },
+    ], expectation);
+
+    expect(got.wholeBook.missingVannaWeight).toBeCloseTo(1);
+    expect(got.wholeBook.missingTotalWeight).toBeCloseTo(1);
+    expect(got.wholeBook.conditionalExpectedVannaFlowMn).toBeNull();
+    expect(got.wholeBook.conditionalExpectedTotalFlowMn).toBeNull();
+    expect(got.wholeBook.alignmentMass.unavailable).toBeCloseTo(1);
+  });
+
+  it("refuses malformed probability laws instead of normalizing them silently", () => {
+    expect(() => r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 0.8 },
+    ], expectation)).toThrow(/sum to 1/);
+
+    expect(() => r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 0 },
+      { spot_pct: -1, vol_pts: -1, empirical_weight: 1 },
+    ], expectation)).toThrow(/positive/);
+  });
+
+  it("keeps absent DTE buckets absent under the weighted law", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 1, empirical_weight: 1 },
+    ], expectation);
+    const far = got.buckets.find((row) => row.bucket === "91D+")!;
+    expect(far.present).toBe(false);
+    expect(far.conditionalExpectedTotalFlowMn).toBeNull();
+    expect(far.missingTotalWeight).toBeCloseTo(1);
+  });
+
+  const fullFlowFields = [
+    "fullExpectedGammaFlowMn", "fullExpectedVannaFlowMn", "fullExpectedCharmFlowMn",
+    "fullExpectedTotalFlowMn", "fullExpectedAbsTotalFlowMn",
+    "fullExpectedTotalFlowPctAdv", "fullExpectedAbsTotalFlowPctAdv",
+  ] as const;
+  const conditionalFlowFields = [
+    "conditionalExpectedGammaFlowMn", "conditionalExpectedVannaFlowMn",
+    "conditionalExpectedCharmFlowMn", "conditionalExpectedTotalFlowMn",
+    "conditionalExpectedAbsTotalFlowMn", "conditionalExpectedTotalFlowPctAdv",
+    "conditionalExpectedAbsTotalFlowPctAdv",
+  ] as const;
+  const tinyWeight = 1e-13;
+  const liquidExpectation = {
+    ...expectation,
+    advDollars: 100_000_000,
+    advMethod: R5_ADV_METHOD,
+  };
+
+  it("keeps every full expectation null for any positive unsupported tail", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 0, vol_pts: 0, empirical_weight: 1 - tinyWeight },
+      { spot_pct: 4, vol_pts: 0, empirical_weight: tinyWeight },
+    ], liquidExpectation);
+
+    expect(got.unsupportedWeight).toBe(tinyWeight);
+    expect(got.unsupportedWeight).toBeGreaterThan(0);
+    expect(got.tailRenormalized).toBe(false);
+    expect(got.researchAuthority).toBe("research_only");
+    expect(got.outcomeLabelsOpened).toBe(false);
+    for (const row of [got.wholeBook, got.buckets.find((r) => r.bucket === "1-2DTE")!]) {
+      expect(row.present).toBe(true);
+      expect(row.unsupportedWeight).toBe(tinyWeight);
+      for (const field of fullFlowFields) expect(row[field], field).toBeNull();
+      expect(row.conditionalExpectedTotalFlowMn).toBeCloseTo(-1, 10);
+      expect(row.conditionalExpectedTotalFlowPctAdv).toBeCloseTo(-1, 10);
+    }
+  });
+
+  it("keeps tiny supported missing-flow mass unknown while retaining complete components", () => {
+    const missingVanna: MscExpiryRow[] = [
+      { exp: "2026-09-19", gamma_net: 10, charm_net: 1 },
+    ];
+    const got = r5EmpiricalExpectation(missingVanna, ASOF, [
+      { spot_pct: 1, vol_pts: 0, empirical_weight: 1 - tinyWeight },
+      { spot_pct: 1, vol_pts: 1, empirical_weight: tinyWeight },
+    ], liquidExpectation);
+    const totalFields = [
+      "conditionalExpectedTotalFlowMn", "conditionalExpectedAbsTotalFlowMn",
+      "conditionalExpectedTotalFlowPctAdv", "conditionalExpectedAbsTotalFlowPctAdv",
+      "fullExpectedTotalFlowMn", "fullExpectedAbsTotalFlowMn",
+      "fullExpectedTotalFlowPctAdv", "fullExpectedAbsTotalFlowPctAdv",
+    ] as const;
+
+    expect(got.unsupportedWeight).toBe(0);
+    for (const row of [got.wholeBook, got.buckets.find((r) => r.bucket === "1-2DTE")!]) {
+      expect(row.missingTotalWeight).toBe(tinyWeight);
+      expect(row.missingTotalWeight).toBeGreaterThan(0);
+      for (const field of totalFields) expect(row[field], field).toBeNull();
+      expect(row.conditionalExpectedGammaFlowMn).toBeCloseTo(-10, 10);
+      expect(row.fullExpectedGammaFlowMn).toBeCloseTo(-10, 10);
+      expect(row.conditionalExpectedCharmFlowMn).toBeCloseTo(-1, 10);
+      expect(row.fullExpectedCharmFlowMn).toBeCloseTo(-1, 10);
+    }
+  });
+
+  it("computes conditional mechanics for any positive supported mass without hiding its tail", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 1, vol_pts: 2, empirical_weight: tinyWeight },
+      { spot_pct: 4, vol_pts: 0, empirical_weight: 1 - tinyWeight },
+    ], liquidExpectation);
+
+    expect(got.supportedWeight).toBe(tinyWeight);
+    expect(got.unsupportedWeight).toBe(1 - tinyWeight);
+    for (const row of [got.wholeBook, got.buckets.find((r) => r.bucket === "1-2DTE")!]) {
+      expect(row.conditionalExpectedGammaFlowMn).toBeCloseTo(-10, 10);
+      expect(row.conditionalExpectedVannaFlowMn).toBeCloseTo(-8, 10);
+      expect(row.conditionalExpectedCharmFlowMn).toBeCloseTo(-1, 10);
+      expect(row.conditionalExpectedTotalFlowMn).toBeCloseTo(-19, 10);
+      expect(row.conditionalExpectedAbsTotalFlowMn).toBeCloseTo(19, 10);
+      expect(row.conditionalExpectedTotalFlowPctAdv).toBeCloseTo(-19, 10);
+      expect(row.conditionalExpectedAbsTotalFlowPctAdv).toBeCloseTo(19, 10);
+      expect(row.alignmentMass.aligned_negative).toBe(tinyWeight);
+      expect(row.conditionalAlignmentShare.aligned_negative).toBe(1);
+      expect(row.conditionalAlignmentShare.aligned_positive).toBe(0);
+      for (const field of fullFlowFields) expect(row[field], field).toBeNull();
+    }
+  });
+
+  it("returns null conditional expectations and shares when supported mass is exactly zero", () => {
+    const got = r5EmpiricalExpectation(rows, ASOF, [
+      { spot_pct: 4, vol_pts: 0, empirical_weight: 1 },
+    ], liquidExpectation);
+
+    expect(got.supportedWeight).toBe(0);
+    expect(got.unsupportedWeight).toBe(1);
+    for (const row of [got.wholeBook, got.buckets.find((r) => r.bucket === "1-2DTE")!]) {
+      for (const field of conditionalFlowFields) expect(row[field], field).toBeNull();
+      for (const field of fullFlowFields) expect(row[field], field).toBeNull();
+      expect(Object.values(row.conditionalAlignmentShare).every((share) => share === null)).toBe(true);
+      expect(Object.values(row.alignmentMass).every((mass) => mass === 0)).toBe(true);
+    }
   });
 });
 
