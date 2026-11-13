@@ -105,6 +105,26 @@ describe("fixed SI gateway client", () => {
     expect(await fetchProphetRotationRead()).toEqual(ROTATION_READ_UNAVAILABLE);
     expect(json).not.toHaveBeenCalled();
   });
+  it.each([
+    { stage: "today: unknown source", status: 400, body: { error: "invalid_source" } },
+    { stage: "proxy landed: file missing", status: 404, body: { data: null, receipt: {
+      source: "rotation_read", path: "/sectordata/rotation_read.json", status: "unavailable", failure: "upstream_not_found",
+    } } },
+    { stage: "signed out", status: 401, body: { data: null, receipt: {
+      source: "rotation_read", path: "/sectordata/rotation_read.json", status: "access", failure: "access_denied",
+    } } },
+  ])("shows unavailable at $stage", async ({ status, body }) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(body, { status })));
+    expect(await fetchProphetRotationRead()).toEqual(ROTATION_READ_UNAVAILABLE);
+  });
+  it("reads the landed file without requiring optional receipt fields", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ data: fixture(), receipt: {
+      source: "rotation_read", path: "/sectordata/rotation_read.json", status: "ready", asOf: "2026-11-06",
+    } })));
+    const read = await fetchProphetRotationRead();
+    expect(read.status).toBe("ready");
+    expect(read.status === "ready" && read.data.as_of).toBe("2026-11-06");
+  });
   it("collapses transport and invalid JSON failures to unavailable", async () => {
     const fetcher = vi.fn().mockRejectedValueOnce(new Error("network"))
       .mockResolvedValueOnce(new Response("not json", { status: 200 }));
@@ -113,10 +133,11 @@ describe("fixed SI gateway client", () => {
     expect(await fetchProphetRotationRead()).toEqual(ROTATION_READ_UNAVAILABLE);
   });
   it.each([
-    { data: fixture(), receipt: { status: "access", stale: false } },
-    { data: fixture(), receipt: { status: "ready", stale: true } },
-    fixture(), envelope(null), envelope({ ...fixture(), status: "stale" }),
-  ])("rejects unqualified gateway answers", async body => {
+    fixture(), envelope(null), envelope([]), envelope("not an object"),
+    envelope({ ...fixture(), schema: "si.rotation_read/v2" }),
+    envelope({ ...fixture(), status: "stale" }),
+    envelope({ ...fixture(), status: "unavailable" }),
+  ])("rejects invalid or non-ok owner data in a 200 response", async body => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(body)));
     expect(await fetchProphetRotationRead()).toEqual(ROTATION_READ_UNAVAILABLE);
   });

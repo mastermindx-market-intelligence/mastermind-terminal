@@ -105,8 +105,7 @@ export async function fetchProphetRotationRead(signal?: AbortSignal): Promise<Pr
     const response = await fetch(PROPHET_ROTATION_READ_URL, { cache: "no-store", signal });
     if (!response.ok) return ROTATION_READ_UNAVAILABLE;
     const payload: unknown = await response.json();
-    if (!record(payload) || !record(payload.receipt) || payload.receipt.status !== "ready"
-      || payload.receipt.stale !== false) return ROTATION_READ_UNAVAILABLE;
+    if (!record(payload)) return ROTATION_READ_UNAVAILABLE;
     return parseProphetRotationRead(payload.data);
   } catch {
     return ROTATION_READ_UNAVAILABLE;
