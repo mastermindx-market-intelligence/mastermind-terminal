@@ -25,6 +25,7 @@ export type EvaluationLexKey = keyof typeof PROPHET_EVALUATION_LEX;
 const PROPHET_EVALUATION_LEX = {
   // ── Surface chrome ────────────────────────────────────────────────────────
   pageTitle: ["Strategy Evaluation", "策略评估"],
+  diagnosisUnavailable: ["Diagnosis is not available yet; try again later.", "诊断暂不可用，请稍后重试。"],
   pageEyebrow: ["Prophet · model book versus the market", "Prophet · 模型组合与市场对比"],
   backToProphet: ["Back to the Prophet board", "返回 Prophet 看板"],
   levelLabel: ["Release level", "发布级别"],

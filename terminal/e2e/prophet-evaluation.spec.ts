@@ -36,6 +36,19 @@ import {
  */
 const PANELS = ["details", "attribution", "coverage", "portfolio"] as const;
 
+for (const lang of ["en", "zh"] as const) {
+  test(`anonymous Prophet gate copy (${lang} 390)`, async ({ page, baseURL }) => {
+    test.skip(process.env.MMX_SHARED_SHELL !== "1", "gate proof needs the shared-shell server");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await prepare(page, baseURL, lang);
+    await page.goto("/prophet");
+    await expect(page.getByRole("heading", { name: lang === "en" ? "Unlock the Prophet desk" : "解锁 Prophet 预言台" })).toBeVisible();
+    await expect(page.locator("body")).toContainText(lang === "en" ? "managed-pick research desk" : "主动选股研究台");
+    await expectNoHorizontalOverflow(page);
+    await shotViewport(page, `anonymous-gate-${lang}-390.png`);
+  });
+}
+
 // ── The artifact, decoded once ───────────────────────────────────────────────
 const ART = decodeBetaEvaluation(
   JSON.parse(readFileSync(path.join(__dirname, "../public/data/prophet_beta_evaluation_fixture.json"), "utf8")),
@@ -593,10 +606,86 @@ test("diagnosis disclosures: off-index sensitivity and the independent audit (EN
       await expect(block).toContainText(run.name);
     }
     await expect(block).toContainText(audit.adjudication);
+    const identity = page.getByTestId("pev-decomposition-identity");
+    await expect(identity).toBeVisible();
+    await expect(block).toContainText(humanizeEngineText(ART.eventStudy.memberBenchmark!.decompositionIdentity!));
     await expectNoHorizontalOverflow(page);
     await shot(page, "audit-1440.png");
   }
 });
+
+test("diagnosis summaries support keyboard, changing markers and touch targets (390)", async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await prepare(page, baseURL);
+  await page.goto("/prophet/evaluation");
+  for (const id of ["pev-off-index", "pev-audit"]) {
+    const block = page.getByTestId(id);
+    const summary = block.locator("summary");
+    await summary.scrollIntoViewIfNeeded();
+    // Reach each summary with Tab, not programmatic focus or a pointer click.
+    for (let step = 0; step < 80 && !(await summary.evaluate(el => el === document.activeElement)); step++) {
+      await page.keyboard.press("Tab");
+    }
+    await expect(summary).toBeFocused();
+    expect(await summary.evaluate(el => el.matches(":focus-visible"))).toBe(true);
+    expect(await summary.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await expect(summary).toHaveCSS("list-style-type", "disclosure-closed");
+    const body = block.locator("p").first();
+    await expect(body).toBeHidden();
+    await page.keyboard.press("Enter");
+    await expect(block).toHaveAttribute("open", "");
+    await expect(body).toBeVisible();
+    await expect(summary).toHaveCSS("list-style-type", "disclosure-open");
+    if (id === "pev-audit") await expect(page.getByTestId("pev-decomposition-identity")).toBeVisible();
+    await page.keyboard.press("Space");
+    await expect(block).not.toHaveAttribute("open", "");
+    await expect(body).toBeHidden();
+    await expect(summary).toHaveCSS("list-style-type", "disclosure-closed");
+  }
+});
+
+for (const lang of ["en", "zh"] as const) {
+  for (const source of ["missing", "v1"] as const) {
+    test(`diagnosis unavailable is explicit for ${source} (${lang} 390)`, async ({ page, baseURL }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await prepare(page, baseURL, lang);
+      const v1 = JSON.parse(readFileSync(path.join(__dirname, "../public/data/prophet_beta_evaluation_fixture.json"), "utf8"));
+      delete v1.event_study.member_benchmark;
+      delete v1.sensitivity.off_index_picks;
+      delete v1.independent_audit;
+      await page.route("**/api/prophet/beta-evaluation", route => source === "missing"
+        ? route.fulfill({ status: 503, json: { error: "evaluation_unavailable" } })
+        : route.fulfill({ json: v1 }));
+      await page.goto("/prophet/evaluation");
+      const card = page.getByTestId("pev-diagnosis");
+      await expect(card.getByTestId("pev-diagnosis-unavailable")).toHaveText(getEvaluationStr(lang, "diagnosisUnavailable"));
+      await expect(card.locator("svg, details")).toHaveCount(0);
+      await expectNoHorizontalOverflow(page);
+      await card.scrollIntoViewIfNeeded();
+      await shotViewport(page, `diagnosis-unavailable-${source}-${lang}-390.png`);
+    });
+  }
+}
+
+for (const [width, lang] of [[390, "en"], [1440, "en"], [390, "zh"]] as const) {
+  test(`diagnosis accepted disclosure proof (${lang} ${width})`, async ({ page, baseURL }) => {
+    await page.setViewportSize({ width, height: width === 1440 ? 1200 : 844 });
+    await prepare(page, baseURL, lang);
+    await page.goto("/prophet/evaluation");
+    const card = page.getByTestId("pev-diagnosis");
+    await card.getByTestId("pev-audit").locator("summary").click();
+    await expect(card.getByTestId("pev-off-index")).not.toHaveAttribute("open", "");
+    await expect(card.getByTestId("pev-decomposition-identity")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    await card.screenshot({ path: shotTarget(`diagnosis-audit-open-${lang}-${width}.png`)! });
+    if (width === 390 && lang === "en") {
+      for (const id of ["pev-off-index", "pev-audit"]) {
+        await card.getByTestId(id).locator("summary").screenshot({ path: shotTarget(`${id}-summary-390.png`)! });
+      }
+    }
+  });
+}
 
 test("four disclosures open by click, close with Esc and return focus (EN 1440)", async ({ page, baseURL }) => {
   await prepare(page, baseURL);

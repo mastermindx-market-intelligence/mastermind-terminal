@@ -33,6 +33,16 @@ import {
 } from "@/lib/prophetBetaEvaluation";
 import { PlaceboRangeChart, type PlaceboRangeRow } from "./evaluationCharts";
 
+export function DiagnosisUnavailable({ lang }: { lang: Lang }) {
+  const t = makeEvaluationT(lang);
+  return (
+    <section className="pev-card pev-diagnosis" data-testid="pev-diagnosis">
+      <h2>{t("diagnosisTitle")}</h2>
+      <p className="pev-dim" data-testid="pev-diagnosis-unavailable">{t("diagnosisUnavailable")}</p>
+    </section>
+  );
+}
+
 export function DiagnosisSection({ data, lang }: { data: BetaEvaluation; lang: Lang }) {
   const t = makeEvaluationT(lang);
   const mb = data.eventStudy.memberBenchmark;
@@ -41,7 +51,7 @@ export function DiagnosisSection({ data, lang }: { data: BetaEvaluation; lang: L
     : [];
   const offIndex = data.sensitivity?.offIndexPicks ?? null;
   const audit = data.independentAudit;
-  if (marks.length === 0 && !offIndex && !audit) return null;
+  if (marks.length === 0 && !offIndex && !audit) return <DiagnosisUnavailable lang={lang} />;
 
   const relation = (m: MemberYardstickMark): string => {
     if (!m.placebo.observedOutsidePlaceboRange) return t("placeboWithin");
@@ -59,7 +69,7 @@ export function DiagnosisSection({ data, lang }: { data: BetaEvaluation; lang: L
   }));
 
   return (
-    <section className="pev-card" data-testid="pev-diagnosis">
+    <section className="pev-card pev-diagnosis" data-testid="pev-diagnosis">
       <h2>{t("diagnosisTitle")}</h2>
       {mb !== null && marks.length > 0 && (
         <>
@@ -93,9 +103,6 @@ export function DiagnosisSection({ data, lang }: { data: BetaEvaluation; lang: L
               <b>{t("engineReadingLabel")}</b> {humanizeEngineText(mb.why)}
               {lang === "zh" ? `（${t("zhVerbatimNote")}）` : null}
             </p>
-          )}
-          {mb.decompositionIdentity && (
-            <p className="pev-dim">{humanizeEngineText(mb.decompositionIdentity)}</p>
           )}
         </>
       )}
@@ -172,6 +179,9 @@ export function DiagnosisSection({ data, lang }: { data: BetaEvaluation; lang: L
             <span className="pev-chip is-unknown">{t("afterTheFactChip")}</span>
           </summary>
           <p className="pev-dim">{humanizeEngineText(audit.label)}</p>
+          {mb?.decompositionIdentity && (
+            <p className="pev-dim" data-testid="pev-decomposition-identity">{humanizeEngineText(mb.decompositionIdentity)}</p>
+          )}
           <h3>{t("auditRunsTitle")}</h3>
           <ul className="pev-defs">
             {audit.runs.map(run => (

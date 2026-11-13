@@ -34,7 +34,7 @@ import {
 import "./prophetEvaluation.css";
 import { ForestPlot, type ForestRow } from "./evaluationCharts";
 import { EVALUATION_PANELS, panelBody, type PanelKey } from "./EvaluationPanels";
-import { DiagnosisSection } from "./DiagnosisSection";
+import { DiagnosisSection, DiagnosisUnavailable } from "./DiagnosisSection";
 
 type LoadStatus = "loading" | "ready" | "unavailable" | "unauthenticated" | "forbidden";
 
@@ -185,6 +185,7 @@ export default function ProphetEvaluationView() {
       <div className="main2 pev pev-state">
         <h1 className="pev-h1">{t("unavailableTitle")}</h1>
         <p className="pev-lede">{t("unavailableBody")}</p>
+        <DiagnosisUnavailable lang={lang} />
         <button type="button" className="pev-cta" onClick={retry}>{t("tryAgain")}</button>
       </div>
     );
