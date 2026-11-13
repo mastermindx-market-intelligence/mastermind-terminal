@@ -916,6 +916,7 @@ function WlSectionContextMenu({ point, sectionNames, onClose, onRename, onRemove
 const CHART_TYPE_GROUPS: [string, string[]][] = [
   ["ctGroupCandles", ["candles", "hollow", "heikin"]],
   ["ctGroupBars", ["bars"]],
+  ["ctGroupOrderFlow", ["footprint"]],
   ["ctGroupLines", ["line", "line-markers", "step"]],
   ["ctGroupAreas", ["area", "baseline"]],
 ];
@@ -926,6 +927,7 @@ function ChartTypeIcon({ kind }: { kind: string }) {
     </svg>
   );
   if (kind === "bars") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M5 2v12M2 5h3M5 11h3M14 1v14M11 4h3M14 10h3M23 3v11M20 6h3M23 12h3" /></svg>;
+  if (kind === "footprint") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M14 1v14M2 4h11M15 4h7M5 8h8M15 8h11M2 12h11M15 12h9" /></svg>;
   if (kind === "step") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12h7V8h8V4h9" /></svg>;
   if (kind === "area" || kind === "baseline") return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3v8H2z" className="ct-fill" /><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "baseline" && <path d="M2 9h24" className="ct-base" />}</svg>;
   return <svg className="ct-kind-icon" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 12l6-5 5 3 6-7 7 3" />{kind === "line-markers" && <><circle cx="8" cy="7" r="1.4" /><circle cx="19" cy="3" r="1.4" /><circle cx="26" cy="6" r="1.4" /></>}</svg>;
@@ -996,7 +998,7 @@ const DETECTORS: [NonNullable<DetectCmd>["kind"], string][] = [
   ["trendlines", "Auto trendlines"], ["fib", "Auto Fibonacci"], ["sr", "S/R strength heatmap"], ["mtfa", "Multi-timeframe S/R"], ["clear", "Clear detected"],
 ];
 // translation key maps for the (otherwise hard-coded) toolbar/tool labels
-const CT_TKEY: Record<string, string> = { candles: "ctCandles", hollow: "ctHollow", heikin: "ctHeikin", bars: "ctBars", line: "ctLine", "line-markers": "ctLineMarkers", step: "ctStepLine", area: "ctArea", baseline: "ctBaseline" };
+const CT_TKEY: Record<string, string> = { candles: "ctCandles", hollow: "ctHollow", heikin: "ctHeikin", bars: "ctBars", line: "ctLine", "line-markers": "ctLineMarkers", step: "ctStepLine", area: "ctArea", baseline: "ctBaseline", footprint: "ctFootprint" };
 const TFG_TKEY: Record<string, string> = { Seconds: "tfSecondsGroup", Minutes: "tfMinutes", Hours: "tfHours", Days: "tfDays", Weeks: "tfWeeks", Months: "tfMonths" };
 const DET_TKEY: Record<string, string> = { trendlines: "autoTrendlines", fib: "autoFib", sr: "srHeatmap", mtfa: "mtfSR", clear: "clearDetected" };
 

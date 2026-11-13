@@ -93,6 +93,8 @@ export const LEX: Record<string, [string, string]> = {
   ctBaseline: ["Baseline", "基准线图"],
   ctGroupCandles: ["Candles", "蜡烛图"],
   ctGroupBars: ["Bars", "柱线图"],
+  ctGroupOrderFlow: ["Order flow", "订单流"],
+  ctFootprint: ["Footprint · ES/NQ", "足迹图 · ES/NQ"],
   ctGroupLines: ["Lines", "线形图"],
   ctGroupAreas: ["Areas", "面积图"],
   // timeframe groups

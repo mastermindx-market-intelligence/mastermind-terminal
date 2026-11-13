@@ -8,6 +8,7 @@ import { buildChartPresentation, type ChartPresentationSource } from "@/lib/char
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
+
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import type { ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
@@ -33,6 +34,8 @@ import { useChartTradingCurrency } from "@/lib/useChartTradingCurrency";
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
 const ChartSettingsModal = dynamic(() => import("@/components/ChartSettingsModal"), { ssr: false });
+// Load order-flow microstructure only when the Footprint chart type is selected.
+const FootprintChartPane = dynamic(() => import("@/components/futures/FootprintChartPane"), { ssr: false });
 
 const SETTINGS_KEY = "mm.chartSettings";
 const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage.getItem(SETTINGS_KEY); return v ? { ...d, ...JSON.parse(v) } : d; } catch { return d; } };
@@ -236,6 +239,20 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
     const release = onPresentationStateRef.current?.(presentation, source);
     return () => { current = false; release?.(); };
   }, [presentation, symbol, tf, idx, chartType, replayCutoff, _dayMode]);
+  // Footprint is an independent, source-bound futures renderer, not a candle variant.
+  // Retire stale candle/crosshair/AI observations when switching its ownership.
+  const footprintClearRef = useRef({ onIndRowsAt, onRenderedPriceSource, onNativeObservations });
+  useLayoutEffect(() => { footprintClearRef.current = { onIndRowsAt, onRenderedPriceSource, onNativeObservations }; });
+  useEffect(() => {
+    if (chartType !== "footprint") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- immediately release the retired price chart's API when order flow takes over this pane.
+    setChartApi(null);
+    setDataOrigin(null);
+    setOvernightHistory(null);
+    footprintClearRef.current.onIndRowsAt?.(null);
+    footprintClearRef.current.onRenderedPriceSource?.(null);
+    footprintClearRef.current.onNativeObservations?.(null);
+  }, [chartType, symbol, tf]);
   const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
     ? symbol
@@ -266,16 +283,18 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
           sit in history while its neighbour stayed live. Meta is likewise reported unconditionally:
           the shell keys bar counts by (symbol|timeframe), so a pane that is merely not focused still
           contributes the span that becomes authoritative once the workspace collapses onto it. */}
-      {cmpLegs.length > 0 && (
+      {chartType !== "footprint" && cmpLegs.length > 0 && (
         <CompareAnchorStrip
           host={symbol} timeframe={tf} legs={cmpLegs} compareCfg={compareCfg} study={cmpStudy} chartApi={chartApi}
           percentAxis={chartSettings.mode === EnginePriceScaleMode.Percentage || chartSettings.mode === EnginePriceScaleMode.IndexedTo100}
           onCompareCfgChange={onCompareCfgChange}
         />
       )}
-      {extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours &&
+      {chartType !== "footprint" && extendedEligible && isOvernightTimeframe(tf) && chartSettings.overnightHours &&
         <ChartBoatsStatus lang={lang} symbol={symbol} timeframe={tf} history={overnightHistory} quote={liveQuote} />}
-      <ChartPanel
+      {chartType === "footprint" ? (
+        <FootprintChartPane symbol={symbol} timeframe={tf} dataReady={dataReady && chartSettingsReady} />
+      ) : <ChartPanel
         contextDock={contextDock}
         optionsLevel={isActive ? optionsLevel : null}
         onOptionsViewport={onOptionsViewport}
@@ -316,8 +335,8 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         onPaneCount={onPaneCount}
         onDataOrigin={setDataOrigin}
         onOvernightHistory={setOvernightHistory}
-      />
-      <ChartFrameBar
+      />}
+      {chartType !== "footprint" && <ChartFrameBar
         isActive={isActive}
         timeframe={tf}
         chartApi={chartApi}
@@ -332,8 +351,8 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         symbol={symbol}
         dataOrigin={dataOrigin}
         tradingCurrency={tradingCurrency}
-      />
-      {settingsModalOpen && (
+      />}
+      {chartType !== "footprint" && settingsModalOpen && (
         <ChartSettingsModal
           open
           tab={settingsModalTab}
