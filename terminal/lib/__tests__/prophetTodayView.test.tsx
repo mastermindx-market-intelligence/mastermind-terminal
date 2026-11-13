@@ -211,7 +211,8 @@ describe("Today board — committed-fixture acceptance", () => {
     await act(async () => {
       (host.querySelector('[data-testid="prophet-today-case"][data-symbol="CLX"] [data-testid="prophet-today-case-setup"]') as HTMLButtonElement).click();
     });
-    expect(patches.at(-1)).toEqual({ lane: "sector", view: "setup", symbol: "CLX", plan: null });
+    // The focused (derived) group rides along so the setup's Back can load it.
+    expect(patches.at(-1)).toEqual({ lane: "sector", view: "setup", group: "defensives", symbol: "CLX", plan: null });
     await act(async () => {
       (host.querySelector('[data-testid="prophet-today-case"][data-symbol="GIS"] [data-testid="prophet-today-case-compare"]') as HTMLButtonElement).click();
     });

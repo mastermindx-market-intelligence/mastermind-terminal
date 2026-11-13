@@ -214,7 +214,9 @@ export function TodayView({ state, update }: {
   const openGroup = (groupId: string) =>
     update({ lane: "sector", view: "population", group: groupId, symbol: null, q: "", state: null, offset: 0 });
   const openSetup = (symbol: string) =>
-    update({ lane: "sector", view: "setup", symbol, plan: null });
+    // Carry the focused group (derived or deep-linked): the setup's Back asks for
+    // that group's population, which can only load when a group is in state.
+    update({ lane: "sector", view: "setup", group: focusId, symbol, plan: null });
   const openScreener = () => update({ lane: "screener", view: "overview" });
   const openPlans = () => update({ lane: "plans" });
   const toggleCompare = (symbol: string) => update({ sel: toggleProphetSel(state.sel, symbol) });
