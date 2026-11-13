@@ -50,13 +50,15 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
 
   const cards = symbols.map(symbol => ({ symbol, payload: payloadOf(symbol) }));
   const ready = cards.filter(card => card.payload !== null) as { symbol: string; payload: SymbolPayload }[];
-  // SX09 #08: the views use different clocks whenever any card's read spans a
-  // different session (the date-mismatch family, not a down read — a down
-  // read says unavailable, which its own clocks line already carries).
+  // SX09 #08: warn for a mismatch within any ready read or across ready reads.
+  // Unknown clocks do not establish a difference; down reads retain their own
+  // unavailable clocks line rather than triggering a warning by themselves.
   const mixedClocks = ready.some(card =>
     card.payload.compatibility.status === "stale_sector"
     || card.payload.compatibility.status === "stale_prophet"
-    || card.payload.compatibility.status === "mixed_basis");
+    || card.payload.compatibility.status === "mixed_basis")
+    || new Set(ready.map(card => card.payload.compatibility.sectorSession).filter(value => value !== null)).size > 1
+    || new Set(ready.map(card => card.payload.compatibility.prophetAsof).filter(value => value !== null)).size > 1;
 
   return (
     <section className={styles.compare} data-testid="prophet-sector-compare">
