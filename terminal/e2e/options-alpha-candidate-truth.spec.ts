@@ -1,8 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clickProphetLaneTab } from "./helpers/prophetLane";
 
 async function openAlpha(page: Page) {
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
 }
 
 async function rawTokensOutsideDetails(page: Page): Promise<string[]> {

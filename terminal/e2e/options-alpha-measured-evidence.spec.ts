@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { clickProphetLaneTab } from "./helpers/prophetLane";
 
 const measuredFeed = {
   schema: "live_flow.feed/v1",
@@ -48,7 +49,7 @@ test("Options Alpha shows measured NBBO evidence as context, not direction", asy
   });
 
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
 
   const desk = page.getByTestId("options-alpha-desk");
   const section = page.getByTestId("options-alpha-measured-evidence");
@@ -90,7 +91,7 @@ test("measured-flow failure degrades independently from the Options Alpha shadow
   });
 
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
 
   const desk = page.getByTestId("options-alpha-desk");
   const section = page.getByTestId("options-alpha-measured-evidence");
@@ -110,7 +111,7 @@ test("producer-stale measured evidence is visibly last-source evidence", async (
     });
   });
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
   const section = page.getByTestId("options-alpha-measured-evidence");
   await expect(section).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
@@ -146,7 +147,7 @@ test("refresh failure is labelled and a successful refresh restores measured evi
   });
 
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
   const section = page.getByTestId("options-alpha-measured-evidence");
   await expect(page.getByTestId("options-alpha-measured-event")).toHaveCount(1);
   fail = true;

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { clickProphetLaneTab } from "./helpers/prophetLane";
 
 // Declared synthetic events. These exercise the user workflow, not predictive value.
 const event = (id: string, root = "NVDA") => ({
@@ -24,7 +25,7 @@ const feed = (events = [event("event-nvda")]) => ({
 
 async function openAlpha(page: Page) {
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
 }
 async function routeFeed(page: Page, payload = feed()) {
   await page.route("**/api/flow?f=feed", route => route.fulfill({ json: payload }));
@@ -164,7 +165,7 @@ test("native watchlist route persists the selected underlying across reopening",
   const response = await page.request.post("/api/watchlist", { data: { action: "createList", name: "Alpha review" } });
   expect(response.ok()).toBe(true);
   const { list } = await response.json();
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
   await page.getByRole("button", { name: "Inspect NVDA event" }).click();
   const detail = page.getByRole("dialog");
   await detail.getByLabel("Save underlying to").selectOption(list.id);
