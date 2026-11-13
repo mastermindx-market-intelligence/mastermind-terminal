@@ -5,15 +5,32 @@
 // 403s, so this replaces the would-be-empty workspace with a clear upgrade prompt.
 // Access states use the incumbent theme tokens and a bounded scrolling surface.
 // The existing entitlement and session owners retain all access decisions.
+//
+// `variant` selects ONLY the product copy (ruling D10): /prophet and
+// /prophet/evaluation are gated by the same entitlement but must pitch Prophet,
+// not name a different product. The entitlement check, tiers, server gate and
+// 401/403 behavior are identical for both variants; "options" is the default so
+// every existing call site keeps its wording untouched. The Prophet copy lives
+// in prophetGateStrings.ts (desk-local, like prophetSectorStrings.ts) so the
+// global LEX bytes — pinned by 17 evidence packets — stay untouched.
 import { useCallback, useEffect, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
+import { getProphetGateStr } from "@/components/prophet/prophetGateStrings";
 import { useLang, useT } from "@/lib/i18n";
 import { pick } from "@/lib/finFormat";
 import { createClient } from "@/lib/supabase/client";
 import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 import styles from "./OptionsAccess.module.css";
 
-export default function OptionsPaywall({ verifySession = false }: { verifySession?: boolean }) {
+type PaywallVariant = "options" | "prophet";
+
+export default function OptionsPaywall({
+  verifySession = false,
+  variant = "options",
+}: {
+  verifySession?: boolean;
+  variant?: PaywallVariant;
+}) {
   const t = useT();
   const { lang } = useLang();
   const onboarding = useOnboarding();
@@ -63,15 +80,22 @@ export default function OptionsPaywall({ verifySession = false }: { verifySessio
       </main>
     );
   }
-  const features = [t("opwF1"), t("opwF2"), t("opwF3"), t("opwF4")];
+  // Product copy only (ruling D10) — the plan eyebrow, CTA and sub line below
+  // stay the shared keys; the entitlement decision lives entirely upstream.
+  const copy = variant === "prophet"
+    ? {
+      title: getProphetGateStr(lang, "title"), body: getProphetGateStr(lang, "body"),
+      features: (["f1", "f2", "f3", "f4"] as const).map(k => getProphetGateStr(lang, k)),
+    }
+    : { title: t("opwTitle"), body: t("opwBody"), features: [t("opwF1"), t("opwF2"), t("opwF3"), t("opwF4")] };
   return (
     <main id="shared-shell-content" tabIndex={-1} className={styles.viewport}>
       <div className={styles.card}>
         <div className={styles.eyebrow}>{t("opwPlans")}</div>
-        <h1 className={styles.title}>{t("opwTitle")}</h1>
-        <p className={styles.body}>{t("opwBody")}</p>
+        <h1 className={styles.title}>{copy.title}</h1>
+        <p className={styles.body}>{copy.body}</p>
         <ul className={styles.features}>
-          {features.map((f, i) => (
+          {copy.features.map((f, i) => (
             <li key={i}>
               <svg className={styles.featureIcon} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="m5 12 4 4L19 6" />

@@ -41,13 +41,13 @@ export const PROPHET_SECTOR_LEX = {
   verdictStaleSector:  ["The sector reading is {gap} sessions older than the Prophet index — treat group measures as dated.", "行业读数比预言台指数旧 {gap} 个交易日——请将组内指标视为滞后数据。"],
   verdictStaleProphet: ["The Prophet index is {gap} sessions older than the sector reading — member states may lag the group.", "预言台指数比行业读数旧 {gap} 个交易日——成员状态可能滞后于行业。"],
   verdictMixedBasis:   ["The readings were captured on different sessions — comparisons span dates.", "两次读数采集于不同交易日——对比跨越了日期。"],
-  verdictSectorDown:   ["The sector reading is unavailable — group context is not shown for this read.", "行业读数不可用——本次不显示行业背景。"],
+  verdictSectorDown:   ["The sector reading is unavailable — group context is not shown.", "行业读数不可用——不显示行业背景。"],
   verdictProphetDown:  ["The Prophet index is unavailable — member states cannot be shown.", "预言台指数不可用——无法显示成员状态。"],
 
   // ── Group picker (SX02) ──────────────────────────────────────────────────
   pickerTitle:         ["Groups", "行业组"],
   pickerIntro:         ["Every group in the current sector read, with its Prophet coverage.", "当前行业读数中的全部行业组及其预言台覆盖。"],
-  pickerCoverageHonest: ["{served} served members across {groups} groups. Prophet also covers companies outside these groups.", "{groups} 个行业组共 {served} 只成分。预言台亦覆盖这些组之外的公司。"],
+  pickerCoverageHonest: ["{companies} companies across {groups} groups. Prophet also covers companies outside these groups.", "{groups} 个行业组共 {companies} 家公司。预言台亦覆盖这些组之外的公司。"],
   pickerMembers:       ["{n} members", "{n} 只成分"],
   pickerCoverage:      ["{open} open plans · {early} early observations · {resolved} resolved", "{open} 个进行中计划 · {early} 项早期观察 · {resolved} 个已完结"],
   pickerView:          ["View population", "查看成员"],
@@ -56,7 +56,7 @@ export const PROPHET_SECTOR_LEX = {
   // ── Member population (SX04) ─────────────────────────────────────────────
   populationTitle:     ["{group} in Prophet", "预言台中的{group}"],
   populationTitleNoGroup: ["Members", "成分"],
-  populationCounts:    ["{served} served of {configured} configured · {unserved} unmeasured", "配置 {configured} 只，已服务 {served} 只 · {unserved} 只未测量"],
+  populationCounts:    ["{companies} companies", "共 {companies} 家公司"],
   searchLabel:         ["Search members", "搜索成分"],
   searchPlaceholder:   ["Symbol or name", "代码或名称"],
   searchSubmit:        ["Search", "搜索"],
@@ -72,9 +72,10 @@ export const PROPHET_SECTOR_LEX = {
   pagePrev:            ["Previous page", "上一页"],
   pageNext:            ["Next page", "下一页"],
   openSetup:           ["Setup", "研究起点"],
+  cardOpen:            ["Open", "打开"],
   setupAria:           ["Open {symbol} setup", "打开 {symbol} 的研究起点"],
-  unservedTitle:       ["Unmeasured members ({n})", "未测量成分（{n} 只）"],
-  unservedNote:        ["Group members with no measured row in this read.", "本次读取中没有测量数据的组成员。"],
+  unservedTitle:       ["Members without a reading ({n})", "暂无读数的成分（{n} 只）"],
+  unservedNote:        ["These group members have no reading available yet.", "这些组成员暂无可用读数。"],
   emptyFiltered:       ["No members match this filter.", "没有符合条件的成分。"],
   alsoIn:              ["also in {groups}", "同属 {groups}"],
 
@@ -92,14 +93,17 @@ export const PROPHET_SECTOR_LEX = {
   reasonSectorDown:    ["The sector reading is unavailable right now.", "行业读数当前不可用。"],
   reasonAbsentPanel:   ["No price panel for this member in the read.", "本次读取没有该成分的价格数据。"],
   reasonNotObserved:   ["Not observed at the effective date.", "生效日未观测到该成员。"],
-  reasonGeneric:       ["No published plan.", "未发布计划。"],
-  reasonUnservedGeneric: ["Not measured in this read.", "本次读取未测量。"],
+  reasonGeneric:       ["No plan available.", "暂无计划。"],
+  reasonUnservedGeneric: ["No reading for this member yet.", "暂无该成分的读数。"],
 
   // ── Company Setup (SX03) ─────────────────────────────────────────────────
   setupTitle:          ["{symbol} setup", "{symbol} 研究起点"],
+  setupMissingSymbol:  ["This address does not name a company. Choose a member in the population.", "该地址未指定公司。请在成分列表中选择。"],
   setupBack:           ["Back to population", "返回成员列表"],
   setupPlanHeading:    ["Prophet plan", "预言台计划"],
-  setupPlanMissing:    ["This plan is not in the current board read.", "该计划不在当前计划板读取中。"],
+  setupPlanMissingTitle: ["This plan is not on today's board", "该计划不在今日计划板中"],
+  setupPlanMissingBody: ["The member list reports {state}, opened {date}. Today's plan board does not carry it, so its entry, invalidation and targets are not shown here.", "成员名单记录为{state}，开启于 {date}。今日计划板未包含该计划，因此此处不显示其入场价、失效价与目标价。"],
+  setupPlanBoard:      ["Open the plans board", "打开计划板"],
   setupNoPlanHeading:  ["No Prophet plan for {symbol}", "{symbol} 暂无预言台计划"],
   setupGroupDoing:     ["What {group} is doing", "{group} 近期表现"],
   setupWhyNoPlan:      ["Why no plan", "为何没有计划"],
@@ -108,7 +112,9 @@ export const PROPHET_SECTOR_LEX = {
   setupMemberSince:    ["In this group since at least {date}", "至少自 {date} 起在该组"],
   setupRosterSince:    ["Roster effective {date}", "名单生效 {date}"],
   setupReported:       ["Reported from the Prophet index — not a recommendation.", "来自预言台指数的记录——不构成建议。"],
-  setupInGroups:       ["Member of {n} group(s)", "{n} 个组的成分"],
+  // Only rendered when the member belongs to more than one group, so the
+  // plural is fixed here rather than carrying an "(s)" the reader must parse.
+  setupInGroups:       ["Member of {n} groups", "同属 {n} 个组"],
 
   // ── Sources & evidence disclosure ────────────────────────────────────────
   sourcesSummary:      ["Sources & evidence", "来源与证据"],
@@ -146,15 +152,102 @@ export const PROPHET_SECTOR_LEX = {
   // The upstream reading is not published for the Terminal yet (404/502/timeout
   // at the BFF). The designed degradation: say so, keep the rest of Prophet usable.
   unavailableYet:      ["Sector context is not available yet.", "行业背景暂未开放。"],
-  groupUnavailableMembers: ["The group's member list is not part of this read.", "本次读数不包含该组的成员列表。"],
-  unavailableNote:     ["This reading is not published for the Terminal yet — the rest of Prophet keeps working.", "该读数尚未向 Terminal 发布——预言台其余功能不受影响。"],
-  backToGroups:        ["← All groups", "← 全部行业组"],
+  groupUnavailableMembers: ["The group's member list is not available.", "该组的成员列表暂不可用。"],
+  unavailableNote:     ["This reading is not available yet — the rest of Prophet keeps working.", "该读数暂不可用——预言台其余功能不受影响。"],
+  // The visible back controls draw their own "←" (SX02/SX04); these labels must
+  // not carry a second one.
+  backToGroups:        ["All groups", "全部行业组"],
 
   // ── Sector-side member row (SectorPopulationMembers) ────────────────────
   rowProphetColumn:    ["Prophet", "预言台"],
   rowProphetState:     ["{symbol} in Prophet", "预言台中的 {symbol}"],
-  eligibleNotPublished:["Prophet state not published yet", "预言台状态尚未发布"],
+  eligibleNotPublished:["Prophet state not available yet", "预言台状态暂不可用"],
   eligiblePending:     ["Prophet state pending", "预言台状态待发布"],
+
+  // ── Leadership table (SX01 · G5) ─────────────────────────────────────────
+  leadershipTitle:     ["Where leadership is moving", "行业领导力去向"],
+  leadershipIntro:     ["Every group in the sector read, ranked by return versus market over the same window.", "当前行业读数中的全部行业组，按同一窗口内相对市场的收益排序。"],
+  // SX01 hero summary: names the top-ranked group from the SERVED window reads.
+  // Renders only when both the return and the versus-market figure are served.
+  heroKicker:          ["Market & sector leadership", "市场与行业领导力"],
+  heroTitle:           ["{group} leads this read", "{group} 领跑本次读数"],
+  heroBody:            ["{ret} over {n} sessions · {pp} versus the market.", "{n} 个交易日 {ret} · 相对市场 {pp}。"],
+  heroBodyNoWindow:    ["{ret} in this window · {pp} versus the market.", "本窗口 {ret} · 相对市场 {pp}。"],
+  heroNote:            ["Descriptive context — ranked by return versus market over the same window, not a forecast.", "描述性背景——按同一窗口内相对市场的收益排序，并非预测。"],
+  columnReturn:        ["Window return", "窗口收益"],
+  columnVsMarket:      ["Vs market", "相对市场"],
+  columnBreadth:       ["Breadth", "宽度"],
+  columnDevelopment:   ["Development", "发展阶段"],
+  columnOpen:          ["Open", "查看"],
+  breadthNoneLine:     ["Breadth by group is not available.", "暂无按组的宽度数据。"],
+  pickerResearch:      ["Research →", "研究 →"],
+  siExplore:           ["Explore every sector in Sector Intelligence ↗", "在行业情报中查看全部行业 ↗"],
+
+  // ── Sector focus (SX02 · G4) ─────────────────────────────────────────────
+  focusLeadIntro:      ["The group is ahead of the market. Test how widely that strength is shared.", "该组领先市场。检验这轮强势覆盖多广。"],
+  focusLagIntro:       ["The group trails the market. Check what still holds up inside it.", "该组落后于市场。看看组内还有什么站得住。"],
+  focusFlatIntro:      ["See the group against its market, then test what the members show.", "先看该组与市场的对照，再检验成分股的表现。"],
+  focusBenchmarkChip:  ["Benchmark {ticker}", "基准 {ticker}"],
+  focusCloseChip:      ["Close {session}", "收盘 {session}"],
+  focusViewMembers:    ["Research these names →", "研究这些成分 →"],
+  focusOpenPopulation: ["Open the full population →", "打开全部成分 →"],
+  // The fail-closed group read (group null): the numbers, count and lead line
+  // are not served — say so once, in the designed not-served block, and never
+  // borrow them from another read.
+  focusNotServedTitle: ["Group measures not available", "组内指标暂不可用"],
+  focusNotServedBody:  ["The sector reading for this group is not available in this session. No group return, market return, relative or breadth is shown.", "本次会话未提供该组的行业读数。不显示组内收益、市场收益、相对表现或宽度。"],
+  focusDisclaimer:     ["Sector strength is descriptive context. It does not decide entry, size or timing for any name.", "行业强势属于描述性背景，不决定任何名称的入场、仓位或时点。"],
+  backToFocus:         ["Sector focus", "行业聚焦"],
+  // The panels the wire cannot fill are ONE plain line (P1-4), not four
+  // refusal panels; the Sector Intelligence handoff stays a link.
+  focusUnavailableLine: ["Breadth, concentration, industries and history are not available for this group yet.", "该组的宽度、集中度、行业分布与历史数据暂不可用。"],
+  // SX02's breadcrumb and return contract. Until Lane A's `/prophet` Today
+  // route lands with #1480, Today is the Prophet board at this address.
+  focusBreadcrumbToday: ["Today", "今日"],
+  focusBreadcrumbMarket: ["US market", "美国市场"],
+  focusReturnToday:    ["Return to Today", "返回今日"],
+  siLink:              ["Open in Sector Intelligence ↗", "打开行业情报 ↗"],
+  siLinkAria:          ["Open this group's own view in Sector Intelligence", "在行业情报中打开该组自己的视图"],
+
+  // ── Relative leader, falling price (SX09 #01 · G22) ─────────────────────
+  relativeLeadTitle:   ["Ahead of the market. Still falling.", "跑赢市场，仍在下跌。"],
+  relativeLeadBody:    ["Sector {sector} · market {market} · advantage {adv} pp. Relative resilience does not turn the absolute return green.", "行业 {sector} · 市场 {market} · 优势 {adv} 个百分点。相对抗跌不会让绝对收益转正。"],
+  relativeLeadAction:  ["Inspect the comparison", "查看对比"],
+  relativeLeadActionAria: ["Open this group's own comparison in Sector Intelligence", "在行业情报中打开该组的对比"],
+
+  // ── Member selection + compare (SX04/T2-06, T2-07/T2-13 · G6, G7) ───────
+  compareCol:          ["Compare", "对比"],
+  selectAria:          ["Select {symbol} for comparison", "选择 {symbol} 加入对比"],
+  removeSelectionAria: ["Remove {symbol} from the selection", "从已选中移除 {symbol}"],
+  selectedCount:       ["{n} selected", "已选 {n} 只"],
+  selectionNote:       ["Selections stay fixed as you change filters.", "更改筛选时选择保持不变。"],
+  selectionCapNote:    ["Up to {n} names can be compared.", "最多可对比 {n} 只名称。"],
+  compareSelected:     ["Compare selected ⇅", "对比已选 ⇅"],
+  compareNeedsMore:    ["Select at least two names in the population to compare them.", "请在成分列表中至少选择两只名称后再对比。"],
+  // Compare is its own view address. Until the address carries the selection
+  // (Lane A's `sel` key), a reload lands on compare with nothing selected — say
+  // that plainly instead of showing an empty comparison.
+  compareSelectionLost: ["The comparison selection was not kept in this address. Choose names in the population to compare them.", "本地址未保留对比选择。请在成分列表中选择名称后再对比。"],
+  populationMeasuresNote: ["Return and vs-sector figures are not available for these companies yet.", "这些公司暂无收益与相对行业数据。"],
+  columnReturnMember:  ["Return", "收益"],
+  columnVsSector:      ["Vs sector", "相对行业"],
+  populationContextVsMarket: ["{pp} vs market", "相对市场 {pp}"],
+  populationContextSessions: ["{n} sessions to {session}", "{n} 个交易日，截至 {session}"],
+  populationContextSessionsNoDate: ["{n} sessions", "{n} 个交易日"],
+  compareTitle:        ["Compare the evidence", "对比证据"],
+  compareIntro:        ["Keep each research case, its clock and its next check in view.", "把每个研究案例、其时间基准与下一步核查放在同一视野。"],
+  compareBack:         ["← Back to population", "← 返回成分列表"],
+  compareAddName:      ["Add a name +", "添加名称 +"],
+  compareNoScore:      ["Each case keeps its own clock and basis. No combined score or ranking is assigned.", "每个案例保留各自的时间基准与口径。不给出综合评分或排名。"],
+  // ONE sentence for the mixed-clock case (SX09 #08) — the banner states the
+  // clock difference and the no-combined-arithmetic rule once, not twice.
+  compareMixedClocks:  ["These cases use different clocks — each is compared on its own, with no combined score or ranking assigned.", "这些案例的时间基准不同——各自对照，不给出综合评分或排名。"],
+  compareFooter:       ["Returning to the population preserves your selection and filters.", "返回成分列表会保留你的选择与筛选。"],
+  compareChartUnavailable: ["{symbol}'s window series is not available.", "暂无 {symbol} 的窗口序列。"],
+  compareEvidenceUnavailable: ["Support, challenge and next check are not available for this name yet.", "该名称的支持论点、质疑与下一步核查暂不可用。"],
+  compareEntryUnavailable: ["Entry state unavailable", "入场状态不可用"],
+  compareStrategy:     ["Strategy", "策略"],
+  compareOpenSetup:    ["Open setup →", "打开研究起点 →"],
 } as const;
 
 export type ProphetSectorKey = keyof typeof PROPHET_SECTOR_LEX;
@@ -173,6 +266,25 @@ export function makeProphetSectorT(lang: Lang): (key: ProphetSectorKey) => strin
 export function prophetSectorFill(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(vars[key] ?? ""));
 }
+
+/** Prophet plan phase → the owner's plain-language label, EN/ZH.
+ *
+ * Mirrored from the intelligence workspace's own PHASE map
+ * (`components/intelligence/IntelligenceWorkspace.tsx`), which is where Lane A's
+ * Prophet work takes its phase vocabulary from. The wire enum stays the
+ * producer's (`pre_trigger` …); the reader never sees the slug and never sees a
+ * title-cased code either ("Pre-Trigger" is the raw-code spelling, not this
+ * vocabulary). A minimal local copy until that map has a single shared owner —
+ * then this const is replaced by the import, nothing else. */
+export const PROPHET_PHASE_LABELS: Record<string, readonly [string, string]> = {
+  pre_trigger:      ["Before trigger", "尚未触发"],
+  triggered_pre_t1: ["Triggered · before target 1", "已触发 · 未达第一目标"],
+  at_t1:            ["At T1", "T1位"],
+  between_t1_t2:    ["T1→T2", "T1→T2"],
+  at_t2:            ["At T2", "T2位"],
+  overtime:         ["Window elapsed", "窗口已过"],
+  invalidated:      ["Invalidated", "已失效"],
+};
 
 /** Wire state → label key (reported, never recommended). */
 export const PROPHET_STATE_LABEL_KEY: Record<string, ProphetSectorKey> = {

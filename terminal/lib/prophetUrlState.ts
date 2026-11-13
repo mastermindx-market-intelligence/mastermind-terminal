@@ -65,9 +65,11 @@ export const PROPHET_LANES: readonly ProphetLane[] = ["today", "screener", "plan
 const LEGACY_LANE_ALIASES: Readonly<Record<string, ProphetLane>> = { macro: "plans" };
 
 /** Sector lane reading order (builder card G): overview (context+picker) →
- * population (SX04) → setup (SX03). */
-export type ProphetSectorViewMode = "overview" | "population" | "setup";
-export const PROPHET_SECTOR_VIEWS: readonly ProphetSectorViewMode[] = ["overview", "population", "setup"];
+ * population (SX04) → setup (SX03) → compare (T2-07/T2-13). Compare is its own
+ * view, not "setup without a symbol": a compare address is self-describing and
+ * a setup address always names a company. */
+export type ProphetSectorViewMode = "overview" | "population" | "setup" | "compare";
+export const PROPHET_SECTOR_VIEWS: readonly ProphetSectorViewMode[] = ["overview", "population", "setup", "compare"];
 
 /** The sector view the canonical contract keys already imply: a symbol is the
  * company setup, a group is its member population, neither is the picker.
