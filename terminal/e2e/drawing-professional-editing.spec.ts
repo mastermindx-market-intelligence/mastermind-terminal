@@ -1,6 +1,6 @@
 import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
+import { chooseToolbarSplit, createToolbarIntent, createToolbarTestBound, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
 
 type SavePayload = { drawings?: Array<{ id?: string; kind?: string; source?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };
 
@@ -155,7 +155,8 @@ test("Fibonacci and position inspectors drive durable analytical settings", asyn
   await expect(positionSettings.locator(".draw-position-summary")).toContainText("750");
 });
 
-test("Replay hard-locks drawings and the quick bar keeps current plus recent colors", async ({ page }) => {
+test("Replay hard-locks drawings and the quick bar keeps current plus recent colors", async ({ page }, testInfo) => {
+  const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, "Replay precision mechanics run once on desktop.");
   const saves: SavePayload[] = [];
   await openTerminal(page, {
@@ -206,7 +207,7 @@ test("Replay hard-locks drawings and the quick bar keeps current plus recent col
   await expect.poll(() => saves.some((payload) => payload.drawings?.some((item) => item.id === "replay-lock" && item.color === "#26c281"))).toBe(true);
   const saveCountBeforeReplay = saves.length;
 
-  await toggleToolbarReplay(page);
+  await toggleToolbarReplay(page, createToolbarIntent(toolbarBound));
   await expect(drawing).toHaveAttribute("data-replay-locked", "true");
   await expect(drawing).toHaveAttribute("pointer-events", "none");
   await expect(inspector).toBeHidden();
@@ -242,7 +243,7 @@ test("Replay hard-locks drawings and the quick bar keeps current plus recent col
   await page.keyboard.up("Shift");
   await expect(layer.locator('g[data-drawing-kind="measure"]')).toHaveCount(0);
 
-  await toggleToolbarReplay(page);
+  await toggleToolbarReplay(page, createToolbarIntent(toolbarBound));
   await expect(drawing).toHaveAttribute("data-replay-locked", "false");
   await expect(drawing).toHaveAttribute("pointer-events", "all");
   await select(703);
@@ -252,7 +253,7 @@ test("Replay hard-locks drawings and the quick bar keeps current plus recent col
   await expect.poll(async () => (await lineGeometry(visibleLine)).y1).not.toBe(afterReplay.y1);
 
   await page.keyboard.press("Escape");
-  await chooseToolbarSplit(page, 2);
+  await chooseToolbarSplit(page, 2, createToolbarIntent(toolbarBound));
   await expect(page.getByTestId("drawing-toolbar")).toHaveAttribute("data-creation-disabled", "multi-chart");
   const activeLayer = page.locator(".pane.on .drawing-layer");
   const gridBox = await activeLayer.boundingBox();
@@ -298,7 +299,8 @@ test("drawing toolbar and favorite controls retain focus across responsive remou
   await expect(page.getByTestId("drawing-favorites-toggle")).toBeFocused();
 });
 
-test("bulk drawing controls preserve source scopes and lock only user-authored objects", async ({ page }) => {
+test("bulk drawing controls preserve source scopes and lock only user-authored objects", async ({ page }, testInfo) => {
+  const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, "Bulk semantics run once on desktop.");
   const saves: SavePayload[] = [];
   await openTerminal(page, {
@@ -310,7 +312,7 @@ test("bulk drawing controls preserve source scopes and lock only user-authored o
 
   // Account storage contains hand-authored drawings; generate the detector object
   // through its real chart command instead of fabricating it in a cloud GET.
-  await runToolbarDetector(page, "Auto Fibonacci");
+  await runToolbarDetector(page, "Auto Fibonacci", createToolbarIntent(toolbarBound));
   // The detector object exists only on the chart; its lock state is read from
   // the rendered drawing, because detector objects are never part of a save.
   const userDrawing = page.locator('.chart-wrap g[data-drawing-id="bulk-user"]').first();
@@ -343,16 +345,17 @@ test("bulk drawing controls preserve source scopes and lock only user-authored o
   await expect.poll(() => saves.some((payload) => payload.drawings?.length === 0), { timeout: 5_000 }).toBe(true);
 });
 
-test("detector commands remain scoped to the pane that dispatched them", async ({ page }) => {
+test("detector commands remain scoped to the pane that dispatched them", async ({ page }, testInfo) => {
+  const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, "Pane command routing runs once on desktop.");
   await openTerminal(page);
 
-  await chooseToolbarSplit(page, 2);
+  await chooseToolbarSplit(page, 2, createToolbarIntent(toolbarBound));
   const panes = page.locator(".pane-grid > .pane");
   await expect(panes).toHaveCount(2);
 
   const detectFib = async () => {
-    await runToolbarDetector(page, "Auto Fibonacci");
+    await runToolbarDetector(page, "Auto Fibonacci", createToolbarIntent(toolbarBound));
   };
   const paneFib = (index: number) => panes.nth(index).locator('g[data-drawing-kind="fib"]');
 

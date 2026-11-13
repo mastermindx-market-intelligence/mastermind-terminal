@@ -1,0 +1,12 @@
+{
+  "returncode": 0,
+  "seconds": 30.22,
+  "versions": [
+    "1.61.1",
+    "1.61.1"
+  ],
+  "cache": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/.playwright-browsers",
+  "global_cache_modified": false,
+  "original_browser_port_closed": true,
+  "original_lock_open_handles": false
+}

@@ -1,0 +1,55 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr496-receipt-classification-20261111-c3/terminal
+
+ ❯ lib/__tests__/terminalToolbarDeadline.test.ts (40 tests | 2 failed) 10905ms
+   ✓ toolbar invocation deadline ownership > never repeats a toggle whose click already landed a committed revision bump (MAJOR-2) 1280ms
+   ✓ toolbar invocation deadline ownership > retries the click at most once when the committed revision comes back unchanged, then fails without a third attempt (MAJOR-2 dominant branch, real settle path) 2538ms
+   ✓ toolbar invocation deadline ownership > permits the single allowed recovery when the post-click read is caught unsettled mid font/resize churn (MAJOR-1) 2530ms
+   ✓ toolbar invocation deadline ownership > keeps total elapsed wall time inside the shared deadline even though MAJOR-1's fix now spends up to two settle waits per attempt (review minor 2) 2003ms
+   ✓ toolbar invocation deadline ownership > classifies a post-click settle failure with budget still remaining as TOOLBAR_NOT_SETTLED, not a generic action-failed/budget-exhausted code (review minor 3) 1266ms
+   ✓ toolbar invocation deadline ownership > succeeds when the click's semantic effect lands after the effect-observation window closes even though the toolbar never converges to a settled commit (review MAJOR) 1268ms
+   × route-only failures use the completed diagnostic receipt > classifies 'deadline expiry during capture' through the actual detector route 6ms
+     → expected 'TOOLBAR_ACTION_FAILED' to be 'TOOLBAR_BUDGET_EXHAUSTED' // Object.is equality
+   × route-only failures use the completed diagnostic receipt > classifies 'page closure during capture' through the actual detector route 2ms
+     → expected 'TOOLBAR_ACTION_FAILED' to be 'TOOLBAR_PAGE_CLOSED' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/terminalToolbarDeadline.test.ts > route-only failures use the completed diagnostic receipt > classifies 'deadline expiry during capture' through the actual detector route
+AssertionError: expected 'TOOLBAR_ACTION_FAILED' to be 'TOOLBAR_BUDGET_EXHAUSTED' // Object.is equality
+
+Expected: "TOOLBAR_BUDGET_EXHAUSTED"
+Received: "TOOLBAR_ACTION_FAILED"
+
+ ❯ lib/__tests__/terminalToolbarDeadline.test.ts:1136:51
+    1134|         budget_remaining_ms: scenario.remainingMs, page_closed: scenar…
+    1135|       });
+    1136|       expect(failure.message.slice(0, separator)).toBe(scenario.code);
+       |                                                   ^
+    1137|     } finally { clock.mockRestore(); }
+    1138|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/terminalToolbarDeadline.test.ts > route-only failures use the completed diagnostic receipt > classifies 'page closure during capture' through the actual detector route
+AssertionError: expected 'TOOLBAR_ACTION_FAILED' to be 'TOOLBAR_PAGE_CLOSED' // Object.is equality
+
+Expected: "TOOLBAR_PAGE_CLOSED"
+Received: "TOOLBAR_ACTION_FAILED"
+
+ ❯ lib/__tests__/terminalToolbarDeadline.test.ts:1136:51
+    1134|         budget_remaining_ms: scenario.remainingMs, page_closed: scenar…
+    1135|       });
+    1136|       expect(failure.message.slice(0, separator)).toBe(scenario.code);
+       |                                                   ^
+    1137|     } finally { clock.mockRestore(); }
+    1138|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 38 passed (40)
+   Start at  13:18:08
+   Duration  11.79s (transform 69ms, setup 0ms, collect 234ms, tests 10.91s, environment 0ms, prepare 497ms)
+

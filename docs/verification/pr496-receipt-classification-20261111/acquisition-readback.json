@@ -1,0 +1,18 @@
+{
+  "acquisition_replayed": false,
+  "at": "2026-11-11T20:14:13.328488+00:00",
+  "branch": "sol/web-terminal-pr496-receipt-classification-20261111-c3",
+  "clean": true,
+  "head": "cc9be85b2d4ece4503d5cf57a6005140875fb4c9",
+  "operation": "terminal-pr496-receipt-classification-20261111-c3",
+  "original_tool_return": {
+    "code": "WORKSPACE_ACQUISITION_UNQUALIFIED",
+    "effect_state": "EFFECT_UNKNOWN",
+    "status": "PARTIAL"
+  },
+  "owner_status": "RELEASABLE / UNCHANGED_FROM_ACQUIRED_BASE",
+  "prior_dirty_workspace_preserved": true,
+  "registration": "locked mastermind-linked-worktree:v1 for exact operation/lane/base",
+  "state": "APPLIED_BY_ORIGINAL_TARGET_READBACK",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr496-receipt-classification-20261111-c3"
+}

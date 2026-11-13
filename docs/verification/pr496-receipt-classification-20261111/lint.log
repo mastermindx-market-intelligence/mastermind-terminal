@@ -1,0 +1,9 @@
+
+/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr496-receipt-classification-20261111-c3/terminal/lib/__tests__/terminalToolbarDeadline.test.ts
+  800:9  warning  'rawEvaluateReads' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  977:9  warning  '_fn' is defined but never used                        @typescript-eslint/no-unused-vars
+  978:9  warning  '_arg' is defined but never used                       @typescript-eslint/no-unused-vars
+  979:9  warning  '_opts' is defined but never used                      @typescript-eslint/no-unused-vars
+
+✖ 4 problems (0 errors, 4 warnings)
+

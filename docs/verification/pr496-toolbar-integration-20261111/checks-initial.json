@@ -1,0 +1,32 @@
+[
+  {
+    "name": "diff-check",
+    "returncode": 2,
+    "seconds": 8.85,
+    "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/diff-check.log"
+  },
+  {
+    "name": "toolbar-units",
+    "returncode": 0,
+    "seconds": 14.4,
+    "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/toolbar-units.log"
+  },
+  {
+    "name": "scoped-lint",
+    "returncode": 0,
+    "seconds": 9.76,
+    "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/scoped-lint.log"
+  },
+  {
+    "name": "typegen",
+    "returncode": 0,
+    "seconds": 6.49,
+    "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/typegen.log"
+  },
+  {
+    "name": "typecheck",
+    "returncode": 0,
+    "seconds": 92.48,
+    "log": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/docs/verification/pr496-toolbar-integration-20261111/typecheck.log"
+  }
+]

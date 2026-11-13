@@ -1,0 +1,18 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-estate-support-20261111-c3-496/terminal
+
+ ✓ lib/__tests__/useAdaptiveToolbar.test.ts (7 tests) 91ms
+ ✓ lib/__tests__/terminalToolbarDeadline.test.ts (36 tests) 10881ms
+   ✓ toolbar invocation deadline ownership > never repeats a toggle whose click already landed a committed revision bump (MAJOR-2) 1276ms
+   ✓ toolbar invocation deadline ownership > retries the click at most once when the committed revision comes back unchanged, then fails without a third attempt (MAJOR-2 dominant branch, real settle path) 2528ms
+   ✓ toolbar invocation deadline ownership > permits the single allowed recovery when the post-click read is caught unsettled mid font/resize churn (MAJOR-1) 2529ms
+   ✓ toolbar invocation deadline ownership > keeps total elapsed wall time inside the shared deadline even though MAJOR-1's fix now spends up to two settle waits per attempt (review minor 2) 2003ms
+   ✓ toolbar invocation deadline ownership > classifies a post-click settle failure with budget still remaining as TOOLBAR_NOT_SETTLED, not a generic action-failed/budget-exhausted code (review minor 3) 1268ms
+   ✓ toolbar invocation deadline ownership > succeeds when the click's semantic effect lands after the effect-observation window closes even though the toolbar never converges to a settled commit (review MAJOR) 1265ms
+
+ Test Files  2 passed (2)
+      Tests  43 passed (43)
+   Start at  00:20:07
+   Duration  12.58s (transform 111ms, setup 0ms, collect 366ms, tests 10.97s, environment 634ms, prepare 179ms)
+

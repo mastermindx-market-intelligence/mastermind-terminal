@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-11-11T12:24:45.965202+00:00",
+  "originalRequest": "POST git/blobs",
+  "originalHttpStatus": 422,
+  "originalReason": "input was too large to process",
+  "pending": {
+    "path": "docs/verification/pr496-drawing-bound-20261111/raw-evidence.tar.gz.part-001",
+    "expectedBlob": "dfc934af7fd041bcbe87ecfc7aeeea300e4990c9",
+    "bytes": 67108864
+  },
+  "readbackExit": 1,
+  "readbackStdout": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/git/blobs#get-a-blob\",\"status\":\"404\"}",
+  "readbackStderr": "gh: Not Found (HTTP 404)\n",
+  "classification": "EFFECT_NONE_REQUEST_SIZE_REJECTED"
+}

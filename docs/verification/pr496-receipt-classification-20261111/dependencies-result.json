@@ -1,0 +1,8 @@
+{
+  "completedAt": "2026-11-11T20:14:20.885114+00:00",
+  "rc": 0,
+  "log_sha256": "30c66f4822f1f039d091e305be30a2648b94019fe17b95d0d1497114e796fa31",
+  "log_bytes": 148,
+  "source_unchanged": true,
+  "tail": "npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation\n\nadded 475 packages in 7s\n"
+}

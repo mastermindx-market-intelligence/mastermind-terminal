@@ -1,10 +1,15 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { isolateLayoutStore, useLang } from "./layoutStore";
+import { isolateLayoutStore, useLang as setLang } from "./layoutStore";
 import { isPhoneViewport } from "./phoneChrome";
 import { expectTapTarget } from "./tapTarget";
-import { openLayoutMenu } from "./terminalToolbar";
+import {
+  createToolbarIntent,
+  createToolbarTestBound,
+  openLayoutMenu,
+  type ToolbarTestBound,
+} from "./terminalToolbar";
 
 // E08 — anchored benchmark comparison, in the browser, at all three contract viewports.
 //
@@ -104,8 +109,8 @@ async function gotoHost(page: Page) {
 /** Save the live workspace once through the real menu, then write each study as its own
  *  `workspace_layout.v1` row (a CREATE through the revision-fenced `save_workspace` op) whose chart
  *  widget carries the study's `compare` + `compareCfg`. Reloads so the menu lists every row. */
-async function seedStudies(page: Page, names: (keyof typeof STUDIES)[]) {
-  const menu = await openLayoutMenu(page);
+async function seedStudies(page: Page, names: (keyof typeof STUDIES)[], toolbarBound: ToolbarTestBound) {
+  const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
   await menu.locator("[data-layout-save] input").fill("E08 seed");
   await menu.locator("[data-layout-save-btn]").click(ACT);
   await expect(menu.locator('[data-layout-feedback="saved"]')).toBeVisible(ACT);
@@ -139,8 +144,8 @@ async function seedStudies(page: Page, names: (keyof typeof STUDIES)[]) {
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 45_000 });
 }
 
-async function loadStudy(page: Page, name: string) {
-  const menu = await openLayoutMenu(page);
+async function loadStudy(page: Page, name: string, toolbarBound: ToolbarTestBound) {
+  const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
   await menu.locator(`[data-layout-row="${name}"]`).click(ACT);
   await expect(strip(page)).toBeVisible(ACT);
 }
@@ -188,12 +193,13 @@ async function routeHkListing(page: Page) {
 
 test.describe("anchored benchmark comparison (E08)", () => {
   test("pinned study: anchor + basis named, keyboard pins, scroll-proof, exact restore", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
     await isolateLayoutStore(page, testInfo, baseURL);
-    await useLang(page, "en");
+    await setLang(page, "en");
     await gotoHost(page);
-    await seedStudies(page, ["Pinned", "Legacy"]);
+    await seedStudies(page, ["Pinned", "Legacy"], toolbarBound);
 
-    await loadStudy(page, "Pinned");
+    await loadStudy(page, "Pinned", toolbarBound);
     const digest = await readyDigest(page);
     // AC-E08-01: every drawn line names its exact effective anchor and its return basis.
     await expect(strip(page)).toHaveAttribute("data-cmp-policy", `date:${PIN}`);
@@ -260,7 +266,7 @@ test.describe("anchored benchmark comparison (E08)", () => {
     await expect(page.locator("[data-cmp-toggle]")).toBeFocused();
 
     // AC-E08-05: a layout saved before E08 keeps its modes and style and gets a disclosed default.
-    await loadStudy(page, "Legacy");
+    await loadStudy(page, "Legacy", toolbarBound);
     await readyDigest(page);
     await expect(strip(page)).toHaveAttribute("data-cmp-policy", "auto");
     await expect(chip(page, "SPY")).toContainText("raw scale");
@@ -271,7 +277,7 @@ test.describe("anchored benchmark comparison (E08)", () => {
     await expect(detail(page, "SPY")).toContainText("Raw price on its own scale · not rebased");
     await page.keyboard.press("Escape");
     // Re-saving the legacy study writes back exactly what it held: no anchor was silently added.
-    const menu = await openLayoutMenu(page);
+    const menu = await openLayoutMenu(page, createToolbarIntent(toolbarBound));
     await menu.locator("[data-layout-save] input").fill("Legacy resaved");
     await menu.locator("[data-layout-save-btn]").click(ACT);
     await expect(menu.locator('[data-layout-feedback="saved"]')).toBeVisible(ACT);
@@ -284,21 +290,22 @@ test.describe("anchored benchmark comparison (E08)", () => {
 
     // AC-E08-06: the saved study restores the identical values (same input revision ⇒ same digest),
     // both after loading another study and after a full reload.
-    await loadStudy(page, "Pinned");
+    await loadStudy(page, "Pinned", toolbarBound);
     expect(await readyDigest(page)).toBe(digest);
     await page.reload();
     await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 45_000 });
-    await loadStudy(page, "Pinned");
+    await loadStudy(page, "Pinned", toolbarBound);
     expect(await readyDigest(page)).toBe(digest);
     await expect(chip(page, "SPY")).toHaveAttribute("data-cmp-anchor", PIN_EFFECTIVE);
   });
 
   test("falsifier: a later-loading leg never moves the anchor", async ({ page, browser, baseURL }, testInfo) => {
+    const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
     await isolateLayoutStore(page, testInfo, baseURL);
-    await useLang(page, "en");
+    await setLang(page, "en");
     await gotoHost(page);
-    await seedStudies(page, ["Pinned"]);
-    await loadStudy(page, "Pinned");
+    await seedStudies(page, ["Pinned"], toolbarBound);
+    await loadStudy(page, "Pinned", toolbarBound);
     const reference = await readyDigest(page);
     const referenceAnchors = await Promise.all(["SPY", "QQQ"].map((s) => chip(page, s).getAttribute("data-cmp-anchor")));
 
@@ -311,12 +318,12 @@ test.describe("anchored benchmark comparison (E08)", () => {
       });
       const fresh = await context.newPage();
       await isolateLayoutStore(fresh, testInfo, baseURL);
-      await useLang(fresh, "en");
+      await setLang(fresh, "en");
       let release!: () => void;
       const held = new Promise<void>((resolve) => { release = resolve; });
       await fresh.route(`**/data/${late}.json`, async (route) => { await held; await route.continue(); });
       await gotoHost(fresh);
-      await loadStudy(fresh, "Pinned");
+      await loadStudy(fresh, "Pinned", toolbarBound);
       // While one leg is still in flight nothing is drawn and the readout says so — no partial
       // study whose anchor could depend on which document arrived first.
       await expect(strip(fresh)).toHaveAttribute("data-cmp-study", "computing", ACT);
@@ -332,14 +339,15 @@ test.describe("anchored benchmark comparison (E08)", () => {
   });
 
   test("withheld, missing and incompatible legs are disclosed", async ({ page, baseURL }, testInfo) => {
+    const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
     await isolateLayoutStore(page, testInfo, baseURL);
-    await useLang(page, "en");
+    await setLang(page, "en");
     await routeHkListing(page);
     await gotoHost(page);
-    await seedStudies(page, ["Currency", "Faults"]);
+    await seedStudies(page, ["Currency", "Faults"], toolbarBound);
 
     // AC-E08-03: HKD next to USD is drawn on its anchor but never presented as outperformance.
-    await loadStudy(page, "Currency");
+    await loadStudy(page, "Currency", toolbarBound);
     await readyDigest(page);
     await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-status", "drawn");
     await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-basis", "adjusted");
@@ -381,7 +389,7 @@ test.describe("anchored benchmark comparison (E08)", () => {
     // (NVDA and MSFT were never read in this context, so the faults reach the network.)
     await page.route("**/data/NVDA.json", (route) => route.fulfill({ status: 404, body: "" }));
     await page.route("**/data/MSFT.json", (route) => route.fulfill({ status: 503, body: "" }));
-    await loadStudy(page, "Faults");
+    await loadStudy(page, "Faults", toolbarBound);
     await readyDigest(page);
     await expect(chip(page, "SPY")).toHaveAttribute("data-cmp-status", "withheld");
     await expect(chip(page, "NVDA")).toHaveAttribute("data-cmp-status", "absent");
@@ -396,13 +404,14 @@ test.describe("anchored benchmark comparison (E08)", () => {
 
   for (const lang of ["en", "zh"] as const) {
     test(`readout crops (${lang}, dark)`, async ({ page, baseURL }, testInfo) => {
+      const toolbarBound = createToolbarTestBound({ testStartedAtMs: Date.now(), testTimeoutMs: testInfo.timeout });
       test.skip(!CROPS, "Crops are captured on request (TERMINAL_CROPS=1).");
       await isolateLayoutStore(page, testInfo, baseURL);
-      await useLang(page, lang);
+      await setLang(page, lang);
       await routeHkListing(page);
       await gotoHost(page);
-      await seedStudies(page, ["Crop"]);
-      await loadStudy(page, "Crop");
+      await seedStudies(page, ["Crop"], toolbarBound);
+      await loadStudy(page, "Crop", toolbarBound);
       await readyDigest(page);
       mkdirSync(OUT, { recursive: true });
       await page.mouse.move(0, 0);

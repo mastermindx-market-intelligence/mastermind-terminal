@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/eslint/bin/eslint.js",
+    "e2e/terminalToolbar.ts",
+    "lib/__tests__/terminalToolbarDeadline.test.ts"
+  ],
+  "completedAt": "2026-11-11T20:20:43.023521+00:00",
+  "log_bytes": 624,
+  "log_sha256": "de6907d30b350d34d6a9bd7eea4b96da54e1a0eab51a8c69db85e73adeab2416",
+  "name": "lint",
+  "rc": 0,
+  "startedAt": "2026-11-11T20:20:40.938700+00:00",
+  "tail": "\n/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr496-receipt-classification-20261111-c3/terminal/lib/__tests__/terminalToolbarDeadline.test.ts\n  800:9  warning  'rawEvaluateReads' is assigned a value but never used  @typescript-eslint/no-unused-vars\n  977:9  warning  '_fn' is defined but never used                        @typescript-eslint/no-unused-vars\n  978:9  warning  '_arg' is defined but never used                       @typescript-eslint/no-unused-vars\n  979:9  warning  '_opts' is defined but never used                      @typescript-eslint/no-unused-vars\n\n\u2716 4 problems (0 errors, 4 warnings)\n\n"
+}
