@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-12T06:08:06.981175+00:00",
+  "result": "PASS",
+  "exactFixtureSourceKeys": [
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+    "terminal/e2e/tools/f11_provider_closed_policy.cjs",
+    "terminal/e2e/tools/f11_owned_server.cjs",
+    "terminal/e2e/tools/f11_script_metadata.cjs",
+    "terminal/tsconfig.f11.json",
+    "terminal/tsconfig.json",
+    "terminal/next.config.ts",
+    "terminal/package-lock.json",
+    "terminal/app/(shell)/analysis/page.tsx",
+    "terminal/app/(shell)/layout.tsx",
+    "terminal/lib/supabase/middleware.ts",
+    ".github/workflows/ci.yml",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx",
+    "terminal/app/company-intelligence.css",
+    "terminal/lib/i18n.tsx"
+  ],
+  "manifestSha256": "3f8887352ffcf8a5684fb5b02f75643b06891c9d310e4cd4af65a92487caf0a7",
+  "orderedViews": [
+    "desktop-en.png",
+    "desktop-zh.png",
+    "tablet-en.png",
+    "tablet-zh.png",
+    "mobile-en.png",
+    "mobile-zh.png"
+  ],
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900
+    },
+    "tablet": {
+      "width": 820,
+      "height": 1180
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "manifestAndObservationLocaleUrlStateBindings": true,
+  "aggregateCaseLifecycleConsistency": true,
+  "historicalReferences": "Original EVIDENCE bytes retain their historical references; the committed original source packets and histories are preserved, not rebound or separately recertified."
+}

@@ -6,7 +6,7 @@
 // Real source decoders and authentication scope; only external auth/fetch/chrome are fixtures.
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import type { AccountIdentity } from "../accountIdentity";
 
 const { state } = vi.hoisted(() => ({
@@ -96,7 +96,7 @@ const deferred = <T,>() => {
 let host: HTMLDivElement;
 let root: Root;
 let fetchMock: ReturnType<typeof vi.fn>;
-let replaceStateSpy: ReturnType<typeof vi.spyOn>;
+let replaceStateSpy: MockInstance<History["replaceState"]>;
 
 // Overridable per-test answers for the three sharing reads.
 let serveReview: () => Response = () => jsonRes(reviewRaw());

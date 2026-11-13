@@ -10,7 +10,18 @@ async function activeWorkspaceTabFits(page: import("@playwright/test").Page) {
   });
 }
 
-test("Prophet keeps Macro Plans and Options Alpha separate at every contract viewport", async ({ page }, testInfo) => {
+/** The secondary lanes sit behind the More disclosure at ≤640 (M1/M3); above
+ * it they are inline. One helper keeps both paths honest. The lane bar renders
+ * after the Prophet data settles, so wait for it before deciding which path
+ * applies — at phone widths a hidden tab is not in the accessibility tree, and
+ * a premature check would leave the disclosure closed and the tab unreachable. */
+async function revealOptionsLane(page: import("@playwright/test").Page) {
+  await page.getByTestId("prophet-tab-today").waitFor({ state: "visible", timeout: 30_000 });
+  const more = page.getByTestId("prophet-lane-more");
+  if (await more.isVisible()) await more.click();
+}
+
+test("Prophet keeps Plans and Options Alpha separate at every contract viewport", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   await page.goto("/options?tab=prophet");
 
@@ -20,9 +31,15 @@ test("Prophet keeps Macro Plans and Options Alpha separate at every contract vie
   expect(navLabelsFit, "Options navigation labels must not overflow shrunken tabs").toBe(true);
   await expect.poll(() => activeWorkspaceTabFits(page)).toBe(true);
 
-  const macroTab = page.getByRole("tab", { name: /Macro Plans/ });
-  const optionsTab = page.getByRole("tab", { name: /Options Alpha/ });
+  const macroTab = page.getByRole("tab", { name: /^Plans$/ });
+  // Address the lane by test id, not by role: at ≤640 the selected secondary
+  // lane's disclosure closes, so the tab leaves the accessibility tree while
+  // the More button carries the lane name. The test id survives both states.
+  const optionsTab = page.getByTestId("prophet-tab-options");
   await expect(macroTab).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
+  // Reveal first: at ≤640 the secondary lanes are behind the disclosure, so the
+  // tab only enters the accessibility tree once it is opened (M1/M3).
+  await revealOptionsLane(page);
   await expect(optionsTab).toHaveAttribute("aria-selected", "false");
 
   await optionsTab.click();
@@ -147,14 +164,15 @@ test("Options Alpha visibly marks an API-served stale artifact", async ({ page }
   });
 
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: /Options Alpha/ }).click();
+  await revealOptionsLane(page);
+  await page.getByTestId("prophet-tab-options").click();
   const warning = page.getByTestId("options-alpha-stale");
   await expect(warning).toBeVisible({ timeout: 15_000 });
   await expect(warning).toContainText("Cached or aged evidence");
   await expect(warning).toContainText("stale research context");
 });
 
-test("Macro Plans shows the producer plan status pulse in both languages", async ({ page }, testInfo) => {
+test("Plans shows the producer plan status pulse in both languages", async ({ page }, testInfo) => {
   let pulseAsset = "";
   await page.route("**/api/flow?f=prophet_idx", async (route) => {
     const response = await route.fetch();

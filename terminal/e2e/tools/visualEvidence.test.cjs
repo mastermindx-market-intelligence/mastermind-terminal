@@ -307,3 +307,41 @@ print(json.dumps({'error':error,'bytes':open(os.path.join(x['root'],x['packet'],
   assert.equal(fs.readFileSync(path.join(root,e.PACKETS.pl6,'partial-write--start.json'),'utf8'),'ori');
   assert.equal(fs.existsSync(path.join(root,e.PACKETS.pl6,'partial-write--operation.json')),false);
 });
+
+// CI fan-out: one PL6 operation plus one VI operation per viewport project, each
+// written by the real writer in its own operation and composed by the real reader.
+test("three VI viewport operations compose all30 cases exactly once; a partial or duplicated set is refused", () => {
+  const vi = e.requirements("vi"), projects = ["desktop", "tablet", "mobile"];
+  const pl = prepared("pl6", "fan-pl6", e.requirements("pl6"));
+  const parts = projects.map(project => prepared("vi", `fan-vi-${project}`, vi.filter(c => c.project === project)));
+  assert.deepEqual(parts.map(p => p.report.stats.expected), [10, 10, 10]);
+  const done = [e.finishOperation(pl.op, pl.report), ...parts.map(p => e.finishOperation(p.op, p.report))];
+  const refs = done.map(({ path, sha256 }) => ({ path, sha256 }));
+  const selections = done.flatMap(ref => ref.operation.cases
+    .filter(c => c.packet === "vi" || e.requirements("pl6").some(r => r.key === c.key))
+    .map(c => ({ operationId: ref.operation.id, key: c.key })));
+  const c = e.writeComposition({ repoRoot: root, id: "fan-full", operations: refs, selections, profile });
+  assert.equal(c.cases.length, 50); assert.equal(c.operations.length, 4);
+  const viKeys = c.cases.filter(x => x.packet === "vi").map(x => x.key);
+  assert.equal(viKeys.length, 30); assert.equal(new Set(viKeys).size, 30);
+  assert.deepEqual([...viKeys].sort(), vi.map(x => x.key).sort());
+  for (const [n, project] of projects.entries())
+    assert.ok(done[n + 1].operation.cases.every(x => x.execution.project === project && x.viewport.width === e.VIEWPORTS[project].width));
+  // A partial set: drop the tablet operation and its selections.
+  assert.throws(() => e.writeComposition({ repoRoot: root, id: "fan-partial", operations: refs.filter((_, i) => i !== 2),
+    selections: selections.filter(s => s.operationId !== "fan-vi-tablet"), profile }), /MISSING_CASE/);
+  // A duplicated case: select one desktop key twice.
+  const desk = selections.find(s => s.operationId === "fan-vi-desktop");
+  assert.throws(() => e.writeComposition({ repoRoot: root, id: "fan-duplicate", operations: refs,
+    selections: [...selections, desk], profile }), /DUPLICATE_CASE/);
+  // The same operation referenced twice cannot inflate coverage.
+  assert.throws(() => e.writeComposition({ repoRoot: root, id: "fan-twice", operations: [...refs, refs[1]], selections, profile }), /COMPOSITION_SHAPE/);
+  // A selection pointing at the wrong viewport operation has no such case there.
+  assert.throws(() => e.writeComposition({ repoRoot: root, id: "fan-misrouted", operations: refs,
+    selections: selections.map(s => s === desk ? { ...s, operationId: "fan-vi-tablet" } : s), profile }), /CASE_BINDING/);
+  // An operation captured on different source (a foreign SHA) is refused by the source snapshot.
+  const source = path.join(root, require("./visualEvidenceSources.json")[1]); const old = fs.readFileSync(source);
+  fs.writeFileSync(source, "different checkout");
+  try { assert.throws(() => e.readComposition({ repoRoot: root, compositionPath: `${e.PACKETS.pl6}/fan-full.composition.json` }), /SOURCE_MISMATCH/); }
+  finally { fs.writeFileSync(source, old); }
+});

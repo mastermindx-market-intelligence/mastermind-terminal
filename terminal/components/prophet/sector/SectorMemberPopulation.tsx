@@ -113,7 +113,7 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
     const node = rowRefs.current.get(highlightSymbol);
     if (node === undefined) return; // not on this page — nothing invented to point at
     scrolledFor.current = highlightSymbol;
-    node.scrollIntoView({ block: "center" });
+    if (typeof node.scrollIntoView === "function") node.scrollIntoView({ block: "center" });
   }, [highlightSymbol, payload.members]);
 
   const { group, counts, members, unserved, page } = payload;

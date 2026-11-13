@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
+import { clickProphetLaneTab } from "./helpers/prophetLane";
 
 const issueFixture = async () => JSON.parse(await readFile(path.join(process.cwd(), "test-fixtures/options_issue_desk_fixture.json"), "utf8"));
 
@@ -8,7 +9,7 @@ test("Issue Desk remains an explicit, responsive private operator lane", async (
   const fixture = await issueFixture();
   await page.route("**/api/options/issue-desk", async (route) => route.fulfill({ json: fixture, headers: { "Cache-Control": "private, no-store" } }));
   await page.goto("/options?tab=prophet");
-  await page.getByRole("tab", { name: "Issue Desk" }).click();
+  await clickProphetLaneTab(page, page.getByRole("tab", { name: "Issue Desk" }));
   const desk = page.getByTestId("issue-desk");
   await expect(desk).toBeVisible();
   await expect(desk).toContainText("Proposals are not signals");

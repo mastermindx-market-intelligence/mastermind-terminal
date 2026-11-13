@@ -13,7 +13,7 @@
  */
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
 import SectorCycleLens from "@/components/sector-intelligence/SectorCycleLens";
 import type {
@@ -276,8 +276,8 @@ const setInputValue = (input: HTMLInputElement, value: string) => {
 
 /* ── Tests ───────────────────────────────────────────────────────────────── */
 
-let addSpy: ReturnType<typeof vi.spyOn>;
-let removeSpy: ReturnType<typeof vi.spyOn>;
+let addSpy: MockInstance<Window["addEventListener"]>;
+let removeSpy: MockInstance<Window["removeEventListener"]>;
 
 const popstateAdds = () => addSpy.mock.calls.filter((c) => c[0] === "popstate");
 const popstateRemoves = () => removeSpy.mock.calls.filter((c) => c[0] === "popstate");

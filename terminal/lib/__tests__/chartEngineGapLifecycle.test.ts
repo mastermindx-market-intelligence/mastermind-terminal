@@ -638,7 +638,7 @@ describe("R03-A03: Idle or destroyed chart", () => {
     // No frame ever runs here; this test observes the model's setTimeout clock only.
     vi.stubGlobal("requestAnimationFrame", () => 1);
     vi.stubGlobal("cancelAnimationFrame", () => { /* nothing to cancel */ });
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
     try {
       const engine = createCanvasEngine(containerEl, {
         width: 200,

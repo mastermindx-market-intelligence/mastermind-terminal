@@ -140,7 +140,7 @@ it("keeps underlying momentum across expiry selection, withdraws it in archive a
 it("reopens the phone node inspector on the current chart timeframe using the same snapshot", async () => {
   layout.phone = true;
   await mount();
-  await act(async () => vi.advanceTimersByTime(16));
+  await act(async () => vi.advanceTimersToNextFrame());
   const selectStrike = () => [...host.querySelectorAll("button")].find(b => b.textContent?.startsWith("Provisional net leader159"))!;
   const sheet = () => document.body.querySelector('[data-testid="exposure-node-inspector"]');
   await act(async () => selectStrike().click());

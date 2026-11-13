@@ -1,0 +1,648 @@
+{
+  "schema": "terminal.ticker-original-artifact-qualification.v1",
+  "qualifiedAt": "2026-11-12T05:59:57.379Z",
+  "pr": 1481,
+  "head": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+  "run": 43160725037,
+  "attempt": 1,
+  "job": {
+    "id": 130991417439,
+    "run_id": 43160725037,
+    "workflow_name": "CI",
+    "head_branch": "sol/web-terminal-pr-estate-security-toolchain-20261112-c3",
+    "run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTOzwKM8AAAAef7JoXw",
+    "head_sha": "ea3eda41176e8bfb0f5421f2ab9efabb31031459",
+    "url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/actions/jobs/130991417439",
+    "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43160725037/job/130991417439",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T05:21:35Z",
+    "started_at": "2026-11-12T05:21:37Z",
+    "completed_at": "2026-11-12T05:44:14Z",
+    "name": "Terminal e2e serial (shard)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-11-12T05:21:38Z",
+        "completed_at": "2026-11-12T05:21:39Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-11-12T05:21:39Z",
+        "completed_at": "2026-11-12T05:22:38Z"
+      },
+      {
+        "name": "Bind lane workers and ports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-11-12T05:22:38Z",
+        "completed_at": "2026-11-12T05:22:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-11-12T05:22:38Z",
+        "completed_at": "2026-11-12T05:22:43Z"
+      },
+      {
+        "name": "Run npm ci",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-11-12T05:22:43Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Run npx next typegen",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Resolve Playwright version",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:22:57Z"
+      },
+      {
+        "name": "Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-11-12T05:22:57Z",
+        "completed_at": "2026-11-12T05:23:02Z"
+      },
+      {
+        "name": "Install Playwright browsers (apt bounded, browser-only fallback)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 9,
+        "started_at": "2026-11-12T05:23:02Z",
+        "completed_at": "2026-11-12T05:23:02Z"
+      },
+      {
+        "name": "Ensure browser present on cache hit",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-11-12T05:23:02Z",
+        "completed_at": "2026-11-12T05:23:27Z"
+      },
+      {
+        "name": "Run npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile  --workers=\"$TERMINAL_E2E_WORKERS\"",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-11-12T05:23:27Z",
+        "completed_at": "2026-11-12T05:27:18Z"
+      },
+      {
+        "name": "Capture current ticker News evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-11-12T05:27:18Z",
+        "completed_at": "2026-11-12T05:40:06Z"
+      },
+      {
+        "name": "Qualify investor shell opt-in",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-11-12T05:40:06Z",
+        "completed_at": "2026-11-12T05:41:22Z"
+      },
+      {
+        "name": "Qualify Shared Shell beta presentation",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-11-12T05:41:22Z",
+        "completed_at": "2026-11-12T05:43:34Z"
+      },
+      {
+        "name": "Validate bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-11-12T05:43:34Z",
+        "completed_at": "2026-11-12T05:43:35Z"
+      },
+      {
+        "name": "Retain bounded Shared Shell outcome",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-11-12T05:43:35Z",
+        "completed_at": "2026-11-12T05:43:36Z"
+      },
+      {
+        "name": "Qualify Intelligence native beta routes (fixture browser)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-11-12T05:43:36Z",
+        "completed_at": "2026-11-12T05:44:07Z"
+      },
+      {
+        "name": "Upload Intelligence fixture-browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-11-12T05:44:07Z",
+        "completed_at": "2026-11-12T05:44:09Z"
+      },
+      {
+        "name": "Upload responsive QA screenshots",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-11-12T05:44:09Z",
+        "completed_at": "2026-11-12T05:44:11Z"
+      },
+      {
+        "name": "Post Cache Playwright browsers",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 36,
+        "started_at": "2026-11-12T05:44:11Z",
+        "completed_at": "2026-11-12T05:44:11Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 37,
+        "started_at": "2026-11-12T05:44:11Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38,
+        "started_at": "2026-11-12T05:44:12Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39,
+        "started_at": "2026-11-12T05:44:12Z",
+        "completed_at": "2026-11-12T05:44:12Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/check-runs/130991417439",
+    "labels": [
+      "ubuntu-24.04"
+    ],
+    "runner_id": 1000589090,
+    "runner_name": "GitHub Actions 1000589090",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  "captureCheckout": {
+    "commit": "35d6b1f9305b445949f1c49512bfe3bce0ac3460",
+    "tree": "c081f4aceea804c8ef66b09935a8d365d9587779",
+    "parents": []
+  },
+  "resolvedGitObject": {
+    "commit": "35d6b1f9305b445949f1c49512bfe3bce0ac3460",
+    "tree": "c081f4aceea804c8ef66b09935a8d365d9587779",
+    "orderedParents": [
+      "e2a76ec4fa684f0289dd3afc3a9abbe8c01d8661",
+      "ea3eda41176e8bfb0f5421f2ab9efabb31031459"
+    ]
+  },
+  "checkoutParentInterpretation": "Original capture records [] from its shallow checkout. The separately resolved Git object retains both actual parents; neither record was restamped.",
+  "artifact": {
+    "id": 13918917251,
+    "bytes": 13455632,
+    "sha256": "b5049be9f4a9c22428bee6ab33c86acad205f584394f0cee6f4c3a9f2b6b033d"
+  },
+  "raw": {
+    "capture.json": "933a5017fe6c39cfe1204f3ef0b93030102e0bc109f83b8f71fa92bc87dc0594",
+    "crops/desktop-en-dark.png": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9",
+    "crops/desktop-zh-dark.png": "bd9813662c8006dd444036a725dae689aeb3750f881be04e23b8f8d1c1ad7ed8",
+    "crops/mobile-en-dark.png": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602",
+    "crops/mobile-zh-dark.png": "bd6e335b4df4ebd2affa8000038033e5958fb244be89fa39bbcb24e61bf8ae57",
+    "crops/tablet-en-dark.png": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f",
+    "crops/tablet-zh-dark.png": "cb33f9bd3f3a7388407bce9891ef06f63defddfce3eafaaff0f19b0e215e7e96",
+    "crops/unavailable-desktop-en-dark.png": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae",
+    "crops/unavailable-desktop-zh-dark.png": "ebea24870d259112a37493ea24b5ace11be55ae5c05a25b7e69eae1c74fb5de9",
+    "crops/unavailable-mobile-en-dark.png": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+    "crops/unavailable-mobile-zh-dark.png": "f679e488b100a6443fed8307f9f8ba54cf471172ea21bc04c1cfc8b774bbfe0f",
+    "images-cleared.json": "e017daf8573e0e68b70dd8e6e2917a0e64b0001a6fc1533490878122de0e444d",
+    "prepared.json": "cd40c1fa468558ab1147edb27e7ed48d9432f9485bf4bc379edb66abca1ec200",
+    "prior/desktop-en-dark.png": "de91b52f5a7dfeae5e149d812d21afed7ce69e6f11512aeaf01a0eb97d54e5e3",
+    "prior/desktop-zh-dark.png": "05fa414585cc4344cbf331d034e666f9b53baae536aaad7b214c85f455f5b9b1",
+    "prior/EVIDENCE.yml": "5c7ec580e3598506c7257df29c190cce43dd072aa6bcb4fb718b0249e22bddf5",
+    "prior/mobile-en-dark.png": "76de39d18a3df8a7fe5e2fb33265a8721256b020d7370dae6516541b6b4e2452",
+    "prior/mobile-zh-dark.png": "6c02582628415fa14a238c4736dc5190669988aa95ddb71bf542fa6fe5fba4ee",
+    "prior/tablet-en-dark.png": "8dfafe5d85dc21c96eba188aafae74bf93e40e3ae5530e99f9848ba160a4c5fd",
+    "prior/tablet-zh-dark.png": "b1d6553ac8d5b33194e0df38610b571e36324a4202510421737e26cfb9eb8bfa",
+    "prior/unavailable-desktop-en-dark.png": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae",
+    "prior/unavailable-desktop-zh-dark.png": "0980e84647af2be19e99672ae790135cf79c2e61f44396e5b9c208bfe455cb1e",
+    "prior/unavailable-mobile-en-dark.png": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a",
+    "prior/unavailable-mobile-zh-dark.png": "267d0f6421eb4e668f7a3527511fa1f595906ffc3f735183f3bc5a5dfa81aaf9",
+    "report.json": "758bea4d03bacb18c7fff8e6094a5d5f605a2475727ae3f9f18ed4961dc945fd"
+  },
+  "sources": {
+    "terminal/components/news/TickerNewsPanel.tsx": "d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2",
+    "terminal/components/news/TickerNewsPanel.module.css": "46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358",
+    "terminal/components/TerminalShell.tsx": "623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb",
+    "terminal/components/WatchlistDisplaySettings.tsx": "d5828deefbff707d33646f15a22586b8328e8ccbabe4adf2d567a3687c60b827",
+    "terminal/components/WatchlistDisplaySettings.module.css": "da83dd290765bdd6e576e122e7e94188182a8f8456ba68b10b0bcd38f515db41",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/__tests__/fixtures/newsEditorial.ts": "1ced29d462479cee8dccf9df871011b0861acbdcb87e562a6dce9e07204bd67d",
+    "terminal/e2e/ticker-news.spec.ts": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+    "terminal/e2e/watchlistStore.ts": "44bf2550f016e2460afb5a942dfa79afe16f64da96a34c157d2fef884f08b5e2",
+    "terminal/e2e/presentationControls.ts": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+    "terminal/e2e/globalSetup.ts": "c2fbd4f02bb93d40f4cf9b5a80f302e11adeecd0e32a54d1d11cd9aad72a886b",
+    "terminal/e2e/tools/ticker_news_capture_receipt.cjs": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/docs/specimens/news-flow.light.css": "b76681e3dd5d25537768665c6fa859c42ad257c69c9629e23a267b86a04263c8",
+    "terminal/next.config.ts": "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a",
+    "terminal/package.json": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf",
+    "terminal/package-lock.json": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e"
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "next": "16.4.6",
+    "playwright": "1.61.1",
+    "configuredChromium": [
+      {
+        "name": "chromium",
+        "revision": "1228",
+        "installByDefault": true,
+        "browserVersion": "149.0.7827.55",
+        "title": "Chrome for Testing"
+      },
+      {
+        "name": "chromium-headless-shell",
+        "revision": "1228",
+        "installByDefault": true,
+        "browserVersion": "149.0.7827.55",
+        "title": "Chrome Headless Shell"
+      }
+    ]
+  },
+  "runtimeInterpretation": "Node/Next/Playwright are original runtime observations. configuredChromium is installed browser-manifest metadata, not an independent browser.version() observation.",
+  "cases": [
+    {
+      "project": "desktop",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+      "status": "passed",
+      "retry": 0,
+      "duration": 167791
+    },
+    {
+      "project": "desktop",
+      "title": "unavailable snapshot renders without rail overflow",
+      "status": "passed",
+      "retry": 0,
+      "duration": 26413
+    },
+    {
+      "project": "desktop",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+      "status": "passed",
+      "retry": 0,
+      "duration": 53971
+    },
+    {
+      "project": "desktop",
+      "title": "grouped reports expand inside the real rail without leaving ticker context",
+      "status": "passed",
+      "retry": 0,
+      "duration": 13752
+    },
+    {
+      "project": "desktop",
+      "title": "MSFT grouped detail starts while an Apple story response is still held",
+      "status": "passed",
+      "retry": 0,
+      "duration": 20411
+    },
+    {
+      "project": "desktop",
+      "title": "editorial views filter before display and keep grouped details in the selected context",
+      "status": "passed",
+      "retry": 0,
+      "duration": 10344
+    },
+    {
+      "project": "desktop",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+      "status": "passed",
+      "retry": 0,
+      "duration": 99579
+    },
+    {
+      "project": "tablet",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 162
+    },
+    {
+      "project": "tablet",
+      "title": "unavailable snapshot renders without rail overflow",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 105
+    },
+    {
+      "project": "tablet",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+      "status": "passed",
+      "retry": 0,
+      "duration": 50756
+    },
+    {
+      "project": "tablet",
+      "title": "grouped reports expand inside the real rail without leaving ticker context",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 97
+    },
+    {
+      "project": "tablet",
+      "title": "MSFT grouped detail starts while an Apple story response is still held",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 106
+    },
+    {
+      "project": "tablet",
+      "title": "editorial views filter before display and keep grouped details in the selected context",
+      "status": "passed",
+      "retry": 0,
+      "duration": 10574
+    },
+    {
+      "project": "tablet",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+      "status": "passed",
+      "retry": 0,
+      "duration": 101489
+    },
+    {
+      "project": "mobile",
+      "title": "ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 124
+    },
+    {
+      "project": "mobile",
+      "title": "unavailable snapshot renders without rail overflow",
+      "status": "passed",
+      "retry": 0,
+      "duration": 24546
+    },
+    {
+      "project": "mobile",
+      "title": "unavailable snapshot retries inside the rail across EN/ZH and theme specimens",
+      "status": "passed",
+      "retry": 0,
+      "duration": 49892
+    },
+    {
+      "project": "mobile",
+      "title": "grouped reports expand inside the real rail without leaving ticker context",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 92
+    },
+    {
+      "project": "mobile",
+      "title": "MSFT grouped detail starts while an Apple story response is still held",
+      "status": "skipped",
+      "retry": 0,
+      "duration": 88
+    },
+    {
+      "project": "mobile",
+      "title": "editorial views filter before display and keep grouped details in the selected context",
+      "status": "passed",
+      "retry": 0,
+      "duration": 10127
+    },
+    {
+      "project": "mobile",
+      "title": "Chinese and Hong Kong tickers preserve original Chinese headlines",
+      "status": "passed",
+      "retry": 0,
+      "duration": 95370
+    }
+  ],
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "8ff0d3fe41931078cc0cb390dd3ef45e3384600090e0fa014fe81214e0b0eca9"
+      }
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "bd9813662c8006dd444036a725dae689aeb3750f881be04e23b8f8d1c1ad7ed8"
+      }
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "b84b57687dab0a7b284d42f5524d2b1d6f51f823213df59afed24f72132cf85f"
+      }
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 820,
+        "height": 565,
+        "sha256": "cb33f9bd3f3a7388407bce9891ef06f63defddfce3eafaaff0f19b0e215e7e96"
+      }
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 669,
+        "sha256": "1d79806e70b763b3c4a8ed10a32ce082f7a671fc5682b6d4b9802fe479829602"
+      }
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "live-feed",
+      "image": {
+        "width": 390,
+        "height": 655,
+        "sha256": "bd6e335b4df4ebd2affa8000038033e5958fb244be89fa39bbcb24e61bf8ae57"
+      }
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae"
+      }
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 344,
+        "height": 707,
+        "sha256": "ebea24870d259112a37493ea24b5ace11be55ae5c05a25b7e69eae1c74fb5de9"
+      }
+    },
+    {
+      "file": "unavailable-mobile-en-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "e5e488014f27a29e76e67445fe9e9e5ec0c0531904a8a63ba989193b9409ba1a"
+      }
+    },
+    {
+      "file": "unavailable-mobile-zh-dark.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "state": "unavailable",
+      "image": {
+        "width": 390,
+        "height": 180,
+        "sha256": "f679e488b100a6443fed8307f9f8ba54cf471172ea21bc04c1cfc8b774bbfe0f"
+      }
+    }
+  ],
+  "lifecycle": {
+    "playwrightReturned": true,
+    "portIsClosed": true,
+    "devLockFilePresent": true
+  },
+  "originalCaptureSha256": "933a5017fe6c39cfe1204f3ef0b93030102e0bc109f83b8f71fa92bc87dc0594",
+  "sourceBinding": {
+    "count": 18,
+    "actualCaptureGit": true,
+    "publishedHeadGit": true,
+    "workingTree": true
+  },
+  "priorPacketFiles": 11,
+  "siblingsPreserved": [
+    "ticker-news-cn-hk",
+    "ticker-news-editorial-quality",
+    "ticker-news-editorial-views",
+    "ticker-news-recovery"
+  ],
+  "visualReview": {
+    "reviewer": "assigned-root",
+    "reviewedAt": "2026-11-12T05:59:57.383Z",
+    "files": [
+      "desktop-en-dark.png",
+      "desktop-zh-dark.png",
+      "tablet-en-dark.png",
+      "tablet-zh-dark.png",
+      "mobile-en-dark.png",
+      "mobile-zh-dark.png",
+      "unavailable-desktop-en-dark.png",
+      "unavailable-desktop-zh-dark.png",
+      "unavailable-mobile-en-dark.png",
+      "unavailable-mobile-zh-dark.png"
+    ],
+    "result": "All ten original PNGs inspected. EN and native ZH controls are legible; live-feed cards, curated-source/review controls, and unavailable messages with Retry remain visible without clipped controls at the declared desktop/tablet/mobile viewport sizes. Five ZH images contain distinct readable glyphs. English source headlines remain original in ZH UI.",
+    "scope": "Original ticker-news dark fixture packet only. No sibling CN/HK/light packet, provider completeness, installed, authenticated, or production acceptance."
+  },
+  "producerActivation": false,
+  "productionAcceptance": false,
+  "validators": {
+    "source": "terminal/e2e/tools/ticker_news_capture_receipt.cjs",
+    "sha256": "7e895a96893fa24e7eb6755db4978af0e72f0d8a3f235f5663a0f07904d9923c",
+    "functions": [
+      "validateReport",
+      "validateImages"
+    ],
+    "recapture": false
+  },
+  "freshness": "Original prepared/images-cleared/report/capture receipts prove original producer freshness. Extraction filesystem mtimes are not used."
+}

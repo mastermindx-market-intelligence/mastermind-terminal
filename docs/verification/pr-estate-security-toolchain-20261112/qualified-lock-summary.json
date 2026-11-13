@@ -1,0 +1,41 @@
+{
+  "at": "2026-11-12T04:07:35.696831+00:00",
+  "audit_exit_code": 0,
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "dependencies": {
+      "prod": 52,
+      "dev": 513,
+      "optional": 147,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 603
+    }
+  },
+  "vulnerabilities": {},
+  "lock_sha256": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e",
+  "package_sha256": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf",
+  "versions": {
+    "next": "16.4.6",
+    "react": "19.2.4",
+    "vitest": "4.1.12",
+    "@vitest/mocker": "4.1.12",
+    "vite": "6.4.6",
+    "esbuild": "0.25.12",
+    "tailwindcss": "4.3.2",
+    "@tailwindcss/postcss": "4.3.2",
+    "postcss": "8.5.32",
+    "zod": "4.6.7",
+    "tinypool": null,
+    "vite-node": null,
+    "minimatch": "3.1.5"
+  },
+  "scoped_minimatch": "11.0.8"
+}

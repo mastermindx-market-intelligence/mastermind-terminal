@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import feedFixture from "../lib/__tests__/fixtures/candidate_feed.json";
 import receiptFixture from "../lib/__tests__/fixtures/candidate_feed.receipt.json";
+import { clickProphetLaneTab } from "./helpers/prophetLane";
 
 type ContextMode = "valid" | "absent" | "invalid-ticker" | "wrong-revision";
 
@@ -52,7 +53,7 @@ for (const lang of ["en", "zh"] as const) {
     test(`formed candidate opens the underlying chart and preserves its source (${lang}, ${theme})`, async ({ page }, testInfo) => {
       await page.route("**/api/flow?f=options_alpha_candidate_feed", route => route.fulfill({ json: candidateResponse() }));
       await page.goto("/options?tab=prophet");
-      await page.getByRole("tab", { name: /Options Alpha/ }).click();
+      await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
       await page.evaluate(({ lang, theme }) => {
         document.documentElement.setAttribute("data-lang", lang);
         document.documentElement.setAttribute("data-theme", theme);
@@ -96,7 +97,7 @@ test("unqualified frozen context has no chart action", async ({ page }) => {
   for (const next of ["absent", "invalid-ticker", "wrong-revision"] as const) {
     mode = next;
     await page.goto("/options?tab=prophet");
-    await page.getByRole("tab", { name: /Options Alpha/ }).click();
+    await clickProphetLaneTab(page, page.getByRole("tab", { name: /Options Alpha/ }));
     const card = page.getByTestId("options-alpha-candidate-item");
     await expect(card).toBeVisible();
     await expect(card.getByTestId("options-alpha-candidate-context-absent")).toBeVisible();

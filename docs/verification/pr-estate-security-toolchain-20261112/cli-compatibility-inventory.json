@@ -1,0 +1,22 @@
+{
+  "schema": "terminal.security-toolchain.cli-inventory.v1",
+  "method": "Bounded read-only source and installed CLI declaration inventory; no test or CLI execution",
+  "advisor": "issue_recovery_advisor",
+  "workflowSha256": "cb5243b2a8cac83ef7a5ec2410d541d9680e98d9222b17b33cbb31d1aa2f2b38",
+  "vitestConfigSha256": "ca4a00d62ba00722f73acd94411511507103fe115e139e4937c7ed833bd6b807",
+  "evidenceSelectorSha256": "12318bd3af4b438112b0604428e797ecf3c7ee6c3b94c076aed3dc268940a769",
+  "installedCliPath": "terminal/node_modules/vitest/dist/chunks/cac.DzDtg8hz.js",
+  "installedCliSha256": "82d1742c47a458460a673c3b99b6784e5c80d55ec6a5978fec5cdb6f008c27f5",
+  "supported": [
+    "run with positional file filters",
+    "--shard=<index>/<count>",
+    "repeatable --exclude",
+    "--maxWorkers",
+    "repeatable --reporter",
+    "--outputFile",
+    "--config/-c"
+  ],
+  "removedPoolOrThreadOptionsInExecutableInventory": false,
+  "executableViteNodeInvocationsInInventory": false,
+  "hubNpmTestUsesNodeTestRunner": true
+}

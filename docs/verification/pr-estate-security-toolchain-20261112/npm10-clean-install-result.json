@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-12T04:08:11.219428+00:00",
+  "exit_code": 0,
+  "stdout_tail": "\nadded 471 packages, and audited 472 packages in 11s\n\nfound 0 vulnerabilities\n",
+  "stderr_tail": "npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation\n",
+  "lock_unchanged": true,
+  "package_unchanged": true
+}

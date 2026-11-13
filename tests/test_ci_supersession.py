@@ -14,10 +14,10 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-LANES = ("hub", "terminal-unit", "terminal-typecheck", "terminal-unit-shards",
+LANES = ("hub", "terminal-evidence-capture", "terminal-unit", "terminal-f11-evidence", "terminal-typecheck", "terminal-unit-shards",
          "terminal-e2e", "terminal-e2e-build", "terminal-e2e-prodbuild", "python",
          "investigation-postgres")
-MATRIX_LANES = ("terminal-unit-shards", "terminal-e2e", "terminal-e2e-prodbuild")
+MATRIX_LANES = ("terminal-evidence-capture", "terminal-unit-shards", "terminal-e2e", "terminal-e2e-prodbuild")
 PREFIX = "terminal-ci-${{ github.event.pull_request.number || github.ref }}-"
 RESULTS = ("success", "failure", "cancelled", "skipped", "timed_out", "unknown", "")
 
@@ -46,7 +46,7 @@ def _errors(workflow):
         errors.append("verdict-may-skip")
     if gate.get("name") != "Terminal typecheck + tests":
         errors.append("required-name")
-    if not {"terminal-unit", "terminal-typecheck", "terminal-unit-shards",
+    if not {"terminal-unit", "terminal-f11-evidence", "terminal-typecheck", "terminal-unit-shards",
             "terminal-e2e", "terminal-e2e-build",
             "terminal-e2e-prodbuild"} <= set(gate.get("needs", [])):
         errors.append("required-inputs")
@@ -128,7 +128,7 @@ def test_real_required_gate_rejects_every_incomplete_pr_result(unit, e2e):
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
-        "UNIT": unit, "TYPECHECK": "success", "UNITS": "success",
+        "UNIT": unit, "F11": "success", "TYPECHECK": "success", "UNITS": "success",
         "E2E": e2e, "EVENT": "pull_request",
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
     }
@@ -146,7 +146,7 @@ def test_real_required_gate_rejects_every_incomplete_split_lane_result(typecheck
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
-        "UNIT": "success", "TYPECHECK": typecheck, "UNITS": units,
+        "UNIT": "success", "F11": "success", "TYPECHECK": typecheck, "UNITS": units,
         "E2E": "success", "EVENT": "pull_request",
         "BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4",
     }
@@ -163,7 +163,7 @@ def test_real_required_gate_rejects_every_incomplete_prod_lane_result(build, pro
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
-        "UNIT": "success", "TYPECHECK": "success", "UNITS": "success",
+        "UNIT": "success", "F11": "success", "TYPECHECK": "success", "UNITS": "success",
         "E2E": "success", "EVENT": "pull_request",
         "BUILD": build, "PRODBUILD": prod, "PRODBUILD_COUNT": "4",
     }

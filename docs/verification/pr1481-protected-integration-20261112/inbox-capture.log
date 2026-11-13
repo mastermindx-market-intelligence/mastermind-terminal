@@ -1,0 +1,27 @@
+capture stage /tmp/mmx-briefs-active-inbox-PEYu8E
+[dev] - Local:         http://127.0.0.1:47284
+- Network:       http://127.0.0.1:47284
+✓ Ready in 606ms
+capture list-1440.png ok
+capture list-1440-zh.png ok
+capture list-390.png ok
+capture list-390-zh.png ok
+capture empty-1440.png ok
+capture empty-1440-zh.png ok
+capture empty-390.png ok
+capture empty-390-zh.png ok
+AssertionError [ERR_ASSERTION]: Symlink packet directory
++ actual - expected
+
++ '/private/tmp/mmx-briefs-active-inbox-PEYu8E/packet'
+- '/tmp/mmx-briefs-active-inbox-PEYu8E/packet'
+
+    at readInboxPacket (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/terminal/e2e/tools/briefs_inbox_capture_contract.cjs:130:10)
+    at main (/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-estate-security-toolchain-20261112-c3/terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs:242:3) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '/private/tmp/mmx-briefs-active-inbox-PEYu8E/packet',
+  expected: '/tmp/mmx-briefs-active-inbox-PEYu8E/packet',
+  operator: 'strictEqual',
+  diff: 'simple'
+}

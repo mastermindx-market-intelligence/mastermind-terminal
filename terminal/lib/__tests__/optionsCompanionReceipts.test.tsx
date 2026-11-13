@@ -41,7 +41,7 @@ function doc(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   };
 }
 
-function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex", pinned = null, onShowChart }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; metric?: "gex" | "oi"; pinned?: OptionsChartLevel | null; onShowChart?: () => void }) {
+function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex", pinned = null, onShowChart }: { lang?: "en" | "zh"; onPin?: (level: OptionsChartLevel | null) => void; metric?: "gex" | "oi"; pinned?: OptionsChartLevel | null; onShowChart?: () => void }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
   const noop = React.useCallback(() => {}, []);
   const pin = onPin ?? noop;
@@ -51,7 +51,7 @@ function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex", pinned = n
   </LangProvider>;
 }
 
-async function renderOnce(payload: unknown, lang: "en" | "zh" = "en", onPin?: ReturnType<typeof vi.fn>) {
+async function renderOnce(payload: unknown, lang: "en" | "zh" = "en", onPin?: (level: OptionsChartLevel | null) => void) {
   fetchSnapshot.mockResolvedValue(asData(payload));
   await act(async () => root.render(<Harness lang={lang} onPin={onPin} />));
   await act(async () => { await Promise.resolve(); await Promise.resolve(); });
