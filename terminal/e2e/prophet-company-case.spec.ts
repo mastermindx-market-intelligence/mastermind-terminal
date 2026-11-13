@@ -65,6 +65,32 @@ async function expectActionsClearDisclaimer(page: Page) {
 }
 
 test.describe("Company case (Lane C)", () => {
+  for (const lang of ["en", "zh"] as const) {
+    test(`ticket is not shown when the board carries the plan (${lang})`, async ({ page }) => {
+      test.setTimeout(60_000);
+      // These populated source values must stay in Plans, not the company case.
+      expect(REAL_CARR_BOARD_PLAN.entry).toBe(56.47);
+      expect(REAL_CARR_BOARD_PLAN.invalidation).toBe(52.26);
+      await stubBoardWithCarr(page);
+      await stubObservationsUnavailable(page);
+      await withLang(page, lang);
+      await page.goto(CARR_SETUP);
+      const setup = page.getByTestId("prophet-sector-setup");
+      await expect(setup).toBeVisible({ timeout: 15_000 });
+      const planRow = page.getByTestId("prophet-sector-plan-link");
+      await expect(planRow).toBeVisible();
+      await expect(planRow).toContainText("CARR-BULL-20261016");
+      await expect(planRow).toHaveAttribute("href", /prophetPlan=CARR-BULL-20261016/);
+      for (const price of ["$56.47", "$52.26", "$62.78", "$69.10"]) {
+        await expect(setup, price).not.toContainText(price);
+      }
+      // Exact ticket labels: the unrelated unavailable "Entry assessment" row
+      // and the Plans destination's explanatory sentence are intentionally kept.
+      await expect(setup.getByText(/^(Entry|Stop|Invalidation|Target(?: [12])?|入场价?|止损价?|失效价?|目标价?(?: [12])?)$/i)).toHaveCount(0);
+      await expect(setup).not.toContainText(/conviction|确信度|信心评分|53\/100|size down|减仓|缩小仓位/i);
+      await expect(setup.locator('[data-testid="geometry-rail"], [data-testid="plan-thesis"]')).toHaveCount(0);
+    });
+  }
   test("a plan member's case says what is missing once and keeps the exit list", async ({ page }) => {
     test.setTimeout(90_000);
     await stubBoardWithCarr(page);

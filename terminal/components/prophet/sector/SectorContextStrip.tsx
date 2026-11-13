@@ -13,6 +13,7 @@
  *   - The owner's own descriptive state label renders verbatim when present.
  *   - No colored container edges; status is text in semantic ink (2026-10-18).
  */
+import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import type {
   SectorGroupContext, SectorGroupDescriptor, SectorMembersCompatibility,
@@ -29,9 +30,20 @@ function ppSigned(value: number): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)} pp`;
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone?: "up" | "down" }) {
+/** The leadership table's semantic ink, applied to the read's own figures:
+ * positive is up, negative is down, and a zero or an unserved value stays in
+ * the neutral text ink — never borrowed red or green. */
+function toneOf(value: number | null): "up" | "down" | undefined {
+  if (value === null || value === 0) return undefined;
+  return value > 0 ? "up" : "down";
+}
+
+function Stat({ stat, label, value, tone }: {
+  stat: "group" | "market" | "relative" | "breadth";
+  label: string; value: string; tone?: "up" | "down";
+}) {
   return (
-    <div className={styles.contextStat}>
+    <div className={styles.contextStat} data-testid={`prophet-sector-stat-${stat}`}>
       <span>{label}</span>
       <b style={tone === "up" ? { color: "var(--up)" } : tone === "down" ? { color: "var(--down)" } : undefined}>{value}</b>
     </div>
@@ -92,11 +104,13 @@ export function SectorContextStrip({ group, compatibility }: {
         </p>
       ) : null}
       <div className={styles.contextStats}>
-        <Stat label={t("contextGroupReturn")} value={ctx.groupReturnPct !== null ? pctSigned(ctx.groupReturnPct) : t(contextNullKey(ctx.reasons.group_return_pct))}
-          tone={ctx.groupReturnPct === null ? undefined : ctx.groupReturnPct > 0 ? "up" : "down"} />
-        <Stat label={t("contextMarketReturn")} value={ctx.marketReturnPct !== null ? pctSigned(ctx.marketReturnPct) : t(contextNullKey(ctx.reasons.market_return_pct))} />
-        <Stat label={t("contextRelative")} value={ctx.relativePp !== null ? ppSigned(ctx.relativePp) : t(contextNullKey(ctx.reasons.relative_pp))} />
-        <Stat label={t("contextBreadth")} value={breadth} />
+        <Stat stat="group" label={t("contextGroupReturn")} value={ctx.groupReturnPct !== null ? pctSigned(ctx.groupReturnPct) : t(contextNullKey(ctx.reasons.group_return_pct))}
+          tone={toneOf(ctx.groupReturnPct)} />
+        <Stat stat="market" label={t("contextMarketReturn")} value={ctx.marketReturnPct !== null ? pctSigned(ctx.marketReturnPct) : t(contextNullKey(ctx.reasons.market_return_pct))}
+          tone={toneOf(ctx.marketReturnPct)} />
+        <Stat stat="relative" label={t("contextRelative")} value={ctx.relativePp !== null ? ppSigned(ctx.relativePp) : t(contextNullKey(ctx.reasons.relative_pp))}
+          tone={toneOf(ctx.relativePp)} />
+        <Stat stat="breadth" label={t("contextBreadth")} value={breadth} />
       </div>
       <p className={styles.contextClocks} data-testid="prophet-sector-clocks">
         {prophetSectorFill(t("contextClocks"), { sector: sectorClock, prophet: prophetClock })}
@@ -104,6 +118,34 @@ export function SectorContextStrip({ group, compatibility }: {
       <p className={compatible ? styles.contextVerdictQuiet : styles.contextVerdict} data-testid="prophet-sector-verdict" role={compatible ? undefined : "status"}>
         {verdict}
       </p>
+      {/* G22 / SX09 #01 — the relative-leader-but-falling case: ahead of the
+          market in pp while the group's own return is negative. Say the
+          advantage plainly and name what it does NOT mean; relative
+          resilience never reads as a green absolute return. */}
+      {ctx.relativePp !== null && ctx.relativePp > 0 && ctx.groupReturnPct !== null && ctx.groupReturnPct < 0 ? (
+        <div className={styles.relativeLead} data-testid="prophet-sector-relative-lead" role="status">
+          <p className={styles.relativeLeadCopy}>
+            {t("relativeLeadTitle")}{" "}
+            {prophetSectorFill(t("relativeLeadBody"), {
+              sector: pctSigned(ctx.groupReturnPct),
+              market: ctx.marketReturnPct !== null
+                ? pctSigned(ctx.marketReturnPct)
+                : t(contextNullKey(ctx.reasons.market_return_pct)),
+              adv: ctx.relativePp.toFixed(1),
+            })}
+          </p>
+          {/* SX09 #01's action: the comparison the sentence points at lives in
+              Sector Intelligence's own group view — a link, never a copy. */}
+          <Link
+            className={styles.relativeLeadAction}
+            href={`/sectors?group=${encodeURIComponent(group.id)}`}
+            data-testid="prophet-sector-relative-lead-inspect"
+            aria-label={t("relativeLeadActionAria")}
+          >
+            {t("relativeLeadAction")}
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -2,12 +2,20 @@
 /**
  * useProphetUrlState — the Prophet surface's address-carried state.
  *
- * The `prophet*` query family (lib/prophetUrlState.ts) is the single source of
- * truth for lane, sector view, group, symbol, plan, search, state filter, page
- * offset and the return carrier. Deep links, refresh and back/forward all
- * restore the same investigation; invalid values degrade to defaults, never to
- * an error page. Mirrors SectorIntelligenceWorkspace's window.history +
- * popstate pattern (no useSearchParams, so no Suspense boundary is needed).
+ * The URL is the single source of truth for lane/tab, sector view, group,
+ * symbol, compare selection, plan, search, state filter, page offset and the
+ * return carrier (lib/prophetUrlState.ts). Deep links, refresh and
+ * back/forward all restore the same investigation; invalid values degrade to
+ * defaults, never to an error page. Mirrors SectorIntelligenceWorkspace's
+ * window.history + popstate pattern (no useSearchParams, so no Suspense
+ * boundary is needed).
+ *
+ * WHICH key family carries the state depends on the mount: canonical `/prophet`
+ * writes the Lane A contract (`tab`/`sector`/`symbol`/repeatable `sel`), while
+ * the legacy `/options?tab=prophet` mount keeps the `prophet*` family so the
+ * hub's own `tab` is never clobbered. The mount is inferred from the live
+ * address on every read and write — this surface rides one route for its whole
+ * life, so the inference cannot flip underneath it.
  *
  * First render uses defaults so server and client markup match; the mount
  * effect adopts whatever the address carries. Every update is a history push —
@@ -16,7 +24,8 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  DEFAULT_PROPHET_STATE, parseProphetState, writeProphetState, type ProphetUrlState,
+  DEFAULT_PROPHET_STATE, parseProphetState, prophetMountForPathname, writeProphetState,
+  type ProphetUrlState,
 } from "@/lib/prophetUrlState";
 
 export function useProphetUrlState(): {
@@ -32,7 +41,8 @@ export function useProphetUrlState(): {
   }, []);
 
   const sync = useCallback(() => {
-    adopt(parseProphetState(new URLSearchParams(window.location.search)));
+    const mount = prophetMountForPathname(window.location.pathname);
+    adopt(parseProphetState(new URLSearchParams(window.location.search), mount));
   }, [adopt]);
 
   useEffect(() => {
@@ -52,7 +62,7 @@ export function useProphetUrlState(): {
     // writeProphetState mutates `url` — capture the pre-write address first,
     // or the no-op comparison always compares equal and nothing is pushed.
     const before = url.pathname + url.search + url.hash;
-    const href = writeProphetState(url, next);
+    const href = writeProphetState(url, next, prophetMountForPathname(url.pathname));
     if (href !== before) {
       window.history.pushState({}, "", href);
     }

@@ -19,11 +19,21 @@
  * wherever no href was computed, it falls back to the onBack button,
  * preserving the sector lane's props contract.
  */
+import type { MouseEvent } from "react";
 import type { Lang } from "@/lib/i18n";
 import type { SectorMemberProphet } from "@/lib/prophetSectorMembers";
 import { makeProphetSectorT } from "../sector/prophetSectorStrings";
 import { makeSetupT } from "./setupStrings";
 import styles from "./setup.module.css";
+
+/** Preserve native link gestures while keeping ordinary returns in the lane,
+ * where selection, scroll and heading focus are restored together. */
+export function handleCaseBackClick(event: MouseEvent<HTMLAnchorElement>, onBack: () => void) {
+  if (event.defaultPrevented || event.button !== 0
+    || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  onBack();
+}
 
 export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref, lang }: {
   symbol: string;
@@ -60,7 +70,7 @@ export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref,
   return (
     <header className={styles.caseHead} data-testid="case-header">
       {backHref !== null ? (
-        <a className={styles.backButton} data-testid="prophet-sector-setup-back" href={backHref}>
+        <a className={styles.backButton} data-testid="prophet-sector-setup-back" href={backHref} onClick={event => handleCaseBackClick(event, onBack)}>
           {crumb(groupName)}
         </a>
       ) : (

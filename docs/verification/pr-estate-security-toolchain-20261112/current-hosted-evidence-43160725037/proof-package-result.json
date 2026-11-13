@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-12T06:08:07.194824+00:00",
+  "result": "PACKAGED_AND_READ_BACK",
+  "unitQualificationSha256": "bf200003d33f1b98569326d9c9d460fcaf6226a821c855559b868c58ca819c6b",
+  "f11ManifestSupplementSha256": "d2c4801cd1f1109a438cb1f74bf8e18863b2120c7ea151ca54f9c3c43caabaa8",
+  "archiveSha256": "4a88b5d41529a6236bac66d7dda2eac72dec93f2d4ee09c7e2e19f06e91d1d08",
+  "archiveBytes": 4454970,
+  "archiveMembers": 117,
+  "archiveUncompressedBytes": 5283496,
+  "f11Files": 8,
+  "tickerStrictPassed": 4
+}

@@ -31,7 +31,7 @@ async function withLang(page: Page, lang: "en" | "zh" = "en") {
 }
 
 const enterSectorLane = async (page: Page) => {
-  await page.getByTestId("prophet-lane-sector").click();
+  await page.getByTestId("prophet-tab-screener").click();
   await expect(page.getByTestId("prophet-sector-lane")).toBeVisible();
 };
 
@@ -55,36 +55,126 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await withLang(page);
     await page.goto("/options?tab=prophet");
 
-    // The board is intact: the new lane is a fourth peer, the first lane still opens.
-    await expect(page.getByRole("tab", { name: /Sector context/ })).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Macro Plans/ })).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
+    // The board is intact: the Screener tab (primary nav, Lane A) opens the
+    // sector surface, and the Plans tab still carries the incumbent desk.
+    await expect(page.getByRole("tab", { name: /^Screener$/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Plans$/ })).toHaveAttribute("aria-selected", "true", { timeout: 20_000 });
 
     await enterSectorLane(page);
-    await expect(page).toHaveURL(/prophetLane=sector/);
-    // Overview: every group of the read (49 of them) with the coverage-honesty line.
+    await expect(page).toHaveURL(/prophetLane=screener/);
+    // Overview: the leadership table — every group of the read (49), ranked by
+    // return versus market; the coverage-honesty line stays. Breadth is not
+    // produced anywhere in this read, so its column drops out and one line
+    // under the table says so (never 49 repetitions of "not produced").
     const picker = page.getByTestId("prophet-sector-picker");
     await expect(picker).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId("prophet-sector-pick-us_sector_industrials")).toContainText("Industrials");
-    await expect(page.getByTestId("prophet-sector-picker-coverage")).toContainText("698 served members across 49 groups");
+    const leadership = page.getByTestId("prophet-sector-leadership-table");
+    await expect(leadership).toBeVisible();
+    await expect(leadership.locator("tbody tr").first()).toContainText("Housing Chain"); // ranked first: +19.6 pp
+    const industrialsRow = leadership.locator("tr", { has: page.getByTestId("prophet-sector-pick-us_sector_industrials") });
+    await expect(industrialsRow).toContainText("Industrials");
+    await expect(industrialsRow).toContainText("+6.7 pp");
+    await expect(page.getByTestId("prophet-sector-picker-coverage")).toContainText("698 companies across 49 groups");
     await expect(page.getByTestId("prophet-sector-picker-coverage")).toContainText("outside these groups");
+    await expect(page.getByTestId("prophet-sector-breadth-none")).toContainText(/not available/i);
 
-    // Pick Industrials → the full dated population (83 members on this read).
+    // SX01's hero summary names the top-ranked group from SERVED figures only.
+    const hero = page.getByTestId("prophet-sector-leadership-hero");
+    await expect(hero).toBeVisible();
+    await expect(hero).toContainText("Housing Chain leads this read");
+    await expect(page.getByTestId("prophet-sector-leadership-hero-figures"))
+      .toContainText("+14.1%");
+    await expect(page.getByTestId("prophet-sector-leadership-hero-figures"))
+      .toContainText("+19.6 pp");
+
+    // Pick Industrials → its focus page (SX02). The address keeps the group
+    // under the lane's own keys; overview is the default view so prophetView
+    // stays absent.
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").click();
-    await expect(page).toHaveURL(/prophetView=population&prophetGroup=us_sector_industrials/);
-    const context = page.getByTestId("prophet-sector-context");
-    await expect(context).toBeVisible({ timeout: 15_000 });
-    // The two owners' clocks on one line; this read is mixed-basis (A1-7).
+    const focus = page.getByTestId("prophet-sector-focus");
+    await expect(focus).toBeVisible({ timeout: 15_000 });
+    await expect(page).toHaveURL(/prophetLane=screener/);
+    await expect(page).toHaveURL(/prophetGroup=us_sector_industrials/);
+    await expect(page).not.toHaveURL(/prophetView=/);
+    await expect(focus).toContainText("Industrials");
+    await expect(focus).toContainText("ahead of the market"); // +6.7 pp read earns the lead intro
+    // P1-4: the panels the wire cannot fill are ONE plain line, not four
+    // refusal panels; the Sector Intelligence handoff stays a link, never a
+    // copy, and the words are the reader's, not the pipeline's.
+    await expect(page.getByTestId("prophet-sector-focus-si")).toHaveAttribute("href", "/sectors?group=us_sector_industrials");
+    const limitation = page.getByTestId("prophet-sector-focus-unavailable");
+    await expect(limitation).toContainText(/not available for this group yet/i);
+    expect(await limitation.innerText()).not.toMatch(/on this wire|not served|not published/i);
+    // P1-5: SX02's breadcrumb and its return contract both reach Today.
+    await expect(page.getByTestId("prophet-sector-focus-breadcrumb")).toContainText("Today");
+    await expect(page.getByTestId("prophet-sector-focus-breadcrumb")).toHaveAttribute("href", /tab=prophet/);
+    await expect(page.getByTestId("prophet-sector-focus-return-today")).toContainText("Return to Today");
+    // The group's own numbers live on this page — clocks, verdict and ink.
     const clocks = await page.getByTestId("prophet-sector-clocks").innerText();
     expect(clocks).toContain("2026-11-06");
     expect(clocks).toContain("2026-11-09");
     await expect(page.getByTestId("prophet-sector-verdict")).toContainText(/different sessions/i);
+    // P2: the strip's figures carry the leadership table's semantic ink.
+    const figureInk = (stat: string) =>
+      page.getByTestId(`prophet-sector-stat-${stat}`).locator("b")
+        .evaluate(node => getComputedStyle(node).color);
+    const [groupInk, marketInk, relativeInk, breadthInk] =
+      [await figureInk("group"), await figureInk("market"), await figureInk("relative"), await figureInk("breadth")];
+    expect(relativeInk).toBe(groupInk); // +1.1% and +6.7 pp: both the up tone
+    expect(groupInk).not.toBe(breadthInk); // never the neutral ink
+    expect(marketInk).not.toBe(breadthInk); // −5.6%: the down tone
+    expect(marketInk).not.toBe(groupInk);
+    // P14: the descriptive-only boundary is stated on the focus page itself.
+    await expect(page.getByTestId("prophet-sector-focus-disclaimer"))
+      .toContainText("does not decide entry, size or timing for any name");
+    // M8: the members control is the page's primary action.
+    const membersAction = page.getByTestId("prophet-sector-focus-members");
+    await expect(membersAction).toContainText("Research these names");
+    const membersBox = await membersAction.boundingBox();
+    expect(membersBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    // M4: the view change moves focus to the new view's heading.
+    await expect(focus.locator("h3").first()).toBeFocused();
+
+    // The members: the focus's own action opens the full dated population
+    // (83 members on this read). Param order follows the address's history
+    // (group was already present), so assert each key on its own.
+    await page.getByTestId("prophet-sector-focus-members").click();
+    await expect(page).toHaveURL(/prophetView=population/);
+    await expect(page).toHaveURL(/prophetGroup=us_sector_industrials/);
+    // M4: the new view's heading takes focus, so a screen reader announces it.
+    await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
+    // P1-7: the population opens on a ONE-LINE sector header, not the whole
+    // focus card again.
+    const contextLine = page.getByTestId("prophet-sector-context-line");
+    await expect(contextLine).toBeVisible({ timeout: 15_000 });
+    await expect(contextLine).toContainText("Industrials");
+    await expect(contextLine).toContainText("+6.7 pp vs market");
+    await expect(page.getByTestId("prophet-sector-context")).toHaveCount(0);
 
     const table = page.getByTestId("prophet-sector-member-table");
     await expect(table).toBeVisible();
+    // P0-1: the roster is ordered by the sector's own list, not by plan state —
+    // ADP (an early observation) opens it, and CARR is not promoted.
+    await expect(table.locator("tbody tr").first()).toContainText("ADP");
+    await expect(table.locator("tbody tr").first()).not.toContainText("CARR");
+    // The plan-state ink is neutral: a live plan reads the same as "No plan".
+    const stateInk = (symbol: string) =>
+      page.getByTestId(`prophet-sector-state-${symbol}`)
+        .evaluate(node => getComputedStyle(node).color);
+    expect(await stateInk("CARR")).toBe(await stateInk("ALLE"));
+    // Plan state is a later, secondary filter — never the leading chip.
+    const chips = page.locator('[data-testid^="prophet-sector-filter-"]');
+    await expect(chips.first()).toHaveAttribute("data-testid", "prophet-sector-filter-all");
+    await expect(chips.nth(1)).toHaveAttribute("data-testid", "prophet-sector-filter-early_observation");
+    await expect(chips.last()).toHaveAttribute("data-testid", "prophet-sector-filter-open_plan");
+    // SX04's evidence columns exist; the read has no figures, said once.
+    await expect(table.locator("thead")).toContainText("Return");
+    await expect(table.locator("thead")).toContainText("Vs sector");
+    await expect(page.getByTestId("prophet-sector-measures-note")).toContainText(/not available for these companies yet/i);
     await expect(page.getByTestId("prophet-sector-state-CARR")).toContainText(/Open plan/i);
     await expect(page.getByTestId("prophet-sector-state-ADP")).toContainText(/Early observation/i);
     await expect(page.getByTestId("prophet-sector-state-ALLE")).toContainText(/No plan/i);
-    await expect(page.getByTestId("prophet-sector-population-counts")).toContainText("83");
+    await expect(page.getByTestId("prophet-sector-population-counts")).toContainText("83 companies");
     // first_known is a lower bound — the "at least" wording is on the surface.
     await expect(table).toContainText("at least 2026-08-13");
 
@@ -96,15 +186,21 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.getByTestId("prophet-sector-search-clear").click();
     await expect(page).not.toHaveURL(/prophetQ=/);
 
-    // Back to the picker, then Defensives: an unserved member is visible there.
-    await page.getByTestId("prophet-sector-back-picker").click();
-    await expect(page).not.toHaveURL(/prophetView=population/);
+    // Back through the focus to the leadership table, then Defensives: an
+    // unserved member is visible there.
+    await page.getByTestId("prophet-sector-population-back").click();
+    await expect(page.getByTestId("prophet-sector-focus")).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId("prophet-sector-focus-back").click();
+    await expect(page).not.toHaveURL(/prophetGroup=/);
     await page.getByTestId("prophet-sector-pick-defensives").click();
+    await page.getByTestId("prophet-sector-focus-members").click();
     await expect(page.getByTestId("prophet-sector-unserved")).toContainText("KVUE");
 
     // Back to Industrials → open CARR → the REAL board analysis by plan id.
-    await page.getByTestId("prophet-sector-back-picker").click();
+    await page.getByTestId("prophet-sector-population-back").click();
+    await page.getByTestId("prophet-sector-focus-back").click();
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").click();
+    await page.getByTestId("prophet-sector-focus-members").click();
     await expect(page.getByTestId("prophet-sector-open-CARR")).toBeVisible({ timeout: 15_000 });
     await page.getByTestId("prophet-sector-open-CARR").click();
     await expect(page).toHaveURL(/prophetView=setup&prophetSymbol=CARR&prophetPlan=CARR-BULL-20261016/);
@@ -113,21 +209,31 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Both membership clocks, labeled — lower bound and roster date.
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("at least 2026-08-13");
     await expect(page.getByTestId("prophet-sector-setup-membership")).toContainText("Roster effective 2023-05-09");
-    // The case opens with the verdict-first header and the tabs, never an
-    // entry/stop/target lead: the verdict renders its designed unavailable
-    // state and the entry assessment stays labeled unavailable.
-    await expect(page.getByTestId("case-verdict")).toContainText("Verdict not produced");
+    // AnalysisPanel renders the board's own plan body (not a recomposed copy).
+    // Deliberately NOT asserted: entry, invalidation, targets, conviction and
+    // the thesis text. #1477 removes that trade ticket, and no test of ours may
+    // lock it in — this only proves the plan is named and its panel mounted.
     await expect(page.getByTestId("case-tabs")).toBeVisible();
-    await expect(page.getByTestId("entry-check")).toContainText("Entry assessment unavailable");
-    // The Model plan rail renders the board's own row (not a recomposed copy)
-    // — and it must be CARR's OWN: id, conviction, thesis and every price
-    // level below are the real 2026-11-09 row's values. A relabelled template
-    // of any other plan (the old bug: SBUX's numbers on Carrier's setup)
-    // fails every check from here down.
+    const unavailable = page.getByTestId("case-unavailable");
+    await expect(unavailable).toHaveCount(1);
+    await expect(unavailable).toContainText("Research case unavailable");
+    for (const label of ["Verdict headline", "Entry assessment", "Not available", "Unavailable"]) {
+      await expect(unavailable).toContainText(label);
+    }
+    await expect(setup.locator('[data-testid="case-verdict"], [data-testid="entry-check"]')).toHaveCount(0);
     const rail = page.getByTestId("model-plan-rail");
-    await expect(rail.locator('[data-testid="geometry-rail"]')).toBeVisible();
+    await expect(page.getByTestId("prophet-sector-plan-link")).toBeVisible();
     await expect(rail).toContainText("CARR-BULL-20261016");
-    await expect(rail).toContainText("53/100"); // the SBUX template reads 42/100
+    for (const price of ["$56.47", "$52.26", "$62.78", "$69.10"]) {
+      await expect(setup).not.toContainText(price);
+    }
+    await expect(setup).not.toContainText(/conviction|53\/100|size down/i);
+    await expect(setup.getByText(/^(Entry|Stop|Target(?: [12])?)$/i)).toHaveCount(0);
+    await expect(setup.locator('[data-testid="geometry-rail"], [data-testid="plan-thesis"]')).toHaveCount(0);
+    await expect(rail).not.toContainText("Industrials (Equal-Weight) basket");
+    const railText = await rail.innerText();
+    expect(railText).not.toContain("SBUX");
+    expect(railText).not.toContain("104.30");
     const setupText = await setup.innerText();
     // The membership shown is the one the reader is investigating: CARR sits
     // in Housing AND Industrials and Housing is memberOf[0] in the capture —
@@ -136,18 +242,6 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // Context tab is not open on this default view, so "Housing" can only
     // reach the screen through the wrong-membership pick (review M1).
     expect(setupText).not.toContain("Housing");
-    expect(setupText).toContain(`$${(56.47).toFixed(2)}`); // entry
-    expect(setupText).toContain(`$${(52.26).toFixed(2)}`); // invalidation
-    expect(setupText).toContain(`$${(62.785).toFixed(2)}`); // T1
-    expect(setupText).toContain(`$${(69.1).toFixed(2)}`); // T2
-    // The plan's own thesis stays available behind the rail's disclosure —
-    // CARR's basket clause proves the row, and the template's own markers
-    // (SBUX, its price) must be absent.
-    await rail.locator('[data-testid="plan-thesis"] > summary').click();
-    await expect(rail).toContainText("Industrials (Equal-Weight) basket"); // CARR's own basket clause
-    const railText = await rail.innerText();
-    expect(railText).not.toContain("SBUX");
-    expect(railText).not.toContain(`${(104.3).toFixed(2)}`);
 
     // Sources: both generations, one destination, the A2 disclosure vocabulary.
     await page.getByTestId("prophet-sector-sources").locator("summary").click();
@@ -171,18 +265,33 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.reload();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     await page.goBack();
-    await expect(page.getByRole("tab", { name: /Macro Plans/ })).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+    await expect(page.getByRole("tab", { name: /^Plans$/ })).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
     await page.goForward();
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
-    // And the in-lane crumb returns to the population the row was opened
-    // from — as a real link that keeps the symbol, so the population row this
-    // case came from keeps its identity (fix order item 10; what the
-    // population does with it is that surface's own order).
+    // And the in-lane crumb returns to the population the row was opened from,
+    // with that member still named in the address (M10).
     await page.getByTestId("prophet-sector-setup-back").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
     await expect(page).toHaveURL(/prophetView=population/);
     await expect(page).toHaveURL(/prophetGroup=us_sector_industrials/);
     await expect(page).toHaveURL(/prophetSymbol=CARR/);
+    // The returned member's row is highlighted and brought into view.
+    const returnedRow = page.getByTestId("prophet-sector-member-table").locator('tr[data-highlight="true"]');
+    await expect(returnedRow).toContainText("CARR");
+    await expect(returnedRow).toBeInViewport();
+    // P1: the row the reader returned to is the current one in this list.
+    await expect(returnedRow).toHaveAttribute("aria-current", "true");
+    // M1: focus lands on the population heading once that highlight and scroll
+    // have happened — not left on the document body.
+    await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
+    expect(await page.evaluate(() => document.activeElement?.tagName ?? "")).toBe("H3");
+    // The bottom return follows the same in-lane accessibility contract.
+    await page.getByTestId("prophet-sector-open-CARR").click();
+    await expect(page.getByTestId("prophet-sector-setup-back-bottom")).toHaveAttribute("href", /prophetSymbol=CARR/);
+    await page.getByTestId("prophet-sector-setup-back-bottom").click();
+    await expect(page).toHaveURL(/prophetSymbol=CARR/);
+    await expect(returnedRow).toContainText("CARR");
+    await expect(page.getByTestId("prophet-sector-population").locator("h3").first()).toBeFocused();
   });
 
   test("a member without a plan gets an honest Setup, never a manufactured signal", async ({ page }) => {
@@ -206,7 +315,7 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
         headers: { "Content-Type": "application/json" },
       });
     });
-    await page.goto("/options?tab=prophet&prophetLane=sector&prophetView=population&prophetGroup=us_sector_industrials");
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=population&prophetGroup=us_sector_industrials");
     await expect(page.getByTestId("prophet-sector-state-ALLE")).toContainText(/No plan/i, { timeout: 15_000 });
     await page.getByTestId("prophet-sector-open-ALLE").click();
     const setup = page.getByTestId("prophet-sector-setup");
@@ -215,14 +324,17 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // words; the owner's reason stays translated — not a raw code, not a
     // stance beyond what the index reports.
     await expect(page.getByTestId("case-header")).toContainText("ALLE");
-    await expect(page.getByTestId("case-stance")).toContainText(/no prophet plan is open/i);
+    await expect(page.getByTestId("case-stance")).toHaveText("Case not published yet");
+    await expect(page.getByTestId("case-state-chip")).toHaveText("No plan");
     await expect(setup).toContainText(/no plan for this symbol/i);
     // The labeled group/market study replaces the old unlabeled return pair
     // (G10): market and group are named, the company's own leg is honestly
     // not produced.
-    await expect(page.getByTestId("study-card")).toContainText(/not produced in this read/i);
+    await expect(page.getByTestId("study-card")).toContainText("Not available");
     // The entry rail carries the missing-terms state and no plan rail.
-    await expect(page.getByTestId("entry-check")).toContainText(/current entry terms are missing/i);
+    await expect(page.getByTestId("entry-check")).toHaveCount(0);
+    await expect(page.getByTestId("case-unavailable")).toContainText("Entry assessment");
+    await expect(page.getByTestId("case-unavailable")).toContainText("Unavailable");
     await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
     // The existing chart destination (attached to the next-check block, fix
     // order item 16), and no board panel anywhere.
@@ -234,6 +346,26 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page).toHaveURL(/prophetSymbol=ALLE/);
   });
 
+  test("a roster plan missing from today's board states the drift plainly", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    // The committed board fixture is the 2026-07-07 generation and does not
+    // carry CARR-BULL-20261016, while the member fixture (2026-11-09) does. The
+    // Setup must not contradict the population: it names what the member list
+    // reports, says the board does not carry the plan, and sends the reader to
+    // the board that owns the levels. No level is reconstructed here.
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=setup&prophetSymbol=CARR&prophetPlan=CARR-BULL-20261016&prophetGroup=us_sector_industrials");
+    const setup = page.getByTestId("prophet-sector-setup");
+    await expect(setup).toBeVisible({ timeout: 15_000 });
+    const missing = page.getByTestId("prophet-sector-plan-missing");
+    await expect(missing).toBeVisible({ timeout: 15_000 });
+    await expect(missing).toContainText("not on today's board");
+    await expect(missing).toContainText("The member list reports Open plan, opened 2026-10-20");
+    expect(await missing.innerText()).not.toMatch(/board read|on this wire|not served/i);
+    await expect(page.getByTestId("prophet-sector-plan-board")).toHaveAttribute("href", /tab=prophet/);
+    await expect(setup.locator(".obs-prophet-analysis")).toHaveCount(0);
+  });
+
   test("keyboard-only travel reaches the Setup without a pointer", async ({ page }) => {
     test.setTimeout(60_000);
     await withLang(page);
@@ -241,11 +373,15 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // journey hermetic with a deterministic unavailable answer.
     await stubObservationsUnavailable(page);
     await page.goto("/options?tab=prophet");
-    // Land on the page, walk the tab order into the lane and through the picker.
-    await page.getByTestId("prophet-lane-sector").focus();
+    // Land on the page, walk the tab order into the lane, through the
+    // leadership table, the focus and into the population.
+    await page.getByTestId("prophet-tab-screener").focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("prophet-sector-picker")).toBeVisible({ timeout: 15_000 });
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("prophet-sector-focus")).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId("prophet-sector-focus-members").focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("prophet-sector-member-table")).toBeVisible({ timeout: 15_000 });
     await page.getByTestId("prophet-sector-open-ADP").focus();
@@ -253,7 +389,9 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
     // Early observation members show the observation line, not a plan panel.
-    await expect(page.getByTestId("prophet-sector-setup-observation")).toBeVisible();
+    await expect(page.getByTestId("case-state-chip")).toHaveText("Early observation");
+    await expect(page.getByTestId("case-unavailable-dates")).toContainText("Latest observation 2026-11-06");
+    await expect(page.getByTestId("prophet-sector-setup").locator(".obs-prophet-analysis")).toHaveCount(0);
   });
 
   test("the fail-closed group read (group null) states unavailability, never an empty list", async ({ page }) => {
@@ -276,14 +414,70 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
         headers: { "Content-Type": "application/json" },
       });
     });
-    await page.goto("/options?tab=prophet&prophetLane=sector&prophetView=population&prophetGroup=us_sector_industrials");
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=population&prophetGroup=us_sector_industrials");
     const unavailable = page.getByTestId("prophet-sector-group-unavailable");
     await expect(unavailable).toBeVisible({ timeout: 15_000 });
-    await expect(unavailable).toContainText("not shown for this read");
+    await expect(unavailable).toContainText("group context is not shown");
     await expect(unavailable).toHaveAttribute("role", "status");
     // No table renders that could read as "this group has no members".
     await expect(page.getByTestId("prophet-sector-member-table")).toHaveCount(0);
     await expect(page.getByTestId("prophet-sector-population-empty")).toHaveCount(0);
+  });
+
+  test("a fail-closed group read on the focus page drops its numbers (B1)", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    await page.route("**/api/prophet/sector-members?*group=us_sector_industrials*", async route => {
+      const base = JSON.parse(readFileSync(
+        "public/data/prophet_sector_members_fixture/group_us_sector_industrials.json", "utf8"));
+      await route.fulfill({
+        status: 200,
+        json: {
+          ...base, group: null,
+          counts: { configured: null, served: 0, accounted_unserved: 0, unaccounted: 0,
+            open_plan: 0, resolved_plan: 0, early_observation: 0, none: 0, unavailable: 0 },
+          members: [], unserved: [],
+          sector_ref: null,
+          compatibility: { status: "sector_unavailable", sector_session: null, prophet_asof: "2026-11-09", session_gap: null, reason: null },
+        },
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetGroup=us_sector_industrials");
+    const focus = page.getByTestId("prophet-sector-focus");
+    await expect(focus).toBeVisible({ timeout: 15_000 });
+    // The designed not-available block replaces the lead line and the numbers.
+    const notServed = page.getByTestId("prophet-sector-focus-not-served");
+    await expect(notServed).toBeVisible();
+    await expect(notServed).toContainText("Group measures not available");
+    await expect(notServed).toHaveAttribute("role", "status");
+    await expect(page.getByTestId("prophet-sector-context")).toHaveCount(0);
+    // No member count is spoken; the action is the count-free destination.
+    const members = page.getByTestId("prophet-sector-focus-members");
+    await expect(members).toContainText("Open the full population");
+    expect(await members.innerText()).not.toMatch(/\d/);
+  });
+
+  test("a refreshed compare address says the selection was lost (M3)", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=compare&prophetGroup=us_sector_industrials");
+    const lost = page.getByTestId("prophet-sector-compare-lost");
+    await expect(lost).toBeVisible({ timeout: 15_000 });
+    await expect(lost).toContainText("comparison selection was not kept in this address");
+    await expect(page.getByTestId("prophet-sector-compare")).toHaveCount(0);
+    await page.getByTestId("prophet-sector-compare-lost-back").click();
+    await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("a setup address with no symbol says so instead of an empty Setup (M3)", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=setup&prophetGroup=us_sector_industrials");
+    const missing = page.getByTestId("prophet-sector-setup-no-symbol");
+    await expect(missing).toBeVisible({ timeout: 15_000 });
+    await expect(missing).toContainText("does not name a company");
+    await expect(page.getByTestId("prophet-sector-setup")).toHaveCount(0);
   });
 
   test("upstream absence degrades to the designed not-available-yet state", async ({ page }) => {
@@ -292,23 +486,165 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // The Macro endpoint is not deployed yet: the BFF sees 404/502/timeout.
     await page.route("**/api/prophet/sector-members**", route =>
       route.fulfill({ status: 503, json: { error: "source_unavailable" } }));
-    await page.goto("/options?tab=prophet&prophetLane=sector");
+    await page.goto("/options?tab=prophet&prophetLane=screener");
     const unavailable = page.getByTestId("prophet-sector-index-unavailable");
     await expect(unavailable).toBeVisible({ timeout: 15_000 });
     await expect(unavailable).toContainText("Sector context is not available yet");
     await expect(unavailable).toHaveAttribute("role", "status");
     // The board itself keeps working — the lanes were never coupled.
-    await page.getByRole("tab", { name: /Macro Plans/ }).click();
+    await page.getByRole("tab", { name: /^Plans$/ }).click();
     await expect(page.locator("#prophet-panel-macro")).toContainText(/SBUX|UBER|BA|LRN/, { timeout: 20_000 });
     // And the sector lane still says so plainly when re-entered.
-    await page.getByTestId("prophet-lane-sector").click();
+    await page.getByTestId("prophet-tab-screener").click();
     await expect(page.getByTestId("prophet-sector-index-unavailable")).toBeVisible({ timeout: 15_000 });
+  });
+
+  test("the relative-leader-falling read states what the advantage does not mean (SX09 #01)", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    // The committed reads are all same-sign (ahead AND up, or behind); this
+    // stub rewrites only the industrials context to the specimen's case —
+    // relative advantage positive, absolute group return negative — so the
+    // designed line has honest numbers to carry.
+    await page.route("**/api/prophet/sector-members?*group=us_sector_industrials*", async route => {
+      const base = JSON.parse(readFileSync(
+        "public/data/prophet_sector_members_fixture/group_us_sector_industrials.json", "utf8"));
+      base.group.context = {
+        ...base.group.context,
+        group_return_pct: -2.0, market_return_pct: -4.0, relative_pp: 2.0,
+      };
+      await route.fulfill({
+        status: 200, json: base,
+        headers: { "Content-Type": "application/json", "Cache-Control": "private, no-store" },
+      });
+    });
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetGroup=us_sector_industrials");
+    const lead = page.getByTestId("prophet-sector-relative-lead");
+    await expect(lead).toBeVisible({ timeout: 15_000 });
+    await expect(lead).toContainText("Ahead of the market. Still falling.");
+    await expect(lead).toContainText("Sector -2.0% · market -4.0% · advantage 2.0 pp");
+    await expect(lead).toContainText(/does not turn the absolute return green/i);
+    await expect(lead).toHaveAttribute("role", "status");
+  });
+
+  test("selecting members carries into the compare view and back (T2-06 → T2-07/T2-13)", async ({ page }) => {
+    test.setTimeout(90_000);
+    await withLang(page);
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=population&prophetGroup=us_sector_industrials");
+    await expect(page.getByTestId("prophet-sector-member-table")).toBeVisible({ timeout: 15_000 });
+    // The wire carries no per-member return/versus/breadth/research fields:
+    // ONE honest line under the table, never per-row null spam.
+    await expect(page.getByTestId("prophet-sector-measures-note"))
+      .toContainText("not available for these companies yet");
+
+    // Select two names; the tray names the count, carries a removable chip per
+    // name, and the compare affordance needs two.
+    await page.getByTestId("prophet-sector-select-CARR").check();
+    const tray = page.getByTestId("prophet-sector-selection");
+    await expect(tray).toContainText("1 selected");
+    await expect(page.getByTestId("prophet-sector-compare-selected")).toBeDisabled();
+    await page.getByTestId("prophet-sector-select-ADP").check();
+    await expect(tray).toContainText("2 selected");
+    await expect(tray).toContainText("CARR");
+    await expect(tray).toContainText("ADP");
+    await expect(tray).toContainText("Selections stay fixed as you change filters");
+    await expect(page.getByTestId("prophet-sector-compare-selected")).toBeEnabled();
+
+    // A third name reaches the cap; the cap is stated, never a silent no-op.
+    await page.getByTestId("prophet-sector-select-ALLE").check();
+    await expect(tray).toContainText("3 selected");
+    await expect(tray).toContainText("Up to 3 names can be compared");
+
+    // A chip removes exactly its name; the count follows.
+    await page.getByTestId("prophet-sector-selection-remove-ALLE").click();
+    await expect(tray).toContainText("2 selected");
+    await expect(tray).not.toContainText("ALLE");
+
+    // Selections survive a filter change: search narrows the table, the tray
+    // keeps both names.
+    await page.getByTestId("prophet-sector-search").fill("CARR");
+    await page.getByRole("button", { name: /^Search/ }).click();
+    await expect(page.getByTestId("prophet-sector-open-CARR")).toBeVisible();
+    await expect(page.getByTestId("prophet-sector-select-ADP")).toHaveCount(0); // off-page now
+    await expect(tray).toContainText("2 selected");
+    await page.getByTestId("prophet-sector-search-clear").click();
+    await expect(page.getByTestId("prophet-sector-select-ADP")).toBeVisible();
+
+    // Compare is its OWN view (M3): a self-describing address, no symbol, and
+    // one card per name; no combined score is ever assigned.
+    await page.getByTestId("prophet-sector-compare-selected").click();
+    const compare = page.getByTestId("prophet-sector-compare");
+    await expect(compare).toBeVisible({ timeout: 15_000 });
+    await expect(page).toHaveURL(/prophetView=compare/);
+    await expect(page).toHaveURL(/prophetLane=screener/);
+    await expect(page).toHaveURL(/prophetGroup=us_sector_industrials/);
+    await expect(page).not.toHaveURL(/prophetSymbol=/);
+    // This read is mixed-basis (A1-7): ONE banner sentence carries both the
+    // clock difference and the no-combined-arithmetic rule (SX09 #08).
+    const banner = page.getByTestId("prophet-sector-compare-banner");
+    await expect(banner).toContainText("different clocks");
+    await expect(banner).toContainText("no combined score or ranking assigned");
+    expect(await banner.innerText()).not.toMatch(/No combined score is assigned/);
+    const carrCard = page.getByTestId("prophet-sector-compare-card-CARR");
+    const adpCard = page.getByTestId("prophet-sector-compare-card-ADP");
+    await expect(carrCard).toBeVisible({ timeout: 15_000 });
+    await expect(adpCard).toBeVisible({ timeout: 15_000 });
+    await expect(carrCard).toContainText(/Open plan/i);
+    await expect(adpCard).toContainText(/Early observation/i);
+    // P0-2: compare shows evidence, never direction/phase/opened — reached
+    // from a sector-strength page those read as an entry checklist.
+    await expect(carrCard).not.toContainText(/Direction/i);
+    await expect(carrCard).not.toContainText(/Before trigger/i);
+    await expect(carrCard).not.toContainText(/Opened/i);
+    await expect(page.getByTestId("prophet-sector-compare-phase-CARR")).toHaveCount(0);
+    // T2-07's anatomy is not on this read: one plain unavailable line.
+    await expect(page.getByTestId("prophet-sector-compare-evidence-CARR"))
+      .toContainText("Support, challenge and next check are not available");
+    // M6: each card names its own single open action.
+    await expect(page.getByTestId("prophet-sector-compare-open-CARR")).toContainText("Open setup");
+    // Each case keeps its own clock — both owners' sessions on the card.
+    await expect(page.getByTestId("prophet-sector-compare-clocks-CARR")).toContainText("2026-11-06");
+    await expect(page.getByTestId("prophet-sector-compare-clocks-CARR")).toContainText("2026-11-09");
+    // The unserved per-name fields state their absence in the designed words.
+    await expect(carrCard).toContainText("window series is not available");
+    await expect(carrCard).toContainText("Entry state unavailable");
+    // A card opens its own setup; the lane's own back control returns to the
+    // population with the selection intact (the interim selection rides the
+    // lane's state, so a browser-back parse would drop it — the in-lane path
+    // is the journey's own return).
+    await page.getByTestId("prophet-sector-compare-open-CARR").click();
+    await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId("prophet-sector-setup-back").click();
+    await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
+
+    // The population restored from the setup keeps the selection: tray count
+    // and both checkboxes unchanged.
+    await expect(page.getByTestId("prophet-sector-selection")).toContainText("2 selected");
+    await expect(page.getByTestId("prophet-sector-select-CARR")).toBeChecked();
+    await expect(page.getByTestId("prophet-sector-select-ADP")).toBeChecked();
+    // And the compare's own back control does the same from the compare view.
+    await page.getByTestId("prophet-sector-compare-selected").click();
+    await expect(compare).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId("prophet-sector-compare-back").click();
+    await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("prophet-sector-selection")).toContainText("2 selected");
+
+    // Phone and the smallest contract width: the compare cards stack to one
+    // column with zero horizontal overflow (T2-13).
+    await page.getByTestId("prophet-sector-compare-selected").click();
+    await expect(compare).toBeVisible({ timeout: 15_000 });
+    for (const size of [{ width: 390, height: 844 }, { width: 320, height: 600 }]) {
+      await page.setViewportSize(size);
+      await expect(carrCard).toBeVisible();
+      expect(await page.getByTestId("prophet-sector-lane").evaluate(() =>
+        document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+    }
   });
 
   test("390 and 320 keep the population readable with touch-sized controls", async ({ page }) => {
     test.setTimeout(90_000);
     await withLang(page);
-    await page.goto("/options?tab=prophet&prophetLane=sector&prophetView=population&prophetGroup=us_sector_industrials");
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=population&prophetGroup=us_sector_industrials");
     await expect(page.getByTestId("prophet-sector-member-table")).toBeVisible({ timeout: 15_000 });
     for (const size of [{ width: 390, height: 844 }, { width: 320, height: 600 }]) {
       await page.setViewportSize(size);
@@ -320,18 +656,92 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
       // Touch target floor at ≤640px: the row control is a real ≥44px target.
       const box = await page.getByTestId("prophet-sector-open-CARR").boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-      await expect(page.getByTestId("prophet-sector-context")).toBeVisible();
+      await expect(page.getByTestId("prophet-sector-context-line")).toBeVisible();
     }
+    // The compare checkbox meets the same floor, and the selection tray —
+    // sticky at the lane's bottom edge at phone width — never adds overflow.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId("prophet-sector-select-CARR").check();
+    await expect(page.getByTestId("prophet-sector-selection")).toContainText("1 selected");
+    const wrap = await page.getByTestId("prophet-sector-select-wrap-CARR").boundingBox();
+    expect(wrap?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(await page.getByTestId("prophet-sector-lane").evaluate(() =>
+      document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+  });
+
+  test("the leadership table stacks into cards at ≤640 (SX06/SX08)", async ({ page }) => {
+    test.setTimeout(60_000);
+    await withLang(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/options?tab=prophet&prophetLane=screener");
+    const leadership = page.getByTestId("prophet-sector-leadership-table");
+    await expect(leadership).toBeVisible({ timeout: 15_000 });
+    // The header row is replaced by in-card labels; each group is one card.
+    await expect(leadership.locator("thead")).toBeHidden();
+    const firstRow = leadership.locator("tbody tr").first();
+    await expect(firstRow).toContainText("Housing Chain");
+    await expect(firstRow.locator("td").nth(1)).toContainText("Window return");
+    // The single Research action stays a ≥44px full-width target.
+    const action = page.getByTestId("prophet-sector-pick-us_sector_industrials");
+    const box = await action.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(await page.getByTestId("prophet-sector-lane").evaluate(() =>
+      document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
+  });
+
+  test("phone touch targets meet 44px: remove, checkbox, compare-open, sources", async ({ page }) => {
+    test.setTimeout(90_000);
+    await stubBoardWithCarr(page);
+    await withLang(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=population&prophetGroup=us_sector_industrials");
+    await expect(page.getByTestId("prophet-sector-select-CARR")).toBeVisible({ timeout: 15_000 });
+
+    // Checkbox target and its card-only visible label.
+    const wrap = page.getByTestId("prophet-sector-select-wrap-CARR");
+    const wrapBox = await wrap.boundingBox();
+    expect(wrapBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(wrapBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    await expect(wrap).toContainText("Compare");
+
+    // Selection chip remove control.
+    await page.getByTestId("prophet-sector-select-CARR").check();
+    const remove = page.getByTestId("prophet-sector-selection-remove-CARR");
+    const removeBox = await remove.boundingBox();
+    expect(removeBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(removeBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+    // The compare card's open action, then the Setup's sources controls.
+    await page.getByTestId("prophet-sector-search").fill("CARR");
+    await page.getByRole("button", { name: /^Search/ }).click();
+    await page.getByTestId("prophet-sector-open-CARR").click();
+    await expect(page.getByTestId("prophet-sector-setup")).toBeVisible({ timeout: 15_000 });
+    const sources = page.getByTestId("prophet-sector-sources");
+    await sources.locator("summary").click();
+    const summaryBox = await sources.locator("summary").boundingBox();
+    expect(summaryBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const copyBox = await sources.getByRole("button", { name: "Copy" }).first().boundingBox();
+    expect(copyBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(copyBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(await page.getByTestId("prophet-sector-lane").evaluate(() =>
+      document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   });
 
   test("Chinese readers get the same population in their language", async ({ page }) => {
     test.setTimeout(60_000);
     await withLang(page, "zh");
-    await page.goto("/options?tab=prophet&prophetLane=sector");
-    await expect(page.getByTestId("prophet-sector-pick-us_sector_industrials")).toBeVisible({ timeout: 15_000 });
-    // name_zh is populated (A2-2) and used in ZH.
-    await expect(page.getByTestId("prophet-sector-pick-us_sector_industrials")).toContainText("工业（等权）");
+    await page.goto("/options?tab=prophet&prophetLane=screener");
+    await expect(page.getByTestId("prophet-sector-leadership-table")).toBeVisible({ timeout: 15_000 });
+    // name_zh is populated (A2-2) and used in ZH — in the row, and on the focus.
+    const row = page.getByTestId("prophet-sector-leadership-table")
+      .locator("tr", { has: page.getByTestId("prophet-sector-pick-us_sector_industrials") });
+    await expect(row).toContainText("工业（等权）");
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").click();
+    const focus = page.getByTestId("prophet-sector-focus");
+    await expect(focus).toBeVisible({ timeout: 15_000 });
+    await expect(focus).toContainText("工业（等权）");
+    await expect(focus).toContainText("全部行业组"); // the focus's back control, in ZH
+    await page.getByTestId("prophet-sector-focus-members").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("prophet-sector-population")).toContainText("预言台中的工业（等权）");
     await expect(page.getByTestId("prophet-sector-state-CARR")).toContainText("进行中计划");
@@ -342,9 +752,13 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     // The case header and its states read natively in Chinese: kicker, stance,
     // the unavailable verdict, and the tab destinations (History has no Paper
     // design and is deliberately absent).
-    await expect(page.getByTestId("case-header")).toContainText("公司案例");
-    await expect(page.getByTestId("case-stance")).toContainText("进行中的模型计划");
-    await expect(page.getByTestId("case-verdict")).toContainText("未产出结论");
+    await expect(page.getByTestId("case-header")).toContainText("CARR · Carrier Global");
+    await expect(page.getByTestId("case-header")).toContainText("案例尚未发布");
+    await expect(page.getByTestId("case-stance")).toHaveText("案例尚未发布");
+    await expect(page.getByTestId("case-state-chip")).toHaveText("进行中计划");
+    await expect(page.getByTestId("case-verdict")).toHaveCount(0);
+    await expect(page.getByTestId("case-unavailable")).toContainText("研究案例不可用");
+    await expect(page.getByTestId("case-unavailable")).toContainText("结论标题");
     await expect(page.getByTestId("case-tabs")).toContainText("研究");
     await expect(page.getByTestId("case-tabs")).toContainText("证据");
   });
@@ -392,6 +806,8 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await page.goto("/options?tab=prophet");
     await enterSectorLane(page);
     await page.getByTestId("prophet-sector-pick-us_sector_industrials").click();
+    await expect(page.getByTestId("prophet-sector-focus")).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId("prophet-sector-focus-members").click();
     await expect(page.getByTestId("prophet-sector-open-Z000")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("prophet-sector-pager")).toContainText("Showing 1 of 130–100");
     await expect(page.getByTestId("prophet-sector-open-Z099")).toBeVisible();

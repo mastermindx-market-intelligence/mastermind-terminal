@@ -234,8 +234,8 @@ recoverable branch only through a lawful original publisher. If commit/push is
 unavailable, distinguish a proven pre-effect technical failure from an explicit
 safety/permission denial or EFFECT_UNKNOWN. A technical failure may be requalified
 only on material same-carrier recovery evidence and the applicable typed preflight.
-An explicit safety/permission denial ends retries of that effect; an uncertain
-effect must be reconciled on its original carrier before retry. Keep exact local
+Confirmed protected access restrictions apply only to their operation; an
+uncertain modifying effect must be reconciled on its original carrier before retry. Keep exact local
 source/custody recoverable and continue genuinely independent permitted work.
 Do not force, create a replacement branch, switch accounts/tools, or use GitHub
 direct writes to evade a refusal. Report the exact blocker and recovery action

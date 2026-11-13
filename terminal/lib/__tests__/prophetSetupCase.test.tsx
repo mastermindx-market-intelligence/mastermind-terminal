@@ -16,6 +16,8 @@ vi.mock("@/components/chrome/AppShell", () => ({
 import { CaseUnavailable, StudyLinks } from "@/components/prophet/setup/CaseUnavailable";
 import { ModelPlanRail } from "@/components/prophet/setup/ModelPlanRail";
 import { SaveFollow } from "@/components/prophet/setup/SaveFollow";
+import { handleCaseBackClick } from "@/components/prophet/setup/CaseHeader";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import {
   SETUP_LEX, fmtSignedPct, makeSetupT, setupFill,
 } from "@/components/prophet/setup/setupStrings";
@@ -49,6 +51,22 @@ afterEach(() => {
   container = null; root = null;
   vi.unstubAllGlobals();
   vi.clearAllMocks();
+});
+
+describe("case return link gestures", () => {
+  it("intercepts only an unmodified primary click that is not already prevented", () => {
+    for (const override of [{}, { button: 1 }, { metaKey: true }, { ctrlKey: true },
+      { shiftKey: true }, { altKey: true }, { defaultPrevented: true }]) {
+      const onBack = vi.fn();
+      const preventDefault = vi.fn();
+      const event = { button: 0, defaultPrevented: false, metaKey: false,
+        ctrlKey: false, shiftKey: false, altKey: false, preventDefault, ...override };
+      handleCaseBackClick(event as unknown as ReactMouseEvent<HTMLAnchorElement>, onBack);
+      const intercepted = Object.keys(override).length === 0;
+      expect(preventDefault).toHaveBeenCalledTimes(intercepted ? 1 : 0);
+      expect(onBack).toHaveBeenCalledTimes(intercepted ? 1 : 0);
+    }
+  });
 });
 
 describe("setup lexicon invariants", () => {

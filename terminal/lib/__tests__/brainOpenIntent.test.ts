@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Real hook and React lifecycle; external script/auth/network are controlled by this fixture.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useBrainOpenIntent } from "../useBrainOpenIntent";
@@ -11,7 +11,7 @@ const useIntent = useBrainOpenIntent;
 
 describe("Brain opening intent follows existing readiness", () => {
   let root: Root | null, container: HTMLDivElement, controls: Controls;
-  let include: ReturnType<typeof vi.fn>, open: ReturnType<typeof vi.fn>, close: ReturnType<typeof vi.fn>;
+  let include: Mock<Parameters<typeof useBrainOpenIntent>[0]>, open: Mock<() => void>, close: Mock<() => void>;
   let shown: boolean;
   const host = () => {
     open = vi.fn(() => { shown = true; }); close = vi.fn(() => { shown = false; });

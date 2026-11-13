@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import ErrorPage from "@/app/error";
 import { LangProvider } from "@/lib/i18n";
 import { backToMacro } from "@/lib/originNav";
@@ -16,7 +16,7 @@ const target = "https://beta.mastermind-x.com/portfolio?book=owned&view=holdings
 const failure = new Error("Controlled unavailable route");
 let root: Root | null = null;
 let host: HTMLDivElement;
-let retry: ReturnType<typeof vi.fn>;
+let retry: Mock<() => void>;
 const ui = () => <LangProvider><ErrorPage error={failure} unstable_retry={retry} /></LangProvider>;
 const returnButton = () => host.querySelector<HTMLButtonElement>("button[aria-label^='Back to'],button[aria-label^='返回']");
 const setUrl = (query: string) => window.history.replaceState(null, "", "/terminal?" + query);

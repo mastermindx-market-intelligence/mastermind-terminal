@@ -1,0 +1,159 @@
+{
+  "schema": "terminal.security-toolchain.qualification.v1",
+  "operation": "terminal-pr-estate-security-toolchain-20261112-c3",
+  "duty": "terminal-pr-estate-support-20261111-c3",
+  "governingMastermindPin": "bb2c2e4437e6ee250f9d4ee9b6b420abdfbbc178",
+  "executionBase": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "sourceDiffSha256": "5f9cd983b41338572c89ed6a201e07866b70c63d4c423f924ae3999a2980df55",
+  "newConsumerTestSha256": "3482d34f75b737d8f8f2454a69dddf38f7034b9c7c4317590e5e51e0fd715915",
+  "packageSha256": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf",
+  "lockSha256": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e",
+  "baselineLockSha256": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "selected": {
+    "vitest": "4.1.12",
+    "vite": "6.4.6",
+    "esbuild": "0.25.12",
+    "tailwind": "4.3.2",
+    "estreeScopedMinimatch": "11.0.8",
+    "legacyMinimatch": "3.1.5",
+    "postcss": "8.5.32",
+    "zod": "4.6.7",
+    "nextUnchanged": "16.4.6",
+    "reactUnchanged": "19.2.4"
+  },
+  "audit": {
+    "baselinePackageNodes": {
+      "total": 23,
+      "critical": 2,
+      "high": 7,
+      "moderate": 14
+    },
+    "qualifiedPackageNodes": 0,
+    "dependabotAlertCountsAreDifferentUnits": true,
+    "prepublicationDependabot": {
+      "observedAt": "2026-11-12T05:08:57.171618+00:00",
+      "open": 51,
+      "currentLockfile": 31,
+      "frozenHistoricalFixture": 20,
+      "rawSha256": "e416cc9431c02e2f736a512f1c713fc1bacb6b31320f92886dbdb4d60d2bb861"
+    },
+    "dismissals": 0
+  },
+  "install": {
+    "resolverRecovery": "Original npm10.9.9 Arborist detached-parent failure before lock mutation; exact temporary npm11.19.1 selection resolved the existing lock with normal peer checks; original npm10.9.9 clean installation then passed.",
+    "cleanNpm": "10.9.9",
+    "node": "22.23.4",
+    "cleanInstallPassed": true,
+    "packagesInstalled": 471,
+    "packagesAudited": 472,
+    "lockAndManifestStable": true,
+    "forceOrLegacyPeerBypass": false,
+    "globalNpmUpgrade": false
+  },
+  "graph": {
+    "nonRootChanges": 94,
+    "changed": 69,
+    "added": 17,
+    "removed": 8,
+    "requiredEdgesResolved": true,
+    "applicableNode20And22Engines": true,
+    "unintendedVitestBrowserUiCoverageDevtools": false,
+    "sharedTransitivesRefreshed": true,
+    "tinypoolAndViteNodeRemoved": true
+  },
+  "tests": {
+    "qualifiedPartitions": 3,
+    "files": 1287,
+    "total": 23551,
+    "passed": 23498,
+    "failed": 0,
+    "pendingUnchanged": 50,
+    "todoUnchanged": 3,
+    "existingEvidenceExclusions": 38,
+    "initialFailuresPreserved": true,
+    "originalFinalShard3": {
+      "exitCode": 1,
+      "jsonSuccessNotAuthoritative": true,
+      "missingFile": "lib/__tests__/sharedShellRecovery.test.tsx",
+      "causeNotProven": true
+    },
+    "diagnosticShard3": {
+      "exitCode": 0,
+      "files": 429,
+      "total": 7507,
+      "passed": 7498,
+      "pending": 6,
+      "todo": 3,
+      "missingFiles": 0,
+      "sameSourceAndWorkersAndExclusions": true,
+      "defaultPlusJsonReporters": true
+    }
+  },
+  "focused": {
+    "realParserAndCompilerCases": 4,
+    "migrationSixSuites": 178,
+    "chartGapLifecycle": 14,
+    "remainingThreeSuites": 106,
+    "inboxStrictReader": 6,
+    "ciPartitionContracts": 66,
+    "mockTypeOnlyFiles": 20,
+    "runtimeJsByteIdenticalForTypeEdits": true
+  },
+  "staticChecks": {
+    "nextTypegen": "PASS",
+    "fullTypeScript": "PASS",
+    "changedTypeScriptLint": {
+      "newDiagnostics": 0,
+      "inheritedErrors": 5,
+      "inheritedWarnings": 2,
+      "rawFailureAndBaselineComparisonRetained": true
+    }
+  },
+  "productionBuild": {
+    "command": "npx next build",
+    "environment": ".github/workflows/ci.yml terminal-e2e-build fixture literals",
+    "exitCode": 0,
+    "seconds": 54.75456212507561,
+    "sourceUnchanged": true,
+    "coverageAbsentBeforeAndAfter": true,
+    "prebuildHookInvoked": false,
+    "tracingWarningsInUnchangedSourceRetained": true,
+    "productionDeploymentClaimed": false
+  },
+  "activeInbox": {
+    "cases": 8,
+    "sourceInputs": 15,
+    "rawActualHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+    "rawActualTree": "c95dc0b9849cf49809890ab47d4fb3a94f2fd677",
+    "packetSha256": "9ce131bc0684617e0a43460c9678010a2a345dfb44efa0fe1519796985409704",
+    "proofSha256": "85d30c77bb583fe917750105062dc959408e867b948b624df9c9e164447f81a7",
+    "contextsClosed": 8,
+    "browserClosed": true,
+    "serverSettled": true,
+    "portClosed": true,
+    "rootInspectedAllImages": true,
+    "canonicalPathValidationPassed": true,
+    "originalMacTmpAliasFailurePreserved": true,
+    "priorNineFilePacketArchived": true,
+    "producerActivation": false,
+    "productionAcceptance": false
+  },
+  "preserved": {
+    "historicalNextFixture1235": true,
+    "frozenRecurringBriefsTwelveViewPacket": true,
+    "financialJsonFixturesAndDigests": true,
+    "existingAssertionsAndReleaseControls": true
+  },
+  "incomingProtected": {
+    "head": "e2a76ec4fa684f0289dd3afc3a9abbe8c01d8661",
+    "commits": 2,
+    "onlyAddedDocumentation": true,
+    "affectedExecutionInputs": 0
+  },
+  "delivery": {
+    "published": false,
+    "requiredNaturalCiOwed": true,
+    "currentHostedEvidenceOwed": true,
+    "mergeAndInstalledProofOwed": true
+  }
+}

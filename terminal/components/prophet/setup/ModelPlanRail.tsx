@@ -23,13 +23,15 @@
  * published and how the name relates, not about acting on it.
  */
 import type { Lang } from "@/lib/i18n";
-import { makeProphetSectorT } from "../sector/prophetSectorStrings";
+import { makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetSectorFill } from "../sector/prophetSectorStrings";
+import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
+import sectorStyles from "../sector/prophetSector.module.css";
 import type { CaseTab } from "./CaseTabs";
 import { makeSetupT, setupFill } from "./setupStrings";
 import { SaveFollow } from "./SaveFollow";
 import styles from "./setup.module.css";
 
-export function ModelPlanRail({ symbol, tab, planId, planOpenedOn, plansHref, boardPhase, onRetryBoard, lang }: {
+export function ModelPlanRail({ symbol, tab, planId, planOpenedOn, planState = "open_plan", plansHref, boardPhase, onRetryBoard, lang }: {
   symbol: string;
   /** Which destination owns the rail (only Setup does). */
   tab: CaseTab;
@@ -41,7 +43,8 @@ export function ModelPlanRail({ symbol, tab, planId, planOpenedOn, plansHref, bo
   /** The Plans destination (macro lane), carrying this plan for selection;
    * null before the mount is resolved. */
   plansHref: string;
-  boardPhase: "loading" | "ready" | "unavailable" | "idle";
+  planState?: Extract<SectorMembersPayload, { mode: "symbol" }>["prophet"]["state"];
+  boardPhase: "loading" | "ready" | "missing" | "unavailable" | "idle";
   /** Retry the plan read with a cache-bypassing refresh. */
   onRetryBoard: () => void;
   lang: Lang;
@@ -71,6 +74,19 @@ export function ModelPlanRail({ symbol, tab, planId, planOpenedOn, plansHref, bo
               <div className={styles.skeletonBar} />
               <div className={styles.skeletonBar} />
             </div>
+          </div>
+        ) : boardPhase === "missing" ? (
+          <div className={sectorStyles.setupPlanMissing} data-testid="prophet-sector-plan-missing" role="status">
+            <p className={sectorStyles.setupPlanMissingTitle}>{sectorT("setupPlanMissingTitle")}</p>
+            <p className={sectorStyles.emptyCopy}>
+              {prophetSectorFill(sectorT("setupPlanMissingBody"), {
+                state: sectorT(PROPHET_STATE_LABEL_KEY[planState]),
+                date: planOpenedOn ?? sectorT("contextNotStated"),
+              })}
+            </p>
+            <a className={sectorStyles.chartLink} data-testid="prophet-sector-plan-board" href={plansHref}>
+              {sectorT("setupPlanBoard")} ↗
+            </a>
           </div>
         ) : boardPhase === "unavailable" ? (
           /* A read that did not land is status unknown with a retry — never a

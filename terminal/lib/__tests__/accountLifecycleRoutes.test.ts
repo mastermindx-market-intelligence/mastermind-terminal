@@ -549,7 +549,7 @@ describe("password path stays singular", () => {
     const root = join(process.cwd());
     const hits = walkAll(root).filter((f) => {
       try {
-        return readFileSync(f, "utf8").includes("current_password");
+        return readFileSync(f).includes("current_password");
       } catch {
         return false;
       }

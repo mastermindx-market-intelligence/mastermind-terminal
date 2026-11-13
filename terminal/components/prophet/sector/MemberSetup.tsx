@@ -26,7 +26,7 @@ import { useLang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
 import { DEFAULT_PROPHET_STATE, prophetHref } from "@/lib/prophetUrlState";
 import { companyHref } from "@/lib/sectorIntelligence";
-import { CaseHeader } from "../setup/CaseHeader";
+import { CaseHeader, handleCaseBackClick } from "../setup/CaseHeader";
 import { CaseTabs, type CaseTab } from "../setup/CaseTabs";
 import { CaseUnavailable, StudyLinks } from "../setup/CaseUnavailable";
 import { ContextTab } from "../setup/ContextTab";
@@ -53,7 +53,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   const t = makeProphetSectorT(lang);
   const setupT = makeSetupT(lang);
   const [tab, setTab] = useState<CaseTab>("setup");
-  const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "unavailable" | "idle">("idle");
+  const [boardPhase, setBoardPhase] = useState<"loading" | "ready" | "missing" | "unavailable" | "idle">("idle");
   const [boardAttempt, setBoardAttempt] = useState(0);
   const [backHref, setBackHref] = useState<string | null>(null);
   const sourcesRef = useRef<HTMLDivElement | null>(null);
@@ -72,7 +72,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   // trade geometry this surface deliberately does not show. The legacy mount
   // is the SSR-safe shape; the mount effect adopts the reader's own mount.
   const [plansHref, setPlansHref] = useState<string>(
-    prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "macro", plan: planId }, "legacy"));
+    prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "plans", plan: planId }, "legacy"));
 
   // The plan read runs only for members whose join carries a plan id; the
   // no-plan case never touches the board. flowGetResult keeps the read's
@@ -89,7 +89,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
       if (outcome.status === "data") {
         const board = outcome.data as BoardPayloadLike | null;
         const found = board?.plans?.some(plan => plan.id === planId) ?? false;
-        setBoardPhase(found ? "ready" : "unavailable");
+        setBoardPhase(found ? "ready" : "missing");
       } else {
         setBoardPhase("unavailable");
       }
@@ -109,7 +109,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
       url.searchParams.set("prophetView", "population");
       setBackHref(`${url.pathname}${url.search}${url.hash}`);
       const mount = url.pathname.startsWith("/prophet") ? "canonical" : "legacy";
-      setPlansHref(prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "macro", plan: planId }, mount));
+      setPlansHref(prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "plans", plan: planId }, mount));
     });
     return () => cancelAnimationFrame(frame);
   }, [planId]);
@@ -168,7 +168,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
                 const sheet = sourcesRef.current?.querySelector("details");
                 if (sheet instanceof HTMLDetailsElement) {
                   sheet.open = true;
-                  sheet.scrollIntoView({ block: "nearest" });
+                  sheet.scrollIntoView?.({ block: "nearest" });
                   sheet.querySelector("summary")?.focus();
                 }
               }}
@@ -197,6 +197,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
           tab={tab}
           planId={planId}
           planOpenedOn={prophet.plan?.openedOn ?? null}
+          planState={prophet.state}
           plansHref={plansHref}
           boardPhase={boardPhase}
           onRetryBoard={() => setBoardAttempt(attempt => attempt + 1)}
@@ -207,7 +208,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
       {/* P1-7: the long phone page needs a return at the bottom, carrying the
           same selection as the breadcrumb. */}
       {backHref !== null ? (
-        <a className={caseStyles.backBottom} data-testid="prophet-sector-setup-back-bottom" href={backHref}>
+        <a className={caseStyles.backBottom} data-testid="prophet-sector-setup-back-bottom" href={backHref} onClick={event => handleCaseBackClick(event, onBack)}>
           ← {setupT("backToMembers")}
         </a>
       ) : (

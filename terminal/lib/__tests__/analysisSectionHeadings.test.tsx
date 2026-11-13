@@ -14,7 +14,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import type { Fund } from "../fund";
 import type { FinPage } from "../../components/fin/MegaPane";
 
@@ -80,7 +80,7 @@ const DEST_ZH = [
 const STATIC_EN = ["Key facts", "About"] as const;
 const STATIC_ZH = ["关键数据", "公司简介"] as const;
 
-let host: HTMLDivElement, root: Root, onNavigate: ReturnType<typeof vi.fn>, fetchSpy: ReturnType<typeof vi.fn>;
+let host: HTMLDivElement, root: Root, onNavigate: Mock<(page: FinPage) => void>, fetchSpy: ReturnType<typeof vi.fn>;
 
 async function renderOverview() {
   await act(async () => {

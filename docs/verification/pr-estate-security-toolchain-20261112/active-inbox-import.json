@@ -1,0 +1,38 @@
+{
+  "at": "2026-11-12T04:46:46.897331+00:00",
+  "original_stage": "/private/tmp/mmx-briefs-active-inbox-UT4nEF/packet",
+  "raw_packet_sha256": "9ce131bc0684617e0a43460c9678010a2a345dfb44efa0fe1519796985409704",
+  "prior_packet": {
+    "capture.json": "ab9a2e640c8ce38488f8df02d4acc72ef1f39038981420e7decb6823f57eb76f",
+    "empty-1440-zh.png": "d99cf8b773a102c026116644e5bc978492645f4ed05c6a26ed872ea9810a0169",
+    "empty-1440.png": "e6a87fa8c77c285ca41def91c69e69febda07344629b27b3baae3db924843311",
+    "empty-390-zh.png": "702b1d37709e3edbb1e57dc5e4b1c0ac6101343efce866db07e41a04418ce49a",
+    "empty-390.png": "5f58a440b6e41a46da13fadb379d7cfcb4b88718082fdf2394ea68fbe18a0449",
+    "list-1440-zh.png": "6b442a828a0185d2e5ee025332a7c783c69113b7a588694e8b85e1a0e433d301",
+    "list-1440.png": "8c7ac8a73edbeefd9eaddaf8bcf5e2fc5b535ef60883322270c28300449c3ed7",
+    "list-390-zh.png": "a880d3db0aa64b679167f938a3f50852a428146e53e1934070f42827a5122e97",
+    "list-390.png": "7415df405de5c1dded995f50bed66dc32f12dafb94b9b91a5b9e8c6e84fab5cd"
+  },
+  "current_packet": {
+    "capture.json": "9ce131bc0684617e0a43460c9678010a2a345dfb44efa0fe1519796985409704",
+    "empty-1440-zh.png": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d",
+    "empty-1440.png": "067a77e5415574718ac1461f4e1be6b59ef7004bff0bfc626ca5a446f8c08860",
+    "empty-390-zh.png": "5da97b38e2ff4ea5c6c0f340325697be11251ca331327db03f896b57789412d3",
+    "empty-390.png": "02991749bd1d841ee586291c5ea90d0dbdb16cecf74d7f9cc617d0020c1807bf",
+    "list-1440-zh.png": "073b961a44c47a736e059af5aa79a62fd134157955f07e0947fac524707bef32",
+    "list-1440.png": "0330588440fa97da358fa4599b116fb82e7951fe241a24724605f7b7bdec08dc",
+    "list-390-zh.png": "02bdd5f562ccc0c2e417acd6bd9530d6b028284c68fc04bf8b3b1dc313131e32",
+    "list-390.png": "225f6fa59d8a0addbf94d1fb62fedcd45ba41f8e8b8bc7244191cadc5dd59bff"
+  },
+  "all_promoted_bytes_exact": true,
+  "root_visual_review": {
+    "cases": 8,
+    "matrix": "list/empty x desktop/mobile x English/Chinese",
+    "result": "Legible text, controls and unavailable/partial-translation disclosures; no clipping in the eight actual locator images.",
+    "producer_activation": false,
+    "production_acceptance": false
+  },
+  "original_producer_failure_retained": true,
+  "canonical_stage_reader_pass": true,
+  "target_reader_pass": true
+}

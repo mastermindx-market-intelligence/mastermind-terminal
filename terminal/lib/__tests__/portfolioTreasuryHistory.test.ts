@@ -10,6 +10,7 @@ import {
   resolveFlowBase,
   validateTreasuryHistoryWindow,
   type TreasuryHistoryWindow,
+  type TreasuryHistoryFetchOptions,
 } from "../portfolioTreasuryHistory.server";
 
 const SHA_HEX = "5f1b3d2a9c4e7b8d6f0a1c2e3d4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f";
@@ -104,8 +105,10 @@ function expectUnreadable(raw: unknown, window: TreasuryHistoryWindow, reason: s
   expect(result).toMatchObject({ status: "unreadable", reason: reason, detail: null });
 }
 
-function mockFetch(body: string | Uint8Array, init: ResponseInit = {}): ReturnType<typeof vi.fn> {
-  return vi.fn(async () => new Response(body as BodyInit, { status: 200, ...init }));
+type FetchImpl = NonNullable<TreasuryHistoryFetchOptions["fetchImpl"]>;
+
+function mockFetch(body: string | Uint8Array, init: ResponseInit = {}) {
+  return vi.fn<FetchImpl>(async () => new Response(body as BodyInit, { status: 200, ...init }));
 }
 
 describe("treasury history envelope: exact read", () => {

@@ -89,8 +89,11 @@ test("Brief orients, Explore ranks by source ordinal, and the dossier returns to
   await expect(subject(page).getByTestId("sector-native-brief-leaders")).toContainText("+0.10%");
   await expect(brief(page)).toContainText("1 of 11");
   await expect(subject(page)).toContainText("November 3, 2026 · Close");
-  // The honest-data strips: breadth is not supplied, compare is not mounted.
-  await expect(subject(page).getByTestId("sector-native-brief-status")).toContainText("Constituent membership is not supplied by this source.");
+  // The honest-data strips: breadth is not supplied (the module carries the
+  // line until its generation payload lands, L1-FO1), compare is not mounted.
+  await expect(subject(page).getByTestId("sector-breadth-change")).toHaveAttribute("data-state", "unavailable");
+  await expect(subject(page).getByTestId("sector-breadth-change")).toContainText("Constituent membership is not supplied by this source.");
+  await expect(subject(page).getByTestId("sector-native-brief-status")).toContainText("A rotation comparison is unavailable.");
   await noOverflow(page);
   await info.attach("native-jobs-brief-en-dark", { body: await page.screenshot(), contentType: "image/png" });
 

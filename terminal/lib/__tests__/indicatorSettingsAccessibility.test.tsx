@@ -2,7 +2,7 @@
 
 import React, { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import IndicatorSettings from "@/components/IndicatorSettings";
 import IndicatorSource from "@/components/IndicatorSource";
 import { IND_DEFS, defaultVis, withDefaults } from "@/lib/indicators";
@@ -89,10 +89,10 @@ function activateNativeButton(button: HTMLButtonElement) {
 }
 
 type Spies = {
-  onChange: ReturnType<typeof vi.fn>;
-  onPineChange: ReturnType<typeof vi.fn>;
-  onReset: ReturnType<typeof vi.fn>;
-  onClose: ReturnType<typeof vi.fn>;
+  onChange: Mock<(patch: Record<string, unknown>) => void>;
+  onPineChange: Mock<(patch: Record<string, unknown>) => void>;
+  onReset: Mock<() => void>;
+  onClose: Mock<() => void>;
 };
 const spies = (): Spies => ({ onChange: vi.fn(), onPineChange: vi.fn(), onReset: vi.fn(), onClose: vi.fn() });
 

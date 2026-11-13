@@ -8,7 +8,7 @@ Parent operation correlation: `execution-throughput-20261015-c3-001` (not an Exe
 Protected procedure: Mastermind `22c08067ed0f480d1d5324a815fa248661c4ab46`.
 Terminal source base for the settings reliability repair: `ed2e633852564dcd604afc26eb03eeed54954dee`.
 Task-tree identity: this path at its containing Git commit; the publication receipt records that exact commit.
-Recorded: 2026-11-02. No matching current Agent OS workstream was resolved in the bounded recovery lookup; no new workstream or task registry is created here.
+Recorded: 2026-11-02 (docs-lane canary edit; no content contract change). No matching current Agent OS workstream was resolved in the bounded recovery lookup; no new workstream or task registry is created here.
 
 This file owns the Terminal task breakdown and acceptance rules, not runtime state,
 worker leases, a second wave plan, or a CI observer. Current effects and the next

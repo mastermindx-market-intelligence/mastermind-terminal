@@ -11,6 +11,7 @@ import { sectorDossiers } from "@/lib/sectorDossiers";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import type { SectorNativeContext, SectorNativeRankedRow } from "./sectorNativeSlots";
 import { nativeFill } from "./SectorNativeJobShell";
+import SectorBreadthChange from "./SectorBreadthChange";
 import styles from "./SectorNative.module.css";
 
 const LABEL_COL = 76, VALUE_COL = 64, ROW_H = 34, AXIS_H = 20;
@@ -103,6 +104,17 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
         </div>
       </div>
     </section>
+    {/* Breadth change by sector (Paper R4 R7). The breadth input rides the
+     * sector generation payload later (L1-FO1); until it lands the module
+     * mounts with no input and carries the honest line itself. */}
+    <SectorBreadthChange
+      input={undefined}
+      nameOf={(sectorId) => {
+        const row = rows.find(r => r.id === sectorId || r.name === sectorId);
+        return row ? (lang === "zh" ? row.nameZh || row.name : row.name) : undefined;
+      }}
+      onViewDataStatus={onSources}
+    />
     <div className={styles.briefColumns}>
       <div className={styles.briefMain}>
         <section className={styles.card} data-testid="sector-native-brief-leaders">
@@ -149,7 +161,7 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
             {dossiers.state === "ok" && dossiers.dossier && <>
               <p>{t("siDossierUnavailableWindows")}: {t("siDossierUnavailableWindowsCopy")}</p>
             </>}
-            <p>{t("siNativeBreadthMissing")}</p>
+            {/* The breadth-missing line moved into the breadth module above. */}
             <p>{t("siNativeComparePending")}</p>
           </div>
           <button type="button" className={styles.linkRow} onClick={onSources}>{t("siNativeSources")} →</button>

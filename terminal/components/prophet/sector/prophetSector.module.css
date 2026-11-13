@@ -55,7 +55,24 @@
   min-width: 0;
 }
 
-.crumbs { display: flex; }
+.crumbs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+/* SX02 breadcrumb: the reading's way back to Today, beside the group arrow. */
+.crumbLink {
+  margin-left: auto;
+  font: 600 11px/1.2 var(--font-ui);
+  color: var(--link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.crumbLink:hover { text-decoration: underline; }
+/* P1-7: the population's one-line sector header, beside its back link. */
+.contextLine {
+  margin: 0;
+  min-width: 0;
+  font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.contextLineName { font-weight: 700; color: var(--text-2); }
 .backButton {
   display: inline-flex;
   align-items: center;
@@ -139,6 +156,36 @@
   font: 600 12.5px/1.45 var(--font-ui);
   color: var(--warn);
 }
+/* G22 / SX09 #01: the relative-leader block carries its own action — the
+   comparison the sentence points at lives in Sector Intelligence's group view. */
+.relativeLead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(214, 158, 46, 0.22);
+  border-radius: 12px;
+  background: rgba(214, 158, 46, 0.08);
+}
+.relativeLeadCopy {
+  margin: 0;
+  font: 600 12px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.relativeLeadAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--text);
+  text-decoration: none;
+}
+.relativeLeadAction:hover { border-color: var(--line-3); }
 .contextVerdictQuiet {
   margin: 8px 0 0;
   font: 500 11.5px/1.4 var(--font-ui);
@@ -160,6 +207,40 @@
 .pickerIntro {
   margin: 3px 0 0;
   font: 500 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+/* SX01 hero summary: the top-ranked group from the served window reads. */
+.leaderHero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+}
+.heroKicker {
+  margin: 0;
+  font: 700 9.5px/1 var(--font-ui);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--link);
+}
+.heroTitle {
+  margin: 0;
+  font: 760 18px/1.25 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.heroBody {
+  margin: 0;
+  font: 600 13px/1.4 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.heroNote {
+  margin: 0;
+  font: 500 11px/1.4 var(--font-ui);
   color: var(--muted);
 }
 .pickerCoverageHonest {
@@ -362,9 +443,14 @@
 .nameCell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .alsoIn { color: var(--text-dim); font-size: 10.5px; }
 .sinceCell { font-variant-numeric: tabular-nums; color: var(--muted); }
+/* SX04 evidence columns. The read carries no per-member return or vs-sector
+   figure yet; the blank cell plus one plain line under the table keeps the
+   roster about evidence rather than plan state. */
+.returnCell, .vsSectorCell { color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .stateCell .cellStack { white-space: normal; max-width: 240px; }
 .stateCell .cellStack > span:first-child { font-weight: 600; }
-.stateOpen { color: var(--up); }
+/* P0-1: a live plan is a reported state, not permission — neutral ink. */
+.stateOpen { color: var(--text-2); }
 .stateResolved { color: var(--text-2); }
 .stateUnavailable { color: var(--text-dim); }
 .statePlain { color: var(--text-2); }
@@ -622,4 +708,668 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* ── Leadership table (SX01 · G5) ──────────────────────────────────────── */
+/* Same grammar as the member table: the wrap owns horizontal scroll, the
+   table stays a table at every width. Hierarchy from type and spacing — no
+   colored edges; sign ink only on the numbers themselves. */
+.leadershipWrap {
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.leadershipTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12px/1.35 var(--font-ui);
+  color: var(--text-2);
+}
+.leadershipTable th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  font: 600 9.5px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.leadershipTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line-2);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.leadershipTable tr:last-child td { border-bottom: none; }
+.leadershipTable tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.leadershipSectorCell { white-space: normal; min-width: 150px; }
+.leadershipName {
+  display: block;
+  font: 700 12.5px/1.25 var(--font-ui);
+  color: var(--text);
+}
+.leadershipMembers {
+  display: block;
+  margin-top: 2px;
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.leadershipNum {
+  font: 700 12.5px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.leadershipNumMuted {
+  font: 500 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.leadershipDev { color: var(--text-2); }
+/* The labelled measure cell: the label only exists in the ≤640 card layout,
+   where the table header is gone and an unlabelled number would be ambiguous. */
+.cellLabel { display: none; }
+/* Semantic cycle-phase ink (owner's own five words); the word always renders. */
+.devUp { color: var(--up); }
+.devDown { color: var(--down); }
+.devWarn { color: var(--warn); }
+.leadershipAction {
+  min-height: 36px;
+  padding: 8px 10px;
+  margin: -9px 0;
+  border: none;
+  border-radius: var(--r);
+  background: transparent;
+  font: 600 11.5px/1 var(--font-ui);
+  color: var(--link);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.leadershipAction:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+  .leadershipAction { min-height: 44px; }
+}
+.leadershipNote {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Sector focus (SX02 · G4) ──────────────────────────────────────────── */
+.focus {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.focusFlow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.focusHeadMain { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 0 2px; }
+.focusNumbers { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.focusPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: rgba(41, 98, 255, 0.88);
+  font: 700 12.5px/1 var(--font-ui);
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--t-fast) var(--ease-out);
+}
+.focusPrimary:hover { background: rgba(63, 118, 255, 0.95); }
+/* The fail-closed group read's designed not-served block (PROV-26O4). */
+.focusNotServed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.focusNotServedTitle {
+  margin: 0;
+  font: 700 13.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.focusDisclaimer {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+/* The single plain limitation line that replaces the four refusal panels
+   (P1-4) and keeps the Sector Intelligence handoff. */
+.focusUnavailable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+/* SX02's secondary return, desktop only — phones keep the breadcrumb. */
+.focusReturnToday {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  font: 600 12px/1 var(--font-ui);
+  color: var(--link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.focusReturnToday:hover { text-decoration: underline; }
+.focusTitle {
+  margin: 0;
+  font: 760 17px/1.2 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.focusIntro {
+  margin: 0;
+  font: 500 12.5px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+.focusChips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.focusChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  font: 600 10.5px/1 var(--font-ui);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.focusActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.focusPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+}
+.focusPanelTitle {
+  margin: 0;
+  font: 700 13.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.setupPlanMissing {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: rgba(5, 7, 12, 0.22);
+}
+.setupPlanMissingTitle {
+  margin: 0;
+  font: 700 13.5px/1.2 var(--font-ui);
+  color: var(--text);
+}
+.focusPanelBody {
+  margin: 0;
+  font: 500 12px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+.focusPanelNote {
+  margin: 0;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+.siLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.03);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.siLink:hover { border-color: var(--line-3); }
+@media (max-width: 640px) {
+  .siLink { min-height: 44px; }
+}
+
+/* ── Selection tray (SX04 / T2-06 / T2-14 · G6) ────────────────────────── */
+.selectWrap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-right: 8px;
+  cursor: pointer;
+}
+/* Visible only in the phone card layout — the table header already names the
+   Compare column above 640. */
+.selectLabel { display: none; }
+/* Card-only "Open" label inside the single symbol control. */
+.cardOpenHint { display: none; }
+.selectBox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #4d82ff;
+  cursor: pointer;
+}
+.selectionTray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(13, 15, 19, 0.92);
+}
+.selectionCount {
+  font: 700 12px/1 var(--font-ui);
+  color: var(--text);
+  white-space: nowrap;
+}
+.selectionChips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.selectionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.03);
+  font: 700 11.5px/1 var(--font-num);
+  color: var(--text);
+}
+.selectionChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  font: 600 12px/1 var(--font-ui);
+  color: var(--muted);
+  cursor: pointer;
+}
+.selectionChipRemove:hover { color: var(--text); background: rgba(255, 255, 255, 0.12); }
+.selectionNote {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.selectionCap {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--warn);
+}
+.compareButton {
+  min-height: 36px;
+  margin-left: auto;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: rgba(41, 98, 255, 0.88);
+  font: 700 12px/1 var(--font-ui);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast) var(--ease-out);
+}
+.compareButton:hover:not(:disabled) { background: rgba(63, 118, 255, 0.95); }
+.compareButton:disabled { opacity: 0.4; cursor: default; }
+/* At phone width the tray docks to the lane's bottom edge (T2-14): the
+   reader can scroll a long table without losing the compare affordance. */
+@media (max-width: 640px) {
+  .selectionTray {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
+  .compareButton {
+    margin-left: 0;
+    flex: 1;
+    min-height: 44px;
+  }
+  .selectionNote { flex-basis: 100%; }
+}
+
+/* ── Member compare (T2-07 / T2-13 · G7) ───────────────────────────────── */
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.compareHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 2px;
+}
+.compareTitle {
+  margin: 0;
+  font: 760 17px/1.2 var(--font-ui);
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.compareIntro {
+  margin: 0;
+  font: 500 12px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+.compareBanner {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(214, 158, 46, 0.10);
+  font: 600 12px/1.45 var(--font-ui);
+  color: var(--warn);
+}
+.compareGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 10px;
+}
+.compareCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+}
+.compareCardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* The symbol is the card's heading; its single open action is the labelled
+   primary button at the card's foot (T2-07). */
+.compareSymbol {
+  margin: 0;
+  font: 760 15px/1.2 var(--font-num);
+  color: var(--text);
+}
+.compareOpenButton {
+  align-self: flex-start;
+  min-width: 150px;
+  min-height: 44px;
+  margin-top: 2px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  background: rgba(41, 98, 255, 0.88);
+  font: 700 12px/1 var(--font-ui);
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--t-fast) var(--ease-out);
+}
+.compareOpenButton:hover { background: rgba(63, 118, 255, 0.95); }
+.compareName {
+  font: 500 11.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.compareClocks {
+  margin: 0;
+  font: 500 10.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.compareDetails {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0;
+}
+.compareDetailLabel {
+  font: 600 9.5px/1.5 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.compareDetailValue {
+  font: 500 12px/1.45 var(--font-ui);
+  color: var(--text-2);
+  min-width: 0;
+}
+.compareUnavailable {
+  color: var(--text-dim);
+}
+.compareChartBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: rgba(5, 7, 12, 0.18);
+}
+.compareEntryChip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: var(--r-pill);
+  background: rgba(214, 158, 46, 0.12);
+  font: 600 10px/1 var(--font-ui);
+  color: var(--warn);
+}
+.compareFooter {
+  margin: 0;
+  padding: 0 2px;
+  font: 500 11px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+
+/* ── Responsive composition ─────────────────────────────────────────────── */
+
+/* M10 — returning from a company case: one quiet highlight on the row/card the
+   address still names. Never a colour-only signal; the row also scrolls in. */
+.memberTable tbody tr.memberRowHighlight td { background: rgba(63, 118, 255, 0.1); }
+
+/* M8 — SX02's two-column desktop composition: the numbers on the left, the
+   action rail top-right and the single limitation line under it. Phones and
+   tablets keep the DOM order (P1-6: numbers before the action). */
+@media (min-width: 1024px) {
+  .focusFlow {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    grid-template-areas:
+      "main actions"
+      "numbers unavailable";
+    gap: 10px 18px;
+    align-items: start;
+  }
+  .focusHeadMain { grid-area: main; }
+  .focusActions { grid-area: actions; margin-top: 0; justify-content: flex-end; }
+  .focusNumbers { grid-area: numbers; }
+  .focusUnavailable { grid-area: unavailable; }
+}
+
+/* Phones: the breadcrumb is the return contract; the extra "Return to Today"
+   control would duplicate it in the first screen. */
+@media (max-width: 640px) {
+  .focusReturnToday { display: none; }
+}
+
+@media (max-width: 640px) {
+  /* B2 — the leadership table reflows into stacked cards (SX06/SX08). Same
+     DOM, same testids: the header row is replaced by in-card labels. */
+  .leadershipWrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .leadershipTable, .leadershipTable tbody,
+  .memberTable, .memberTable tbody {
+    display: block;
+    width: 100%;
+  }
+  .leadershipTable thead, .memberTable thead { display: none; }
+  .leadershipTable tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(13, 15, 19, 0.72);
+  }
+  .leadershipTable td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+  .leadershipTable tbody tr:hover td { background: transparent; }
+  .leadershipSectorCell { grid-column: 1 / -1; min-width: 0; }
+  .leadershipBreadthCell, .leadershipDevCell, .leadershipOpenCell { grid-column: 1 / -1; }
+  .leadershipDevCell { display: flex; flex-direction: column; }
+  .leadershipOpenCell .leadershipAction {
+    width: 100%;
+    margin: 0;
+    min-height: 44px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+  }
+  .cellLabel {
+    display: block;
+    margin-bottom: 3px;
+    font: 600 9.5px/1.2 var(--font-ui);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* M7 — the member population reflows into stacked cards (T2-14): symbol and
+     name, the Compare control, the reported state, then the single Open action
+     carried by the symbol control itself. */
+  .tableWrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .memberTable tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(13, 15, 19, 0.72);
+  }
+  .memberTable td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+  .symbolCell { grid-column: 1; grid-row: 1; }
+  .selectCell { grid-column: 2; grid-row: 1; justify-self: end; }
+  .nameCell { grid-column: 1 / -1; grid-row: 2; max-width: none; overflow: visible; }
+  /* T2-14's reading order: symbol/name, then the reported state, then the
+     group facts, with the single Open action carried by the symbol control. */
+  .stateCell { grid-column: 1 / -1; grid-row: 3; }
+  /* Outrank `.memberTable td { display: block }` above: the two measures have
+     no served value in the card, so they are dropped rather than shown unloved. */
+  .memberTable .returnCell, .memberTable .vsSectorCell { display: none; }
+  .industryCell { grid-column: 1; grid-row: 4; }
+  .sinceCell { grid-column: 2; grid-row: 4; text-align: right; }
+  .stateCell .cellStack { max-width: none; }
+  .memberTable .symbolButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    color: var(--text);
+    text-align: left;
+  }
+  .setupHint { display: none; }
+  .cardOpenHint {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    font: 700 12px/1 var(--font-ui);
+    color: var(--link);
+  }
+  /* The checkbox carries its own visible word in the card — the table header
+     that named it above 640 is gone. */
+  .selectLabel { display: inline; font: 600 11.5px/1 var(--font-ui); color: var(--text-2); }
+  /* T2-14's bordered Compare pill around the checkbox + word. */
+  .memberTable .selectWrap {
+    min-height: 44px;
+    padding: 0 10px 0 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .memberTable tbody tr.memberRowHighlight {
+    border-color: rgba(63, 118, 255, 0.45);
+    background: rgba(63, 118, 255, 0.1);
+  }
+  .memberTable tbody tr.memberRowHighlight td { background: transparent; }
+  .compareOpenButton { align-self: stretch; margin-top: 6px; }
+}
+
+/* M5 — 44px touch targets wherever a coarse pointer or phone width is in play:
+   the selection chips' remove control, the member checkbox target, the Compare
+   action, the Sources & evidence disclosure and its Copy controls. */
+@media (max-width: 640px), (pointer: coarse) {
+  .selectionChip { min-height: 44px; }
+  .selectionChipRemove { width: 44px; height: 44px; }
+  .selectWrap { min-width: 44px; min-height: 44px; }
+  .sourcesSummary { min-height: 44px; padding-top: 14px; padding-bottom: 14px; }
+  .copyButton { min-width: 44px; min-height: 44px; }
 }
