@@ -13,11 +13,13 @@ export const revalidate = 0;
 export const metadata: Metadata = { title:"Prophet · Mastermind" };
 export const viewport: Viewport = { maximumScale:undefined, userScalable:true };
 export default async function ProphetPage() {
- // E2E fixture seam (mirrors /prophet/evaluation and /portfolio): development +
- // fixture flag only, so the canonical mount's URL contract (tab/sector/symbol/
- // sel) has a deterministic browser proof. Production keeps failing closed
- // through the same shared-shell, member and entitlement reads below.
- if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
+ // E2E fixture seam: development + the canonical-Prophet-only flag, set solely by
+ // playwright.prophet-canonical.config.ts, so the canonical mount's URL contract
+ // (tab/sector/symbol/sel) has a deterministic browser proof. Other fixture
+ // servers (TERMINAL_E2E_FIXTURE alone) keep the real shared-shell mount.
+ // Production keeps failing closed through the shared-shell, member and
+ // entitlement reads below.
+ if (process.env.NODE_ENV === "development" && process.env.PROPHET_CANONICAL_FIXTURE === "1") {
    return <div className="obs-prophet-lane-shell"><ProphetLanesView /></div>;
  }
  if (!isSharedShellEnabled(process.env.MMX_SHARED_SHELL)) notFound();

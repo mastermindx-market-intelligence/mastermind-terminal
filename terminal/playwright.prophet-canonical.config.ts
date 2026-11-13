@@ -11,9 +11,9 @@ import base from "./playwright.config";
  * already-running default-suite dev server (no shared shell, other fixtures)
  * must never be reused for these assertions.
  *
- * The page itself carries the same development-only `TERMINAL_E2E_FIXTURE`
- * seam as `/prophet/evaluation` and `/portfolio`; production still fails
- * closed through the real reads.
+ * The page itself carries a development-only fixture seam gated on
+ * `PROPHET_CANONICAL_FIXTURE`, set only here so other fixture servers keep the
+ * real shared-shell mount; production still fails closed through the real reads.
  */
 const server = base.webServer;
 if (!server || Array.isArray(server)) throw new Error("Canonical Prophet checks require the incumbent single test server");
@@ -37,6 +37,7 @@ export default defineConfig({
       ...server.env,
       MMX_SHARED_SHELL: "1",
       TERMINAL_E2E_FIXTURE: "1",
+      PROPHET_CANONICAL_FIXTURE: "1",
     },
   },
 });
