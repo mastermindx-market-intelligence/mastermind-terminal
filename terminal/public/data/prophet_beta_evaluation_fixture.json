@@ -348,7 +348,7 @@
    },
    {
     "name": "Stock-minus-sector diagnosis (Opus, 2026-11-11)",
-    "report": "tmp/prophet-eval-diagnosis/REPORT.md",
+    "report": "internal diagnosis report (2026-11-11)",
     "scope": "independent diagnosis of the stock-minus-sector gap; yardstick (equal-weight member) and off-index findings, folded in as deviations D7/D8 and recomputed on this engine"
    }
   ],
@@ -3124,7 +3124,7 @@
    "kind": "added_diagnostic",
    "when": "after publication (2026-11-11)",
    "what": "event_study.member_benchmark added beside the frozen stock-minus-sector-ETF leg: at each horizon the equal-weight mean of point-in-time eligible same-sector members on the same signal date (C4 eligibility, names published that day excluded), the stock minus that member benchmark with a date-cluster interval, and a placebo distribution of random same-sector members showing what no selection looks like. H=21: equal-weight member mean vs ETF -0.6261 pp (CI [-1.196, -0.043]); stock vs member benchmark -2.4103 pp (CI [-3.550, -1.303]); placebo 95% range -1.6152 pp to +0.4900 pp versus the observed -3.0363 pp. The frozen event-study numbers are unchanged; this block decomposes the same leg into yardstick drag plus stock-versus-peers.",
-   "why": "independent diagnosis of the stock-minus-sector gap (2026-11-11, /tmp/prophet-eval-diagnosis/REPORT.md, reproduced on this engine with this runner's own code; diagnosis figures used only as cross-check): a cap-weighted sector fund is not what an average member of the sector did in this window, so part of the published stock-minus-sector-ETF leg is the yardstick, not member choice. Descriptive only; adds no threshold, changes no release level, and makes no claim of negative selection or of its absence."
+   "why": "independent diagnosis of the stock-minus-sector gap (2026-11-11, internal diagnosis report, reproduced on this engine with this runner's own code; diagnosis figures used only as cross-check): a cap-weighted sector fund is not what an average member of the sector did in this window, so part of the published stock-minus-sector-ETF leg is the yardstick, not member choice. Descriptive only; adds no threshold, changes no release level, and makes no claim of negative selection or of its absence."
   },
   {
    "id": "D8",

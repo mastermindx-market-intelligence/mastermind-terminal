@@ -9,7 +9,7 @@ import { decodeBetaEvaluation } from "./prophetBetaEvaluation";
 export const PROPHET_BETA_EVALUATION_MAX_BYTES = 160 * 1024;
 export const PROPHET_BETA_EVALUATION_DEADLINE_MS = 10_000;
 /** Committed real-artifact copy served in dev/Playwright fixture mode.
- * Byte-identical (sha256 7fa9b800…) to the corrected Macro
+ * Identical except for the redacted local report location to the corrected Macro
  * `site/prophet/beta_evaluation.json` at commit eebd40b295 (branch
  * `fable/prophet-beta-evaluation-audit-20261111`, captured 2026-11-11; the
  * dated CORRECTION artifact — engine code.commit
@@ -68,8 +68,9 @@ function fixtureMode(): boolean {
   return fixtureSeamReachable();
 }
 
-/** Fixture branch: the committed REAL artifact (byte-identical to the engine's
- * publication for this window) answers without any upstream or billing
+/** Fixture branch: the committed REAL artifact (identical to the engine's
+ * publication for this window except for the redacted local report location)
+ * answers without any upstream or billing
  * dependency, through the SAME closed decoder gate as the live path. */
 async function handleFixture(): Promise<Response> {
   try {

@@ -9,7 +9,7 @@ import {
 } from "@/lib/prophetBetaEvaluation";
 import { buildPerPlanVerdictText, perPlanFigure } from "@/lib/prophetEvaluationStrings";
 
-/** The REAL engine artifact, byte-identical to the committed fixture. */
+/** The REAL engine artifact, identical except for the redacted local report location. */
 const realArtifact = (): unknown =>
   JSON.parse(readFileSync(path.join(process.cwd(), "public/data/prophet_beta_evaluation_fixture.json"), "utf8"));
 
