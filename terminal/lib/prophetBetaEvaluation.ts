@@ -105,6 +105,18 @@ export type PostHocBook = {
     droppedAsset: string; totalNetReturn: number; excessTotalVsSpy: number; excessTotalCi95: Ci95;
     annExcessVsSpy: number; annExcessCi95: Ci95; betaVsMarket: number;
   };
+  /** RUN-D concentration check (D6-era artifact): the three largest positive
+   * gross contributors removed. Optional — absent on the pre-correction v1. */
+  withoutTop3Contributors: {
+    droppedAssets: string[]; reason: string;
+    totalNetReturn: number; excessTotalVsSpy: number; excessTotalCi95: Ci95;
+    annExcessVsSpy: number; annExcessCi95: Ci95; betaVsMarket: number;
+  } | null;
+};
+/** A position whose close series stops inside the window (delisting): named by
+ * the engine in the held-path coverage and the total-loss stress variant. */
+export type GappedPosition = {
+  planId: string; asset: string; entry: string; firstMissingClose: string; missingSessions: number;
 };
 /** D5 population block — names the corrected primary population and the
  * excluded outage-reconstructed cohort. Optional at decode: an artifact
@@ -122,6 +134,21 @@ export type PopulationBlock = {
     planIds: string[];
     wouldHaveEnteredPositionsAsRun: number | null;
     wouldHaveEnteredIdsAsRun: string[] | null;
+    /** 2026-11-11 correction census (any-era minted backfills; see
+     * censusBasis). Optional — absent on the pre-correction artifact. */
+    censusBasis: string | null;
+    eraMintedOutageBackfill: number | null;
+    overallMintedOutageBackfill: number | null;
+    overallOfWhichReplayedReceiptedBake: number | null;
+    overallOfWhichSyntheticBoardReconstructions: number | null;
+    outsideSelectionEra: string[] | null;
+  } | null;
+  /** The 78 incumbent-era plans converted without a dated fill (D6-era):
+   * entered at the publication session under the header's literal C6 rule,
+   * removed wholesale by the excluding_undated_conversions sensitivity. */
+  undatedConversions: {
+    count: number; ids: string[];
+    basis: string; primaryTreatment: string; sensitivity: string;
   } | null;
   mrna: {
     note: string; asRunEntry: string | null; inSensitivityA: boolean | null;
@@ -151,19 +178,110 @@ export type SupersededContrastRow = {
   totalDiff: number | null; totalDiffCi95: Ci95 | null; pOneSided: number | null;
 };
 
+/** One book-recomputed sensitivity variant (definition + row). */
+export type SensitivityVariantEntry = {
+  definition: string;
+  excludedFromThisVariant: { reason: string; count: number }[];
+} & SensitivityVariantRow;
+
+/** D8 after-the-fact sensitivity: picks whose stock is not a point-in-time
+ * S&P 1500 member at its signal session. Per horizon, the frozen leg split
+ * into off-index and member-pick means with the off-index contribution. */
+export type OffIndexGapRow = { mean: number; n: number; nDates: number; ci95: Ci95 };
+export type OffIndexHorizon = {
+  horizon: string;
+  allPlans: OffIndexGapRow;
+  offIndexPicks: OffIndexGapRow;
+  sp1500MemberPicks: OffIndexGapRow;
+  offIndexShareOfMatured: number;
+  contributionToMeanGap: number;
+  contributionNote: string;
+};
+export type OffIndexBlock = {
+  label: string; definition: string;
+  publishedPlansOffIndex: number; publishedPlansTotal: number; enteredPositionsOffIndex: number;
+  horizons: OffIndexHorizon[];
+  membershipFileLimits: string;
+};
+
 /** D5 sensitivity block — never the headline; the label says exactly that and
- * rides through verbatim. Optional at decode like `population`. */
+ * rides through verbatim. Optional at decode like `population`. The 2026-11-11
+ * correction added two protocol variants and the after-the-fact off-index
+ * diagnosis; each is optional the same way (an artifact without one renders
+ * without it, an artifact with a malformed one fails the whole decode). */
 export type SensitivityBlock = {
   label: string;
-  backfillReplaysAdmittedAfterAvailability: ({
-    definition: string;
-    excludedFromThisVariant: { reason: string; count: number }[];
-  } & SensitivityVariantRow) | null;
+  backfillReplaysAdmittedAfterAvailability: SensitivityVariantEntry | null;
   supersededAsRun: {
     reason: string; sameEngineSeedPricesCosts: boolean;
     rows: { comparatorId: string; row: SensitivityVariantRow }[];
     contrasts: SupersededContrastRow[];
   } | null;
+  /** The 78 undated-conversion plans removed (D6-era artifact). */
+  excludingUndatedConversions: SensitivityVariantEntry | null;
+  /** Delisted assets charged to a total loss (D6-era artifact), with the
+   * affected positions itemised. */
+  missingMarksTotalLossStress: ({ definition: string; gappedPositions: GappedPosition[] } & SensitivityVariantRow) | null;
+  /** After-the-fact (independent diagnosis) — the artifact's own label says
+   * so and rides with it wherever it renders. */
+  offIndexPicks: OffIndexBlock | null;
+};
+
+/** D7 yardstick correction, beside the frozen event study: at each horizon
+ * the equal-weight member basket, the picks against that basket, and a
+ * placebo distribution of random same-sector members. Optional at decode. */
+export type MemberBenchmarkPlacebo = {
+  draws: number; mean: number; lo: number; hi: number;
+  observedOutsidePlaceboRange: boolean; note: string;
+};
+export type MemberBenchmarkHorizon = {
+  horizon: string; n: number; nDates: number | null;
+  status: "matured_subset" | "too_few_dates" | "unmatured";
+  nPlansWithoutEligiblePeers: number | null;
+  medianPeersPerPlan: number | null;
+  identityCheckMaxAbs: number | null;
+  stockMinusEqualWeightMembers: EventStudyMetric | null;
+  equalWeightMemberMinusSectorEtf: EventStudyMetric | null;
+  stockMinusSectorEtf: EventStudyMetric | null;
+  placebo: MemberBenchmarkPlacebo | null;
+};
+export type MemberBenchmarkBlock = {
+  label: string; why: string;
+  universeRule: string | null;
+  sameRulerAndPopulation: boolean | null;
+  decompositionIdentity: string | null;
+  horizons: MemberBenchmarkHorizon[];
+};
+
+/** The 2026-11-11 correction statement: what changed, the superseded figures
+ * beside their corrected successors, and the publisher's own
+ * verdict-unchanged ruling. Optional at decode (the pre-correction v1 and any
+ * future uncorrected artifact decode with `correction: null`). */
+export type CorrectionSupersededRow = {
+  positions: number;
+  totalNetReturn: number;
+  excessTotalVsSpy: number; excessTotalCi95: Ci95;
+  annExcessVsSpy: number; annExcessCi95: Ci95;
+  betaVsMarket: number; costsPaidTotal: number;
+};
+export type CorrectionBlock = {
+  date: string; supersedes: string; whatChanged: string; label: string;
+  figuresSuperseded: {
+    reasonEach: string;
+    rows: { comparatorId: string; row: CorrectionSupersededRow }[];
+    verdictUnchanged: boolean; verdictReason: string;
+  } | null;
+};
+
+/** The two-run post-publication audit summary (RUN-D). Optional at decode. */
+export type AuditRun = { name: string; report: string; scope: string };
+export type IndependentAuditBlock = {
+  label: string;
+  runs: AuditRun[];
+  whatAgreed: string[];
+  whatChanged: string[];
+  addedSensitivities: string[];
+  adjudication: string;
 };
 
 export type BetaEvaluation = {
@@ -173,10 +291,18 @@ export type BetaEvaluation = {
   code: { commit: string; harnessDirty: false; module: string; runner: string; bootstrap: { b: number; seed: number; meanBlock: number; sensitivityBlock: number } };
   dataClocks: {
     macroDataCommit: string;
-    plansIndex: { path: string; sha256: string; asof: string; sourceAsof: string; computedAt: string };
+    plansIndex: { path: string; sha256: string; asof: string; sourceAsof: string; computedAt: string; readFrom: string | null };
     resolutionLog: { path: string; sha256: string; rows: number; malformedLinesSkipped: number; maxAsof: string; closeDateCorrectionsApplied: number; quarantinedIdsRemoved: number };
-    pitMembership: { path: string; sha256: string; lastRecordedChange: string };
-    prices: { source: string; tickersLoaded: number; digestSha256: string; missingFiles: number; lastCloseUsed: string };
+    pitMembership: { path: string; sha256: string; lastRecordedChange: string; readFrom: string | null };
+    prices: {
+      source: string; tickersLoaded: number; digestSha256: string; missingFiles: number; lastCloseUsed: string;
+      /** Pin verification (D6-era): every per-ticker parquet byte-compared to
+       * the data pin's git blob id. Optional — absent on the v1 artifact. */
+      pinVerified: boolean | null;
+      pinVerification: string | null;
+      readFromPinBlobs: string[] | null;
+      pinnedInputSha256: { key: string; sha256: string }[] | null;
+    };
   };
   basis: { market: string; benchmark: string; currency: string; returnBasis: string; cashInstrument: string; costsBpPerSide: { etf: number; stock: number } };
   window: { firstReturnClose: string; lastClose: string; sessions: number; dailyReturns: number; spyTotalReturn: number; spyMaxDrawdown: number };
@@ -194,12 +320,20 @@ export type BetaEvaluation = {
   limitations: string[];
   comparators: ComparatorRow[];
   contrasts: { family: string; rows: ContrastRow[] };
-  eventStudy: { ruler: string; population: string; plans: number; horizons: EventStudyHorizon[]; excludedBackfilledPlans: number | null };
+  eventStudy: {
+    ruler: string; population: string; plans: number; horizons: EventStudyHorizon[]; excludedBackfilledPlans: number | null;
+    /** D7 member-benchmark yardstick (optional — the frozen study above is
+     * untouched by it and renders alone when this is absent). */
+    memberBenchmark: MemberBenchmarkBlock | null;
+  };
   attribution: { bookId: string; book: AttributionBook }[];
   postHocDiagnostics: { label: string; books: { bookId: string; book: PostHocBook }[] };
   /** D5 additions — optional at decode; null on the pre-correction artifact. */
   population: PopulationBlock | null;
   sensitivity: SensitivityBlock | null;
+  /** D6/D7/D8 additions of the 2026-11-11 correction — optional the same way. */
+  correction: CorrectionBlock | null;
+  independentAudit: IndependentAuditBlock | null;
   coverage: {
     eraPlans: number; evaluatedPositions: number;
     excluded: { reason: string; count: number }[];
@@ -213,6 +347,13 @@ export type BetaEvaluation = {
     c4SectorWeights: { sector: string; weight: number }[];
     issuerExcludedPeers: { status: string; reason: string };
     dropCorrectedSensitivity: { positions: number; excluded: { reason: string; count: number }[] };
+    /** D6-era held-path coverage: `pricedShare` counts entry marks only, so
+     * the held path is stated separately (complete vs gapped positions). */
+    pricedShareBasis: string | null;
+    heldPathCompletePositions: number | null;
+    heldPathGaps: number | null;
+    heldPathGapPositions: GappedPosition[] | null;
+    resolvedAtOrBeforeSplit: { total: number; enteredAtFinalClose: number; resolvedBeforeFollowerFill: number } | null;
   };
   claims: { key: string; status: string; basis: string }[];
   deviations: { id: string; kind: string; when: string; what: string; why: string }[];
@@ -486,11 +627,29 @@ function postHoc(bookId: string, x: unknown): { bookId: string; book: PostHocBoo
   const annCi = ci(withoutRaw.ann_excess_ci95), beta = frac(withoutRaw.beta_vs_market);
   if (min === null || median === null || max === null || !top || !bottom || top5 === null || !dropped
     || total === null || excess === null || excessCi === null || annExcess === null || annCi === null || beta === null) return null;
+  // D6-era concentration check: the three largest positive gross contributors
+  // removed (optional — the v1 artifact carries only without_top_contributor).
+  const top3Raw = opt(r.without_top3_contributors, obj);
+  if (top3Raw === undefined) return null;
+  let withoutTop3: PostHocBook["withoutTop3Contributors"] = null;
+  if (top3Raw) {
+    if (!Array.isArray(top3Raw.dropped_assets) || top3Raw.dropped_assets.length < 1 || top3Raw.dropped_assets.length > 32
+      || top3Raw.dropped_assets.some((v: unknown) => typeof v !== "string" || !ASSET.test(v))) return null;
+    const reason = str(top3Raw.reason, 2048);
+    const t3Total = frac(top3Raw.total_net_return), t3Excess = frac(top3Raw.excess_total_vs_spy);
+    const t3ExcessCi = ci(top3Raw.excess_total_ci95), t3Ann = frac(top3Raw.ann_excess_vs_spy);
+    const t3AnnCi = ci(top3Raw.ann_excess_ci95), t3Beta = frac(top3Raw.beta_vs_market);
+    if (!reason || t3Total === null || t3Excess === null || t3ExcessCi === null || t3Ann === null || t3AnnCi === null || t3Beta === null) return null;
+    withoutTop3 = { droppedAssets: top3Raw.dropped_assets as string[], reason,
+      totalNetReturn: t3Total, excessTotalVsSpy: t3Excess, excessTotalCi95: t3ExcessCi,
+      annExcessVsSpy: t3Ann, annExcessCi95: t3AnnCi, betaVsMarket: t3Beta };
+  }
   return { bookId, book: {
     concurrentPositions: { min, median, max, first5Sessions: concRaw.first_5_sessions as number[] },
     topContributors: top, bottomContributors: bottom, top5ShareOfPositiveContribution: top5,
     withoutTopContributor: { droppedAsset: dropped, totalNetReturn: total, excessTotalVsSpy: excess, excessTotalCi95: excessCi,
-      annExcessVsSpy: annExcess, annExcessCi95: annCi, betaVsMarket: beta } } };
+      annExcessVsSpy: annExcess, annExcessCi95: annCi, betaVsMarket: beta },
+    withoutTop3Contributors: withoutTop3 } };
 }
 
 function excludedMap(x: unknown): { reason: string; count: number }[] | null {
@@ -558,6 +717,221 @@ function sensitivityRow(x: unknown): SensitivityVariantRow | null {
     hitRateVsSpy: hit ?? null };
 }
 
+// ── 2026-11-11 correction blocks (D6 engine fix, D7 yardstick, D8 off-index) ─
+
+const ASSET = /^[A-Z][A-Z0-9.\-]{0,15}$/;
+
+function gappedPosition(x: unknown): GappedPosition | null {
+  const r = obj(x);
+  if (!r) return null;
+  const planId = str(r.plan_id, 32), asset = str(r.asset, 16);
+  const entry = isoDate(r.entry), firstMissing = isoDate(r.first_missing_close);
+  const missing = int(r.missing_sessions, 100_000);
+  if (!planId || !PLAN_ID.test(planId) || !asset || !ASSET.test(asset)
+    || !entry || !firstMissing || missing === null || missing < 1) return null;
+  return { planId, asset, entry, firstMissingClose: firstMissing, missingSessions: missing };
+}
+
+const gappedPositionList = (x: unknown, max: number): GappedPosition[] | null => {
+  if (!Array.isArray(x) || x.length > max) return null;
+  const out: GappedPosition[] = [];
+  for (const value of x) {
+    const g = gappedPosition(value);
+    if (!g) return null;
+    out.push(g);
+  }
+  return out;
+};
+
+/** One `definition` + book row + exclusion-map variant (the shape the two new
+ * protocol sensitivities share with the D5 replay variant). */
+function sensitivityVariantEntry(x: unknown): SensitivityVariantEntry | null {
+  const r = obj(x);
+  if (!r) return null;
+  const definition = str(r.definition, 2048);
+  if (!definition) return null;
+  const excluded = opt(r.excluded_from_this_variant, excludedMap);
+  if (excluded === undefined || !excluded) return null;
+  const row = sensitivityRow(r);
+  if (!row) return null;
+  return { definition, excludedFromThisVariant: excluded, ...row };
+}
+
+function offIndexHorizon(horizon: string, x: unknown): OffIndexHorizon | null {
+  const r = obj(x);
+  if (!r) return null;
+  const gapRow = (value: unknown): OffIndexGapRow | null => {
+    const g = obj(value);
+    if (!g) return null;
+    const mean = frac(g.mean), n = int(g.n, 1_000_000), nDates = int(g.n_dates, 1_000_000);
+    const interval = ci(g.ci95_date_cluster);
+    if (mean === null || n === null || nDates === null || interval === null || n < 1) return null;
+    return { mean, n, nDates, ci95: interval };
+  };
+  const all = gapRow(r.all_plans), off = gapRow(r.off_index_picks), member = gapRow(r.sp1500_member_picks);
+  const share = frac(r.off_index_share_of_matured, 1), contribution = frac(r.contribution_to_mean_gap);
+  const note = str(r.contribution_note, 512);
+  if (!all || !off || !member || share === null || contribution === null || !note) return null;
+  return { horizon, allPlans: all, offIndexPicks: off, sp1500MemberPicks: member,
+    offIndexShareOfMatured: share, contributionToMeanGap: contribution, contributionNote: note };
+}
+
+function offIndexBlock(x: unknown): OffIndexBlock | null {
+  const r = obj(x);
+  if (!r) return null;
+  const label = str(r.label, 256), definition = str(r.definition, 2048);
+  const publishedOff = int(r.published_plans_off_index, 10_000_000);
+  const publishedTotal = int(r.published_plans_total, 10_000_000);
+  const enteredOff = int(r.entered_positions_off_index, 1_000_000);
+  const limits = str(r.membership_file_limits, 2048);
+  if (!label || !definition || publishedOff === null || publishedTotal === null
+    || enteredOff === null || !limits || publishedOff > publishedTotal) return null;
+  const horizonsRaw = obj(r.horizons);
+  if (!horizonsRaw) return null;
+  const horizons: OffIndexHorizon[] = [];
+  for (const [horizon, value] of Object.entries(horizonsRaw)) {
+    if (!/^\d{1,3}$/.test(horizon)) return null;
+    const h = offIndexHorizon(horizon, value);
+    if (!h) return null;
+    horizons.push(h);
+  }
+  if (horizons.length < 1) return null;
+  return { label, definition, publishedPlansOffIndex: publishedOff, publishedPlansTotal: publishedTotal,
+    enteredPositionsOffIndex: enteredOff, horizons, membershipFileLimits: limits };
+}
+
+/** Same maturity law as the frozen event study: an unmatured horizon carries
+ * `{"n":0,"status":"unmatured"}`; every other status requires the full leg
+ * set plus the placebo distribution. */
+function memberBenchmarkHorizon(horizon: string, x: unknown): MemberBenchmarkHorizon | null {
+  const r = obj(x);
+  if (!r) return null;
+  const n = int(r.n, 1_000_000);
+  const status = r.status === "matured_subset" || r.status === "too_few_dates" || r.status === "unmatured"
+    ? r.status : null;
+  if (n === null || !status) return null;
+  const metricsRequired = status !== "unmatured";
+  const nDates = opt(r.n_dates, v => int(v, 1_000_000));
+  const noPeers = opt(r.n_plans_without_eligible_peers, v => int(v, 1_000_000));
+  const medianPeers = opt(r.median_peers_per_plan, v => frac(v, 1_000_000));
+  const identity = opt(r.identity_check_max_abs, v => frac(v, 1));
+  const stock = opt(r.stock_minus_equal_weight_members, eventMetric);
+  const basket = opt(r.equal_weight_member_minus_sector_etf, eventMetric);
+  const frozen = opt(r.stock_minus_sector_etf, eventMetric);
+  const placeboRaw = opt(r.placebo_random_same_sector, obj);
+  if (nDates === undefined || noPeers === undefined || medianPeers === undefined || identity === undefined
+    || stock === undefined || basket === undefined || frozen === undefined || placeboRaw === undefined) return null;
+  let placebo: MemberBenchmarkPlacebo | null = null;
+  if (placeboRaw) {
+    const draws = int(placeboRaw.draws, 10_000_000);
+    const mean = frac(placeboRaw.mean), lo = frac(placeboRaw.p2_5), hi = frac(placeboRaw.p97_5);
+    const outside = bool(placeboRaw.observed_outside_placebo_range);
+    const note = str(placeboRaw.note, 512);
+    if (draws === null || draws < 1 || mean === null || lo === null || hi === null || outside === null || !note
+      || lo > hi) return null;
+    placebo = { draws, mean, lo, hi, observedOutsidePlaceboRange: outside, note };
+  }
+  if (metricsRequired && (nDates === null || !stock || !basket || !frozen || !placebo)) return null;
+  return { horizon, n, nDates, status, nPlansWithoutEligiblePeers: noPeers ?? null,
+    medianPeersPerPlan: medianPeers ?? null, identityCheckMaxAbs: identity ?? null,
+    stockMinusEqualWeightMembers: stock ?? null, equalWeightMemberMinusSectorEtf: basket ?? null,
+    stockMinusSectorEtf: frozen ?? null, placebo };
+}
+
+function memberBenchmarkBlock(x: unknown): MemberBenchmarkBlock | null {
+  const r = obj(x);
+  if (!r) return null;
+  const label = str(r.label, 256), why = str(r.why, 2048);
+  if (!label || !why) return null;
+  const universeRule = opt(r.universe_rule, v => str(v, 2048));
+  const sameRuler = opt(r.same_ruler_and_population, bool);
+  const identity = opt(r.decomposition_identity, v => str(v, 2048));
+  if (universeRule === undefined || sameRuler === undefined || identity === undefined) return null;
+  const horizonsRaw = obj(r.horizons);
+  if (!horizonsRaw) return null;
+  const horizons: MemberBenchmarkHorizon[] = [];
+  for (const [horizon, value] of Object.entries(horizonsRaw)) {
+    if (!/^\d{1,3}$/.test(horizon)) return null;
+    const h = memberBenchmarkHorizon(horizon, value);
+    if (!h) return null;
+    horizons.push(h);
+  }
+  if (horizons.length < 1) return null;
+  return { label, why, universeRule: universeRule ?? null, sameRulerAndPopulation: sameRuler ?? null,
+    decompositionIdentity: identity ?? null, horizons };
+}
+
+function correctionBlock(x: unknown): CorrectionBlock | null {
+  const r = obj(x);
+  if (!r) return null;
+  // A correction block exists to state a correction; `correction: false` is
+  // outside the contract.
+  if (r.correction !== true) return null;
+  const date = isoDate(r.date), supersedes = str(r.supersedes, 512);
+  const whatChanged = str(r.what_changed, 2048), label = str(r.label, 256);
+  if (!date || !supersedes || !whatChanged || !label) return null;
+  const figuresRaw = opt(r.figures_superseded, obj);
+  if (figuresRaw === undefined) return null;
+  let figures: CorrectionBlock["figuresSuperseded"] = null;
+  if (figuresRaw) {
+    const reasonEach = str(figuresRaw.reason_each, 2048);
+    const verdictUnchanged = bool(figuresRaw.verdict_unchanged);
+    const verdictReason = str(figuresRaw.verdict_reason, 2048);
+    if (!reasonEach || verdictUnchanged === null || !verdictReason) return null;
+    const rows: { comparatorId: string; row: CorrectionSupersededRow }[] = [];
+    for (const [comparatorId, value] of Object.entries(figuresRaw)) {
+      // Superseded book rows ride under their full comparator ids; every other
+      // key (reason_each, verdict_*) is handled above.
+      if (!/^C\d[A-Za-z0-9_]{0,63}$/.test(comparatorId)) continue;
+      const c = obj(value);
+      if (!c) return null;
+      const positions = int(c.positions, 1_000_000);
+      const total = frac(c.total_net_return), excess = frac(c.excess_total_vs_spy);
+      const excessCi = ci(c.excess_total_ci95), annExcess = frac(c.ann_excess_vs_spy);
+      const annCi = ci(c.ann_excess_ci95), beta = frac(c.beta_vs_market);
+      const costs = frac(c.costs_paid_total);
+      if (positions === null || total === null || excess === null || excessCi === null
+        || annExcess === null || annCi === null || beta === null || costs === null) return null;
+      rows.push({ comparatorId, row: { positions, totalNetReturn: total, excessTotalVsSpy: excess,
+        excessTotalCi95: excessCi, annExcessVsSpy: annExcess, annExcessCi95: annCi, betaVsMarket: beta, costsPaidTotal: costs } });
+    }
+    if (rows.length < 1) return null;
+    figures = { reasonEach, rows, verdictUnchanged, verdictReason };
+  }
+  return { date, supersedes, whatChanged, label, figuresSuperseded: figures };
+}
+
+function independentAuditBlock(x: unknown): IndependentAuditBlock | null {
+  const r = obj(x);
+  if (!r) return null;
+  const label = str(r.label, 256);
+  const adjudication = str(r.adjudication, 512);
+  if (!label || !adjudication) return null;
+  if (!Array.isArray(r.runs) || r.runs.length < 1 || r.runs.length > 4) return null;
+  const runs: AuditRun[] = [];
+  for (const value of r.runs) {
+    const a = obj(value);
+    const name = a ? str(a.name, 256) : null, report = a ? str(a.report, 512) : null, scope = a ? str(a.scope, 512) : null;
+    if (!name || !report || !scope) return null;
+    runs.push({ name, report, scope });
+  }
+  const listOf = (value: unknown, max: number, itemMax: number): string[] | null => {
+    if (!Array.isArray(value) || value.length > max) return null;
+    const out: string[] = [];
+    for (const v of value) {
+      const s = str(v, itemMax);
+      if (!s) return null;
+      out.push(s);
+    }
+    return out;
+  };
+  const agreed = listOf(r.what_agreed, 16, 1024);
+  const changed = listOf(r.what_changed, 16, 1024);
+  const added = listOf(r.added_sensitivities, 16, 128);
+  if (!agreed || !changed || !added) return null;
+  return { label, runs, whatAgreed: agreed, whatChanged: changed, addedSensitivities: added, adjudication };
+}
+
 function populationBlock(x: unknown): PopulationBlock | null {
   const r = obj(x);
   if (!r) return null;
@@ -576,6 +950,15 @@ function populationBlock(x: unknown): PopulationBlock | null {
     const planIds = opt(cohortRaw.plan_ids, v => idList(v, 4096));
     const wouldCount = opt(cohortRaw.would_have_entered_positions_as_run, v => int(v, 1_000_000));
     const wouldIds = opt(cohortRaw.would_have_entered_ids_as_run, v => idList(v, 4096));
+    // 2026-11-11 census: any-era minted backfills beyond the selection era.
+    const censusBasis = opt(cohortRaw.census_basis, v => str(v, 1024));
+    const eraMinted = opt(cohortRaw.era_minted_outage_backfill, v => int(v, 1_000_000));
+    const overallMinted = opt(cohortRaw.overall_minted_outage_backfill, v => int(v, 1_000_000));
+    const overallReplayed = opt(cohortRaw.overall_of_which_replayed_receipted_bake, v => int(v, 1_000_000));
+    const overallSynthetic = opt(cohortRaw.overall_of_which_synthetic_board_reconstructions, v => int(v, 1_000_000));
+    const outsideEra = opt(cohortRaw.outside_selection_era, v => idList(v, 4096));
+    if (censusBasis === undefined || eraMinted === undefined || overallMinted === undefined
+      || overallReplayed === undefined || overallSynthetic === undefined || outsideEra === undefined) return null;
     if (!reason || !detection || eraPlansExcluded === null || replayed === undefined || synthetic === undefined
       || modesRaw === undefined || stampsRaw === undefined || planIds === undefined || wouldCount === undefined || wouldIds === undefined) return null;
     const originationModeCounts: { mode: string; count: number }[] = [];
@@ -604,7 +987,28 @@ function populationBlock(x: unknown): PopulationBlock | null {
       planIds: planIds ?? [],
       wouldHaveEnteredPositionsAsRun: wouldCount ?? null,
       wouldHaveEnteredIdsAsRun: wouldIds ?? null,
+      censusBasis: censusBasis ?? null,
+      eraMintedOutageBackfill: eraMinted ?? null,
+      overallMintedOutageBackfill: overallMinted ?? null,
+      overallOfWhichReplayedReceiptedBake: overallReplayed ?? null,
+      overallOfWhichSyntheticBoardReconstructions: overallSynthetic ?? null,
+      outsideSelectionEra: outsideEra ?? null,
     };
+  }
+  // The undated-conversion cohort (D6-era artifact): every field required once
+  // the block is present — it is the definition of a whole sensitivity.
+  const undatedRaw = opt(r.undated_conversions, obj);
+  if (undatedRaw === undefined) return null;
+  let undatedConversions: PopulationBlock["undatedConversions"] = null;
+  if (undatedRaw) {
+    const count = int(undatedRaw.count, 1_000_000);
+    const ids = opt(undatedRaw.ids, v => idList(v, 4096));
+    const basis = str(undatedRaw.basis, 2048);
+    const primaryTreatment = str(undatedRaw.primary_treatment, 2048);
+    const sensitivity = str(undatedRaw.sensitivity, 512);
+    if (count === null || count < 1 || ids === undefined || !basis || !primaryTreatment || !sensitivity
+      || !ids || ids.length !== count) return null;
+    undatedConversions = { count, ids, basis, primaryTreatment, sensitivity };
   }
   const mrnaRaw = opt(r.mrna, obj);
   if (mrnaRaw === undefined) return null;
@@ -627,7 +1031,7 @@ function populationBlock(x: unknown): PopulationBlock | null {
     if (!file || !sha) return null;
     review = { file, sha256: sha };
   }
-  return { primary, excludedCohort, mrna, review };
+  return { primary, excludedCohort, undatedConversions, mrna, review };
 }
 
 function sensitivityBlock(x: unknown): SensitivityBlock | null {
@@ -681,7 +1085,25 @@ function sensitivityBlock(x: unknown): SensitivityBlock | null {
     }
     superseded = { reason, sameEngineSeedPricesCosts: sameEngine, rows, contrasts };
   }
-  return { label, backfillReplaysAdmittedAfterAvailability: variant, supersededAsRun: superseded };
+  // 2026-11-11 additions — optional individually, fail-closed once present.
+  const undatedVariant = opt(r.excluding_undated_conversions, sensitivityVariantEntry);
+  if (undatedVariant === undefined) return null;
+  const marksRaw = opt(r.missing_marks_total_loss_stress, obj);
+  if (marksRaw === undefined) return null;
+  let marksVariant: SensitivityBlock["missingMarksTotalLossStress"] = null;
+  if (marksRaw) {
+    const definition = str(marksRaw.definition, 2048);
+    const gapped = opt(marksRaw.gapped_positions, v => gappedPositionList(v, 64));
+    if (!definition || gapped === undefined) return null;
+    const row = sensitivityRow(marksRaw);
+    if (!row) return null;
+    marksVariant = { definition, gappedPositions: gapped ?? [], ...row };
+  }
+  const offIndex = opt(r.off_index_picks, offIndexBlock);
+  if (offIndex === undefined) return null;
+  return { label, backfillReplaysAdmittedAfterAvailability: variant, supersededAsRun: superseded,
+    excludingUndatedConversions: undatedVariant ?? null, missingMarksTotalLossStress: marksVariant,
+    offIndexPicks: offIndex ?? null };
 }
 
 
@@ -709,6 +1131,35 @@ export function decodeBetaEvaluation(raw: unknown): BetaEvaluation | null {
     path: str(plansRaw.path, 512), sha256: hex(plansRaw.sha256, 64), asof: isoDate(plansRaw.asof),
     sourceAsof: isoDate(plansRaw.source_asof), computedAt: str(plansRaw.computed_at, 64),
   };
+  // D6-era provenance: which store each input was read from.
+  const plansReadFrom = opt(plansRaw.read_from, v => str(v, 128));
+  const pitReadFrom = opt(pitRaw.read_from, v => str(v, 128));
+  const pinVerified = opt(pricesRaw.pin_verified, bool);
+  const pinVerification = opt(pricesRaw.pin_verification, v => str(v, 2048));
+  const pinBlobs = opt(pricesRaw.read_from_pin_blobs, v => {
+    if (!Array.isArray(v) || v.length > 64) return null;
+    const out: string[] = [];
+    for (const item of v) {
+      const s = str(item, 64);
+      if (!s) return null;
+      out.push(s);
+    }
+    return out;
+  });
+  const pinnedInputs = opt(pricesRaw.pinned_input_sha256, raw => {
+    const p = obj(raw);
+    if (!p) return null;
+    const out: { key: string; sha256: string }[] = [];
+    for (const [key, value] of Object.entries(p)) {
+      if (!SLUG.test(key)) return null;
+      const sha = hex(value, 64);
+      if (!sha) return null;
+      out.push({ key, sha256: sha });
+    }
+    return out;
+  });
+  if (plansReadFrom === undefined || pitReadFrom === undefined || pinVerified === undefined
+    || pinVerification === undefined || pinBlobs === undefined || pinnedInputs === undefined) return null;
   const resolution = {
     path: str(resRaw.path, 512), sha256: hex(resRaw.sha256, 64), rows: int(resRaw.rows, 10_000_000),
     malformedLinesSkipped: int(resRaw.malformed_lines_skipped, 1_000_000), maxAsof: isoDate(resRaw.max_asof),
@@ -814,11 +1265,18 @@ export function decodeBetaEvaluation(raw: unknown): BetaEvaluation | null {
     horizons.push(h);
   }
   if (horizons.length < 1) return null;
+  // D7 yardstick block rides beside the frozen study (optional, fail-closed).
+  const memberBenchmarkDecoded = opt(eventRaw.member_benchmark, memberBenchmarkBlock);
+  if (memberBenchmarkDecoded === undefined) return null;
 
   // D5 blocks — optional; present-but-invalid fails the whole decode.
   const populationDecoded = opt(r.population, populationBlock);
   const sensitivityDecoded = opt(r.sensitivity, sensitivityBlock);
   if (populationDecoded === undefined || sensitivityDecoded === undefined) return null;
+  // 2026-11-11 correction + audit — optional the same way.
+  const correctionDecoded = opt(r.correction, correctionBlock);
+  const auditDecoded = opt(r.independent_audit, independentAuditBlock);
+  if (correctionDecoded === undefined || auditDecoded === undefined) return null;
 
   const attributionRaw = obj(r.attribution);
   if (!attributionRaw) return null;
@@ -913,6 +1371,21 @@ export function decodeBetaEvaluation(raw: unknown): BetaEvaluation | null {
   const dropPositions = int(dropRaw.positions, 10_000_000);
   const dropExcluded = excludedMap(dropRaw.excluded);
   if (dropPositions === null || !dropExcluded) return null;
+  // D6-era held-path coverage + entry/exit split — optional, fail-closed.
+  const pricedBasis = opt(coverageRaw.priced_share_basis, v => str(v, 2048));
+  const heldComplete = opt(coverageRaw.held_path_complete_positions, v => int(v, 1_000_000));
+  const heldGaps = opt(coverageRaw.held_path_gaps, v => int(v, 1_000_000));
+  const heldGapPositions = opt(coverageRaw.held_path_gap_positions, v => gappedPositionList(v, 64));
+  const splitRawCov = opt(coverageRaw.resolved_at_or_before_split, raw => {
+    const s = obj(raw);
+    if (!s) return null;
+    const total = int(s.total, 1_000_000), finalClose = int(s.entered_at_final_close, 1_000_000);
+    const beforeFollower = int(s.resolved_before_follower_fill, 1_000_000);
+    if (total === null || finalClose === null || beforeFollower === null) return null;
+    return { total, enteredAtFinalClose: finalClose, resolvedBeforeFollowerFill: beforeFollower };
+  });
+  if (pricedBasis === undefined || heldComplete === undefined || heldGaps === undefined
+    || heldGapPositions === undefined || splitRawCov === undefined) return null;
 
   const claimsRaw = obj(r.claims);
   if (!claimsRaw) return null;
@@ -945,21 +1418,34 @@ export function decodeBetaEvaluation(raw: unknown): BetaEvaluation | null {
     schema: PROPHET_BETA_EVALUATION_SCHEMA, protocolRef,
     protocol: { id: protocolId, headerSha256: headerSha, headerCommit: headerCommit, frozenOn: frozenOn },
     code: { commit, harnessDirty: false, module: codeModule, runner, bootstrap: { b, seed, meanBlock, sensitivityBlock: sensBlock } },
-    dataClocks: { macroDataCommit: macroCommit, plansIndex: plans as BetaEvaluation["dataClocks"]["plansIndex"], resolutionLog: resolution as BetaEvaluation["dataClocks"]["resolutionLog"], pitMembership: pit as BetaEvaluation["dataClocks"]["pitMembership"], prices: prices as BetaEvaluation["dataClocks"]["prices"] },
+    dataClocks: {
+      macroDataCommit: macroCommit,
+      plansIndex: { ...(plans as BetaEvaluation["dataClocks"]["plansIndex"]), readFrom: plansReadFrom ?? null },
+      resolutionLog: resolution as BetaEvaluation["dataClocks"]["resolutionLog"],
+      pitMembership: { ...(pit as BetaEvaluation["dataClocks"]["pitMembership"]), readFrom: pitReadFrom ?? null },
+      prices: { ...(prices as BetaEvaluation["dataClocks"]["prices"]),
+        pinVerified: pinVerified ?? null, pinVerification: pinVerification ?? null,
+        readFromPinBlobs: pinBlobs ?? null, pinnedInputSha256: pinnedInputs ?? null },
+    },
     basis: basis as BetaEvaluation["basis"], window: window as BetaEvaluation["window"],
     release: { levelsDefined, overallLevel, l0SourceChecks: l0Checks as ReleaseCriterion[], l0Met,
       globalMinimumForL1: globalMin as ReleaseCriterion[], globalMinimumMet, jobs, capRule, l2L3Note },
     headline, limitations, comparators,
     contrasts: { family, rows: contrastRows as ContrastRow[] },
-    eventStudy: { ruler, population, plans: eventPlans, horizons, excludedBackfilledPlans: excludedBackfilled ?? null },
+    eventStudy: { ruler, population, plans: eventPlans, horizons, excludedBackfilledPlans: excludedBackfilled ?? null,
+      memberBenchmark: memberBenchmarkDecoded ?? null },
     attribution: books, postHocDiagnostics: { label: postLabel, books: postBooks },
     population: populationDecoded ?? null, sensitivity: sensitivityDecoded ?? null,
+    correction: correctionDecoded ?? null, independentAudit: auditDecoded ?? null,
     coverage: { eraPlans, evaluatedPositions, excluded, entryShiftedToPublication: entryShifted,
       exitBasis: exitBasis as BetaEvaluation["coverage"]["exitBasis"], classifiedShare, pricedShare,
       sector: sector as BetaEvaluation["coverage"]["sector"], c7C6aSplit: split as BetaEvaluation["coverage"]["c7C6aSplit"],
       memberUniverseByRebalance: universe, memberUniverseMissingPriceFiles: missingFiles,
       c4SectorWeights, issuerExcludedPeers: { status: peersStatus, reason: peersReason },
-      dropCorrectedSensitivity: { positions: dropPositions, excluded: dropExcluded } },
+      dropCorrectedSensitivity: { positions: dropPositions, excluded: dropExcluded },
+      pricedShareBasis: pricedBasis ?? null, heldPathCompletePositions: heldComplete ?? null,
+      heldPathGaps: heldGaps ?? null, heldPathGapPositions: heldGapPositions ?? null,
+      resolvedAtOrBeforeSplit: splitRawCov ?? null },
     claims, deviations,
     mayRank: false, mayGate: false, maySize: false, mayTrade: false, mayEscalate: false,
   };
@@ -1001,6 +1487,41 @@ export function perPlanHorizonMarks(horizons: readonly EventStudyHorizon[]): Per
       direction: h.excessVsSpy.mean < 0 ? "behind" : "ahead",
       legMean: leg !== null && !intervalIncludesZero(leg.ci95DateCluster) ? leg.mean : null,
     });
+  }
+  return marks.sort((a, b) => Number(a.horizon) - Number(b.horizon));
+}
+
+/** One horizon of the "why the picks trailed" panel: the two decomposition
+ * legs against the member yardstick, the frozen stock-vs-sector measure the
+ * placebo is drawn for, and the placebo distribution itself. */
+export type MemberYardstickMark = {
+  horizon: string; n: number;
+  /** equal-weight member basket − sector ETF: the yardstick's own gap. */
+  yardstick: EventStudyMetric;
+  /** stock − equal-weight member basket: the picks against the fairer ruler. */
+  picks: EventStudyMetric;
+  /** stock − sector ETF (the frozen event-study leg, same horizon). */
+  frozen: EventStudyMetric;
+  placebo: MemberBenchmarkPlacebo;
+};
+
+/** The horizons the diagnosis panel renders: matured member-benchmark
+ * horizons whose frozen excess_vs_spy mark the verdict itself cites (the same
+ * qualification `perPlanHorizonMarks` applies), so the "why" panel and the
+ * verdict sentence always speak about the same measurements — today 21 and 42
+ * sessions. No qualifying horizon, no panel. */
+export function memberYardstickMarks(
+  horizons: readonly MemberBenchmarkHorizon[],
+  cited: readonly PerPlanHorizonMark[],
+): MemberYardstickMark[] {
+  const citedSet = new Set(cited.map(m => m.horizon));
+  const marks: MemberYardstickMark[] = [];
+  for (const h of horizons) {
+    if (h.status !== "matured_subset" || !citedSet.has(h.horizon)) continue;
+    if (!h.stockMinusEqualWeightMembers || !h.equalWeightMemberMinusSectorEtf
+      || !h.stockMinusSectorEtf || !h.placebo) continue;
+    marks.push({ horizon: h.horizon, n: h.n, yardstick: h.equalWeightMemberMinusSectorEtf,
+      picks: h.stockMinusEqualWeightMembers, frozen: h.stockMinusSectorEtf, placebo: h.placebo });
   }
   return marks.sort((a, b) => Number(a.horizon) - Number(b.horizon));
 }

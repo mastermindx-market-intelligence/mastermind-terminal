@@ -185,8 +185,12 @@ describe("identifier humanization — reader language, never raw ids", () => {
     expect(humanizeEngineText("13 receipted replays admitted")).toBe("13 receipted replays admitted");
     expect(humanizeEngineText("C6A versus C6"))
       .toBe("the inside-leading-sectors Prophet book versus the Prophet book");
+    // Short level ids expand bare — engine prose already carries the level's
+    // meaning ("L0 descriptive stands" must not double the gloss).
     expect(humanizeEngineText("sample below the predeclared L1 minimum"))
-      .toBe("sample below the predeclared level 1 (accepted historical) minimum");
+      .toBe("sample below the predeclared level 1 minimum");
+    expect(humanizeEngineText("L0 descriptive stands: window below minimum"))
+      .toBe("level 0 descriptive stands: window below minimum");
   });
 
   it("ZH replacement works on reading copy without injecting English into it", () => {

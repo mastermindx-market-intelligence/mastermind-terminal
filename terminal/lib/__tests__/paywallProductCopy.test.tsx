@@ -59,12 +59,19 @@ describe("the entitlement gate names the product it gates (D10)", () => {
   ])("%s pitches Prophet, not the Options desk", async (_route, page) => {
     const text = await renderRoute(page);
     expect(text).toContain("Unlock the Prophet desk");
+    // D12/E5: one body sentence — what Prophet is, which plan it needs.
     expect(text).toContain("managed-pick research desk");
-    expect(text).toContain("nightly model plans from the factor engine");
+    expect(text).toContain("needs an Essential or Pro plan");
+    // D12/E5: the bullets describe only what a member sees today — the
+    // #1460 sector journey replaced the Options Alpha research lane, and
+    // the geometry bullet is plain words (entry/stop/targets).
+    expect(text).toContain("entry, stop and target levels");
+    expect(text).toContain("Sector journey");
     // The other product's name, pitch and feature bullets must be absent.
     expect(text).not.toContain("Unlock the Options desk");
     expect(text).not.toContain("Option chains & greeks");
     expect(text).not.toContain("Gamma exposure (GEX)");
+    expect(text).not.toContain("Options Alpha");
     // The plan CTA the entitlement actually sells stays on the card.
     expect(text).toContain("Start 7-day free trial");
     expect(text).toContain("Essential · Pro");
@@ -86,7 +93,10 @@ describe("the entitlement gate names the product it gates (D10)", () => {
     const text = await renderRoute(page);
     expect(text).toContain("解锁 Prophet 预言台");
     expect(text).toContain("主动选股研究台");
+    expect(text).toContain("需订阅 Essential 或 Pro 计划");
+    expect(text).toContain("行业旅程");
     expect(text).not.toContain("解锁期权终端");
     expect(text).not.toContain("期权链与希腊字母");
+    expect(text).not.toContain("期权阿尔法");
   });
 });

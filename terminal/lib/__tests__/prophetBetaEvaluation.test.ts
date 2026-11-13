@@ -4,12 +4,12 @@ import path from "node:path";
 import {
   BENCHMARK_COMPARATOR_ID, INCUMBENT_COMPARATOR_ID, COMPARATOR_ORDER,
   decodeBetaEvaluation, EVALUATION_FROM_MAX, evaluationLevelRank, findComparator,
-  intervalIncludesZero, orderedComparators, perPlanHorizonMarks, safeEvaluationFromHref,
+  intervalIncludesZero, memberYardstickMarks, orderedComparators, perPlanHorizonMarks, safeEvaluationFromHref,
   type EventStudyHorizon, type PerPlanHorizonMark,
 } from "@/lib/prophetBetaEvaluation";
 import { buildPerPlanVerdictText, perPlanFigure } from "@/lib/prophetEvaluationStrings";
 
-/** The REAL engine artifact, byte-identical to the committed fixture. */
+/** The REAL engine artifact, identical except for the redacted local report location. */
 const realArtifact = (): unknown =>
   JSON.parse(readFileSync(path.join(process.cwd(), "public/data/prophet_beta_evaluation_fixture.json"), "utf8"));
 
@@ -150,6 +150,223 @@ describe("the D5 correction: population and sensitivity blocks", () => {
   });
 });
 
+describe("the 2026-11-11 correction blocks — diagnosis, correction statement, audit", () => {
+  // Same law as D5: the committed fixture IS the corrected artifact; every
+  // expectation reads from the wire, and the PRE-correction shape (each block
+  // absent → null, page keeps working) is proven below.
+  it("decodes the correction statement: superseded figures beside corrected ones", () => {
+    const raw = wireAt(wire(), "correction");
+    const decoded = decodeBetaEvaluation(wire())!.correction!;
+    expect(decoded.date).toBe(raw.date);
+    expect(decoded.supersedes).toBe(raw.supersedes);
+    expect(decoded.whatChanged).toBe(raw.what_changed);
+    expect(decoded.label).toBe(raw.label);
+    const figuresRaw = wireAt(raw, "figures_superseded");
+    const rowRaw = wireAt(figuresRaw, INCUMBENT_COMPARATOR_ID);
+    const row = decoded.figuresSuperseded!.rows.find(r => r.comparatorId === INCUMBENT_COMPARATOR_ID)!.row;
+    expect(row.positions).toBe(rowRaw.positions);
+    expect(row.totalNetReturn).toBe(rowRaw.total_net_return);
+    expect(row.excessTotalVsSpy).toBe(rowRaw.excess_total_vs_spy);
+    expect(row.excessTotalCi95).toEqual(rowRaw.excess_total_ci95);
+    expect(row.costsPaidTotal).toBe(rowRaw.costs_paid_total);
+    expect(decoded.figuresSuperseded!.verdictUnchanged).toBe(figuresRaw.verdict_unchanged);
+    expect(decoded.figuresSuperseded!.verdictReason).toBe(figuresRaw.verdict_reason);
+    // The corrected figure the verdict renders sits on the comparator row.
+    const c6 = findComparator(decodeBetaEvaluation(wire())!.comparators, INCUMBENT_COMPARATOR_ID)!;
+    expect(c6.totalNetReturn).not.toBe(row.totalNetReturn); // corrected ≠ superseded
+  });
+
+  it("decodes the independent audit summary: runs, agreements, changes, adjudication", () => {
+    const raw = wireAt(wire(), "independent_audit");
+    const decoded = decodeBetaEvaluation(wire())!.independentAudit!;
+    expect(decoded.label).toBe(raw.label);
+    expect(decoded.runs.map(r => r.name))
+      .toEqual((raw.runs as Array<Record<string, unknown>>).map(r => r.name));
+    expect(decoded.runs[0].report).toBe((raw.runs as Array<Record<string, unknown>>)[0].report);
+    expect(decoded.whatAgreed).toEqual(raw.what_agreed);
+    expect(decoded.whatChanged).toEqual(raw.what_changed);
+    expect(decoded.addedSensitivities).toEqual(raw.added_sensitivities);
+    expect(decoded.adjudication).toBe(raw.adjudication);
+  });
+
+  it("decodes the member benchmark: three legs and the placebo at each matured horizon", () => {
+    const mbRaw = wireAt(wireAt(wire(), "event_study"), "member_benchmark");
+    const decoded = decodeBetaEvaluation(wire())!.eventStudy.memberBenchmark!;
+    expect(decoded.label).toBe(mbRaw.label);
+    expect(decoded.why).toBe(mbRaw.why);
+    expect(decoded.decompositionIdentity).toBe(mbRaw.decomposition_identity);
+    const h21Raw = wireAt(mbRaw.horizons as Record<string, unknown>, "21");
+    const h21 = decoded.horizons.find(h => h.horizon === "21")!;
+    expect(h21.status).toBe(h21Raw.status);
+    expect(h21.n).toBe(h21Raw.n);
+    expect(h21.stockMinusEqualWeightMembers!.mean).toBe(wireAt(h21Raw, "stock_minus_equal_weight_members").mean);
+    expect(h21.equalWeightMemberMinusSectorEtf!.mean).toBe(wireAt(h21Raw, "equal_weight_member_minus_sector_etf").mean);
+    expect(h21.stockMinusSectorEtf!.mean).toBe(wireAt(h21Raw, "stock_minus_sector_etf").mean);
+    const placeboRaw = wireAt(h21Raw, "placebo_random_same_sector");
+    expect(h21.placebo!.draws).toBe(placeboRaw.draws);
+    expect(h21.placebo!.lo).toBe(placeboRaw.p2_5);
+    expect(h21.placebo!.hi).toBe(placeboRaw.p97_5);
+    expect(h21.placebo!.observedOutsidePlaceboRange).toBe(placeboRaw.observed_outside_placebo_range);
+  });
+
+  it("decodes the off-index sensitivity: counts, per-horizon split, engine label", () => {
+    const raw = wireAt(wireAt(wire(), "sensitivity"), "off_index_picks");
+    const decoded = decodeBetaEvaluation(wire())!.sensitivity!.offIndexPicks!;
+    expect(decoded.label).toBe(raw.label);
+    expect(decoded.definition).toBe(raw.definition);
+    expect(decoded.publishedPlansOffIndex).toBe(raw.published_plans_off_index);
+    expect(decoded.publishedPlansOffIndex).toBeLessThanOrEqual(decoded.publishedPlansTotal);
+    expect(decoded.enteredPositionsOffIndex).toBeLessThanOrEqual(decoded.publishedPlansOffIndex);
+    const h21Raw = wireAt(raw.horizons as Record<string, unknown>, "21");
+    const h21 = decoded.horizons.find(h => h.horizon === "21")!;
+    expect(h21.allPlans.mean).toBe(wireAt(h21Raw, "all_plans").mean);
+    expect(h21.offIndexPicks.mean).toBe(wireAt(h21Raw, "off_index_picks").mean);
+    expect(h21.sp1500MemberPicks.mean).toBe(wireAt(h21Raw, "sp1500_member_picks").mean);
+    expect(h21.contributionToMeanGap).toBe(h21Raw.contribution_to_mean_gap);
+    expect(h21.offIndexPicks.n).toBeLessThanOrEqual(h21.allPlans.n);
+  });
+
+  it("decodes the undated-conversions variant, the total-loss stress and the RUN-D top-3 check", () => {
+    const raw = wire();
+    const decoded = decodeBetaEvaluation(raw)!;
+    const undatedRaw = wireAt(wireAt(raw, "sensitivity"), "excluding_undated_conversions");
+    const undated = decoded.sensitivity!.excludingUndatedConversions!;
+    expect(undated.positions).toBe(undatedRaw.positions);
+    expect(undated.excessTotalVsSpy).toBe(undatedRaw.excess_total_vs_spy);
+    expect(undated.excessTotalCi95).toEqual(undatedRaw.excess_total_ci95);
+    // The population block names the same cohort the variant removes.
+    expect(decoded.population!.undatedConversions!.count).toBe(wireAt(wireAt(raw, "population"), "undated_conversions").count);
+
+    const stressRaw = wireAt(wireAt(raw, "sensitivity"), "missing_marks_total_loss_stress");
+    const stress = decoded.sensitivity!.missingMarksTotalLossStress!;
+    expect(stress.positions).toBe(stressRaw.positions);
+    expect(stress.gappedPositions.map(g => g.planId))
+      .toEqual((stressRaw.gapped_positions as Array<Record<string, unknown>>).map(g => g.plan_id));
+    expect(stress.gappedPositions.every(g => g.missingSessions >= 1)).toBe(true);
+
+    const postRaw = wireAt(wireAt(raw, "post_hoc_diagnostics"), INCUMBENT_COMPARATOR_ID);
+    const top3 = decoded.postHocDiagnostics.books
+      .find(b => b.bookId === INCUMBENT_COMPARATOR_ID)!.book.withoutTop3Contributors!;
+    const top3Raw = wireAt(postRaw, "without_top3_contributors");
+    expect(top3.droppedAssets).toEqual(top3Raw.dropped_assets);
+    expect(top3.excessTotalVsSpy).toBe(top3Raw.excess_total_vs_spy);
+    expect(top3.excessTotalCi95).toEqual(top3Raw.excess_total_ci95);
+  });
+
+  it("decodes the held-path coverage fields and the data-pin clocks", () => {
+    const raw = wire();
+    const decoded = decodeBetaEvaluation(raw)!;
+    const covRaw = wireAt(raw, "coverage");
+    expect(decoded.coverage.heldPathCompletePositions).toBe(covRaw.held_path_complete_positions);
+    expect(decoded.coverage.heldPathGaps).toBe(covRaw.held_path_gaps);
+    expect(decoded.coverage.heldPathGapPositions!.map(g => g.planId))
+      .toEqual((covRaw.held_path_gap_positions as Array<Record<string, unknown>>).map(g => g.plan_id));
+    const splitRaw = wireAt(covRaw, "resolved_at_or_before_split");
+    expect(decoded.coverage.resolvedAtOrBeforeSplit).toEqual({
+      total: splitRaw.total,
+      enteredAtFinalClose: splitRaw.entered_at_final_close,
+      resolvedBeforeFollowerFill: splitRaw.resolved_before_follower_fill,
+    });
+    // The coverage gaps and the stress variant's charged positions name the
+    // same plans — the artifact's own cross-reference.
+    const stress = decoded.sensitivity!.missingMarksTotalLossStress!;
+    expect(decoded.coverage.heldPathGapPositions!.map(g => g.planId).sort())
+      .toEqual(stress.gappedPositions.map(g => g.planId).sort());
+
+    const clocksRaw = wireAt(raw, "data_clocks");
+    const pricesRaw = wireAt(clocksRaw, "prices");
+    expect(decoded.dataClocks.prices.pinVerified).toBe(pricesRaw.pin_verified);
+    expect(decoded.dataClocks.prices.pinVerification).toBe(pricesRaw.pin_verification);
+    expect(decoded.dataClocks.prices.pinnedInputSha256)
+      .toEqual(Object.entries(pricesRaw.pinned_input_sha256 as Record<string, string>)
+        .map(([key, sha256]) => ({ key, sha256 })));
+    expect(decoded.dataClocks.plansIndex.readFrom).toBe(wireAt(clocksRaw, "plans_index").read_from);
+    expect(decoded.dataClocks.pitMembership.readFrom).toBe(wireAt(clocksRaw, "pit_membership").read_from);
+  });
+
+  it("still decodes with every 2026-11-11 block absent (the live v1 shape)", () => {
+    const decoded = decodeBetaEvaluation(mutate(draft => {
+      delete draft.correction;
+      delete draft.independent_audit;
+      delete (draft.event_study as Record<string, unknown>).member_benchmark;
+      const sensitivity = draft.sensitivity as Record<string, unknown>;
+      delete sensitivity.excluding_undated_conversions;
+      delete sensitivity.missing_marks_total_loss_stress;
+      delete sensitivity.off_index_picks;
+      delete (draft.population as Record<string, unknown>).undated_conversions;
+      const coverage = draft.coverage as Record<string, unknown>;
+      delete coverage.held_path_gap_positions;
+      delete coverage.held_path_complete_positions;
+      delete coverage.held_path_gaps;
+      delete coverage.resolved_at_or_before_split;
+      delete coverage.priced_share_basis;
+      const prices = (draft.data_clocks as Record<string, unknown>).prices as Record<string, unknown>;
+      delete prices.pin_verified;
+      delete prices.pin_verification;
+      delete prices.pinned_input_sha256;
+      delete (draft.data_clocks as Record<string, unknown>).plans_index_read_from;
+      delete ((draft.data_clocks as Record<string, unknown>).plans_index as Record<string, unknown>).read_from;
+      delete ((draft.data_clocks as Record<string, unknown>).pit_membership as Record<string, unknown>).read_from;
+      const post = draft.post_hoc_diagnostics as Record<string, unknown>;
+      delete (post[INCUMBENT_COMPARATOR_ID] as Record<string, unknown>).without_top3_contributors;
+      const cohort = (draft.population as Record<string, unknown>).excluded_cohort as Record<string, unknown>;
+      delete cohort.census_basis;
+      delete cohort.overall_minted_outage_backfill;
+      delete (draft.population as Record<string, unknown>).mrna;
+    }));
+    expect(decoded).not.toBeNull();
+    expect(decoded!.correction).toBeNull();
+    expect(decoded!.independentAudit).toBeNull();
+    expect(decoded!.eventStudy.memberBenchmark).toBeNull();
+    expect(decoded!.sensitivity!.excludingUndatedConversions).toBeNull();
+    expect(decoded!.sensitivity!.missingMarksTotalLossStress).toBeNull();
+    expect(decoded!.sensitivity!.offIndexPicks).toBeNull();
+    expect(decoded!.population!.undatedConversions).toBeNull();
+    expect(decoded!.population!.mrna).toBeNull();
+    expect(decoded!.population!.excludedCohort!.censusBasis).toBeNull();
+    expect(decoded!.coverage.heldPathGapPositions).toBeNull();
+    expect(decoded!.coverage.heldPathCompletePositions).toBeNull();
+    expect(decoded!.coverage.resolvedAtOrBeforeSplit).toBeNull();
+    expect(decoded!.dataClocks.prices.pinVerified).toBeNull();
+    expect(decoded!.dataClocks.plansIndex.readFrom).toBeNull();
+    expect(decoded!.postHocDiagnostics.books
+      .find(b => b.bookId === INCUMBENT_COMPARATOR_ID)!.book.withoutTop3Contributors).toBeNull();
+  });
+});
+
+describe("memberYardstickMarks — the panel cites only what the verdict cites", () => {
+  it("on the committed fixture: exactly 21 and 42, identity yardstick + picks = frozen", () => {
+    const decoded = decodeBetaEvaluation(wire())!;
+    const marks = memberYardstickMarks(
+      decoded.eventStudy.memberBenchmark!.horizons,
+      perPlanHorizonMarks(decoded.eventStudy.horizons),
+    );
+    expect(marks.map(m => m.horizon)).toEqual(["21", "42"]);
+    // The decomposition identity is the artifact's own, per plan, exact — the
+    // horizon means inherit it.
+    for (const m of marks) {
+      expect(m.yardstick.mean + m.picks.mean).toBeCloseTo(m.frozen.mean, 8);
+    }
+    // Both matured horizons the verdict cites landed outside the placebo band.
+    expect(marks.every(m => m.placebo.observedOutsidePlaceboRange)).toBe(true);
+  });
+
+  it("no cited horizon, no marks — an empty cited set renders no panel", () => {
+    const decoded = decodeBetaEvaluation(wire())!;
+    expect(memberYardstickMarks(decoded.eventStudy.memberBenchmark!.horizons, [])).toHaveLength(0);
+  });
+
+  it("an unmatured member-benchmark horizon never qualifies, even when cited", () => {
+    const decoded = decodeBetaEvaluation(wire())!;
+    const cited63 = perPlanHorizonMarks(decoded.eventStudy.horizons).slice();
+    const marks = memberYardstickMarks(
+      decoded.eventStudy.memberBenchmark!.horizons,
+      [...cited63, { horizon: "63", n: 1, mean: -0.01, direction: "behind", legMean: null }],
+    );
+    expect(marks.map(m => m.horizon)).toEqual(["21", "42"]);
+  });
+});
+
 describe("the closed decoder — malformed variants fail closed", () => {
   it.each([
     ["wrong schema", (d: Record<string, unknown>) => { d.schema = "prophet.beta_evaluation/v2"; }],
@@ -239,6 +456,41 @@ describe("the closed decoder — malformed variants fail closed", () => {
       const sup = ((d.sensitivity as Record<string, unknown>).superseded_as_run) as Record<string, unknown>;
       const contrasts = sup.contrasts as Record<string, Record<string, unknown>>;
       contrasts.K1_C6_minus_C1.p_one_sided = 1.5;
+    }],
+    // The 2026-11-11 correction blocks — same fail-closed law per block.
+    ["correction block that claims correction=false", (d: Record<string, unknown>) => {
+      (d.correction as Record<string, unknown>).correction = false;
+    }],
+    ["correction superseded row missing its costs figure", (d: Record<string, unknown>) => {
+      const figures = (d.correction as Record<string, unknown>).figures_superseded as Record<string, unknown>;
+      delete (figures[INCUMBENT_COMPARATOR_ID] as Record<string, unknown>).costs_paid_total;
+    }],
+    ["correction with an impossible date", (d: Record<string, unknown>) => {
+      (d.correction as Record<string, unknown>).date = "2026-11-32";
+    }],
+    ["undated-conversion count disagreeing with its id list", (d: Record<string, unknown>) => {
+      const u = (d.population as Record<string, unknown>).undated_conversions as Record<string, unknown>;
+      u.count = (u.ids as unknown[]).length + 1;
+    }],
+    ["member-benchmark matured horizon without its placebo", (d: Record<string, unknown>) => {
+      const mb = (d.event_study as Record<string, unknown>).member_benchmark as Record<string, unknown>;
+      delete ((mb.horizons as Record<string, unknown>)["21"] as Record<string, unknown>).placebo_random_same_sector;
+    }],
+    ["placebo percentile band inverted (p2_5 above p97_5)", (d: Record<string, unknown>) => {
+      const mb = (d.event_study as Record<string, unknown>).member_benchmark as Record<string, unknown>;
+      const placebo = ((mb.horizons as Record<string, unknown>)["21"] as Record<string, unknown>)
+        .placebo_random_same_sector as Record<string, unknown>;
+      const lo = placebo.p2_5 as number;
+      placebo.p2_5 = placebo.p97_5;
+      placebo.p97_5 = lo;
+    }],
+    ["off-index plans exceeding the published total", (d: Record<string, unknown>) => {
+      const oi = (d.sensitivity as Record<string, unknown>).off_index_picks as Record<string, unknown>;
+      oi.published_plans_off_index = (oi.published_plans_total as number) + 1;
+    }],
+    ["gapped position with zero missing sessions", (d: Record<string, unknown>) => {
+      const cov = (d.coverage as Record<string, unknown>);
+      ((cov.held_path_gap_positions as Array<Record<string, unknown>>)[0]).missing_sessions = 0;
     }],
   ])("rejects %s", (_name, edit) => {
     expect(decodeBetaEvaluation(mutate(edit))).toBeNull();
