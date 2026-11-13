@@ -568,3 +568,12 @@ describe("BriefSharingReview", () => {
   });
 
 });
+
+
+it("an ambiguous explicit Inbox request locks the same delivery/team before any further share", async()=>{
+ await mount();await chooseTeam(TEAM);await click("Review sharing");await click("Review later in Inbox");
+ expect(postCalls()).toHaveLength(1);expect(host.querySelector("[data-brief-sharing-send]")).toBeNull();
+ expect((host.querySelector("select") as HTMLSelectElement).disabled).toBe(true);
+ await chooseTeam(OTHER);expect((host.querySelector("select") as HTMLSelectElement).value).toBe(TEAM);
+ expect(postCalls()).toHaveLength(1);expect(host.textContent).toContain("without sending again");
+});

@@ -1,0 +1,48 @@
+{
+  "review": {
+    "grant": null,
+    "schema": "mastermind.brief_delivery_sharing.v1",
+    "audience": {
+      "name": "Research",
+      "team_id": "20000000-0000-4000-8000-000000000001",
+      "membership_policy": "DYNAMIC_TEAM_MEMBERSHIP"
+    },
+    "delivery": {
+      "body": {
+        "target": {
+          "id": "30000000-0000-4000-8000-000000000001",
+          "kind": "watchlist",
+          "name": "Private target",
+          "version_or_asof": "2026-11-04"
+        },
+        "artifact": {
+          "asof": "2026-11-04",
+          "name": "Weekly research brief"
+        },
+        "monitors": [],
+        "market_read": [
+          {
+            "asof": "2026-11-04",
+            "section": "Market",
+            "sentence_en": "An authored sentence.",
+            "sentence_zh": "原有句子。"
+          }
+        ]
+      },
+      "slot_asof": "2026-11-04",
+      "delivery_id": "40000000-0000-4000-8000-000000000001",
+      "artifact_asof": "2026-11-04T00:00:00.000000Z",
+      "content_sha256": "6e26db048625db7c85c285ad925e6c9e0d8e7414a423949db58493f43e462af6"
+    },
+    "eligibility": {
+      "can_share": true
+    },
+    "expected_effect_sha256": "5979ba8aea107084867ffdeb2c6c81d2368c727e13b9f96eac91ca4cb1122963"
+  },
+  "schema": "mastermind.brief_sharing_request.v1",
+  "revision": 1,
+  "issued_at": "2026-11-04T13:09:54.044556Z",
+  "disposition": "OPEN",
+  "request_ref": "60000000-0000-4000-8000-000000000001",
+  "resolved_at": null
+}
