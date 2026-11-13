@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { concentration, groupRows, readableOwnerEnvelope, sectorRows, themeEntryReady, themeRows, themeStaleLegs, SECTOR_FEEDS } from "../sectorIntelligence";
+import { concentration, groupRows, readableOwnerEnvelope, sectorRows, themeEntryReady, themeRows, themeStaleLegs, SECTOR_FEEDS, FINVIZ_FEEDS, PROXY_ONLY_SOURCES, feedSourceStamp } from "../sectorIntelligence";
 import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
 import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
 import { basket, basketPulse, mixedPulse, observedComparison } from "./sectorIntradayFixture";
@@ -120,5 +120,57 @@ describe("catalyst intraday owner envelope", () => {
   it("does not let an intraday comparison object smuggle itself into another feed's envelope", () => {
     expect(readableOwnerEnvelope("sector", basketPulse([basket("ai_infra", observedComparison())]))).toBe(false);
     expect(readableOwnerEnvelope("intraday", themeFeed)).toBe(false);
+  });
+});
+
+describe("rotation_read proxy-only source (COO rulings 57/65)", () => {
+  // Labels and counts only; made-up house group ids, no vendor name or number.
+  const rotationRead = {
+    schema: "si.rotation_read/v1", as_of: "2026-11-06", built_at: "2026-11-07T08:00:00Z",
+    status: "ok", basis: "current_roster",
+    copy: ["Breadth change inside the group on today's roster. Description only; not a forecast."],
+    groups: [
+      { group_id: "us_sector_alpha", family: "sector", name: "Alpha", as_of: "2026-11-06", status: "ok",
+        n_members: 5, n_counted: 4, pct_above_200: 50, chg_13w: 2, chg_26w: 1, direction: "improving", run_weeks: 3, rank_13w: 1, n_ranked: 2 },
+      { group_id: "us_theme_beta", family: "theme", name: "Beta", as_of: "2026-11-06", status: "ok",
+        n_members: 3, n_counted: 3, pct_above_200: 66.7, chg_13w: -1, chg_26w: 0, direction: "flat", run_weeks: 1, rank_13w: 2, n_ranked: 2 },
+    ],
+    companies: { AAA: { sector: "us_sector_alpha", themes: ["us_theme_beta"] } },
+  };
+  it("keeps rotation_read out of the workspace fetch lists", () => {
+    expect(SECTOR_FEEDS).not.toContain("rotation_read");
+    expect(FINVIZ_FEEDS).not.toContain("rotation_read");
+    expect(PROXY_ONLY_SOURCES).toEqual(["rotation_read"]);
+  });
+  it("admits the strict v1 envelope and stamps the receipt from its own as_of day", () => {
+    expect(readableOwnerEnvelope("rotation_read", rotationRead)).toBe(true);
+    expect(feedSourceStamp("rotation_read", rotationRead)).toBe("2026-11-06");
+  });
+  it("admits stale and unavailable panels as envelopes; the reader shows them as unavailable", () => {
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, status: "stale" })).toBe(true);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, status: "unavailable" })).toBe(true);
+  });
+  it("refuses a wrong schema id, a missing groups list and a non-house family", () => {
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, schema: "si.rotation_read/v2" })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, groups: undefined })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, groups: [{ ...rotationRead.groups[0], family: "subsector" }] })).toBe(false);
+  });
+  it("refuses an open status set, a non-day as_of and a non-plain companies map", () => {
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, status: "ready" })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, as_of: "2026-11-31" })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, as_of: "2026-11-06T00:00:00Z" })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, companies: null })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, companies: [] })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, companies: undefined })).toBe(false);
+  });
+  it("refuses rows without a string group_id and collections beyond the shared owner bound", () => {
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, groups: [{ family: "sector" }] })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, groups: [{ group_id: 7, family: "sector" }] })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", { ...rotationRead, groups: Array(10001).fill(rotationRead.groups[0]) })).toBe(false);
+    expect(readableOwnerEnvelope("rotation_read", null)).toBe(false);
+  });
+  it("does not let the rotation read smuggle itself into another feed's envelope", () => {
+    expect(readableOwnerEnvelope("sector", rotationRead)).toBe(false);
+    expect(readableOwnerEnvelope("heatmap", rotationRead)).toBe(false);
   });
 });

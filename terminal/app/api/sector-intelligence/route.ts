@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
 import { qualifyRiskEnvelope } from "@/lib/marketRisk";
-import { object, number, feedSourceStamp, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
+import { object, number, feedSourceStamp, readableOwnerEnvelope, SECTOR_FEEDS, FINVIZ_FEEDS, PROXY_ONLY_SOURCES, type FeedReceipt, type ProxySource } from "@/lib/sectorIntelligence";
 import { SECTOR_GENERATION_AUDIENCE, SECTOR_GENERATION_PATH, SECTOR_GENERATION_PREVIEW_AUDIENCE,
   SECTOR_GENERATION_PREVIEW_PATH, sectorNativeGeneration, type SectorGenerationAudience } from "@/lib/sectorNativeGeneration";
 import { POPULATION_TOKEN, POPULATION_GROUP_ID, POPULATION_QUERY, POPULATION_MAX_LIMIT, POPULATION_MIN_LIMIT, sectorPopulationPage } from "@/lib/sectorPopulation";
@@ -18,7 +18,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 // Transport of existing owner outputs only. No dossier composition or inference.
-const PATHS: Record<SectorFeed, string> = {
+const PATHS: Record<ProxySource, string> = {
   sector: "/sectordata/sector_central.json",
   generation: SECTOR_GENERATION_PATH,
   confluence: "/marketdata/subsector_confluence.json",
@@ -34,6 +34,9 @@ const PATHS: Record<SectorFeed, string> = {
   // It is one more read of that same static owner output, on the same fixed origin and the same
   // filtered cookie; no direct browser fetch, no alternate host, no separate entitlement path.
   intraday: "/live/basket_pulse.json",
+  // Proxy-only (COO ruling 65): one fixed entitled read for Prophet's company
+  // Setup. No workspace surface fetches it; it has no OWNER_STEPS entry.
+  rotation_read: "/sectordata/rotation_read.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -45,7 +48,7 @@ const MAX_BYTES = 4 * 1024 * 1024;
  * to its own fixed path. The audience recorded with each step is the audience
  * of that exact path; the qualifier binds the fetched path, both document
  * audience labels and the receipt path together (R3). */
-const OWNER_STEPS: Partial<Readonly<Record<SectorFeed, readonly { path: string; audience?: SectorGenerationAudience }[]>>> = {
+const OWNER_STEPS: Partial<Readonly<Record<ProxySource, readonly { path: string; audience?: SectorGenerationAudience }[]>>> = {
   generation: [
     { path: SECTOR_GENERATION_PATH, audience: SECTOR_GENERATION_AUDIENCE },
     { path: SECTOR_GENERATION_PREVIEW_PATH, audience: SECTOR_GENERATION_PREVIEW_AUDIENCE },
@@ -183,13 +186,22 @@ export type FeedFailure =
    *  steps down to the preview document, never to this envelope (R2). */
   | "entitlement_required";
 
+/** Closed membership over the exact feed-name lists (SECTOR_FEEDS + FINVIZ_FEEDS
+ * + PROXY_ONLY_SOURCES) — never an arbitrary-string, prefix or regex test. Like
+ * the own-property test it replaces, it excludes __proto__/constructor and every
+ * user-supplied URL: only the fixed PATHS names are members. */
+function isProxySource(value: string): value is ProxySource {
+  return SECTOR_FEEDS.some(feed => feed === value)
+    || FINVIZ_FEEDS.some(feed => feed === value)
+    || PROXY_ONLY_SOURCES.some(feed => feed === value);
+}
+
 async function readIncumbent(req: Request): Promise<Response> {
   const source = new URL(req.url).searchParams.get("source") || "";
-  // own-property test excludes __proto__/constructor and all user-supplied URLs.
-  if (!Object.hasOwn(PATHS, source)) {
+  if (!isProxySource(source)) {
     return NextResponse.json({ error: "invalid_source" }, { status: 400, headers: HEADERS });
   }
-  const key = source as SectorFeed;
+  const key = source;
   const baseReceipt: FeedReceipt = { source: key, path: PATHS[key], status: "unavailable",
     asOf: null, observedAt: null, stale: false, contentHash: null };
   // R3: a receipt follows the fixed path actually fetched. After the R2
