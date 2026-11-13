@@ -5,6 +5,11 @@
 .answer { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
 .answer span { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
 .answer p { margin: 0; max-width: 980px; color: var(--text); font-size: clamp(16px, 1.5vw, 19px); font-weight: 620; line-height: 1.45; letter-spacing: -.15px; }
+.legacyNotice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel-2); }
+.legacyNotice > div { flex: 1 1 270px; min-width: 0; }
+.legacyNotice strong { font: 650 12px var(--font-ui); }
+.legacyNotice p { max-width: 790px; margin: 6px 0 0; color: var(--text-2); font-size: 12px; line-height: 1.5; }
+.legacyNotice button { min-height: 40px; padding: 7px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--link); font: 600 12px var(--font-ui); cursor: pointer; }
 .controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; padding-bottom: 16px; }
 .mode { display: flex; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel-2); }
 .mode button, .clear, .empty button, .disclosures button { min-height: 38px; padding: 7px 13px; border: 1px solid transparent; border-radius: calc(var(--r-ctl) - 2px); background: transparent; color: var(--text-2); font: 600 12px var(--font-ui); cursor: pointer; }
