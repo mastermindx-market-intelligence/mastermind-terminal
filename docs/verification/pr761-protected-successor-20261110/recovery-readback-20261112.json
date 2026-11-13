@@ -1,0 +1,60 @@
+{
+  "schema": "terminal_pr761_orphan_recovery.v1",
+  "recordedAt": "2026-11-12T13:20:28.306596+00:00",
+  "state": "QUALIFIED_RETAINED_WORK_RECOVERED_PENDING_PUBLICATION",
+  "sourceLawPin": "0e1ca7a2d8aa95ac415191d64bd3a39212be39d0",
+  "takeover": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/761#issuecomment-6824696928",
+  "operation": "terminal-pr-duty-20261110-761-protected-successor",
+  "originalHead": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+  "qualifiedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "observedNewerProtectedMaster": "e22b5bd49f652b54507a3567856227015032f6e1",
+  "currentSourceHashCount": 3459,
+  "currentSourceMatchesRetainedFinalReport": true,
+  "retainedFinalReportSha256": "3045cd047d935f3278e6ac21a27e3a8acf72ef84b898c058aad3881ddaa42ce7",
+  "retainedCaptureReportSha256": "e7fa37d91981ef149b98b00cd8812a33ef7601268608a271439f6f7ccb1a7d0d",
+  "originalAuthBlobs": {
+    "terminal/app/api/auth/principal/route.ts": "b3dc1e845546d6b9e6c682f40c379a299ec101f9",
+    "terminal/e2e/tools/README.md": "de8e71e220dd1636b06950c8e3d5ed1ebcc07032",
+    "terminal/e2e/tools/prove-thesis-journey-live.mjs": "752d81471290a5d64bfe28c684671fdb0f2a0960",
+    "terminal/e2e/tools/thesisJourneyLib.mjs": "abc9f8c991c79b99884aa9adbfebf438ce93edaa",
+    "terminal/lib/__tests__/cookiePrincipalRoute.test.ts": "641b1436d0548b9efa323a919231a45198b9c294",
+    "terminal/lib/__tests__/thesisJourneyPrincipal.test.ts": "b5de585eaa5b559e29ed585773c05c58c2a6e9b2",
+    "terminal/lib/__tests__/thesisJourneyPrincipalComposition.test.ts": "f63167f6faa607af0493150ae0fd3e3f7afeab16",
+    "terminal/lib/__tests__/thesisJourneyReceipt.test.ts": "2f255d352ad3992286316103da67150f737bc50d"
+  },
+  "currentCompositionReadback": {
+    "exitCode": 0,
+    "cases": 50,
+    "operations": 2,
+    "sha256": "979a7b90786ac37fb5a5cf82e366778e06b4145707fe719a8cbe703c7a54dec5"
+  },
+  "actualCaptureCases": {
+    "pl6": 24,
+    "vi": 30
+  },
+  "retainedChecks": {
+    "compilerAndCaptureContracts": 283,
+    "hubContracts": 15,
+    "strictReaders": 2,
+    "typegenExit": 0,
+    "typescriptExit": 0,
+    "readerLintErrors": 0,
+    "readerLintWarnings": 0
+  },
+  "noRecapture": true,
+  "noApplicationSourceRewrite": true,
+  "originalRemoteBranch": "claude/mo-b-f11-10c-wrong-user-negative-20260927",
+  "publicationExpectedHead": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+  "release": {
+    "draft": true,
+    "autoMerge": false,
+    "liveAcceptanceHeld": true
+  },
+  "limits": [
+    "The retained qualification binds protected b5afc7, not the later master or a future merge checkout.",
+    "The original historical export refusal and live Phase B/C, account, provider and production holds remain.",
+    "No formal approval, merge, deployment or live-authentication proof is claimed."
+  ],
+  "adversarialSourceRead": "No blocking join regression against b5af; protected Playwright and incumbent launch/settlement owners preserved. Read-only reasoning is not formal approval.",
+  "numericFontLimitation": "Loaded font bytes/faces are bound for every selected case. numeric.present=false does not prove absence of all eligible numeric text or universal numeric typography correctness; no stronger claim is made."
+}

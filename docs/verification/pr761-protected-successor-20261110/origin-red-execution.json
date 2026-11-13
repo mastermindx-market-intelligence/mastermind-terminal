@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "actual tracker validates current capture origin",
+    "e2e/tools/retainedFontFixture.test.cjs"
+  ],
+  "counts": {
+    "cancelled": 0,
+    "fail": 1,
+    "pass": 0,
+    "skipped": 0,
+    "tests": 1,
+    "todo": 0
+  },
+  "exitCode": 1,
+  "finishedAt": "2026-11-10T17:53:01.089883+00:00",
+  "logSha256": "ec72ec7983336b3f83b851edde5c542ecf892d7ab04ef5c1f1c54506c1ed5a61",
+  "mode": "origin-red",
+  "pid": 68078,
+  "schema": "terminal_pr761_node_contract_execution.v1",
+  "seconds": 0.267,
+  "sourceFiles": 3432,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:53:00.821890+00:00",
+  "state": "NODE_EXECUTION_REQUIRES_CLASSIFICATION"
+}

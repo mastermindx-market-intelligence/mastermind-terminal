@@ -1,0 +1,34 @@
+{
+  "authBlobsUnchanged": {
+    "terminal/app/api/auth/principal/route.ts": "b3dc1e845546d6b9e6c682f40c379a299ec101f9",
+    "terminal/e2e/tools/README.md": "de8e71e220dd1636b06950c8e3d5ed1ebcc07032",
+    "terminal/e2e/tools/prove-thesis-journey-live.mjs": "752d81471290a5d64bfe28c684671fdb0f2a0960",
+    "terminal/e2e/tools/thesisJourneyLib.mjs": "abc9f8c991c79b99884aa9adbfebf438ce93edaa",
+    "terminal/lib/__tests__/cookiePrincipalRoute.test.ts": "641b1436d0548b9efa323a919231a45198b9c294",
+    "terminal/lib/__tests__/thesisJourneyPrincipal.test.ts": "b5de585eaa5b559e29ed585773c05c58c2a6e9b2",
+    "terminal/lib/__tests__/thesisJourneyPrincipalComposition.test.ts": "f63167f6faa607af0493150ae0fd3e3f7afeab16",
+    "terminal/lib/__tests__/thesisJourneyReceipt.test.ts": "2f255d352ad3992286316103da67150f737bc50d"
+  },
+  "captureCompiler": "Existing Next16.4.6 default launch; obsolete explicit compiler flags fail before operation/launch. Historical webpack profiles remain readable.",
+  "changedPaths": [
+    "terminal/e2e/tools/capture_pl6_batch1.cjs",
+    "terminal/e2e/tools/capture_visual_evidence.cjs",
+    "terminal/playwright.config.ts",
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts"
+  ],
+  "fixedProtectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "globalPlaywrightProtectedBlob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+  "incumbentCaptureOwnerUnchanged": true,
+  "nextQualification": "Current owned origins must be qualified, then source checks and actual 24 PL6 +30 VI captures with retained font observations.",
+  "originalHead": "5ee018ea38f99760f3b88559586476bf82dfcb9a",
+  "recordedAt": "2026-11-10T17:50:40.358610+00:00",
+  "schema": "terminal_pr761_composition_resolution.v1",
+  "sourceManifest": {
+    "exactUnion": true,
+    "incoming": 170,
+    "protected": 163,
+    "union": 185
+  },
+  "state": "OWNED_SOURCE_JOIN_RESOLVED"
+}

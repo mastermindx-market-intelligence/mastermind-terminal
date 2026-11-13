@@ -21,9 +21,11 @@ const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
 const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 const evidence = require("./visualEvidence.cjs");
+const { waitForFixtureServer } = require("./fixtureServerWait.cjs");
 const { captureOptions, startLegacyServer, settleLegacyServer } = require("./capture_ci_evidence.cjs");
 const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
 let immutablePng = null;
+let immutableFonts = null;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -82,22 +84,7 @@ function ownedServer(child) {
   return child.captureReady === true;
 }
 async function waitForServer(timeoutMs, child) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    if (child && !ownedServer(child)) { await new Promise(r => setTimeout(r, 50)); continue; }
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
-      last = String(res.status);
-      if (child) ownedServer(child);
-      if (res.status === 200) return;
-    } catch (err) {
-      if (child) ownedServer(child);
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
+  return waitForFixtureServer(BASE, timeoutMs, child ? () => ownedServer(child) : undefined);
 }
 
 async function newPage(browser, width, lang) {
@@ -119,6 +106,7 @@ async function newPage(browser, width, lang) {
     else document.addEventListener("DOMContentLoaded", applyThemeAndLanguage, { once: true });
   }, lang);
   const page = await context.newPage();
+  if (process.env.TERMINAL_EVIDENCE_FONTS) evidence.fonts.track(page);
   page.setDefaultTimeout(45_000);
   return { context, page };
 }
@@ -163,7 +151,10 @@ async function cropBox(page, box, outPath, pad) {
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
   // Park the pointer so no hover state (crosshair, tooltip) leaks into the crop.
   await page.mouse.move(0, 0);
-  if (IMMUTABLE_ID !== undefined) immutablePng = await page.screenshot({ clip: { x, y, width, height }, animations: "disabled" });
+  if (IMMUTABLE_ID !== undefined) {
+    immutableFonts = process.env.TERMINAL_EVIDENCE_FONTS ? await evidence.fonts.observe(page) : null;
+    immutablePng = await page.screenshot({ clip: { x, y, width, height }, animations: "disabled" });
+  }
   else await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
@@ -345,6 +336,8 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  // Bind the declared compiler and retained bytes before the incumbent launcher starts.
+  Object.assign(process.env, evidence.captureEnvironment(process.env));
   const captureOptionsAxis = process.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1";
   if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
@@ -371,6 +364,7 @@ async function main() {
             try {
               if (operation && !ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
               immutablePng = null;
+              immutableFonts = null;
               await surface.run(page, width, lang, join(OUT, file));
               await assertNoNextIndicator(page, file);
               if (operation) {
@@ -378,7 +372,7 @@ async function main() {
                 if (!immutablePng) throw new Error("NO_ACTUAL_CAPTURE");
                 const project = width === 1440 ? "desktop" : "mobile", title = `capture ${surface.name}`;
                 const observed = await page.evaluate(() => ({ lang: document.documentElement.lang.startsWith("zh") ? "zh" : document.documentElement.lang === "en" ? "en" : "unknown", theme: document.documentElement.getAttribute("data-theme") }));
-                const written = evidence.writeCase(operation, { key: evidence.key("pl6", project, title, lang), packet: "pl6", file: "capture_pl6_batch1.cjs", title, project, locale: lang, viewport: VIEWPORTS[width] }, immutablePng, { ...observed, viewport: page.viewportSize() });
+                const written = evidence.writeCase(operation, { key: evidence.key("pl6", project, title, lang), packet: "pl6", file: "capture_pl6_batch1.cjs", title, project, locale: lang, viewport: VIEWPORTS[width] }, immutablePng, { ...observed, ...(immutableFonts ? { fonts: immutableFonts } : {}), viewport: page.viewportSize() });
                 executionRows.push({ file: "capture_pl6_batch1.cjs", title, project, locale: lang, observation: { path: written.observationName, sha256: evidence.sha(Buffer.from(evidence.canonical(written.row))) }, status: "passed", expectedStatus: "passed", retry: 0, errors: [] });
               }
               files.push(file);

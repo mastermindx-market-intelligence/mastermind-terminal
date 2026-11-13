@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: actual tracker validates current capture origin http://127.0.0.1:3536
+not ok 1 - actual tracker validates current capture origin http://127.0.0.1:3536
+  ---
+  duration_ms: 1.399625
+  type: 'test'
+  location: '/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.test.cjs:105:3'
+  failureType: 'testCodeFailure'
+  error: 'FONT_FIXTURE_BINDING'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.cjs:11:37)
+    Object.observe (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.cjs:80:37)
+    async TestContext.<anonymous> (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.test.cjs:106:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: actual tracker validates current capture origin http://127.0.0.1:3537
+not ok 2 - actual tracker validates current capture origin http://127.0.0.1:3537
+  ---
+  duration_ms: 0.1885
+  type: 'test'
+  location: '/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.test.cjs:105:3'
+  failureType: 'testCodeFailure'
+  error: 'FONT_FIXTURE_BINDING'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.cjs:11:37)
+    Object.observe (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.cjs:80:37)
+    async TestContext.<anonymous> (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-761-protected-successor/terminal/e2e/tools/retainedFontFixture.test.cjs:106:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.916833

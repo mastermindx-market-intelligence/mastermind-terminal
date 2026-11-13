@@ -1,0 +1,31 @@
+{
+  "schema": "terminal_pr761_capture_reconciliation.v1",
+  "startedAt": "2026-11-10T18:11:49.417828+00:00",
+  "captureRecord": "capture-execution.json",
+  "producerPid": 46155,
+  "exitCode": 1,
+  "signal": null,
+  "cause": "Turbopack evaluates existing mocked responses with virtual __dirname /ROOT; real CSS file read returned ENOENT. The incumbent readiness wait finished with HTTP500 after180000ms.",
+  "lifecycleReason": "The original wait error is propagated after awaited settleLegacyServer; a settlement refusal would have replaced it. No refusal marker occurs in the retained stderr.",
+  "denialMarkers": [],
+  "port3536ConnectErrno": 61,
+  "port3536Closed": true,
+  "generatedTypesRestored": true,
+  "changedSource": [],
+  "history": {
+    "pl6": {
+      "priorMembers": 666,
+      "changed": [],
+      "newMembers": [
+        "pr761-20261110-pl6-current--start.json"
+      ]
+    },
+    "vi": {
+      "priorMembers": 734,
+      "changed": [],
+      "newMembers": []
+    }
+  },
+  "state": "RUNTIME_COMPILE_FAILURE_SETTLED_NO_CASES_OR_COMPOSITION",
+  "finishedAt": "2026-11-10T18:11:50.404872+00:00"
+}

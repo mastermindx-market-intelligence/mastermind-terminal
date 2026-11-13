@@ -1,0 +1,9 @@
+Auto-merging terminal/components/TerminalShell.tsx
+Auto-merging terminal/e2e/mobile-chart-chrome.spec.ts
+Auto-merging terminal/e2e/tools/capture_pl6_batch1.cjs
+CONFLICT (content): Merge conflict in terminal/e2e/tools/capture_pl6_batch1.cjs
+Auto-merging terminal/e2e/tools/capture_visual_evidence.cjs
+CONFLICT (content): Merge conflict in terminal/e2e/tools/capture_visual_evidence.cjs
+Auto-merging terminal/e2e/tools/visualEvidenceSources.json
+Auto-merging terminal/playwright.config.ts
+Automatic merge failed; fix conflicts and then commit the result.

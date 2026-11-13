@@ -14,7 +14,7 @@ function main(argv = process.argv.slice(2)) {
   const projects = args["--project"] === undefined ? Object.keys(evidence.VIEWPORTS) : [args["--project"]];
   if (!projects.every(project => Object.hasOwn(evidence.VIEWPORTS, project))) throw new Error("EVIDENCE_ARGUMENT");
   const terminal = path.resolve(__dirname, "../.."), repoRoot = path.dirname(terminal);
-  const env = { ...process.env, TERMINAL_E2E_PORT: args["--port"] };
+  const env = { ...evidence.captureEnvironment(process.env), TERMINAL_E2E_PORT: args["--port"] };
   if (!Object.hasOwn(env, "NODE_OPTIONS") && process.allowedNodeEnvironmentFlags?.has("--no-experimental-webstorage"))
     env.NODE_OPTIONS = "--no-experimental-webstorage";
   const op = evidence.beginOperation({ repoRoot, packet: "vi", operationId: args["--id"], env });

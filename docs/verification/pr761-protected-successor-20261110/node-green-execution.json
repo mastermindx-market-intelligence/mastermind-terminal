@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "e2e/tools/capture_visual_evidence.test.cjs",
+    "e2e/tools/retainedFontFixture.test.cjs",
+    "e2e/tools/fixtureServerWait.test.cjs",
+    "e2e/tools/visualEvidence.test.cjs",
+    "e2e/tools/capture_ci_evidence.test.cjs"
+  ],
+  "counts": {
+    "cancelled": 0,
+    "fail": 0,
+    "pass": 272,
+    "skipped": 0,
+    "tests": 272,
+    "todo": 0
+  },
+  "exitCode": 0,
+  "finishedAt": "2026-11-10T17:56:49.512300+00:00",
+  "logSha256": "c428d9164b15d3985c28ffaacf67aeaaeab25a5168320f4cdcb860dd0fece0dd",
+  "mode": "node-green",
+  "pid": 74913,
+  "schema": "terminal_pr761_node_contract_execution.v1",
+  "seconds": 93.383,
+  "sourceFiles": 3432,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T17:55:16.129822+00:00",
+  "state": "AFFECTED_NODE_CONTRACTS_PASSED"
+}
