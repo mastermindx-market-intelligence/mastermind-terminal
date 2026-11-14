@@ -1,3 +1,4 @@
+import { readBoundedJson } from "./readBoundedJson";
 import type { FuturesNamedLevel } from "./futuresGexLevels";
 /** Bounded read-only view contract. Does not grant source rights or create publication receipts. */
 import { isRecord, finiteNumber, validClockMs, isFuturesGexContract, FUTURES_GEX_UNIT } from "./futuresGexProjection";
@@ -180,25 +181,7 @@ export function parseFuturesPublishedView(raw: unknown, request: FuturesRequest,
     lowTick: raw.lowTick, highTick: raw.highTick, replayCutoffsMs: raw.replayCutoffsMs as number[], frames };
 }
 
-/** Read this view's JSON with a byte limit BEFORE buffering, including undeclared bodies. */
 export async function readFuturesJson(response: Response, maxBytes = FUTURES_MAX_BYTES): Promise<unknown> {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > FUTURES_MAX_BYTES || !response.body) throw Error("response_size");
-  const declared = response.headers.get("content-length");
-  if (declared !== null && (!/^\d+$/.test(declared) || Number(declared) > maxBytes)) {
-    await response.body.cancel(); throw Error("response_size");
-  }
-  const reader = response.body.getReader(), decoder = new TextDecoder("utf-8", { fatal: true });
-  const parts: string[] = []; let size = 0;
-  try {
-    for (;;) {
-      const { done, value } = await reader.read(); if (done) break;
-      size += value.byteLength;
-      if (size > maxBytes) throw Error("response_size");
-      parts.push(decoder.decode(value, { stream: true }));
-    }
-    parts.push(decoder.decode());
-    return JSON.parse(parts.join(""));
-  } catch (error) {
-    await reader.cancel().catch(() => {}); throw error;
-  } finally { reader.releaseLock(); }
+  if (maxBytes > FUTURES_MAX_BYTES) throw Error("response_size");
+  return readBoundedJson(response, maxBytes);
 }

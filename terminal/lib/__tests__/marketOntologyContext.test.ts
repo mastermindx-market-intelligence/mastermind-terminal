@@ -524,6 +524,11 @@ describe("serializeMarketOntologyContext", () => {
 });
 
 describe("marketOntologyReturnHref", () => {
+  it("restores the native WTI condition and revision while keeping other explorers available", () => {
+    const ctx = { from: "ontology" as const, chain: "oil_inflation_duration_derate", pathRev: "2" };
+    expect(marketOntologyReturnHref({ ...ctx, focus: "yield_rise" })).toBe("/wti-live-path?rev=2#ox-leg-yield_rise");
+    expect(marketOntologyReturnHref({ ...ctx, focus: "another_node" })).toContain("/ontology.html?rev=2");
+  });
   it("ontology_origin_back_link_unchanged", () => {
     const ctx: MarketOntologyContext = {
       from: "ontology",
