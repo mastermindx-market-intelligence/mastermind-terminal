@@ -1,13 +1,23 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
+
+import { useDiscoverT } from "@/lib/discoverWorkspaceLex";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import interactionStyles from "./ScreenerInteractions.module.css";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
-import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import type { AccountIdentity } from "@/lib/accountIdentity";
+import { currentOwnerToken, ownerTokenIsCurrent, useMarketPrefs, type OwnerToken } from "@/lib/useMarketPrefs";
+import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
+import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, horizontalListSortingStrategy, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { DEFAULT_DISCOVER_COLUMNS, moveDiscoverColumn, normalizeDiscoverName, newDiscoverViewId, parseDiscoverView, type DiscoverColumn, type DiscoverView } from "@/lib/discoverWorkspace";
+import DiscoverSelect from "./screener/DiscoverSelect";
+import { DiscoverColumns, DiscoverColumnHeader, DiscoverDialog, DiscoverIcon, DiscoverViews, type ColumnLabels } from "./screener/DiscoverWorkspaceControls";
+import { useDiscoverQuotes } from "./screener/useDiscoverQuotes";
+import { discoverRegularReading, discoverOvernightReading } from "@/lib/discoverQuotes";
+import workspaceStyles from "./screener/DiscoverWorkspace.module.css";
 import { MARKET_TKEY } from "@/lib/markets";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
@@ -166,23 +176,14 @@ const DEFAULT_FILTERS: FilterState = {
   taxonomy: null, classStale: false, ccy: "auto", liqCcy: null,
 };
 
-type SortKey =
-  | "sym" | "last" | "chg" | "dv" | "mcap" | "offHi" | "gics"
-  | "verdict" | "regimeBull" | "wr" | "pf" | "cagr"
-  | "mscRank" | "mscNetGex" | "mscFlip"
-  | `fund:${FundamentalFieldId}`;
+type SortKey = Exclude<DiscoverColumn, "overnight" | "overnightChg" | "technical">;
 
 /** A fundamental column's sort key → its field (null for every manifest column). */
 const fundSortField = (k: SortKey): FundamentalFieldId | null =>
   k.startsWith("fund:") ? (k.slice(5) as FundamentalFieldId) : null;
 
-// Column sets per view. The signal columns exist for the Oracle-tracked names only, so they
-// are shown ONLY while a signal-scoped filter is on — that is what keeps 5-of-9 columns from
-// rendering "—" for 99% of the universe.
-const U_KEYS: SortKey[] = ["sym", "last", "chg", "dv", "mcap", "offHi", "gics", "mscRank", "mscNetGex", "mscFlip", "verdict"];
-const S_KEYS: SortKey[] = ["sym", "last", "chg", "verdict", "regimeBull", "wr", "pf", "cagr", "dv"];
-const DEF_SORT_U: { k: SortKey; dir: 1 | -1 } = { k: "dv", dir: -1 };   // defensible over the whole universe
-const DEF_SORT_S: { k: SortKey; dir: 1 | -1 } = { k: "cagr", dir: -1 }; // every visible row has it here
+// Filtering never owns column layout or sort.
+const DEF_SORT_U: { k: SortKey; dir: 1 | -1 } = { k: "dv", dir: -1 };
 
 // ── formatters ─────────────────────────────────────────────────────────────
 const fmt = (n: number | null | undefined, d = 2) =>
@@ -332,7 +333,7 @@ function writePresets(items: SavedPreset[]): boolean {
 const ROW_H_COMFORT = 44;
 const ROW_H_COMPACT = 36;
 const OVERSCAN = 6; // extra rows above/below viewport
-const DENSITY_LS = "mm.scrDensity";
+
 
 // ── loading skeleton ───────────────────────────────────────────────────────
 const SHIMMER_ROWS = 12;
@@ -348,9 +349,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const router = useRouter();
   const t = useT();
   const { lang } = useLang();
+  const tPlain = useDiscoverT();
   // The market universe this user sees is OWNER state, so it is keyed on the identity's uuid,
   // not on an address the account can change out from under it.
-  const { prefs, ready: prefsReady } = useMarketPrefs(identity);
+  const account = useMarketPrefs(identity);
+  const { prefs, ready: prefsReady } = account;
+  const zh = lang === "zh";
+  const expectedOwner = identityOwnerKey(identity);
+  const liveOwnerToken = currentOwnerToken();
+  useEffect(() => {
+    if (account.owner === expectedOwner) account.openDiscover(liveOwnerToken);
+  }, [account.owner, expectedOwner, liveOwnerToken.owner, liveOwnerToken.generation, account.openDiscover]);
 
   // ── data state ─────────────────────────────────────────────────────────
   const [rows, setRows] = useState<Row[]>([]);
@@ -370,7 +379,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [showAllMarkets, setShowAllMarkets] = useState(false);
 
   // ── search state (wrapped in deferred for perf) ────────────────────────
-  const [searchRaw, setSearchRaw] = useState("");
+  const [searchRaw, setSearchRaw] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const symbol = new URLSearchParams(window.location.search).get("symbol");
+    return symbol && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(symbol) ? symbol : "";
+  });
   const search = useDeferredValue(searchRaw);
 
   // ── presets + density (device-local) ───────────────────────────────────
@@ -422,7 +435,6 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       presetHydrated.current = true;
       loadPresetBaseline();
     }
-    try { const d = localStorage.getItem(DENSITY_LS); if (d === "c" || d === "k") setDensity(d); } catch { /* storage blocked */ }
   }, [loadPresetBaseline]);
 
   const pickDensity = useCallback((d: Density) => {
@@ -433,20 +445,28 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       atEnd: el.scrollHeight - el.clientHeight - el.scrollTop <= 1,
     };
     setDensity(d);
-    try { localStorage.setItem(DENSITY_LS, d); } catch { /* storage blocked */ }
   }, [density]);
 
   // ── sort state ─────────────────────────────────────────────────────────
-  // null = "no explicit pick yet", so each view lands on ITS default ($ Vol in the universe
-  // view, CAGR in the signal view). Storing a concrete key up front would carry $ Vol into the
-  // signal view, where CAGR is the meaningful default.
-  const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 } | null>(null);
+  const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>(DEF_SORT_U);
+  const [columns, setColumns] = useState<DiscoverColumn[]>([...DEFAULT_DISCOVER_COLUMNS]);
+  const [viewId, setViewId] = useState("current"), [viewName, setViewName] = useState("Market overview");
+  const [advancedOpen, setAdvancedOpen] = useState(false), [columnsOpen, setColumnsOpen] = useState(false), [viewsOpen, setViewsOpen] = useState(false);
+  const [help, setHelp] = useState<Row | "guide" | null>(null), [activeDrag, setActiveDrag] = useState<DiscoverColumn | null>(null);
+  const [quoteDetail, setQuoteDetail] = useState<Row | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+  const [workspaceOwner, setWorkspaceOwner] = useState<string | null>(null);
+  const [workspaceToken, setWorkspaceToken] = useState<OwnerToken | null>(null);
+  const restoring = useRef(false), lastStored = useRef("");
+  const hydration = useRef({ owner: "", base: "pending" });
+  const hydrationSequence = useRef(0);
+  const [hydrationRevision, setHydrationRevision] = useState(0);
+  const [saveRejected, setSaveRejected] = useState(false);
 
   // ── fundamental screen (E02) ───────────────────────────────────────────
   // The scan is read only once the user opens the controls, holds a fundamental filter, or the
   // smart-screens panel shows a saved screen with fundamental conditions (to count/explain it).
-  // Columns exist for the field being edited and for every active predicate — never for the
-  // whole field set, so the table does not grow "—" columns nobody asked for.
+  // Visibility is an explicit layout choice, independent of editor/filter state.
   const ft = useFundT();
   const [fundOpen, setFundOpen] = useState(false);
   const [fundField, setFundField] = useState<FundamentalFieldId>("fund.net_margin_fy");
@@ -457,11 +477,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [fundEpoch, setFundEpoch] = useState(0);
   const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
   const [fundWanted, setFundWanted] = useState(false);
-  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted);
+  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted || columns.some(id => id.startsWith("fund:")) || sort.k.startsWith("fund:"));
   const fundCtx = useMemo(() => ({ source: fund.source, nowMs: fund.nowMs }), [fund.source, fund.nowMs]);
   const fundCols = useMemo(
-    () => FUNDAMENTAL_FIELD_IDS.filter((id) => (fundOpen && id === fundField) || fundPreds.some((p) => p.field === id)),
-    [fundOpen, fundField, fundPreds],
+    () => FUNDAMENTAL_FIELD_IDS.filter((id) => columns.includes(`fund:${id}`) || sort.k === `fund:${id}`),
+    [columns, sort.k],
   );
   const closeEvidence = useCallback(() => setEvidence(null), []);
 
@@ -484,7 +504,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const ro = new ResizeObserver(() => setViewportH(el.clientHeight));
     ro.observe(el);
     return () => { el.removeEventListener("scroll", onScroll); ro.disconnect(); };
-  }, [onScroll]);
+  }, [onScroll, workspaceOwner]);
 
   // ── fetch manifest via dataCache (dedup + SWR) + mounted guard ─────────
   useEffect(() => {
@@ -590,12 +610,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const tt = useTechnicalT();
   const [techOpen, setTechOpen] = useState(false);
   const [techControls, setTechControls] = useState<TechControls>(TECH_DEFAULT_CONTROLS);
-  const techScan = useTechnicalScan(techOpen);
-  const techSource = techScan.phase === "settled" && techScan.source.kind === "ready" ? techScan.source : null;
+  const techScan = useTechnicalScan(techOpen || techControlsActive(techControls) || columns.includes("technical"));
+  const techSource = techScan.phase === "settled" ? techScan.source : null;
   const techNow = techScan.phase === "settled" ? techScan.now : 0;
-  const techOnScreen = techOpen && techSource !== null;
+  const techOnScreen = techSource !== null;
   const techScreen = useMemo(() => technicalScreenOf(techControls), [techControls]);
-  const techGate = techOnScreen && techControlsActive(techControls);
+  const techGate = techControlsActive(techControls);
+  const techWait = techGate && techSource === null;
 
   // ── label helpers ──────────────────────────────────────────────────────
   const gicsLabel = useCallback((g: string) => (GICS_TKEY[g] ? t(GICS_TKEY[g]) : g), [t]);
@@ -711,18 +732,103 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // label is never filed as GICS nor an HKD floor as dollars.
   const smartFilters = useMemo(() => smartScreenHandover(f, floorSt, scope).filters, [f, floorSt, scope]);
 
-  // ── view mode: signal scope switches the whole column set ──────────────
   const signalView = f.signal !== "any" || f.uptrend;
+  const effSort = sort;
 
-  // A sort key that does not exist in the active column set falls back to that view's default
-  // rather than being written back to state — switching views and back restores the user's pick.
-  const effSort = useMemo(() => {
-    const def = signalView ? DEF_SORT_S : DEF_SORT_U;
-    if (!sort) return def;
-    const ff = fundSortField(sort.k);
-    if (ff) return fundCols.includes(ff) ? sort : def;
-    return (signalView ? S_KEYS : U_KEYS).includes(sort.k) ? sort : def;
-  }, [signalView, sort, fundCols]);
+  const applyWorkspace = useCallback((value: DiscoverView | null, initial = false) => {
+    setF({ ...DEFAULT_FILTERS, ...value?.filters } as FilterState);
+    setColumns(value?.columns ?? [...DEFAULT_DISCOVER_COLUMNS]);
+    setSort(value ? value.sort as typeof DEF_SORT_U : DEF_SORT_U);
+    setDensity(value?.density ?? "c");
+    setViewId(value?.id ?? "current"); setViewName(value?.name ?? "Market overview");
+    const deepLink = new URLSearchParams(window.location.search).get("symbol");
+    setSearchRaw(initial && deepLink && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(deepLink) ? deepLink : value?.search ?? "");
+    setTechControls(value?.technical ?? TECH_DEFAULT_CONTROLS);
+    setFundPreds(value?.fundamental ?? []); setFundEpoch(n => n + 1);
+    setActivePreset(null); setShowAllMarkets(value?.showAllMarkets ?? false);
+  }, []);
+  const workspace = parseDiscoverView({ schema: 1, id: viewId, name: viewName, columns, density, sort, filters: f,
+    search: searchRaw, technical: techControls, fundamental: fundPreds, showAllMarkets })!;
+  const workspaceJson = JSON.stringify(workspace);
+  useLayoutEffect(() => {
+    if (account.owner !== expectedOwner || !account.discoverReady) {
+      hydration.current = { owner: "", base: "pending" }; setWorkspaceOwner(null); setWorkspaceToken(null); return;
+    }
+    if (liveOwnerToken.owner !== account.owner) return;
+    const first = workspaceOwner !== account.owner || workspaceToken?.generation !== liveOwnerToken.generation || workspaceToken?.owner !== liveOwnerToken.owner;
+    const recovered = hydration.current.owner === account.owner && hydration.current.base !== "loaded" && account.discoverBase === "loaded";
+    if (first || recovered && workspaceJson === lastStored.current) {
+      applyWorkspace(account.discover.current, first);
+      restoring.current = true;
+      hydrationSequence.current += 1; setHydrationRevision(hydrationSequence.current);
+      setWorkspaceOwner(account.owner);
+      setWorkspaceToken(liveOwnerToken); setSaveRejected(false);
+    }
+    hydration.current = { owner: account.owner, base: account.discoverBase };
+  }, [account.owner, expectedOwner, account.discoverReady, account.discoverBase, workspaceOwner, workspaceToken, liveOwnerToken.owner, liveOwnerToken.generation, account.discover.current, applyWorkspace, workspaceJson]);
+  // Commit to the existing preference owner promptly. Its one delivery pump
+  // coalesces changes; a second component debounce would lose edits on navigation.
+  useEffect(() => {
+    if (workspaceOwner !== expectedOwner || account.owner !== expectedOwner || !account.discoverReady || hydrationRevision !== hydrationSequence.current) return;
+    if (restoring.current) { restoring.current = false; lastStored.current = workspaceJson; return; }
+    if (workspaceJson === lastStored.current) return;
+    if (account.discoverBase !== "loaded" || account.discover.blocked) { setSaveRejected(true); return; }
+    const token = workspaceToken;
+    if (!token || token.owner !== expectedOwner || !ownerTokenIsCurrent(token)) return;
+    const value = parseDiscoverView(JSON.parse(workspaceJson));
+    if (!value) { setSaveRejected(true); return; }
+    const named = account.discover.views.some(v => v.id === value.id);
+    const ok = account.saveDiscover(value, named, token);
+    setSaveRejected(!ok); if (ok) lastStored.current = workspaceJson;
+  }, [workspaceJson, workspaceOwner, workspaceToken, hydrationRevision, expectedOwner, account.owner, account.discoverReady, account.discoverBase, account.discover.blocked, account.discover.views, account.saveDiscover]);
+  const writeToken = workspaceToken?.owner === expectedOwner && ownerTokenIsCurrent(workspaceToken) ? workspaceToken : null;
+  const canSaveViews = !!writeToken && workspaceOwner === expectedOwner && account.owner === expectedOwner && account.discoverBase === "loaded" && !account.discover.blocked && (!account.discoverIssue || account.discoverIssue === "unavailable" || account.discoverIssue === "rejected");
+  const flushWorkspace = (): boolean => {
+    if (workspaceJson === lastStored.current) return true;
+    const ok = canSaveViews && !!writeToken && !!workspace && account.saveDiscover(workspace, account.discover.views.some(v => v.id === viewId), writeToken);
+    if (ok) lastStored.current = workspaceJson;
+    setSaveRejected(!ok); return ok;
+  };
+  const chooseWorkspace = (value: DiscoverView): boolean => {
+    if (!writeToken || !ownerTokenIsCurrent(writeToken)) return false;
+    if (value.id !== "current" && value.id === viewId) return true;
+    if (!flushWorkspace()) return false;
+    if (!canSaveViews || !account.saveDiscover(value, false, writeToken)) { setSaveRejected(true); return false; }
+    lastStored.current = JSON.stringify(value); applyWorkspace(value); return true;
+  };
+  const saveView = (name: string, id?: string): boolean => {
+    const clean = normalizeDiscoverName(name); if (!clean || !canSaveViews || !writeToken || !ownerTokenIsCurrent(writeToken)) return false;
+    if (id) { const ok = account.renameDiscover(id, clean, writeToken); if (ok && id === viewId) setViewName(clean); return ok; }
+    if (!flushWorkspace()) return false;
+    const next = { ...workspace, name: clean, id: newDiscoverViewId() };
+    if (!account.saveDiscover(next, true, writeToken)) return false;
+    applyWorkspace(next); lastStored.current = JSON.stringify(next); return true;
+  };
+  const deleteView = (id: string) => {
+    if (writeToken && ownerTokenIsCurrent(writeToken) && account.deleteDiscover(id, writeToken) && viewId === id) { setViewId("current"); setViewName(tPlain("current_view")); }
+  };
+  const useTemplate = (type: "market" | "aligned" | "research" | "overnight") => {
+    const template = parseDiscoverView({ ...workspace, id: "current", density,
+      name: type === "aligned" ? "Buy signals + uptrend" : type === "research" ? "Historical performance" : type === "overnight" ? "Overnight watch" : "Market overview",
+      filters: { ...DEFAULT_FILTERS, ...(type === "aligned" ? { signal: "buy", uptrend: true } : type === "research" ? { signal: "tracked" } : type === "overnight" ? { market: "us" } : {}) },
+      columns: type === "research" ? ["sym", "verdict", "regimeBull", "vts", "wr", "pf", "cagr", "dv"] : type === "overnight" ? ["sym", "verdict", "regimeBull", "last", "chg", "overnight", "overnightChg", "dv"] : [...DEFAULT_DISCOVER_COLUMNS],
+      sort: DEF_SORT_U, search: "", fundamental: [], technical: TECH_DEFAULT_CONTROLS, showAllMarkets: false });
+    return template ? chooseWorkspace(template) : false;
+  };
+  const pendingEdit = workspaceJson !== lastStored.current;
+  const viewLabel = viewId !== "current" ? viewName : viewName === "Market overview" ? tPlain("market_overview")
+    : viewName === "Buy signals + uptrend" ? tPlain("buy_signals_uptrend") : viewName === "Historical performance" ? tPlain("historical_performance")
+    : viewName === "Overnight watch" ? tPlain("overnight_watch") : viewName;
+  const saveStatus = account.discoverIssue === "conflict" ? (tPlain("this_view_changed_on_another_device_local"))
+    : account.discoverIssue === "rejected" ? (tPlain("view_not_saved_reduce_saved_views_or"))
+    : account.discoverIssue === "unauthenticated" ? (tPlain("account_connection_changed_edits_not_saved"))
+    : account.discover.blocked || account.discoverIssue === "newer_schema" ? (tPlain("saved_views_use_an_unsupported_format"))
+    : !account.discoverReady || workspaceOwner !== expectedOwner ? (tPlain("loading_your_views"))
+    : account.discoverBase !== "loaded" || saveRejected ? (tPlain("saved_views_unavailable_changes_not_saved"))
+    : account.discoverSync.phase === "failed" ? (tPlain("not_synced_retrying"))
+    : account.owner === "guest" ? account.discoverDevice ? (tPlain("guest_views_this_device")) : (tPlain("device_storage_unavailable_changes_kept_for_this"))
+    : pendingEdit || account.discoverSync.phase === "syncing" ? (tPlain("saving"))
+    : account.discover.current ? (tPlain("saved_to_your_account")) : (tPlain("changes_autosave_to_your_account"));
 
   // ── filtered view (single pass) ────────────────────────────────────────
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
@@ -750,7 +856,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       if (f.asset !== "all" && r.sec !== f.asset) return false;
 
       if (f.signal === "buy" && !isBuy(r.verdict)) return false;
-      if (f.signal === "sell" && (r.verdict == null || isBuy(r.verdict))) return false;
+      if (f.signal === "sell" && r.verdict !== "SELL") return false;
       if (f.signal === "tracked" && r.verdict == null) return false;
       if (f.uptrend && r.regimeBull !== true) return false;
 
@@ -807,7 +913,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     let cellsBy: Map<string, Partial<Record<FundamentalFieldId, FundamentalClassification>>> | null = null;
     let tallyOut: FundamentalTally | null = null;
     let summary: FundamentalFieldSummary | null = null;
-    if (fsrc && (fundCols.length > 0 || fundPreds.length > 0)) {
+    if (fsrc && (fundOpen || fundCols.length > 0 || fundPreds.length > 0)) {
       cellsBy = new Map();
       const tally = fundPreds.length > 0 ? createFundamentalTally(fundPreds) : null;
       const out: Row[] = [];
@@ -829,7 +935,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     }
 
     let b = 0, s = 0;
-    for (const r of kept) { if (isBuy(r.verdict)) b++; else if (r.verdict) s++; }
+    for (const r of kept) { if (isBuy(r.verdict)) b++; else if (r.verdict === "SELL") s++; }
 
     // sort — nulls always last regardless of direction. Traded value is compared only within
     // one currency (scope currency first, then each other currency as its own block; a listing
@@ -874,7 +980,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
   // Rows / counts / empty state render only over a settled result (manifest AND, when a
   // fundamental filter is held, the fundamental scan).
-  const tableReady = loaded && !err && !fundWait;
+  const tableReady = loaded && !err && !fundWait && !techWait;
 
   const techSummary = useMemo(
     () => (techSource ? technicalCoverageSummary(techReq, techSource, techControls.tf, techNow) : null),
@@ -891,6 +997,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const paddingTop = startIdx * rowH;
   const paddingBottom = Math.max(0, totalH - endIdx * rowH);
   const windowedRows = view.slice(startIdx, endIdx);
+  const quotes = useDiscoverQuotes(expectedOwner, tableReady ? windowedRows.map(r => r.sym) : [],
+    tableReady ? windowedRows.filter(r => r.mktId === "us").map(r => r.sym) : [],
+    columns.includes("last") || columns.includes("chg"), columns.includes("overnight") || columns.includes("overnightChg"));
 
   // Only an intentional change of the requested view starts at its first result.
   // Quote/classification revalidation changes rows, not this key, and keeps place.
@@ -1083,46 +1192,23 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   if (f.move !== "any") tags.push({ id: "move", label: t(MOVE_OPTS.find((o) => o.v === f.move)!.key), clear: { move: "any" } });
   if (f.unpriced) tags.push({ id: "unpriced", label: t("scr2InclThin"), clear: { unpriced: false } });
 
-  // ── column set for the active view ─────────────────────────────────────
-  type ColDef = { k: SortKey; label: string; w: string; title?: string; fund?: FundamentalFieldId };
-  const dvCol = { k: "dv" as SortKey, label: ct("cmTraded"), w: "76px", title: ct("cmTradedTitle") };
-  const viewCols: ColDef[] = signalView
-    ? [
-      { k: "sym", label: t("symbol"), w: "150px" },
-      { k: "last", label: t("colLast"), w: "70px" },
-      { k: "chg", label: t("colChgPctShort"), w: "62px" },
-      { k: "verdict", label: t("signalCol"), w: "66px" },
-      { k: "regimeBull", label: t("regime"), w: "68px" },
-      { k: "wr", label: t("winRate"), w: "54px" },
-      { k: "pf", label: t("profitFactor"), w: "50px" },
-      { k: "cagr", label: t("cagr"), w: "96px" },
-      dvCol,
-    ]
-    : [
-      { k: "sym", label: t("symbol"), w: "150px" },
-      { k: "last", label: t("colLast"), w: "70px" },
-      { k: "chg", label: t("colChgPctShort"), w: "62px" },
-      dvCol,
-      { k: "mcap", label: t("colMcap"), w: "76px", title: ct("cmMcapUsd") },
-      { k: "offHi", label: t("colOffHigh"), w: "66px" },
-      { k: "gics", label: tax === "yahoo_industry" ? ct("cmIndustry") : t("colSector"), w: "110px" },
-      // R3.2 msc_* columns exist only while the positioning index is loaded — the thead
-      // and the tbody share this ONE condition so the positional cells can't misalign.
-      ...(glance ? [
-        { k: "mscRank" as SortKey, label: t("colMscRegime"), w: "78px" },
-        { k: "mscNetGex" as SortKey, label: t("colMscNetGex"), w: "70px" },
-        { k: "mscFlip" as SortKey, label: t("colMscFlip"), w: "64px" },
-      ] : []),
-      { k: "verdict", label: t("signalCol"), w: "66px" },
-    ];
-  // Fundamental columns ride at the END of either view (positional cells stay aligned).
-  const cols: ColDef[] = [
-    ...viewCols,
-    ...fundCols.map((id) => ({ k: `fund:${id}` as SortKey, label: fieldColumn(ft, id), w: "60px", fund: id })),
-  ];
-
-  // Every full-width row spans the visible columns, including the technical one when shown.
-  const colN = cols.length + (techOnScreen ? 1 : 0);
+  const columnLabels: ColumnLabels = {
+    sym: t("symbol"), verdict: t("signalCol"), regimeBull: t("regime"), last: t("colLast"), chg: t("colChgPctShort"),
+    overnight: tPlain("overnight"), overnightChg: tPlain("overnight_2"), dv: ct("cmTraded"), mcap: t("colMcap"),
+    gics: tax === "yahoo_industry" ? ct("cmIndustry") : t("colSector"), vol: t("colVolShort"), offHi: t("colOffHigh"),
+    offLo: tPlain("above_low"), hi52: tPlain("52w_high"), lo52: tPlain("52w_low"), vts: tPlain("signal_date"),
+    wr: tPlain("hist_win_rate"), pf: tPlain("hist_profit_factor"), cagr: tPlain("hist_cagr"),
+    mscRank: t("colMscRegime"), mscNetGex: t("colMscNetGex"), mscFlip: t("colMscFlip"), technical: tt("tsColumn", { tf: techControls.tf }),
+    "fund:fund.pe_ttm": fieldColumn(ft, "fund.pe_ttm"), "fund:fund.gross_margin_fy": fieldColumn(ft, "fund.gross_margin_fy"),
+    "fund:fund.net_margin_fy": fieldColumn(ft, "fund.net_margin_fy"), "fund:fund.roe_fy": fieldColumn(ft, "fund.roe_fy"), "fund:fund.revenue_growth_fy": fieldColumn(ft, "fund.revenue_growth_fy"),
+  };
+  const cols = columns.map(k => ({ k, label: columnLabels[k], w: k === "sym" ? "150px" : "76px", fund: k.startsWith("fund:") ? k.slice(5) as FundamentalFieldId : undefined }));
+  const colN = cols.length;
+  const historicalVisible = columns.some(c => ["wr", "pf", "cagr"].includes(c)) || ["wr", "pf", "cagr"].includes(effSort.k);
+  const detailRegular = quoteDetail ? discoverRegularReading(quoteDetail, quotes.regular[quoteDetail.sym], quotes.now) : null;
+  const detailOvernight = quoteDetail ? discoverOvernightReading(quotes.overnight[quoteDetail.sym], quotes.now) : null;
+  const observationTime = (ms: number | null | undefined) => ms ? new Date(ms).toLocaleString(tPlain("en_us")) : (tPlain("date_unavailable"));
+  const quoteStateLabel = (kind: string) => kind === "live" ? (tPlain("live")) : kind === "close" ? (tPlain("regular_session_close")) : kind === "delayed" ? (tPlain("15_minute_delayed")) : kind === "snapshot" ? (tPlain("scan_snapshot")) : (tPlain("latest_available_quote"));
 
   // "{n} results" with the numeral in a <b> so it can carry tabular-nums
   const resultLine = (() => {
@@ -1133,23 +1219,50 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     return <>{tpl.slice(0, i)}<b>{n}</b>{tpl.slice(i + 3)}</>;
   })();
 
+  if (workspaceOwner !== expectedOwner) return <main className="main2 screener-main scr2"><div className="scr2-status" role="status">{tPlain("loading_your_discover_workspace")}</div></main>;
+
   return (
-    <main className={`main2 screener-main scr2 ${signalView ? "s-view" : "u-view"}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
+    <main className={`main2 screener-main scr2 ${workspaceStyles.workspace}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
       <div className="scr2-bar">
-        {/* ── scope row ── */}
-        <div className="scr2-row">
-          <select
+        <div className={workspaceStyles.toolbar}>
+          <div className={workspaceStyles.search}><DiscoverIcon name="search" /><input className="scr2-search" type="search" placeholder={t("scrSearchPlaceholder")} aria-label={t("scrSearchPlaceholder")} value={searchRaw} onChange={e => setSearchRaw(e.target.value)} /></div>
+          <DiscoverSelect
             className="scr2-select"
             aria-label={t("scr2Market")}
             title={t("scr2Market")}
+            data-cm-control="market"
             value={f.market}
             onChange={(e) => changeMarket(e.target.value as FilterState["market"])}
           >
             <option value="all">{t("scr2AllMarkets")}</option>
             {ALL_MARKETS.map((m) => <option key={m} value={m}>{t(MARKET_TKEY[m])}</option>)}
-          </select>
-
-          <select
+          </DiscoverSelect>
+          <DiscoverSelect className={workspaceStyles.control} data-cm-control="signal" aria-label={t("signalCol")} value={f.signal} onChange={e => patchF({ signal: e.target.value as Sig })}>
+            <option value="any">{tPlain("any_signal")}</option><option value="buy">{tPlain("buy_signals")}</option><option value="sell">{tPlain("sell_signals")}</option><option value="tracked">{tPlain("signal_coverage")}</option>
+          </DiscoverSelect>
+          <DiscoverSelect className={workspaceStyles.control} data-cm-control="regime" aria-label={t("regime")} value={f.uptrend ? "uptrend" : "any"} onChange={e => patchF({ uptrend: e.target.value === "uptrend" })}>
+            <option value="any">{tPlain("any_regime")}</option><option value="uptrend">{t("uptrendRegime")}</option>
+          </DiscoverSelect>
+          <div className={workspaceStyles.toolbarActions}>
+            <button type="button" className={workspaceStyles.control} aria-expanded={advancedOpen} aria-controls="discover-advanced" onClick={() => setAdvancedOpen(o => !o)}><DiscoverIcon name="filter" />{tPlain("filters")}{tags.length + fundPreds.length + (techGate ? 1 : 0) > 0 && <span>· {tags.length + fundPreds.length + (techGate ? 1 : 0)}</span>}</button>
+            <button type="button" className={workspaceStyles.control} data-discover-columns="" onClick={() => setColumnsOpen(true)}><DiscoverIcon name="columns" />{tPlain("columns")}</button>
+            <button type="button" className={workspaceStyles.control} data-discover-views="" onClick={() => setViewsOpen(true)}><DiscoverIcon name="views" />{tPlain("views")}</button>
+          </div>
+        </div>
+        <div className={workspaceStyles.secondaryBar}>
+          <button type="button" data-discover-view={viewId} className={`${workspaceStyles.textButton} ${workspaceStyles.viewName}`} onClick={() => setViewsOpen(true)}>{viewLabel}<span aria-hidden="true">⌄</span></button>
+          <span className={workspaceStyles.saveStatus} role="status" data-discover-sync={account.discoverSync.phase} data-discover-issue={account.discoverIssue ?? undefined} data-failed={account.discoverSync.phase === "failed" || saveRejected || undefined}>{saveStatus}</span>
+          {!columns.includes(effSort.k) && <button type="button" data-discover-hidden-sort="" className={workspaceStyles.textButton} onClick={() => setColumns(c => [...c, effSort.k])}>{tPlain("sorted_by")}{columnLabels[effSort.k]} {effSort.dir === -1 ? "↓" : "↑"} · {tPlain("show_column")}</button>}
+          {(account.discoverBase === "retrying" || account.discoverSync.phase === "failed") && (!account.discoverIssue || account.discoverIssue === "unavailable") && <button type="button" className={workspaceStyles.textButton} onClick={() => { if (writeToken) account.retryDiscover(writeToken); }}>{tPlain("retry")}</button>}
+          {account.discoverIssue === "conflict" && <button type="button" className={workspaceStyles.textButton} onClick={() => { if (writeToken) account.reloadDiscover(writeToken); }}>{tPlain("discard_local_edits_use_account_version")}</button>}
+          <div className={workspaceStyles.secondaryActions}>
+            <div className="fin-toggle" role="group" aria-label={t("scr2Density")}><button type="button" aria-pressed={density === "c"} className={density === "c" ? "on" : ""} onClick={() => pickDensity("c")}>{t("scr2DenComfort")}</button><button type="button" aria-pressed={density === "k"} className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button></div>
+            <button type="button" className={workspaceStyles.iconButton} aria-label={tPlain("signals_and_data_guide")} onClick={() => setHelp("guide")}><DiscoverIcon name="help" /></button>
+          </div>
+        </div>
+        <section id="discover-advanced" className={workspaceStyles.advanced} hidden={!advancedOpen} aria-label={tPlain("advanced_filters")}>
+          <div className={workspaceStyles.advancedHeading}><h2>{tPlain("refine_your_results")}</h2><button type="button" className={workspaceStyles.textButton} onClick={clearAll}>{t("scr2ClearAll")}</button></div>
+          <section className={workspaceStyles.advancedSection}><h3>{tPlain("universe_sector")}</h3><div className="scr2-row">          <DiscoverSelect
             className="scr2-select"
             aria-label={t("scr2Asset")}
             title={t("scr2Asset")}
@@ -1158,10 +1271,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           >
             <option value="all">{t("scr2AssetAll")}</option>
             {ASSET_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
-          </select>
+          </DiscoverSelect>
 
           {/* E03: a label is picked WITHIN one native taxonomy — no crosswalk between them */}
-          <select
+          <DiscoverSelect
             className="scr2-select"
             aria-label={ct("cmTaxonomy")}
             title={ct("cmTaxonomy")}
@@ -1171,9 +1284,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           >
             <option value="">{ct("cmTaxonomyAny")}</option>
             {TAXONOMY_IDS.map((id) => <option key={id} value={id}>{TAXONOMY_LEX[id].name[zi]}</option>)}
-          </select>
+          </DiscoverSelect>
 
-          <select
+          <DiscoverSelect
             className="scr2-select"
             aria-label={ct("cmLabel")}
             title={tax ? ct("cmLabel") : ct("cmLabelPick")}
@@ -1189,18 +1302,148 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             {tax && (scanReady || f.sector === UNCLASSIFIED) && (
               <option value={UNCLASSIFIED} disabled={!scanReady}>{ct("cmUnclassified")}</option>
             )}
-          </select>
+          </DiscoverSelect>
 
-          <input
-            className="scr2-search"
-            type="search"
-            placeholder={t("scrSearchPlaceholder")}
-            aria-label={t("scrSearchPlaceholder")}
-            value={searchRaw}
-            onChange={(e) => { const v = e.target.value; startTransition(() => setSearchRaw(v)); }}
+</div></section>
+          <section className={workspaceStyles.advancedSection}><h3>{tPlain("price_liquidity")}</h3><div className="scr2-row">          {/* E03: a traded-value floor is applied in ONE currency scope — never across currencies */}
+          <DiscoverSelect
+            className="scr2-select"
+            aria-label={ct("cmMinTraded")}
+            title={scope.code === null ? ct("cmLiqOff") : ct("cmMinTraded")}
+            data-cm-control="liq"
+            disabled={scope.code === null && f.liq === 0}
+            value={String(f.liq)}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              // the floor is set IN the scope currency shown beside it, and remembers it
+              patchF({ liq: v, liqCcy: v > 0 && scanReady ? scope.code : null });
+            }}
+          >
+            <option value="0">{`${ct("cmMinTraded")} · ${t("scr2Any")}`}</option>
+            {/* the floor that is set reads in the currency it was set in; the others in the scope's */}
+            {LIQ_FLOORS.map((n) => (
+              <option key={n} value={String(n)}>{`≥ ${formatFloor(n, n === f.liq && f.liqCcy ? f.liqCcy : scope.code)}`}</option>
+            ))}
+          </DiscoverSelect>
+
+          <DiscoverSelect
+            className="scr2-select"
+            aria-label={ct("cmCcy")}
+            title={ct("cmCcy")}
+            data-cm-control="ccy"
+            disabled={scope.codes.length === 0 && (f.ccy ?? "auto") === "auto"}
+            value={f.ccy ?? "auto"}
+            onChange={(e) => changeCcy(e.target.value)}
+          >
+            <option value="auto">{autoCode ? ct("cmCcyAuto").replace("{c}", autoCode) : ct("cmCcyNone")}</option>
+            {scope.codes.map(({ code, n }) => (
+              <option key={code} value={code}>{ct("cmCcyOpt").replace("{c}", code).replace("{n}", n.toLocaleString())}</option>
+            ))}
+            {f.ccy && f.ccy !== "auto" && !scope.codes.some((c) => c.code === f.ccy) && <option value={f.ccy}>{f.ccy}</option>}
+          </DiscoverSelect>
+
+          <DiscoverSelect
+            className="scr2-select"
+            aria-label={t("scr2Mcap")}
+            title={`${t("scr2Mcap")} — ${ct("cmMcapUsd")}`}
+            data-cm-control="mcap"
+            value={String(f.mcap)}
+            onChange={(e) => patchF({ mcap: Number(e.target.value) })}
+          >
+            <option value="0">{`${t("scr2Mcap")} · ${t("scr2Any")}`}</option>
+            {MCAP_FLOORS.map((n) => <option key={n} value={String(n)}>{`≥ ${floorUsd(n)}`}</option>)}
+          </DiscoverSelect>
+
+          <DiscoverSelect
+            className="scr2-select"
+            aria-label={t("scr2W52")}
+            title={t("scr2W52")}
+            value={f.w52}
+            onChange={(e) => patchF({ w52: e.target.value as W52 })}
+          >
+            <option value="any">{`${t("scr2W52")} · ${t("scr2Any")}`}</option>
+            {W52_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
+          </DiscoverSelect>
+
+          <DiscoverSelect
+            className="scr2-select"
+            aria-label={t("scr2Move")}
+            title={t("scr2Move")}
+            data-cm-control="move"
+            value={f.move}
+            onChange={(e) => patchF({ move: e.target.value as Move })}
+          >
+            <option value="any">{`${t("scr2Move")} · ${t("scr2Any")}`}</option>
+            {MOVE_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
+          </DiscoverSelect>
+
+          <button
+            type="button"
+            className={`chip${f.unpriced ? " on" : ""}`}
+            aria-pressed={f.unpriced}
+            title={t("scrShowAllTitle")}
+            onClick={() => patchF({ unpriced: !f.unpriced })}
+          >{t("scr2InclThin")}</button>
+
+          <button
+            type="button"
+            className={`chip${fundOpen ? " on" : ""}`}
+            aria-pressed={fundOpen}
+            aria-expanded={fundOpen}
+            title={ft("fsToggleTitle")}
+            onClick={() => setFundOpen((o) => !o)}
+            data-fund-toggle=""
+          >{ft("fsToggle")}{fundPreds.length > 0 ? ` · ${fundPreds.length}` : ""}</button>
+
+</div></section>
+        {/* ── technical screen row (E01) ── */}
+        <TechnicalScreenBar
+          open={techOpen}
+          onToggle={() => setTechOpen((o) => !o)}
+          scan={techScan}
+          controls={techControls}
+          onControls={setTechControls}
+          summary={techSummary}
+          hiddenUnknown={techHidden}
+        />
+
+        {/* ── fundamental row (E02): typed ranges / explicit unknown, basis + coverage ── */}
+        {fundOpen && (
+          <FundamentalScreenBar
+            scan={fund}
+            field={fundField}
+            onField={setFundField}
+            predicates={fundPreds}
+            onPredicates={setFundPreds}
+            summary={tableReady ? fundSummary : null}
+            sourceEpoch={fundEpoch}
           />
+        )}
+      {/* ── E03: scan state, screened taxonomy, money scope and market-change clears ── */}
+      {loaded && !err && scan && (
+        <CrossMarketStrip
+          source={scan}
+          now={now}
+          taxonomy={tax}
+          sector={f.sector}
+          classStale={f.classStale === true}
+          coverage={coverage}
+          excl={excl}
+          liq={f.liq}
+          floor={floorSt}
+          floorText={floorText}
+          scope={scope}
+          cleared={cleared}
+          marketName={(m) => (m === "all" ? t("scr2AllMarkets") : t(MARKET_TKEY[m as MarketId]))}
+          labelText={labelText}
+          onRetry={retryScan}
+          onToggleStale={() => patchF({ classStale: !f.classStale })}
+          onShowUnclassified={() => patchF({ sector: UNCLASSIFIED, classStale: false })}
+          onDismissCleared={() => setCleared(null)}
+        />
+      )}
 
-          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
+          <details className={workspaceStyles.legacy} data-discover-legacy><summary>{tPlain("quick_filters_device_presets")}</summary>          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
             <div className="scr2-presets">
               {BUILTIN_PRESETS.map((p) => (
                 <button
@@ -1261,7 +1504,6 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               )}
             </div>
           </div>
-        </div>
 
         {(presetReadFailed || pendingPresets.length > 0) && (
           <div role="alert" style={{ padding: "8px 16px", color: "var(--text-2)", overflowWrap: "anywhere" }}>
@@ -1281,167 +1523,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           </div>
         )}
 
-        {/* ── criteria row ── */}
-        <div className="scr2-row">
-          <div className="fin-toggle" role="group" aria-label={t("signalCol")}>
-            <button type="button" className={f.signal === "any" ? "on" : ""} onClick={() => patchF({ signal: "any" })}>{t("scr2Any")}</button>
-            <button type="button" className={f.signal === "buy" ? "on" : ""} onClick={() => patchF({ signal: "buy" })}>{t("scr2SigBuy")}</button>
-            <button type="button" className={f.signal === "sell" ? "on" : ""} onClick={() => patchF({ signal: "sell" })}>{t("scr2SigSell")}</button>
-            <button type="button" className={f.signal === "tracked" ? "on" : ""} onClick={() => patchF({ signal: "tracked" })}>{t("scr2SigTracked")}</button>
-          </div>
-
-          <button
-            type="button"
-            className={`chip${f.uptrend ? " on" : ""}`}
-            aria-pressed={f.uptrend}
-            onClick={() => patchF({ uptrend: !f.uptrend })}
-          >{t("uptrendRegime")}</button>
-
-          {/* E03: a traded-value floor is applied in ONE currency scope — never across currencies */}
-          <select
-            className="scr2-select"
-            aria-label={ct("cmMinTraded")}
-            title={scope.code === null ? ct("cmLiqOff") : ct("cmMinTraded")}
-            data-cm-control="liq"
-            disabled={scope.code === null && f.liq === 0}
-            value={String(f.liq)}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              // the floor is set IN the scope currency shown beside it, and remembers it
-              patchF({ liq: v, liqCcy: v > 0 && scanReady ? scope.code : null });
-            }}
-          >
-            <option value="0">{`${ct("cmMinTraded")} · ${t("scr2Any")}`}</option>
-            {/* the floor that is set reads in the currency it was set in; the others in the scope's */}
-            {LIQ_FLOORS.map((n) => (
-              <option key={n} value={String(n)}>{`≥ ${formatFloor(n, n === f.liq && f.liqCcy ? f.liqCcy : scope.code)}`}</option>
-            ))}
-          </select>
-
-          <select
-            className="scr2-select"
-            aria-label={ct("cmCcy")}
-            title={ct("cmCcy")}
-            data-cm-control="ccy"
-            disabled={scope.codes.length === 0 && (f.ccy ?? "auto") === "auto"}
-            value={f.ccy ?? "auto"}
-            onChange={(e) => changeCcy(e.target.value)}
-          >
-            <option value="auto">{autoCode ? ct("cmCcyAuto").replace("{c}", autoCode) : ct("cmCcyNone")}</option>
-            {scope.codes.map(({ code, n }) => (
-              <option key={code} value={code}>{ct("cmCcyOpt").replace("{c}", code).replace("{n}", n.toLocaleString())}</option>
-            ))}
-            {f.ccy && f.ccy !== "auto" && !scope.codes.some((c) => c.code === f.ccy) && <option value={f.ccy}>{f.ccy}</option>}
-          </select>
-
-          <select
-            className="scr2-select"
-            aria-label={t("scr2Mcap")}
-            title={`${t("scr2Mcap")} — ${ct("cmMcapUsd")}`}
-            value={String(f.mcap)}
-            onChange={(e) => patchF({ mcap: Number(e.target.value) })}
-          >
-            <option value="0">{`${t("scr2Mcap")} · ${t("scr2Any")}`}</option>
-            {MCAP_FLOORS.map((n) => <option key={n} value={String(n)}>{`≥ ${floorUsd(n)}`}</option>)}
-          </select>
-
-          <select
-            className="scr2-select"
-            aria-label={t("scr2W52")}
-            title={t("scr2W52")}
-            value={f.w52}
-            onChange={(e) => patchF({ w52: e.target.value as W52 })}
-          >
-            <option value="any">{`${t("scr2W52")} · ${t("scr2Any")}`}</option>
-            {W52_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
-          </select>
-
-          <select
-            className="scr2-select"
-            aria-label={t("scr2Move")}
-            title={t("scr2Move")}
-            value={f.move}
-            onChange={(e) => patchF({ move: e.target.value as Move })}
-          >
-            <option value="any">{`${t("scr2Move")} · ${t("scr2Any")}`}</option>
-            {MOVE_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
-          </select>
-
-          <button
-            type="button"
-            className={`chip${f.unpriced ? " on" : ""}`}
-            aria-pressed={f.unpriced}
-            title={t("scrShowAllTitle")}
-            onClick={() => patchF({ unpriced: !f.unpriced })}
-          >{t("scr2InclThin")}</button>
-
-          <button
-            type="button"
-            className={`chip${fundOpen ? " on" : ""}`}
-            aria-pressed={fundOpen}
-            aria-expanded={fundOpen}
-            title={ft("fsToggleTitle")}
-            onClick={() => setFundOpen((o) => !o)}
-            data-fund-toggle=""
-          >{ft("fsToggle")}{fundPreds.length > 0 ? ` · ${fundPreds.length}` : ""}</button>
-
-          {/* margin-left:auto rides the toggle itself, not a spacer element — an auto-margin
-              spacer in a wrapping flex row eats the free space and strands the toggle left. */}
-          <div className="fin-toggle" role="group" aria-label={t("scr2Density")} style={{ marginLeft: "auto" }}>
-            <button type="button" className={density === "c" ? "on" : ""} onClick={() => pickDensity("c")}>{t("scr2DenComfort")}</button>
-            <button type="button" className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button>
-          </div>
-        </div>
-
-        {/* ── technical screen row (E01) ── */}
-        <TechnicalScreenBar
-          open={techOpen}
-          onToggle={() => setTechOpen((o) => !o)}
-          scan={techScan}
-          controls={techControls}
-          onControls={setTechControls}
-          summary={techSummary}
-          hiddenUnknown={techHidden}
-        />
-
-        {/* ── fundamental row (E02): typed ranges / explicit unknown, basis + coverage ── */}
-        {fundOpen && (
-          <FundamentalScreenBar
-            scan={fund}
-            field={fundField}
-            onField={setFundField}
-            predicates={fundPreds}
-            onPredicates={setFundPreds}
-            summary={tableReady ? fundSummary : null}
-            sourceEpoch={fundEpoch}
-          />
-        )}
-      </div>
-
-      {/* ── E03: scan state, screened taxonomy, money scope and market-change clears ── */}
-      {loaded && !err && scan && (
-        <CrossMarketStrip
-          source={scan}
-          now={now}
-          taxonomy={tax}
-          sector={f.sector}
-          classStale={f.classStale === true}
-          coverage={coverage}
-          excl={excl}
-          liq={f.liq}
-          floor={floorSt}
-          floorText={floorText}
-          scope={scope}
-          cleared={cleared}
-          marketName={(m) => (m === "all" ? t("scr2AllMarkets") : t(MARKET_TKEY[m as MarketId]))}
-          labelText={labelText}
-          onRetry={retryScan}
-          onToggleStale={() => patchF({ classStale: !f.classStale })}
-          onShowUnclassified={() => patchF({ sector: UNCLASSIFIED, classStale: false })}
-          onDismissCleared={() => setCleared(null)}
-        />
-      )}
-      {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
+</details>
+          <div className={workspaceStyles.legacy}>      {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
       <SmartScreensPanel
         identity={identity}
         rows={rows}
@@ -1458,12 +1541,16 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         onOpen={openSmartScreen}
       />
 
+</div>
+        </section>
+      </div>
+      {historicalVisible && <div className={workspaceStyles.researchNote}><span>{tPlain("historical_backtest_exit_rules_differ_from_the")}</span><button type="button" className={workspaceStyles.textButton} onClick={() => setHelp("guide")}>{tPlain("read_methodology")}</button></div>}
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
       <div className="scr2-status">
         {/* no count before the manifest answers — "0 results" under a skeleton is a lie */}
         {tableReady && <span>{resultLine}</span>}
 
-        {tableReady && signalView && (
+        {tableReady && (
           <>
             <span className="fin-tag" style={{ "--c": "var(--brand-2)" } as React.CSSProperties}>
               {t("scr2Coverage").replace("{n}", trackedCount.toLocaleString())}
@@ -1483,12 +1570,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => (tg.id === "market" ? changeMarket("all") : tg.id === "ccy" ? changeCcy("auto") : patchF(tg.clear))}
           >{tg.label} ×</button>
         ))}
+        {techGate && <button type="button" className="fin-tag scr2-ftag" aria-label={tPlain("remove_technical_filters")} onClick={() => setTechControls(TECH_DEFAULT_CONTROLS)}>{tPlain("technical_filters")} · {techControls.tf} ×</button>}
         <FundamentalStatusItems
           predicates={fundPreds}
           tally={tableReady ? fundTally : null}
           onRemove={(id) => setFundPreds((ps) => ps.filter((p) => p.field !== id))}
         />
-        {tags.length + fundPreds.length >= 2 && (
+        {tags.length + fundPreds.length + (techGate ? 1 : 0) >= 1 && (
           <button type="button" className="scr2-clear" onClick={clearAll}>{t("scr2ClearAll")}</button>
         )}
 
@@ -1511,39 +1599,32 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       </div>
 
       <div className="scr2-table" ref={tableRef}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveDrag(e.active.id as DiscoverColumn)} onDragCancel={() => setActiveDrag(null)} onDragEnd={e => { setActiveDrag(null); if (e.over) setColumns(c => moveDiscoverColumn(c, String(e.active.id), String(e.over!.id))); }}
+          accessibility={{ screenReaderInstructions: { draggable: tPlain("press_space_to_move_a_column_arrow") }, announcements: {
+            onDragStart: ({ active }) => zh ? `已选择${columnLabels[active.id as DiscoverColumn]}列，当前为第${columns.indexOf(active.id as DiscoverColumn) + 1}列。` : `Picked up ${columnLabels[active.id as DiscoverColumn]}, column ${columns.indexOf(active.id as DiscoverColumn) + 1} of ${columns.length}.`,
+            onDragOver: ({ active, over }) => over && over.id !== "sym" ? zh ? `${columnLabels[active.id as DiscoverColumn]}将移至第${columns.indexOf(over.id as DiscoverColumn) + 1}列。` : `${columnLabels[active.id as DiscoverColumn]} will move to column ${columns.indexOf(over.id as DiscoverColumn) + 1} of ${columns.length}.` : undefined,
+            onDragEnd: ({ active, over }) => over && over.id !== "sym" ? zh ? `${columnLabels[active.id as DiscoverColumn]}已移至第${columns.indexOf(over.id as DiscoverColumn) + 1}列。` : `${columnLabels[active.id as DiscoverColumn]} moved to column ${columns.indexOf(over.id as DiscoverColumn) + 1} of ${columns.length}.` : tPlain("column_order_unchanged"),
+            onDragCancel: () => tPlain("move_cancelled_column_order_unchanged"),
+          } }}>
         <table className="scr2">
           <thead>
             <tr>
-              {cols.map((c) => {
-                const on = effSort.k === c.k;
-                return (
-                  <th
-                    key={c.k}
-                    className={[interactionStyles.sortHeader, on ? "sorted" : "", c.fund ? fundamentalThClass : ""].filter(Boolean).join(" ")}
-                    aria-sort={on ? (effSort.dir === -1 ? "descending" : "ascending") : "none"}
-                    title={c.fund ? fieldName(ft, c.fund) : c.title}
-                    data-fund-col={c.fund}
-                  >
-                    <button type="button" className={interactionStyles.sortButton}
-                      onClick={() => setSort({ k: c.k, dir: on && effSort.dir === -1 ? 1 : -1 })}>
-                      {c.label}<span aria-hidden="true">{on ? (effSort.dir === -1 ? " ↓" : " ↑") : ""}</span>
-                    </button>
-                  </th>
-                );
-              })}
-              {techOnScreen && <th className={TECH_TH_CLASS} data-tech-col>{tt("tsColumn", { tf: techControls.tf })}</th>}
+              <SortableContext items={columns} strategy={horizontalListSortingStrategy}>
+                {cols.map(c => <DiscoverColumnHeader key={c.k} id={c.k} label={c.label} sorted={effSort.k === c.k} direction={effSort.dir}
+                  extraClass={c.fund ? fundamentalThClass : c.k === "technical" ? TECH_TH_CLASS : ""}
+                  onSort={["overnight", "overnightChg", "technical"].includes(c.k) ? undefined : () => setSort({ k: c.k as SortKey, dir: effSort.k === c.k && effSort.dir === -1 ? 1 : -1 })} />)}
+              </SortableContext>
             </tr>
           </thead>
           <tbody>
             {/* loading skeleton — .fin-skel, sized to the active density */}
-            {(!loaded || fundWait) && !err && Array.from({ length: SHIMMER_ROWS }).map((_, i) => (
+            {(!loaded || fundWait || techWait) && !err && Array.from({ length: SHIMMER_ROWS }).map((_, i) => (
               <tr key={`sk${i}`} className="scr2-skel-row" style={{ height: rowH }}>
                 {cols.map((c, j) => (
                   <td key={c.k} className={c.fund ? fundamentalTdClass : undefined}>
                     <div className="fin-skel" style={{ height: skelH, width: c.w, marginLeft: j === 0 ? 0 : "auto" }} />
                   </td>
                 ))}
-                {techOnScreen && <td className={TECH_CELL_CLASS}><div className="fin-skel" style={{ height: skelH, width: "96px", marginLeft: "auto" }} /></td>}
               </tr>
             ))}
 
@@ -1592,7 +1673,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             {/* windowed rows */}
             {tableReady && windowedRows.map((r) => {
               // chg coloring: neutral when chg is null (thin row or missing)
-              const chgCls = r.chg == null ? "" : r.chg >= 0 ? "up" : "down";
+              const quote = discoverRegularReading(r, quotes.regular[r.sym], quotes.now);
+              const overnight = discoverOvernightReading(quotes.overnight[r.sym], quotes.now);
+              const chgCls = quote.change == null ? "" : quote.change >= 0 ? "up" : "down";
+              const quoteLabel = quote.kind === "snapshot" ? `${tPlain("scan_snapshot_2")} · ${asOf}` : `${quote.kind === "live" ? (tPlain("live")) : quote.kind === "close" ? (tPlain("session_close")) : quote.kind === "delayed" ? (tPlain("15_min_delayed")) : (tPlain("quote"))}${quote.observed ? ` · ${new Date(quote.observed).toLocaleString(tPlain("en_us"))}` : ""}`;
               const buy = isBuy(r.verdict);
               const a = annot.get(r.sym);
               const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
@@ -1607,13 +1691,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 </div>
               </>;
               const symCell = (
-                <td>
+                <td data-column="sym">
                   {href ? <Link href={href} prefetch={false} className={`sym-cell ${interactionStyles.symbolLink}`} onClick={recordPick}>{symbolIdentity}</Link>
                     : <div className="sym-cell">{symbolIdentity}</div>}
                 </td>
               );
-              const lastCell = <td>{r.last == null ? "—" : fmt(r.last, r.last < 10 ? 4 : 2)}</td>;
-              const chgCell = <td className={chgCls}>{r.chg == null ? "—" : `${r.chg >= 0 ? "+" : ""}${fmt(r.chg)}%`}</td>;
+              const lastCell = <td data-column="last" title={quoteLabel}><button type="button" data-discover-quote={r.sym} className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}价格详情` : `${r.sym} price details`} onClick={() => setQuoteDetail(r)}><span key={quote.price} className={workspaceStyles.quoteChanged}>{quote.price == null ? "—" : fmt(quote.price, quote.price < 10 ? 4 : 2)}</span>{quote.kind === "live" ? <span className={workspaceStyles.quoteLive} aria-label={tPlain("live")} /> : <span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span>}</button></td>;
+              const chgCell = <td data-column="chg" className={chgCls} title={quoteLabel}><span key={quote.change} className={workspaceStyles.quoteChanged}>{quote.change == null ? "—" : `${quote.change >= 0 ? "+" : ""}${fmt(quote.change)}%`}</span></td>;
               // A data attribute for tests and styling, never rendered: the ISO code, or the kind.
               const ccyAttr = cur.kind === "code" ? cur.code : cur.kind;
               const dvCell = (
@@ -1624,66 +1708,30 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                     : r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
                 >{formatMoney(r.dv, cur)}</td>
               );
-              const sigCell = (
-                <td>
-                  {r.verdict
-                    ? <span className={`pill ${buy ? "buy" : "sell"}${verdictIsStale(r.vts) ? " stale" : ""}`} title={r.vts ? `${verdictLabel(r.verdict, lang)} · ${r.vts}` : undefined}>{verdictLabel(r.verdict, lang)}</span>
-                    : "—"}
-                </td>
-              );
+              const signalName = r.verdict === "REBUY" ? (tPlain("re_buy")) : r.verdict === "RECLAIM" ? (tPlain("re_entry")) : r.verdict ? verdictLabel(r.verdict, lang) : "";
+              const sigCell = <td data-column="verdict">{r.verdict ? <button type="button" className={`${workspaceStyles.signalButton} ${buy ? "up" : r.verdict === "SELL" ? "down" : ""}`} title={`${signalName} · ${r.vts || (tPlain("date_unavailable_2"))} · ${tPlain("select_for_explanation")}`} onClick={() => setHelp(r)}>{signalName}{verdictIsStale(r.vts) || !r.vts ? <span aria-label={tPlain("historical_reading")}> ·</span> : null}</button> : <span className={workspaceStyles.uncovered}>{tPlain("not_covered")}</span>}</td>;
+              const pct = (n: number | null) => n == null ? "—" : `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
+              const cells: Partial<Record<DiscoverColumn, React.ReactNode>> = {
+                sym: symCell, verdict: sigCell, last: lastCell, chg: chgCell, dv: dvCell,
+                regimeBull: <td data-column="regimeBull"><button type="button" className={`${workspaceStyles.regimeButton} ${r.regimeBull === true ? "up" : ""}`} onClick={() => setHelp(r)}>{r.regimeBull === null ? "—" : r.regimeBull ? t("uptrend") : t("mixed")}</button></td>,
+                mcap: <td>{usd(r.mcap)}</td>, gics: <td className="scr2-sec">{a ? <SectorCellContent compact d={a.disp} labelText={labelText} /> : "—"}</td>,
+                overnight: <td data-column="overnight" title={overnight ? `BOATS · ${new Date(overnight.extTs * 1000).toLocaleString()}` : tPlain("no_current_qualified_overnight_trade")}><button type="button" className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}夜盘详情` : `${r.sym} overnight details`} onClick={() => setQuoteDetail(r)}>{overnight ? fmt(overnight.extPrice) : "—"}<span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span></button></td>,
+                overnightChg: <td className={overnight?.extChg != null ? overnight.extChg >= 0 ? "up" : "down" : ""} title={tPlain("overnight_trade_versus_the_regular_session_close")}>{overnight?.extChg != null ? pct(overnight.extChg) : "—"}</td>,
+                vol: <td>{shares(r.vol)}</td>, offHi: <td>{pct(r.offHi)}</td>, offLo: <td>{pct(r.offLo)}</td>, hi52: <td>{fmt(r.hi52)}</td>, lo52: <td>{fmt(r.lo52)}</td>,
+                vts: <td>{r.vts?.slice(0, 10) ?? "—"}</td>,
+                wr: <td>{r.wr != null ? `${(r.wr * 100).toFixed(0)}%` : "—"}</td>, pf: <td>{fmt(r.pf)}</td>, cagr: <td>{r.cagr != null ? `${(r.cagr * 100).toFixed(1)}%` : "—"}</td>,
+                mscRank: <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || notClassified(lang)}</span> : "—"}</td>,
+                mscNetGex: <td className={r.mscNetGex != null ? r.mscNetGex >= 0 ? "up" : "down" : ""}>{r.mscNetGex != null ? `${r.mscNetGex >= 0 ? "+" : ""}${r.mscNetGex.toFixed(1)}B` : "—"}</td>, mscFlip: <td>{pct(r.mscFlip ?? null)}</td>,
+                technical: techSource ? <TechnicalCell c={classifyTechnical(techSource, r.sym, techControls.tf, techNow)} /> : <td>—</td>,
+              };
               return (
                 <tr key={r.sym} onClick={(event) => {
                   if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
                   if (event.target instanceof Element && event.target.closest('a,button,input,select,textarea,[role="button"],[role="link"]')) return;
                   if (href) { recordPick(); router.push(href); }
                 }}>
-                  {symCell}
-                  {lastCell}
-                  {chgCell}
-                  {signalView ? (
-                    <>
-                      {sigCell}
-                      <td>
-                        {r.regimeBull == null
-                          ? "—"
-                          : <span className={`regchip ${r.regimeBull ? "up" : "warn"}`}>{r.regimeBull ? t("uptrend") : t("mixed")}</span>}
-                      </td>
-                      <td>{r.wr != null ? (r.wr * 100).toFixed(0) + "%" : "—"}</td>
-                      <td>{r.pf != null ? r.pf.toFixed(2) : "—"}</td>
-                      <td>{r.cagr != null ? <>{(r.cagr * 100).toFixed(1)}%<span className="bar"><i style={{ width: `${Math.max(2, Math.min(100, r.cagr * 250))}%` }} /></span></> : "—"}</td>
-                      {dvCell}
-                    </>
-                  ) : (
-                    <>
-                      {dvCell}
-                      <td>{usd(r.mcap)}</td>
-                      {/* position, not day direction — never up/down coloured */}
-                      <td>{r.offHi == null ? "—" : `${r.offHi > 0 ? "+" : ""}${r.offHi.toFixed(1)}%`}</td>
-                      <td className="scr2-sec">{a ? <SectorCellContent d={a.disp} labelText={labelText} /> : "—"}</td>
-                      {glance && (
-                        <>
-                          {/* γ regime — the desk's word + colour (one table, lib/mscGlance) */}
-                          <td>{r.mscRegime ? <span style={{ color: REGIME_COLORS[r.mscRegime] }}>{gexT(`regime${r.mscRegime}`) || notClassified(lang)}</span> : "—"}</td>
-                          {/* net dealer gamma — polarity tone (the desk's POSITIVE/NEGATIVE pairing) */}
-                          <td className={r.mscNetGex != null ? (r.mscNetGex >= 0 ? "up" : "down") : ""}>{r.mscNetGex != null ? `${r.mscNetGex >= 0 ? "+" : ""}${r.mscNetGex.toFixed(1)}B` : "—"}</td>
-                          {/* distance to flip — position, not day direction (offHi precedent) */}
-                          <td>{r.mscFlip != null ? `${r.mscFlip > 0 ? "+" : ""}${r.mscFlip.toFixed(1)}%` : "—"}</td>
-                        </>
-                      )}
-                      {sigCell}
-                    </>
-                  )}
-                  {fundCols.map((id) => (
-                    <FundamentalCell
-                      key={id}
-                      field={id}
-                      c={fundCells?.get(r.sym)?.[id]}
-                      sym={r.sym}
-                      t={ft}
-                      onOpen={(sym, field, el) => setEvidence({ sym, name: displayName(r, lang), field, opener: el })}
-                    />
-                  ))}
-                  {techOnScreen && <TechnicalCell c={classifyTechnical(techSource!, r.sym, techControls.tf, techNow)} />}
+                  {cols.map(c => <Fragment key={c.k}>{c.fund ? <FundamentalCell field={c.fund} c={fundCells?.get(r.sym)?.[c.fund]} sym={r.sym} t={ft}
+                    onOpen={(sym, field, el) => setEvidence({ sym, name: displayName(r, lang), field, opener: el })} /> : cells[c.k]}</Fragment>)}
                 </tr>
               );
             })}
@@ -1694,18 +1742,49 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             )}
           </tbody>
         </table>
+        <DragOverlay>{activeDrag ? <div className={workspaceStyles.dragPreview}><DiscoverIcon name="grip" />{columnLabels[activeDrag]}</div> : null}</DragOverlay>
+        </DndContext>
       </div>
 
       {/* provenance waits for real numbers — an as-of of "—" beside "0 tracked names" would
           describe a dataset that does not exist yet */}
       {loaded && !err && (
         <div className="fin-asof scr2-asof">
-          <span>{t("scr2Prov1").replace("{d}", asOf || "—")}</span>
+          <span>{tPlain("filters_sort_snapshot")} · {asOf || "—"}</span>
           <span aria-hidden="true">·</span>
-          <span>{t("scr2Prov2").replace("{n}", trackedCount.toLocaleString())}</span>
+          <span>{quotes.regularStatus === "unavailable" ? (tPlain("regular_quote_refresh_unavailable_showing_snapshot")) : (tPlain("visible_quotes_refresh_automatically_session_aware_prices"))}{quotes.overnightStatus === "unavailable" ? (tPlain("overnight_refresh_unavailable")) : ""}</span>
         </div>
       )}
 
+      {columnsOpen && <DiscoverColumns columns={columns} labels={columnLabels} onChange={setColumns} onClose={() => setColumnsOpen(false)} zh={zh} />}
+      {viewsOpen && <DiscoverViews views={account.discover.views} activeId={viewId} onSelect={chooseWorkspace} onSave={saveView} onDelete={deleteView} onTemplate={useTemplate} onClose={() => setViewsOpen(false)} zh={zh} canSave={canSaveViews} />}
+      {quoteDetail && detailRegular && <DiscoverDialog title={`${quoteDetail.sym} · ${tPlain("price_details")}`} onClose={() => setQuoteDetail(null)}>
+        <div className={workspaceStyles.helpBody}>
+          <h3>{tPlain("regular_session")}</h3>
+          <dl><dt>{t("colLast")}</dt><dd>{detailRegular.price == null ? "—" : fmt(detailRegular.price)}</dd><dt>{t("colChgPctShort")}</dt><dd>{detailRegular.change == null ? "—" : `${detailRegular.change > 0 ? "+" : ""}${fmt(detailRegular.change)}%`}</dd><dt>{tPlain("state")}</dt><dd>{quoteStateLabel(detailRegular.kind)}</dd><dt>{tPlain("observed_at")}</dt><dd>{detailRegular.kind === "snapshot" ? asOf || "—" : observationTime(detailRegular.observed)}</dd></dl>
+          {quotes.regularStatus === "unavailable" && <p>{tPlain("regular_quote_refresh_is_unavailable_the_last")}</p>}
+          <h3>{tPlain("overnight_3")}</h3>
+          {detailOvernight ? <dl><dt>{tPlain("trade_price")}</dt><dd>{fmt(detailOvernight.extPrice)}</dd><dt>{tPlain("versus_regular_close")}</dt><dd>{detailOvernight.extChg == null ? "—" : `${detailOvernight.extChg > 0 ? "+" : ""}${fmt(detailOvernight.extChg)}%`}</dd><dt>{tPlain("source_venue")}</dt><dd>Tiingo · BOATS</dd><dt>{tPlain("trade_time")}</dt><dd>{observationTime(detailOvernight.extTs * 1000)}</dd><dt>{tPlain("valid_until")}</dt><dd>{observationTime(detailOvernight.extExpiresTs ? detailOvernight.extExpiresTs * 1000 : null)}</dd></dl> : <p>{tPlain("no_current_qualified_boats_overnight_trade_is")}</p>}
+          {quotes.overnightStatus === "unavailable" && <p>{tPlain("overnight_refresh_is_currently_unavailable")}</p>}
+          <p>{tPlain("quotes_refresh_automatically_filtering_and_sorting_use")}</p>
+        </div>
+      </DiscoverDialog>}
+      {help && <DiscoverDialog title={help === "guide" ? (tPlain("signals_regimes_historical_data")) : `${help.sym} · ${tPlain("signal_details")}`} onClose={() => setHelp(null)} wide>
+        <div className={workspaceStyles.helpBody}>
+          {help !== "guide" && <dl><dt>{tPlain("last_recorded_event")}</dt><dd>{help.verdict ?? "—"} · {help.vts ?? (tPlain("date_unavailable_2"))}</dd><dt>{tPlain("regime_snapshot")}</dt><dd>{help.regimeBull === null ? "—" : help.regimeBull ? t("uptrend") : t("mixed")} · {asOf}</dd></dl>}
+          <h3>{tPlain("find_agreement_between_signal_and_regime")}</h3>
+          <p>{tPlain("the_buy_signals_uptrend_view_combines_the")}</p>
+          <h3>{tPlain("what_each_signal_means")}</h3>
+          <dl><dt>{verdictLabel("BUY", lang)}</dt><dd>{tPlain("a_confirmed_bullish_momentum_event_in_the")}</dd><dt>{tPlain("re_buy")}</dt><dd>{tPlain("a_fast_bullish_reversal_within_three_3")}</dd><dt>{tPlain("re_entry")}</dt><dd>{tPlain("trend_repair_after_an_exit_or_a")}</dd><dt>{verdictLabel("SELL", lang)}</dt><dd>{tPlain("a_trailing_structure_stop_event_in_the")}</dd></dl>
+          <p>{tPlain("not_covered_means_the_scan_has_no")}</p>
+          <h3>{tPlain("what_the_historical_metrics_measure")}</h3>
+          <p>{tPlain("win_rate_is_the_share_of_simulated")}</p>
+          <p>{tPlain("the_historical_test_uses_3_session_bars")}</p>
+          <h3>{tPlain("price_sessions_sector_provenance")}</h3>
+          <p>{tPlain("last_and_chg_use_the_same_regular")}</p>
+          <p>{tPlain("sector_labels_retain_their_native_classification_their")}</p>
+        </div>
+      </DiscoverDialog>}
       {evidence && (
         <FundamentalEvidence
           key={`${evidence.sym}|${evidence.field}`}
@@ -1721,3 +1800,4 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     </main>
   );
 }
+

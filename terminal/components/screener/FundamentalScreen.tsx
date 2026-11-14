@@ -1,4 +1,5 @@
 "use client";
+import DiscoverSelect from "./DiscoverSelect";
 // E02 — the Screener's fundamental screen. Presentation only: every value, unit conversion,
 // classification and count comes from lib/fundamentalScan (the one scaling boundary and the
 // one coverage partition), so the bar, the table cells and the evidence drawer cannot disagree.
@@ -225,7 +226,7 @@ export function FundamentalScreenBar({ scan, field, onField, predicates, onPredi
     <>
       <div className="scr2-row" data-fund-bar="">
         <span className={s.label}>{t("fsRowLabel")}</span>
-        <select
+        <DiscoverSelect
           className="scr2-select"
           aria-label={t("fsField")}
           title={t("fsField")}
@@ -234,7 +235,7 @@ export function FundamentalScreenBar({ scan, field, onField, predicates, onPredi
           data-fund-field-select=""
         >
           {FUNDAMENTAL_FIELD_IDS.map((id) => <option key={id} value={id}>{fieldName(t, id)}</option>)}
-        </select>
+        </DiscoverSelect>
 
         <div className="fin-toggle" role="group" aria-label={t("fsMode")}>
           <button type="button" className={mode === "range" ? "on" : ""} aria-pressed={mode === "range"} onClick={() => { setMode("range"); setError(null); }}>{t("fsModeRange")}</button>
@@ -397,3 +398,4 @@ export type FundamentalEvidenceTarget = { sym: string; name: string; field: Fund
 /** Cell classes for a fundamental column (they keep it visible in the ≤640px views). */
 export const fundamentalThClass = s.fundTh;
 export const fundamentalTdClass = s.fundTd;
+

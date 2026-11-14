@@ -1,3 +1,4 @@
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import path, { join } from "node:path";
@@ -24,6 +25,7 @@ const MANIFEST = JSON.parse(readFileSync(path.join(__dirname, "../../tests/fixtu
 const SCAN = JSON.parse(readFileSync(path.join(__dirname, "../lib/__tests__/fixtures/screenerScan/classification.producer.json"), "utf8"));
 
 async function open(page: Page, lang: "en" | "zh", scan: "ok" | "404" = "ok") {
+  await isolateDiscoverAccount(page);
   await page.clock.setFixedTime(new Date("2026-10-11T12:00:00Z"));
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
@@ -35,6 +37,7 @@ async function open(page: Page, lang: "en" | "zh", scan: "ok" | "404" = "ok") {
       ? route.fulfill({ status: 404, contentType: "application/json", body: '{"error":"not found"}' })
       : route.fulfill({ json: SCAN }));
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(page.locator("tbody tr .sym-cell").first()).toBeVisible({ timeout: 60_000 });
 }
 
@@ -54,24 +57,24 @@ async function shoot(page: Page, file: string) {
 for (const lang of ["en", "zh"] as const) {
   test(`native GICS screen with stale and unclassified counts — ${lang}`, async ({ page }, testInfo) => {
     await open(page, lang);
-    await page.locator('select.scr2-select:has(option[value="hk"])').selectOption("us");
-    await page.locator('[data-cm-control="taxonomy"]').selectOption("gics_sector");
-    await page.locator('[data-cm-control="label"]').selectOption("Information Technology");
+    await chooseDiscoverOption(page.locator('[data-cm-control="market"]'), "us");
+    await chooseDiscoverOption(page.locator('[data-cm-control="taxonomy"]'), "gics_sector");
+    await chooseDiscoverOption(page.locator('[data-cm-control="label"]'), "Information Technology");
     await expect(page.locator('[data-cm-excluded="stale"]')).toBeVisible();
     await shoot(page, `${testInfo.project.name}-${lang}-gics-stale.png`);
   });
 
   test(`market change to Hong Kong — the USD floor and market-cap floor cleared by name, an HKD floor set — ${lang}`, async ({ page }, testInfo) => {
     await open(page, lang);
-    await page.locator('select.scr2-select:has(option[value="2000000000"])').selectOption("2000000000");
-    await page.locator('[data-cm-control="liq"]').selectOption("5000000");
+    await chooseDiscoverOption(page.locator('[data-cm-control="mcap"]'), "2000000000");
+    await chooseDiscoverOption(page.locator('[data-cm-control="liq"]'), "5000000");
     await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-scope", "USD");
-    await page.locator('select.scr2-select:has(option[value="hk"])').selectOption("hk");
-    await page.locator('[data-cm-control="taxonomy"]').selectOption("yahoo_sector");
+    await chooseDiscoverOption(page.locator('[data-cm-control="market"]'), "hk");
+    await chooseDiscoverOption(page.locator('[data-cm-control="taxonomy"]'), "yahoo_sector");
     await expect(page.locator('[data-cm-cleared="mcap"]')).toBeVisible();
     await expect(page.locator('[data-cm-cleared="liq"]')).toBeVisible();
     // set again in Hong Kong, the same number is an HKD floor — never the USD one re-read
-    await page.locator('[data-cm-control="liq"]').selectOption("5000000");
+    await chooseDiscoverOption(page.locator('[data-cm-control="liq"]'), "5000000");
     await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-scope", "HKD");
     await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
     await shoot(page, `${testInfo.project.name}-${lang}-hk-money.png`);
@@ -80,10 +83,13 @@ for (const lang of ["en", "zh"] as const) {
   test(`no classification read — labels "not read", no Unclassified choice — ${lang}`, async ({ page }, testInfo) => {
     await open(page, lang, "404");
     await expect(page.locator('[data-cm="scan"]')).toHaveAttribute("data-cm-state", "absent", { timeout: 20_000 });
-    await page.locator('[data-cm-control="taxonomy"]').selectOption("yahoo_sector");
+    await chooseDiscoverOption(page.locator('[data-cm-control="taxonomy"]'), "yahoo_sector");
     await expect(page.locator('[data-cm-count="unavailable"]')).toBeVisible();
-    await expect(page.locator('[data-cm-control="label"] option[value="__unclassified__"]')).toHaveCount(0);
+    await page.locator('[data-cm-control="label"]').click();
+    await expect(page.locator('[role="option"][data-value="__unclassified__"]')).toHaveCount(0);
+    await page.keyboard.press("Escape");
     await expect(page.locator('[data-cm-action="unclassified"]')).toHaveCount(0);
     await shoot(page, `${testInfo.project.name}-${lang}-scan-unread.png`);
   });
 }
+

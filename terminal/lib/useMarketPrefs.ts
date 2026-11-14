@@ -9,6 +9,8 @@ import {
 } from "@/lib/accountIdentity";
 import { adoptLegacySlotIntoGuest, browserStorage, readOwnerSlot, writeOwnerSlot } from "@/lib/ownerStorage";
 import { LOCAL_STATUS, PreferencePump, type DeliveryStatus } from "@/lib/prefDelivery";
+import { EMPTY_DISCOVER, type DiscoverPreferences, type DiscoverView } from "@/lib/discoverWorkspace";
+import { DiscoverPreferenceClient, type DiscoverPreferenceSnapshot } from "@/lib/discoverPreferences";
 import {
   readMarketPrefs, serializeMarketPrefs, toggleMarket, setFollowedMarkets,
   ALL_MARKETS, DEFAULT_PREFS, type FollowId, type MarketId, type MarketPrefs,
@@ -99,6 +101,7 @@ const LS_LEGACY_RECEIPT = "mm.marketPrefs.legacy.v1";
 let state: MarketPrefs = DEFAULT_PREFS;
 let terminal: TerminalPrefs = DEFAULT_TERMINAL_PREFS;
 let metaPrefs: MetaPrefs = {};
+let discoverClient: DiscoverPreferenceClient | null = null;
 // Last-known raw blobs, kept verbatim so a write can spread them. `auth.updateUser` merges
 // TOP-LEVEL keys but REPLACES a nested object wholesale, so writing `{ terminal: { updown } }`
 // would delete `terminal.start_tf`. Every write goes through the spread of these.
@@ -157,6 +160,13 @@ export type AccountPrefsSnapshot = {
   terminal: TerminalPrefs;
   /** The macro `prefs` blob (theme / themeAuto / lang), sanitized. */
   metaPrefs: MetaPrefs;
+  /** Full layouts live in workspace_settings, outside authentication metadata. */
+  discover: DiscoverPreferences;
+  discoverReady: boolean;
+  discoverBase: DiscoverPreferenceSnapshot["base"];
+  discoverSync: DeliveryStatus;
+  discoverIssue: DiscoverPreferenceSnapshot["issue"];
+  discoverDevice: boolean;
   /** false until the account (or the local fallback) has answered. Callers must not filter the
    *  universe while this is false, or the first paint would hide enabled symbols. */
   ready: boolean;
@@ -189,6 +199,12 @@ function hydrationBase(): AccountPrefsSnapshot["base"] {
 function buildSnapshot(): AccountPrefsSnapshot {
   return {
     prefs: state, terminal, metaPrefs, ready, owner, sync,
+    discover: discoverClient?.snapshot().value ?? EMPTY_DISCOVER,
+    discoverReady: discoverClient?.snapshot().ready ?? false,
+    discoverBase: discoverClient?.snapshot().base ?? "pending",
+    discoverSync: discoverClient?.snapshot().sync ?? LOCAL_STATUS,
+    discoverIssue: discoverClient?.snapshot().issue ?? null,
+    discoverDevice: discoverClient?.snapshot().device ?? true,
     base: hydrationBase(),
     held: pendingTerminal !== null || pendingMetaPrefs !== null,
   };
@@ -205,7 +221,7 @@ function getSnapshot() { return snapshot; }
 // permissive defaults so the first paint never hides a symbol that is in fact enabled, and never
 // disagrees with what the pre-paint script is about to put on the document.
 const SERVER_SNAPSHOT: AccountPrefsSnapshot = {
-  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, ready: false,
+  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, discover: EMPTY_DISCOVER, discoverReady: false, discoverBase: "pending", discoverSync: LOCAL_STATUS, discoverIssue: null, discoverDevice: true, ready: false,
   owner: GUEST_OWNER, sync: LOCAL_STATUS, base: "pending", held: false,
 };
 function getServerSnapshot() { return SERVER_SNAPSHOT; }
@@ -271,6 +287,7 @@ function beginOwner(next: string) {
   hydrateFailed = false;
   state = DEFAULT_PREFS;
   metaPrefs = {};
+  discoverClient?.dispose(); discoverClient = null;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};
@@ -389,7 +406,7 @@ function hydrate(next: string) {
       // Same-owner last good, or the permissive default. NOT another owner's payload: readLocal
       // reads this owner's slot only.
       if (!marketsDirty) state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
-      terminal = localTerminal();
+        terminal = localTerminal();
       rawTerminal = {};
       rawMetaPrefs = {};   // symmetric with rawTerminal above — both merge bases are unknown again
       // The UI stops waiting, but the merge base is still unknown, so `baseLoaded` stays false
@@ -557,6 +574,12 @@ export type AccountPrefsApi = AccountPrefsSnapshot & {
   setUpDown: (v: UpDown) => void;
   /** Records the account language ONLY — pair it with i18n's setLang to switch the live UI. */
   setLangPref: (l: LangId) => void;
+  openDiscover: (token?: OwnerToken) => void;
+  retryDiscover: (token?: OwnerToken) => void;
+  reloadDiscover: (token?: OwnerToken) => void;
+  saveDiscover: (view: DiscoverView, named?: boolean, token?: OwnerToken) => boolean;
+  deleteDiscover: (id: string, token?: OwnerToken) => boolean;
+  renameDiscover: (id: string, name: string, token?: OwnerToken) => boolean;
   /** Deliver the outstanding desired state now, jumping the retry backoff. Wired to the UI's
    *  "Retry" affordance; a no-op for a guest or when nothing is outstanding. */
   retrySync: () => void;
@@ -573,6 +596,29 @@ export function retryPrefSync() { pump?.retryNow(); }
  */
 export function persistTradeTypes(next: readonly string[]) {
   pump?.queue({ trade_types: [...next] });
+}
+
+/** Lazily activate Discover under the same identity lifecycle used by preferences.
+ * Other pages do not fetch layouts. The API independently verifies the expected owner. */
+export function openDiscover(token = currentOwnerToken()) {
+  if (!ownerTokenIsCurrent(token)) return;
+  if (!discoverClient) {
+    const gen = generation;
+    discoverClient = new DiscoverPreferenceClient(owner, browserStorage(), () => { if (gen === generation) publish(); });
+  }
+  void discoverClient.load();
+}
+export function retryDiscover(token = currentOwnerToken()) { if (ownerTokenIsCurrent(token)) discoverClient?.retry(); }
+/** Explicit "Use account version": reads before replacing the local pending intent. */
+export function reloadDiscover(token = currentOwnerToken()) { if (ownerTokenIsCurrent(token)) void discoverClient?.load(true); }
+export function persistDiscover(view: DiscoverView, named = false, token = currentOwnerToken()): boolean {
+  return ownerTokenIsCurrent(token) && !!discoverClient?.save(view, named);
+}
+export function deleteDiscover(id: string, token = currentOwnerToken()): boolean {
+  return ownerTokenIsCurrent(token) && !!discoverClient?.remove(id);
+}
+export function renameDiscover(id: string, name: string, token = currentOwnerToken()): boolean {
+  return ownerTokenIsCurrent(token) && !!discoverClient?.rename(id, name);
 }
 
 /**
@@ -621,10 +667,13 @@ export function useAccountPrefs(identity?: AccountIdentity | null): AccountPrefs
   }, []);
 
   return {
-    prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, ready: snap.ready,
+    prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, discover: snap.discover, ready: snap.ready,
+    discoverReady: snap.discoverReady, discoverBase: snap.discoverBase, discoverSync: snap.discoverSync,
+    discoverIssue: snap.discoverIssue, discoverDevice: snap.discoverDevice,
     owner: snap.owner, sync: snap.sync, base: snap.base, held: snap.held,
     toggle, enableAll, setFollowed,
     setStartTf: persistStartTf, setUpDown: persistUpDown, setLangPref: persistLang,
+    openDiscover, retryDiscover, reloadDiscover, saveDiscover: persistDiscover, deleteDiscover, renameDiscover,
     retrySync: retryPrefSync,
   };
 }
@@ -638,6 +687,7 @@ export function __resetMarketPrefsStore() {
   state = DEFAULT_PREFS;
   terminal = DEFAULT_TERMINAL_PREFS;
   metaPrefs = {};
+  discoverClient?.dispose(); discoverClient = null;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};
@@ -681,3 +731,4 @@ export function __marketPrefsInternals() {
     marketsDirty, sync, hydrateAttempts, undelivered: pump?.hasUndelivered() ?? false,
   };
 }
+

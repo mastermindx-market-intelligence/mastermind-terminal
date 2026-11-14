@@ -1,3 +1,4 @@
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -77,6 +78,7 @@ function scanDoc(): Record<string, unknown> {
 type ScanMode = "ok" | "404" | "500";
 
 async function setup(page: Page, lang: "en" | "zh", scanMode: () => ScanMode = () => "ok") {
+  await isolateDiscoverAccount(page);
   await page.clock.setFixedTime(NOW);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
@@ -106,6 +108,7 @@ const cellOf = (page: Page, sym: string, field: string) =>
 
 async function openScreen(page: Page) {
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(tableSyms(page)).toHaveCount(SYMS.length, { timeout: 60_000 });
   await page.locator("[data-fund-toggle]").click();
   await expect(bar(page)).toBeVisible();
@@ -113,7 +116,8 @@ async function openScreen(page: Page) {
 }
 
 async function addRange(page: Page, field: string, min: string, max: string, includeUnknown = false) {
-  await page.locator("[data-fund-field-select]").selectOption(field);
+  await showDiscoverColumn(page, `fund:${field}`);
+  await chooseDiscoverOption(page.locator("[data-fund-field-select]"), field);
   await bar(page).locator(".fin-toggle button").first().click(); // Range
   await page.locator("[data-fund-min]").fill(min);
   await page.locator("[data-fund-max]").fill(max);
@@ -290,6 +294,7 @@ test("an unpublished or failing scan is a stated state with Retry — never an e
   let mode: ScanMode = "404";
   await setup(page, lang, () => mode);
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(tableSyms(page)).toHaveCount(SYMS.length, { timeout: 60_000 });
   await page.locator("[data-fund-toggle]").click();
 
@@ -390,7 +395,7 @@ for (const lang of ["en", "zh"] as const) {
     await screen15.locator("[data-ss-open]").click();
     await expect(chip).toContainText("15%");
     await expect(min).toHaveValue("15");
-    await moveSelect(page).selectOption("up3");
+    await chooseDiscoverOption(moveSelect(page), "up3");
     await page.locator("button.scr2-clear", { hasText: zh ? "清除筛选" : "Clear filters" }).first().click();
     await expect(chip).toHaveCount(0);
     await expect(tableSyms(page)).toHaveCount(SYMS.length);
@@ -401,15 +406,15 @@ for (const lang of ["en", "zh"] as const) {
     // ── uncommitted: a value typed on a field with NO committed condition reads the same by value
     //    before and after, so only the parent's whole-table reset can blank it (#916 follow-up) ──
     await min.fill("33");
-    await moveSelect(page).selectOption("up3");
-    await page.locator("button.chip", { hasText: zh ? "上升趋势" : "Uptrend regime" }).first().click(); // two filters → Clear filters is offered
+    await chooseDiscoverOption(moveSelect(page), "up3");
+    await chooseDiscoverOption(page.locator('[data-cm-control="regime"]'), "uptrend"); // two filters → Clear filters is offered
     await page.locator("button.scr2-clear", { hasText: zh ? "清除筛选" : "Clear filters" }).first().click();
     await expect(tableSyms(page)).toHaveCount(SYMS.length);
     await expect(min).toHaveValue("");
     await draftSyncCrop(page, "clear-uncommitted", lang, testInfo);
 
     // The same for a saved screen that carries no condition on the selected field.
-    await moveSelect(page).selectOption("up3");
+    await chooseDiscoverOption(moveSelect(page), "up3");
     await ss.locator("[data-ss-name-input]").fill(nameMove);
     await ss.locator("[data-ss-save-button]").click();
     await expect(ss.locator("[data-ss-screen]")).toHaveCount(3);
@@ -421,3 +426,4 @@ for (const lang of ["en", "zh"] as const) {
     await draftSyncCrop(page, "open-uncommitted", lang, testInfo);
   });
 }
+

@@ -1,3 +1,4 @@
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -84,6 +85,7 @@ type ReadyDetail = { symbol: string; timeframe: string };
 declare global { interface Window { __e01Ready: ReadyDetail[] } }
 
 async function setup(page: Page, lang: "en" | "zh", doc: Doc) {
+  await isolateDiscoverAccount(page);
   await page.addInitScript((l) => {
     window.__e01Ready = [];
     window.addEventListener("mm:terminal-visual-ready", (e) => {
@@ -146,6 +148,7 @@ for (const lang of ["en", "zh"] as const) {
     const net = await setup(page, lang, doc);
 
     await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page);
     await expect(symRows(page).first()).toBeVisible({ timeout: 60_000 });
 
     // Manifest-only compatibility path: nothing technical is read or drawn until asked for.
@@ -156,6 +159,9 @@ for (const lang of ["en", "zh"] as const) {
     const toggle = page.locator("[data-tech-toggle]");
     await expect(toggle).toHaveText(c.toggle);
     await toggle.click();
+    // Filters do not change the layout. The user explicitly adds a technical column.
+    await expect(page.locator("th[data-tech-col]")).toHaveCount(0);
+    await showDiscoverColumn(page, "technical");
     await expect(page.locator("[data-tech-coverage]")).toBeVisible({ timeout: 30_000 });
     expect(net.scanReads()).toBe(1);
     await expect(page.locator("th[data-tech-col]")).toBeVisible();
@@ -174,13 +180,13 @@ for (const lang of ["en", "zh"] as const) {
     await expect(rowOf(page, "MSFT").locator('td[data-tech-status="unavailable"]')).toHaveAttribute("data-tech-reason", "not_in_scan");
     await expect(rowOf(page, "NVDA").locator('td[data-tech-status="evaluated"]')).toBeVisible();
 
-    // Phone: the technical column replaces the hidden ones and the page never scrolls sideways.
+    // All configured columns stay available in the table scroller; the page itself never overflows.
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    // Tablet: the shared columns overflow the table's own scroller; the technical column must still
-    // be on screen without a sideways scroll.
+    // Bring the optional column into view through the table's own scroller.
     const vw = page.viewportSize()!.width;
     for (const loc of [page.locator("th[data-tech-col]"), rowOf(page, "NVDA").locator("td[data-tech-status]")]) {
+      await loc.scrollIntoViewIfNeeded();
       const box = (await loc.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(vw + 1);
@@ -197,7 +203,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(symRows(page)).toHaveCount(1);
     await expect.poll(() => count(page, "requested")).toBe(1);
 
-    await page.locator("[data-tech-signal]").selectOption("buyside");
+    await chooseDiscoverOption(page.locator("[data-tech-signal]"), "buyside");
     await expect(rowOf(page, "NVDA")).toHaveCount(1);          // BUY passes
     await search.fill("AAPL");
     await expect(symRows(page)).toHaveCount(0);                 // SELL is a known failure
@@ -209,6 +215,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator("[data-tech-hidden-unknown]")).toContainText(String(net.total - (2 + SYNTH)));
 
     // ── a saved preset keeps the #884 FilterState shape: no technical keys ──
+    await openDiscoverFilters(page, true);
     await page.locator(".scr2-presets-tail .fin-tab").click();
     await page.locator(".scr2-preset-name").fill(`e01-${lang}`);
     await page.locator(".scr2-preset-name").press("Enter");
@@ -220,12 +227,13 @@ for (const lang of ["en", "zh"] as const) {
       ["asset", "ccy", "classStale", "liq", "liqCcy", "market", "mcap", "move", "sector", "signal", "taxonomy", "unpriced", "uptrend", "w52"],
     );
     expect(JSON.stringify(saved)).not.toMatch(/tech|buyside|"3D"/);
-    await expect(page.locator("[data-tech-signal]")).toHaveValue("buyside"); // saving did not reset the screen
+    await expect(page.locator("[data-tech-signal]")).toHaveAttribute("data-value", "buyside"); // saving did not reset the screen
 
     // ── falsifier: a timeframe the scan never produced is UNSUPPORTED for every name ──
     const tfSel = page.locator("[data-tech-tf]");
-    await expect(tfSel.locator('option[value="W"]')).toHaveText(`W · ${c.notScanned}`);
-    await tfSel.selectOption("W");
+    await tfSel.click();
+    await expect(page.locator('[role="option"][data-value="W"]')).toHaveText(`W · ${c.notScanned}`);
+    await chooseDiscoverOption(tfSel, "W");
     await expect(page.locator('[data-tech-tf-not-produced="W"]')).toBeVisible();
     // The sentence wraps on a phone rather than running past the edge (where it would be clipped).
     const tag = (await page.locator('[data-tech-tf-not-produced="W"]').boundingBox())!;
@@ -237,12 +245,12 @@ for (const lang of ["en", "zh"] as const) {
     await expect(symRows(page)).toHaveCount(0);
     await expect(page.locator(".fin-empty-why")).toContainText(c.emptyWhy);
     await expect(page.locator("th[data-tech-col]")).toHaveText(c.col("W"));
-    await page.locator("[data-tech-signal]").selectOption("any");
+    await chooseDiscoverOption(page.locator("[data-tech-signal]"), "any");
     await expect(rowOf(page, "NVDA").locator('td[data-tech-status="unsupported"]')).toHaveAttribute("data-tech-reason", "timeframe_not_produced");
     await crop(page, testInfo, `falsifier-w-${lang}`);
 
     // ── AC-E01-05: the result opens the chart at the screened timeframe ──
-    await tfSel.selectOption("3D");
+    await chooseDiscoverOption(tfSel, "3D");
     await search.fill("NVDA");
     await expect(symRows(page)).toHaveCount(1);
     expect(net.perSymbolReads()).toBe(0);   // AC-E01-04: the whole screen used no per-symbol OHLC
@@ -264,6 +272,7 @@ for (const lang of ["en", "zh"] as const) {
 test("AC-E01-03: an incomplete generation is labelled, and still accounts every name", async ({ page }) => {
   const net = await setup(page, "en", scanDoc(false));
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page);
   await expect(symRows(page).first()).toBeVisible({ timeout: 60_000 });
   await page.locator("[data-tech-toggle]").click();
   await expect(page.locator('[data-tech-complete="false"]')).toContainText(COPY.en.incomplete);
@@ -272,3 +281,4 @@ test("AC-E01-03: an incomplete generation is labelled, and still accounts every 
   expect(n.evaluated + n.stale + n.unsupported + n.unavailable).toBe(n.requested);
   expect(net.scanReads()).toBe(1);
 });
+

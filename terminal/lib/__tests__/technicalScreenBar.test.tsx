@@ -82,7 +82,7 @@ describe("TechnicalScreenBar", () => {
   it("loading, absent and error are three different states; controls stay disabled until ready", () => {
     let el = mount(bar({ phase: "loading" }));
     expect(q(el, '[data-tech-state="loading"]')).not.toBeNull();
-    expect((q(el, "[data-tech-tf]") as HTMLSelectElement).disabled).toBe(true);
+    expect((q(el, "[data-tech-tf]") as HTMLButtonElement).disabled).toBe(true);
     act(() => root!.unmount()); host!.remove();
 
     const retry = vi.fn();
@@ -112,8 +112,10 @@ describe("TechnicalScreenBar", () => {
   it("falsifier: a timeframe the scan did not produce is said to be unsupported — every name, in words", () => {
     const el = mount(bar(settledOn(ready()), { controls: { tf: "W" } }));
     expect(q(el, '[data-tech-tf-not-produced="W"]')).not.toBeNull();
-    const opt = [...(q(el, "[data-tech-tf]") as HTMLSelectElement).options].find((o) => o.value === "W")!;
-    expect(opt.textContent).toBe("W · not scanned");
+    const timeframe = q(el, "[data-tech-tf]")!;
+    expect(timeframe.getAttribute("role")).toBe("combobox");
+    expect(timeframe.getAttribute("data-value")).toBe("W");
+    expect(timeframe.textContent).toBe("W · not scanned");
     expect(Number(q(el, '[data-tech-count="unsupported"] b')!.textContent)).toBe(SYMS.length);
     expect(Number(q(el, '[data-tech-count="evaluated"] b')!.textContent)).toBe(0);
   });
@@ -178,3 +180,4 @@ describe("TechnicalCell", () => {
     expect(w.textContent).toBe("unsupported");
   });
 });
+

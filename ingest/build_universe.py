@@ -43,6 +43,7 @@ fall back to the generic "US" tag — everything else still works.
 from __future__ import annotations
 
 import json
+import datetime as dt
 import os
 import sys
 import urllib.request
@@ -276,32 +277,67 @@ def us_exchange_map() -> dict[str, str]:
 
 
 # ------------------------------------------------ polygon reference (GICS + mcap)
-def _load_polygon_reference() -> tuple[dict[str, str], dict[str, float]]:
+def reference_date(value) -> str | None:
+    """A source date, not a rebuild timestamp. Invalid/missing input stays unknown."""
+    if value is None or pd.isna(value):
+        return None
+    text = str(value)[:10]
+    try:
+        return text if dt.date.fromisoformat(text).isoformat() == text else None
+    except ValueError:
+        return None
+
+
+def apply_reference(rec: dict, sector: str | None, cap: float | None, observed: str | None) -> None:
+    """Refresh an existing reference only from equally/newer dated evidence.
+
+    Undated input can fill an absent field, never replace known dated evidence.
+    A changed sector without a date must not inherit the old sector's date.
+    """
+    for field, value in (("gics", sector), ("mcap", cap)):
+        if value is None:
+            continue
+        stamp = field + "_asof"
+        previous = reference_date(rec.get(stamp))
+        if not rec.get(field) or observed and (previous is None or observed >= previous):
+            rec[field] = value
+            if observed:
+                rec[stamp] = observed
+            else:
+                rec.pop(stamp, None)
+
+
+def _load_polygon_reference() -> tuple[dict[str, str], dict[str, float], dict[str, str]]:
     """Load GICS sector + market cap from the macro repo's Polygon reference cache.
 
-    Returns ({ticker: gics_sector}, {ticker: market_cap_usd}).
+    Returns sector, cap and source-reference observation date maps. The date is
+    copied from the input row, never the current build time.
     Null-honest: returns empty dicts if the cache is absent (graceful degradation).
     """
     if not _REF_PARQUET.exists():
         print(f"  [ref] Polygon reference cache not found: {_REF_PARQUET} — skipping GICS/mcap enrichment")
-        return {}, {}
+        return {}, {}, {}
     try:
         df = pd.read_parquet(_REF_PARQUET)
         gics: dict[str, str] = {}
         mcap: dict[str, float] = {}
+        dates: dict[str, str] = {}
         for t, row in df.iterrows():
             t = str(t)
             sec = row.get("gics_sector")
             if sec and not pd.isna(sec):
                 gics[t] = str(sec)
+            observed = reference_date(row.get("asof"))
+            if observed:
+                dates[t] = observed
             mc = row.get("market_cap_usd")
             if mc and not pd.isna(mc) and float(mc) > 0:
                 mcap[t] = float(mc)
         print(f"  [ref] loaded {len(gics)} GICS + {len(mcap)} mcap from {_REF_PARQUET.name}")
-        return gics, mcap
+        return gics, mcap, dates
     except Exception as e:
         print(f"  [ref] Polygon reference load failed: {e} — skipping enrichment")
-        return {}, {}
+        return {}, {}, {}
 
 
 # ------------------------------------------------------ flagship verdict reconcile
@@ -399,13 +435,10 @@ def main(argv: list[str]) -> None:
 
     # 1b) enrich existing rich records with GICS sector + market cap (null-honest;
     #     order-safe vs the verdict reconcile at 2.5 — demotion only pops verdict-family keys)
-    gics_map, mcap_map = _load_polygon_reference()
+    gics_map, mcap_map, ref_dates = _load_polygon_reference()
     before_gics = sum(1 for r in symbols.values() if r.get("gics"))
     for sym, rec in symbols.items():
-        if gics_map.get(sym) and not rec.get("gics"):
-            rec["gics"] = gics_map[sym]
-        if mcap_map.get(sym) and rec.get("mcap") is None:
-            rec["mcap"] = mcap_map[sym]
+        apply_reference(rec, gics_map.get(sym), mcap_map.get(sym), ref_dates.get(sym))
     after_gics = sum(1 for r in symbols.values() if r.get("gics"))
     if gics_map:
         print(f"  [ref] GICS enriched: {before_gics} → {after_gics} existing records")
@@ -450,12 +483,7 @@ def main(argv: list[str]) -> None:
                     mkt = exch.get(tk, "US")
                 new_rec: dict = {"name": name, "sec": "Equities", "col": color_for(tk), "mkt": mkt}
                 if key == "US":  # GICS/mcap enrichment (null-honest — only US has reference data)
-                    g = gics_map.get(tk)
-                    if g:
-                        new_rec["gics"] = g
-                    mc = mcap_map.get(tk)
-                    if mc:
-                        new_rec["mcap"] = mc
+                    apply_reference(new_rec, gics_map.get(tk), mcap_map.get(tk), ref_dates.get(tk))
                 symbols[tk] = new_rec
                 added[key] += 1
 
@@ -518,3 +546,4 @@ def main(argv: list[str]) -> None:
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+

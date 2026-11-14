@@ -38,6 +38,8 @@ import { fixtureStore, fixtureUserId, resetFixtureStores } from "@/lib/watchlist
 import { normalizeDefinition } from "@/lib/smartScreen/predicate";
 import { MAX_SCREENS, screenKey } from "@/lib/smartScreen/record";
 import { buildReview } from "@/lib/smartScreen/review";
+import { DISCOVER_CURRENT_KEY, discoverViewKey, parseDiscoverView } from "@/lib/discoverWorkspace";
+import { DISCOVER_SETTINGS_KEY } from "@/lib/smartScreen/discoverStore";
 
 const URL_ = "https://x.test/api/smart-screens";
 const responses: Response[] = [];
@@ -66,6 +68,14 @@ const OTHER_DEF = { grammar: 1, scope: { markets: "all", asset: null, unpriced: 
 
 const create = (n: number, extra: Record<string, unknown> = {}) =>
   put({ action: "create", id: id(n), name: `Screen ${n}`, def: DEF, review: null, ...extra });
+
+const discoverUrl = URL_ + "?resource=discover_views";
+const discoverGet = async () => track(await GET(new Request(discoverUrl)));
+const discoverPut = async (patch: unknown, expected: unknown, extra: Record<string, unknown> = {}) => track(await PUT(new Request(discoverUrl, {
+  method: "PUT", headers: { "content-type": "application/json" },
+  body: JSON.stringify({ resource: "discover_views", expectedOwner: `account:${H.user?.id}`, patch, expected, ...extra }),
+})));
+const workspaceView = (n = 1, name = `View ${n}`) => parseDiscoverView({ schema: 1, id: id(n), name, columns: ["sym", "verdict", "regimeBull", "last"], density: "c", sort: { k: "dv", dir: -1 }, filters: { market: "all" }, search: "", technical: null, fundamental: [] })!;
 
 /** A stored row exactly as another (newer) Terminal would have written it. */
 function seedRow(n: number, value: Record<string, unknown>, userId = fixtureUserId(H.key)) {
@@ -352,5 +362,92 @@ describe("account isolation", () => {
     expect(mine.screens[0]).toMatchObject({ name: "Screen 1", rev: 1 });
     expect(fixtureStore(H.key).workspaceSettings.map((row) => row.user_id).sort())
       .toEqual(["e2e-user-somebody-else", fixtureUserId(H.key)].sort());
+  });
+});
+
+describe("Discover account workspace through the existing Smart Screens route", () => {
+  const named = discoverViewKey(id(1)), sibling = discoverViewKey(id(2));
+  const pair = () => ({ [DISCOVER_CURRENT_KEY]: workspaceView(), [named]: workspaceView() });
+  const absent = () => ({ [DISCOVER_CURRENT_KEY]: null, [named]: null });
+  const row = () => fixtureStore(H.key).workspaceSettings.find(r => r.key === DISCOVER_SETTINGS_KEY)!;
+
+  it("saves current and named state atomically, round-trips on GET and acknowledges an exact replay", async () => {
+    await create(9); const unrelated = structuredClone(fixtureStore(H.key).workspaceSettings[0]);
+    expect((await discoverPut(pair(), absent())).status).toBe(200);
+    expect(await (await discoverGet()).json()).toMatchObject({ owner: `account:${H.user!.id}`, values: pair(), blocked: false });
+    const token = row().updated_at;
+    expect(await (await discoverPut(pair(), absent())).json()).toMatchObject({ replay: true, values: pair() });
+    expect(row().updated_at).toBe(token); expect(fixtureStore(H.key).workspaceSettings[0]).toEqual(unrelated);
+    for (const response of responses) expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("does not partially apply current when its named-view preimage conflicts", async () => {
+    await discoverPut(pair(), absent());
+    await discoverPut({ [named]: workspaceView(1, "Other device") }, { [named]: workspaceView() });
+    const before = structuredClone(row().value);
+    const response = await discoverPut({ [DISCOVER_CURRENT_KEY]: workspaceView(1, "Local"), [named]: workspaceView(1, "Local") }, pair());
+    expect(response.status).toBe(409); expect(await response.json()).toEqual({ error: "conflict" }); expect(row().value).toEqual(before);
+  });
+
+  it("re-reads a lost row-token race and merges a disjoint sibling edit", async () => {
+    await discoverPut({ [named]: workspaceView(), [sibling]: workspaceView(2) }, { [named]: null, [sibling]: null });
+    H.beforeUpdate = () => {
+      const target = row(); const value = target.value as { schema: number; values: Record<string, unknown> };
+      target.value = { ...value, values: { ...value.values, [sibling]: workspaceView(2, "Other device") } };
+      target.updated_at = "2099-01-01T00:00:00.000Z";
+    };
+    expect((await discoverPut({ [named]: workspaceView(1, "My view") }, { [named]: workspaceView() })).status).toBe(200);
+    expect((await (await discoverGet()).json()).values).toEqual({ [named]: workspaceView(1, "My view"), [sibling]: workspaceView(2, "Other device") });
+  });
+
+  it("refuses a same-key edit that wins the CAS gap", async () => {
+    await discoverPut(pair(), absent());
+    H.beforeUpdate = () => {
+      const target = row(); const value = target.value as { schema: number; values: Record<string, unknown> };
+      target.value = { ...value, values: { ...value.values, [named]: workspaceView(1, "Won the race") } };
+      target.updated_at = "2099-01-01T00:00:00.000Z";
+    };
+    expect((await discoverPut({ [named]: workspaceView(1, "Lost the race") }, { [named]: workspaceView() })).status).toBe(409);
+    expect((await (await discoverGet()).json()).values[named].name).toBe("Won the race");
+  });
+
+  it("keeps ownership and resource dispatch explicit", async () => {
+    await create(1);
+    const wrongRoute = await PUT(new Request(discoverUrl, { method: "PUT", body: JSON.stringify({ action: "delete", id: id(1), expectedRev: 1 }) }));
+    expect(wrongRoute.status).toBe(400); expect((await (await get()).json()).screens).toHaveLength(1);
+    expect((await discoverPut(pair(), absent(), { resource: "other" })).status).toBe(400);
+    expect((await put({ resource: "discover_views", patch: pair(), expected: absent() })).status).toBe(400);
+    expect((await discoverPut(pair(), absent(), { expectedOwner: "account:someone-else" })).status).toBe(403);
+    expect((await discoverPut(pair(), absent(), { user_id: "someone-else" })).status).toBe(400);
+    expect((await discoverPut({ brain_depth: "deep" }, { brain_depth: null })).status).toBe(400);
+    expect(fixtureStore(H.key).workspaceSettings.some(r => r.key === DISCOVER_SETTINGS_KEY)).toBe(false);
+    H.user = null; expect((await discoverGet()).status).toBe(401); expect((await discoverPut(pair(), absent())).status).toBe(401);
+  });
+
+  it("isolates the same view id in two accounts", async () => {
+    const first = H.user!; await discoverPut(pair(), absent()); H.user = { id: "e2e-user-another-discover-owner" };
+    expect((await (await discoverGet()).json()).values).toEqual({});
+    expect((await discoverPut({ [named]: workspaceView(1, "Second owner") }, { [named]: null })).status).toBe(200);
+    H.user = first; expect((await (await discoverGet()).json()).values).toEqual(pair());
+  });
+
+  it("enforces the named-view limit in the same atomic document", async () => {
+    const views = Object.fromEntries(Array.from({ length: 10 }, (_, i) => [discoverViewKey(id(i + 1)), workspaceView(i + 1)]));
+    expect((await discoverPut(views, Object.fromEntries(Object.keys(views).map(k => [k, null])))).status).toBe(200);
+    const before = structuredClone(row().value);
+    expect((await discoverPut({ [DISCOVER_CURRENT_KEY]: workspaceView(11), [discoverViewKey(id(11))]: workspaceView(11) }, { [DISCOVER_CURRENT_KEY]: null, [discoverViewKey(id(11))]: null })).status).toBe(409);
+    expect(row().value).toEqual(before);
+  });
+
+  it.each([
+    { schema: 2, values: {} },
+    { schema: 1, values: {}, extension: "preserve me" },
+    { schema: 1, values: { [named]: { ...workspaceView(), columns: ["sym", "future_metric"] } } },
+    { schema: 1, values: { [named]: { ...workspaceView(), futureSetting: true } } },
+  ])("refuses unsupported account data without rewriting it: %j", async value => {
+    fixtureStore(H.key).workspaceSettings.push({ id: "future", scope: "user", user_id: H.user!.id, key: DISCOVER_SETTINGS_KEY, value, updated_at: "2026-11-14T00:00:00.000Z" });
+    expect((await (await discoverGet()).json()).blocked).toBe(true);
+    const response = await discoverPut(pair(), absent()); expect(response.status).toBe(409); expect(await response.json()).toEqual({ error: "newer_schema" });
+    expect(row().value).toEqual(value);
   });
 });

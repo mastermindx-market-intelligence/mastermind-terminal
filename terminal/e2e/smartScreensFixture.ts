@@ -1,3 +1,4 @@
+import { openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, type Browser, type BrowserContext, type Locator, type Page } from "@playwright/test";
 
 // Shared world for the E04 smart-screens journey and its opt-in crop generator. Not a spec file —
@@ -20,7 +21,7 @@ export const MANIFESTS: Record<Gen, unknown> = {
 
 export const dataRows = (page: Page) => page.locator("tbody tr .sym-cell");
 /** The day-move filter, found by an option value so it is language-independent. */
-export const moveSelect = (page: Page) => page.locator("select.scr2-select:has(option[value='up3'])");
+export const moveSelect = (page: Page) => page.locator('[data-cm-control="move"]');
 export const panel = (page: Page) => page.locator("[data-smart-screens]");
 
 export async function prepare(context: BrowserContext, baseURL: string, storeKey: string, zh: boolean, guest = false) {
@@ -41,10 +42,12 @@ export async function routeManifest(page: Page, gen: () => Gen) {
 
 export async function openScreener(page: Page, rows: number) {
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(dataRows(page)).toHaveCount(rows, { timeout: 45_000 });
 }
 
 export async function openPanel(page: Page): Promise<Locator> {
+  await openDiscoverFilters(page);
   const root = panel(page);
   await expect(root).not.toHaveAttribute("data-ss-status", "loading", { timeout: 20_000 });
   await root.locator("[data-ss-toggle]").click();
@@ -56,3 +59,4 @@ export async function secondDevice(browser: Browser, page: Page, hasTouch: boole
   await prepare(context, baseURL, key, zh);
   return { context, page: await context.newPage() };
 }
+
