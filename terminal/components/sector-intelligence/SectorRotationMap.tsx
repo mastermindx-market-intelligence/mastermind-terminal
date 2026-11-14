@@ -79,7 +79,7 @@ const COPY = {
   trailSelected: ["Focused", "聚焦"], trailAll: ["All faint", "全部淡显"], trailOff: ["Off", "关闭"],
   trailWindow: ["History window", "历史窗口"],
   trailUnavailable: ["Qualified trajectory history is not available for this source; no path is inferred.", "该来源暂无可验证的轨迹历史；不推断移动路径。"],
-  trailDailySource: ["Reconstructed sector/SPY price history, not live-time observations; source gaps are never joined.", "轨迹来自板块/SPY历史价格重建，并非当时实时观测；不连接数据缺口。"],
+  trailDailySource: ["Reconstructed sector/SPY price history, not live-time observations; paths connect the dated source samples without inventing missing coordinates.", "轨迹来自板块/SPY历史价格重建，并非当时实时观测；仅连接来源提供的带日期样本，不虚构缺失坐标。"],
   trailWeeklySource: ["Completed-week relative trend only; missing weeks break the path.", "仅显示已完成周的相对趋势；缺失周会中断轨迹。"],
   query: ["Find a sector", "搜索板块"], clear: ["Clear search", "清除搜索"],
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
