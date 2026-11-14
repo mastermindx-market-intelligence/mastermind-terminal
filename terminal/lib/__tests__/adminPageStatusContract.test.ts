@@ -130,13 +130,19 @@ describe("nothing above /admin may flush the response before the gate answers", 
     }
   });
 
+  it("renders static Market Reference bookmarks without a streaming fallback", () => {
+    expect(existsSync(path.join(SHELL, "market-reference", "loading.tsx"))).toBe(false);
+  });
+
   it("still streams a skeleton for every data workspace in the group", () => {
     // The fix is "move the boundary down", not "delete the skeleton". If these stop existing, the
     // five data workspaces silently lose their fallback and this test is why we'd notice.
     const routes = readdirSync(SHELL, { withFileTypes: true })
       // The Shared Shell catch-all is another admission gate, covered by
       // sharedShellStatusContract.test.ts; streaming it would soften unknown 404s.
-      .filter((e) => e.isDirectory() && e.name !== "admin" && e.name !== "[...legacyPath]")
+      // Market Reference renders its bundled publication directly. A loading boundary
+      // hides linked definitions in browsers with JavaScript disabled.
+      .filter((e) => e.isDirectory() && !["admin", "[...legacyPath]", "market-reference"].includes(e.name))
       .map((e) => e.name)
       .sort();
     expect(routes.length).toBeGreaterThan(0);
