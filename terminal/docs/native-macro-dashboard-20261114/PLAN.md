@@ -54,4 +54,25 @@ Policy/liquidity/market breadth/structure/Prophet: coherent specialist links wit
 Use original synthetic fixtures for source/CI; do not commit private captured payloads. Browser and production evidence remain separate from synthetic checks. Self-check ordinary source under the Chairman's Web waiver; preserve actual required reviews, branch protection, CODEOWNERS and explicit holds. Terminal uses its protected native queue/merge-on-green; Macro uses its existing opt-in controller. Never self-approve or directly merge. No admin/security bypass, broad deploy, replacement auth or second data/control plane.
 
 ## Current frontier
-Verified initial source and design reconnaissance; both repository snapshots acquired. No product source change yet. Next: read exact native route/reader and Macro publication seams, freeze the bounded contract, implement and test it on these original carriers. Missing live/source coverage is retained as an acceptance obligation, not hidden by layout.
+Native product source is implemented and locally qualified. The release frontier is immutable Terminal candidate T, then protected Macro registry R and actual producer artifact P, then the exact-R Terminal route projection and protected beta delivery. Visual CI and real served-data/browser proof remain open.
+
+## Implementation checkpoint — 2026-11-14
+
+Source implementation now exists in this branch: native `/macro.html` member page, incumbent authenticated BFF extension, account-scoped client, responsive dashboard, measured-history chart/table, URL-addressable detail drawers, bilingual copy and existing shell tokens. Companion Macro branch `sol/web-native-macro-dashboard-20261114-c2` adds a strict allowlist projection of the existing build VM, an authenticated bounded served-artifact reader, runtime-only risk/release reads, and the explicit canonical native-admission migration.
+
+Accepted source-shape audit corrected market-tile pairs, alert display copy, high-impact event names, master-brief translation/freshness, news envelope, sentiment leg clocks and risk qualifications. No scoring, capital authority, source pipeline, identity store or publication runner was added.
+
+Actual qualification so far: Terminal typecheck passed with a 6 GiB Node heap (the default 2 GiB process exhausted memory); 53 focused Terminal tests passed across the native contract/view and incumbent BFF. Macro display/API tests: 11 passed. Scoped registry/export migration tests: 12 passed. Additional release-feed and refresh checks, visual QA, final CI and beta browser proof remain required. These results do not establish production acceptance.
+
+The Organizational parent is Macro `agentos/workstreams/WS-MARKET-OS.md`; this is the focused P3 native Macro lane under Terminal #1495's wider shell program. It preserves that live writer's selector, Liquidity implementation and Macro #11246 carrier. The route exporter will remain unchanged: candidate Terminal source commit T first; then protected Macro registry commit R; then exact-R generated Terminal projection. No temporary iframe bypass or handwritten generated catalog is permitted.
+
+Next: finish source qualification and visual review, generate the explicit migration from immutable T, qualify and release the Macro companion through its existing controller, export against protected R, qualify final Terminal head, request permitted native release once, and prove the actual beta route.
+
+
+## Candidate qualification checkpoint — 2026-11-14
+
+Self-review and the two native reasoning advisors identified and corrected policy English-field fallbacks, old bookmarks, alert evidence navigation, partial-risk display, factor proportions and zero/missing separation, history-basis qualification, all market tiles, sentiment orientation/exclusions, rate-comparison identities/reasons, headline coverage, and source-owned risk horizons with matching historical evidence. Shared auth, timers, shell presentation, dialogs and chart primitives remain the owners. The normal Macro render and API-restart closures now include the new projection helper and finite-number dependency.
+
+Current evidence: TypeScript passed; changed product files passed ESLint; 55 focused Terminal unit/view/proxy tests passed; 12 Macro display/API tests and 7 render-ownership tests passed; 262 selected API restart/import-closure tests passed. A synthetic component Playwright suite was added to the existing responsive test estate for EN/ZH, light/dark, responsive geometry, drawers, focus return, history gaps and risk horizon interactions. It is not production proof. This workspace's Chromium launch failed on its OS socket permission and was not retried or bypassed. The cloud browser cannot reach this workspace's loopback server. Hosted browser evidence and live beta verification remain pending.
+
+Release must distinguish registry R from artifact P. The existing renderer can complete after an individual builder failure, so the actual committed dashboard JSON and its served SHA-256 are required before the native cutover. Terminal's existing master deploy installs production first and then active beta; this feature is shared-shell gated, while the deployment binary path itself is not beta-only.

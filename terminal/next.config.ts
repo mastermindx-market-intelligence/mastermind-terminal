@@ -331,7 +331,7 @@ const nextConfig: NextConfig = {
       {
         // Auth-aware shells must never be shared by EdgeOne. Caching these as
         // public can replay a signed-out redirect or another session's shell.
-        source: "/(terminal|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
+        source: "/(terminal|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login|macro.html)",
         headers: [
           {
             key: "Cache-Control",

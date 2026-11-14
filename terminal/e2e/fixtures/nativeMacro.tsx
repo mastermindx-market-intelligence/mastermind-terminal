@@ -1,0 +1,25 @@
+// Synthetic component specimen. No production auth or route is bypassed.
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import MacroDashboard from '../../components/macro/MacroDashboard';
+import { macroFixture } from '../../lib/__tests__/fixtures/macroDashboard';
+const payload: Record<string, any> = macroFixture();
+payload.market_state = {...payload.market_state, score:46,raw_score:46,capped:false,verdict:'NEUTRAL',label_en:'Mixed conditions',label_zh:'环境分化',headline_en:'Growth is holding up, but participation and liquidity need to improve for a broader advance.',headline_zh:'增长仍有韧性，但市场参与度和流动性仍需改善，以支持更广泛的上涨。',flip_en:'A sustained improvement in breadth, together with easier financial conditions, would strengthen the backdrop.',flip_zh:'市场广度持续改善，并伴随金融条件放松，将强化市场环境。',components:['Growth','Inflation','Liquidity','Breadth','Risk appetite','Positioning'].map((name,i)=>({key:name,label_en:name,label_zh:['增长','通胀','流动性','市场广度','风险偏好','持仓'][i],score:[65,48,52,29,43,39][i],weight:[.2,.2,.15,.15,.15,.15][i],tone:i===0?'good':i===3?'bad':'warn',read_en:'A published observation from the existing source model.',read_zh:'现有来源模型发布的观测值。',metrics:[{label_en:'Published input',label_zh:'已发布输入',value:42}]})),radar:{state:'watch',top_score:70,scares:[{key:'breadth',label_en:'Breadth deterioration',label_zh:'广度恶化',reading_state:'AVAILABLE',display_score:70,partial_composition:true,read_en:'Evidence is incomplete.',read_zh:'证据仍不完整。'}]}};
+payload.history = Array.from({length:60},(_,i)=>({asof:new Date(Date.UTC(2026,8,15+i)).toISOString().slice(0,10),score:i===21?null:Math.round(66-i*.31+Math.sin(i*.5)*4)}));
+payload.regime={quad_name:'Goldilocks',transition_state:'weakening'};
+payload.rates={as_of:'2026-11-13',stance:{en:'Easing pressure is visible in the curve. A directly comparable policy path is not available.',zh:'收益率曲线显示宽松压力。暂无可直接比较的政策路径。'},expectations_pressure:{state_label:{en:'Easing pressure',zh:'宽松压力'}}};
+payload.sentiment={dial:46,label_en:'Neutral',label_zh:'中性',as_of:'2026-11-13',legs_included:[{name_en:'Investor sentiment',name_zh:'投资者情绪',pct:46,last_date:'2026-11-13'}]};
+payload.breadth={as_of:'2026-11-13',stance_en:'Leadership remains narrow. Participation is not yet confirming the headline index.',stance_zh:'领涨范围仍然狭窄。市场参与度尚未确认主要指数的走势。'};
+payload.policy={as_of:'2026-11-13',framing_en:'Watch the next policy communication for a change in the balance of risks.',framing_zh:'关注下一次政策沟通中风险平衡的变化。'};
+payload.events=[{label:'Retail sales',label_zh:'零售销售',type:'RETAIL',date:'2026-11-16',time_et:'08:30'},{label:'Initial jobless claims',label_zh:'首次申请失业救济',type:'CLAIMS',date:'2026-11-19',time_et:'08:30'},{label:'FOMC minutes',label_zh:'FOMC会议纪要',type:'FOMC',date:'2026-11-24',time_et:'14:00'}];
+payload.sector_heat={as_of:'2026-11-13',heating:[{id:'infrastructure',name_en:'Infrastructure',name_zh:'基础设施'},{id:'ai',name_en:'AI infrastructure',name_zh:'人工智能基础设施'}],cooling:[{id:'regional-banks',name_en:'Regional banks',name_zh:'区域银行'},{id:'energy',name_en:'Energy',name_zh:'能源'}]};
+payload.market_tiles=['S&P 500','Nasdaq 100','US 10Y','US Dollar','Gold','Crude oil'].map((name,i)=>({label:{en:name,zh:['标普500','纳斯达克100','美国十年期','美元','黄金','原油'][i]},level:['6,840.21','25,415.60','4.18%','102.65','2,814.80','68.52'][i],chg:'+0.14',pct:'+0.12%'}));
+payload.health=Array.from({length:30},(_,i)=>({name:['Federal Reserve','Bureau of Labor Statistics','US Treasury','Market breadth'][i%4]+' '+(i+1),status:i%5===0?'stale':'ok',last_date:'2026-11-13',rows:240}));
+const sha='a'.repeat(64),source='https://www.bls.gov/news.release/ppi.nr0.htm';
+payload.release_feed={publications:[{type:'PPI',date:'2026-11-13',status:'published',data_ready:true,source_url:source,source_sha256:sha,content_sha256:sha,actual:{headline_en:'Producer prices rose in the latest release',headline_zh:'最新发布的生产者价格上涨',summary_en:'Synthetic visual specimen — source formatting and interaction test only.',summary_zh:'合成视觉样例，仅用于来源格式与交互测试。',source_url:source}}]};
+window.fetch=async()=>Response.json(payload);
+document.documentElement.dataset.mmxSharedShell='1';
+document.documentElement.dataset.theme=new URLSearchParams(location.search).get('theme')||'dark';
+document.documentElement.dataset.updown=new URLSearchParams(location.search).get('lang')==='zh'?'east':'west';
+document.documentElement.style.setProperty('--font-inter','Arial');
+createRoot(document.getElementById('root')!).render(<MacroDashboard ownerKey="11111111-1111-4111-8111-111111111111"/>);

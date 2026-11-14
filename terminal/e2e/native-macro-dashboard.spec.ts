@@ -1,0 +1,56 @@
+import { expect, test } from "@playwright/test";
+import { buildSync } from "esbuild";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+// The actual React workspace, CSS modules, shared chart and modal owners run in
+// an isolated synthetic document. Identity/network are fixture boundaries only;
+// production admission and served-data proof remain separate release gates.
+const root = process.cwd(), mock = path.join(root, "e2e/fixtures/nativeMacroMocks.tsx");
+const built = buildSync({
+ entryPoints: [path.join(root, "e2e/fixtures/nativeMacro.tsx")], bundle: true,
+ outdir: "/tmp/native-macro-component", write: false, jsx: "automatic", format: "iife",
+ alias: { "next/link": mock, "next/navigation": mock, "@/lib/i18n": mock, "@/lib/supabase/client": mock, "@": root },
+ define: { "process.env.NODE_ENV": '"development"' },
+});
+const js = built.outputFiles.find(file => file.path.endsWith(".js"))!.text;
+const css = ["app/globals.css", "components/chrome/shared-shell/shared-shell.css"].map(file => readFileSync(path.join(root, file), "utf8")).join("\n")
+ .replace('@import "tailwindcss";', "").replace('@source not "../public/data";', "") + built.outputFiles.find(file => file.path.endsWith(".css"))!.text;
+
+for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] as const) {
+ test(`native Macro specimen · ${lang} · ${theme}`, async ({ page }, info) => {
+  const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
+  await page.route("**/native-macro-component**", route => route.fulfill({ contentType: "text/html", body: '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Synthetic native Macro component verification</title></head><body><div id="root"></div></body></html>' }));
+  await page.goto(`/native-macro-component?lang=${lang}&theme=${theme}`);
+  await page.addStyleTag({ content: css + "\nhtml,body,#root{height:100%;margin:0}#root>main{height:100%;overflow:auto}" });
+  await page.addScriptTag({ content: js });
+  const workspace = page.locator("[data-native-macro]");
+  await expect(workspace).toHaveAttribute("data-read-state", "ready");
+  await expect(page.getByRole("heading", { name: lang === "zh" ? "宏观仪表盘" : "Macro Dashboard", exact: true })).toBeVisible();
+  await expect(workspace.getByText(lang === "zh" ? "当前评估不可用" : "Current assessment unavailable", { exact: true })).toBeVisible();
+  expect(await workspace.locator("iframe").count()).toBe(0);
+  const geometry = await workspace.evaluate(el => ({ client: el.clientWidth, scroll: el.scrollWidth, document: document.documentElement.scrollWidth, viewport: innerWidth, background: getComputedStyle(el).backgroundColor }));
+  expect(geometry.scroll).toBeLessThanOrEqual(geometry.client + 1);
+  expect(geometry.document).toBeLessThanOrEqual(geometry.viewport + 1);
+  expect(geometry.background).toBe(theme === "light" ? "rgb(247, 248, 250)" : "rgb(15, 17, 21)");
+  await page.screenshot({ path: info.outputPath(`overview-${lang}-${theme}.png`) });
+  const opener = page.getByRole("button", { name: lang === "zh" ? "查看全部因子" : "Inspect all factors", exact: true }).first();
+  await opener.click();
+  const dialog = page.getByRole("dialog"); await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
+  expect(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`factors-${lang}-${theme}.png`) });
+  await page.getByRole("button", { name: lang === "zh" ? "关闭详情" : "Close detail" }).press("Escape");
+  await expect(dialog).toHaveCount(0); await expect(opener).toBeFocused();
+  await page.getByRole("button", { name: lang === "zh" ? "查看数据" : "Table view", exact: true }).click();
+  await expect(page.getByRole("table")).toBeVisible();
+  await expect(page.getByRole("table").getByText("—", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: lang === "zh" ? "探索风险全貌" : "Explore the risk picture", exact: true }).click();
+  await expect(dialog).toBeVisible();
+  await page.getByRole("button", { name: lang === "zh" ? "5日" : "5d", exact: true }).click();
+  await expect(page.getByRole("button", { name: lang === "zh" ? "5日" : "5d", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.screenshot({ path: info.outputPath(`risk-${lang}-${theme}.png`) });
+  await info.attach("synthetic-component-geometry", { body: JSON.stringify({ synthetic: true, lang, theme, geometry, errors }), contentType: "application/json" });
+  expect(errors).toEqual([]);
+ });
+}
