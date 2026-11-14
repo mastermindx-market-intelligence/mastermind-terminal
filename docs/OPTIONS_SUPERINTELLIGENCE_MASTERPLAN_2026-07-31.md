@@ -13,6 +13,8 @@ Golden Oracle / GC-v2 stack, the Research Desk, technicals, and the macro labs �
 
 ## ⚡ EXECUTION LEDGER — live wave status (update this section IN THE SAME PR as your work)
 
+**14 November 2026 — current suite completion:** The Chairman commissioned full Paper-to-Terminal implementation, original Skylit-informed workflow integration, optional chart overlays and production polish. [The current delivery extension](OPTIONS_SUITE_COMPLETION_2026-11-14.md) preserves this programme's scope and original held carriers. **IN FLIGHT:** `sol/web-options-suite-completion-20261114-c3` owns the path-disjoint chart companion → exposure context bridge and focused proof. Existing #1248/#1266/#804 and their effects/holds remain on their original carriers; merged D08C #1296 is retained. Component delivery does not complete the parent suite.
+
 > **⚠️ 2026-08-02 OPERATOR DIRECTIVES — read `docs/QUANTDATA_PARITY_HANDOFF_2026-08-02.md`
 > FIRST.** It carries: (1) the rescission of the house-idiom + paraphrase-only laws —
 > QuantData's layout/structure/IA are now explicit build targets, full parity structured to
