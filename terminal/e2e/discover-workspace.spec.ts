@@ -100,7 +100,11 @@ for (const lang of ["en", "zh"] as const) {
     await chooseDiscoverOption(page.locator('[data-cm-control="regime"]'), "uptrend");
     expect(await columnOrder(page)).toEqual(layout); await expect(page.locator('thead [data-column="dv"]')).toHaveAttribute("aria-sort", "descending");
     await chooseDiscoverOption(page.locator('[data-cm-control="regime"]'), "any");
-    await openDiscoverFilters(page); await chooseDiscoverOption(page.locator('[data-cm-control="move"]'), "up3");
+    await openDiscoverFilters(page);
+    // Expanded controls must leave a useful results viewport, including on touch screens.
+    expect((await page.locator(".scr2-table").boundingBox())!.height).toBeGreaterThanOrEqual(touch ? 180 : 224);
+    await shoot(page, info, `${lang}-advanced`);
+    await chooseDiscoverOption(page.locator('[data-cm-control="move"]'), "up3");
     await page.locator('[aria-controls="discover-advanced"]').click(); await expect(dataRows(page)).toHaveCount(4);
     expect(await columnOrder(page)).toEqual(layout);
     await page.getByRole("group", { name: zh ? "行密度" : "Row density", exact: true }).getByRole("button", { name: zh ? "紧凑" : "Compact", exact: true }).click();

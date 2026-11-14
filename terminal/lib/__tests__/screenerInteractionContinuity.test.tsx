@@ -51,6 +51,17 @@ async function search(value: string) {
 function scroll(top: number) { act(() => { table().scrollTop = top; table().dispatchEvent(new Event("scroll")); }); }
 
 describe("Screener result continuity", () => {
+  it("explains fundamental coverage before a filter or column is added", async () => {
+    const before = [...host.querySelectorAll("thead [data-column]")].map(node => node.getAttribute("data-column"));
+    await act(async () => { host.querySelector<HTMLButtonElement>('[aria-controls="discover-advanced"]')!.click(); });
+    await act(async () => { host.querySelector<HTMLButtonElement>("[data-fund-toggle]")!.click(); });
+    const coverage = host.querySelector('[data-fund-coverage="fund.net_margin_fy"]');
+    expect(coverage?.getAttribute("data-fund-total")).toBe("300");
+    expect(coverage?.querySelector('[data-fund-status="unavailable"]')?.getAttribute("data-fund-n")).toBe("300");
+    expect(host.querySelectorAll("thead [data-fund-col]")).toHaveLength(0);
+    expect([...host.querySelectorAll("thead [data-column]")].map(node => node.getAttribute("data-column"))).toEqual(before);
+  });
+
   it("reveals a small filtered result after scrolling deeply into a large universe", async () => {
     expect(rows().length).toBeGreaterThan(0); scroll(6000);
     expect(host.querySelector<HTMLTableRowElement>(".scr2-spacer")!.style.height).not.toBe("0px");

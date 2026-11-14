@@ -913,7 +913,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     let cellsBy: Map<string, Partial<Record<FundamentalFieldId, FundamentalClassification>>> | null = null;
     let tallyOut: FundamentalTally | null = null;
     let summary: FundamentalFieldSummary | null = null;
-    if (fsrc && (fundCols.length > 0 || fundPreds.length > 0)) {
+    if (fsrc && (fundOpen || fundCols.length > 0 || fundPreds.length > 0)) {
       cellsBy = new Map();
       const tally = fundPreds.length > 0 ? createFundamentalTally(fundPreds) : null;
       const out: Row[] = [];
