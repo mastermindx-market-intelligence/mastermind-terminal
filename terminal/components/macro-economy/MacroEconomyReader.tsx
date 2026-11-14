@@ -9,6 +9,11 @@ import MacroEconomyOverview from "./MacroEconomyOverview";
 import MacroEconomyWorkspace from "./MacroEconomyWorkspace";
 import s from "./MacroEconomy.module.css";
 
+const COPY = {
+  en: { accountEnded: "Your account changed or your session ended. Private readings have been cleared.", identityUnavailable: "Account verification is unavailable. Private readings are hidden.", verifyingAccount: "Verifying your account…", signIn: "Sign in", recheckAccount: "Recheck account" },
+  zh: { accountEnded: "账户已更改或会话已结束，私人读数已清除。", identityUnavailable: "账户核验暂不可用，私人读数已隐藏。", verifyingAccount: "正在核验账户…", signIn: "登录", recheckAccount: "重新核验账户" },
+} as const;
+
 type RequestOwner = { workspaceId: EconomicWorkspaceId | null };
 type Read = { phase: "loading" | "ready" | "unavailable" | "access" | "missing"; data: TodayPayload | EconomicWorkspaceRead | null; generation: AbortController | null; owner: RequestOwner | null };
 const empty = (): Read => ({ phase: "loading", data: null, generation: null, owner: null });
@@ -27,7 +32,7 @@ export default function MacroEconomyReader(props: MacroEconomyReaderProps) {
 }
 
 function EconomicSession(props: MacroEconomyReaderProps) {
-  const { ownerKey, workspaceId, lang } = props, zh = lang === "zh";
+  const { ownerKey, workspaceId, lang } = props, c = COPY[lang];
   const { scope, ready, ended, unavailable, retryIdentity, invalidateIdentity } = useReadingScope(ownerKey);
   // Chart/table/evidence changes do not refetch the same publication. Workspace
   // changes get a new owner even for A -> B -> A, fencing late A responses.
@@ -59,8 +64,8 @@ function EconomicSession(props: MacroEconomyReaderProps) {
   }, [ready, load, scope, requestOwner]);
   const owned = ready && read.owner === requestOwner && read.generation === scope.current ? read : empty();
   const accountNotice = !ready ? <section className={s.limit} role="status">
-    <p>{ended ? (zh ? "账户已更改或会话已结束，私人读数已清除。" : "Your account changed or your session ended. Private readings have been cleared.") : unavailable ? (zh ? "账户核验暂不可用，私人读数已隐藏。" : "Account verification is unavailable. Private readings are hidden.") : (zh ? "正在核验账户…" : "Verifying your account…")}</p>
-    {(ended || unavailable) && <div className={s.actions}>{ended && <Link href={props.signInHref} className={s.textButton}>{zh ? "登录" : "Sign in"}</Link>}<button type="button" className={s.textButton} onClick={retryIdentity}>{zh ? "重新核验账户" : "Recheck account"}</button></div>}
+    <p>{ended ? (c.accountEnded) : unavailable ? (c.identityUnavailable) : (c.verifyingAccount)}</p>
+    {(ended || unavailable) && <div className={s.actions}>{ended && <Link href={props.signInHref} className={s.textButton}>{c.signIn}</Link>}<button type="button" className={s.textButton} onClick={retryIdentity}>{c.recheckAccount}</button></div>}
   </section> : undefined;
   return workspaceId ? <MacroEconomyWorkspace {...props} workspaceId={workspaceId} read={{ phase: owned.phase, data: owned.data as EconomicWorkspaceRead | null }} onRefresh={() => void load()} accountNotice={accountNotice}/> : <MacroEconomyOverview lang={lang} data={owned.data as TodayPayload | null} phase={owned.phase === "missing" ? "unavailable" : owned.phase} dashboardHref={props.dashboardHref} overviewHref={props.overviewHref} workspaceHref={props.workspaceHref} onRefresh={() => void load()} accountNotice={accountNotice}/>;
 }

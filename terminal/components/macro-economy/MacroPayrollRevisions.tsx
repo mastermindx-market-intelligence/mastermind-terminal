@@ -27,7 +27,9 @@ export default function MacroPayrollRevisions({ data, selection, onSelect, onEvi
   const rows = payrollWindow(data.rows, selection.window);
   const selected = rows.find(row => row.period === selection.observation) ?? (selection.observation ? null : [...rows].reverse().find(row => row.selected_change !== null) ?? rows.at(-1));
   const values = rows.flatMap(row => [row.earliest_change, row.selected_change].filter((value): value is number => value !== null));
-  const [low, high] = values.length ? padDomain(Math.min(...values), Math.max(...values), { includeZero: true }) : [0, 1];
+  // Bars encode distance from zero; the shared line-chart helper does not
+  // extend a one-sided domain to zero on our behalf.
+  const [low, high] = values.length ? padDomain(Math.min(0, ...values), Math.max(0, ...values)) : [0, 1];
   const ticks = niceTicks(low, high, 4), left = 58, right = width - 18, top = 20, bottom = 270, height = 314;
   const firstTime = rows.length ? Date.parse(rows[0].period) : 0, lastTime = rows.length ? Date.parse(rows.at(-1)!.period) : 0;
   const spacing = (right - left) / Math.max(2, rows.length), bar = Math.min(16, spacing / 3);
@@ -56,7 +58,7 @@ export default function MacroPayrollRevisions({ data, selection, onSelect, onEvi
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${id}-chart-title ${id}-chart-desc`}>
           <title id={`${id}-chart-title`}>{localText(data.title, lang)}</title><desc id={`${id}-chart-desc`}>{c.measure}. {c.unit}. {c.note} {c.partial}</desc>
           {ticks.values.map(tick => <g key={tick}><line x1={left} x2={right} y1={y(tick)} y2={y(tick)} className={s.gridLine}/><text x={left - 12} y={y(tick) + 4} textAnchor="end" className={s.axisText}>{fmtTick(tick, ticks.step)}</text></g>)}
-          <line x1={left} x2={right} y1={y(0)} y2={y(0)} className={s.zeroLine}/>
+          <line data-payroll-zero="" x1={left} x2={right} y1={y(0)} y2={y(0)} className={s.zeroLine}/>
           {rows.map(row => <g key={row.period} data-reference-period={row.period}>
             {selected?.period === row.period && <rect x={x(row) - spacing / 2} y={top} width={spacing} height={bottom - top} className={s.revisionSelection}/>}
             {(["earliest_change", "selected_change"] as const).map((role, index) => row[role] !== null && <rect key={role} data-vintage-role={role} data-value={row[role]} x={x(row) + (index ? 2 : -bar - 2)} y={Math.min(y(0), y(row[role]!))} width={bar} height={Math.max(1, Math.abs(y(row[role]!) - y(0)))} className={index ? s.revisedBar : s.earliestBar}/>)}

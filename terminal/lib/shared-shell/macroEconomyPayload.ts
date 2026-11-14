@@ -70,6 +70,22 @@ export type EconomicSource = {
   transform_label?: Pair | null; rights: Pair | null; freshness: Pair | null; artifact_ref: string | null;
   clocks: { name: Pair; meaning: Pair; value: string | null }[];
 };
+export type EconomicDriverBinding = {
+  schema: "mastermind.macro_driver_binding.v1"; state: "bound" | "unlinked";
+  method_version: string | null; input_kind: "component" | "metric" | null;
+  input_id: string | null; source_refs: string[]; reason: string | null;
+};
+export type EconomicDriverCalculation = {
+  axis_id: string; axis_label: Pair; owner_name: Pair | null; raw: Pair | null;
+  standardized: string | null; weight: string | null; contribution: string | null;
+  transformation: Pair | null; weights_law: Pair | null; freshness: Pair | null; coverage: Pair | null;
+};
+export type EconomicDriver = {
+  driver_id: string; label: Pair; value: Pair | null; unit: Pair | null; coverage: Pair | null;
+  absence: Absence; note: string | null; impact: string | null; impact_present: boolean;
+  impact_sign: "up" | "down" | "flat" | null; impact_absence: Absence;
+  source_binding?: EconomicDriverBinding; calculation?: EconomicDriverCalculation | null;
+};
 /** Existing producers use both source_id and FRED:<series>. Resolve the latter
  * only through an exact published artifact identity, never a guessed label. */
 export function economicSourceIds(refs: string[], sources: EconomicSource[]): string[] {
@@ -102,10 +118,10 @@ export type EconomicWorkspaceView = {
     required: { component_id: string; label: Pair; source_asof: string | null; freshness: Pair | null; freshness_state: string; presence: Pair | null }[] };
   headline: { state_id: string | null; state_label: Pair | null; subtitle: Pair | null; effective_date: string | null; method_version: string | null;
     hysteresis: { held_prior: boolean; note: Pair | null } };
-  axes: { axis_id: string; label: Pair; value: string | null; value_raw: number | null; value_with_unit: Pair | null; absence: Absence }[];
+  axes: { axis_id: string; label: Pair; value: string | null; value_raw: number | null; value_with_unit: Pair | null; absence: Absence; low_label: Pair | null; high_label: Pair | null; freshness: Pair }[];
   changes: { comparable: boolean; comparability: string; prior_is_earlier: boolean; prior_effective_date: string | null; absence: Absence; deltas: EconomicDelta[] };
   metrics: EconomicMetric[];
-  drivers: { group_id: string; title: Pair; absent: boolean; absence: Absence; rows: { driver_id: string; label: Pair; value: Pair | null; unit: Pair | null; coverage: Pair | null; absence: Absence; note: string | null; impact: string | null; impact_present: boolean; impact_sign: "up" | "down" | "flat" | null; impact_absence: Absence }[] }[];
+  drivers: { group_id: string; title: Pair; absent: boolean; absence: Absence; rows: EconomicDriver[] }[];
   implications: { entries: { implication_id: string; text: Pair; evidence_label: Pair | null; evidence_claim: Pair | null }[]; absent: boolean; absence_text: Pair };
   series: { entries: EconomicSeries[]; absent: boolean; absence: Absence };
   evidence: { sources: EconomicSource[]; generation: { generation_id: string; content_sha256: string; calculation_as_of: string | null };
@@ -207,7 +223,7 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
   const h = v.headline, c = v.context, changes = v.changes;
   if (!record(h) || !nullableText(h.state_id) || !nullablePair(h.state_label) || !nullablePair(h.subtitle) || !date(h.effective_date) || !nullableText(h.method_version) || !record(h.hysteresis) || typeof h.hysteresis.held_prior !== "boolean" || !nullablePair(h.hysteresis.note)) return null;
   if (!record(c) || !text(c.state) || !pair(c.state_label) || !text(c.worst_freshness_token) || !pair(c.worst_freshness) || !nullableText(c.coverage) || !list(c.required, row => identity(row.component_id) && pair(row.label) && date(row.source_asof) && nullablePair(row.freshness) && text(row.freshness_state) && nullablePair(row.presence), 80)) return null;
-  if (!list(v.axes, row => identity(row.axis_id) && pair(row.label) && nullableText(row.value) && finite(row.value_raw) && nullablePair(row.value_with_unit) && absence(row.absence), 2)) return null;
+  if (!list(v.axes, row => identity(row.axis_id) && pair(row.label) && nullableText(row.value) && finite(row.value_raw) && nullablePair(row.value_with_unit) && absence(row.absence) && nullablePair(row.low_label) && nullablePair(row.high_label) && pair(row.freshness), 2)) return null;
   if (!record(changes) || typeof changes.comparable !== "boolean" || changes.comparable !== (changes.comparability === "COMPARABLE") || typeof changes.prior_is_earlier !== "boolean" || !date(changes.prior_effective_date) || !absence(changes.absence)) return null;
   if (changes.prior_is_earlier && !(changes.prior_effective_date && h.effective_date && changes.prior_effective_date < h.effective_date)) return null;
   if (!list(changes.deltas, row => identity(row.metric_id) && nullablePair(row.label) && finite(row.prior_raw) && finite(row.current_raw) && finite(row.delta_raw) && nullableText(row.prior) && nullableText(row.current) && nullableText(row.delta) && row.prior_present === (row.prior_raw !== null) && row.current_present === (row.current_raw !== null) && row.delta_present === (row.delta_raw !== null) && typeof row.comparable === "boolean" && typeof row.is_movement === "boolean" && absence(row.absence), 300)) return null;
@@ -216,6 +232,34 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
     if (expected !== "labor_markets" || !payrollRevisions(v.payroll_revisions, v.metrics, e.sources, source.composed_at as string)) return null;
   } else if (v.metrics.some(metric => (metric.metric_id as string).startsWith("payroll_revision:"))) return null;
   if (!list(v.drivers, group => identity(group.group_id) && pair(group.title) && typeof group.absent === "boolean" && absence(group.absence) && list(group.rows, row => identity(row.driver_id) && pair(row.label) && nullablePair(row.value) && nullablePair(row.unit) && nullablePair(row.coverage) && absence(row.absence) && nullableText(row.note) && nullableText(row.impact) && row.impact_present === (row.impact !== null) && (row.impact_sign === null || ["up", "down", "flat"].includes(row.impact_sign as string)) && (row.impact_present || row.impact_sign === null) && absence(row.impact_absence)), 8)) return null;
+  const publishedSourceIds = new Set(e.sources.map(source => source.source_id));
+  const publishedMetricIds = new Set(v.metrics.map(metric => metric.metric_id));
+  const driverRows = v.drivers.flatMap(group => group.rows as Record<string, unknown>[]);
+  if (!unique(driverRows, "driver_id")) return null;
+  for (const group of v.drivers) {
+    for (const row of group.rows as Record<string, unknown>[]) {
+      const binding = row.source_binding, calculation = row.calculation;
+      if (binding !== undefined) {
+        if (record(binding) && (binding.input_kind === null) !== (binding.input_id === null)) return null;
+        if (record(binding) && binding.input_kind === "metric" && binding.input_id !== row.driver_id && !(expected === "financial_conditions" && h.method_version === "financial_conditions.compose.v1" && row.driver_id === "hy_oas_z_credit_leg" && binding.input_id === "hy_oas_z")) return null;
+        if (!record(binding) || Object.keys(binding).length !== 7 || binding.schema !== "mastermind.macro_driver_binding.v1" || binding.method_version !== h.method_version || !["bound", "unlinked"].includes(binding.state as string) || ![null, "component", "metric"].includes(binding.input_kind as string | null) || !nullableText(binding.input_id) || (binding.input_kind === "component" && binding.input_id !== row.driver_id) || (binding.input_kind === "metric" && !publishedMetricIds.has(binding.input_id)) || !Array.isArray(binding.source_refs) || binding.source_refs.length > 16 || !binding.source_refs.every(ref => identity(ref) && publishedSourceIds.has(ref)) || new Set(binding.source_refs).size !== binding.source_refs.length) return null;
+        if (binding.state === "bound" ? !binding.input_kind || !binding.input_id || !binding.source_refs.length || binding.reason !== null : binding.source_refs.length !== 0 || !["owner_method_unqualified", "input_identity_mismatch", "source_mapping_absent", "source_disclosure_missing", "source_disclosure_ambiguous"].includes(binding.reason as string)) return null;
+      }
+      if (calculation !== undefined && calculation !== null) {
+        if (!record(binding) || binding.input_kind !== "component" || !record(calculation) || !identity(calculation.axis_id) || !pair(calculation.axis_label) || !v.axes.some(axis => axis.axis_id === calculation.axis_id && JSON.stringify(axis.label) === JSON.stringify(calculation.axis_label)) || !nullablePair(calculation.owner_name) || !nullablePair(calculation.raw) || !nullableText(calculation.standardized) || !nullableText(calculation.weight) || !nullableText(calculation.contribution) || !nullablePair(calculation.transformation) || !nullablePair(calculation.weights_law) || !nullablePair(calculation.freshness) || !nullablePair(calculation.coverage)) return null;
+        const axis = v.axes.find(axis => axis.axis_id === calculation.axis_id)!;
+        if (!Array.isArray(axis.components) || axis.components.length > 80) return null;
+        const inputCount = v.axes.reduce((count, candidate) => count + (Array.isArray(candidate.components) ? candidate.components.filter(component => record(component) && component.component_id === row.driver_id).length : 0), 0);
+        if (inputCount !== 1 || !text(row.owner_field)) return null;
+        const components = axis.components.filter(component => record(component) && component.component_id === row.driver_id && component.owner_field === row.owner_field);
+        if (components.length !== 1 || !record(components[0])) return null;
+        for (const key of ["owner_name", "raw", "standardized", "weight", "contribution", "freshness", "coverage"]) {
+          if (JSON.stringify(calculation[key]) !== JSON.stringify(components[0][key])) return null;
+        }
+        if (JSON.stringify(calculation.raw) !== JSON.stringify(row.value) || JSON.stringify(calculation.transformation) !== JSON.stringify(axis.transformation) || JSON.stringify(calculation.weights_law) !== JSON.stringify(axis.weights_law)) return null;
+      }
+    }
+  }
   if (!record(v.implications) || typeof v.implications.absent !== "boolean" || !pair(v.implications.absence_text) || !list(v.implications.entries, row => identity(row.implication_id) && pair(row.text) && nullablePair(row.evidence_label) && nullablePair(row.evidence_claim), 30)) return null;
   if (!record(v.series) || typeof v.series.absent !== "boolean" || !absence(v.series.absence) || !list(v.series.entries, row => identity(row.series_id) && pair(row.label) && pair(row.unit) && pair(row.basis) && Number.isSafeInteger(row.count) && (row.count as number) >= 0 && date(row.first) && date(row.last) && nullableText(row.source_ref) && pair(row.freshness) && text(row.freshness_tone) && nullableText(row.revision_behavior) && (row.points === undefined || validPoints(row.points)), 64) || !unique(v.series.entries, "series_id")) return null;
   let total = 0;

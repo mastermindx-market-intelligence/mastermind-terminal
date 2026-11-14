@@ -10,6 +10,50 @@ const fixture = (id: EconomicWorkspaceId = "rates_curves") => structuredClone(fi
 const payrollFixture = () => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_payroll_revisions.json"), "utf8"));
 
 describe("native economic publication boundary", () => {
+  it("keeps source bindings and full component calculations tied to the accepted publication", () => {
+    const result = macroEconomyPayload(fixture("liquidity_regime"), "liquidity_regime")!;
+    if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    const rows = result.selected_workspace.view.drivers.flatMap(group => group.rows);
+    expect(rows.find(row => row.driver_id === "nfci_pctile")?.source_binding).toMatchObject({ state: "bound", input_kind: "component", source_refs: ["nfci"] });
+    expect(rows.find(row => row.driver_id === "nfci_pctile")?.calculation?.weight).toBe("0.30");
+    expect(rows.find(row => row.driver_id === "rates_scare_score")?.source_binding).toMatchObject({ state: "unlinked", reason: "source_mapping_absent", source_refs: [] });
+  });
+
+  it.each([
+    ["crossed method", (v: any, row: any) => { row.source_binding.method_version = "other.compose.v1"; }],
+    ["unknown source", (v: any, row: any) => { row.source_binding.source_refs = ["not-published"]; }],
+    ["duplicate source", (v: any, row: any) => { row.source_binding.source_refs.push("nfci"); }],
+    ["crossed component", (v: any, row: any) => { row.source_binding.input_id = "ofr_fsi_pctile"; }],
+    ["missing input kind", (v: any, row: any) => { row.source_binding.input_kind = null; }],
+    ["false unlinked state", (v: any, row: any) => { row.source_binding.state = "unlinked"; row.source_binding.reason = "source_mapping_absent"; }],
+    ["crossed calculation axis", (v: any, row: any) => { row.calculation.axis_id = "other"; }],
+    ["crossed calculation value", (v: any, row: any) => { row.calculation.raw = { en: "99", zh: "99" }; }],
+    ["crossed component weight", (v: any, row: any) => { row.calculation.weight = "0.99"; }],
+    ["duplicate component", (v: any, row: any) => { v.axes[0].components.push(structuredClone(v.axes[0].components[0])); }],
+    ["component repeated across axes", (v: any, row: any) => { v.axes[1].components.push(structuredClone(v.axes[0].components[0])); }],
+    ["duplicate driver", (v: any, row: any) => { v.drivers[1].rows.push(structuredClone(row)); }],
+  ] as const)("rejects driver %s", (_name, mutate) => {
+    const value = fixture("liquidity_regime"), view = value.selected_workspace.view;
+    const row = view.drivers.flatMap((group: any) => group.rows).find((row: any) => row.driver_id === "nfci_pctile");
+    mutate(view, row);
+    expect(macroEconomyPayload(value, "liquidity_regime")).toBeNull();
+  });
+
+  it("reads older driver views without inventing source or calculation bindings", () => {
+    const value = fixture("liquidity_regime");
+    for (const group of value.selected_workspace.view.drivers) for (const row of group.rows) {
+      delete row.source_binding; delete row.calculation;
+    }
+    expect(macroEconomyPayload(value, "liquidity_regime")).not.toBeNull();
+  });
+
+  it("refuses a driver binding crossed to another existing metric", () => {
+    const value = fixture("financial_conditions"), view = value.selected_workspace.view;
+    const row = view.drivers.flatMap((group: any) => group.rows).find((row: any) => row.driver_id === "hy_oas_z_credit_leg");
+    row.source_binding.input_id = "nfci";
+    expect(macroEconomyPayload(value, "financial_conditions")).toBeNull();
+  });
+
   it("binds real producer payroll revision rows to their metric and cohort receipts", () => {
     const result = macroEconomyPayload(payrollFixture(), "labor_markets");
     expect(result?.selected_workspace.state).toBe("ready");

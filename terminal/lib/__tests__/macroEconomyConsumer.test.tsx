@@ -36,6 +36,95 @@ const mount = async (element: React.ReactNode) => { await act(async () => { root
 const click = async (text: string) => { const button = Array.from(host.querySelectorAll("button")).find(el => el.textContent === text); expect(button).toBeTruthy(); await act(async () => button!.click()); };
 
 describe("native charts and evidence", () => {
+  it("shows the exact driver source and a Chinese calculation while keeping unlinked evidence explicit", async () => {
+    const result = read("liquidity_regime");
+    if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    const source = result.selected_workspace.view.evidence.sources.find(row => row.source_id === "nfci")!;
+    await mount(<MacroEconomicEvidence read={result} selection="driver:nfci_pctile" lang="zh" onClose={vi.fn()} onSelect={vi.fn()}/>);
+    expect(host.textContent).toContain(source.label.zh);
+    expect(host.textContent).toContain("标准化读数");
+    expect(host.textContent).toContain("0.30");
+    expect(host.textContent).toContain("分项贡献");
+    expect(host.querySelector("[data-source-unlinked]")).toBeNull();
+    await mount(<MacroEconomicEvidence read={result} selection="driver:rates_scare_score" lang="en" onClose={vi.fn()} onSelect={vi.fn()}/>);
+    expect(host.querySelector("[data-source-unlinked]")).not.toBeNull();
+    expect(host.textContent).toContain("Component contribution");
+  });
+
+  it("opens the source for the exact credit-driver alias without pretending a component calculation exists", async () => {
+    const result = read("financial_conditions");
+    if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    const source = result.selected_workspace.view.evidence.sources.find(row => row.source_id === "hy_oas")!;
+    await mount(<MacroEconomicEvidence read={result} selection="driver:hy_oas_z_credit_leg" lang="en" onClose={vi.fn()} onSelect={vi.fn()}/>);
+    expect(host.textContent).toContain(source.label.en);
+    expect(host.textContent).toContain("does not supply the full component calculation");
+    expect(host.querySelector("[data-source-unlinked]")).toBeNull();
+  });
+
+  it("keeps an older driver reading usable without guessing its source attribution", async () => {
+    const result = read("financial_conditions");
+    if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    for (const group of result.selected_workspace.view.drivers) for (const row of group.rows) {
+      delete row.source_binding; delete row.calculation;
+    }
+    await mount(<MacroEconomicEvidence read={result} selection="driver:real_10y_pctile" lang="en" onClose={vi.fn()} onSelect={vi.fn()}/>);
+    expect(host.querySelector("[data-source-unlinked]")).not.toBeNull();
+    expect(host.textContent).toContain("does not supply the full component calculation");
+  });
+
+  it.each([[100, 110], [-110, -100], [-10, 20], [0, 0], [75, 75]])("keeps the payroll bar zero baseline inside the plot for %s and %s", async (first, last) => {
+    const result = macroEconomyPayload(structuredClone(payrollFixture), "labor_markets")!;
+    if (result.selected_workspace.state !== "ready") throw Error("payroll fixture");
+    const data = structuredClone(result.selected_workspace.view.payroll_revisions!);
+    data.rows = [data.rows.at(-1)!];
+    Object.assign(data.rows[0], { earliest_change: first, selected_change: last, net_revision: last - first });
+    await mount(<MacroPayrollRevisions data={data} selection={choice("study=revisions")} onSelect={vi.fn()} onEvidence={vi.fn()} lang="en"/>);
+    const zero = Number(host.querySelector("[data-payroll-zero]")!.getAttribute("y1"));
+    expect(zero).toBeGreaterThanOrEqual(20); expect(zero).toBeLessThanOrEqual(270);
+    for (const bar of Array.from(host.querySelectorAll("[data-vintage-role]"))) {
+      const top = Number(bar.getAttribute("y")), bottom = top + Number(bar.getAttribute("height"));
+      expect(top).toBeGreaterThanOrEqual(20); expect(bottom).toBeLessThanOrEqual(271);
+    }
+  });
+
+  it("preserves the full published overview and its mixed-date and coverage meanings in both languages", async () => {
+    const data = todayPayload(structuredClone(overviewFixture))!;
+    data.read.clauses = Array.from({ length: 5 }, (_, index) => ({ ...data.read.clauses[0], topic: { en: `Topic ${index}`, zh: `主题${index}` }, predicate: { en: `reading ${index}`, zh: `读数${index}` } }));
+    data.read.as_of_meaning = { en: "Oldest of five dated readings; each has its own date.", zh: "五项读数中最早的日期；各项保留各自日期。" };
+    for (const lang of ["en", "zh"] as const) {
+      await mount(<MacroEconomyOverview lang={lang} data={data} phase="ready" dashboardHref="/macro.html" overviewHref="/macro_monetary.html" workspaceHref={href} onRefresh={vi.fn()}/>);
+      for (const clause of data.read.clauses) expect(host.querySelector("[data-economic-assessment]")!.textContent).toContain(clause.predicate[lang]);
+      expect(host.querySelector("[data-economic-date]")!.textContent).toContain(data.read.as_of_meaning[lang]);
+      expect(host.querySelector("[data-economic-date] time")!.textContent).toBe(data.read.as_of_display![lang]);
+      expect(host.querySelector("[data-economic-coverage]")!.textContent).toBe(data.strip.find(row => row.id === "coverage")!.note![lang]);
+    }
+    expect(host.textContent).not.toContain("尚未发布综合经济解读");
+  });
+
+  it("clears a weekly observation only when crossing into or out of payroll revisions", async () => {
+    const result = macroEconomyPayload(structuredClone(payrollFixture), "labor_markets")!, select = vi.fn();
+    const common = { workspaceId: "labor_markets" as const, lang: "en" as const, read: { phase: "ready" as const, data: result }, onSelect: select, onRefresh: vi.fn(), onNavigate: vi.fn(), overviewHref: "/macro_monetary.html", dashboardHref: "/macro.html", workspaceHref: href };
+    await mount(<MacroEconomyWorkspace {...common} selection={choice("study=history&series=ICSA&observation=2025-01-09")}/>);
+    await click("Payroll revisions"); expect(select).toHaveBeenLastCalledWith({ task: "revisions", evidence: null, series: null, observation: null });
+    await mount(<MacroEconomyWorkspace {...common} selection={choice("study=revisions&observation=2025-01-01")}/>);
+    await click("History"); expect(select).toHaveBeenLastCalledWith({ task: "history", evidence: null, series: null, observation: null });
+    await mount(<MacroEconomyWorkspace {...common} selection={choice("study=history&series=ICSA&observation=2025-01-09")}/>);
+    await click("Overview"); expect(select).toHaveBeenLastCalledWith({ task: "overview", evidence: null });
+  });
+
+  it("puts owner-specific axis meanings before history and keeps calculation detail collapsed", async () => {
+    const result = read("labor_markets");
+    await mount(<MacroEconomyWorkspace workspaceId="labor_markets" lang="en" read={{ phase: "ready", data: result }} selection={choice()} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    const axes = host.querySelector("[data-economic-axes]")!;
+    expect(axes.textContent).toContain("Tight market"); expect(axes.textContent).not.toContain("tighter funding");
+    const history = host.querySelector("[data-history-qualification]")!;
+    expect(axes.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const disclosure = Array.from(host.querySelectorAll("details")).find(detail => detail.querySelector("summary")?.textContent === "How the assessment is formed")!;
+    expect(disclosure.open).toBe(false);
+    expect(disclosure.textContent).toContain("hold-back");
+    expect(host.querySelector("[aria-labelledby='economic-assessment']")!.textContent).not.toContain("hold-back");
+  });
+
   it("keeps payroll chart/table values and month selection bound to the URL", async () => {
     const result = macroEconomyPayload(structuredClone(payrollFixture), "labor_markets")!;
     if (result?.selected_workspace.state !== "ready") throw Error("payroll fixture");

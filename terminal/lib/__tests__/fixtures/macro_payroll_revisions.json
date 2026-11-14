@@ -8288,6 +8288,48 @@
                 "display": "—"
               },
               "note": "signed push = (standardized-50)*weight toward the axis high side; standardized=None, weight=0.4",
+              "source_binding": {
+                "schema": "mastermind.macro_driver_binding.v1",
+                "state": "bound",
+                "method_version": "labor_markets.compose.v1",
+                "input_kind": "component",
+                "input_id": "claims_momentum",
+                "source_refs": [
+                  "claims"
+                ],
+                "reason": null
+              },
+              "calculation": {
+                "axis_id": "labor_demand",
+                "axis_label": {
+                  "en": "Employer demand for workers",
+                  "zh": "企业对劳动力的需求"
+                },
+                "owner_name": {
+                  "en": "Labor-nowcast regime desk",
+                  "zh": "劳动力即时预测体制小组"
+                },
+                "raw": null,
+                "standardized": null,
+                "weight": "0.40",
+                "contribution": null,
+                "transformation": {
+                  "en": "Claims are inverted so elevated claims read as weaker demand. Job-postings 3-month change and withheld-tax year-over-year growth map onto 0–100. Only prior published readings are used.",
+                  "zh": "初请取反，初请升高表示需求更弱。职位发布三个月变化与代扣税同比映射到 0–100。只使用已发布的先验读数。"
+                },
+                "weights_law": {
+                  "en": "Weighted average of the parts that are present: initial-claims momentum 40%, job-postings momentum 35%, withheld-tax income-growth proxy 25%.",
+                  "zh": "按到位分项的加权平均：初请动量 40%、职位发布动量 35%、代扣税收入增长代理 25%。"
+                },
+                "freshness": {
+                  "en": "Source failed",
+                  "zh": "数据源获取失败"
+                },
+                "coverage": {
+                  "en": "Absent",
+                  "zh": "缺失"
+                }
+              },
               "coverage": {
                 "en": "Absent",
                 "zh": "缺失"
@@ -8327,6 +8369,48 @@
                 "display": "—"
               },
               "note": "signed push = (standardized-50)*weight toward the axis high side; standardized=None, weight=0.35",
+              "source_binding": {
+                "schema": "mastermind.macro_driver_binding.v1",
+                "state": "bound",
+                "method_version": "labor_markets.compose.v1",
+                "input_kind": "component",
+                "input_id": "job_postings_momentum",
+                "source_refs": [
+                  "indeed"
+                ],
+                "reason": null
+              },
+              "calculation": {
+                "axis_id": "labor_demand",
+                "axis_label": {
+                  "en": "Employer demand for workers",
+                  "zh": "企业对劳动力的需求"
+                },
+                "owner_name": {
+                  "en": "Labor-nowcast regime desk",
+                  "zh": "劳动力即时预测体制小组"
+                },
+                "raw": null,
+                "standardized": null,
+                "weight": "0.35",
+                "contribution": null,
+                "transformation": {
+                  "en": "Claims are inverted so elevated claims read as weaker demand. Job-postings 3-month change and withheld-tax year-over-year growth map onto 0–100. Only prior published readings are used.",
+                  "zh": "初请取反，初请升高表示需求更弱。职位发布三个月变化与代扣税同比映射到 0–100。只使用已发布的先验读数。"
+                },
+                "weights_law": {
+                  "en": "Weighted average of the parts that are present: initial-claims momentum 40%, job-postings momentum 35%, withheld-tax income-growth proxy 25%.",
+                  "zh": "按到位分项的加权平均：初请动量 40%、职位发布动量 35%、代扣税收入增长代理 25%。"
+                },
+                "freshness": {
+                  "en": "Source failed",
+                  "zh": "数据源获取失败"
+                },
+                "coverage": {
+                  "en": "Absent",
+                  "zh": "缺失"
+                }
+              },
               "coverage": {
                 "en": "Absent",
                 "zh": "缺失"
@@ -8366,6 +8450,48 @@
                 "display": "—"
               },
               "note": "signed push = (standardized-50)*weight toward the axis high side; standardized=None, weight=0.25",
+              "source_binding": {
+                "schema": "mastermind.macro_driver_binding.v1",
+                "state": "bound",
+                "method_version": "labor_markets.compose.v1",
+                "input_kind": "component",
+                "input_id": "income_growth_proxy",
+                "source_refs": [
+                  "withheld_tax"
+                ],
+                "reason": null
+              },
+              "calculation": {
+                "axis_id": "labor_demand",
+                "axis_label": {
+                  "en": "Employer demand for workers",
+                  "zh": "企业对劳动力的需求"
+                },
+                "owner_name": {
+                  "en": "Labor-nowcast regime desk",
+                  "zh": "劳动力即时预测体制小组"
+                },
+                "raw": null,
+                "standardized": null,
+                "weight": "0.25",
+                "contribution": null,
+                "transformation": {
+                  "en": "Claims are inverted so elevated claims read as weaker demand. Job-postings 3-month change and withheld-tax year-over-year growth map onto 0–100. Only prior published readings are used.",
+                  "zh": "初请取反，初请升高表示需求更弱。职位发布三个月变化与代扣税同比映射到 0–100。只使用已发布的先验读数。"
+                },
+                "weights_law": {
+                  "en": "Weighted average of the parts that are present: initial-claims momentum 40%, job-postings momentum 35%, withheld-tax income-growth proxy 25%.",
+                  "zh": "按到位分项的加权平均：初请动量 40%、职位发布动量 35%、代扣税收入增长代理 25%。"
+                },
+                "freshness": {
+                  "en": "Source failed",
+                  "zh": "数据源获取失败"
+                },
+                "coverage": {
+                  "en": "Absent",
+                  "zh": "缺失"
+                }
+              },
               "coverage": {
                 "en": "Absent",
                 "zh": "缺失"
@@ -8420,6 +8546,48 @@
                 "display": "—"
               },
               "note": "signed push = (standardized-50)*weight toward the axis high side; standardized=None, weight=0.55",
+              "source_binding": {
+                "schema": "mastermind.macro_driver_binding.v1",
+                "state": "bound",
+                "method_version": "labor_markets.compose.v1",
+                "input_kind": "component",
+                "input_id": "sahm_rule_level",
+                "source_refs": [
+                  "sahm"
+                ],
+                "reason": null
+              },
+              "calculation": {
+                "axis_id": "labor_supply_tightness",
+                "axis_label": {
+                  "en": "Tightness of the job market",
+                  "zh": "就业市场的紧张程度"
+                },
+                "owner_name": {
+                  "en": "Recession-regime desk",
+                  "zh": "衰退体制小组"
+                },
+                "raw": null,
+                "standardized": null,
+                "weight": "0.55",
+                "contribution": null,
+                "transformation": {
+                  "en": "The Sahm rule is inverted against its 0.5-point recession trigger so a lower Sahm reads as a tighter market. The claims recession subscore is inverted the same way. Both land on 0–100.",
+                  "zh": "萨姆规则相对 0.5 点衰退触发值取反，萨姆越低表示市场越紧。初请衰退子评分同样取反。两者均落到 0–100。"
+                },
+                "weights_law": {
+                  "en": "Weighted average of the parts that are present: Sahm-rule level 55%, claims-based recession subscore 45%.",
+                  "zh": "按到位分项的加权平均：萨姆规则水平 55%、基于初请的衰退子评分 45%。"
+                },
+                "freshness": {
+                  "en": "Source failed",
+                  "zh": "数据源获取失败"
+                },
+                "coverage": {
+                  "en": "Absent",
+                  "zh": "缺失"
+                }
+              },
               "coverage": {
                 "en": "Absent",
                 "zh": "缺失"
@@ -8459,6 +8627,48 @@
                 "display": "—"
               },
               "note": "signed push = (standardized-50)*weight toward the axis high side; standardized=None, weight=0.45",
+              "source_binding": {
+                "schema": "mastermind.macro_driver_binding.v1",
+                "state": "bound",
+                "method_version": "labor_markets.compose.v1",
+                "input_kind": "component",
+                "input_id": "claims_recession_subscore",
+                "source_refs": [
+                  "recession_claims"
+                ],
+                "reason": null
+              },
+              "calculation": {
+                "axis_id": "labor_supply_tightness",
+                "axis_label": {
+                  "en": "Tightness of the job market",
+                  "zh": "就业市场的紧张程度"
+                },
+                "owner_name": {
+                  "en": "Recession-regime desk",
+                  "zh": "衰退体制小组"
+                },
+                "raw": null,
+                "standardized": null,
+                "weight": "0.45",
+                "contribution": null,
+                "transformation": {
+                  "en": "The Sahm rule is inverted against its 0.5-point recession trigger so a lower Sahm reads as a tighter market. The claims recession subscore is inverted the same way. Both land on 0–100.",
+                  "zh": "萨姆规则相对 0.5 点衰退触发值取反，萨姆越低表示市场越紧。初请衰退子评分同样取反。两者均落到 0–100。"
+                },
+                "weights_law": {
+                  "en": "Weighted average of the parts that are present: Sahm-rule level 55%, claims-based recession subscore 45%.",
+                  "zh": "按到位分项的加权平均：萨姆规则水平 55%、基于初请的衰退子评分 45%。"
+                },
+                "freshness": {
+                  "en": "Source failed",
+                  "zh": "数据源获取失败"
+                },
+                "coverage": {
+                  "en": "Absent",
+                  "zh": "缺失"
+                }
+              },
               "coverage": {
                 "en": "Absent",
                 "zh": "缺失"

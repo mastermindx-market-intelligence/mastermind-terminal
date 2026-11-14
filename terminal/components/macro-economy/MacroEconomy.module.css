@@ -20,6 +20,7 @@
 .hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:44px;align-items:start;margin-bottom:40px}
 .heroMain{display:flex;flex-direction:column;gap:20px;min-width:0}
 .heroSummary{font-size:16px;color:var(--text-2);max-width:720px}
+.economicAssessment{font-size:clamp(18px,1.8vw,23px);line-height:1.55;letter-spacing:-.012em;max-width:800px;text-wrap:pretty}
 .dailyLink{padding:24px;background:var(--panel-2);border:1px solid var(--line-3);border-radius:var(--r-lg,12px);display:flex;flex-direction:column;gap:14px}
 .dailyLink strong{font-size:22px;letter-spacing:-.025em;line-height:1.25}
 .dailyLink>a,.textButton,.back{color:var(--link)!important;min-height:44px;display:inline-flex;align-items:center;gap:8px;font-weight:600}
@@ -58,6 +59,10 @@
 .axes dt{font-size:13px;color:var(--text-2)}
 .axes dd{margin:8px 0 0;font:600 28px/1.2 var(--font-num,var(--font-ui));font-variant-numeric:tabular-nums}
 .axes dd small{font:400 13px/1.4 var(--font-ui);color:var(--text-2)}
+.axes p{margin-top:8px}
+.methodDetails{margin-bottom:16px;font-size:13px;color:var(--text-2)}
+.methodDetails summary{min-height:44px;cursor:pointer;color:var(--text)}
+.methodDetails p+p{margin-top:8px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 28px;border-bottom:1px solid var(--line);padding-bottom:16px}
 .tabs button{border:1px solid transparent;border-radius:var(--r-md,8px);min-height:44px;padding:10px 20px;background:transparent;color:var(--text-2)}
 .tabs button[aria-current=page]{background:var(--panel-2);border-color:var(--line-3);color:var(--text);font-weight:650}
