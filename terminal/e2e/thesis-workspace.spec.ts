@@ -1358,18 +1358,12 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   await expect(page.getByRole("heading", { name: "不支持此分析视图" })).toBeVisible();
 });
 
-test("the context-bar theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
+test("the research-actions theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
   const openTheses = async (label: string) => {
-    if ((page.viewportSize()?.width ?? 1440) <= 640) {
-      await page.locator(".analysis-context-actions > summary").click();
-      const link = page.locator(".analysis-context-actions-menu").getByRole("link", { name: label });
-      await expect(link).toBeVisible();
-      await link.click();
-    } else {
-      const link = page.getByRole("link", { name: label });
-      await expect(link).toBeVisible();
-      await link.click();
-    }
+    await page.locator(".analysis-context-actions > summary").click();
+    const link = page.locator(".analysis-context-actions-menu").getByRole("link", { name: label });
+    await expect(link).toBeVisible();
+    await link.click();
   };
   // EN
   await prepare(page, testInfo, baseURL);

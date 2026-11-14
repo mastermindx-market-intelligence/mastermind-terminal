@@ -423,14 +423,12 @@ async function openAnalysis(page, lang, viewport) {
   });
   // Keep the protected compact toolbar closed in the crop. On phones, exercise
   // its real disclosure first so the exact localized thesis destination is observed.
-  const compact = viewport.width <= 640;
+  const compact = true; // Research actions share one disclosure at every viewport.
   const label = lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA";
   const disclosure = page.locator(".analysis-context-actions");
   const triggerSelector = ".analysis-context-actions > summary";
   const trigger = page.locator(triggerSelector);
-  const entrySelector = compact
-    ? ".analysis-context-actions-menu > a[aria-label]"
-    : ".analysis-context-bar > .analysis-context-theses[aria-label]";
+  const entrySelector = ".analysis-context-actions-menu > a[aria-label]";
   const entry = page.locator(entrySelector);
   const triggerLabel = lang === "zh" ? "研究操作" : "Research actions";
   let disclosureBounds;

@@ -748,11 +748,18 @@
           "sha": "324bc58ee16c49a387a844575cbb766d773c41eb",
           "mode": "100644",
           "type": "blob"
+        },
+        {
+          "parent": "protected_48da28456ccbd3527a255684018a123660770125",
+          "sha": "7f8952c6f05d62ab0c8577843fb291d08d9166c0",
+          "mode": "100644",
+          "type": "blob"
         }
       ],
-      "result_sha": "f2865e8e5dc6ee578cc7c75f2c8c3879fd93f6f7",
+      "result_sha": "e7e044bdc61f2c074435876ac31a244efb62181d",
       "result_mode": "100644",
-      "intentional_delta": true
+      "intentional_delta": true,
+      "previous_result_sha": "f2865e8e5dc6ee578cc7c75f2c8c3879fd93f6f7"
     },
     {
       "path": "terminal/e2e/shared-shell-scroll-lock.spec.ts",
@@ -818,11 +825,18 @@
           "sha": "cccd13e5d64dd41e771febe6f17a93a74d010f4d",
           "mode": "100644",
           "type": "blob"
+        },
+        {
+          "parent": "protected_48da28456ccbd3527a255684018a123660770125",
+          "sha": "c5d78a740c345aef27dc64fdc124265e20eee62e",
+          "mode": "100644",
+          "type": "blob"
         }
       ],
-      "result_sha": "cccd13e5d64dd41e771febe6f17a93a74d010f4d",
+      "result_sha": "65529a36e01d271051f84d0d859a01f77b12272c",
       "result_mode": "100644",
-      "intentional_delta": false
+      "intentional_delta": true,
+      "previous_result_sha": "cccd13e5d64dd41e771febe6f17a93a74d010f4d"
     },
     {
       "path": "terminal/lib/__tests__/companySearchReturn.test.tsx",
@@ -1978,7 +1992,7 @@
     },
     {
       "path": "terminal/e2e/shared-shell-refinement.spec.ts",
-      "sha": "f2865e8e5dc6ee578cc7c75f2c8c3879fd93f6f7"
+      "sha": "e7e044bdc61f2c074435876ac31a244efb62181d"
     },
     {
       "path": "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
@@ -2017,6 +2031,20 @@
       "terminal/components/macro-economy/MacroEconomyWorkspace.tsx",
       "terminal/lib/__tests__/macroEconomyConsumer.test.tsx"
     ],
+    "release_request": false
+  },
+  "protected_reconciliation_2": {
+    "candidate_parent": "6c8ba8e46b559f9ba331837c2f3a386530aa63e1",
+    "protected_parent": "48da28456ccbd3527a255684018a123660770125",
+    "protected_pr": 1494,
+    "protected_changed_paths": 96,
+    "overlap_paths": [
+      "terminal/e2e/shared-shell-refinement.spec.ts",
+      "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx"
+    ],
+    "resolution": "Complete protected tree; clean refinement union; protected MegaPane mock props plus inherited launch/navigation assertions",
+    "syntax_transpile_errors": 0,
+    "hosted_component_browser_proof": "pending",
     "release_request": false
   }
 }

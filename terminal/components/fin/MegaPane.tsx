@@ -21,7 +21,7 @@
  * FE3 mounts this and passes {sym, fund, quote, bars}. Sibling page components
  * (FE2b/FE2c/FE2d) are imported by name — they land in parallel.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import { megaPaneText } from "./megaPaneLex";
@@ -51,6 +51,7 @@ import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
+import { familyForPage, FIN_FAMILY_PAGES } from "./finPageFamilies";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
@@ -134,6 +135,9 @@ export interface MegaPaneProps {
    * present when the pane mounts is never treated as a request.
    */
   closeRequest?: number;
+  /** Company selection and secondary actions supplied by the shared Analysis host. */
+  navigationContext?: ReactNode;
+  navigationActions?: ReactNode;
 }
 
 export default function MegaPane({
@@ -151,6 +155,8 @@ export default function MegaPane({
   chartHosted = false,
   intel = null,
   closeRequest = 0,
+  navigationContext,
+  navigationActions,
 }: MegaPaneProps) {
   const sharedPresentation = useOptionalSharedShellPresentation();
   const workspace = mode === "workspace";
@@ -224,7 +230,7 @@ export default function MegaPane({
       if (e.key === "Escape") {
         if (txOpenRef.current || intelligenceEvidenceOpenRef.current) return; // nested inspector/drawer owns Esc
         // An open seasonal year picker owns Escape before its enclosing pane.
-        if (e.target instanceof Element && e.target.closest('.fin-seas-yearpop-wrap[data-open="true"]')) return;
+        if (e.target instanceof Element && e.target.closest('.fin-seas-yearpop-wrap[data-open="true"], details[open], dialog[open]')) return;
         e.stopPropagation();
         closePane();
       }
@@ -342,10 +348,10 @@ export default function MegaPane({
           </div>
         )}
 
-        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} context={navigationContext} actions={navigationActions} />
 
         {/* ── body ── */}
-        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
+        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={FIN_FAMILY_PAGES[familyForPage(page)].length > 1 ? `fin-local-${page}` : `fin-family-${familyForPage(page)}`}>
           {fundLoading && !fund && FUND_SNAPSHOT_PAGES.has(page) ? (
             <div className="fin-empty fin-empty-lg" role="status" aria-busy="true" data-testid="fundamentals-loading">
               <span className="fin-empty-title">{pick(zh, "Loading financial data…", "正在加载财务数据…")}</span>

@@ -83,7 +83,8 @@ for (const lang of ["en", "zh"] as const) {
       const width = await lab.evaluate(el => ({ content: el.scrollWidth, available: el.clientWidth, document: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
       expect(width.content).toBeLessThanOrEqual(width.available + 1);
       expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
-      await expect(lab.getByRole("link", { name: zh ? "查看价格图表" : "View price chart", exact: true })).toHaveAttribute("href", "/terminal?symbol=EL");
+      // Chart navigation belongs to the workspace; each expanded setup keeps its contextual chart link.
+      await expect(lab.getByRole("link", { name: zh ? "查看价格图表" : "View price chart", exact: true })).toHaveCount(0);
     });
   }
 }

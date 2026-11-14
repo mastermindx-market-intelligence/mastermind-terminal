@@ -256,8 +256,8 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
                   <span className="fin-tx-library-title"><b>{call.period}</b>{call.date && <time dateTime={call.date}>{fmtDate(call.date)}</time>}</span>
                   <strong>{call.title}</strong>
                   <small>
-                    {call.segment_count > 0 && <span>{call.segment_count.toLocaleString()} {pick(zh, "segments", "段")}</span>}
-                    {call.speaker_count > 0 && <span>{call.speaker_count} {pick(zh, "speakers", "位发言人")}</span>}
+                    {call.segment_count > 0 && <span>{call.segment_count.toLocaleString()} {pick(zh, call.segment_count === 1 ? "segment" : "segments", "段")}</span>}
+                    {call.speaker_count > 0 && <span>{call.speaker_count} {pick(zh, call.speaker_count === 1 ? "speaker" : "speakers", "位发言人")}</span>}
                     {call.has_qa && <span className="fin-tx-qa-chip">Q&amp;A</span>}
                     <span>{call.source} · {call.id}</span>
                   </small>

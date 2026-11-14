@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import golden from "./fixtures/aapl-event-workspace.json";
+import { retainedCompanyResearchFixture } from "../../e2e/fixtures/retainedCompanyResearch";
 const { getUser, retained, current } = vi.hoisted(() => ({ getUser: vi.fn(), retained: vi.fn(), current: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser } }) }));
 vi.mock("@/lib/eventWorkspace", async () => {
@@ -20,6 +21,17 @@ beforeEach(() => {
 });
 
 describe("actual baseline HTTP error → shared Company loader", () => {
+  it("validates the Beta browser specimen with the real workspace and complete retained receipt", async () => {
+    const fixture = retainedCompanyResearchFixture();
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify(fixture), { status: 200 }));
+    const result = await loadCompanyRetainedContext({ symbol: "AAPL", fetchImpl });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.workspace.event_id).toBe(golden.event_id);
+    expect(result.receipt.workspace_sha256).toBe(fixture.receipt.workspace_sha256);
+    expect(result.receipt.company_id).toBe(golden.issuer.company_id);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
   it.each([
     ["denied", "rights_denied", 503], ["missing_generation", "missing_generation", 503],
     ["invalid_owner_receipt", "invalid_owner_receipt", 503], ["subject_mismatch", "subject_mismatch", 503],

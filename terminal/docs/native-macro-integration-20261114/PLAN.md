@@ -230,3 +230,24 @@ no release request. This restores honest composite qualification after the squas
 The canonical registry generated at the preceding head passed276 tests and
 structurally preserved every inherited Terminal row and unrelated Macro/Mastermind
 row; it must be regenerated against this reconciled immutable T before saving.
+
+
+## Concurrent protected Analysis release
+
+Protected master then advanced to `48da28456ccbd3527a255684018a123660770125`
+through AnalysisPR1494. That96-path contribution overlaps this integration only
+in shared-shell-refinement.spec.ts and analysisWorkspaceNavigation.test.tsx.
+The refinement suite merges cleanly. The unit suite's single conflict is the
+MegaPane mock: retain the protected navigationContext/navigationActions props
+and the additional search/presentation mocks while preserving the inherited
+SharedShellLaunchLinks wrapper and navigation assertions. No assertion is waived.
+Both resulting files pass TypeScript syntax transpilation; actual component and
+browser execution remain the new-head hosted CI proof.
+
+The current reconciliation imports the complete protected tree and retains all
+165 remaining integration paths, with those two test unions and updated custody
+documentation. The source tree and current protected commit are both parents.
+The original imported-blob proof now has115 unchanged blobs and9 deliberate
+deltas; CUSTODY records the previous identities and added protected source.
+The registry source reference must follow this final reconciled T; no catalogue,
+release or Paper effect is introduced by this source repair.

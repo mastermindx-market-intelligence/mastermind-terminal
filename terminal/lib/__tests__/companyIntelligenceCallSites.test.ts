@@ -8,6 +8,7 @@ const institutional = source("../../components/fin/CompanyInstitutionalContextCa
 const evidenceRail = source("../../components/fin/EvidenceRail.tsx");
 const intelligencePage = source("../../components/fin/CompanyIntelligencePage.tsx");
 const intelligenceV2 = source("../../components/fin/CompanyIntelligenceV2Current.tsx");
+const topicTimeline = source("../../components/fin/CompanyTopicTimeline.tsx");
 const themeCard = source("../../components/fin/CompanyThemeContextCard.tsx");
 const stockAnalysis = source("../../components/StockAnalysisImpl.tsx");
 
@@ -32,9 +33,11 @@ describe("company intelligence call-site labels", () => {
   it("labels topic tags and drops glance-tier event ids on both company intelligence pages", () => {
     for (const src of [intelligencePage, intelligenceV2]) {
       expect(src).not.toContain("<strong>{topic.tag}</strong>");
-      expect(src).toContain("topicTagLabel(");
+      expect(src).toContain("<CompanyTopicTimeline");
       expect(src).not.toContain("first_event_id} →");
     }
+    expect(topicTimeline).toContain("topicTagLabel(");
+    expect(topicTimeline).not.toContain("<strong>{topic.tag}</strong>");
   });
 
   it("keeps event_workspace.v1 out of pick() and JSX text on the v2 page", () => {

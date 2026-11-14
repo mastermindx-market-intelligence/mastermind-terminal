@@ -1,0 +1,45 @@
+.card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "identity actions"
+    "speaker speaker"
+    "excerpt excerpt"
+    "receipt receipt";
+}
+
+.card > header { grid-area: identity; }
+.card > :global(.ci-ts-speaker) { grid-area: speaker; }
+.card:global(.ci-ts-span) > p { grid-area: excerpt; font-size: 13px; line-height: 1.55; }
+.card > footer { grid-area: receipt; }
+.card > .actions { grid-area: actions; }
+
+@media (max-width: 760px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "identity" "speaker" "excerpt" "actions" "receipt";
+  }
+
+  .card > .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px 8px;
+  }
+
+  .card > .actions > button { min-height: 44px; min-width: 44px; padding: 0 4px; }
+  .card :global(.ci-ts-speaker) { flex-wrap: wrap; }
+  .card :global(.ci-ts-speaker strong),
+  .card :global(.ci-ts-speaker span) { white-space: normal; overflow-wrap: anywhere; }
+
+  .compareControls:global(.ci-ts-compare-controls) { grid-template-columns: minmax(0, 1fr); }
+  .compareControls:global(.ci-ts-compare-controls) > label { grid-template-columns: 5.5em minmax(0, 1fr); align-items: center; }
+  .compareControls:global(.ci-ts-compare-controls) > label > span { line-height: 1.35; letter-spacing: 0; text-transform: none; }
+  .compareControls:global(.ci-ts-compare-controls) select { min-width: 0; min-height: 44px; font-size: 12px; }
+  .compareControls:global(.ci-ts-compare-controls) > :global(.ci-ts-compare-swap) { display: none; }
+  .compareControls:global(.ci-ts-compare-controls) > :global(.btn) { min-height: 44px; }
+}
+
+@media (max-width: 360px) {
+  .compareControls:global(.ci-ts-compare-controls) > label { grid-template-columns: minmax(0, 1fr); }
+}

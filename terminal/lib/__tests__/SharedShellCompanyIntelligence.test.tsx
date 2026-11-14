@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SharedShellCompanyIntelligence, { COMPANY_CONTEXT_READ_TIMEOUT_MS } from "@/components/fin/SharedShellCompanyIntelligence";
@@ -28,6 +28,28 @@ async function render(symbol="AAPL"){await act(async()=>root.render(<SharedShell
 async function resolve(index:number){await act(async()=>pending[index].resolve(success));}
 
 describe("retained Company active scope",()=>{
+ it("aborts StrictMode's first mount and ignores its late receipt without rereading the accepted pin",async()=>{
+  await act(async()=>root.render(<StrictMode><SharedShellCompanyIntelligence sym="AAPL" onOpenTx={()=>{}}/></StrictMode>));
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(pending[0].signal.aborted).toBe(true);
+  expect(pending[1].signal.aborted).toBe(false);
+  await resolve(0);
+  expect(host.querySelector("[data-retained-company]")).toBeNull();
+  expect(window.location.search).not.toContain("ci_event=");
+  await resolve(1);
+  expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+  const pin=new URLSearchParams(window.location.search);
+  expect(pin.get("ci_event")).toBe(receipt.event_id);
+  expect(pin.get("ci_generation")).toBe(receipt.generation_id);
+  expect(pin.get("ci_company")).toBe(receipt.company_id);
+  expect(pin.get("ci_fingerprint")).toBe(receipt.fingerprint);
+  await act(async()=>{
+   const next=new URL(window.location.href);next.searchParams.set("ci_lens","sources");
+   window.history.replaceState({},"",next);window.dispatchEvent(new Event("mmx:shell-location"));
+  });
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+ });
  it.each([
   ["en","owner_unavailable","Current event unavailable"],
   ["zh","owner_unavailable","当前事件不可用"],
@@ -57,19 +79,24 @@ describe("retained Company active scope",()=>{
   expect(window.location.href).toBe(original);expect(edges.load).toHaveBeenCalledTimes(1);expect(edges.load.mock.calls[0][0].pin.fingerprint).toBe(receipt.fingerprint);
  });
  it.each([
-  ["http_503", "en", "Standard company intelligence"],
-  ["current_owner_unavailable", "zh", "标准公司情报"],
+  ["http_503", "en", "Published research"],
+  ["current_owner_unavailable", "zh", "已发布研究"],
  ] as const)("shows separately published company context for unpinned %s in %s",async(reason,lang,title)=>{
   edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
   const original=window.location.href;await render("NVDA");
   expect(host.querySelector('[data-standard-company="NVDA"]')).not.toBeNull();
   const banner=host.querySelector<HTMLElement>('[data-ci-context-state="standard_company_view"]');
-  expect(banner?.classList.contains("ci-state-banner")).toBe(true);
-  expect(banner?.classList.contains("ci-state")).toBe(false);
+  expect(banner?.getAttribute("role")).toBe("status");
   expect(banner?.querySelector("strong")?.textContent).toBe(title);
-  expect(host.textContent).toContain(lang==="zh"?"核对来源日期":"check source dates");
+  expect(banner?.textContent).toContain(lang==="zh"?"当前已验证事件不可用":"Current verified event unavailable");
   expect(window.location.href).toBe(original);
   expect(edges.load.mock.calls[0][0].pin).toBeNull();
+  const retry=banner?.querySelector("button");
+  expect(retry?.textContent).toBe(lang==="zh"?"重新验证事件":"Recheck verified event");
+  await act(async()=>retry!.click());
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(edges.load.mock.calls[1][0].pin).toBeNull();
+  expect(window.location.href).toBe(original);
  });
  it.each(["rights_denied","unauthenticated","http_403","invalid_reference","owner_unavailable"] as const)(
   "does not substitute on %s",async(reason)=>{

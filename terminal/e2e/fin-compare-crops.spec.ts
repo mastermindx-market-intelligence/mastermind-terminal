@@ -56,10 +56,10 @@ async function open(page: Page, lang: "en" | "zh") {
 
 /**
  * Bring a box to the top of the pane, park the pointer (no hover highlight on a row), and wait for
- * the box to stop moving before it is captured. With `clearOfBar`, a phone/tablet capture must sit
- * entirely above the Financials bottom tab bar, which otherwise paints over the last rows.
+ * the box to stop moving before it is captured. With `withinScrollport`, the capture must fit
+ * inside the real content scrollport and viewport, below the workspace navigation.
  */
-async function steady(page: Page, selector: string, opts: { clearOfBar?: boolean } = {}) {
+async function steady(page: Page, selector: string, opts: { withinScrollport?: boolean } = {}) {
   const el = page.locator(selector).first();
   await el.evaluate((node) => node.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" }));
   await page.mouse.move(0, 0);
@@ -69,11 +69,21 @@ async function steady(page: Page, selector: string, opts: { clearOfBar?: boolean
     same: (a, b) => a === b,
     message: `${selector} never stopped moving`,
   });
-  const bar = page.locator(".fin-local-tabs-mobile");
-  if (opts.clearOfBar && (await bar.isVisible())) {
-    const { y, height } = JSON.parse(box) as { y: number; height: number };
-    const barTop = (await bar.boundingBox())!.y;
-    expect(y + height, `${selector} is covered by the bottom tab bar`).toBeLessThanOrEqual(barTop + 1);
+  if (opts.withinScrollport) {
+    const target = JSON.parse(box) as { x: number; y: number; width: number; height: number };
+    const port = await page.locator(".fin-pane > .fin-body").evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        top: Math.max(0, rect.top + node.clientTop),
+        bottom: Math.min(window.innerHeight, rect.top + node.clientTop + node.clientHeight),
+        left: Math.max(0, rect.left + node.clientLeft),
+        right: Math.min(window.innerWidth, rect.left + node.clientLeft + node.clientWidth),
+      };
+    });
+    expect(target.y, `${selector} overlaps the workspace chrome`).toBeGreaterThanOrEqual(port.top - 1);
+    expect(target.y + target.height, `${selector} extends below the visible scrollport`).toBeLessThanOrEqual(port.bottom + 1);
+    expect(target.x).toBeGreaterThanOrEqual(port.left - 1);
+    expect(target.x + target.width).toBeLessThanOrEqual(port.right + 1);
   }
   return el;
 }
@@ -91,17 +101,21 @@ for (const lang of ["en", "zh"] as const) {
     // 2. Fiscal-relative, annual: the industrial top line (JPM refused on format, 0700.HK on
     //    currency) and the family-neutral net income line (JPM compared).
     for (const metric of ["revenue", "net_income"]) {
-      const table = await steady(page, `[data-fc-table="${metric}"]`, { clearOfBar: true });
+      const table = await steady(page, `[data-fc-table="${metric}"]`, { withinScrollport: true });
       await table.screenshot({ path: join(OUT, `${tag}-fiscal-${metric}.png`), animations: "disabled" });
     }
 
     // 3. Calendar-aligned: relabelled columns, and MSFT's split June year left out.
+    await page.locator("[data-fc-options] > summary").click();
     await page.locator('[data-fc-align-option="calendar"]').click();
+    await page.locator("[data-fc-options] > summary").click();
     await page.mouse.move(0, 0);
     await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="CY2025"]')).toBeVisible();
-    const calendar = await steady(page, '[data-fc-table="revenue"]', { clearOfBar: true });
+    const calendar = await steady(page, '[data-fc-table="revenue"]', { withinScrollport: true });
     await calendar.screenshot({ path: join(OUT, `${tag}-calendar-revenue.png`), animations: "disabled" });
+    await page.locator("[data-fc-options] > summary").click();
     await page.locator('[data-fc-align-option="fiscal"]').click();
+    await page.locator("[data-fc-options] > summary").click();
     await page.mouse.move(0, 0);
 
     // 4. Source drilldown: AMD's latest FY revenue opens AMD's Statements on that column and row.
@@ -133,7 +147,7 @@ for (const lang of ["en", "zh"] as const) {
     await page.locator('[data-fc-table="revenue"] .fin-table-scroll').evaluate((el) => {
       el.scrollLeft = el.scrollWidth;
     });
-    const missing = await steady(page, '[data-fc-table="revenue"]', { clearOfBar: true });
+    const missing = await steady(page, '[data-fc-table="revenue"]', { withinScrollport: true });
     await missing.screenshot({ path: join(OUT, `${tag}-missing-peer.png`), animations: "disabled" });
   });
 }

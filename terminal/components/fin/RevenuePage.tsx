@@ -217,10 +217,6 @@ function RevenueHistory({ fund, zh }: { fund: Fund; zh?: boolean }) {
         )}
       </div>
 
-      <div className="fin-card">
-        <Bars labels={chartLabels} series={chartSeries} fmtY={fmtNum} zh={zh} height={170} />
-      </div>
-
       <div className="fin-stmt-ctrl">
         <div
           className={`fin-toggle fin-aq ${styles.basis}`}
@@ -247,6 +243,11 @@ function RevenueHistory({ fund, zh }: { fund: Fund; zh?: boolean }) {
           </button>
         </div>
       </div>
+
+      <div className="fin-card">
+        <Bars labels={chartLabels} series={chartSeries} fmtY={fmtNum} zh={zh} height={170} />
+      </div>
+
 
       <MiniTable
         periods={periods}
@@ -452,12 +453,12 @@ export default function RevenuePage({ fund, zh, sym }: RevenuePageProps) {
         >
           {pick(!!zh, "Revenue breakdown", "营收分部")}
         </div>
-        <div className="fin-empty fin-empty-lg fin-rev-deferred" role="status">
+        <div className="fin-empty fin-empty-compact fin-rev-deferred" role="status">
           <div className="fin-empty-title">{pick(!!zh, "No segment breakdown", "暂无营收分部")}</div>
           <div className="fin-empty-why">
             {pick(
               !!zh,
-              "The segment collector has not emitted a by-source or by-country split for this listing. Total revenue is still reported on the Statements tab.",
+              "Business and geographic breakdowns are not available in this dataset. Reported total revenue is shown above when available.",
               "分部采集器尚未为该标的输出按来源或按地区的拆分。营收总额仍可在「财务报表」标签中查看。"
             )}
           </div>

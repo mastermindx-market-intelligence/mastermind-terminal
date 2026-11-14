@@ -20,6 +20,7 @@ import {
 } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { acquireScrollLock } from "../../lib/scrollLock";
+import styles from "./TranscriptSearchResults.module.css";
 
 type RequestPhase = "idle" | "loading" | "settled";
 
@@ -146,16 +147,11 @@ function SpanCard({
   onAttach: (span: CompanySourceSpan) => void;
 }) {
   return (
-    <article className="ci-ts-span" data-span-id={span.span_id}>
+    <article className={`ci-ts-span ${styles.card}`} data-span-id={span.span_id}>
       <header>
         <div className="ci-ts-span-identity">
           <span className={`ci-ts-section ${span.section}`}>{span.section === "qa" ? "Q&A" : span.section === "prepared" ? localized(zh, "陈述", "Prepared") : localized(zh, "未知段落", "Unclassified")}</span>
           <span className="ci-ts-segment num">{localized(zh, "段", "Segment")} {span.segment_index + 1}</span>
-        </div>
-        <div className="ci-ts-span-actions">
-          <button className="ci-ts-link" onClick={() => onOpenTranscript({ id: span.transcript_id, segment_index: span.segment_index, expected_document_sha256: span.document_sha256, query: phrase })}>{localized(zh, "打开原文", "Open source")}</button>
-          <button className="ci-ts-link" onClick={(event) => onReceipt(span, event.currentTarget)}>{localized(zh, "凭证", "Receipt")}</button>
-          <button className="ci-ts-link" type="button" onClick={() => onAttach(span)} disabled={span.receipt.verification !== "verified"}>{localized(zh, "附加给 Mastermind", "Attach to Mastermind")}</button>
         </div>
       </header>
       <div className="ci-ts-speaker">
@@ -163,6 +159,11 @@ function SpanCard({
         {span.role && <span>{span.role}</span>}
       </div>
       <p>{highlightExact(span.excerpt, phrase)}</p>
+      <div className={`ci-ts-span-actions ${styles.actions}`}>
+        <button className="ci-ts-link" onClick={() => onOpenTranscript({ id: span.transcript_id, segment_index: span.segment_index, expected_document_sha256: span.document_sha256, query: phrase })}>{localized(zh, "打开原文", "Open source")}</button>
+        <button className="ci-ts-link" onClick={(event) => onReceipt(span, event.currentTarget)}>{localized(zh, "凭证", "Receipt")}</button>
+        <button className="ci-ts-link" type="button" onClick={() => onAttach(span)} disabled={span.receipt.verification !== "verified"}>{localized(zh, "附加给 Mastermind", "Attach to Mastermind")}</button>
+      </div>
       <footer><code>{span.transcript_id}</code><span>{span.receipt.verification === "verified" ? localized(zh, "已验证修订", "Verified revision") : localized(zh, "过期修订", "Stale revision")}</span></footer>
     </article>
   );
@@ -529,7 +530,7 @@ export default function TranscriptSearchWorkspace({
           <div><span className="fin-eyebrow">{localized(zh, "叙事对比", "NARRATIVE COMPARE")}</span><h4 id="ci-ts-compare-title">{localized(zh, "并列查看两个事件中的相同短语", "Place the same phrase beside two events")}</h4></div>
           <span>{localized(zh, "无模型改写", "No model paraphrase")}</span>
         </div>
-        <div className="ci-ts-compare-controls">
+        <div className={`ci-ts-compare-controls ${styles.compareControls}`}>
           <label><span>{localized(zh, "左侧事件", "Left event")}</span><select value={leftEventId} onChange={(event) => { invalidateCompare(); setLeftEventId(event.target.value); }}>{sourceEvents.map((event) => <option key={event.event_id} value={event.event_id}>{event.label} · {event.call_date}</option>)}</select></label>
           <span className="ci-ts-compare-swap" aria-hidden>⇄</span>
           <label><span>{localized(zh, "右侧事件", "Right event")}</span><select value={rightEventId} onChange={(event) => { invalidateCompare(); setRightEventId(event.target.value); }}>{sourceEvents.map((event) => <option key={event.event_id} value={event.event_id}>{event.label} · {event.call_date}</option>)}</select></label>

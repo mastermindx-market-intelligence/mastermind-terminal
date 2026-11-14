@@ -16,3 +16,33 @@
   grid-column: 2;
   grid-row: 1 / span 3;
 }
+
+/* Evidence lanes carry longer source labels and qualifications than a metric row. */
+.evidence :global(.ci-paper-results-row) {
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, .8fr) minmax(220px, 1.6fr) 10px;
+  align-items: start;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px;
+}
+.evidence :global(.ci-paper-results-row) > span,
+.evidence :global(.ci-paper-results-row) > strong,
+.evidence :global(.ci-paper-results-row) > small {
+  display: block;
+  max-width: none;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .evidence :global(.ci-paper-results-row) {
+    grid-template-columns: minmax(0, 1fr) 10px;
+    gap: 6px 12px;
+  }
+  .evidence :global(.ci-paper-results-row) > span,
+  .evidence :global(.ci-paper-results-row) > strong,
+  .evidence :global(.ci-paper-results-row) > small { grid-column: 1; }
+  .evidence :global(.ci-paper-results-row) > i { grid-column: 2; grid-row: 1 / span 3; }
+}

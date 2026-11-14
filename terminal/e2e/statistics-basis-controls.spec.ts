@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 type Availability = "both" | "annual" | "semiannual";
 function fixture(availability: Availability = "both") {
@@ -63,114 +63,36 @@ async function openStatistics(page: Page, surface: "analysis" | "terminal", lang
   return { statistics, fundReads: () => fundReads };
 }
 
-async function nativeTarget(button: Locator) {
-  const box = await button.boundingBox();
-  expect(box!.height).toBeGreaterThanOrEqual(44);
-  expect(box!.width).toBeGreaterThanOrEqual(44);
-  await expect.poll(() => button.evaluate(el => {
-    const r = el.getBoundingClientRect();
-    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-    return hit === el || el.contains(hit);
-  }), { message: "Native Statistics focus is visible and clear of fixed navigation" }).toBe(true);
-}
-
 for (const surface of ["analysis", "terminal"] as const) for (const lang of ["en", "zh"] as const) {
-  test(`${surface} ${lang}: selected statistics basis matches available ratios`, async ({ page }, info) => {
+  test(`${surface} ${lang}: current metrics and annual ratio history remain available together`, async ({ page }, info) => {
     if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
     const { statistics, fundReads } = await openStatistics(page, surface, lang);
-    const group = statistics.locator(".fin-stats-hdr .fin-toggle");
-    const annual = group.getByRole("button", { name: lang === "zh" ? "年度" : "Annual", exact: true });
-    const interim = group.getByRole("button", { name: lang === "zh" ? "季度" : "Quarterly", exact: true });
-    const valuation = statistics.locator("table").filter({ has: page.getByText(lang === "zh" ? "估值比率" : "Valuation ratios", { exact: true }) });
-    const keyStats = statistics.locator("table").filter({ has: page.getByText(lang === "zh" ? "关键指标" : "Key stats", { exact: true }) });
-    const note = statistics.getByRole("status");
+    const valuation = statistics.locator("table").filter({ hasText: lang === "zh" ? "估值比率" : "Valuation ratios" });
+    const keyStats = statistics.locator("table").filter({ hasText: lang === "zh" ? "关键指标" : "Key stats" });
     await expect(statistics.locator(".fin-bar")).toHaveCount(6);
     await expect(valuation).toContainText("FY2025");
     await expect(valuation).toContainText("30.00");
+    await expect(valuation).toContainText("25.00");
     await expect(keyStats).toContainText("200.00M");
-    const reads = fundReads();
-    expect(reads).toBeGreaterThan(0);
-    await annual.focus();
-    const capture = (info.project.name === "desktop" && lang === "en") || (info.project.name === "mobile" && lang === "zh");
-    if (capture) await page.screenshot({ path: info.outputPath(`${surface}-${lang}-initial.png`) });
-    console.info("statistics initial controls", JSON.stringify({
-      surface, lang, annual: await annual.boundingBox(), interim: await interim.boundingBox(),
-      role: await group.getAttribute("role"), annualPressed: await annual.getAttribute("aria-pressed"),
-      interimPressed: await interim.getAttribute("aria-pressed"),
-    }));
-    await expect(group).toHaveAttribute("role", "group");
-    await expect(group).toHaveAttribute("aria-label", lang === "zh" ? "统计数据口径" : "Statistics basis");
-    await expect(annual).toHaveAttribute("aria-pressed", "true");
-    await expect(interim).toHaveAttribute("aria-pressed", "false");
-    await expect(annual).toHaveAttribute("type", "button");
-    await nativeTarget(annual);
-    await page.keyboard.press("Tab");
-    await expect(interim).toBeFocused();
-    await nativeTarget(interim);
-    expect(await interim.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
-    await page.keyboard.press("Space");
-    await expect(interim).toHaveAttribute("aria-pressed", "true");
-    await expect(annual).toHaveAttribute("aria-pressed", "false");
-    await expect(statistics.locator(".fin-bar")).toHaveCount(0);
-    await expect(valuation).toHaveCount(0);
-    await expect(note).toContainText(lang === "zh" ? "暂无季度估值比率" : "No quarterly valuation ratios");
-    await expect(note).toContainText(lang === "zh" ? "切换到年度视图" : "switch to Annual");
-    await expect(keyStats).toContainText("200.00M");
-    await expect(interim).toBeFocused();
-    await nativeTarget(interim);
-    if (capture) await page.screenshot({ path: info.outputPath(`${surface}-${lang}-interim.png`) });
-    await page.keyboard.press("Shift+Tab");
-    await expect(annual).toBeFocused();
-    await page.keyboard.press("Enter");
-    await expect(annual).toHaveAttribute("aria-pressed", "true");
-    await expect(interim).toHaveAttribute("aria-pressed", "false");
-    await expect(statistics.locator(".fin-bar")).toHaveCount(6);
-    await expect(valuation).toContainText("FY2025");
-    await expect(valuation).toContainText("30.00");
-    await expect(note).toHaveCount(0);
-    await nativeTarget(annual);
-    if (info.project.name === "mobile") {
-      await interim.tap();
-      await expect(interim).toHaveAttribute("aria-pressed", "true");
-      await expect(statistics.locator(".fin-bar")).toHaveCount(0);
-    }
-    expect(fundReads()).toBe(reads);
+    await expect(statistics.locator(".fin-stats-hdr")).toContainText(lang === "zh" ? "当前快照 · 年度估值历史" : "Current snapshot · annual ratio history");
+    // There is no quarterly ratio series; do not offer a control that hides current values.
+    await expect(statistics.locator(".fin-stats-hdr button")).toHaveCount(0);
+    expect(fundReads()).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    if ((info.project.name === "desktop" && lang === "en") || (info.project.name === "mobile" && lang === "zh")) {
+      await page.screenshot({ path: info.outputPath(`${surface}-${lang}-current-ratios.png`) });
+    }
   });
 }
 
 for (const availability of ["annual", "semiannual"] as const) {
-  test(`${availability}-only basis preserves honest availability guidance`, async ({ page }, info) => {
-    // Independent contexts preserve the real symbol-snapshot cache contract.
-    if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
+  test(`${availability}-only statements do not remove published current ratios`, async ({ page }, info) => {
     const lang = info.project.name === "mobile" ? "zh" : "en";
-    const { statistics, fundReads } = await openStatistics(page, "analysis", lang, availability);
-    expect(fundReads()).toBeGreaterThan(0);
-    const group = statistics.locator(".fin-stats-hdr .fin-toggle");
-    const annual = group.getByRole("button", { name: lang === "zh" ? "年度" : "Annual", exact: true });
-    const interim = group.getByRole("button").nth(1);
-    const selected = availability === "annual" ? annual : interim;
-    const unavailable = availability === "annual" ? interim : annual;
-    if (availability === "semiannual") {
-      await expect(interim).toHaveText(lang === "zh" ? "半年度" : "Semiannual");
-      await expect(statistics.getByRole("status")).toContainText(lang === "zh" ? "暂无半年度估值比率" : "No semiannual valuation ratios");
-      await expect(annual).toBeDisabled();
-      console.info("statistics interim-only guidance", await statistics.getByRole("status").innerText());
-      if (info.project.name === "mobile") {
-        await statistics.getByRole("status").scrollIntoViewIfNeeded();
-        await page.screenshot({ path: info.outputPath("analysis-zh-semiannual.png") });
-      }
-      await expect(statistics.getByRole("status")).toContainText(lang === "zh" ? "该快照暂无年度报表历史" : "Annual statement history is unavailable in this snapshot");
-      await expect(statistics.getByRole("status")).not.toContainText(lang === "zh" ? "切换到年度视图" : "switch to Annual");
-    }
-    await expect(selected).toBeEnabled();
-    await expect(selected).toHaveAttribute("aria-pressed", "true");
-    await expect(unavailable).toBeDisabled();
-    await expect(unavailable).toHaveAttribute("aria-pressed", "false");
-    await expect(statistics.locator(".fin-bar")).toHaveCount(availability === "annual" ? 6 : 0);
-    await selected.focus();
-    await nativeTarget(selected);
-    await page.keyboard.press("Enter");
-    await expect(selected).toHaveAttribute("aria-pressed", "true");
+    const { statistics } = await openStatistics(page, "analysis", lang, availability);
+    const valuation = statistics.locator("table").filter({ hasText: lang === "zh" ? "估值比率" : "Valuation ratios" });
+    await expect(valuation).toContainText("25.00");
+    await expect(valuation).toContainText("FY2025");
+    await expect(statistics.locator(".fin-stats-hdr button")).toHaveCount(0);
+    await expect(statistics.getByText(lang === "zh" ? "暂无半年度估值比率" : "No semiannual valuation ratios")).toHaveCount(0);
   });
 }

@@ -138,14 +138,16 @@ for (const lang of ["en", "zh"] as const) {
       await visibleTarget(last);
       const shortBox = await popup.boundingBox();
       expect(shortBox!.y).toBeGreaterThanOrEqual(0);
-      expect(shortBox!.y + shortBox!.height).toBeLessThanOrEqual((await page.locator(".fin-local-tabs-mobile").boundingBox())!.y);
+      const shortBody = await page.locator(".fin-body").boundingBox();
+      expect(shortBody).not.toBeNull();
+      expect(shortBox!.y + shortBox!.height).toBeLessThanOrEqual(Math.min(320, shortBody!.y + shortBody!.height));
       // The anchor can leave the visible pane while the open picker remains usable.
       await trigger.evaluate(el => el.closest(".fin-body")!.scrollTo({ top: 0, behavior: "instant" }));
       await expect.poll(async () => {
         const box = await popup.boundingBox();
         const body = await page.locator(".fin-body").boundingBox();
-        const tabs = await page.locator(".fin-local-tabs-mobile").boundingBox();
-        return !!box && !!body && !!tabs && box.y >= body.y && box.y + box.height <= tabs.y;
+        const viewportHeight = page.viewportSize()!.height;
+        return !!box && !!body && box.y >= Math.max(0, body.y) && box.y + box.height <= Math.min(viewportHeight, body.y + body.height);
       }).toBe(true);
       await visibleTarget(last);
       await page.screenshot({ path: testInfo.outputPath(`${lang}-years-short.png`) });

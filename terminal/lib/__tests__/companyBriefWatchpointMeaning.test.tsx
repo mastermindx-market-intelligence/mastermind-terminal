@@ -20,14 +20,14 @@ it.each(["en", "zh"] as const)("does not promote generic retained source quotes 
     applyLang(lang);
     root.render(<LangProvider><Company ticker="AAPL" result={{ workspace, state: "ready" }} retained v1={null} onOpenTx={() => {}} /></LangProvider>);
   });
-  const panel = [...host.querySelectorAll(".ci-paper-insight")].find(section => section.querySelector("h4")?.textContent === (lang === "zh" ? "关注事项" : "Watchpoints"));
+  const panel = [...host.querySelectorAll(".ci-paper-insight")].find(section => section.querySelector("h4")?.textContent === (lang === "zh" ? "发言与背景" : "Commentary & context"));
   expect(panel).toBeDefined();
   expect([...host.querySelectorAll("h4")].map(node => node.textContent)).not.toContain(lang === "zh" ? "关键风险" : "Key risks");
   const button = [...panel!.querySelectorAll("button")].find(node => node.querySelector("strong")?.textContent === quote.text)!;
   expect(button).toBeDefined();
   await act(async () => button.click());
   expect(document.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(quote.source_span?.display_excerpt);
-  expect(host.querySelector(".ci-paper-watch header p")?.textContent).toBe(lang === "zh" ? "本次事件的指引与关注事项" : "Guidance and watchpoints from this event");
+  expect(host.querySelector(".ci-paper-watch header p")?.textContent).toBe(lang === "zh" ? "已报告的未来期间展望" : "Reported outlook for future periods");
 });
 
 it.each(["en", "zh"] as const)("renders an unclassified internal watch metric with a generic label and its exact source (%s)", async lang => {
@@ -38,10 +38,11 @@ it.each(["en", "zh"] as const)("renders an unclassified internal watch metric wi
     applyLang(lang);
     root.render(<LangProvider><Company ticker="AAPL" result={{ workspace, state: "ready" }} retained v1={null} onOpenTx={() => {}} /></LangProvider>);
   });
-  const row = [...host.querySelectorAll(".ci-paper-watch-list>button")].find(button => button.querySelector("strong")?.textContent === claim.text)!;
+  const row = [...host.querySelectorAll(".ci-paper-insight button")].find(button => button.querySelector("strong")?.textContent === claim.text)!;
   expect(row).toBeDefined();
-  expect(row.querySelector("span")?.textContent).toBe(lang === "zh" ? "关注事项" : "Watchpoint");
+  expect(row.querySelector(".ci-brief-item-label")?.textContent).toBe(lang === "zh" ? "关注事项" : "Watchpoint");
   expect(row.textContent).not.toContain("fx_yoy_headwind");
+  expect(host.querySelector(".ci-paper-watch")?.textContent).not.toContain(claim.text);
   await act(async () => (row as HTMLButtonElement).click());
   expect(document.querySelector(".ci-evidence.open blockquote")?.textContent).toBe(claim.source_span?.display_excerpt);
 });

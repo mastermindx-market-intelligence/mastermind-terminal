@@ -11,7 +11,9 @@ const state = vi.hoisted(()=>({query:new URLSearchParams(),push:vi.fn(),fund:vi.
 vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push}),usePathname:()=>"/analysis",useSearchParams:()=>state.query}));
 vi.mock("next/link",()=>({default:({children,href,...props}:React.ComponentProps<"a">&{href:string})=><a {...props} href={href}>{children}</a>}));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation",()=>({useOptionalSharedShellPresentation:()=>({context:{locale:"en",theme:"dark"}})}));
-vi.mock("@/components/fin/MegaPane",()=>({FIN_PAGES:["overview","intelligence","earnings"],default:({sym,page,fund,onClose}:{sym:string;page:string;fund:{ticker:string}|null;onClose:()=>void})=><section data-company={sym} data-local-view={page} data-fund-ticker={fund?.ticker??""}><button onClick={onClose}>chart</button></section>}));
+vi.mock("@/components/fin/MegaPane",()=>({FIN_PAGES:["overview","intelligence","earnings"],default:({sym,page,fund,onClose,navigationContext,navigationActions}:{sym:string;page:string;fund:{ticker:string}|null;onClose:()=>void;navigationContext:React.ReactNode;navigationActions:React.ReactNode})=><section data-company={sym} data-local-view={page} data-fund-ticker={fund?.ticker??""}><button onClick={onClose}>chart</button>{navigationContext}{navigationActions}</section>}));
+vi.mock("@/components/chrome/shared-shell/ShellSearch",()=>({default:()=>null}));
+vi.mock("@/components/chrome/shared-shell/SharedShellPresentationControls",()=>({default:()=>null}));
 vi.mock("@/components/SymbolPicker",()=>({default:({onPick}:{onPick:(symbol:string)=>void})=>(
  <div>{["NVDA","AAPL","BAD/IDENTITY"].map(symbol=><button key={symbol} data-pick-symbol={symbol} onClick={()=>onPick(symbol)}>{symbol}</button>)}</div>
 )}));
@@ -32,7 +34,7 @@ describe("reused Company route identity",()=>{
   const html=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>);
   const firstPaint=document.createElement("div");
   firstPaint.innerHTML=html;
-  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>('a[aria-label^="Your theses on "]'))
    .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
   expect(link).toBeDefined();
   const destination=new URL(link.href);
@@ -44,7 +46,7 @@ describe("reused Company route identity",()=>{
   location("symbol=NVDA&mo_from=unsupported&mo_chain=context-chain&mo_focus=context-node");
   const firstPaint=document.createElement("div");
   firstPaint.innerHTML=renderToString(<LangProvider><AnalysisWorkspace initialSymbol="NVDA"/></LangProvider>);
-  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>("a.analysis-context-theses"))
+  const link=Array.from(firstPaint.querySelectorAll<HTMLAnchorElement>('a[aria-label^="Your theses on "]'))
    .find(anchor=>new URL(anchor.href).searchParams.get("view")==="theses")!;
   expect(Object.fromEntries(new URL(link.href).searchParams)).toEqual({view:"theses",symbol:"NVDA"});
  });

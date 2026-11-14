@@ -1,67 +1,62 @@
 {
-  "capturedAtHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
+  "schema": "terminal.theme-empty-evidence-packet.v1",
+  "proof": "CI_FIXTURE_BROWSER_NOT_PRODUCTION",
+  "sourceHead": "7055fc735eea2c5eac035b2fee62974c3dc27a9e",
+  "capturedAtHead": "c6a9b3d41b89396b15e234c386edd67074dc7299",
+  "capturedTree": "a56adefab0a0c60461bfab6c784bdc4b8e666c9b",
+  "parents": [
+    "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+    "7055fc735eea2c5eac035b2fee62974c3dc27a9e"
+  ],
+  "runId": "43561176210",
+  "runAttempt": "1",
+  "jobId": 132345253031,
+  "artifactId": 14100422884,
+  "artifactSha256": "380001b9a5331b7ad1cd598cbc52f05da29a6a072e411bb94a4919be199e50ca",
+  "url": "/analysis?symbol=NVDA&page=intelligence",
+  "state": "theme-context-not-found-empty",
   "langStorageKey": "mm.lang",
-  "capturedAt": "2026-11-09T11:01:46.200Z",
-  "port": 3197,
+  "layoutFiles": {
+    "terminal/components/fin/CompanyThemeContextCard.tsx": "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555",
+    "terminal/app/company-intelligence.css": "23dd3547f88806875891417352baca9cd6c2af4f84b6118ac5156c5966e837ea"
+  },
+  "controls": {
+    "terminal/e2e/company-intelligence.spec.ts": "7b737d352fb4013b663f863e7c798def3622009357ba0f10a51eff9756527229",
+    "terminal/e2e/fixtures/companyIntelligenceContext.ts": "b11e36f38967c1c25f10b0489a9bfd68f5b9a9535ce2bf24bbe3295fcc76f0af",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "caseReceipts": [
+    {
+      "file": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-zh.json",
+      "sha256": "59d9ff728e0ef55a10f667076dca2568038e702ea14ee896932b633921b11f45",
+      "capturedAt": "2026-11-14T05:25:11.158Z",
+      "project": "company-intelligence-desktop"
+    },
+    {
+      "file": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-zh.json",
+      "sha256": "03633cc56c4d946c44df9331c4bb415fae808b253e833c36d2da9faccb655125",
+      "capturedAt": "2026-11-14T05:27:24.643Z",
+      "project": "company-intelligence-mobile"
+    },
+    {
+      "file": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-en.json",
+      "sha256": "6904aeb72b21ffe361a7da43754c416a798ad5cfcef6abcdd073b4c2db6960ef",
+      "capturedAt": "2026-11-14T05:25:08.224Z",
+      "project": "company-intelligence-desktop"
+    },
+    {
+      "file": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-en.json",
+      "sha256": "d1e30c6cf2f6935993e76bc601e6a811bbb6b57228cf46d4484a484e77228b98",
+      "capturedAt": "2026-11-14T05:27:22.133Z",
+      "project": "company-intelligence-mobile"
+    }
+  ],
   "captures": [
     {
       "dataTheme": "dark",
-      "bodyBackgroundColor": "rgb(10, 11, 14)",
-      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
-      "borderTopStyle": "dashed",
-      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
-      "pColor": "rgb(113, 122, 142)",
-      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
-      "box": {
-        "x": 132,
-        "y": 794.4,
-        "width": 614,
-        "height": 67
-      },
-      "scrollX": 0,
-      "scrollY": 0,
-      "dataThemeAfterMount": "dark",
-      "clip": {
-        "x": 108,
-        "y": 770,
-        "width": 662,
-        "height": 115
-      },
-      "file": "1440x900-en-dark-theme-empty.png",
-      "lang": "en",
-      "theme": "dark",
-      "viewport": "1440x900"
-    },
-    {
-      "dataTheme": "light",
-      "bodyBackgroundColor": "rgb(10, 11, 14)",
-      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
-      "borderTopStyle": "dashed",
-      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
-      "pColor": "rgb(113, 122, 142)",
-      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
-      "box": {
-        "x": 132,
-        "y": 794.4,
-        "width": 614,
-        "height": 67
-      },
-      "scrollX": 0,
-      "scrollY": 0,
-      "dataThemeAfterMount": "dark",
-      "clip": {
-        "x": 108,
-        "y": 770,
-        "width": 662,
-        "height": 115
-      },
-      "file": "1440x900-en-light-theme-empty.png",
-      "lang": "en",
-      "theme": "light",
-      "viewport": "1440x900"
-    },
-    {
-      "dataTheme": "dark",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
       "bodyBackgroundColor": "rgb(10, 11, 14)",
       "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
       "borderTopStyle": "dashed",
@@ -69,27 +64,33 @@
       "pColor": "rgb(113, 122, 142)",
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
-        "x": 132,
-        "y": 757.9,
-        "width": 614,
-        "height": 67
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 71
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
-        "x": 108,
-        "y": 734,
-        "width": 662,
-        "height": 115
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 119
       },
       "file": "1440x900-zh-dark-theme-empty.png",
       "lang": "zh",
       "theme": "dark",
-      "viewport": "1440x900"
+      "viewport": "1440x900",
+      "sha256": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "bytes": 11381,
+      "path": "terminal/docs/pr-crops/b-mi-g10-b4t-theme-empty/1440x900-zh-dark-theme-empty.png",
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-zh.json"
     },
     {
       "dataTheme": "light",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
       "bodyBackgroundColor": "rgb(10, 11, 14)",
       "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
       "borderTopStyle": "dashed",
@@ -97,83 +98,33 @@
       "pColor": "rgb(113, 122, 142)",
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
-        "x": 132,
-        "y": 757.9,
-        "width": 614,
-        "height": 67
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 71
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
-        "x": 108,
-        "y": 734,
-        "width": 662,
-        "height": 115
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 119
       },
       "file": "1440x900-zh-light-theme-empty.png",
       "lang": "zh",
       "theme": "light",
-      "viewport": "1440x900"
+      "viewport": "1440x900",
+      "sha256": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "bytes": 11381,
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-zh.json",
+      "artifactPath": "company-intelligence-Theme-98369-ark-and-light-specimens-zh--company-intelligence-desktop/1440x900-zh-light-theme-empty.png"
     },
     {
       "dataTheme": "dark",
-      "bodyBackgroundColor": "rgb(10, 11, 14)",
-      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
-      "borderTopStyle": "dashed",
-      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
-      "pColor": "rgb(113, 122, 142)",
-      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
-      "box": {
-        "x": 12,
-        "y": 547.9,
-        "width": 366,
-        "height": 83.5
-      },
-      "scrollX": 0,
-      "scrollY": 0,
-      "dataThemeAfterMount": "dark",
-      "clip": {
-        "x": 0,
-        "y": 524,
-        "width": 390,
-        "height": 132
-      },
-      "file": "390x844-en-dark-theme-empty.png",
-      "lang": "en",
-      "theme": "dark",
-      "viewport": "390x844"
-    },
-    {
-      "dataTheme": "light",
-      "bodyBackgroundColor": "rgb(10, 11, 14)",
-      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
-      "borderTopStyle": "dashed",
-      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
-      "pColor": "rgb(113, 122, 142)",
-      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
-      "box": {
-        "x": 12,
-        "y": 547.9,
-        "width": 366,
-        "height": 83.5
-      },
-      "scrollX": 0,
-      "scrollY": 0,
-      "dataThemeAfterMount": "dark",
-      "clip": {
-        "x": 0,
-        "y": 524,
-        "width": 390,
-        "height": 132
-      },
-      "file": "390x844-en-light-theme-empty.png",
-      "lang": "en",
-      "theme": "light",
-      "viewport": "390x844"
-    },
-    {
-      "dataTheme": "dark",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
       "bodyBackgroundColor": "rgb(10, 11, 14)",
       "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
       "borderTopStyle": "dashed",
@@ -182,26 +133,32 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 12,
-        "y": 563.6,
+        "y": 440.125,
         "width": 366,
-        "height": 67
+        "height": 71
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 0,
-        "y": 540,
+        "y": 416,
         "width": 390,
-        "height": 115
+        "height": 119
       },
       "file": "390x844-zh-dark-theme-empty.png",
       "lang": "zh",
       "theme": "dark",
-      "viewport": "390x844"
+      "viewport": "390x844",
+      "sha256": "7cc97cb17215262044c67740fbafa06eeb8d15bd7362079d7cd3ecc4e2137afb",
+      "bytes": 10100,
+      "path": "terminal/docs/pr-crops/b-mi-g10-b4t-theme-empty/390x844-zh-dark-theme-empty.png",
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-zh.json"
     },
     {
       "dataTheme": "light",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
       "bodyBackgroundColor": "rgb(10, 11, 14)",
       "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
       "borderTopStyle": "dashed",
@@ -210,45 +167,192 @@
       "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
       "box": {
         "x": 12,
-        "y": 563.6,
+        "y": 440.125,
         "width": 366,
-        "height": 67
+        "height": 71
       },
       "scrollX": 0,
       "scrollY": 0,
       "dataThemeAfterMount": "dark",
       "clip": {
         "x": 0,
-        "y": 540,
+        "y": 416,
         "width": 390,
-        "height": 115
+        "height": 119
       },
       "file": "390x844-zh-light-theme-empty.png",
       "lang": "zh",
       "theme": "light",
-      "viewport": "390x844"
+      "viewport": "390x844",
+      "sha256": "7cc97cb17215262044c67740fbafa06eeb8d15bd7362079d7cd3ecc4e2137afb",
+      "bytes": 10100,
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-zh.json",
+      "artifactPath": "company-intelligence-Theme-98369-ark-and-light-specimens-zh--company-intelligence-mobile/390x844-zh-light-theme-empty.png"
+    },
+    {
+      "dataTheme": "dark",
+      "documentLang": "en",
+      "dataLang": "en",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 89
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 137
+      },
+      "file": "1440x900-en-dark-theme-empty.png",
+      "lang": "en",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "sha256": "688a73c29efd244a74245bf4d6ff4c0de59324f2ab45d7e365ce094d09dd8f62",
+      "bytes": 8191,
+      "path": "terminal/docs/pr-crops/b-mi-g10-b4t-theme-empty/1440x900-en-dark-theme-empty.png",
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-en.json"
+    },
+    {
+      "dataTheme": "light",
+      "documentLang": "en",
+      "dataLang": "en",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 89
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 137
+      },
+      "file": "1440x900-en-light-theme-empty.png",
+      "lang": "en",
+      "theme": "light",
+      "viewport": "1440x900",
+      "sha256": "688a73c29efd244a74245bf4d6ff4c0de59324f2ab45d7e365ce094d09dd8f62",
+      "bytes": 8191,
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-1440x900-en.json",
+      "artifactPath": "company-intelligence-Theme-9ad8d-ark-and-light-specimens-en--company-intelligence-desktop/1440x900-en-light-theme-empty.png"
+    },
+    {
+      "dataTheme": "dark",
+      "documentLang": "en",
+      "dataLang": "en",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 12,
+        "y": 431.125,
+        "width": 366,
+        "height": 89
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 407,
+        "width": 390,
+        "height": 137
+      },
+      "file": "390x844-en-dark-theme-empty.png",
+      "lang": "en",
+      "theme": "dark",
+      "viewport": "390x844",
+      "sha256": "bd74dc2b1b54fcd5a5836b1dea24262dbf8627346e4aac7e30f4c14bc77e4f3f",
+      "bytes": 6708,
+      "path": "terminal/docs/pr-crops/b-mi-g10-b4t-theme-empty/390x844-en-dark-theme-empty.png",
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-en.json"
+    },
+    {
+      "dataTheme": "light",
+      "documentLang": "en",
+      "dataLang": "en",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 12,
+        "y": 431.125,
+        "width": 366,
+        "height": 89
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 407,
+        "width": 390,
+        "height": 137
+      },
+      "file": "390x844-en-light-theme-empty.png",
+      "lang": "en",
+      "theme": "light",
+      "viewport": "390x844",
+      "sha256": "bd74dc2b1b54fcd5a5836b1dea24262dbf8627346e4aac7e30f4c14bc77e4f3f",
+      "bytes": 6708,
+      "caseReceipt": "terminal/docs/verification/analysis-redesign-20261114/theme-empty/theme-empty-capture-390x844-en.json",
+      "artifactPath": "company-intelligence-Theme-9ad8d-ark-and-light-specimens-en--company-intelligence-mobile/390x844-en-light-theme-empty.png"
     }
   ],
   "darkLightIdentical": {
-    "1440x900-en": {
-      "identical": true,
-      "darkSha": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005",
-      "lightSha": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005"
-    },
     "1440x900-zh": {
       "identical": true,
-      "darkSha": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599",
-      "lightSha": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599"
-    },
-    "390x844-en": {
-      "identical": true,
-      "darkSha": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694",
-      "lightSha": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694"
+      "darkSha": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "lightSha": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07"
     },
     "390x844-zh": {
       "identical": true,
-      "darkSha": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463",
-      "lightSha": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463"
+      "darkSha": "7cc97cb17215262044c67740fbafa06eeb8d15bd7362079d7cd3ecc4e2137afb",
+      "lightSha": "7cc97cb17215262044c67740fbafa06eeb8d15bd7362079d7cd3ecc4e2137afb"
+    },
+    "1440x900-en": {
+      "identical": true,
+      "darkSha": "688a73c29efd244a74245bf4d6ff4c0de59324f2ab45d7e365ce094d09dd8f62",
+      "lightSha": "688a73c29efd244a74245bf4d6ff4c0de59324f2ab45d7e365ce094d09dd8f62"
+    },
+    "390x844-en": {
+      "identical": true,
+      "darkSha": "bd74dc2b1b54fcd5a5836b1dea24262dbf8627346e4aac7e30f4c14bc77e4f3f",
+      "lightSha": "bd74dc2b1b54fcd5a5836b1dea24262dbf8627346e4aac7e30f4c14bc77e4f3f"
     }
+  },
+  "qualification": "Four actual dark specimen crops visually inspected; actual byte-identical light comparisons remain in the original CI artifact as unsupported-light evidence. Source hashes and PNG bytes verified. This packet qualifies only its declared layout sources; later workspace changes require their own browser acceptance.",
+  "lightComparisonsStorage": {
+    "runId": "43561176210",
+    "artifactId": 14100422884,
+    "artifactSha256": "380001b9a5331b7ad1cd598cbc52f05da29a6a072e411bb94a4919be199e50ca",
+    "note": "Actual light comparison bytes remain in the original CI artifact; only the four approved dark PNGs are committed."
   }
 }

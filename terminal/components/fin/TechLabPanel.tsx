@@ -117,28 +117,23 @@ function LabWorkspace({ sym, model, zh }: { sym: string; model: LabModel; zh: bo
     <section className={styles.panel} aria-label={pick(zh, "Technical Lab", "技术实验室")} data-testid="lab-workspace" data-lab-version="active-setups-v1">
       <header className={styles.header}>
         <div>
-          <div className={styles.eyebrow}>{pick(zh, "LAB", "实验室")} <span> / {sym}</span></div>
           <h2>{library ? pick(zh, "Research library", "研究库") : pick(zh, "Active setups", "活跃形态")}</h2>
           <p>{pick(zh, "Compare active conditions and their historical outcomes.", "比较活跃条件及其历史表现。")}</p>
         </div>
-        <Link className={styles.chartLink} href={chartUrl} aria-label={pick(zh, "View price chart", "查看价格图表")}><span className={styles.actionLabel}>{pick(zh, "View price chart", "查看价格图表")}</span><span aria-hidden="true">↗</span></Link>
+        {model.status === "ready" && <div className={styles.snapshot}>
+          <span>{pick(zh, "Evaluated through", "评估数据截至")} <strong data-testid="lab-data-through">{date(model.dataThrough, zh)}</strong></span>
+          <span>{pick(zh, "Published", "发布时间")} <strong>{date(model.publishedAt, zh, true)}</strong></span>
+        </div>}
       </header>
 
       {model.status !== "ready" ? (
         <div className={styles.empty} role="status">
           <h3>{model.status === "unbound" ? pick(zh, "This snapshot cannot be matched to " + sym, "无法确认此快照属于 " + sym) : pick(zh, "No Lab snapshot for " + sym, sym + " 暂无实验室快照")}</h3>
           <p>{pick(zh, "Current setups need a published, symbol-specific Lab evaluation. Explore the price chart while coverage is unavailable.", "当前形态需要该标的已发布的实验室评估。暂无数据时，可先查看价格图表。")}</p>
+          <div className={styles.emptyActions}><Link className={styles.chartLink} href={chartUrl}>{pick(zh, "View price chart", "查看价格图表")} <span aria-hidden="true">↗</span></Link></div>
         </div>
       ) : (
         <>
-          <div className={styles.snapshot}>
-            <span className={styles.snapshotDot} aria-hidden="true" />
-            <span>{pick(zh, "Evaluated through", "评估数据截至")}</span>
-            <strong data-testid="lab-data-through">{date(model.dataThrough, zh)}</strong>
-            <span aria-hidden="true">·</span>
-            <span>{pick(zh, "Published", "发布时间")}</span>
-            <strong>{date(model.publishedAt, zh, true)}</strong>
-          </div>
           <div className={styles.tabs} role="group" aria-label={pick(zh, "Lab view", "实验室视图")}>
             <button type="button" aria-pressed={!library} onClick={() => { setLibrary(false); setOpen(null); }}>
               {pick(zh, "Active setups", "活跃形态")} <span>{active.length}</span>

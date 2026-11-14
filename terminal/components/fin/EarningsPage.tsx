@@ -168,20 +168,29 @@ function buildRevenueProjection(fund: Fund, requestedMode: Mode, zh?: boolean) {
   const interimAvailable = hasQuarterlyRevenueContract || canonicalInterimRevenue.length > 0
   const mode = resolveEarningsMode(requestedMode, interimAvailable)
   const rawPts = buildRevDumbbell(qs, fys, mode, estimates)
-  const statementFallback = mode === "quarterly" && rawPts.length === 0
-    ? canonicalInterimRevenue
+  const hasPublishedEstimate = rawPts.some((point) => point.estimate != null)
+  const selectedStatementView = mode === "annual"
+    ? incomeView(fund.ticker, fund.statements?.annual, "annual")
+    : stmtRevenueView
+  // A missing annual earnings actual must not hide a published annual statement.
+  // Select the source for this metric; never join statement actuals to estimates by label.
+  const preferStatementHistory = mode === "annual"
+    ? !rawPts.some((point) => point.actual != null)
+    : rawPts.length === 0
+  const statementFallback = preferStatementHistory
+    ? mode === "annual" ? buildRevenueFromStatements(selectedStatementView) : canonicalInterimRevenue
     : []
-  const pts = rawPts.length > 0 ? rawPts : statementFallback
-  const usingStatementFallback = rawPts.length === 0 && statementFallback.length > 0
+  const pts = statementFallback.length > 0 ? statementFallback : rawPts
+  const usingStatementFallback = statementFallback.length > 0
   const interimLabel = hasQuarterlyRevenueContract
     ? pick(!!zh, "Quarterly", "季度")
     : stmtInterim
       ? statementCadenceLabel(stmtInterim, "quarterly", !!zh)
       : pick(!!zh, "Interim", "中期")
   const actualsOnly = pts.some((point) => point.actual != null) && !pts.some((point) => point.estimate != null)
-  const statementCumNote = usingStatementFallback ? cumulativeQuarterNote(stmtRevenueView, !!zh) : null
+  const statementCumNote = usingStatementFallback ? cumulativeQuarterNote(selectedStatementView, !!zh) : null
 
-  return { mode, interimAvailable, interimLabel, pts, usingStatementFallback, actualsOnly, statementCumNote }
+  return { mode, interimAvailable, interimLabel, pts, usingStatementFallback, actualsOnly, statementCumNote, hasPublishedEstimate }
 }
 
 function RevenueModule({
@@ -350,24 +359,26 @@ export function buildEpsFromStatements(
 ): DumbbellPointWithSurp[] {
   const eps = view.income.eps_basic
   if (view.periods.length === 0 || eps.every((v) => v == null)) return []
-  return view.periods.map((p, i) => ({
+  const pts = view.periods.map((p, i) => ({
     label: p,
     actual: eps[i] ?? null,
     estimate: null,
     surp_pct: null,
   })).slice(-12)
+  return pts.some((point) => point.actual != null) ? pts : []
 }
 
 /** Canonical reported revenue used when earnings.q has no meaningful revenue payload. */
 export function buildRevenueFromStatements(view: IncomeView): DumbbellPointWithSurp[] {
   const revenue = view.income.revenue
   if (view.periods.length === 0 || revenue.every((value) => value == null)) return []
-  return view.periods.map((period, index) => ({
+  const pts = view.periods.map((period, index) => ({
     label: period,
     actual: revenue[index] ?? null,
     estimate: null,
     surp_pct: null,
   })).slice(-12)
+  return pts.some((point) => point.actual != null) ? pts : []
 }
 
 // ── main component ────────────────────────────────────────────────────────────
@@ -438,17 +449,26 @@ function EarningsContent({
   const epsInterimAvailable = hasReportedQuarterlyEps || hasQuarterlyEstimate || canonicalInterimEps.length > 0
   const epsMode = resolveEarningsMode(requestedEpsMode, epsInterimAvailable)
   const epsPtsRaw = buildEpsDumbbell(qs, fys, epsMode, estimates)
+  const selectedEpsStatementView = epsMode === "annual"
+    ? incomeView(sym ?? fund.ticker, fund.statements?.annual, "annual")
+    : stmtEpsView
+  const canonicalStatementEps = epsMode === "annual"
+    ? buildEpsFromStatements(selectedEpsStatementView)
+    : canonicalInterimEps
+  const hasReportedEps = epsMode === "annual"
+    ? fys.some((fy) => fy.eps_a != null)
+    : hasReportedQuarterlyEps
   const preferReportedStatementHistory =
-    epsMode === "quarterly" && canonicalInterimEps.length > 0 && !hasReportedQuarterlyEps
+    canonicalStatementEps.length > 0 && !hasReportedEps
   const stmtEpsFallback = preferReportedStatementHistory
-    ? canonicalInterimEps
+    ? canonicalStatementEps
     : []
   const epsPts = stmtEpsFallback.length > 0 ? stmtEpsFallback : epsPtsRaw
   const usingStmtFallback = stmtEpsFallback.length > 0
   // Null unless this issuer's market actually files cumulative year-to-date interims AND the
   // columns really were differenced — the old note asserted the differencing unconditionally,
   // so a US filer's discrete quarters were described with somebody else's reporting convention.
-  const stmtEpsCumNote = cumulativeQuarterNote(stmtEpsView, !!zh)
+  const stmtEpsCumNote = cumulativeQuarterNote(selectedEpsStatementView, !!zh)
 
   // Estimates-only is a property of the points currently displayed, not the mere presence of
   // an estimates object (some HK payloads carry period labels with entirely null arrays).
@@ -493,7 +513,7 @@ function EarningsContent({
     : selectedReportDate ? fmtDate(selectedReportDate) : pick(!!zh, "Report date unavailable", "报告日期不可用")
   const epsMatched = latestEpsPoint?.actual != null && latestEpsPoint.estimate != null
   const revenueMatched = latestRevenuePoint?.actual != null && latestRevenuePoint.estimate != null
-  const hasAnyRevenueEstimate = revenue.pts.some((point) => point.estimate != null) || nextRev != null
+  const hasAnyRevenueEstimate = revenue.hasPublishedEstimate || nextRev != null
   const epsCoverage = epsMatched
     ? pick(!!zh, "Matched actual and estimate", "实际值与预期口径匹配")
     : latestEpsPoint?.actual != null
@@ -573,14 +593,14 @@ function EarningsContent({
 
         </div>
 
-        {/* Estimates-only state: no reported history but estimates available */}
+        {/* Estimates-only state for the selected basis and displayed periods. */}
         {estimatesOnlyEps && (
           <div className="fin-empty fin-empty-lg fin-earn-rev-empty" role="status">
-            <div className="fin-empty-title">{pick(!!zh, "No reported EPS history", "暂无已报告每股盈利历史")}</div>
+            <div className="fin-empty-title">{pick(!!zh, "No reported EPS in this view", "当前视图暂无已报告每股盈利")}</div>
             <div className="fin-empty-why">
               {pick(!!zh,
-                "This security has not filed a reported EPS series yet — the columns below are forward analyst estimates only.",
-                "该证券尚未披露已报告每股盈利序列——下方各列仅为分析师前瞻预期。"
+                "Only analyst estimates are available for the displayed periods.",
+                "所显示期间仅有分析师预期数据。"
               )}
             </div>
           </div>
@@ -620,8 +640,8 @@ function EarningsContent({
             <div className="fin-empty-title">{pick(!!zh, "No EPS data", "暂无每股盈利数据")}</div>
             <div className="fin-empty-why">
               {pick(!!zh,
-                "Neither the earnings table nor the interim statements carry an EPS series for this security.",
-                "该证券的财报表与中期报表中均无每股盈利序列。"
+                "No EPS values are available for the selected basis and displayed periods.",
+                "所选口径与所显示期间暂无每股盈利数据。"
               )}
             </div>
           </div>
@@ -701,14 +721,8 @@ function EarningsContent({
       <RevenueModule fund={fund} zh={zh} projection={revenue} setMode={setRevenueMode} />
       </div>
 
-      <section className="fin-earn-vnext-coverage" data-earnings-vnext-coverage="">
-        <header>
-          <div>
-            <span>{pick(!!zh, "COVERAGE & BASIS", "覆盖与口径")}</span>
-            <strong>{pick(!!zh, "What can be compared safely", "哪些数据可以安全比较")}</strong>
-          </div>
-          <small>{pick(!!zh, "No inferred beat/miss without a matched basis", "没有匹配口径时不推断超预期/不及预期")}</small>
-        </header>
+      <details className="fin-earn-vnext-coverage fin-details" data-earnings-vnext-coverage="">
+        <summary>{pick(!!zh, "Coverage & reporting basis", "数据覆盖与报告口径")}</summary>
         <dl>
           <div>
             <dt>{pick(!!zh, "EPS actual / estimate", "每股盈利实际值 / 预期")}</dt>
@@ -727,7 +741,7 @@ function EarningsContent({
             <dd>{selectedReportLabel}</dd>
           </div>
         </dl>
-      </section>
+      </details>
 
       {fund.asof && (
         <div className="fin-asof">

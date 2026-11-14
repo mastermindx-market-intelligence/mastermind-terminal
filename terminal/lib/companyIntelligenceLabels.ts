@@ -147,5 +147,5 @@ export function typedAbsenceReasonLabel(reason: string, zh: boolean): string {
 }
 
 export function topicTagLabel(tag: string, zh: boolean): string {
-  return lookupOrHumanise(TOPIC_TAG_LABELS, tag, zh);
+  return lookupOrHumanise(TOPIC_TAG_LABELS, tag, zh).replace(/\b(ai|gpu|cpu|eps|r&d)\b/gi, acronym => acronym.toUpperCase());
 }

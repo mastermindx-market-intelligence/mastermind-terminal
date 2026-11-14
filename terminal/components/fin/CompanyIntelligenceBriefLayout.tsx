@@ -23,6 +23,10 @@ interface CompanyIntelligenceBriefLayoutProps {
   implications: CompanyIntelligenceBriefItem[];
   risks: CompanyIntelligenceBriefItem[];
   watch: CompanyIntelligenceBriefItem[];
+  risksHeading?: string;
+  risksDescription?: string;
+  watchHeading?: string;
+  watchDescription?: string;
   selectedId?: string | null;
   onSelect: (item: CompanyIntelligenceBriefItem) => void;
   footer?: ReactNode;
@@ -54,6 +58,7 @@ function BriefList({
           >
             <span className="num">{String(index + 1).padStart(2, "0")}</span>
             <span>
+              <small className="ci-brief-item-label">{item.label}</small>
               <strong>{item.value}</strong>
               {item.detail && <small>{item.detail}</small>}
             </span>
@@ -82,6 +87,7 @@ function InsightPanel({
   onSelect: (item: CompanyIntelligenceBriefItem) => void;
   empty: string;
 }) {
+  if (!items.length) return null;
   return (
     <section className="ci-paper-insight" data-empty={String(items.length === 0)}>
       <header>
@@ -114,6 +120,10 @@ export default function CompanyIntelligenceBriefLayout({
   implications,
   risks,
   watch,
+  risksHeading,
+  risksDescription,
+  watchHeading,
+  watchDescription,
   selectedId,
   onSelect,
   footer,
@@ -131,34 +141,20 @@ export default function CompanyIntelligenceBriefLayout({
     .slice(0, 3);
   return (
     <div className={`ci-brief ci-paper-brief ${s.brief}`} data-ci-paper-brief="">
-      <section className="ci-paper-brief-hero" data-has-facts={featuredFacts.length > 0}>
+      <section className="ci-paper-brief-hero" data-has-context={risks.length > 0 || watch.length > 0}>
+        <div className={s.reading}>
         <div className="ci-paper-brief-copy">
           <div className="ci-paper-brief-meta">
-            <span>{label(zh, "30-SECOND BRIEF · SOURCE-BACKED", "30 秒简报 · 来源支持")}</span>
+            <span>{label(zh, "Event brief", "事件简报")}</span>
             <i aria-hidden />
             <time dateTime={eventDate}>{periodLabel} · {eventDate}</time>
-            <b>{label(zh, "context only", "仅供背景参考")}</b>
           </div>
           <h3>{headline}</h3>
           {summary && <p>{summary}</p>}
-          {!!supportingTakeaways.length && (
-            <div className="ci-paper-takeaways">
-              {supportingTakeaways.map((item) => (
-                <button
-                  key={item.id}
-                  className={selectedId === item.id ? "selected" : ""}
-                  onClick={() => onSelect(item)}
-                  aria-pressed={selectedId === item.id}
-                >
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </button>
-              ))}
-            </div>
-          )}
+
         </div>
         {!!featuredFacts.length && (
-          <aside className={s.facts} aria-label={label(zh, "Event facts", "事件事实")}>
+          <section className={s.facts} aria-label={label(zh, "Event facts", "事件事实")}>
             <div className={s.factsHeading}>
               <span>{label(zh, "Event facts", "事件事实")}</span>
               <span>{ticker}</span>
@@ -178,10 +174,23 @@ export default function CompanyIntelligenceBriefLayout({
                 </button>
               ))}
             </section>
-            <p>{label(zh, "Select a fact to inspect its source.", "选择事实以查看来源。")}</p>
-          </aside>
+          </section>
         )}
-      </section>
+          {!!supportingTakeaways.length && (
+            <div className="ci-paper-takeaways">
+              {supportingTakeaways.map((item, index) => (
+                <button
+                  key={item.id}
+                  className={selectedId === item.id ? "selected" : ""}
+                  onClick={() => onSelect(item)}
+                  aria-pressed={selectedId === item.id}
+                >
+                  <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="ci-takeaway-content"><small>{item.label}</small><strong>{item.value}</strong></div>
+                </button>
+              ))}
+            </div>
+          )}
 
       <div className="ci-paper-insights">
         <InsightPanel
@@ -206,26 +215,19 @@ export default function CompanyIntelligenceBriefLayout({
             "本事件尚未提供业务含义分析。",
           )}
         />
-        <InsightPanel
-          eyebrow="!"
-          title={label(zh, "Watchpoints", "关注事项")}
-          subtitle={label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}
-          items={risks}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          empty={label(zh, "No source-backed watchpoints are available for this event.", "本次事件暂无有来源支持的关注事项。")}
-        />
+
       </div>
 
-      <section className="ci-paper-watch" data-empty={String(watch.length === 0)}>
+        </div>
+        {(risks.length > 0 || watch.length > 0) && <aside className={s.context} aria-label={label(zh, "Event context", "事件背景")}>
+      {watch.length > 0 && <section className="ci-paper-watch">
         <header>
           <div>
-            <h4>{label(zh, "What to watch next", "接下来关注什么")}</h4>
-            <p>{label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}</p>
+            <h4>{watchHeading ?? label(zh, "What to watch next", "接下来关注什么")}</h4>
+            <p>{watchDescription ?? label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}</p>
           </div>
           <span>{label(zh, "context only", "仅供背景参考")}</span>
         </header>
-        {watch.length ? (
           <div className="ci-paper-watch-list">
             {watch.slice(0, 4).map((item) => (
               <button
@@ -240,11 +242,17 @@ export default function CompanyIntelligenceBriefLayout({
               </button>
             ))}
           </div>
-        ) : (
-          <p className="ci-paper-brief-empty">
-            {label(zh, "No future watchpoint is asserted for this generation.", "本版本未断言后续关注点。")}
-          </p>
-        )}
+      </section>}
+        <InsightPanel
+          eyebrow="!"
+          title={risksHeading ?? label(zh, "Watchpoints", "关注事项")}
+          subtitle={risksDescription ?? label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}
+          items={risks}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          empty={label(zh, "No source-backed watchpoints are available for this event.", "本次事件暂无有来源支持的关注事项。")}
+        />
+        </aside>}
       </section>
 
       {footer}

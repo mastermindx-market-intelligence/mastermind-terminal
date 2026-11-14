@@ -33,7 +33,7 @@ async function openCompare(page: Page): Promise<void> {
   await page.goto("/analysis?symbol=NVDA&page=compare");
   await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
-    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Compare");
+    await expect(page.locator(".fin-local-tab.on")).toHaveText("Compare");
   } else {
     await expect(page.locator('[data-fin-local="compare"]')).toHaveAttribute("aria-selected", "true");
   }
@@ -128,7 +128,7 @@ test("peers share one explicit frame; other formats, currencies and split period
   await page.goto("/analysis?symbol=NVDA&page=statements");
   await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
-    await page.locator(".fin-local-mobile-tab", { hasText: "Compare" }).click();
+    await page.locator(".fin-local-tab", { hasText: "Compare" }).click();
   } else {
     await page.locator('[data-fin-local="compare"]').click();
   }
@@ -149,6 +149,8 @@ test("peers share one explicit frame; other formats, currencies and split period
   // Fiscal-relative headers name fiscal generations, never calendar years.
   await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="F0"]')).toHaveText("Latest FY");
   await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="F1"]')).toHaveText("FY −1");
+  await page.locator("[data-fc-options] > summary").click();
+  await expect(page.locator('[data-fc-alignment-note]')).toBeVisible();
   await expect(page.locator('[data-fc-alignment-note]')).toContainText("Fiscal-relative");
 
   // Comparable cells carry the value, the company's own period and a rank among comparable rows.
@@ -228,6 +230,8 @@ test("opening a cell lands on the exact company, period and row in the Statement
   const panel = page.locator("[data-fc-source]");
   await expect(panel).toHaveAttribute("data-fc-source", "AMD:annual:income:4");
   await expect(panel).toHaveAttribute("data-fc-source-end", "2025-12-31");
+  await expect(panel.locator("#fc-source-title")).toBeFocused();
+  await expect(panel.locator("#fc-source-title")).toContainText("AMD");
   await expect(panel.locator("[data-fc-source-for]")).toContainText("AMD");
   await expect(panel.locator("[data-fc-source-for]")).toContainText("2025");
   await expect(panel.locator('thead th[data-focus="true"]')).toHaveText("2025");
@@ -248,9 +252,12 @@ test("opening a cell lands on the exact company, period and row in the Statement
   await page.locator('[data-fc-cell="revenue:JPM:F0"]').click();
   await expect(panel).toHaveAttribute("data-fc-source", /^JPM:annual:income:/);
   await expect(panel.locator("[data-fc-source-refusal]")).toHaveAttribute("data-fc-source-refusal", "family_mismatch");
+  await expect(panel.locator("[data-fc-source-boundary]")).toHaveText("Not comparable");
+  await expect(panel.locator("[data-fc-source-boundary]")).toBeInViewport({ ratio: 1 });
   await panel.locator("[data-fc-close-source]").click();
 
   // Interim: the newest AMD quarter, not NVDA's differently numbered fiscal quarter.
+  await page.locator("[data-fc-options] > summary").click();
   await page.locator('[data-fc-basis-option="quarterly"]').click();
   const qOpener = page.locator('[data-fc-cell="revenue:AMD:F0"]');
   await expect(qOpener).toContainText("Q2 '26");
