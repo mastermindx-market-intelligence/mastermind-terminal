@@ -36,4 +36,12 @@ describe("beta Terminal accessibility contracts", () => {
     expect(launcher).toContain('<span className={styles.srOnly}>{pick(zh, "Open Intelligence workspace", "打开情报工作区")}. </span>');
     expect(launcher).not.toContain('aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}');
   });
+
+  it("keeps WCAG text tokens scoped to the dark Terminal appearance", () => {
+    const css = source("app/globals.css");
+    expect(css).toContain('html[data-terminal-appearance="1"][data-theme="dark"]{');
+    expect(css).toContain('--muted:#838da1;');
+    expect(css).toContain('--text-dim:#808a9e;');
+    expect(css).toContain('--chart-axis-text:#838da1;');
+  });
 });
