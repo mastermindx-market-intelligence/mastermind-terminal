@@ -689,3 +689,28 @@ the strict API parser and account/request polling key must stay unchanged.
 Enable reciprocal IEX/Futures context links only after that seam is repaired.
 The full Options suite, all remaining P0–P17 scope and deployed acceptance remain
 open. No duplicate engine or legacy route is archived on fixture evidence.
+
+### P9 acceptance readback and P10 fixture repair — 14 November
+
+P9 head `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff` has exact-tree synthetic
+browser PASS across 27 cells, 66 matching input hashes, and empty error,
+external-request, fixture-write and tracked-change lists. Original artifact
+14113254795/run43593441675 and root visual readback are recorded in
+[P9](P9_MONITOR_EVIDENCE_DESK.md#repaired-candidate-browser-readback--14-november).
+This is consumer proof; protected release and deployed source/account proof remain open.
+
+P10 artifact14113999081/run43593646783 and inherited P11 artifact14114555466/
+run43593801870 instead stop after 13 cells at the exact third Research passage.
+The fixture erroneously expects extractor/segmenter versions in an HTTP query
+whose real API admits only two hashes and text-window bounds. Repair only that
+fixture contract, strengthen its existing mounted consumer assertion, and carry
+the original-carrier repair through dependent candidates. Full immutable version
+identity and all acceptance assertions remain binding. See
+[P10](P10_RESEARCH_CONTINUITY.md#pinned-research-request-fixture-repair--14-november).
+No unrelated rerun or release enrollment was created. Continue the authorized
+P12 workspace work while the existing observer qualifies the corrected head.
+Parent P0–P17 acceptance, held carriers and production proof obligations remain open.
+
+P12A composes corrected P11 head `c3379c7736571f89ab2270e18bd1a346c7be9e34`
+so the same original observer can reach Portfolio and equity replay after the
+Research fixture repair. IEX source, product and acceptance assertions are unchanged.

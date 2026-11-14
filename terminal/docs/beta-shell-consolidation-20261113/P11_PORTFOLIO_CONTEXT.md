@@ -228,3 +228,21 @@ The five affected P9 suites pass101 cases; the combined mounted Monitor/Research
 suite passes107. Portfolio product source and its accepted fixture contract are
 unchanged. Fresh binding hosted proof is still required; no CI replay, release
 enrollment or held-source adoption is implied by this composition.
+
+## Inherited Research request-fixture repair — 14 November
+
+The original observer's run43593801870/artifact14114555466 tests exact P11 tree
+`8ca88896cbe77154a3215a6708682eb7df6e669b` at checkout
+`7f6c98c5f858ff85dafe8ffd04f5001ada192a6a`. All 85 input hashes match.
+It stops after13 cells at Research's third passage; Portfolio was not reached.
+Archive/report hashes and the matching P10 failure are recorded in
+[P10](P10_RESEARCH_CONTINUITY.md#pinned-research-request-fixture-repair--14-november).
+No browser errors, external requests, fixture writes or tracked changes are
+reported, and the owned child closed. This remains a failed receipt.
+
+Inherit corrected original P10 head `d1aac6af06d86c4de2ec2def3491d86fe5cd3b0b`
+(tree `90edd71a6ad9c4413b249f0894a76de26834d343`) as an additional parent.
+Only the fixture's two inadmissible query fields are removed, while the exact
+reader assertion is strengthened. Portfolio source, book identity, data and
+journey remain unchanged. The upstream145-test reading verification is reused
+for identical inputs; hosted qualification of this new dependent head is still owed.

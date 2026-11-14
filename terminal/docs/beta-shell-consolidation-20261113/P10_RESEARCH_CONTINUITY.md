@@ -175,3 +175,45 @@ The change reflects Next's committed URL in Monitor and waits for actual
 destination attributes in the existing qualifier. No report source or Research
 reader lifecycle is changed. New-head hosted proof remains owed; the failed
 artifact is retained truthfully and is not replayed or relabelled.
+
+## Pinned research request fixture repair — 14 November
+
+The repaired Monitor is now proven by its 27-cell exact-tree receipt in the P9
+document. Research's next hosted result fails truthfully at source page 3:
+`#research-segment-2` is absent and the reader displays selected-revision
+unavailability. This is not accepted Research or Portfolio browser proof.
+
+| Receipt | P10 | Inherited P11 |
+|---|---|---|
+| Candidate | `b80e58a2b254ed49eb9e573c1131cf09e13e18af` | `a310840a858fab271a429b40065913f40cb46fb2` |
+| Run / artifact | `43593646783` / `14113999081` | `43593801870` / `14114555466` |
+| Test checkout | `fbbdd8dda4b9a3015410bcee8dc5974c8d46f96a` | `7f6c98c5f858ff85dafe8ffd04f5001ada192a6a` |
+| Exact candidate tree | `8bf8905ea89edfb581272a9623c2a693c7e1b2da` | `8ca88896cbe77154a3215a6708682eb7df6e669b` |
+| Archive SHA-256 | `4cb92fad24c374a08d6316124b5cb3209f462c03d63bf3b3553177e4b51a3f2c` | `b2c0e7b509b6ae96549d9f76d81808f263f2967d321f869ba5fef1de7de90b53` |
+| Report SHA-256 | `a2acd283d81f17cad963d6f550865aea1c1faec0517e59f87a0d43e6bd3bedb4` | `e4a1185e2c84575316e6893009b40ab95f84f437fdf5f466a197d83869e72234` |
+
+All 76 P10 and 85 P11 input hashes match their exact candidate files. Both
+receipts stop after 13 completed cells, with no browser errors, external
+requests, fixture writes or tracked changes; owned children closed. Root
+inspected the P10 failure capture.
+
+The qualifier expected six fields on pinned HTTP reads. The incumbent
+`researchReadQuery` and `readingProxy.READ_PARAMS` admit four: the source-PDF
+hash, extracted-text hash, segment start and maximum segments. Extractor and
+segmenter versions remain part of URL/progress identity and response validation;
+they are not API query fields. The fixture incorrectly returned400 to the correct
+request. Remove only those two fields from the fixture's expected request. Keep
+the strict key count, duplicate rejection, both hashes and segment bounds.
+
+Strengthen the existing mounted source-page test to assert the exact four
+outgoing keys. Reader, API, full revision pins, returned-version checks, exact
+passage assertion, history, account withdrawal and zero-extra-read assertions
+remain unchanged. New-head hosted proof must reach and complete the original
+Research journey; no timeout or acceptance assertion is relaxed.
+
+Canonical failures: [P10 run](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43593646783),
+[P11 run](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43593801870).
+
+Local repair verification: the existing reading payload, strict proxy and mounted
+reader suites pass 145 cases in three files; scoped lint, JavaScript syntax and
+diff checks pass. No local browser launch or hosted rerun was made.

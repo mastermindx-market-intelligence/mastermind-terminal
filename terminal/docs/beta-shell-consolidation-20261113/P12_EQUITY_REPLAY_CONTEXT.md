@@ -164,3 +164,20 @@ owner, then reciprocal tool links. Preserve active full Options, Analysis and
 navigation carriers. P6 engine depth, P7 specialty depth, P8 integration, all
 regional engine coverage, remaining page families, native Macro/Prophet parity
 and safe duplicate/iframe retirement still belong to the original DONE_WHEN.
+
+## Inherited Research request-fixture repair — 14 November
+
+Compose corrected original P11 head `c3379c7736571f89ab2270e18bd1a346c7be9e34`
+(tree `c6e52a10eb4b4ab1044afecac3e409a3819fd194`) as an additional parent.
+The exact prior P10/P11 receipts stop at Research's third passage because the
+fixture expects two query fields the real API rejects. The correction and
+145-case local contract/reader verification are documented in
+[P10](P10_RESEARCH_CONTINUITY.md#pinned-research-request-fixture-repair--14-november).
+IEX product code, original source fixture, symbol/chart-return assertions and
+P12A's prior66 local tests are unchanged. No denial or held Options carrier is
+adopted; no local browser or hosted rerun is started.
+
+At the finite milestone read, old P12A head
+`f7fbcc9133bed5cd371ba178a3fb9a58c20485c6` had run43594757773 in progress,
+without an intelligence artifact yet. No browser result is inferred from that
+state. New-head hosted consumer proof remains required.
