@@ -1,0 +1,53 @@
+{
+  "schema": "mastermind.options.futures_context.execution.v1",
+  "recordedAtUtc": "2026-11-14T15:30:44.894223+00:00",
+  "operation": "options-futures-observation-context-20261114-c3",
+  "sourceBase": "48da28456ccbd3527a255684018a123660770125",
+  "sourceFiles": [
+    {
+      "path": "terminal/components/futures/FuturesWorkspaceView.tsx",
+      "sha256": "0c03aa935d1948ef435153c081a698466b79a040d2739e479a776f20a4fffa0a",
+      "bytes": 8300
+    },
+    {
+      "path": "terminal/components/futures/FuturesObservationContext.tsx",
+      "sha256": "2a01eae65e4670ffde53a0a1e6845d5b7c6a8f796762dcf1f3c4fac42e89246f",
+      "bytes": 5447
+    },
+    {
+      "path": "terminal/components/futures/FuturesObservationContext.module.css",
+      "sha256": "0749f371928378281016207b920be1fa8ef0047ba95e99d62657a76a8a12b985",
+      "bytes": 2453
+    },
+    {
+      "path": "terminal/lib/futuresUiCopy.ts",
+      "sha256": "d8203cca0c7c559447651ad2280cf780104e3096f19a8f7a4b13adddc029b7ef",
+      "bytes": 11995
+    },
+    {
+      "path": "terminal/lib/__tests__/futuresObservationContext.test.tsx",
+      "sha256": "32993a1fb76046b37ba753eca9b58d93f277b5636c849944fcf8b86dcd60785e",
+      "bytes": 10811
+    },
+    {
+      "path": "terminal/e2e/futures-workspace.spec.ts",
+      "sha256": "cd1f040f434d55d9a07ae04657b3ce437e0b06881227fcea66f22fc628020d65",
+      "bytes": 26161
+    }
+  ],
+  "distinctUnitPasses": 25,
+  "distinctBrowserPasses": 21,
+  "sourceChecks": "source-checks-final.json",
+  "browserSourceChecks": "qualified-browser-source-checks.json",
+  "browserPassReceipt": "browser-qualified-execution.json",
+  "firstBrowserReceipt": "browser-shared-execution.json",
+  "interimBrowserReceipt": "browser-final-execution.json",
+  "nativeSelectDiagnostic": "keyboard-diagnostic.json",
+  "visualReview": [
+    "captures-qualified/desktop-observation-overview-en-light.png",
+    "captures-qualified/mobile-observation-overview-zh-light.png",
+    "captures-qualified/mobile-observation-definition-zh-dark.png"
+  ],
+  "productionAccepted": false,
+  "parentDoneWhenProven": false
+}

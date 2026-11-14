@@ -1,0 +1,526 @@
+[warmup] /terminal?symbol=NVDA → 200 in 66ms
+[warmup] /options → 200 in 1856ms
+[warmup] /portfolio → 200 in 735ms
+[warmup] /alerts → 200 in 568ms
+[warmup] /analysis → 200 in 1033ms
+[warmup] /discover → 200 in 1361ms
+[warmup] /admin → 200 in 395ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 268ms
+[warmup] /login → 200 in 116ms
+[warmup] /reset-password → 200 in 261ms
+[warmup] /api/me → 200 in 339ms
+[warmup] /api/watchlist → 200 in 198ms
+[warmup] /api/layouts → 200 in 211ms
+[warmup] /api/watchlist/annotations → 409 in 159ms
+[warmup] 14 routes compiled in 8s
+[fixture-ready] prophet_idx fixture 200 in 379ms
+
+Running 12 tests using 1 worker
+
+[1/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  1) [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[2/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+  2) [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[3/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+  3) [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[4/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+  4) [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[5/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+  5) [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[6/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+  6) [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[7/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+  7) [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[8/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+  8) [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[9/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+  9) [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[10/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+  10) [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "Latest published frame"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[11/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+  11) [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[12/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+  12) [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  getByTestId('futures-requested-cutoff')
+    Expected: "最新已发布帧"
+    Received: "2026-10-09 14:06:30.123 UTC"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" with timeout 5000ms
+      - waiting for getByTestId('futures-requested-cutoff')
+        14 × locator resolved to <dd data-testid="futures-requested-cutoff">2026-10-09 14:06:30.123 UTC</dd>
+           - unexpected value "2026-10-09 14:06:30.123 UTC"
+
+
+      362 |     await expect(selector).toHaveValue(String(first));
+      363 |     await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
+    > 364 |     await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+          |                                                                ^
+      365 |     await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+      366 |     await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+      367 |     await expect(page).not.toHaveURL(/at=/);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:364:64
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-futures-context-final/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  12 failed
+    [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+    [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+    [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+    [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 
+    [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+    [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+    [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+    [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 
+    [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark) 
+    [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light) 
+    [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark) 
+    [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light) 

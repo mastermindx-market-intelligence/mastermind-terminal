@@ -1,0 +1,40 @@
+.context {
+  margin: 16px 0;
+  padding: 16px;
+  min-width: 0;
+  border: 1px solid var(--line, #23262f);
+  border-radius: 10px;
+  background: var(--panel, #0d0f13);
+  color: var(--text, #e7edf8);
+  font-size: 13px;
+}
+.heading, .selectionRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.heading h2 { margin: 0; font-size: 15px; font-weight: 650; }
+.basis { margin: 0; color: var(--text-2, #9ba3b4); }
+.selection, .bounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 14px 0; }
+.context dt { color: var(--text-2, #9ba3b4); font-size: 12px; line-height: 1.5; }
+.context dd { margin: 4px 0 0; line-height: 1.6; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.selection dd { font-weight: 600; }
+.session { margin: 0; line-height: 1.6; }
+.session span { display: block; color: var(--text-2, #9ba3b4); font-size: 12px; }
+.selector { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; color: var(--text-2, #9ba3b4); font-size: 12px; }
+.context .selector select { max-width: 100%; color: var(--text, #e7edf8); background: var(--panel-2, #15171d); border-color: var(--line-3, #33373f); }
+.context .selector select:focus-visible { outline: 2px solid var(--brand-2, #4d82ff); outline-offset: 2px; }
+.bounds { padding-top: 12px; border-top: 1px solid var(--line, #23262f); }
+.context .meta { display: flex; gap: 6px 12px; flex-wrap: wrap; color: var(--text-2, #9ba3b4); font-size: 12px; }
+.note { margin: 8px 0; color: var(--text-2, #9ba3b4); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.details { margin-top: 10px; border-top: 1px solid var(--line, #23262f); }
+.details summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 600; }
+.details summary:focus-visible { outline: 2px solid var(--brand-2, #4d82ff); outline-offset: 3px; border-radius: 3px; }
+.details h3 { font-size: 13px; margin: 16px 0 8px; }
+.facts { display: grid; gap: 10px; margin: 8px 0; }
+.facts > div { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr); gap: 6px 16px; }
+.facts dd { margin: 0; }
+.facts code { font: inherit; }
+@media (max-width: 600px) {
+  .context { padding: 12px; }
+  .selection, .bounds { grid-template-columns: minmax(0, 1fr); }
+  .selectionRow { align-items: stretch; }
+  .selector { width: 100%; }
+  .facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

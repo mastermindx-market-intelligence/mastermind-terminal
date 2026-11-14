@@ -1,0 +1,578 @@
+[
+  {
+    "path": "captures/desktop-observation-en-dark.png",
+    "sha256": "d937bd1fc90b1cd8504ac173feed4069bcd006c57d26f9ef08deebf6b37f0761",
+    "bytes": 159062,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-observation-en-light.png",
+    "sha256": "5888c28747ea85b73e782b768250b2b0cfd6ceb88178a08225e416923c526a61",
+    "bytes": 145556,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-observation-zh-dark.png",
+    "sha256": "5aaa5d035923a823ed7fa33353f35dd3728d5fcb8a10225692b397525fe0fe4c",
+    "bytes": 162543,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-observation-zh-light.png",
+    "sha256": "41e9c749a3573291e80d647f3919f736db609e885cfb8ab54f0ebdd8ec3403b8",
+    "bytes": 148636,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-options-futures-access-lost.png",
+    "sha256": "0862848c12554bcd18361c8a22ce99d240681189338838e3e04fc885c2876985",
+    "bytes": 106793,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-options-futures-no-source-en.png",
+    "sha256": "784556843c14db1aa818f66576960e173b6bf20bb28fa24090404e76b874a0ea",
+    "bytes": 137826,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-options-futures-partial-coverage.png",
+    "sha256": "693ecdbea4649197835e92335b7e4f9ed9b2e855acc33b570d987fdad87d605c",
+    "bytes": 146756,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/desktop-options-futures-replay-zh.png",
+    "sha256": "165bbfd28a8bc4b0848558bb70341e182967245f68ccd5f69f18b857fb7cf0b3",
+    "bytes": 143418,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-observation-en-dark.png",
+    "sha256": "2ad4216f135a34662974c653cb01c6bc3380aabab6294d0d869d2a2a99fd2d92",
+    "bytes": 73370,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-observation-en-light.png",
+    "sha256": "3e3e694cc6215417b14ce75990e6e73a836671e6f3ad8c28162edf991055ea07",
+    "bytes": 61697,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-observation-zh-dark.png",
+    "sha256": "43946c0fdd0c3d37d6ec91513184d31703babbf9d9b564735311d735f85b216b",
+    "bytes": 77613,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-observation-zh-light.png",
+    "sha256": "e1699b201891daec3a383f10e0ff84de5cfbf55a1aa073e79eb9b4bd844ef2de",
+    "bytes": 66305,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-options-futures-access-lost.png",
+    "sha256": "7fcca4801d01623096b5a8e1659f17e1464ba9457d16c54ed58651628f214077",
+    "bytes": 63866,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-options-futures-no-source-en.png",
+    "sha256": "bd8e506216e8323e9ac9142ce18cdec06b80b0ccd0715bd560183928867a956b",
+    "bytes": 61734,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-options-futures-partial-coverage.png",
+    "sha256": "4f5b2fe586b5c297bc06f8e2093b4b33ca95ce715f4cb1beab71a82a25d92f72",
+    "bytes": 65556,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/mobile-options-futures-replay-zh.png",
+    "sha256": "02077eb56072e8922856ea2cebcdc100cd3220b6c93b61c104ebd47d80ae6010",
+    "bytes": 71959,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-observation-en-dark.png",
+    "sha256": "307f23c5a3a204510a7b3876efb7937e2f964c0a4237ffe53f77114e61074660",
+    "bytes": 143281,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-observation-en-light.png",
+    "sha256": "847ad2183d94c45cd0979a94492c3f8ec65c93e4cd397e0aca6b33a8979a15da",
+    "bytes": 124748,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-observation-zh-dark.png",
+    "sha256": "d78f76e6989b79183b6911783da612f68fc2ea424305cda57af65d0d95dfe555",
+    "bytes": 151937,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-observation-zh-light.png",
+    "sha256": "13506a10c3c893be64cf831f3ef40f58bd6a26eb071a50da8d7a49a3fe746ce3",
+    "bytes": 134753,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-options-futures-access-lost.png",
+    "sha256": "47914c5132254269d0bea6642c43e1a6a8cb19d509cacb2890c70025df9d341d",
+    "bytes": 72515,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-options-futures-no-source-en.png",
+    "sha256": "72a46d5a156342616c138d728f50a36cf1bbabd5c79c609dea56bf950a5787bf",
+    "bytes": 114068,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-options-futures-partial-coverage.png",
+    "sha256": "76b90a0df8683e02160bc9eac9450d008380e20a8c04b9ac961ebc95f8592868",
+    "bytes": 120717,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures/tablet-options-futures-replay-zh.png",
+    "sha256": "f697589ace12fe191dc6f12432ab852934714defd184a40875c23e9c12f7efc9",
+    "bytes": 114784,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-en-dark.png",
+    "sha256": "74de469e6e22948f0a5f691cc80f24623a596c1c5f0ae46f5b44e2aa12fa60ae",
+    "bytes": 161435,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-en-light.png",
+    "sha256": "53749332a990f6d7667eb6d7f164e0fa1952a38cef1d5bbf1c1f5cf90edab5c7",
+    "bytes": 156971,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-panel-en-dark.png",
+    "sha256": "5f92bdcaf7643d530532cb17b79ebc175958dcdbae8dcae6d3656d905472f396",
+    "bytes": 109208,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-panel-en-light.png",
+    "sha256": "3ee1399e4a2213147525b18e18ee2cfdc962fb2bb428b96fcff0d295fcd22de2",
+    "bytes": 106605,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-panel-zh-dark.png",
+    "sha256": "64cefbd13d5f481c883af6ff4e36509817d19182c3bdc46605d9dacae4633b43",
+    "bytes": 115562,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-panel-zh-light.png",
+    "sha256": "513cf92da6777d06161c5bd38add3996709a5ab75cc4d7a9b50b476c27dc1f68",
+    "bytes": 113252,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-zh-dark.png",
+    "sha256": "47731ab6826fcfb3eeb566d06ffdd68f03c4818244086d72b973aed742d5587d",
+    "bytes": 164677,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/desktop-observation-zh-light.png",
+    "sha256": "8cb18dbe6f7207242ccdec2a8bcb859c6ed5765a4c37c5c8a61f3aa33f1e8f76",
+    "bytes": 159943,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-en-dark.png",
+    "sha256": "f3e715c17738abca1a40dc9c668c3812c99b4023199660e8c1242cb4c8286342",
+    "bytes": 75353,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-en-light.png",
+    "sha256": "dd00a22108e0a2aa40158dfa3c8e1a93a78a1e506452be619c0fdf0d08387d73",
+    "bytes": 72706,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-panel-en-dark.png",
+    "sha256": "ab70541bb9ec1c21caedc30b4b27c6292bd408b32a4a90b3c7aa536a2a8b3d26",
+    "bytes": 79406,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-panel-en-light.png",
+    "sha256": "4818c5de39b9edfecce4a3841cfab880bd73af5cdef4cbbbec8af59bd17e5bc4",
+    "bytes": 76779,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-panel-zh-dark.png",
+    "sha256": "d011602b0b87ac9755cc13679e0c4ab3280d56eaa0a84dab97c94084f74bc31d",
+    "bytes": 83751,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-panel-zh-light.png",
+    "sha256": "c17d9b39069da2a61c1629589e5f7496b3cd783cf50e2e38bba71fa302d6f0ec",
+    "bytes": 80417,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-zh-dark.png",
+    "sha256": "9b7567ca0827a1e39a2d600ac5bb99aa3d767315e285b1e867036f6c980974f6",
+    "bytes": 80207,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/mobile-observation-zh-light.png",
+    "sha256": "1316a9c27764e3189150525698779fc9461d2b1708baf6389fe73d05fee41dc9",
+    "bytes": 76865,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-en-dark.png",
+    "sha256": "6b6bd5dbaa25a186ed3c34003a7a7b3628ce05a9d8339a80051f1f61cb02a3c4",
+    "bytes": 146235,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-en-light.png",
+    "sha256": "ddad94fd9f069fb4756239f6e8760b97f392ad63f357359f5c3ae920f2056b43",
+    "bytes": 141307,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-panel-en-dark.png",
+    "sha256": "62e0f3f69d48dc1c1fc80f5c4988884bacd57c175b3c060e45bc6718f882bc72",
+    "bytes": 106017,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-panel-en-light.png",
+    "sha256": "4ed0596a5cd3e03af57cf2c1184aef28360f92b70b2f6df7e0d5ee09c5396fb9",
+    "bytes": 103458,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-panel-zh-dark.png",
+    "sha256": "babc4ef8edeb27b7ada6db7fc79ca3bf308966ae22dc969c4266afe3e4f87c8a",
+    "bytes": 112327,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-panel-zh-light.png",
+    "sha256": "d2bdc9473b592a23d162c8af910e069201979e65c84a9efaaf02cfc727408aff",
+    "bytes": 109727,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-zh-dark.png",
+    "sha256": "bef753a3a569c336fd6e419ee8b440147ac8203581111a837a02ef76fb4f823b",
+    "bytes": 155665,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-final/tablet-observation-zh-light.png",
+    "sha256": "8183f44ee930367e09195cc9bb82906bf281512b582ba0e601c1374457ccc37d",
+    "bytes": 149998,
+    "qualification": "historical-interim-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-clocks-en-dark.png",
+    "sha256": "e8a98f08b40769a60cd2b915a0515b27fc17cb5fd9e27b9773ea808f66601784",
+    "bytes": 120537,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-clocks-en-light.png",
+    "sha256": "7272c2e74757c95d0adc9c3670d66eb30b69e0ed1fb88f3ec64e0ded99e85452",
+    "bytes": 117599,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-clocks-zh-dark.png",
+    "sha256": "8ca04ea3de959c028d42b1d30f1bf916e8f9edd4d14f4bd44052c38f847a38df",
+    "bytes": 120675,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-clocks-zh-light.png",
+    "sha256": "1f3a6c4effe4c8a1d5b17068f26eca56c057960d58a0abc71c6e3842fa0720c5",
+    "bytes": 117649,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-definition-en-dark.png",
+    "sha256": "d269e7ed470eac866da0f38dfb4c9bce1400049ecd5bc0aa475730abd210c6b0",
+    "bytes": 102215,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-definition-en-light.png",
+    "sha256": "e3a4f40a931ae7915a052e793bf8f43c8da03e0bb77017226c9e55d6d108894d",
+    "bytes": 100050,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-definition-zh-dark.png",
+    "sha256": "051f62f0928bb98976c8d69c4f3d7fbb951b69b12372518a948aae5a7b392523",
+    "bytes": 100443,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-definition-zh-light.png",
+    "sha256": "55c8c54716d8df74384cefd1c7f1ee2cf5b998fcf29758ceaf27a1cad95f44d1",
+    "bytes": 97497,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-en-dark.png",
+    "sha256": "c5f305aadeba46bbe8ce22cf0e1d8837c81991ed7ea59cd95e06ce7c9eeca469",
+    "bytes": 161466,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-en-light.png",
+    "sha256": "7ff6ced887afbf140ec47df40458511472df57f437935c9a01f84a914da64672",
+    "bytes": 157310,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-overview-en-dark.png",
+    "sha256": "c5a9b00d1e5c31b7bf17fcd8025943c455603f10f7ec4f775eec14e3f9b2fd29",
+    "bytes": 149656,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-overview-en-light.png",
+    "sha256": "c7aa8917ba81b6df9f7d21b57375af0c32797a2cc606a749bce8173a0d4fbaff",
+    "bytes": 147627,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-overview-zh-dark.png",
+    "sha256": "524aafeebbe6fd36cd1075f92eaf38e1eb2a5f44768edbf9176e9270a4a09792",
+    "bytes": 151648,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-overview-zh-light.png",
+    "sha256": "ffa061427173623140969be454c723f240313186228c20e36550656a6e56f69d",
+    "bytes": 149690,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-zh-dark.png",
+    "sha256": "68c677d47a80615af256a992b6dc411bf671e36a56e927dbd67a58854f32fc53",
+    "bytes": 164559,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/desktop-observation-zh-light.png",
+    "sha256": "a14d32656c2b177deba41d417a72308e9fe066d2b9d5cc1e169170ade5094342",
+    "bytes": 160327,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-clocks-en-dark.png",
+    "sha256": "033feef9ebfabeff688f8e1afde4c53310da23175c1cb2385f8cb360c8aa78bc",
+    "bytes": 64530,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-clocks-en-light.png",
+    "sha256": "0c6eb3373c5bb8fcb6c8059a76206a6e716ae35633e309091800b6a2d65d4117",
+    "bytes": 62039,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-clocks-zh-dark.png",
+    "sha256": "d75c404f5eadea941ac5943d70d5ab36c41cb1c9f5429d59b6101df5491d28e5",
+    "bytes": 72876,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-clocks-zh-light.png",
+    "sha256": "ddd1035ac3876dcdc81723aeeda5132db4c04726d422f9a1a8cf0cc5dd4d1eb2",
+    "bytes": 69335,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-definition-en-dark.png",
+    "sha256": "6f5a2cae52df3f0addfa5f9b2c9d7ab87ae1b4a8c41ba3a47d9dc18304882762",
+    "bytes": 47476,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-definition-en-light.png",
+    "sha256": "a89268fcb995e92e7e0ce123b607fefe14c2e7fd23fd8a303be067e8ead8fecb",
+    "bytes": 45574,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-definition-zh-dark.png",
+    "sha256": "fbce1e50f0c3b782c54a253d52b7a842bb44bf4bdd1932934acd1ff6a00378e6",
+    "bytes": 57465,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-definition-zh-light.png",
+    "sha256": "49df785fa5bc395cbc3031779f3912e12007140aac18432f1a36b8d1f34e88ff",
+    "bytes": 54906,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-en-dark.png",
+    "sha256": "3dd63113dc056b50fc27e8ffc2e0ce372004d22870eb97885d475f2d01f6d19a",
+    "bytes": 75045,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-en-light.png",
+    "sha256": "0c623e91ccd1d78845e8da04a2fe02f46f36e2c775ab97a0bc34d97e70ea2f0a",
+    "bytes": 73008,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-overview-en-dark.png",
+    "sha256": "3ce8c68e79d6e77655c16633d7c86ea10fac5ec8fc002ad895b09927fdf94087",
+    "bytes": 72466,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-overview-en-light.png",
+    "sha256": "8035f2fa051c88681902aef7eb36d9373766c1e6c197bdf2b5a38865138d4f9d",
+    "bytes": 70627,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-overview-zh-dark.png",
+    "sha256": "740315b0e48ab5262e82d36892d9b7dbcd5e1f0b305d1bd411570a09c7fa993b",
+    "bytes": 73539,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-overview-zh-light.png",
+    "sha256": "b474cf0b9e241dda0bf35775831d0eb989e524c94288fa8163ad4824b004bfdc",
+    "bytes": 71093,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-zh-dark.png",
+    "sha256": "8202d66b6c612fd91e81066fbb9e4859c9811fa7e8efd7ab1319c945051163d0",
+    "bytes": 79687,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/mobile-observation-zh-light.png",
+    "sha256": "be3dc6842fcd50beb2a0400ec02a05753599935389af297a52e11f59a0ea6f95",
+    "bytes": 76841,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-clocks-en-dark.png",
+    "sha256": "e8f055cbeea7c4399959bd7a5888dd2565a6e22112d79dea59e1e1c172e96034",
+    "bytes": 104182,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-clocks-en-light.png",
+    "sha256": "17642e50350e471f5b1b01dacdf07ea156c977338f75614bb170da245b662ed4",
+    "bytes": 101465,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-clocks-zh-dark.png",
+    "sha256": "978bca290b314b29fa87e05a748c152948a2ec9417d7eb702bf42d7bc1357d01",
+    "bytes": 110625,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-clocks-zh-light.png",
+    "sha256": "fb7c4c1d3d0e0f06ca90ad248796f858567de1fffea4e7d113c5dee584e02a47",
+    "bytes": 107394,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-definition-en-dark.png",
+    "sha256": "f522c18714ac661be681396dc0fcf1464103208ec59a4b5722d69de68dde8f19",
+    "bytes": 88092,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-definition-en-light.png",
+    "sha256": "7d4ee616d4e116e7d83fd10e92415a84f76d2639bcd8148b7d47ce72c60cc3c9",
+    "bytes": 84793,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-definition-zh-dark.png",
+    "sha256": "43d0039420fd35c867d2f21efeea4efda83b9444670326710c778e52637507da",
+    "bytes": 95897,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-definition-zh-light.png",
+    "sha256": "05b3e3467bec4f6d513ae116fdeb7b8b08c760f28603506dc09e42eef469fa99",
+    "bytes": 92165,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-en-dark.png",
+    "sha256": "18e64dfe3bf0574cd2999dbc92b038151e5405d6621ba67e7229cc5b4e46011a",
+    "bytes": 146267,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-en-light.png",
+    "sha256": "ba7e83622cb49fcd08486e613bdf8d673c2369e67cc6d5c7d18ea5045e980636",
+    "bytes": 141455,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-overview-en-dark.png",
+    "sha256": "7cadae2f97b62ca086b4bcbaf6f90f69d2692330df0df867c89470df7b576263",
+    "bytes": 127622,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-overview-en-light.png",
+    "sha256": "717d5ed691ee3552a4647ce26c265056986451409e627b11720beef5dce48ab1",
+    "bytes": 123727,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-overview-zh-dark.png",
+    "sha256": "49ed219f9af77fbaf1aa1ac26e90def9ab65b6adf7f2704aa0afa118856740ec",
+    "bytes": 134787,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-overview-zh-light.png",
+    "sha256": "a077414508fcbc7436c8e84a28522c6e37015d36b266b595c1ddb2fdfccd638b",
+    "bytes": 130518,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-zh-dark.png",
+    "sha256": "e617cd00c43c4434a4040498e04ed82c75f030281667714dd5a2a5edb0024c9d",
+    "bytes": 155845,
+    "qualification": "final-passing-fixture"
+  },
+  {
+    "path": "captures-qualified/tablet-observation-zh-light.png",
+    "sha256": "30c4bf1da9e63452ab41f296248c65455ec8100835c646676044f4890976f25b",
+    "bytes": 150324,
+    "qualification": "final-passing-fixture"
+  }
+]

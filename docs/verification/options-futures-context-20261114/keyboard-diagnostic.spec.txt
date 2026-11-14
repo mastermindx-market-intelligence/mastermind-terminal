@@ -1,0 +1,34 @@
+import { test, expect } from "@playwright/test";
+import { browserFuturesFixture } from "./fixtures/futuresPublished";
+import { parseFuturesRequest, DEFAULT_FUTURES_REQUEST } from "../lib/futuresRequest";
+test("diagnose native replay select keyboard delivery", async ({ page }, info) => {
+  const baseURL = info.project.use.baseURL!;
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL }]);
+  await page.route("**/api/futures?*", route => route.fulfill({ json: browserFuturesFixture(parseFuturesRequest(new URL(route.request().url()).searchParams)!) }));
+  const first = browserFuturesFixture(DEFAULT_FUTURES_REQUEST).replayCutoffsMs[0];
+  await page.goto("/options/futures?pair=ES&at=" + (first + 30123));
+  const selector = page.getByLabel("Published replay frames", { exact: true });
+  await expect(selector).toHaveValue(String(first));
+  await page.evaluate(() => {
+    const target = window as unknown as { events: unknown[] }; target.events = [];
+    for (const name of ["keydown", "keyup", "change", "input", "focusin"]) {
+      window.addEventListener(name, event => {
+        queueMicrotask(() => target.events.push({ type: event.type, key: (event as KeyboardEvent).key,
+          target: (event.target as HTMLElement)?.tagName, prevented: event.defaultPrevented,
+          value: (event.target as HTMLSelectElement)?.value, active: document.activeElement?.tagName }));
+      });
+    }
+  });
+  const evidence: unknown[] = [];
+  for (const keys of [["ArrowUp", "Enter"], ["Space", "ArrowUp", "Enter"], ["ArrowUp", "Tab"]]) {
+    await selector.selectOption(String(first));
+    await expect(selector).toHaveValue(String(first)); await selector.focus();
+    for (const key of keys) {
+      await page.keyboard.press(key);
+      evidence.push({ key, keys, selected: await selector.inputValue().catch(() => "unmounted"),
+        requested: await page.getByTestId("futures-requested-cutoff").textContent(),
+        events: await page.evaluate(() => (window as unknown as { events: unknown[] }).events) });
+    }
+  }
+  console.log("NATIVE_SELECT_DIAGNOSTIC", JSON.stringify(evidence));
+});

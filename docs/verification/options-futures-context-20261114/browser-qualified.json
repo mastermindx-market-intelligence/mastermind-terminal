@@ -1,0 +1,713 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/futures-workspace.spec.ts",
+      "--grep",
+      "observation context",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-futures-context-qualified"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 56121",
+      "url": "http://127.0.0.1:56121/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "futures-workspace.spec.ts",
+      "file": "futures-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3557,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:26:48.781Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6MjY6NTEuMDU5IFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-74d728e50fb784519f4f",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2215,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:26:52.859Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6MjY6NTMuNjA2IFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-0298b4a32fdd5263e435",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2138,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:26:55.082Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI2OjU1Ljg0MSBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-ce5cc21a4bcd5c8811b9",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2354,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:26:57.229Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI2OjU4LjA1MSBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-1e69cf7c865066ecd5c6",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2886,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:00.111Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6Mjc6MDEuNTc4IFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-dce123d0f3ecdcf7e1f2",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2042,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:03.353Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6Mjc6MDQuMDkyIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-a87ddc325f7079352525",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2217,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:05.404Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI3OjA2LjI0MiBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-953a1f47b7fc48b81ded",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2226,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:07.632Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI3OjA4LjQyNSBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-bbe56a7834f8b48e053d",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2879,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:10.422Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6Mjc6MTEuOTEyIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-416654df76dc853bea49",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2292,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:13.669Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6Ikhpc3RvcmljYWwgc291cmNlIMK3IEVTWjYiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlJlcXVlc3RlZCBzZWxlY3Rpb24iLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGVkIHB1YmxpY2F0aW9uIGN1dG9mZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJTb3VyY2UgdHJhZGluZyBzZXNzaW9uOiAyMDI2LTEwLTA5U2Vzc2lvbiB6b25lIHVuYXZhaWxhYmxlIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiTGF0ZXN0IHB1Ymxpc2hlZCBmcmFtZTIwMjYtMTAtMDkgMTQ6MDY6MDAgVVRDMjAyNi0xMC0wOSAxNDoyIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0IjoiTG9hZGVkIGludGVydmFscyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowMDowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkludGVydmFsczogNkV4ZWN1dGlvbiBjb3ZlcmFnZTogY29tcGxldGUiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlNlbGVjdGlvbnMgcmV0YWluZWQgaW4gdGhpcyBwdWJsaWNhdGlvbiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEN0byAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNlbGVjdGlvbnM6IDIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IlRvdGFscyBjb3ZlciBsb2FkZWQgaW50ZXJ2YWxzLiBBdmFpbGFibGUgY2hvaWNlcyBhcmUgbGltaXRlZCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiU291cmNlIGFuZCBhdmFpbGFiaWxpdHkgZGV0YWlscyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiZml4dHVyZTpzeW50aGV0aWMtYnJvd3Nlci10ZXN0LW5vdC1tYXJrZXQtZGF0YSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IlNvdXJjZSBhcyBvZiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDoyNDowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJQdWJsaXNoZWQgYXQiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTEtMTQgMTU6Mjc6MTQuNDYzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkxhdGVzdC1zb3VyY2UgZnJlc2huZXNzIGJvdW5kIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjI0OjA1IFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkF2YWlsYWJpbGl0eSBiYXNpcyIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiUmV0cm9zcGVjdGl2ZSB2ZW5kb3IgY2FwdHVyZSIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNhcHR1cmVkIGFmdGVyIHRoZSBldmVudDsgb3JpZ2luYWwgbGl2ZSBhdmFpbGFiaWxpdHkgaXMgbm90ICIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiSGlzdG9yaWNhbCBvYnNlcnZhdGlvbnMgcmV0YWluIHRoZWlyIHJlY29yZGVkIHNvdXJjZSBjbG9ja3MuIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJEZWZpbml0aW9uIElEIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IkNvbnRyYWN0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJFU1o2IiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0IjoiVmFsaWQgZnJvbSDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJWYWxpZCB1bnRpbCDCtyBuYXRpdmUgbnMiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE2NDA4MDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiJBdmFpbGFibGUgYXQgwrcgbmF0aXZlIG5zIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNDY4MDAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX1d"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-2c8ba24852aefa473f11",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2154,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:15.970Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjExLjU2NDcwNzg3NjE0NzA2MX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI3OjE2Ljc1NyBVVEMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6OC45MDY2ODYxMTc3MTI3OTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTIuNTEzMzQ3MDE0NDQxODA5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjguOTA2Njg2MTE3NzEyNzk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjEyLjUxMzM0NzAxNDQ0MTgwOX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo4LjkwNjY4NjExNzcxMjc5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxMi41MTMzNDcwMTQ0NDE4MDl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-c8c7ca91aef39e70144b",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2090,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:27:18.135Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "observation-contrast",
+                      "contentType": "application/json",
+                      "body": "W3sidGV4dCI6IuWOhuWPsuadpea6kCDCtyBFU1o2IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLor7fmsYLnmoTop4LmtYvml7bliLsiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MDY6MzAuMTIzIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaJgOmAieWPkeW4g+aIqueCuSIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMjAyNi0xMC0wOSAxNDowNjowMCBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDkuqTmmJPml6U6IDIwMjYtMTAtMDnkuqTmmJPml7bljLrkuI3lj6/nlKgiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDlt7Llj5HluIPluKcyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQzIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjEzLjM5NTAwNjMyMzg0OTU3NX0seyJ0ZXh0Ijoi5bey5Yqg6L295pe25q61IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjAwOjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuaXtuauteaVsDogNuaIkOS6pOimhueblu+8muWujOaVtCIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5pys5qyh5Y+R5biD5L+d55WZ55qE5Y+v6YCJ5pe25Yi7IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTEwLTA5IDE0OjA2OjAwIFVUQ+iHsyAyMDI2LTEwLTA5IDE0OjI0OjAwIFVUQyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWPr+mAieaXtuWIu+aVsDogMiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5oC76YeP5LuF5ra155uW5bey5Yqg6L295pe25q6144CC5Y+v6YCJ5pe25Yi75LuF6ZmQ5pys5qyh5Y+R5biD77yM5pyf6Ze05Y+v6IO95a2Y5Zyo57y65Y+j44CCIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLmnaXmupDkuI7lj6/nlKjml7bpl7Tor6bmg4UiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupAiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6ImZpeHR1cmU6c3ludGhldGljLWJyb3dzZXItdGVzdC1ub3QtbWFya2V0LWRhdGEiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnaXmupDop4LmtYvmiKroh7MiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDAgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+R5biD5pe26Ze0IiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIyMDI2LTExLTE0IDE1OjI3OjE4LjkxMyBVVEMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnIDmlrDmnaXmupDnmoTmnInmlYjmiKroh7Pml7bpl7QiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjIwMjYtMTAtMDkgMTQ6MjQ6MDUgVVRDIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe26Ze05L6d5o2uIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiLkvpvlupTllYbkuovlkI7ph4fpm4YiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLkuovku7blj5HnlJ/lkI7ph4fpm4bvvIzml6Dms5Xmja7mraTnoa7orqTlvZPml7blt7Llrp7ml7blj6/nlKjjgIIiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IuWOhuWPsuingua1i+S/neeVmeWFtuWOn+Wni+adpea6kOaXtumXtOOAguaXtuaViOacn+mZkOmAgueUqOS6juacgOaWsOW9k+WJjeadpea6kOOAgiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0Ijoi5a6a5LmJ5qCH6K+GIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiJzeW50aGV0aWM6RVM6ZGVmaW5pdGlvbiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuWQiOe6piIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiRVNaNiIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9LHsidGV4dCI6IuacieaViOi1t+eCuSDCtyDljp/lp4vnurPnp5IiLCJyYXRpbyI6Ni4yODkyNDc3NTU0MTQwOTh9LHsidGV4dCI6IjE3OTE0NjgwMDAwMDAwMDAwMDAgbnMiLCJyYXRpbyI6MTUuMTY1NTM4NTA1NTE5MjY5fSx7InRleHQiOiLmnInmlYjnu4jngrkgwrcg5Y6f5aeL57qz56eSIiwicmF0aW8iOjYuMjg5MjQ3NzU1NDE0MDk4fSx7InRleHQiOiIxNzkxNjQwODAwMDAwMDAwMDAwIG5zIiwicmF0aW8iOjE1LjE2NTUzODUwNTUxOTI2OX0seyJ0ZXh0Ijoi5Y+v55So5pe25Yi7IMK3IOWOn+Wni+e6s+enkiIsInJhdGlvIjo2LjI4OTI0Nzc1NTQxNDA5OH0seyJ0ZXh0IjoiMTc5MTQ2ODAwMDAwMDAwMDAwMCBucyIsInJhdGlvIjoxNS4xNjU1Mzg1MDU1MTkyNjl9XQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-3d9937d5a33aad6ab623",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T15:26:28.110Z",
+    "duration": 52275.875,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -9,6 +9,7 @@ import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useFuturesWorkspace } from "./useFuturesWorkspace";
 import FuturesMicrostructureChart from "./FuturesMicrostructureChart";
 import FuturesCotPanel from "./FuturesCotPanel";
+import FuturesObservationContext from "./FuturesObservationContext";
 import css from "./futuresLab.module.css";
 
 export default function FuturesWorkspaceView({ initialRequest }: { initialRequest: FuturesRequest }) {
@@ -30,7 +31,6 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
   }, []);
   const volume = data?.frames.reduce((n, f) => n + f.bar.total, 0), delta = data?.frames.reduce((n, f) => n + f.bar.deltaKnown, 0);
   const unknown = data?.frames.reduce((n, f) => n + f.bar.unknown, 0);
-  const date = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(".000Z", " UTC");
   return <main className="main2" style={{ overflow: "auto", minWidth: 0 }}>
     <section className={css.page} data-testid="futures-workspace" lang={lang}>
       <header className={css.header}><div><h1>{t("title")}</h1><p>{t("subtitle")}</p>
@@ -55,9 +55,9 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
           <option value="ratio">{t("ratio")}</option><option value="basis">{t("basis")}</option></select></label>
         <button onClick={() => setRefresh(v => v + 1)}>{t("refresh")}</button>
       </section>
+      <FuturesObservationContext request={request} data={data} onCutoffChange={cutoffMs => update({ cutoffMs })} />
       {state.status === "loading" ? <p role="status" data-testid="futures-loading" className={css.warning}>{t("loading")}</p>
         : !data ? <p role="status" data-testid="futures-unavailable" className={css.warning}>{t(state.reason ?? "source_unavailable")}</p> : <>
-        <p className={css.warning} data-testid="futures-basis">{t(data.basis)} · {data.contract} · {t("through")}: {date(data.cutoffMs)}</p>
         {data.tradeCoverage !== "complete" && <p className={css.warning} data-testid="futures-partial-coverage">{t("partialCoverage")}</p>}
         {data.frames.some(f => f.bar.kind === "no_captured_trades") && <p data-testid="futures-empty-notice" className={css.warning}>{t("emptyIntervals")}</p>}
         <section className={css.metrics}>
@@ -69,17 +69,12 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
           <label className={css.checkbox}><input type="checkbox" checked={showGex} onChange={e => setShowGex(e.target.checked)} />{t("gamma")}</label>
           <label className={css.checkbox}><input type="checkbox" checked={showCvd} onChange={e => setShowCvd(e.target.checked)} />{t("cvd")}</label>
           <button onClick={() => setZoom(v => v === 1 ? 2 : 1)}>{t("zoom")} {zoom}×</button>
-          <label>{t("replay")}<select aria-label={t("replay")} value={request.cutoffMs === null ? "latest" : data.cutoffMs}
-            onChange={e => update({ cutoffMs: e.target.value === "latest" ? null : Number(e.target.value) })}>
-            <option value="latest">{t("latest")}</option>
-            {data.replayCutoffsMs.map(ms => <option key={ms} value={ms}>{date(ms)}</option>)}
-          </select></label>
         </section>
         <FuturesMicrostructureChart frames={data.frames} mode={mode} showGex={showGex} showCvd={showCvd} zoom={zoom}
           lowTick={data.lowTick} highTick={data.highTick} priceStepTicks={request.priceStepTicks} lang={lang === "zh" ? 1 : 0}
           contract={data.contract} method={request.method} />
         <section className={css.inspector} style={{ marginTop: 16 }}>
-          <h2>{t("source")}</h2><p>{data.sourceId} · {date(data.sourceAsOfMs)}</p>
+          <h2>{t("gammaProjection")}</h2>
           <p>{t("expiryNotice")} {t("replayNotice")}</p>
           {!current || current.status !== "ok" ? <p data-testid="gex-unavailable">{current?.status === "unavailable" && String(current.reason) === "cash_closed" ? t("cashClosed") : t("gammaMissing")}</p> :
             <table><thead><tr><th>{t("strike")}</th><th>{t("level")}</th><th>{t("gammaHeading")}</th></tr></thead>

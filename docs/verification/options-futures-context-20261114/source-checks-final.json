@@ -1,0 +1,41 @@
+[
+  {
+    "name": "final-plain-language",
+    "exit": 0,
+    "runtimeSeconds": 3.71,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "scripts/check_plain_language.mjs",
+      "--mode",
+      "enforce-added",
+      "--diff-file",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/docs/verification/options-futures-context-20261114/added-lines-final.diff"
+    ]
+  },
+  {
+    "name": "final-lint",
+    "exit": 0,
+    "runtimeSeconds": 4.25,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "components/futures/FuturesWorkspaceView.tsx",
+      "components/futures/FuturesObservationContext.tsx",
+      "lib/futuresUiCopy.ts",
+      "lib/__tests__/futuresObservationContext.test.tsx",
+      "e2e/futures-workspace.spec.ts"
+    ]
+  },
+  {
+    "name": "final-typescript",
+    "exit": 0,
+    "runtimeSeconds": 31.0,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/typescript/lib/tsc.js",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ]
+  }
+]
