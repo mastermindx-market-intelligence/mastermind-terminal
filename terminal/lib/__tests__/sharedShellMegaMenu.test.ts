@@ -38,7 +38,7 @@ describe("Shared Shell tool discovery", () => {
   it("uses the actual owners of native workspaces and opens every other tool at its published origin", () => {
     const native = new Set<string>(sharedShellCatalog.nativePaths);
     // These are direct Next routes, independent of the published legacy-frame bridge snapshot.
-    for (const path of ["/brain", "/market-reference"]) {
+    for (const path of ["/brain", "/market-reference", "/research/reports"]) {
       expect(existsSync(new URL("../../app/(shell)" + path + "/page.tsx", import.meta.url)), path).toBe(true);
       native.add(path);
     }
@@ -78,9 +78,10 @@ describe("Shared Shell tool discovery", () => {
 
   it("keeps every published product-menu entry reachable through a desk or its native replacement", () => {
     const hrefs = new Set(items.map(item => item.href));
+    const nativeEquivalents = new Map([["/reference.html", "/market-reference"], ["/reports.html", "/research/reports"]]);
     for (const entry of sharedShellDirectory) {
       if (!entry.group.startsWith("product_nav.") || entry.href === "/start.html") continue;
-      const href = entry.href === "/reference.html" ? "/market-reference" : SHARED_SHELL_LEGACY_ORIGIN + entry.href;
+      const href = nativeEquivalents.get(entry.href) ?? SHARED_SHELL_LEGACY_ORIGIN + entry.href;
       expect(hrefs.has(href), entry.href).toBe(true);
     }
   });
