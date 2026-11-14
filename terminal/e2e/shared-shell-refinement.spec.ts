@@ -1,10 +1,249 @@
-import {expect,test} from "@playwright/test";
+import {expect,test,type Page} from "@playwright/test";
 import {SHARED_SHELL_PROTOCOL,SHARED_SHELL_BRIDGE_VERSION,SHARED_SHELL_DOCUMENT_VERSION} from "../lib/sharedShellContracts";
+import {overviewFundFixture,marketBarsFixture} from "./fixtures/analysisResearch";
+import {contextFixture,themeContextFixture,institutionalContextFixture} from "./fixtures/companyIntelligenceContext";
+import {techLabFixture} from "../lib/__tests__/fixtures/techLab";
+import {retainedCompanyResearchFixture} from "./fixtures/retainedCompanyResearch";
 
 // Use the existing responsive harness and real routes. The normal customer
 // configuration keeps this opt-in surface off; CI qualifies it explicitly.
 test.skip(process.env.MMX_SHARED_SHELL !== "1", "Shared Shell is an explicit beta opt-in");
 test.use({colorScheme:"dark"});
+
+// These are the incumbent standalone fixtures in the actual opt-in Beta shell.
+// They qualify composition and interaction, never production data or acceptance.
+async function installAnalysisFixtures(page:Page,baseURL:string,lang:"en"|"zh") {
+ await page.context().addCookies([
+  {name:"mm_e2e_rs30",value:"1",url:baseURL},{name:"mm_e2e_guest",value:"1",url:baseURL},
+ ]);
+ await page.addInitScript(language=>localStorage.setItem("mm.lang",language),lang);
+ await page.route("https://www.mastermind-x.com/mm_brain.js",route=>route.fulfill({contentType:"application/javascript",body:""}));
+ await page.route("**/data/manifest.json",route=>route.fulfill({json:{as_of:null,symbols:{
+  NVDA:{name:"NVIDIA Corporation",mkt:"NASDAQ",col:"#aaa",sec:"Equities",verdict:null},
+  AAPL:{name:"Apple Inc.",mkt:"NASDAQ",col:"#aaa",sec:"Equities",verdict:null},
+ }}}));
+ await page.route("**/NVDA.fund.json**",route=>route.fulfill({json:overviewFundFixture}));
+ await page.route("**/data/NVDA.json**",route=>route.fulfill({json:marketBarsFixture()}));
+ await page.route("**/data/NVDA.intel.json**",route=>route.fulfill({json:techLabFixture("NVDA")}));
+ await page.route("**/api/company-intelligence/NVDA**",route=>route.fulfill({json:{ok:true,state:"ready",context:contextFixture()}}));
+ await page.route("**/api/company-theme-context/NVDA**",route=>route.fulfill({json:{ok:true,state:"partial",context:themeContextFixture()}}));
+ await page.route("**/api/company-institutional-context/NVDA**",route=>route.fulfill({json:{ok:true,state:"ready",context:institutionalContextFixture()}}));
+ await page.route("**/api/event-workspace/**",route=>route.fulfill({status:404,json:{ok:false,state:"error",available:false,
+  error:{code:"not_found",message:"Event workspace is not covered in this fixture",retryable:false}}}));
+ await page.route("**/api/investigations/baseline?**",route=>route.fulfill({status:503,json:{ok:false,reason:"current_owner_unavailable"}}));
+}
+
+async function chooseAnalysisFamily(page:Page,family:string,routePage:string) {
+ const compact=page.locator(".fin-family-mobile-trigger");
+ if(await compact.isVisible()) {
+  await compact.click();
+  const menu=page.locator(".fin-family-sheet-layer[open]");
+  await expect(menu).toBeVisible();
+  await menu.locator(`[data-fin-family-sheet="${family}"]`).click();
+  await expect(menu).toHaveCount(0);
+  await expect(compact).toBeFocused();
+ } else {
+  await page.locator(`[data-fin-family="${family}"]`).click();
+ }
+ await expect(page).toHaveURL(new RegExp(`[?&]page=${routePage}(?:&|$)`));
+}
+
+async function compactAnalysisChrome(page:Page) {
+ const workspace=page.locator(".analysis-shell");
+ await expect(workspace.locator(".fin-research-nav")).toHaveCount(1);
+ await expect(workspace.locator(".fin-company-control")).toHaveCount(1);
+ await expect(workspace.locator(".analysis-context-bar,.analysis-context-back")).toHaveCount(0);
+ await expect(workspace.locator(".analysis-context-actions")).not.toHaveAttribute("open","");
+ const nav=await workspace.locator(".fin-research-nav").boundingBox();
+ expect(nav!.height).toBeLessThanOrEqual(64);
+ const body=await workspace.locator(".fin-pane > .fin-body").boundingBox();
+ // The global shell, company bar and local lenses must leave most of the
+ // viewport available for research, even at the real 390px mobile width.
+ expect(body!.y).toBeLessThanOrEqual(190);
+ expect(body!.height).toBeGreaterThan(page.viewportSize()!.height*0.65);
+ expect(body!.y+body!.height).toBeLessThanOrEqual(page.viewportSize()!.height+1);
+ expect(body!.x).toBeGreaterThanOrEqual(0);
+ expect(body!.x+body!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
+ await noOverflow(page);
+}
+
+async function analysisChartReturn(page:Page,lang:"en"|"zh",symbol:string) {
+ const researchUrl=page.url();
+ const desktopChart=page.locator(".shared-shell-terminal-link:visible");
+ let href:string|null;
+ if(await desktopChart.count()) {
+  await expect(desktopChart).toHaveCount(1);
+  href=await desktopChart.getAttribute("href");
+ } else {
+  const menu=page.locator(".mobilebar").getByRole("button",{name:lang==="zh"?"打开导航":"Open navigation",exact:true});
+  await menu.click();
+  const chart=page.locator('.m-drawer.open a[href^="/terminal?"]');
+  await expect(chart).toHaveCount(1);
+  href=await chart.getAttribute("href");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".m-drawer.open")).toHaveCount(0);
+  await expect(menu).toBeFocused();
+ }
+ const target=new URL(href!,researchUrl);
+ expect(target.searchParams.get("symbol")).toBe(symbol);
+ expect(target.searchParams.get("ret")).toBe(researchUrl);
+ return target.href;
+}
+
+for(const lang of ["en","zh"] as const) {
+ test(`populated Analysis keeps useful data and metric exploration inside Beta (${lang})`,async({page,baseURL},info)=>{
+  test.setTimeout(150_000);
+  await installAnalysisFixtures(page,baseURL!,lang);
+  const zh=lang==="zh";
+  await page.goto("/analysis?symbol=NVDA&page=overview");
+  const overview=page.locator("[data-overview-vnext]");
+  await expect(overview).toBeVisible();
+  await expect(overview.locator("[data-overview-vnext-snapshot]")).toContainText("4.00T");
+  await compactAnalysisChrome(page);
+  await expect(overview.locator("[data-overview-vnext-snapshot] .fin-kpi .v").first()).toBeInViewport({ratio:1});
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-overview-${lang}.png`)});
+
+  await chooseAnalysisFamily(page,"financials","statements");
+  const financials=page.locator("[data-financials-vnext]");
+  await expect(financials.getByRole("heading",{name:zh?"财务报表":"Financial statements",exact:true})).toBeVisible();
+  await expect(financials.locator("[data-financials-vnext-summary]")).toContainText("130.00B");
+  await compactAnalysisChrome(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-statements-${lang}.png`)});
+  const metric=financials.getByRole("button",{name:zh?"毛利":"Gross profit",exact:true});
+  await metric.click();
+  await expect(metric).toHaveAttribute("aria-pressed","true");
+  const history=financials.locator(".fin-financials-trajectory");
+  await expect(history.getByRole("heading",{name:zh?"毛利":"Gross profit",exact:true})).toBeVisible();
+  await expect(history.locator(".fin-financials-selected-value")).toContainText("98.00B");
+  await history.scrollIntoViewIfNeeded();
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-selected-metric-${lang}.png`)});
+  await financials.getByRole("button",{name:zh?"资产负债":"Balance",exact:true}).click();
+  await expect(financials.locator("[data-financials-vnext-summary]")).toContainText("125.00B");
+  await financials.getByRole("button",{name:zh?"现金流":"Cash flow",exact:true}).click();
+  await expect(financials.locator("[data-financials-vnext-summary]")).toContainText("69.00B");
+
+  await chooseAnalysisFamily(page,"earnings","earnings");
+  const earnings=page.locator("[data-earnings-vnext]");
+  await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText("130.00B");
+  await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText(zh?"财务报表支持":"Statement-backed");
+  await compactAnalysisChrome(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-earnings-${lang}.png`)});
+ });
+
+ test(`company Intelligence leads with the brief and keeps source limits accessible in Beta (${lang})`,async({page,baseURL},info)=>{
+  test.setTimeout(120_000);
+  await installAnalysisFixtures(page,baseURL!,lang);
+  const zh=lang==="zh";
+  await page.goto("/analysis?symbol=NVDA&page=intelligence");
+  const brief=page.locator("[data-ci-paper-brief]");
+  await expect(brief).toBeVisible();
+  await compactAnalysisChrome(page);
+  await expect(brief.locator(".ci-paper-brief-hero h3")).toContainText("Data-center demand remained broad");
+  await expect(brief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ratio:0.5});
+  await expect(brief.locator(".ci-paper-metrics > button")).toHaveCount(4);
+  await expect(brief.locator(".ci-paper-metrics > button").first()).toBeInViewport({ratio:0.5});
+  expect(await page.locator(".fin-pane > .fin-body").evaluate(node=>node.scrollTop)).toBe(0);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-intelligence-brief-${lang}.png`)});
+  const lenses=page.locator(".ci-lenses");
+  await lenses.getByRole("tab",{name:zh?"业绩":"Results",exact:true}).click();
+  const results=page.locator("[data-ci-paper-results]");
+  await expect(results).toContainText("18.4%");
+  const limits=results.locator(".ci-paper-results-boundary");
+  await limits.locator("summary").click();
+  await expect(limits).toHaveAttribute("open","");
+  await expect(limits.getByText(zh?"不可用 · 缺少已授权的事件前预期数据":"Unavailable · no licensed pre-event estimates",{exact:true})).toBeVisible();
+  await limits.locator("summary").click();
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-intelligence-results-${lang}.png`)});
+  await lenses.locator("#ci-tab-sources").click();
+  await expect(lenses.locator("#ci-tab-sources")).toHaveAttribute("aria-selected","true");
+  const sources=page.locator("[data-ci-paper-sources]");
+  await expect(sources).toHaveAttribute("data-ci-sources-event-id","cie_d8488221fd8c710c53d6537d");
+  await expect(sources).toHaveAttribute("data-ci-sources-generation-id","aaaaaaaaaaaaaaaaaaaaaaaa");
+  await expect(sources).toContainText(zh?"仅供背景参考":"Context only");
+  const consensus=sources.locator(".ci-paper-sources-coverage-grid article").filter({has:page.getByText(zh?"共识":"Consensus",{exact:true})});
+  await expect(consensus).toContainText(zh?"不可用":"Unavailable");
+  await expect(consensus).toContainText(zh?"没有已授权且报告口径匹配的事件前预期数据可供比较。":"No licensed pre-event estimates with a matching reporting basis are available for comparison.");
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-intelligence-sources-${lang}.png`)});
+ });
+
+ test(`market, ownership and Lab preserve usable research inside Beta (${lang})`,async({page,baseURL},info)=>{
+  test.setTimeout(120_000);
+  await installAnalysisFixtures(page,baseURL!,lang);
+  const zh=lang==="zh";
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  const market=page.locator("[data-market-vnext]");
+  await expect(market).toBeVisible();
+  await expect(market).toContainText("RSI");
+  await compactAnalysisChrome(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-market-${lang}.png`)});
+  await chooseAnalysisFamily(page,"ownership","ownership");
+  const positions=page.locator(".analysis-shell").getByRole("table").filter({hasText:"Alpha Capital"});
+  await expect(positions).toBeVisible();
+  const positionValue=new Intl.NumberFormat(zh?"zh-CN":"en-US",{style:"currency",currency:"USD",notation:"compact",maximumFractionDigits:1}).format(12_000_000);
+  await expect(positions.getByRole("row").filter({hasText:"Alpha Capital"})).toContainText(positionValue);
+  await compactAnalysisChrome(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-ownership-${lang}.png`)});
+  await chooseAnalysisFamily(page,"lab","lab");
+  const lab=page.getByTestId("lab-workspace");
+  await expect(lab.getByRole("heading",{name:zh?"活跃形态":"Active setups",exact:true})).toBeVisible();
+  const rows=lab.locator("li[data-setup-id]");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.first()).toHaveAttribute("data-setup-id","strongest");
+  await compactAnalysisChrome(page);
+  await expect(rows.first()).toBeInViewport({ratio:0.5});
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-lab-${lang}.png`)});
+  await lab.getByRole("button",{name:zh?/^低于基准/:/^Below baseline/}).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toHaveAttribute("data-setup-id","weak");
+ });
+
+ test(`retained company event keeps its exact source identity in the Beta reading layout (${lang})`,async({page,baseURL},info)=>{
+  test.setTimeout(120_000);
+  await installAnalysisFixtures(page,baseURL!,lang);
+  const fixture=retainedCompanyResearchFixture();
+  const requests:string[]=[];
+  await page.route("**/api/investigations/baseline?**",route=>{
+   requests.push(new URL(route.request().url()).search);
+   return route.fulfill({json:fixture});
+  });
+  await page.goto("/analysis?symbol=AAPL&page=intelligence");
+  const event=page.locator('[data-ci-plane="event_workspace.v1"]');
+  await expect(event).toHaveAttribute("data-ci-event-id",fixture.receipt.event_id);
+  await expect(page).toHaveURL(new RegExp(`ci_generation=${fixture.receipt.generation_id}`));
+  const url=new URL(page.url());
+  expect(url.searchParams.get("ci_event")).toBe(fixture.receipt.event_id);
+  expect(url.searchParams.get("ci_company")).toBe(fixture.receipt.company_id);
+  expect(url.searchParams.get("ci_fingerprint")).toBe(fixture.receipt.fingerprint);
+  expect(requests).toEqual(["?symbol=AAPL"]);
+  const brief=event.locator("[data-ci-paper-brief]");
+  await expect(brief).toContainText("$109.4B");
+  await expect(brief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ratio:0.5});
+  await expect(brief.locator(".ci-paper-metrics > button").first()).toBeInViewport({ratio:0.5});
+  await compactAnalysisChrome(page);
+  expect(await page.locator(".fin-pane > .fin-body").evaluate(node=>node.scrollTop)).toBe(0);
+  await analysisChartReturn(page,lang,"AAPL");
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-retained-brief-${lang}.png`)});
+  await brief.locator(".ci-paper-watch-list > button").filter({hasText:"Q4 revenue growth"}).click();
+  const evidence=page.locator(".ci-evidence");
+  await expect(evidence).toHaveAttribute("aria-hidden","false");
+  await expect(evidence).toContainText("9%-11%");
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-retained-guidance-${lang}.png`)});
+  if(info.project.name==="desktop" && lang==="en") {
+   await page.locator(".ci-evidence-close").click();
+   const chartUrl=await analysisChartReturn(page,lang,"AAPL");
+   const researchUrl=page.url();
+   await page.locator(".shared-shell-terminal-link").click();
+   await expect(page).toHaveURL(chartUrl);
+   await expect(page.locator(".pair b")).toHaveText("AAPL");
+   await page.locator(".brand-back").click();
+   await expect(page).toHaveURL(researchUrl);
+   await expect(page.locator('[data-ci-plane="event_workspace.v1"]')).toHaveAttribute("data-ci-event-id",fixture.receipt.event_id);
+  }
+ });
+}
 
 async function noOverflow(page:import("@playwright/test").Page) {
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);

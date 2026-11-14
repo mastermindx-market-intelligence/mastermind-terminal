@@ -136,3 +136,26 @@ Local verification: 111 tests pass across four affected suites, including the so
 Current published head before this refinement: 847ddda2a2d4d2640360ce32e3ad76230b2aa4c4. Existing CI run 43558329579 passed production build, typecheck, Quote Hub, PostgreSQL invariants, two unit shards, F11 and visual capture lanes. One unit shard exposed four obsolete watchpoint-label/placement expectations; serial browser exposed obsolete guidance and beat/miss wording expectations. Those assertions are corrected without dropping their source-safety checks. Other native lanes are not yet claimed complete.
 
 Parent acceptance remains open. Next: publish this coherent refinement through the existing branch with expected-head CAS; inspect its binding native CI and populated responsive screenshots; repair proven defects; qualify one protected release request; consume the incumbent master deployment receipt; verify the live shared-shell and standalone research path. The original Chrome panel block still prevents live browser acceptance. No alternate browser/carrier or release effect has been attempted, and no 10/10 or production completion is claimed.
+
+
+## Populated Beta research qualification — 2026-11-14
+
+The R3 product head 8907e01a3c0597199516084c4df5f8b7127bc187 now passes production build, TypeScript, all three unit shards, Quote Hub, PostgreSQL invariants, F11 and the three visual capture lanes in native CI run 43559589996. Its company-Intelligence responsive step also passed and the serial job proceeded to subsequent existing qualifiers. This does not yet establish a complete run, protected release, or production acceptance.
+
+A concrete coverage gap was found: the ordinary research tests exercise standalone Terminal; the existing Shared Shell opt-in step did not exercise populated Analysis. The market Intelligence native qualifier covers Intelligence/Prophet/Sectors, not company Analysis. This update extends the existing shared-shell-refinement.spec.ts and its already-authorized CI step. No runner, workflow, auth owner, production flag, route or test gate was added or weakened.
+
+Twenty-four additional responsive cases (eight per desktop/tablet/mobile project, split EN/ZH) qualify:
+- Populated Overview, Financials, Earnings, Market, Ownership and Lab inside the actual surrounding Beta shell, using unchanged incumbent fixtures extracted into shared helper modules. No test data is served in production.
+- One company/navigation bar, compact chrome, an in-bounds research scrollport occupying more than 65% of the viewport, document overflow, first-frame useful values and restored focus from the compact family menu.
+- Selected statement metrics, balance/cash-flow summaries and statement-backed earnings; localized holding values; Lab's real ranking/filter interaction.
+- The unpinned retained-owner availability failure into the separately published NVDA research path, matching the screenshot's actual state. Source limits are explicitly opened and inspected; Consensus remains unavailable without licensed estimates.
+- The retained AAPL event through the actual /api/investigations/baseline reader, with a complete synthetic receipt around the existing golden workspace. Exact event/generation/company/fingerprint pins, context-only authority and guidance/source interaction remain intact. The real validator accepts this specimen in the existing HTTP/loader unit suite.
+- A single chart destination per current shell, full research return context in desktop and mobile menu links, and one real desktop Analysis -> Terminal -> retained Analysis route journey.
+
+Local qualification: full TypeScript check passed; 20 real baseline HTTP/reader tests passed including the added specimen validation; Playwright's test discovery accepted the affected specs without launching a local browser; git diff --check passed. Fixture extraction was read back against the previously published source and confirmed unchanged. These new browser cases are pending the next head's existing CI execution; neither test discovery nor fixture validation is browser proof.
+
+Release guard remains: do not release before required exact-head checks and responsive evidence are qualified. The browser extension panel still blocks the original live Chrome surface. No alternate live browser, denied carrier replay, Paper mutation, merge/auto-merge or deployment has occurred. Parent acceptance remains open.
+
+Next: read back this source/plan and the Ready PR; inspect binding CI results and retained screenshots, repair any demonstrated presentation/interaction defects, then make the single protected release request if eligible and consume the incumbent deployment receipts. Live Beta/Terminal acceptance remains required after deployment.
+
+Publication reconciliation: the initial all-content tree request returned GitHub 422 input-size/processing timeout. Readback confirmed the branch remained at 8907e01a3c0597199516084c4df5f8b7127bc187. The same native GitHub carrier publishes immutable blobs separately, then assembles their hashes into one tree before the expected-head branch update. No commit/ref or alternate carrier was used for the failed request.
