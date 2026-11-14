@@ -1,5 +1,8 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { fixtureUserId } from "../lib/watchlistsFixtureDb";
+import { portfolioBookKey } from "../lib/portfolioSnapshot.server";
+import type { Position } from "../lib/portfolio";
 import { expectTapTarget } from "./tapTarget";
 import { holdings, inspectRecord, editRecord, editor, closeInspector, discardEditor, coverage } from "./portfolioWorkspaceHelpers";
 
@@ -65,6 +68,33 @@ async function readBook(page: Page) {
   return (await response.json()).positions as { id: string; ticker: string; status: string; shares: number | null }[];
 }
 
+/** Use the same accepted positions and canonical key as the page; never invent a binding. */
+async function canonicalBook(page: Page) {
+  const response = await page.request.get("/api/portfolio?view=positions");
+  expect(response.ok()).toBe(true);
+  const body = await response.json() as { positions: Position[]; bookKey: string };
+  expect(portfolioBookKey(body.positions)).toBe(body.bookKey);
+  return body;
+}
+
+/** Synthetic proxy response; the real fixture route supplies its owner and book identity. */
+function boundBrief(owner: string, book: { positions: Position[]; bookKey: string }) {
+  const names = new Set(book.positions.filter(position => position.status === "open").map(position => position.ticker)).size;
+  return {
+    ...BRIEF,
+    schema: "portfolio_brief.v2",
+    book: { n: names, covered: names, uncovered: [] },
+    population: {
+      mode: "positions", n: names, label_en: "Your holdings", label_zh: "你的持仓",
+      disclosure_en: `This fixture read describes ${names} names.`,
+      disclosure_zh: `此合成判读描述 ${names} 只个股。`,
+    },
+    headline: { en: `Fixture brief for ${names} names.`, zh: `合成简报：${names} 只个股。` },
+    sections: [{ ...BRIEF.sections[0], lines: [{ en: `Fixture read for ${names} names.`, zh: `合成判读：${names} 只个股。` }] }],
+    context: { version: "snapshot-v1", owner, bookKey: book.bookKey, population: "positions" },
+  };
+}
+
 async function readWatchlists(page: Page) {
   const response = await page.request.get("/api/watchlist");
   expect(response.ok()).toBe(true);
@@ -72,8 +102,8 @@ async function readWatchlists(page: Page) {
 }
 
 /** Routes + language, installed before any navigation. */
-async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, opts: { zh?: boolean; brief?: boolean } = {}) {
-  await isolateWatchlistStore(page, testInfo, baseURL);
+async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, opts: { zh?: boolean; brief?: () => unknown } = {}) {
+  const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     const setDocumentLanguage = () => {
@@ -88,8 +118,9 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.route("**/data/manifest.json", (route) => route.fulfill({ json: MANIFEST }));
   await page.route("**/api/quote**", (route) => route.fulfill({ json: QUOTES }));
   await page.route("**/api/portfolio-brief", (route) => (opts.brief
-    ? route.fulfill({ json: BRIEF })
+    ? route.fulfill({ json: opts.brief() })
     : route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ tier: "free" }) })));
+  return { owner: fixtureUserId(storeKey) };
 }
 
 async function setMutationNoop(page: Page, on: boolean, baseURL: string | undefined) {
@@ -245,19 +276,39 @@ test("a 2xx receipt with an absent authoritative postcondition is still a visibl
   expect((await readBook(page)).map(position => position.id)).toEqual([seeded.id]);
 });
 
-test("the brief states which names it is reading, and flags a population it did not read", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL, { brief: true });
+test("the brief distinguishes names and position records, retires an old book, and recovers on deliberate retry", async ({ page, baseURL }, testInfo) => {
+  let servedBrief: ReturnType<typeof boundBrief> | null = null;
+  const { owner } = await prepare(page, testInfo, baseURL, { brief: () => servedBrief });
   await seedPosition(page, { ticker: "NVDA", shares: "10", entryPrice: "150" });
   await seedPosition(page, { ticker: "AAPL", shares: "4", entryPrice: "240" });
+  await seedPosition(page, { ticker: "NVDA", shares: "2", entryPrice: "160" });
+  const initial = await canonicalBook(page);
+  servedBrief = boundBrief(owner, initial);
   await page.goto("/portfolio");
   await page.locator("summary").filter({ hasText: "From the desk" }).click();
+  const brief = page.locator(".pbrief");
   const disclosure = page.getByTestId("brief-population");
-  await expect(disclosure).toBeVisible(); await expect(disclosure).toContainText("2");
-  await expect(disclosure.locator(".pbrief-population-gap")).toHaveCount(0);
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText("2 names");
+  await expect(disclosure).toContainText("3 open positions");
+  await expect(brief.locator(".pbrief-headline")).toHaveText("Fixture brief for 2 names.");
+
+  // The served response still names the old key. A new canonical book must retire its facts.
   await seedPosition(page, { ticker: "MSFT", shares: "1" }); await page.reload();
   await page.locator("summary").filter({ hasText: "From the desk" }).click();
-  await expect(disclosure.locator(".pbrief-population-gap")).toBeVisible();
-  await expect(disclosure).toContainText("3"); await expect(disclosure.locator(".pbrief-population-gap")).toContainText("2");
+  await expect(brief).toContainText("unavailable right now");
+  await expect(disclosure).toHaveCount(0);
+  await expect(brief.locator(".pbrief-headline, .pbrief-line")).toHaveCount(0);
+
+  const updated = await canonicalBook(page);
+  expect(updated.bookKey).not.toBe(initial.bookKey);
+  servedBrief = boundBrief(owner, updated);
+  await brief.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(disclosure).toBeVisible();
+  await expect(disclosure).toContainText("3 names");
+  await expect(disclosure).toContainText("4 open positions");
+  await expect(brief.locator(".pbrief-headline")).toHaveText("Fixture brief for 3 names.");
+  await expect(brief.locator(".pbrief-unavailable")).toHaveCount(0);
 });
 
 test("the page holds its shape and exposes reachable record actions at this viewport, in zh", async ({ page, baseURL }, testInfo) => {

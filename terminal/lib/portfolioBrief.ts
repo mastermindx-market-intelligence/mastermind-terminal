@@ -305,3 +305,129 @@ export function uncoveredNotice(
   if (Array.isArray(u) && u.length > 0) return { tickers: u };
   return null;
 }
+
+// ───────────────────────── the canonical-context consumer ─────────────────────────
+//
+// The opt-in snapshot contract (terminal/docs/verification/portfolio-brief-context-20261102/):
+// the Portfolio panel asks for `X-Mastermind-Portfolio-Context: snapshot-v1`, the desk
+// answers with a PUBLIC brief PLUS a minimal validated context, and the brief's facts may
+// be rendered only when that context names the SAME owner and the SAME canonical book the
+// page is showing.
+//
+// This half of the module is the shared, pure half: the context's shape, the binding's
+// shape, and the selection rule that decides whether a response may be rendered. The
+// server half (the witness decoder and its compatibility gate) lives in
+// lib/portfolioBriefContext.server.ts and never reaches the browser.
+
+/** The opt-in header. Its presence selects a RESPONSE CONTRACT; it grants no authority. */
+export const BRIEF_CONTEXT_HEADER = "X-Mastermind-Portfolio-Context";
+/** The only supported contract version. */
+export const BRIEF_CONTEXT_VERSION = "snapshot-v1";
+
+/**
+ * The minimal context the browser is allowed to see.
+ *
+ * It carries NO holdings, no currency receipts, no notes and no producer rows: only the
+ * version it was read under, the server-verified owner it belongs to, the canonical book
+ * key it describes, and the population it describes. That is the whole private-boundary
+ * surface.
+ */
+export interface BriefContext {
+  version: string;
+  owner: string;
+  bookKey: string;
+  population: "positions";
+}
+
+/** A canonical context is well-formed only when it names a real book key. */
+export function isBriefContext(value: unknown): value is BriefContext {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const v = value as Record<string, unknown>;
+  return v.version === BRIEF_CONTEXT_VERSION
+    && typeof v.owner === "string" && v.owner.length > 0
+    && typeof v.bookKey === "string" && /^[a-f0-9]{64}$/.test(v.bookKey)
+    && v.population === "positions";
+}
+
+/**
+ * The owner-scoped phase of the CANONICAL READ — the `/api/portfolio?view=positions` read
+ * that decides which book the page is entitled to show.
+ *
+ * `checking` — the read is in flight (or has not started); the book is not yet known.
+ * `unavailable` — the read failed; the book is NOT empty, it is unknown. A failed read is
+ * never a perpetual "checking" and never an empty book.
+ * `qualified` — a canonical read was accepted and its book key is the accepted binding.
+ */
+export type CanonicalReadPhase = "checking" | "unavailable" | "qualified";
+
+/**
+ * The accepted canonical binding: the owner, the canonical book key, and the accepted-read
+ * counter that makes each accepted read a NEW identity (so a reread that lands a new book
+ * re-reads the brief, while a same-owner presentation change keeps the identity).
+ */
+export interface BriefBinding {
+  owner: string;
+  bookKey: string;
+  read: number;
+}
+
+/**
+ * Read a bound response: the PUBLIC brief plus the context that binds it.
+ *
+ * Returns null unless the response carries a well-formed context AND that context names
+ * the SAME owner and the SAME canonical book as the accepted binding. A response without a
+ * context — an old producer, a proxy that predates the contract, a malformed body — is
+ * NOT a legacy payload to be shown on trust: it is simply not bindable, and the caller
+ * renders its honest unavailable state.
+ */
+export function readBoundBrief(
+  value: unknown,
+  binding: BriefBinding | null,
+): { brief: PortfolioBrief; context: BriefContext } | null {
+  if (!binding) return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const v = value as Record<string, unknown>;
+  if (!isBriefContext(v.context)) return null;
+  if (v.context.owner !== binding.owner) return null;
+  if (v.context.bookKey !== binding.bookKey) return null;
+  if (!isPortfolioBrief(value)) return null;
+  return { brief: value as PortfolioBrief, context: v.context };
+}
+
+/**
+ * The STRICT population disclosure — the one the bound Portfolio path uses.
+ *
+ * The legacy `populationDisclosure` above compares the desk's reported NAME count with the
+ * page's POSITION count and calls a difference a mismatch. In the bound path that
+ * heuristic is retired: a book of two lots in one name is the SAME book, and the desk's
+ * count is a count of NAMES while the page renders POSITION records. Both counts are
+ * reported with their own label and no equality is implied.
+ */
+export interface StrictPopulationDisclosure {
+  kind: PagePopulation["kind"];
+  /** The canonical POSITION records (lots) the page renders. */
+  positions: number;
+  /** The desk's own count — unique NAMES, when the payload states one. */
+  names: number | null;
+  /** The desk's declared population, when the payload states one. */
+  deskMode: PopulationMode | null;
+  /** The desk's own pre-localized disclosure sentence, when the payload carries one. */
+  deskDisclosure: Bilingual | null;
+}
+
+export function strictPopulationDisclosure(
+  population: PagePopulation,
+  brief: PortfolioBrief | null,
+): StrictPopulationDisclosure {
+  const desk = readPopulation(brief);
+  const reported = brief?.book && typeof brief.book.n === "number" && Number.isFinite(brief.book.n)
+    ? brief.book.n
+    : null;
+  return {
+    kind: population.kind,
+    positions: population.count,
+    names: reported,
+    deskMode: desk ? desk.mode : null,
+    deskDisclosure: desk ? { en: desk.disclosure_en, zh: desk.disclosure_zh } : null,
+  };
+}

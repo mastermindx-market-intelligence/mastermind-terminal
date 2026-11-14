@@ -31,6 +31,7 @@ import { mutationPostcondition, positionMutationFailure, type MutationReceipt, t
 import { isPortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
+import { type BriefBinding, type CanonicalReadPhase } from "@/lib/portfolioBrief";
 import EventImpactPanel from "@/components/EventImpactPanel";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
@@ -146,6 +147,33 @@ export default function PortfolioView(
   const [failure, setFailure] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  // ── the canonical-read binding ──────────────────────────────────────────────────
+  //
+  // The brief may render its facts only for the canonical book the page is showing, so
+  // the panel needs an ACCEPTED binding — the owner, the canonical book key from the
+  // SAME `decodePositionRead` acceptance that sets `positions`, and the accepted-read
+  // counter that makes each accepted read a new identity.
+  //
+  // The phase is owner-scoped and has three honest values:
+  //   checking    — the canonical read is in flight; the book is not known yet. The
+  //                 server render carries positions but NO key, so a key is never
+  //                 synthesized from SSR data.
+  //   unavailable — the canonical read FAILED. The book is unknown, NOT empty: a failed
+  //                 read is never a perpetual "checking".
+  //   qualified   — a canonical read was accepted and its book key is the binding.
+  //
+  // A failed reread keeps the existing positions table under its current policy, but it
+  // retires the binding: the brief must not retain qualified facts under a book that
+  // could not be re-read.
+  const [canonicalRead, setCanonicalRead] = useState<{
+    phase: CanonicalReadPhase;
+    binding: BriefBinding | null;
+  }>({ phase: "checking", binding: null });
+  // The accepted-read counter. It only ever ADVANCES, so a reader can tell that a NEW
+  // canonical read was accepted even when the binding was retired and republished in
+  // between — the panel waits for this counter to move before it reads the brief again.
+  const readCounterRef = useRef(0);
+
   // The server render is the seed; every later truth comes from the SAME route the mutations use,
   // so the table can never disagree with what was just written.
   //
@@ -166,6 +194,10 @@ export default function PortfolioView(
     setPositions(seed);
     setUnread(unreadable);
     setRisk(null); setHistory(null); setTargets(null);
+    // A new owner or a new seed retires the canonical binding with the rest of the
+    // previous read surface: the brief's facts belonged to the book that was accepted
+    // before, and the server render carries no key to rebuild one from.
+    setCanonicalRead({ phase: "checking", binding: null });
     if (ownerChanged) {
       // The prior account's read surface, not just its holdings: freshness/staleness, the last
       // verification time and the attempted latches all describe the PREVIOUS owner's reads.
@@ -276,6 +308,12 @@ export default function PortfolioView(
     // account must never paint into the view that replaced it, even while it is still the
     // newest sequence and the seed reference has not changed.
     const sourceOwner = committedOwnerRef.current;
+    // The committed owner generation and effect-lifetime scope, captured AT READ START.
+    // The sequence/seed fence above already retires a superseded read; this scope is the
+    // STRONGER fence the brief binding needs: the generation advances on every committed
+    // account transition, so a read that started under A can never publish after a
+    // committed A→B→A — the generation it captured is two advances stale by then.
+    const scope = scopeNow();
     const newest = () => readSeqRef.current === seq && seedRef.current === sourceSeed
       && committedOwnerRef.current === sourceOwner;
     activeAnalysisRef.current?.controller.abort();
@@ -291,6 +329,11 @@ export default function PortfolioView(
         setBookStale(true); setRisk(null); setHistory(null); setTargetsFresh(false);
         setRiskAttempted(true); setHistoryAttempted(true); setTargetsAttempted(true);
         if (failedRereadDisposition(displayedBookRef.current) !== "keep-book-risk-unavailable") setUnread(true);
+        // The canonical read failed. The positions table keeps its existing policy (the
+        // rows already on screen stay), but the brief's binding is RETIRED: facts
+        // qualified under a book that could not be re-read must not survive it. The
+        // phase is "unavailable", never a perpetual "checking" and never an empty book.
+        setCanonicalRead({ phase: "unavailable", binding: null });
       }
       return null;
     }
@@ -309,6 +352,25 @@ export default function PortfolioView(
     setHistory(null); setHistoryAttempted(false); setTargetsFresh(false);
     setPositions(authoritative.positions); setUnread(false); setBookStale(false);
     setLastChecked(new Date().toISOString());
+    // Publish the canonical binding for the brief — from the SAME acceptance that set
+    // `positions`, so the two can never describe different books. Published only while
+    // the scope captured at read start and the sequence/seed fence both still hold.
+    if (scopeValid(scope)) {
+      const bindingOwner = ownerUserId(sourceOwner);
+      if (bindingOwner) {
+        readCounterRef.current += 1;
+        setCanonicalRead({
+          phase: "qualified",
+          binding: {
+            owner: bindingOwner,
+            bookKey: authoritative.bookKey,
+            read: readCounterRef.current,
+          },
+        });
+      } else {
+        setCanonicalRead({ phase: "unavailable", binding: null });
+      }
+    }
     const context = { seq, bookKey: authoritative.bookKey, seed: sourceSeed, controller: new AbortController() };
     activeAnalysisRef.current = context;
     const current = () => newest() && !context.controller.signal.aborted;
@@ -344,7 +406,7 @@ export default function PortfolioView(
       if (!summary || !options.confirmTargets(summary)) throw Object.assign(new Error("targets unavailable"), { code: "targets unavailable" });
     }
     return authoritative.positions;
-  }, [loadHistory, scopeValid]);
+  }, [loadHistory, scopeNow, scopeValid]);
 
   const requestSection = useCallback((section: PortfolioSection) => {
     if (section !== "risk" || historyRequestedRef.current) return;
@@ -681,7 +743,12 @@ export default function PortfolioView(
       onDeleteConfirm={position => { void mutate({ action: "delete", id: position.id }, position.id).then(result => { if (result.ok) setConfirmDelete(null); }); }}
       onSectionChange={requestSection}
       riskContent={riskContent} historyContent={historyContent} targetsContent={targetsContent}
-      briefContent={<PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
+      briefContent={<PortfolioBriefPanel
+        population={{ kind: "positions", count: open.length }}
+        binding={canonicalRead.binding}
+        phase={canonicalRead.phase}
+        onRetry={() => void retryRead()}
+      />}
       eventContent={<EventImpactPanel positions={open} holdingsUnreadable={unread} />}
     />
     {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}

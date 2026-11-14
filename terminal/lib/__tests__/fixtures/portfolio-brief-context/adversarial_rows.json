@@ -1,0 +1,152 @@
+{
+  "schema": "portfolio_brief_context.adversarial_rows.v1",
+  "note": "Terminal-side adversarial rows for the snapshot witness contract. Every value is invented: there is no live account, holding, owner id or database behind any of it. The shared cross-language cases live in projection_cases.json; these are the cases that go BEYOND them — the reader divergences the producer's own Python mirror gets wrong, and the cases that must still be ACCEPTED because they are harmless.",
+  "owner_id": "3f0d4a5e-6c21-4f8a-9b77-2c9a1d5e7f30",
+  "base_row": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "ticker": "NVDA",
+    "shares": 10,
+    "entry_price": 100,
+    "entry_currency": null,
+    "entry_currency_basis": null,
+    "entry_date": "2026-01-15",
+    "notes": null,
+    "status": "open",
+    "created_at": "2026-01-15T09:30:00+00:00"
+  },
+  "cases": [
+    {
+      "name": "unicode_arabic_digit_shares",
+      "why": "CPython's float() accepts Unicode decimal digits and so does the producer's mirror (its regex uses \\d, which is Unicode-aware in Python); JavaScript's Number() does not. The Terminal reads no shares, the composer would read 12 — the two readers disagree, so the row is refused.",
+      "patch": {
+        "shares": "١٢"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "unicode_fullwidth_digit_shares",
+      "why": "The same divergence with fullwidth digits: Python reads 12, the Terminal reads nothing.",
+      "patch": {
+        "shares": "１２"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "unicode_decimal_point_shares",
+      "why": "A Unicode full stop with ASCII digits: Python reads 1.5, the Terminal reads nothing.",
+      "patch": {
+        "shares": "1.５"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "upper_divergent_ticker",
+      "why": "Python's str.upper() and JavaScript's toUpperCase() differ on U+019B (among 55 code points), so the ticker has no single reading. Refused rather than resolved in either language's favour.",
+      "patch": {
+        "ticker": "NVDAƛ"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "strip_divergent_ticker",
+      "why": "Python's str.strip() removes U+0085 and JavaScript's trim() does not, so the two readers see different tickers.",
+      "patch": {
+        "ticker": "NVDA"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "bom_prefixed_ticker",
+      "why": "JavaScript's trim() removes U+FEFF and Python's strip() does not — the mirrored case of the one above.",
+      "patch": {
+        "ticker": "﻿NVDA"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "hex_numeric_string_shares",
+      "why": "JavaScript's Number() reads 0x10 as 16; Python's float() rejects it. The readers disagree.",
+      "patch": {
+        "shares": "0x10"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "underscore_numeric_string_shares",
+      "why": "Python's float() reads PEP 515 underscores (1_0 is 10); JavaScript's Number() rejects it.",
+      "patch": {
+        "shares": "1_0"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "boolean_shares",
+      "why": "Python's float(True) is 1.0; JavaScript refuses a boolean outright.",
+      "patch": {
+        "shares": true
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "non_finite_exponent_shares",
+      "why": "1e400 overflows to infinity in both readers; a non-finite cost is never a cost.",
+      "patch": {
+        "shares": "1e400"
+      },
+      "expected": "refuse"
+    },
+    {
+      "name": "unicode_ticker_ordinary",
+      "why": "A non-ASCII ticker whose characters upper-case identically in both languages is NOT ambiguous — the readers agree and the row is accepted.",
+      "patch": {
+        "ticker": "平安银行"
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "unicode_notes_kept",
+      "why": "Notes never reach the composer. Unicode, emoji and newlines in a note are carried verbatim and change only the canonical book key.",
+      "patch": {
+        "notes": "第二笔 加仓 🚀\n第二行"
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "currency_receipt_verbatim",
+      "why": "The currency receipt is preserved verbatim and the Terminal derives the currency from the same bytes through its own unchanged projection.",
+      "patch": {
+        "entry_currency": "USD",
+        "entry_currency_basis": {
+          "ticker": "NVDA",
+          "price": 100
+        }
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "status_closed_padded",
+      "why": "' closed ' is closed: the canonical status rule trims and lowercases before it compares.",
+      "patch": {
+        "status": " CLOSED "
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "status_null_is_open",
+      "why": "A missing status reads OPEN — the canonical rule treats anything that is not exactly 'closed' as open.",
+      "patch": {
+        "status": null
+      },
+      "expected": "accept"
+    },
+    {
+      "name": "closed_row_is_not_gated",
+      "why": "A closed row never reaches the composer, so the two readers cannot disagree about the BRIEF about it. It is carried verbatim and enters the book key through the unchanged rowToPosition — gating it would refuse a witness the producer is entitled to emit.",
+      "patch": {
+        "status": "closed",
+        "shares": true
+      },
+      "expected": "accept"
+    }
+  ]
+}

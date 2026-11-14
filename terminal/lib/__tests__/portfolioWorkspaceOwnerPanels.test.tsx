@@ -43,6 +43,16 @@ function payload(panel: Panel, who: Owner, generation = "current") {
   if (panel === "brief") return {
     ...briefFixture, book: { n: 1, covered: 1, uncovered: [] },
     headline: { en: text, zh: text },
+    // The canonical context. A brief may render only for the owner and the canonical
+    // book the page is showing, so the payload names both. This suite keeps testing
+    // exactly what it always tested — the OWNER-SCOPED LIFETIME of the panel — under
+    // the contract that binds a brief to a book.
+    context: {
+      version: "snapshot-v1",
+      owner: ids[who],
+      bookKey: portfolioBookKey(books[who]),
+      population: "positions",
+    },
   };
   return {
     state: "ok", asof: "2026-10-21", heldTickers: 1, heldPositions: 1, unjoinable: [],
