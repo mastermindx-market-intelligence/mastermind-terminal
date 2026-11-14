@@ -75,6 +75,8 @@ report.sourceFiles=Object.fromEntries([
  'components/workspaces/TodayDeskDestinations.tsx', 'components/workspaces/TodaySinceLastVisit.tsx',
  'components/workspaces/TodayRiskEvents.tsx', 'components/workspaces/TodayResearchAttention.tsx',
  'components/workspaces/TodayBreadthReading.tsx', 'lib/__tests__/fixtures/todayDailyDesk.ts',
+ 'components/workspaces/DiscoverLanding.tsx', 'components/workspaces/DiscoverLanding.module.css',
+ 'components/workspaces/DiscoverWorkspace.tsx', 'components/chrome/WorkspaceTabs.tsx',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
  'components/sector-intelligence/SectorCycleHistory.tsx',
  'components/sector-intelligence/SectorCycleLens.tsx',
@@ -531,6 +533,60 @@ async function qualifyCandidates(page,cell) {
   report.cells.push({w:page.viewportSize().width,journey:'native-prophet-candidates',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_DATA',fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(candidatePoolFixture())).digest('hex'),candidateReads,sectorQueries,passed:true});
 }
 
+async function qualifyDiscover(page,cell) {
+  let candidateReads=0,catalystReads=0;
+  await page.route('**/api/shared-shell/prophet-candidates',route=>{candidateReads++;return route.fulfill({json:candidatePoolFixture()});});
+  await page.route('**/api/catalyst-opportunities**',route=>{catalystReads++;return route.fulfill({status:503,json:{error:'synthetic source unavailable'}});});
+  await page.goto(BASE+'/discover?origin=chooser-proof&workspaceMarket=us#evidence');
+  const chooser=page.locator('[data-discover-chooser]');
+  const presentation=async(lang,theme)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(theme==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  };
+  await expect(chooser).toBeVisible({timeout:30000});
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);
+  await expect(chooser.locator('iframe')).toHaveCount(0);await expect(chooser.getByRole('button')).toHaveCount(8);
+  await expect(chooser.locator('a[href="/prophet?tab=candidates&workspaceMarket=us"]')).toHaveCount(1);
+  await expect(chooser.locator('a[href="/biocatalyst.html"]')).toHaveCount(1);
+  await expect(chooser.locator('a[href="/us_stocks.html"]')).toHaveCount(1);
+  await expect(chooser.locator('a[href="/confluence_screener.html"]')).toHaveCount(1);
+  for(const [lang,mode] of [['en','dark'],['zh','light']]){
+    await presentation(lang,mode);
+    await expect(chooser.getByRole('heading',{level:1,name:lang==='zh'?'发现':'Discover',exact:true})).toBeVisible();
+    for(const action of await chooser.locator('button,a').all()){
+      await action.scrollIntoViewIfNeeded();
+      const box=await action.boundingBox();expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(await action.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+      await action.focus();await expect(action).toBeFocused();
+    }
+    await noOverflow(page);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-research-'+lang+'.png')});
+    await chooser.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-questions-'+lang+'.png')});
+  }
+  expect(candidateReads).toBe(0);expect(catalystReads).toBe(0);
+  await presentation('en','dark');
+  const catalyst=chooser.getByRole('button',{name:'Open Catalyst Intelligence',exact:true});
+  await catalyst.focus();await page.keyboard.press('Enter');
+  const catalystTab=page.locator('#wtab-catalysts');
+  await expect(catalystTab).toHaveAttribute('aria-selected','true');await expect(catalystTab).toBeFocused();
+  expect(new URL(page.url()).searchParams.get('origin')).toBe('chooser-proof');expect(new URL(page.url()).hash).toBe('#evidence');
+  await expect(page.getByTestId('catalyst-opportunities')).toBeVisible();
+  await expect.poll(()=>catalystReads).toBeGreaterThan(0);
+  await page.locator('.discover-chooser-back').click();
+  await expect(chooser.getByRole('heading',{level:1,name:'Discover',exact:true})).toBeFocused();
+  expect(new URL(page.url()).searchParams.has('tab')).toBe(false);
+  expect(new URL(page.url()).searchParams.get('origin')).toBe('chooser-proof');expect(new URL(page.url()).hash).toBe('#evidence');
+  await chooser.getByRole('link',{name:'Open candidates',exact:true}).click();
+  await expect(page).toHaveURL(BASE+'/prophet?tab=candidates&workspaceMarket=us');
+  await expect(page.getByTestId('prophet-candidates')).toHaveAttribute('data-read-state','ready');
+  await page.goBack();await expect(chooser).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('origin')).toBe('chooser-proof');expect(new URL(page.url()).hash).toBe('#evidence');
+  await noOverflow(page);
+  report.cells.push({w:page.viewportSize().width,journey:'discover-chooser-handoffs',sourceProof:'CHOOSER_ONLY_WITH_SYNTHETIC_DESTINATION_STATES',candidateReads,catalystReads,passed:true});
+}
+
 async function qualifyToday(page,cell) {
   let marketRead=todayMarketFixture(),marketStatus=200,changesStatus=200;
   const counts={market:0,brief:0,comparison:0,catalog:0,watchlists:0,breadth:0,reportBodies:0},comparisonInputs=[];
@@ -657,7 +713,7 @@ async function qualifyToday(page,cell) {
   if(!ready)throw Error('local Next readiness not established');
   browser=await chromium.launch({headless:true});
   // Warm only the qualified real routes, with the same synthetic authority.
-  for(const dest of ['/intelligence','/prophet','/sectors','/today']){
+  for(const dest of ['/intelligence','/prophet','/sectors','/today','/discover']){
    const r=await fetch(BASE+dest,{headers:{cookie:`sb-127-auth-token=base64-${Buffer.from(JSON.stringify(session())).toString('base64url')}`},signal:AbortSignal.timeout(120000)});
    if(!r.ok)throw Error(`${dest} warm HTTP ${r.status}`);await r.text();
   }
@@ -748,6 +804,9 @@ async function qualifyToday(page,cell) {
    const todayContext=await context(),todayPage=await todayContext.newPage();
    await todayPage.setViewportSize({width,height});todayPage.on('pageerror',error=>report.errors.push({cell:`today-${width}`,error:error.message}));
    await qualifyToday(todayPage,`today-${width}`);await todayContext.close();
+   const discoverContext=await context(),discoverPage=await discoverContext.newPage();
+   await discoverPage.setViewportSize({width,height});discoverPage.on('pageerror',error=>report.errors.push({cell:`discover-${width}`,error:error.message}));
+   await qualifyDiscover(discoverPage,`discover-${width}`);await discoverContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}
