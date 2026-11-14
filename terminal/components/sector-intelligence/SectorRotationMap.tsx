@@ -511,7 +511,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const { lang } = useLang();
   const [qualificationTime, setQualificationTime] = useState(Date.now);
   const [showLegacySnapshot, setShowLegacySnapshot] = useState(false);
-  const [trailDisplay, setTrailDisplay] = useState<RotationTrailDisplay>("selected");
+  const [trailDisplay, setTrailDisplay] = useState<RotationTrailDisplay>("all");
   const [trailSessions, setTrailSessions] = useState<21 | 63 | 126 | 252>(21);
   const [hoveredTrail, setHoveredTrail] = useState<string | null>(null);
   const legacyOpenRef = useRef<HTMLButtonElement>(null);
