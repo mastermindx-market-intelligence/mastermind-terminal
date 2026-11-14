@@ -43,7 +43,7 @@ M2 Paper reads returned UPSTREAM_UNAVAILABLE; its supported prepare timed out an
 Macro #9596 stays Draft/HOLD at `621bd44dfac13ea18671fe64c773aa8675928dd6`; publication `9533be2476ba264880c1aa067eb3af32f3d0703a794679a7818b9677f1838d15` remains EFFECT_UNKNOWN. This design branch does not replace or replay it. Preserve International History287, Comparison164 and frozen R14 boundaries.
 
 ## Current frontier
-Five core desktop compositions are applied in native Paper and visually inspected. Regional target designs, interaction/responsive states and implementation contracts remain in progress. No source implementation or release has occurred. MISSION_COMPLETE:false.
+All ten menu destinations now have native desktop compositions and mobile companions in Paper (20 product frames). Desktop and mobile screenshots were visually inspected. Interaction-state design and detailed implementation contracts are in progress. No source implementation or release has occurred. MISSION_COMPLETE:false.
 
 
 ## Native Paper milestone — five core screens
@@ -71,3 +71,30 @@ Native edit receipts were APPLIED_RESPONSE_OBSERVED on the original M1 carrier a
 - Regional target-state frames may illustrate the qualified-source experience, but must be named as target/illustrative and linked to explicit source-admission gates. A current-coverage fallback must remain useful and truthful. A calendar date that passed is not a verified decision outcome; a source homepage is not a numerical series or exact release receipt.
 
 Evidence: [residual engine](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/residual_alpha.py), [cycle ontology](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/cycle_ontology.py), [Global mapping](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/scripts/build_markets.py), [basket membership](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/data/baskets_intl/membership.json), [basket level owner](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/baskets.py), [regional owner](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/international_macro_dashboard.py).
+
+## Native Paper milestone — all ten destinations and mobile companions
+
+| Destination | Desktop page / frame | Mobile page / frame | Primary investigation |
+|---|---|---|---|
+| World | p-R-0 / TAW-0 | p-11-0 / VM2-0 | Market return, currency effect, drill-through |
+| Stocks | p-S-0 / TR6-0 | p-12-0 / VPI-0 | Within-market sector leaders and residual scores |
+| Global cycles | p-T-0 / TYM-0 | p-13-0 / VS3-0 | Current equity price-cycle position |
+| Country cycles | p-U-0 / U79-0 | p-14-0 / VV6-0 | Paired local/USD positions and unavailable legs |
+| Thematic baskets | p-V-0 / UG5-0 | p-15-0 / VYP-0 | Theme comparison and constituent returns |
+| Japan | p-W-0 / UNM-0 | p-16-0 / W0R-0 | Real wages, services prices, policy and rates |
+| South Korea | p-X-0 / UTC-0 | p-17-0 / W2U-0 | Exports beyond chips; demand and production |
+| Euro Area | p-Y-0 / V06-0 | p-18-0 / W5N-0 | Member divergence, bank lending, sovereign spread |
+| United Kingdom | p-Z-0 / V82-0 | p-19-0 / W81-0 | GB regular pay, UK services prices, borrowing |
+| India | p-10-0 / VDN-0 | p-1A-0 / WA4-0 | Production, non-food bank credit, inflation |
+
+Regional frame names explicitly say target qualified-source experience / illustrative fixture. They do not assert that specialist adapters exist. Each mobile frame has its own page: native root positioning was not reliable for side-by-side artboards, so no frame depends on unverified offsets. All original pages remain preserved.
+
+Review repairs applied with observed receipts: consistent World one-month label; USD focus label; named regional release links; Markets continuation on every regional desktop; contrast improvement for 54 metadata/axis labels plus SVG axes; dashed second series and endpoint markers on Japan/UK; consistent Japan series colors; explicit local currencies on mobile Country Cycles. The exact native batch updated 64 text nodes, followed by 12 component replacements. No unknown mutation effect in this owned wave.
+
+### Basket basis and FX-effect rulings
+
+Basket labels now use **Adjusted returns · FX excluded**. The collector requests auto-adjusted closes in each listing's quote currency and the basket path aggregates their returns without FX conversion. This is not a certified USD, price-only, total-return, or hedged portfolio series. History uses current members and is descriptive, not point-in-time held performance. The benchmark uses the same unconverted return matrix with static weights. Required payload additions: quote currency/unit, adjustment/source identity, basket/benchmark basis, explicit conversion:none, same-window endpoints, missing-member treatment and weighting version. [Collector](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/collectors/intl_universe.py), [regional basket calculation](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/baskets_region.py), [benchmark](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/baskets_intl.py).
+
+World **FX effect** = USD return minus local return, in percentage points, over the same qualified window, including equity/currency interaction. It is not raw FX return. If FX is unavailable, local performance can remain while USD/FX cells are withheld. [Canonical record calculation](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/intl_performance_records.py).
+
+Next safe design work: four-market comparison, selected-metric inspector, current regional-coverage fallback, basket methodology, filtered stock cohort, supported cycle-history state, regional Markets continuation, light/Chinese adaptation, and native builder contracts. These are within the existing design-first assignment; implementation remains downstream.
