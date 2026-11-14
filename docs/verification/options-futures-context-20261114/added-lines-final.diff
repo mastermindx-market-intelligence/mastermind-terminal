@@ -1,0 +1,475 @@
+diff --git a/terminal/components/futures/FuturesWorkspaceView.tsx b/terminal/components/futures/FuturesWorkspaceView.tsx
+index 2ca439f7a2..96b4cf3a32 100644
+--- a/terminal/components/futures/FuturesWorkspaceView.tsx
++++ b/terminal/components/futures/FuturesWorkspaceView.tsx
+@@ -11,0 +12 @@ import FuturesCotPanel from "./FuturesCotPanel";
++import FuturesObservationContext from "./FuturesObservationContext";
+@@ -33 +33,0 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
+-  const date = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(".000Z", " UTC");
+@@ -57,0 +58 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
++      <FuturesObservationContext request={request} data={data} onCutoffChange={cutoffMs => update({ cutoffMs })} />
+@@ -60 +60,0 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
+-        <p className={css.warning} data-testid="futures-basis">{t(data.basis)} · {data.contract} · {t("through")}: {date(data.cutoffMs)}</p>
+@@ -72,5 +71,0 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
+-          <label>{t("replay")}<select aria-label={t("replay")} value={request.cutoffMs === null ? "latest" : data.cutoffMs}
+-            onChange={e => update({ cutoffMs: e.target.value === "latest" ? null : Number(e.target.value) })}>
+-            <option value="latest">{t("latest")}</option>
+-            {data.replayCutoffsMs.map(ms => <option key={ms} value={ms}>{date(ms)}</option>)}
+-          </select></label>
+@@ -82 +77 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
+-          <h2>{t("source")}</h2><p>{data.sourceId} · {date(data.sourceAsOfMs)}</p>
++          <h2>{t("gammaProjection")}</h2>
+diff --git a/terminal/e2e/futures-workspace.spec.ts b/terminal/e2e/futures-workspace.spec.ts
+index 70eb6c259e..aa038355e7 100644
+--- a/terminal/e2e/futures-workspace.spec.ts
++++ b/terminal/e2e/futures-workspace.spec.ts
+@@ -118,0 +119,4 @@ test("denied refresh and wrong-root data clear previously visible chart values",
++  await expect(page.getByTestId("futures-requested-cutoff")).toHaveText("Latest published frame");
++  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
++  await expect(page.getByTestId("futures-selected-cutoff")).toHaveCount(0);
++  await expect(page.getByTestId("futures-session")).toHaveCount(0);
+@@ -122,0 +127,2 @@ test("denied refresh and wrong-root data clear previously visible chart values",
++  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
++  await expect(page.getByTestId("futures-retained-bounds")).toHaveCount(0);
+@@ -124,0 +131,2 @@ test("denied refresh and wrong-root data clear previously visible chart values",
++  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
++  await expect(page.getByTestId("futures-selected-cutoff")).toHaveCount(0);
+@@ -168,0 +177 @@ test("an old instrument response cannot overwrite a newer selection", async ({ p
++    await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
+@@ -174,0 +184,2 @@ test("an old instrument response cannot overwrite a newer selection", async ({ p
++    await expect(page.getByTestId("futures-basis")).toContainText("NQZ6");
++    await expect(page.getByTestId("futures-source-details")).not.toContainText("ESZ6");
+@@ -267,0 +279,92 @@ test("a source-distribution restriction is not treated as a transient outage", a
++
++const observationThemes = process.env.MMX_SHARED_SHELL === "1" ? ["dark", "light"] as const : ["dark"] as const;
++const observationUtc = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(/(?:\.000)?Z$/, " UTC");
++for (const lang of ["en", "zh"] as const) for (const theme of observationThemes) {
++  test("observation context keeps request, selected cutoff and source clocks distinct (" + lang + ", " + theme + ")", async ({ page }, info) => {
++    await prepare(page); let reads = 0;
++    await reply(page, () => { reads++; return "ok"; });
++    await page.addInitScript(({ lang, theme }) => {
++      localStorage.setItem("mm.lang", lang); localStorage.setItem("mmx.shell.theme", theme);
++    }, { lang, theme });
++    await page.emulateMedia({ colorScheme: theme });
++    const request = parseFuturesRequest(new URLSearchParams("pair=ES"))!;
++    const latest = browserFuturesFixture(request), first = latest.replayCutoffsMs[0], requested = first + 30123;
++    const selected = browserFuturesFixture({ ...request, cutoffMs: requested });
++    const errors: string[] = [], writes: string[] = [];
++    page.on("pageerror", error => errors.push(error.message));
++    page.on("request", request => {
++      if (new URL(request.url()).pathname.startsWith("/api/futures") && !["GET", "HEAD"].includes(request.method())) writes.push(request.method());
++    });
++    await page.goto("/options/futures?pair=ES&at=" + requested);
++    const context = page.getByTestId("futures-observation-context");
++    await expect(page.getByTestId("futures-chart")).toBeVisible();
++    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
++    await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(observationUtc(requested));
++    await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(first));
++    await expect(page.getByTestId("futures-loaded-bounds")).toContainText(observationUtc(selected.frames.at(-1)!.endMs));
++    await expect(page.getByTestId("futures-retained-bounds")).toContainText(observationUtc(latest.cutoffMs));
++    await expect(page.getByTestId("futures-session")).toContainText(selected.sessionId);
++    await expect(page.getByTestId("futures-session")).toContainText(lang === "zh" ? "交易时区不可用" : "Session zone unavailable");
++    await expect(page).toHaveURL(new RegExp("at=" + requested));
++    const details = page.getByTestId("futures-source-details"), summary = details.locator("summary");
++    await expect(details).not.toHaveAttribute("open");
++    const beforePresentation = reads;
++    await summary.focus(); await page.keyboard.press("Enter");
++    await expect(details).toHaveAttribute("open", "");
++    await expect(summary).toBeFocused();
++    expect(await summary.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
++    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
++    await expect(page.getByTestId("futures-source-asof")).toHaveText(observationUtc(latest.sourceAsOfMs));
++    await expect(page.getByTestId("futures-definition-start")).toHaveText(selected.definition.validFromNs + " ns");
++    await expect(page.getByTestId("futures-definition-available")).toHaveText(selected.definition.availableAtNs + " ns");
++    await expect(page.getByTestId("futures-availability")).toContainText(lang === "zh" ? "供应商事后采集" : "Retrospective vendor capture");
++    await expect(context).toContainText(lang === "zh" ? "合约定义" : "Contract definition");
++    await noOverflow(page);
++    const outside = await context.locator("dd, summary, select").evaluateAll(elements => elements.filter(el => {
++      const r = el.getBoundingClientRect(); return r.left < -1 || r.right > innerWidth + 1;
++    }).length);
++    expect(outside).toBe(0);
++    const contrastRatios = await context.locator("p, dt, dd, summary, select").evaluateAll(elements => {
++      const rgba = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
++      const luminance = (color: number[]) => color.slice(0, 3).map(v => v / 255)
++        .map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
++        .reduce((n, v, i) => n + v * [0.2126, 0.7152, 0.0722][i], 0);
++      return elements.map(el => {
++        let background: Element | null = el;
++        while (background && rgba(getComputedStyle(background).backgroundColor)[3] === 0) background = background.parentElement;
++        const fg = luminance(rgba(getComputedStyle(el).color));
++        const bg = luminance(rgba(getComputedStyle(background!).backgroundColor));
++        return { text: el.textContent?.slice(0, 60), ratio: (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05) };
++      });
++    });
++    expect(contrastRatios.filter(value => value.ratio < 4.5)).toEqual([]);
++    await info.attach("observation-contrast", { body: JSON.stringify(contrastRatios), contentType: "application/json" });
++    await crop(page, info.project.name + "-observation-" + lang + "-" + theme);
++    if (process.env.FUTURES_WORKSPACE_EVIDENCE_DIR) {
++      await context.evaluate(host => {
++        const caption = document.createElement("p");
++        caption.textContent = "SYNTHETIC HTTP FIXTURE · OBSERVATION CONTEXT";
++        caption.style.cssText = "font-size:11px;margin:0 0 12px;color:inherit";
++        host.prepend(caption);
++      });
++      await context.screenshot({ path: path.join(process.env.FUTURES_WORKSPACE_EVIDENCE_DIR,
++        info.project.name + "-observation-panel-" + lang + "-" + theme + ".png") });
++    }
++
++    await page.getByRole("button", { name: "Language", exact: true }).click();
++    await expect(page.getByTestId("futures-workspace")).toHaveAttribute("lang", lang === "en" ? "zh" : "en");
++    await page.getByRole("button", { name: "Language", exact: true }).click();
++    await expect(page.getByTestId("futures-workspace")).toHaveAttribute("lang", lang);
++    expect(reads).toBe(beforePresentation);
++    await summary.focus(); await page.keyboard.press("Space");
++    await expect(details).not.toHaveAttribute("open");
++    const selector = page.getByLabel(lang === "zh" ? "已发布回放帧" : "Published replay frames", { exact: true });
++    await expect(selector).toHaveValue(String(first));
++    await selector.focus(); await page.keyboard.press("ArrowUp"); await page.keyboard.press("Enter");
++    await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
++    await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
++    await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
++    await expect(page).not.toHaveURL(/at=/);
++    await noOverflow(page); expect(errors).toEqual([]); expect(writes).toEqual([]);
++  });
++}
+diff --git a/terminal/lib/futuresUiCopy.ts b/terminal/lib/futuresUiCopy.ts
+index 7bc82db156..c1107cca15 100644
+--- a/terminal/lib/futuresUiCopy.ts
++++ b/terminal/lib/futuresUiCopy.ts
+@@ -72,0 +73,34 @@ export function futuresTextFor(lang: Lang) {
++    observationContext: pick("Observation", "观测上下文"),
++    requestedSelection: pick("Requested selection", "请求的观测时刻"),
++    selectedCutoff: pick("Selected publication cutoff", "所选发布截点"),
++    sourceSession: pick("Source trading session", "来源交易日"),
++    sessionZoneUnavailable: pick("Session zone unavailable", "交易时区不可用"),
++    loadedIntervals: pick("Loaded intervals", "已加载时段"),
++    noLoadedIntervals: pick("No intervals loaded", "未加载时段"),
++    retainedSelections: pick("Selections retained in this publication", "本次发布保留的可选时刻"),
++    intervalCount: pick("Intervals", "时段数"),
++    selectionCount: pick("Selections", "可选时刻数"),
++    rangeTo: pick("to", "至"),
++    captureComplete: pick("Execution coverage: complete", "成交覆盖：完整"),
++    capturePartial: pick("Execution coverage: partial", "成交覆盖：部分"),
++    captureGap: pick("Execution coverage: gap", "成交覆盖：缺口"),
++    observationBoundsNotice: pick("Totals cover loaded intervals. Available choices are limited to this publication and may contain gaps.", "总量仅涵盖已加载时段。可选时刻仅限本次发布，期间可能存在缺口。"),
++    observationDetails: pick("Source and availability details", "来源与可用时间详情"),
++    sourceIdentity: pick("Source", "来源"),
++    sourceAsOf: pick("Source as of", "来源观测截至"),
++    publishedAt: pick("Published at", "发布时间"),
++    sourceFreshUntil: pick("Latest-source freshness bound", "最新来源的有效截至时间"),
++    availabilityBasis: pick("Availability basis", "可用时间依据"),
++    source_observed: pick("Availability recorded by source", "来源记录的可用时间"),
++    vendor_capture_retrospective: pick("Retrospective vendor capture", "供应商事后采集"),
++    retrospectiveNotice: pick("Captured after the event; original live availability is not established.", "事件发生后采集，无法据此确认当时已实时可用。"),
++    historicalFreshnessNotice: pick("Historical observations retain their recorded source clocks. Freshness applies to the latest current source.", "历史观测保留其原始来源时间。时效期限适用于最新当前来源。"),
++    fixedCutoffFreshnessNotice: pick("A fixed cutoff is selected. The freshness bound describes the source's latest view.", "当前选择了固定截点；时效期限描述来源的最新视图。"),
++    latestFreshnessNotice: pick("This bound applies to the latest source view. Expired current data is cleared.", "此期限适用于最新来源视图，过期的当前数据会被清除。"),
++    contractDefinition: pick("Contract definition", "合约定义"),
++    definitionIdentity: pick("Definition ID", "定义标识"),
++    definitionContract: pick("Contract", "合约"),
++    definitionStart: pick("Valid from · native ns", "有效起点 · 原始纳秒"),
++    definitionEnd: pick("Valid until · native ns", "有效终点 · 原始纳秒"),
++    definitionAvailable: pick("Available at · native ns", "可用时刻 · 原始纳秒"),
++    gammaProjection: pick("Index options gamma on futures prices", "期货价格轴上的指数期权伽马"),
+diff --git a/terminal/components/futures/FuturesObservationContext.tsx b/terminal/components/futures/FuturesObservationContext.tsx
+new file mode 100644
+index 0000000000..707f3524c5
+--- /dev/null
++++ b/terminal/components/futures/FuturesObservationContext.tsx
+@@ -0,0 +1,79 @@
++"use client";
++import type { FuturesRequest } from "@/lib/futuresRequest";
++import type { FuturesPublishedView } from "@/lib/futuresTransport";
++import { useFuturesText } from "@/lib/futuresUiCopy";
++import css from "./FuturesObservationContext.module.css";
++
++const utc = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(/(?:\.000)?Z$/, " UTC");
++/** Preserve native precision; only whole milliseconds enter Date's safe integer range. */
++const utcNs = (value: string) => {
++  const ns = BigInt(value);
++  const second = new Date(Number(ns / BigInt(1000000))).toISOString().slice(0, 19).replace("T", " ");
++  const fraction = (ns % BigInt(1000000000)).toString().padStart(9, "0").replace(/0+$/, "");
++  return second + (fraction ? "." + fraction : "") + " UTC";
++};
++const coverageKey = { complete: "captureComplete", partial: "capturePartial", gap: "captureGap" } as const;
++
++/** Presentation over the incumbent reader's current admission, with no retained data or read loop. */
++export default function FuturesObservationContext({ request, data, onCutoffChange }: {
++  request: FuturesRequest; data?: FuturesPublishedView; onCutoffChange: (cutoffMs: number | null) => void;
++}) {
++  const t = useFuturesText(), first = data?.frames[0], last = data?.frames.at(-1);
++  return <section className={css.context} aria-label={t("observationContext")} data-testid="futures-observation-context">
++    <div className={css.heading}>
++      <h2>{t("observationContext")}</h2>
++      {data && <p className={css.basis} data-testid="futures-basis">{t(data.basis)} · {data.contract}</p>}
++    </div>
++    <dl className={css.selection}>
++      <div><dt>{t("requestedSelection")}</dt><dd data-testid="futures-requested-cutoff">
++        {request.cutoffMs === null ? t("latest") : utc(request.cutoffMs)}
++      </dd></div>
++      {data && <div><dt>{t("selectedCutoff")}</dt><dd data-testid="futures-selected-cutoff">{utc(data.cutoffMs)}</dd></div>}
++    </dl>
++    {data && <>
++      <div className={css.selectionRow}>
++        <p className={css.session} data-testid="futures-session">{t("sourceSession")}: <strong>{data.sessionId}</strong>
++          <span>{t("sessionZoneUnavailable")}</span></p>
++        <label className={css.selector}>{t("replay")}
++          <select aria-label={t("replay")} value={request.cutoffMs === null ? "latest" : data.cutoffMs}
++            onChange={e => onCutoffChange(e.target.value === "latest" ? null : Number(e.target.value))}>
++            <option value="latest">{t("latest")}</option>
++            {data.replayCutoffsMs.map(ms => <option key={ms} value={ms}>{utc(ms)}</option>)}
++          </select>
++        </label>
++      </div>
++      <dl className={css.bounds}>
++        <div><dt>{t("loadedIntervals")}</dt><dd data-testid="futures-loaded-bounds">
++          {first && last ? <>{utcNs(first.bar.startNs)}<br />{t("rangeTo")} {utcNs(last.bar.endNs)}</> : t("noLoadedIntervals")}
++        </dd><dd className={css.meta}><span data-testid="futures-loaded-count">{t("intervalCount")}: {data.frames.length}</span>
++          <span data-testid="futures-trade-coverage">{t(coverageKey[data.tradeCoverage])}</span></dd></div>
++        <div><dt>{t("retainedSelections")}</dt><dd data-testid="futures-retained-bounds">
++          {utc(data.replayCutoffsMs[0])}<br />{t("rangeTo")} {utc(data.replayCutoffsMs.at(-1)!)}
++        </dd><dd className={css.meta} data-testid="futures-retained-count">{t("selectionCount")}: {data.replayCutoffsMs.length}</dd></div>
++      </dl>
++      <p className={css.note}>{t("observationBoundsNotice")}</p>
++      <details className={css.details} data-testid="futures-source-details">
++        <summary>{t("observationDetails")}</summary>
++        <dl className={css.facts}>
++          <div><dt>{t("sourceIdentity")}</dt><dd data-testid="futures-source-id">{data.sourceId}</dd></div>
++          <div><dt>{t("sourceAsOf")}</dt><dd data-testid="futures-source-asof">{utc(data.sourceAsOfMs)}</dd></div>
++          <div><dt>{t("publishedAt")}</dt><dd data-testid="futures-published-at">{utc(data.publishedAtMs)}</dd></div>
++          <div><dt>{t("sourceFreshUntil")}</dt><dd data-testid="futures-fresh-until">{utc(data.freshUntilMs)}</dd></div>
++          <div><dt>{t("availabilityBasis")}</dt><dd data-testid="futures-availability">{t(data.availabilityBasis)}</dd></div>
++        </dl>
++        {data.availabilityBasis === "vendor_capture_retrospective" && <p className={css.note}>{t("retrospectiveNotice")}</p>}
++        <p className={css.note} data-testid="futures-freshness-note">
++          {t(data.basis === "historical" ? "historicalFreshnessNotice" : request.cutoffMs !== null ? "fixedCutoffFreshnessNotice" : "latestFreshnessNotice")}
++        </p>
++        <h3>{t("contractDefinition")}</h3>
++        <dl className={css.facts}>
++          <div><dt>{t("definitionIdentity")}</dt><dd data-testid="futures-definition-id">{data.definition.id}</dd></div>
++          <div><dt>{t("definitionContract")}</dt><dd>{data.definition.contract}</dd></div>
++          <div><dt>{t("definitionStart")}</dt><dd><code data-testid="futures-definition-start">{data.definition.validFromNs} ns</code></dd></div>
++          <div><dt>{t("definitionEnd")}</dt><dd><code data-testid="futures-definition-end">{data.definition.validUntilNs} ns</code></dd></div>
++          <div><dt>{t("definitionAvailable")}</dt><dd><code data-testid="futures-definition-available">{data.definition.availableAtNs} ns</code></dd></div>
++        </dl>
++      </details>
++    </>}
++  </section>;
++}
+diff --git a/terminal/components/futures/FuturesObservationContext.module.css b/terminal/components/futures/FuturesObservationContext.module.css
+new file mode 100644
+index 0000000000..a8709a002f
+--- /dev/null
++++ b/terminal/components/futures/FuturesObservationContext.module.css
+@@ -0,0 +1,40 @@
++.context {
++  margin: 16px 0;
++  padding: 16px;
++  min-width: 0;
++  border: 1px solid var(--line, #23262f);
++  border-radius: 10px;
++  background: var(--panel, #0d0f13);
++  color: var(--text, #e7edf8);
++  font-size: 13px;
++}
++.heading, .selectionRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
++.heading h2 { margin: 0; font-size: 15px; font-weight: 650; }
++.basis { margin: 0; color: var(--text-2, #9ba3b4); }
++.selection, .bounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; margin: 14px 0; }
++.context dt { color: var(--text-2, #9ba3b4); font-size: 12px; line-height: 1.5; }
++.context dd { margin: 4px 0 0; line-height: 1.6; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
++.selection dd { font-weight: 600; }
++.session { margin: 0; line-height: 1.6; }
++.session span { display: block; color: var(--text-2, #9ba3b4); font-size: 12px; }
++.selector { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; color: var(--text-2, #9ba3b4); font-size: 12px; }
++.context .selector select { max-width: 100%; color: var(--text, #e7edf8); background: var(--panel-2, #15171d); border-color: var(--line-3, #33373f); }
++.context .selector select:focus-visible { outline: 2px solid var(--brand-2, #4d82ff); outline-offset: 2px; }
++.bounds { padding-top: 12px; border-top: 1px solid var(--line, #23262f); }
++.context .meta { display: flex; gap: 6px 12px; flex-wrap: wrap; color: var(--text-2, #9ba3b4); font-size: 12px; }
++.note { margin: 8px 0; color: var(--text-2, #9ba3b4); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
++.details { margin-top: 10px; border-top: 1px solid var(--line, #23262f); }
++.details summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 600; }
++.details summary:focus-visible { outline: 2px solid var(--brand-2, #4d82ff); outline-offset: 3px; border-radius: 3px; }
++.details h3 { font-size: 13px; margin: 16px 0 8px; }
++.facts { display: grid; gap: 10px; margin: 8px 0; }
++.facts > div { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr); gap: 6px 16px; }
++.facts dd { margin: 0; }
++.facts code { font: inherit; }
++@media (max-width: 600px) {
++  .context { padding: 12px; }
++  .selection, .bounds { grid-template-columns: minmax(0, 1fr); }
++  .selectionRow { align-items: stretch; }
++  .selector { width: 100%; }
++  .facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
++}
+diff --git a/terminal/lib/__tests__/futuresObservationContext.test.tsx b/terminal/lib/__tests__/futuresObservationContext.test.tsx
+new file mode 100644
+index 0000000000..89eb9f928d
+--- /dev/null
++++ b/terminal/lib/__tests__/futuresObservationContext.test.tsx
+@@ -0,0 +1,165 @@
++// @vitest-environment jsdom
++import { act, createElement } from "react";
++import { createRoot, type Root } from "react-dom/client";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { DEFAULT_FUTURES_REQUEST, type FuturesRequest } from "../futuresRequest";
++import { parseFuturesPublishedView, type FuturesPublishedView } from "../futuresTransport";
++import { browserFuturesFixture } from "../../e2e/fixtures/futuresPublished";
++import FuturesWorkspaceView from "@/components/futures/FuturesWorkspaceView";
++
++const owner = vi.hoisted(() => ({ identity: { kind: "user", userId: "account-a", email: "a@example.test" }, lang: "en" }));
++vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => owner.identity }));
++vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: owner.lang }), applyLang: vi.fn() }));
++vi.mock("@/components/futures/FuturesMicrostructureChart", () => ({ default: () => createElement("div", { "data-testid": "test-chart" }) }));
++vi.mock("@/components/futures/FuturesCotPanel", () => ({ default: () => null }));
++
++let root: Root | undefined;
++let host: HTMLDivElement;
++let fetcher: ReturnType<typeof vi.fn>;
++let response: (request: FuturesRequest) => Promise<Response>;
++const utc = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(/(?:\.000)?Z$/, " UTC");
++const query = (id: string) => host.querySelector('[data-testid="' + id + '"]');
++const text = (id: string) => query(id)?.textContent ?? "";
++const valid = (data: FuturesPublishedView) => {
++  const parsed = parseFuturesPublishedView(data, data.request, Date.now());
++  if (!parsed) throw Error("invalid_context_fixture");
++  return parsed;
++};
++async function render(request: FuturesRequest = DEFAULT_FUTURES_REQUEST) {
++  await act(async () => { root!.render(createElement(FuturesWorkspaceView, { initialRequest: request })); });
++}
++async function refresh() {
++  const button = [...host.querySelectorAll("button")].find(b => b.textContent === "Refresh source");
++  await act(async () => { button!.click(); });
++}
++beforeEach(() => {
++  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
++  Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
++  owner.identity = { kind: "user", userId: "account-a", email: "a@example.test" }; owner.lang = "en";
++  host = document.createElement("div"); document.body.append(host); root = createRoot(host);
++  response = async request => new Response(JSON.stringify(browserFuturesFixture(request)));
++  fetcher = vi.fn(async (url: string) => {
++    const p = new URL(url, "http://localhost").searchParams;
++    const request = { ...DEFAULT_FUTURES_REQUEST, pair: p.get("pair") as "ES" | "NQ",
++      cutoffMs: p.has("at") ? Number(p.get("at")) : null };
++    return response(request);
++  });
++  vi.stubGlobal("fetch", fetcher);
++});
++afterEach(async () => {
++  await act(async () => { root?.unmount(); }); root = undefined; host.remove();
++  vi.unstubAllGlobals(); vi.useRealTimers();
++  Reflect.deleteProperty(document, "visibilityState");
++});
++
++describe("mounted Futures observation context through the existing validated reader", () => {
++  it("keeps a between-observations request distinct from the selected publication cutoff", async () => {
++    const first = browserFuturesFixture(DEFAULT_FUTURES_REQUEST).replayCutoffsMs[0];
++    const requested = first + 30123;
++    await render({ ...DEFAULT_FUTURES_REQUEST, cutoffMs: requested });
++    expect(text("futures-requested-cutoff")).toBe(utc(requested));
++    expect(text("futures-selected-cutoff")).toBe(utc(first));
++    expect((host.querySelector('select[aria-label="Published replay frames"]') as HTMLSelectElement).value).toBe(String(first));
++    expect(window.location.search).not.toContain(String(first));
++  });
++  it("separates historical latest intent, source/publication clocks and freshness metadata", async () => {
++    const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST); data.publishedAtMs = data.sourceAsOfMs + 86400000 + 123;
++    response = async () => new Response(JSON.stringify(valid(data)));
++    await render();
++    expect(text("futures-requested-cutoff")).toBe("Latest published frame");
++    expect(text("futures-basis")).toContain("Historical source");
++    expect(text("futures-source-asof")).toBe(utc(data.sourceAsOfMs));
++    expect(text("futures-published-at")).toBe(utc(data.publishedAtMs));
++    expect(text("futures-fresh-until")).toBe(utc(data.freshUntilMs));
++    expect(text("futures-availability")).toContain("Retrospective vendor capture");
++    expect(text("futures-freshness-note")).toContain("Historical observations");
++    expect(query("futures-unavailable")).toBeNull();
++  });
++  it("reports actual loaded intervals separately from later retained selections and selected cutoff", async () => {
++    const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST); data.frames = data.frames.slice(0, 2);
++    response = async () => new Response(JSON.stringify(valid(data)));
++    await render();
++    expect(text("futures-loaded-bounds")).toContain(utc(Number(BigInt(data.frames[0].bar.startNs) / BigInt(1000000))));
++    expect(text("futures-loaded-bounds")).toContain(utc(data.frames[1].endMs));
++    expect(text("futures-loaded-bounds")).not.toContain(utc(data.cutoffMs));
++    expect(text("futures-retained-bounds")).toContain(utc(data.replayCutoffsMs.at(-1)!));
++    expect(text("futures-loaded-count")).toBe("Intervals: 2");
++    expect(text("futures-retained-count")).toBe("Selections: 2");
++  });
++  it("keeps the source trading session when loaded UTC intervals cross midnight", async () => {
++    const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST);
++    const shift = Date.parse("2026-10-08T23:50:00Z") - Number(BigInt(data.frames[0].bar.startNs) / BigInt(1000000));
++    const ns = (value: string) => String(BigInt(value) + BigInt(shift) * BigInt(1000000));
++    data.cutoffMs += shift; data.sourceAsOfMs += shift; data.freshUntilMs += shift;
++    data.replayCutoffsMs = data.replayCutoffsMs.map(ms => ms + shift);
++    data.definition = { ...data.definition, validFromNs: ns(data.definition.validFromNs), validUntilNs: ns(data.definition.validUntilNs), availableAtNs: ns(data.definition.availableAtNs) };
++    data.frames = data.frames.map(f => ({ ...f, endMs: f.endMs + shift,
++      bar: { ...f.bar, startNs: ns(f.bar.startNs), endNs: ns(f.bar.endNs), availableAtNs: ns(f.bar.availableAtNs) },
++      depth: f.depth && { ...f.depth, startNs: ns(f.depth.startNs), endNs: ns(f.depth.endNs) },
++      gex: { status: "unavailable", reason: "source_unavailable" } }));
++    response = async () => new Response(JSON.stringify(valid(data)));
++    await render();
++    expect(text("futures-session")).toContain("2026-10-09");
++    expect(text("futures-session")).toContain("Session zone unavailable");
++    expect(text("futures-loaded-bounds")).toContain("2026-10-08 23:50:00 UTC");
++    expect(text("futures-loaded-bounds")).toContain("2026-10-09 00:14:00 UTC");
++  });
++  it("preserves exact definition nanoseconds beyond JavaScript integer precision", async () => {
++    const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST);
++    data.definition.validFromNs = String(BigInt(data.definition.validFromNs) + BigInt(123));
++    data.definition.availableAtNs = String(BigInt(data.definition.availableAtNs) + BigInt(789));
++    response = async () => new Response(JSON.stringify(valid(data)));
++    await render();
++    expect(text("futures-definition-id")).toBe(data.definition.id);
++    expect(text("futures-definition-start")).toBe(data.definition.validFromNs + " ns");
++    expect(text("futures-definition-end")).toBe(data.definition.validUntilNs + " ns");
++    expect(text("futures-definition-available")).toBe(data.definition.availableAtNs + " ns");
++  });
++  it("shows no loaded intervals without inventing an epoch or a continuous history window", async () => {
++    const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST); data.frames = [];
++    response = async () => new Response(JSON.stringify(valid(data)));
++    await render();
++    expect(text("futures-loaded-bounds")).toBe("No intervals loaded");
++    expect(text("futures-loaded-count")).toBe("Intervals: 0");
++    expect(text("futures-observation-context")).not.toMatch(/Invalid Date|1970-/);
++  });
++  it.each([{ coverage: "partial", label: "Execution coverage: partial" }, { coverage: "gap", label: "Execution coverage: gap" }] as const)(
++    "retains $coverage captured-trade qualification beside the loaded bounds", async ({ coverage, label }) => {
++      const data = browserFuturesFixture(DEFAULT_FUTURES_REQUEST); data.tradeCoverage = coverage;
++      for (const f of data.frames) f.bar.cvd = null;
++      response = async () => new Response(JSON.stringify(valid(data)));
++      await render();
++      expect(text("futures-trade-coverage")).toBe(label);
++      expect(text("futures-partial-coverage")).toContain("only the captured trades");
++    });
++  it.each([401, 403])("withdraws all admitted source evidence on %s while keeping request intent", async status => {
++    const first = browserFuturesFixture(DEFAULT_FUTURES_REQUEST).replayCutoffsMs[0];
++    await render({ ...DEFAULT_FUTURES_REQUEST, cutoffMs: first + 1 });
++    expect(query("futures-source-details")).not.toBeNull();
++    response = async () => new Response("denied", { status });
++    await refresh();
++    expect(text("futures-requested-cutoff")).toBe(utc(first + 1));
++    for (const id of ["futures-selected-cutoff", "futures-session", "futures-loaded-bounds", "futures-retained-bounds", "futures-source-details"])
++      expect(query(id)).toBeNull();
++    expect(host.querySelector('select[aria-label="Published replay frames"]')).toBeNull();
++  });
++  it("withdraws old source evidence before a replacement account response arrives", async () => {
++    await render(); expect(query("futures-source-details")).not.toBeNull();
++    let resolve!: (value: Response) => void;
++    response = () => new Promise<Response>(done => { resolve = done; });
++    owner.identity = { kind: "user", userId: "account-b", email: "b@example.test" };
++    await render();
++    expect(text("futures-requested-cutoff")).toBe("Latest published frame");
++    expect(query("futures-source-details")).toBeNull(); expect(query("futures-selected-cutoff")).toBeNull();
++    await act(async () => { resolve(new Response("denied", { status: 403 })); });
++    expect(query("futures-source-details")).toBeNull();
++  });
++  it("renders Chinese source labels without creating another data read", async () => {
++    await render(); const count = fetcher.mock.calls.length;
++    owner.lang = "zh"; await render();
++    expect(text("futures-requested-cutoff")).toBe("最新已发布帧");
++    expect(text("futures-session")).toContain("交易时区不可用");
++    expect(text("futures-availability")).toContain("供应商事后采集");
++    expect(fetcher).toHaveBeenCalledTimes(count);
++  });
++});

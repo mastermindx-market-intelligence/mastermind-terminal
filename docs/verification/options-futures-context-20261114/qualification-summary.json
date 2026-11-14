@@ -1,0 +1,125 @@
+{
+  "schema": "mastermind.options.futures_context.qualification.v1",
+  "sourceBase": "48da28456ccbd3527a255684018a123660770125",
+  "governingPin": "199fd4f91ecc426b1d974eb3bf47f5162476cf24",
+  "operation": "options-futures-observation-context-20261114-c3",
+  "distinctUnitPasses": 25,
+  "distinctBrowserPasses": 21,
+  "retainedBrowserCases": [
+    "desktop|an old instrument response cannot overwrite a newer selection",
+    "desktop|denied refresh and wrong-root data clear previously visible chart values",
+    "desktop|missing source, replay cutoff and shared-language labels remain honest",
+    "mobile|an old instrument response cannot overwrite a newer selection",
+    "mobile|denied refresh and wrong-root data clear previously visible chart values",
+    "mobile|missing source, replay cutoff and shared-language labels remain honest",
+    "tablet|an old instrument response cannot overwrite a newer selection",
+    "tablet|denied refresh and wrong-root data clear previously visible chart values",
+    "tablet|missing source, replay cutoff and shared-language labels remain honest"
+  ],
+  "requalifiedBrowserCases": [
+    "desktop|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+    "desktop|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+    "desktop|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+    "desktop|observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+    "mobile|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+    "mobile|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+    "mobile|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+    "mobile|observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+    "tablet|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+    "tablet|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+    "tablet|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+    "tablet|observation context keeps request, selected cutoff and source clocks distinct (zh, light)"
+  ],
+  "failedCaseSetExactlyRequalified": true,
+  "skipped": 0,
+  "flaky": 0,
+  "contrast": [
+    {
+      "case": "desktop|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "desktop|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    },
+    {
+      "case": "desktop|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "desktop|observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    },
+    {
+      "case": "tablet|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "tablet|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    },
+    {
+      "case": "tablet|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "tablet|observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    },
+    {
+      "case": "mobile|observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "mobile|observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    },
+    {
+      "case": "mobile|observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+      "minimumRatio": 8.906686117712798,
+      "checkedElements": 37
+    },
+    {
+      "case": "mobile|observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+      "minimumRatio": 6.289247755414098,
+      "checkedElements": 37
+    }
+  ],
+  "nativeSelectDiagnostic": "Arrow/Home/Enter/Space sequences reached SELECT unprevented but did not commit selection on this host. Final acceptance proves keyboard focus, Tab/disclosure Enter+Space, and native select change through selectOption. No custom key handler was added.",
+  "diagnosticCaseExcludedFromAcceptanceCount": true,
+  "sourceChecks": [
+    {
+      "name": "qualified-browser-lint",
+      "exit": 0,
+      "runtimeSeconds": 4.12,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/futures-workspace.spec.ts"
+      ]
+    },
+    {
+      "name": "qualified-typescript",
+      "exit": 0,
+      "runtimeSeconds": 12.67,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/lib/tsc.js",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ]
+    }
+  ],
+  "productionAcceptance": false
+}

@@ -1,0 +1,32 @@
+[warmup] /terminal?symbol=NVDA → 200 in 68ms
+[warmup] /options → 200 in 1386ms
+[warmup] /portfolio → 200 in 598ms
+[warmup] /alerts → 200 in 635ms
+[warmup] /analysis → 200 in 1211ms
+[warmup] /discover → 200 in 1397ms
+[warmup] /admin → 200 in 371ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 262ms
+[warmup] /login → 200 in 167ms
+[warmup] /reset-password → 200 in 366ms
+[warmup] /api/me → 200 in 480ms
+[warmup] /api/watchlist → 200 in 181ms
+[warmup] /api/layouts → 200 in 167ms
+[warmup] /api/watchlist/annotations → 409 in 140ms
+[warmup] 14 routes compiled in 7s
+[fixture-ready] prophet_idx fixture 200 in 533ms
+
+Running 12 tests using 1 worker
+
+[1/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+[2/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+[3/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+[4/12] [desktop] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+[5/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+[6/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+[7/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+[8/12] [tablet] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+[9/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, dark)
+[10/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (en, light)
+[11/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, dark)
+[12/12] [mobile] › e2e/futures-workspace.spec.ts:283:7 › observation context keeps request, selected cutoff and source clocks distinct (zh, light)
+  12 passed (52.3s)

@@ -116,12 +116,20 @@ test("denied refresh and wrong-root data clear previously visible chart values",
   outcome = "denied"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-unavailable")).toContainText("access could not be confirmed");
   await expect(page.getByTestId("futures-cot-panel")).toHaveCount(0);
+  await expect(page.getByTestId("futures-requested-cutoff")).toHaveText("Latest published frame");
+  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
+  await expect(page.getByTestId("futures-selected-cutoff")).toHaveCount(0);
+  await expect(page.getByTestId("futures-session")).toHaveCount(0);
   await expect(page.getByTestId("futures-chart")).toHaveCount(0); await expect(page.getByTestId("mapped-level")).toHaveCount(0);
   await crop(page, `${info.project.name}-options-futures-access-lost`);
   outcome = "wrong-root"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-unavailable")).toContainText("source checks"); await expect(page.getByTestId("futures-chart")).toHaveCount(0);
+  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
+  await expect(page.getByTestId("futures-retained-bounds")).toHaveCount(0);
   outcome = "stale"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-unavailable")).toContainText("out of date"); await expect(page.getByTestId("futures-chart")).toHaveCount(0);
+  await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
+  await expect(page.getByTestId("futures-selected-cutoff")).toHaveCount(0);
   outcome = "partial"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-chart")).toBeVisible();
   await expect(page.getByTestId("futures-partial-coverage")).toContainText("only the captured trades");
@@ -166,12 +174,15 @@ test("an old instrument response cannot overwrite a newer selection", async ({ p
   try {
     await page.goto("/options/futures?pair=ES");
     await expect.poll(() => esStarted).toBe(true);
+    await expect(page.getByTestId("futures-source-details")).toHaveCount(0);
     await page.getByLabel("Instrument", { exact: true }).selectOption("NQ");
     await expect(page.getByTestId("futures-chart")).toHaveAttribute("data-contract", "NQZ6");
     releaseOld();
     await page.getByRole("tab", { name: "Footprint", exact: true }).click();
     await expect(page.getByTestId("futures-volume")).toHaveText("4,202");
     await expect(page.getByTestId("futures-chart")).toHaveAttribute("data-contract", "NQZ6");
+    await expect(page.getByTestId("futures-basis")).toContainText("NQZ6");
+    await expect(page.getByTestId("futures-source-details")).not.toContainText("ESZ6");
     expect(errors).toEqual([]); await noOverflow(page);
   } finally { releaseOld(); }
 });
@@ -265,3 +276,101 @@ test("a source-distribution restriction is not treated as a transient outage", a
   expect(requests).toBe(deniedRequests);
   await expect(page.getByTestId("futures-chart")).toHaveCount(0);
 });
+
+const observationThemes = process.env.MMX_SHARED_SHELL === "1" ? ["dark", "light"] as const : ["dark"] as const;
+const observationUtc = (ms: number) => new Date(ms).toISOString().replace("T", " ").replace(/(?:\.000)?Z$/, " UTC");
+for (const lang of ["en", "zh"] as const) for (const theme of observationThemes) {
+  test("observation context keeps request, selected cutoff and source clocks distinct (" + lang + ", " + theme + ")", async ({ page }, info) => {
+    await prepare(page); let reads = 0;
+    await reply(page, () => { reads++; return "ok"; });
+    await page.addInitScript(({ lang, theme }) => {
+      localStorage.setItem("mm.lang", lang); localStorage.setItem("mmx.shell.theme", theme);
+    }, { lang, theme });
+    await page.emulateMedia({ colorScheme: theme });
+    const request = parseFuturesRequest(new URLSearchParams("pair=ES"))!;
+    const latest = browserFuturesFixture(request), first = latest.replayCutoffsMs[0], requested = first + 30123;
+    const selected = browserFuturesFixture({ ...request, cutoffMs: requested });
+    const errors: string[] = [], writes: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    page.on("request", request => {
+      if (new URL(request.url()).pathname.startsWith("/api/futures") && !["GET", "HEAD"].includes(request.method())) writes.push(request.method());
+    });
+    await page.goto("/options/futures?pair=ES&at=" + requested);
+    const context = page.getByTestId("futures-observation-context");
+    await expect(page.getByTestId("futures-chart")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(observationUtc(requested));
+    await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(first));
+    await expect(page.getByTestId("futures-loaded-bounds")).toContainText(observationUtc(selected.frames.at(-1)!.endMs));
+    await expect(page.getByTestId("futures-retained-bounds")).toContainText(observationUtc(latest.cutoffMs));
+    await expect(page.getByTestId("futures-session")).toContainText(selected.sessionId);
+    await expect(page.getByTestId("futures-session")).toContainText(lang === "zh" ? "交易时区不可用" : "Session zone unavailable");
+    await expect(page).toHaveURL(new RegExp("at=" + requested));
+    const details = page.getByTestId("futures-source-details"), summary = details.locator("summary");
+    await expect(details).not.toHaveAttribute("open");
+    const beforePresentation = reads;
+    await summary.focus(); await page.keyboard.press("Enter");
+    await expect(details).toHaveAttribute("open", "");
+    await expect(summary).toBeFocused();
+    expect(await summary.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await expect(page.getByTestId("futures-source-asof")).toHaveText(observationUtc(latest.sourceAsOfMs));
+    await expect(page.getByTestId("futures-definition-start")).toHaveText(selected.definition.validFromNs + " ns");
+    await expect(page.getByTestId("futures-definition-available")).toHaveText(selected.definition.availableAtNs + " ns");
+    await expect(page.getByTestId("futures-availability")).toContainText(lang === "zh" ? "供应商事后采集" : "Retrospective vendor capture");
+    await expect(context).toContainText(lang === "zh" ? "合约定义" : "Contract definition");
+    await noOverflow(page);
+    const outside = await context.locator("dd, summary, select").evaluateAll(elements => elements.filter(el => {
+      const r = el.getBoundingClientRect(); return r.left < -1 || r.right > innerWidth + 1;
+    }).length);
+    expect(outside).toBe(0);
+    const contrastRatios = await context.locator("p, dt, dd, summary, select").evaluateAll(elements => {
+      const rgba = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
+      const luminance = (color: number[]) => color.slice(0, 3).map(v => v / 255)
+        .map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
+        .reduce((n, v, i) => n + v * [0.2126, 0.7152, 0.0722][i], 0);
+      return elements.map(el => {
+        let background: Element | null = el;
+        while (background && rgba(getComputedStyle(background).backgroundColor)[3] === 0) background = background.parentElement;
+        const fg = luminance(rgba(getComputedStyle(el).color));
+        const bg = luminance(rgba(getComputedStyle(background!).backgroundColor));
+        return { text: el.textContent?.slice(0, 60), ratio: (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05) };
+      });
+    });
+    expect(contrastRatios.filter(value => value.ratio < 4.5)).toEqual([]);
+    await info.attach("observation-contrast", { body: JSON.stringify(contrastRatios), contentType: "application/json" });
+    await crop(page, info.project.name + "-observation-" + lang + "-" + theme);
+    if (process.env.FUTURES_WORKSPACE_EVIDENCE_DIR) {
+      const captureSection = async (testId: string, section: string) => {
+        await page.getByTestId(testId).evaluate(target => {
+          const scroller = target.closest("main");
+          if (scroller) scroller.scrollTop += target.getBoundingClientRect().top - Math.max(80, scroller.getBoundingClientRect().top + 12);
+        });
+        await page.screenshot({ path: path.join(process.env.FUTURES_WORKSPACE_EVIDENCE_DIR!,
+          info.project.name + "-observation-" + section + "-" + lang + "-" + theme + ".png") });
+      };
+      await captureSection("futures-observation-context", "overview");
+      await captureSection("futures-source-asof", "clocks");
+      await captureSection("futures-definition-id", "definition");
+    }
+    await page.getByRole("button", { name: "Language", exact: true }).click();
+    await expect(page.getByTestId("futures-workspace")).toHaveAttribute("lang", lang === "en" ? "zh" : "en");
+    await page.getByRole("button", { name: "Language", exact: true }).click();
+    await expect(page.getByTestId("futures-workspace")).toHaveAttribute("lang", lang);
+    expect(reads).toBe(beforePresentation);
+    await summary.focus(); await page.keyboard.press("Space");
+    await expect(details).not.toHaveAttribute("open");
+    const selector = page.getByLabel(lang === "zh" ? "已发布回放帧" : "Published replay frames", { exact: true });
+    await expect(selector).toHaveValue(String(first));
+    await selector.focus(); await expect(selector).toBeFocused();
+    await page.keyboard.press("Tab"); await expect(summary).toBeFocused();
+    // Exercise the native select change through its browser automation API. The
+    // macOS headless native popup does not commit the diagnostic arrow-key sequence.
+    await selector.selectOption("latest");
+    await expect(page.getByTestId("futures-requested-cutoff")).toHaveText(lang === "zh" ? "最新已发布帧" : "Latest published frame");
+    await expect(page.getByTestId("futures-selected-cutoff")).toHaveText(observationUtc(latest.cutoffMs));
+    await expect(page.getByTestId("futures-basis")).toContainText(lang === "zh" ? "历史来源" : "Historical source");
+    await expect(page).not.toHaveURL(/at=/);
+    await noOverflow(page); expect(errors).toEqual([]); expect(writes).toEqual([]);
+  });
+}

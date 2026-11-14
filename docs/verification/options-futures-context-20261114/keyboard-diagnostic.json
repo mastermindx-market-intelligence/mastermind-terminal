@@ -1,0 +1,267 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/futures-observation-keyboard-diagnostic.spec.ts",
+      "--project=desktop",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-futures-keyboard-diagnostic"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-keyboard-diagnostic",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 54510",
+      "url": "http://127.0.0.1:54510/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "futures-observation-keyboard-diagnostic.spec.ts",
+      "file": "futures-observation-keyboard-diagnostic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "diagnose native replay select keyboard delivery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2347,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "NATIVE_SELECT_DIAGNOSTIC [{\"key\":\"ArrowUp\",\"keys\":[\"ArrowUp\",\"Enter\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"Enter\",\"keys\":[\"ArrowUp\",\"Enter\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"Space\",\"keys\":[\"Space\",\"ArrowUp\",\"Enter\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"ArrowUp\",\"keys\":[\"Space\",\"ArrowUp\",\"Enter\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"Enter\",\"keys\":[\"Space\",\"ArrowUp\",\"Enter\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"ArrowUp\",\"keys\":[\"ArrowUp\",\"Tab\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"}]},{\"key\":\"Tab\",\"keys\":[\"ArrowUp\",\"Tab\"],\"selected\":\"1791554760000\",\"requested\":\"2026-10-09 14:06:00 UTC\",\"events\":[{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"BODY\"},{\"type\":\"focusin\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\" \",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"Enter\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"input\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"change\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keyup\",\"key\":\"ArrowUp\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"keydown\",\"key\":\"Tab\",\"target\":\"SELECT\",\"prevented\":false,\"value\":\"1791554760000\",\"active\":\"SELECT\"},{\"type\":\"focusin\",\"target\":\"SUMMARY\",\"prevented\":false,\"active\":\"SUMMARY\"},{\"type\":\"keyup\",\"key\":\"Tab\",\"target\":\"SUMMARY\",\"prevented\":false,\"active\":\"SUMMARY\"}]}]\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:24:25.102Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "aeb2c01ef6f3748562db-b551a7a35a1371c8e729",
+          "file": "futures-observation-keyboard-diagnostic.spec.ts",
+          "line": 4,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T15:23:56.694Z",
+    "duration": 31453.699,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

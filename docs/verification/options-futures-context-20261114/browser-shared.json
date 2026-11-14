@@ -1,0 +1,1427 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/futures-workspace.spec.ts",
+      "--grep",
+      "observation context|denied refresh|old instrument|missing source, replay cutoff",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-futures-context-shared"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 49651",
+      "url": "http://127.0.0.1:49651/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "futures-workspace.spec.ts",
+      "file": "futures-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "denied refresh and wrong-root data clear previously visible chart values",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3320,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:18.428Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-28ad6d14c8da3fe7ed34",
+          "file": "futures-workspace.spec.ts",
+          "line": 112,
+          "column": 5
+        },
+        {
+          "title": "missing source, replay cutoff and shared-language labels remain honest",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2133,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:22.431Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-637796be8b03cd8f3c8d",
+          "file": "futures-workspace.spec.ts",
+          "line": 139,
+          "column": 5
+        },
+        {
+          "title": "an old instrument response cannot overwrite a newer selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1936,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:24.573Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-0af90bc93d1b92b094ee",
+          "file": "futures-workspace.spec.ts",
+          "line": 164,
+          "column": 5
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7284,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:26.516Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-74d728e50fb784519f4f",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6788,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:34.300Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-0298b4a32fdd5263e435",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7838,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:42.063Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-ce5cc21a4bcd5c8811b9",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7149,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:16:52.115Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-1e69cf7c865066ecd5c6",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "denied refresh and wrong-root data clear previously visible chart values",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1740,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:00.641Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-dce2531e0c463ee25a83",
+          "file": "futures-workspace.spec.ts",
+          "line": 112,
+          "column": 5
+        },
+        {
+          "title": "missing source, replay cutoff and shared-language labels remain honest",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1592,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:02.745Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-c9680d64064745c99b64",
+          "file": "futures-workspace.spec.ts",
+          "line": 139,
+          "column": 5
+        },
+        {
+          "title": "an old instrument response cannot overwrite a newer selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:04.346Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-40e9a3ba327f70a99ea9",
+          "file": "futures-workspace.spec.ts",
+          "line": 164,
+          "column": 5
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7182,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:05.843Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-dce123d0f3ecdcf7e1f2",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6542,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:13.547Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-a87ddc325f7079352525",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6700,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:20.842Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-953a1f47b7fc48b81ded",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7416,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:28.398Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-bbe56a7834f8b48e053d",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "denied refresh and wrong-root data clear previously visible chart values",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2032,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:36.803Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-a1395a4c47613bb79f49",
+          "file": "futures-workspace.spec.ts",
+          "line": 112,
+          "column": 5
+        },
+        {
+          "title": "missing source, replay cutoff and shared-language labels remain honest",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1559,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:39.189Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-16fab1ef715735c65de5",
+          "file": "futures-workspace.spec.ts",
+          "line": 139,
+          "column": 5
+        },
+        {
+          "title": "an old instrument response cannot overwrite a newer selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1385,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:40.754Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "571529255025347fda8f-9f39e86a893f4ab8e45f",
+          "file": "futures-workspace.spec.ts",
+          "line": 164,
+          "column": 5
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7125,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:42.148Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-61fa6-ce-clocks-distinct-en-dark--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-416654df76dc853bea49",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (en, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6454,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"Latest published frame\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:49.771Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-3e883-e-clocks-distinct-en-light--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-2c8ba24852aefa473f11",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6621,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:17:57.697Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-79e92-ce-clocks-distinct-zh-dark--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-c8c7ca91aef39e70144b",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        },
+        {
+          "title": "observation context keeps request, selected cutoff and source clocks distinct (zh, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6591,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                      "column": 64,
+                      "line": 338
+                    },
+                    "snippet": "  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                        "column": 64,
+                        "line": 338
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByTestId('futures-requested-cutoff')\nExpected: \u001b[32m\"最新已发布帧\"\u001b[39m\nReceived: \u001b[31m\"2026-10-09 14:06:30.123 UTC\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('futures-requested-cutoff')\u001b[22m\n\u001b[2m    14 × locator resolved to <dd data-testid=\"futures-requested-cutoff\">2026-10-09 14:06:30.123 UTC</dd>\u001b[22m\n\u001b[2m       - unexpected value \"2026-10-09 14:06:30.123 UTC\"\u001b[22m\n\n\n  336 |     await expect(selector).toHaveValue(String(first));\n  337 |     await selector.focus(); await page.keyboard.press(\"Home\"); await page.keyboard.press(\"Enter\");\n> 338 |     await expect(page.getByTestId(\"futures-requested-cutoff\")).toHaveText(lang === \"zh\" ? \"最新已发布帧\" : \"Latest published frame\");\n      |                                                                ^\n  339 |     await expect(page.getByTestId(\"futures-selected-cutoff\")).toHaveText(observationUtc(latest.cutoffMs));\n  340 |     await expect(page.getByTestId(\"futures-basis\")).toContainText(lang === \"zh\" ? \"历史来源\" : \"Historical source\");\n  341 |     await expect(page).not.toHaveURL(/at=/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts:338:64"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T15:18:05.440Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/test-results/options-futures-context-shared/futures-workspace-observat-7bc6b-e-clocks-distinct-zh-light--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-futures-observation-context-20261114-c3/terminal/e2e/futures-workspace.spec.ts",
+                    "column": 64,
+                    "line": 338
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "571529255025347fda8f-3d9937d5a33aad6ab623",
+          "file": "futures-workspace.spec.ts",
+          "line": 283,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T15:15:46.062Z",
+    "duration": 146801.978,
+    "expected": 9,
+    "skipped": 0,
+    "unexpected": 12,
+    "flaky": 0
+  }
+}

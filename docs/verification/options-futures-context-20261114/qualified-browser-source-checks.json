@@ -1,0 +1,24 @@
+[
+  {
+    "name": "qualified-browser-lint",
+    "exit": 0,
+    "runtimeSeconds": 4.12,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "e2e/futures-workspace.spec.ts"
+    ]
+  },
+  {
+    "name": "qualified-typescript",
+    "exit": 0,
+    "runtimeSeconds": 12.67,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/typescript/lib/tsc.js",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ]
+  }
+]
