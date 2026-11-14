@@ -1,0 +1,26 @@
+[warmup] /terminal?symbol=NVDA → 200 in 45ms
+[warmup] /options → 200 in 1228ms
+[warmup] /portfolio → 200 in 484ms
+[warmup] /alerts → 200 in 443ms
+[warmup] /analysis → 200 in 795ms
+[warmup] /discover → 200 in 915ms
+[warmup] /admin → 200 in 245ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 195ms
+[warmup] /login → 200 in 93ms
+[warmup] /reset-password → 200 in 201ms
+[warmup] /api/me → 200 in 283ms
+[warmup] /api/watchlist → 200 in 114ms
+[warmup] /api/layouts → 200 in 122ms
+[warmup] /api/watchlist/annotations → 409 in 93ms
+[warmup] 14 routes compiled in 5s
+[fixture-ready] prophet_idx fixture 200 in 351ms
+
+Running 4 tests using 1 worker
+
+[1/4] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, light)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/4] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, light)
+[3/4] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, light)
+[4/4] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, light)
+  4 passed (41.2s)

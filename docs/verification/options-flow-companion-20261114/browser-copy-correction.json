@@ -1,0 +1,432 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/options-flow-companion-link.spec.ts",
+      "--project=desktop",
+      "--project=mobile",
+      "--grep",
+      "chart Flow opens exact-root Tape.*light",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-flow-companion-copy"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 58348",
+      "url": "http://127.0.0.1:58348/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-flow-companion-link.spec.ts",
+      "file": "options-flow-companion-link.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "chart Flow opens exact-root Tape (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5315,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:00:08.528Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-flow-source",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/attachments/chart-flow-source-3a4e59b47019783d2087568b35c01f842aeaa15c.png"
+                    },
+                    {
+                      "name": "symbol-tape-destination",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/attachments/symbol-tape-destination-2e9c09f4be862bf690858f83df723411441aca8e.png"
+                    },
+                    {
+                      "name": "consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidGhlbWUiOiAibGlnaHQiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJyZXF1ZXN0ZWRWaWV3IjogewogICAgIm1pblByZW0iOiAwLAogICAgImR0ZUJ1Y2tldHMiOiBbXSwKICAgICJtbnlCdWNrZXRzIjogW10sCiAgICAiZ3JvdXBGaWx0ZXIiOiAiIiwKICAgICJkcmlsbFRpY2tlciI6ICJOVkRBIiwKICAgICJ0YXBlVGlja2VyU2VhcmNoIjogIiIsCiAgICAic2lkZUZpbHRlciI6ICIiLAogICAgImZsYWdGaWx0ZXIiOiAiIiwKICAgICJzb3J0S2V5IjogInRzIiwKICAgICJzb3J0RGlyIjogLTEKICB9LAogICJyZW5kZXJlZFJvd3MiOiAyLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAyLAogICAgInBvbGwiOiAwCiAgfSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "365281ccdd103d8152d2-3b9580cc444fcd0df89d",
+          "file": "options-flow-companion-link.spec.ts",
+          "line": 98,
+          "column": 7
+        },
+        {
+          "title": "chart Flow opens exact-root Tape (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5651,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:00:14.204Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-flow-source",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/attachments/chart-flow-source-564d8fbf2366936e595433750bbb0486c29f9f7e.png"
+                    },
+                    {
+                      "name": "symbol-tape-destination",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/attachments/symbol-tape-destination-a49a938bfc16ca225430aaf8cdb887b85e80c6dd.png"
+                    },
+                    {
+                      "name": "consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidGhlbWUiOiAibGlnaHQiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJyZXF1ZXN0ZWRWaWV3IjogewogICAgIm1pblByZW0iOiAwLAogICAgImR0ZUJ1Y2tldHMiOiBbXSwKICAgICJtbnlCdWNrZXRzIjogW10sCiAgICAiZ3JvdXBGaWx0ZXIiOiAiIiwKICAgICJkcmlsbFRpY2tlciI6ICJOVkRBIiwKICAgICJ0YXBlVGlja2VyU2VhcmNoIjogIiIsCiAgICAic2lkZUZpbHRlciI6ICIiLAogICAgImZsYWdGaWx0ZXIiOiAiIiwKICAgICJzb3J0S2V5IjogInRzIiwKICAgICJzb3J0RGlyIjogLTEKICB9LAogICJyZW5kZXJlZFJvd3MiOiAyLAogICJyZWFkcyI6IHsKICAgICJzdHJlYW0iOiAyLAogICAgInBvbGwiOiAwCiAgfSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "365281ccdd103d8152d2-97d14b9e0689107b5b30",
+          "file": "options-flow-companion-link.spec.ts",
+          "line": 98,
+          "column": 7
+        },
+        {
+          "title": "chart Flow opens exact-root Tape (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8351,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:00:20.353Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-flow-source",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--mobile/attachments/chart-flow-source-d039a092c13d543c6ba878da8f6b30b2aa3ab326.png"
+                    },
+                    {
+                      "name": "symbol-tape-destination",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--mobile/attachments/symbol-tape-destination-fc9266ee18f0ffc2cec586b3a2d6fb0d45587b89.png"
+                    },
+                    {
+                      "name": "consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogImVuIiwKICAidGhlbWUiOiAibGlnaHQiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgInJlcXVlc3RlZFZpZXciOiB7CiAgICAibWluUHJlbSI6IDAsCiAgICAiZHRlQnVja2V0cyI6IFtdLAogICAgIm1ueUJ1Y2tldHMiOiBbXSwKICAgICJncm91cEZpbHRlciI6ICIiLAogICAgImRyaWxsVGlja2VyIjogIk5WREEiLAogICAgInRhcGVUaWNrZXJTZWFyY2giOiAiIiwKICAgICJzaWRlRmlsdGVyIjogIiIsCiAgICAiZmxhZ0ZpbHRlciI6ICIiLAogICAgInNvcnRLZXkiOiAidHMiLAogICAgInNvcnREaXIiOiAtMQogIH0sCiAgInJlbmRlcmVkUm93cyI6IDIsCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDIsCiAgICAicG9sbCI6IDAKICB9LAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "365281ccdd103d8152d2-9f296e789056846bb13b",
+          "file": "options-flow-companion-link.spec.ts",
+          "line": 98,
+          "column": 7
+        },
+        {
+          "title": "chart Flow opens exact-root Tape (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6877,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:00:29.007Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-flow-source",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/attachments/chart-flow-source-b993196b70037971032a8c380c56c90d4be9882a.png"
+                    },
+                    {
+                      "name": "symbol-tape-destination",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/attachments/symbol-tape-destination-dd7306b3a5bbfcf96bfa42fbab207deeb5a990fa.png"
+                    },
+                    {
+                      "name": "consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJsYW5nIjogInpoIiwKICAidGhlbWUiOiAibGlnaHQiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgInJlcXVlc3RlZFZpZXciOiB7CiAgICAibWluUHJlbSI6IDAsCiAgICAiZHRlQnVja2V0cyI6IFtdLAogICAgIm1ueUJ1Y2tldHMiOiBbXSwKICAgICJncm91cEZpbHRlciI6ICIiLAogICAgImRyaWxsVGlja2VyIjogIk5WREEiLAogICAgInRhcGVUaWNrZXJTZWFyY2giOiAiIiwKICAgICJzaWRlRmlsdGVyIjogIiIsCiAgICAiZmxhZ0ZpbHRlciI6ICIiLAogICAgInNvcnRLZXkiOiAidHMiLAogICAgInNvcnREaXIiOiAtMQogIH0sCiAgInJlbmRlcmVkUm93cyI6IDIsCiAgInJlYWRzIjogewogICAgInN0cmVhbSI6IDIsCiAgICAicG9sbCI6IDAKICB9LAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "365281ccdd103d8152d2-2782dd7237438a4a5c1f",
+          "file": "options-flow-companion-link.spec.ts",
+          "line": 98,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T13:59:54.821Z",
+    "duration": 41192.558000000005,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

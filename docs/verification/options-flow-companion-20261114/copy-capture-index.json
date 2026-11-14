@@ -1,0 +1,50 @@
+[
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/attachments/chart-flow-source-3a4e59b47019783d2087568b35c01f842aeaa15c.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-desktop-en-chart-flow-source.png",
+    "sha256": "a9158c975cbd5b81f810b4105e0daafc758e13c203638e1597ace8104d8fc9d3",
+    "bytes": 246719
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/attachments/symbol-tape-destination-2e9c09f4be862bf690858f83df723411441aca8e.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-desktop-en-symbol-tape-destination.png",
+    "sha256": "c1e568c1d72d56505651a1c186943de27b239a86081e2cd694ef46ffc97e8068",
+    "bytes": 149666
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/attachments/chart-flow-source-564d8fbf2366936e595433750bbb0486c29f9f7e.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-desktop-zh-chart-flow-source.png",
+    "sha256": "41531e717d6c065398a44e6c61417ebf6a4de9733a54bb8ce503dcca4c79cc2c",
+    "bytes": 253026
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/attachments/symbol-tape-destination-a49a938bfc16ca225430aaf8cdb887b85e80c6dd.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-desktop-zh-symbol-tape-destination.png",
+    "sha256": "0642a952eba471f2af69688e2a3cdfe7cb5fe2cc932d2d09bcd1ad7d42e1b2d6",
+    "bytes": 152972
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--mobile/attachments/chart-flow-source-d039a092c13d543c6ba878da8f6b30b2aa3ab326.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-mobile-en-chart-flow-source.png",
+    "sha256": "6535db8d2af0285a4ed6598dba1feb7785f380d0472e9504f5df2cb62246db8b",
+    "bytes": 67447
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--mobile/attachments/symbol-tape-destination-fc9266ee18f0ffc2cec586b3a2d6fb0d45587b89.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-mobile-en-symbol-tape-destination.png",
+    "sha256": "8c39dbaf35516d9e2e4b53047325b2588eca98b63c7d0515e92774f3b3242e12",
+    "bytes": 75009
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/attachments/chart-flow-source-b993196b70037971032a8c380c56c90d4be9882a.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-mobile-zh-chart-flow-source.png",
+    "sha256": "8df149182a7e2d17aa55b71011005d30d7dfc334560e260b2637e2a91437cf67",
+    "bytes": 74357
+  },
+  {
+    "source": "terminal/test-results/options-flow-companion-copy/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/attachments/symbol-tape-destination-dd7306b3a5bbfcf96bfa42fbab207deeb5a990fa.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/copy-mobile-zh-symbol-tape-destination.png",
+    "sha256": "e5f88828c51d5f5fe53fe1aaaa0ada7a51bebff698392c74ec666b4053abd7b4",
+    "bytes": 89590
+  }
+]

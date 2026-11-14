@@ -1,0 +1,149 @@
+[warmup] /terminal?symbol=NVDA → 200 in 70ms
+[warmup] /options → 200 in 1700ms
+[warmup] /portfolio → 200 in 692ms
+[warmup] /alerts → 200 in 875ms
+[warmup] /analysis → 200 in 1337ms
+[warmup] /discover → 200 in 1666ms
+[warmup] /admin → 200 in 392ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 362ms
+[warmup] /login → 200 in 129ms
+[warmup] /reset-password → 200 in 362ms
+[warmup] /api/me → 200 in 582ms
+[warmup] /api/watchlist → 200 in 189ms
+[warmup] /api/layouts → 200 in 235ms
+[warmup] /api/watchlist/annotations → 409 in 174ms
+[warmup] 14 routes compiled in 9s
+[fixture-ready] prophet_idx fixture 200 in 487ms
+
+Running 6 tests using 1 worker
+
+[1/6] [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/6] [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (en, light)
+[3/6] [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, dark)
+  1) [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, dark) 
+
+    Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM
+    Call log:
+      - attempting scroll into view action
+        - waiting for element to be stable
+
+
+      79 | async function exactPopulation(page: Page, symbol: string) {
+      80 |   const table = page.locator("table.scr");
+    > 81 |   await table.scrollIntoViewIfNeeded(); await expect(table).toBeVisible();
+         |               ^
+      82 |   const rows = table.locator("tbody tr").filter({ has: page.locator("td") });
+      83 |   await expect(rows).toHaveCount(2);
+      84 |   for (const row of await rows.all()) await expect(row).toContainText(symbol);
+        at exactPopulation (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:81:15)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:101:11
+
+    attachment #1: chart-flow-source (image/png) ───────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--desktop/attachments/chart-flow-source-4272f7f6e3210825eb8ca2d36e7abd072c03b3b7.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[4/6] [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, light)
+  2) [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, light) 
+
+    Error: locator.scrollIntoViewIfNeeded: Element is not attached to the DOM
+    Call log:
+      - attempting scroll into view action
+        - waiting for element to be stable
+
+
+      79 | async function exactPopulation(page: Page, symbol: string) {
+      80 |   const table = page.locator("table.scr");
+    > 81 |   await table.scrollIntoViewIfNeeded(); await expect(table).toBeVisible();
+         |               ^
+      82 |   const rows = table.locator("tbody tr").filter({ has: page.locator("td") });
+      83 |   await expect(rows).toHaveCount(2);
+      84 |   for (const row of await rows.all()) await expect(row).toContainText(symbol);
+        at exactPopulation (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:81:15)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:101:11
+
+    attachment #1: chart-flow-source (image/png) ───────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/attachments/chart-flow-source-dc7bcafbfee04228d2e42785674140e80c8087ed.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[5/6] [desktop] › e2e/options-flow-companion-link.spec.ts:116:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[6/6] [desktop] › e2e/options-flow-companion-link.spec.ts:138:5 › a dotted chart root reaches its exact Tape population
+  3) [desktop] › e2e/options-flow-companion-link.spec.ts:138:5 › a dotted chart root reaches its exact Tape population 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.mm-ptag')
+    Expected substring: "BRK.B"
+    Received string:    ""
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toContainText" with timeout 5000ms
+      - waiting for locator('.mm-ptag')
+        9 × locator resolved to <div class="mm-ptag">…</div>
+          - unexpected value ""
+
+
+      40 |   await page.goto("/terminal?" + new URLSearchParams({ symbol }));
+      41 |   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 45_000 });
+    > 42 |   await expect(page.locator(".mm-ptag")).toContainText(symbol);
+         |                                          ^
+      43 |   await expect.poll(() => page.evaluate(() => localStorage.getItem("mm.activeSymbol"))).toBe(symbol);
+      44 |   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+      45 |   return reads;
+        at prepare (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:42:42)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:140:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9a1b7-s-its-exact-Tape-population-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9a1b7-s-its-exact-Tape-population-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9a1b7-s-its-exact-Tape-population-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-companion-shared-desktop-20261114/options-flow-companion-lin-9a1b7-s-its-exact-Tape-population-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  3 failed
+    [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, dark) 
+    [desktop] › e2e/options-flow-companion-link.spec.ts:91:7 › chart Flow opens exact-root Tape (zh, light) 
+    [desktop] › e2e/options-flow-companion-link.spec.ts:138:5 › a dotted chart root reaches its exact Tape population 
+  3 passed (1.5m)

@@ -1,0 +1,136 @@
+{
+  "operation": "options-flow-companion-context-20261114-c3",
+  "base": "e109b0e07af4d6c400c99ff9ed98f17306c570d2",
+  "runtime": {
+    "node": "22.23.4",
+    "sha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0"
+  },
+  "unit": {
+    "before": {
+      "newCases": 8,
+      "failed": 8,
+      "passed": 0
+    },
+    "after": {
+      "passed": 30,
+      "newCases": 8,
+      "existingCodecCases": 22,
+      "failed": 0
+    }
+  },
+  "browser": {
+    "distinctCases": 30,
+    "shared": {
+      "initialFinalRun": {
+        "passed": 16,
+        "failed": 2,
+        "process": 99857
+      },
+      "responsiveHelperRepair": {
+        "passed": 2,
+        "failed": 0,
+        "process": 53115,
+        "runtimeSeconds": 57.05
+      },
+      "distinctPassed": 18
+    },
+    "classic": {
+      "passed": 12,
+      "failed": 0,
+      "process": 58016,
+      "browserRuntimeSeconds": 122.89
+    },
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "sharedThemes": [
+      "dark",
+      "light"
+    ],
+    "classicThemes": [
+      "dark"
+    ]
+  },
+  "finalQualification": {
+    "process": 58016,
+    "exit": 0,
+    "runtimeSeconds": 143.26,
+    "lint": 0,
+    "typecheck": 0,
+    "diffCheck": 0
+  },
+  "captureExtension": {
+    "id": "flow-receipt-pl6-control-20261114-c3",
+    "process": 72759,
+    "exit": 1,
+    "runtimeSeconds": 56.3,
+    "passedCaseObservations": 4,
+    "qualified": false,
+    "finalReportPresent": false,
+    "code": "EPERM",
+    "phase": "signal-zero observation inside post-SIGTERM drain",
+    "port": 3200,
+    "exactServerPidPgid": "not retained by standalone producer",
+    "laterReadOnlyObservation": {
+      "matchingWorkspaceCaptureProcesses": [],
+      "port3200Listeners": [],
+      "exactGroupSettlementProven": false
+    },
+    "replayed": false,
+    "cssChanged": false,
+    "evidenceLocksChanged": false
+  },
+  "scope": "fixture consumer proof; no merge, deployment or entitled production acceptance claim",
+  "copyCorrection": {
+    "priorHead": "c45c3f42800c471073c5265772099a7bb6f70fc0",
+    "cause": "shared destination dictionary changed a retained Exposure browser fingerprint",
+    "productDecision": "reuse existing Tape destination vocabulary in the Flow consumer; shared dictionary restored exactly",
+    "sharedDictionarySha256": "91bec03bdb1cdfec2be674da5562cf7e1a16e9154f1d7c4390bd49a474f30b3a",
+    "unit": {
+      "passed": 107,
+      "failed": 0,
+      "process": 19742,
+      "report": "unit-copy-correction.json"
+    },
+    "browser": {
+      "exit": 0,
+      "runtimeSeconds": 41.85,
+      "port": 58348,
+      "report": "browser-copy-correction.json",
+      "log": "browser-copy-correction.log",
+      "process": 22274,
+      "passed": 4,
+      "failed": 0,
+      "distinctMatrixStill": 30
+    },
+    "finalChecks": {
+      "process": 26316,
+      "exit": 0,
+      "lint": 0,
+      "typecheck": 0,
+      "diffCheck": 0
+    },
+    "captures": "copy-capture-index.json",
+    "evidenceRulesChanged": false,
+    "incompleteOriginalCaptureUnchanged": true,
+    "visualInspection": [
+      "copy-desktop-en-chart-flow-source.png",
+      "copy-mobile-zh-chart-flow-source.png"
+    ]
+  }
+}
