@@ -16,7 +16,7 @@ let root: Root;
 function Harness({ mode }: { mode: "hover" | "browse" }) {
   const [open, setOpen] = useState(false);
   return <>
-    <button data-tool-browser-trigger="" data-shell-menu-opener="" onClick={() => setOpen(true)}>Open</button>
+    <button data-tool-browser-trigger={phone ? undefined : ""} data-shell-menu-opener={phone ? "" : undefined} onClick={() => setOpen(true)}>Open</button>
     {open && <ShellMegaMenu mode={mode} onClose={() => setOpen(false)} />}
   </>;
 }
@@ -36,7 +36,7 @@ afterEach(async () => {
 });
 async function show(mode: "hover" | "browse") {
   await act(async () => root.render(<Harness mode={mode} />));
-  const opener = host.querySelector<HTMLButtonElement>("[data-tool-browser-trigger]")!;
+  const opener = host.querySelector<HTMLButtonElement>(phone ? "[data-shell-menu-opener]" : "[data-tool-browser-trigger]")!;
   opener.focus();
   await act(async () => opener.click());
   return opener;

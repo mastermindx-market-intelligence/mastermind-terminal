@@ -7,6 +7,15 @@ import type { MastermindBrainHost } from "@/lib/mastermindBrain";
 import BrainWidget, { loadBrainWidget } from "./BrainWidget";
 import "./brain-workspace.css";
 
+// Only the full-page host adopts the optional workspace API during the phased
+// widget rollout. Chart and Options consumers keep their established contract.
+type WorkbenchHost = MastermindBrainHost & {
+  MMBrain?: {
+    mountWorkspace?: (container: HTMLElement) => (() => void) | undefined;
+    close?: () => void;
+  };
+};
+
 type Phase = "loading" | "ready" | "unavailable" | "compact";
 const signIn = () => window.location.assign("/login");
 
@@ -23,7 +32,7 @@ export default function BrainWorkspace({ symbol }: { symbol: string | null }) {
   }, [context, symbol]);
 
   useEffect(() => {
-    const host = window as unknown as MastermindBrainHost;
+    const host = window as unknown as WorkbenchHost;
     let release: (() => void) | undefined;
     const attach = () => {
       if (release || !slot.current || !host.MMBrain?.open) return;
@@ -65,7 +74,7 @@ export default function BrainWorkspace({ symbol }: { symbol: string | null }) {
       </>}
       {phase === "compact" && <>
         <p>{zh ? "当前可使用紧凑对话视图。" : "Chat is available in compact view."}</p>
-        <button type="button" className="btn" onClick={() => (window as unknown as MastermindBrainHost).MMBrain?.open?.()}>
+        <button type="button" className="btn" onClick={() => (window as unknown as WorkbenchHost).MMBrain?.open?.()}>
           {zh ? "打开对话" : "Open chat"}
         </button>
       </>}

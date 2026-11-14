@@ -17,8 +17,6 @@ export type ChartStopResult = { scope: "received_batches"; cancelled: number };
 export interface MastermindBrainHost {
   MMBrain?: {
     open?: () => void;
-    close?: () => void;
-    mountWorkspace?: (container: HTMLElement) => (() => void) | undefined;
     mounted?: boolean;
     setPrincipal?: (id: string | null) => void;
     /** Optional typed consumer; legacy widgets cannot silently accept this source. */
