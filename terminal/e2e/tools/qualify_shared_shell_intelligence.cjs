@@ -405,6 +405,22 @@ async function qualifyCandidates(page,cell) {
   const refresh=async()=>{await view.getByRole('button',{name:'Refresh',exact:true}).click();};
   const capture=async name=>{await noOverflow(page);expect(await view.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-'+name+'.png')});};
   const back=()=>view.getByRole('link',{name:/^← All candidates/}).first();
+  const readableCandidateActions=async()=>{
+    if(page.viewportSize().width>700)return;
+    const geometry=await view.locator('[data-candidate]').evaluateAll(links=>links.map(link=>{
+      const row=link.closest('li'),box=link.getBoundingClientRect(),rowBox=row.getBoundingClientRect();
+      const decision=row.querySelector('p').parentElement.getBoundingClientRect();
+      const lines=[];
+      for(const node of link.childNodes){
+        if(node.nodeType!==Node.TEXT_NODE||!node.textContent.trim())continue;
+        const range=document.createRange();range.selectNodeContents(node);
+        for(const rect of range.getClientRects())if(rect.width>0)lines.push(Math.round(rect.top));
+      }
+      return {height:box.height,labelLines:new Set(lines).size,contained:box.left>=rowBox.left-1&&box.right<=rowBox.right+1&&box.bottom<=rowBox.bottom+1,belowDecision:box.top>=decision.bottom-1};
+    }));
+    expect(geometry.length).toBeGreaterThan(0);
+    for(const item of geometry){expect(item.height).toBeGreaterThanOrEqual(44);expect(item.labelLines).toBe(1);expect(item.contained).toBe(true);expect(item.belowDecision).toBe(true);}
+  };
   await expect(view).toHaveAttribute('data-read-state','ready',{timeout:30000});
   await presentation('en',page.viewportSize().width===820?'dark':'light');
   await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.getByRole('heading',{level:1,name:'Prophet',exact:true})).toBeVisible();
@@ -415,7 +431,7 @@ async function qualifyCandidates(page,cell) {
   const candidatesTab=page.getByTestId('prophet-tab-candidates');
   await expect(candidatesTab).toHaveAttribute('aria-selected','true');await expect(candidatesTab).toHaveAttribute('tabindex','0');
   await expect(candidatesTab).toHaveAttribute('aria-controls','prophet-panel-candidates');
-  await capture('list-en');
+  await readableCandidateActions();await capture('list-en');
 
   if(page.viewportSize().width===320){
     for(const id of ['today','candidates','screener','plans']){
@@ -477,7 +493,11 @@ async function qualifyCandidates(page,cell) {
   // The fixture account reloads its existing EN metadata. The Unicode URL
   // survives independently; request the Chinese presentation again explicitly.
   await presentation('zh','dark');
-  await capture('list-dark-zh');
+  await readableCandidateActions();await capture('list-dark-zh');
+  if(page.viewportSize().width===320){
+    const originalViewport=page.viewportSize();await page.setViewportSize({...originalViewport,width:390});
+    await readableCandidateActions();await capture('list-390-dark-zh');await page.setViewportSize(originalViewport);
+  }
   await page.getByTestId('prophet-tab-screener').click();expect(new URL(page.url()).searchParams.has('prophetQ')).toBe(false);
   await page.goBack();await expect(view.locator('[data-candidate]')).toHaveCount(1);expect(new URL(page.url()).searchParams.get('prophetQ')).toBe('晨光');
   expect(sectorQueries.some(value=>value&&value.includes('晨光'))).toBe(false);

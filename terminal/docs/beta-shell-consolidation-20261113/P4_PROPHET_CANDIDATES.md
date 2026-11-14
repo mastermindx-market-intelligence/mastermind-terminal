@@ -64,6 +64,37 @@ Local focused qualification:167 tests passed across the candidate decoder, actua
 
 The existing authenticated `qualify_shared_shell_intelligence.cjs` is extended, not replaced by another runner. It records exact source hashes and tests native Candidates at1440/820/320px, EN/ZH, light/dark, actual browser history/reload/focus, the compact More menu, source disclosure, market isolation and materially different availability states. These are original synthetic presentation/interaction specimens. State variants deliberately mutate that synthetic envelope and do not claim another real publication generation. Hosted results and visual readback remain pending on this candidate.
 
+### Exact-head browser receipt and responsive repair
+
+Run `43578129982`, artifact `14107094187`, qualifies source
+`cff2126af4d9bf64e2b5beed49f73ffe33ab33fd`. ZIP SHA-256:
+`03490ea24410035d7308afb182c860efc674f314b71ac8933f01c4cd495368a4`.
+Its tested merge `f79006545a347dee25826e0933e951ab531ce0ca` has parents
+`627b87e1f0655cdf60999daa99ddf8c797627449` and that candidate head; its tree
+`f9050f034e87c425b952c330eb68b46c403126ec` exactly equals the candidate tree.
+All15 recorded cells passed, including three candidate journeys. Errors,
+external requests, fixture writes and tracked working changes were empty.
+This remains `LOCAL_FIXTURE_BROWSER_NOT_PRODUCTION`; production CSP was not
+covered by the isolated fixture context.
+
+Visual readback of desktop EN, 320px ZH and 320px EN detail found one concrete
+defect despite the passing overflow checks: the ZH Inspect label collapsed to
+a one-character column. The desktop third-column assignment survived inside
+the phone's two-column grid while its action was absolutely positioned.
+The phone action now occupies a full-width grid row in normal flow, aligns at
+the end, and keeps its label on one line. The old text reservation and negative
+margin are removed. Link identity, handlers, opener refs and focus return are
+unchanged. The incumbent qualifier now checks text-line geometry,44px target
+height, row containment and separation from the decision text in EN/ZH, with
+an additional390px ZH specimen. These repaired-head browser results are owed;
+the earlier green artifact does not qualify this repair.
+
+Concurrent PR1505 at `ca0b92298ff331a8849b6949e412be9dd7e18cda` contains a second
+consumer of the same upstream, plus useful observation/save/comparison/setup
+work. Preserve that live carrier. Integration must compose its useful deltas
+onto one candidate population, transport and account lifetime; it must not
+retain both reader stacks or overwrite these exact-head fixes wholesale.
+
 Release order: qualify and release Macro11248 through its incumbent controller; verify the served authenticated complete projection; qualify this Terminal stack and its PR1495 dependency; then use permitted Terminal release and prove the production consumer. Macro11246's Liquidity backend has separately been enrolled in its normal controller after exact-head binding checks passed; its label readback is not a merge/deploy receipt. No legacy route or engine is retired by this packet.
 
 Parent completion remains open: full Prophet lifecycle/detail/assessment depth, non-US engines, remaining Macro/Cycle parity and P5–P17 are still required. The next safe presentation slice is the existing Today desk: promote its source-authored market reading, distinguish account work, remove repeated market navigation and preserve the stable reader holders and saved comparison baseline. No accepted portfolio population or private source history is replaced with mock activity.

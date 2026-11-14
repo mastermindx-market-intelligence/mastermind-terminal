@@ -102,9 +102,9 @@
   .score { grid-column:2; grid-row:1; text-align:right; }
   .decision { grid-column:1/-1; grid-row:2; }
   .decision p { margin-bottom:10px; }
-  .decision small { display:flex; align-items:center; min-height:44px; padding-right:110px; }
-  .inspect { position:absolute; right:0; bottom:14px; border:0; padding:8px 0 8px 10px; }
-  .row .inspect { margin-top:-8px; }
+  .decision small { display:block; min-height:0; padding-right:0; }
+  .inspect { position:static; grid-column:1/-1; grid-row:3; justify-self:end; white-space:nowrap; border:0; padding:8px 0 8px 10px; }
+  .row .inspect { margin-top:0; }
   .score strong { font-size:23px; }
   .detailGrid { grid-template-columns:minmax(0,1fr); gap:24px; }
   .evidence { padding:22px; }
