@@ -2,7 +2,7 @@
 
 import "../../app/company-intelligence-call.css";
 
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { pick } from "../../lib/finFormat";
 
 export interface CompanyIntelligenceCallExchange {
@@ -46,6 +46,11 @@ export default function CompanyIntelligenceCallLayout({
   onOpenSources,
   searchContent,
 }: CompanyIntelligenceCallLayoutProps) {
+  const exchangesId = useId();
+  const callKey = `${eventId || eventAlias || ""}:${transcriptId || ""}:${eventDate}`;
+  const [expandedCall, setExpandedCall] = useState<string | null>(null);
+  const expanded = expandedCall === callKey;
+  const visibleExchanges = expanded ? exchanges : exchanges.slice(0, 8);
   return (
     <section
       className="ci-paper-call"
@@ -97,8 +102,8 @@ export default function CompanyIntelligenceCallLayout({
           </header>
 
           {exchanges.length ? (
-            <div className="ci-paper-call-exchanges">
-              {exchanges.slice(0, 8).map((exchange) => {
+            <div className="ci-paper-call-exchanges" id={exchangesId}>
+              {visibleExchanges.map((exchange) => {
                 const canOpen = transcriptAvailable && exchange.segmentIndex != null && onOpenExchange;
                 return (
                   <button
@@ -134,6 +139,15 @@ export default function CompanyIntelligenceCallLayout({
                 "The transcript may still be readable, but this path does not carry canonical normalized Q&A exchanges.",
                 "电话会正文仍可能可读，但此路径没有规范化的标准问答轮次。",
               )}</p>
+            </div>
+          )}
+          {exchanges.length > 8 && (
+            <div className="ci-paper-call-expand">
+              <span>{pick(zh, `Showing ${visibleExchanges.length} of ${exchanges.length} questions`, `显示 ${visibleExchanges.length} / ${exchanges.length} 个问题`)}</span>
+              <button type="button" aria-expanded={expanded} aria-controls={exchangesId}
+                onClick={() => setExpandedCall(expanded ? null : callKey)}>
+                {expanded ? pick(zh, "Show fewer", "收起") : pick(zh, "Show all questions", "显示全部问题")}
+              </button>
             </div>
           )}
         </section>

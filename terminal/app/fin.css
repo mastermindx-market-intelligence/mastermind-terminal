@@ -1656,14 +1656,14 @@
 .fin-financials-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:none;overflow:hidden}
 .fin-financials-summary article{display:grid;align-content:start;gap:7px;min-width:0;min-height:94px;padding:11px 13px;border-right:1px solid var(--line);background:var(--panel-2)}
 .fin-financials-summary article:last-child{border-right:0}
-.fin-financials-summary article>div{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.fin-financials-summary article>div{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 8px;min-width:0}
 .fin-financials-summary article strong{overflow:hidden;color:var(--muted);font:620 12px/1.15 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.fin-financials-summary article>div span{flex:none;font:650 8px/1 var(--font-num)}
+.fin-financials-summary article>div span{flex:none;font:550 12px/1.4 var(--font-num)}
 .fin-financials-summary article>div span.up{color:var(--up)}
 .fin-financials-summary article>div span.down{color:var(--down)}
 .fin-financials-summary article>b{overflow:hidden;color:var(--text);font:690 20px/1 var(--font-num);font-variant-numeric:tabular-nums;text-overflow:ellipsis;white-space:nowrap}
 .fin-financials-summary article>small{overflow:hidden;color:var(--text-dim);font:510 12px/1.25 var(--font-ui);text-overflow:ellipsis;white-space:nowrap}
-.fin-financials-core-grid{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.62fr);gap:10px;margin-bottom:10px;align-items:stretch}
+.fin-financials-core-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.8fr);gap:20px;margin-bottom:20px;align-items:start}
 .fin-financials-core-grid>.fin-card{min-width:0;margin:0}
 .fin-financials-trajectory,.fin-financials-statement-snapshot{display:grid;align-content:start;overflow:hidden}
 .fin-financials-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:-2px -2px 9px;padding:0 0 9px;border-bottom:1px solid var(--line-2)}
@@ -1674,12 +1674,24 @@
 .fin-financials-trajectory .fin-svg-box{min-width:0}
 .fin-financials-snapshot-scroll{min-width:0;max-width:100%;overflow-x:auto}
 .fin-financials-snapshot-table{width:100%;min-width:520px;border-collapse:collapse;table-layout:fixed}
-.fin-financials-snapshot-table th,.fin-financials-snapshot-table td{padding:7px 8px;border-bottom:1px solid var(--line-2);color:var(--text-2);font:520 12px/1.2 var(--font-ui);text-align:right;white-space:nowrap}
+.fin-financials-snapshot-table th,.fin-financials-snapshot-table td{padding:10px 8px;border-bottom:1px solid var(--line-2);color:var(--text-2);font:520 12px/1.2 var(--font-ui);text-align:right;white-space:nowrap}
 .fin-financials-snapshot-table thead th{color:var(--muted);font:600 12px/1.1 var(--font-ui)}
 .fin-financials-snapshot-table th:first-child{width:30%;text-align:left}
 .fin-financials-snapshot-table tbody tr:last-child th,.fin-financials-snapshot-table tbody tr:last-child td{border-bottom:0}
 .fin-financials-snapshot-table .strong{color:var(--text);font-weight:650}
 .fin-financials-snapshot-table td.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.fin-financials-statement-snapshot .fin-financials-card-head{padding-bottom:14px}
+.fin-financials-card-head p{margin:0;color:var(--muted);font:400 12px/1.5 var(--font-ui)}
+.fin-financials-snapshot-table tbody th{padding-block:0}
+.fin-financials-metric-button{display:block;width:100%;min-height:44px;text-align:start;color:inherit;font:inherit;white-space:normal;line-height:1.4}
+.fin-financials-metric-button:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.fin-financials-snapshot-table tbody tr[data-selected="true"]{background:color-mix(in srgb,var(--brand) 10%,transparent)}
+.fin-financials-snapshot-table tbody tr[data-selected="true"] th{color:var(--text)}
+.fin-financials-selected-value{display:grid;gap:8px;margin:6px 0 24px}
+.fin-financials-selected-value strong{color:var(--text);font:600 34px/1.15 var(--font-num);letter-spacing:-.025em;overflow-wrap:anywhere}
+.fin-financials-selected-value span{color:var(--muted);font:400 12px/1.5 var(--font-ui)}
+.fin-financials-trajectory .fin-financials-card-head h3{font-size:17px}
+.fin-financials-trajectory .fin-financials-card-head a{flex:none;font-size:12px;min-height:32px;display:inline-flex;align-items:center;gap:4px}
 .fin-financials-integrity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 12px}
 .fin-financials-integrity>article{display:grid;align-content:start;gap:10px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);box-shadow:none}
 .fin-financials-integrity header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}

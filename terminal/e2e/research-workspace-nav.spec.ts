@@ -459,7 +459,7 @@ test("Market vNext projects canonical technicals, pivots and five-year seasonali
 
   const state = market.locator("[data-market-vnext-state]");
   await expect(state).toContainText("MARKET TECHNICALS");
-  await expect(state).toContainText("Deterministic indicator state");
+  await expect(state).toContainText("Technical overview");
   await expect(state).toContainText("RSI (14)");
   await expect(state).toContainText("MACD (12, 26, 9)");
   await expect(state).toContainText("vs SMA 20");
@@ -758,8 +758,8 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
 
   const financials = page.locator("[data-financials-vnext]");
   await expect(financials).toBeVisible({ timeout: 15_000 });
-  await expect(financials.locator("[data-financials-vnext-head]")).toContainText("FINANCIAL STATEMENTS");
-  await expect(financials.locator("[data-financials-vnext-head]")).toContainText("Reported fundamentals with source-aware period handling");
+  await expect(financials.locator("[data-financials-vnext-head]")).toContainText("Financial statements");
+  await expect(financials.locator("[data-financials-vnext-head]")).toContainText("Annual statements · Currency: USD");
   await expect(financials.locator("[data-financials-vnext-head]").getByRole("button", { name: "Annual" })).toBeVisible();
   await expect(financials.locator("[data-financials-vnext-head]").getByRole("button", { name: "Income" })).toBeVisible();
   await expect(financials.locator("[data-financials-vnext-head]").getByRole("button", { name: "Balance" })).toBeVisible();
@@ -773,9 +773,9 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
   await expect(summary).toContainText("From the financials record");
 
   const explorer = financials.locator("[data-financials-vnext-explorer]");
-  await expect(explorer).toContainText("TRAJECTORY");
-  await expect(explorer).toContainText("Income trajectory");
-  await expect(explorer).toContainText("STATEMENT SNAPSHOT");
+  await expect(explorer).toContainText("Selected metric");
+  await expect(explorer.locator(".fin-financials-trajectory h3")).toHaveText("Revenue");
+  await expect(explorer.locator(".fin-financials-selected-value strong")).toHaveText("130.00B");
   await expect(explorer).toContainText("Income statement");
   const integrity = financials.locator("[data-financials-vnext-integrity]");
   await expect(integrity).toContainText("Balance-sheet snapshot");
@@ -793,10 +793,17 @@ test("Financials vNext keeps statement summary, explorer and integrity on one ca
   await testInfo.attach("financials-current-en", {
     path: capturePath, contentType: "image/png",
   });
+  const selected = explorer.locator(".fin-financials-trajectory");
+  const netIncome = explorer.getByRole("button", { name: "Net income", exact: true });
+  await netIncome.click();
+  await expect(netIncome).toHaveAttribute("aria-pressed", "true");
+  await expect(selected.locator("h3")).toHaveText("Net income");
+  await expect(selected.locator(".fin-financials-selected-value strong")).toHaveText("70.20B");
+  await selected.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("financials-selected-metric-en.png"), animations: "disabled" });
 });
 
-test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "one mobile bilingual Financials contract is sufficient");
+test("Financials metric exploration remains bilingual and overflow-safe", async ({ page }, testInfo) => {
   await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
   await installFinancialsFixture(page);
   await page.goto("/analysis?symbol=NVDA&page=statements");
@@ -809,8 +816,8 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
   await expect(summary).toContainText("营业收入");
   await expect(summary).toContainText("营业利润");
   await expect(summary).toContainText("自由现金流");
-  await expect(financials).toContainText("利润趋势");
-  await expect(financials).toContainText("报表快照");
+  await expect(financials).toContainText("利润表");
+  await expect(financials.getByLabel("所选指标历史")).toBeVisible();
   await expect(financials).toContainText("资产负债表快照");
   await expect(financials).toContainText("现金转换");
   await expect(financials).toContainText("本页使用财务记录中的自由现金流值；字段缺失时不会在页面重算。");
@@ -823,6 +830,13 @@ test("Financials vNext remains bilingual and overflow-safe on mobile", async ({ 
   await testInfo.attach("financials-current-zh", {
     path: capturePath, contentType: "image/png",
   });
+  await financials.getByRole("button", { name: "稀释每股收益", exact: true }).click();
+  const selected = financials.getByLabel("所选指标历史");
+  await expect(selected.locator("h3")).toHaveText("稀释每股收益");
+  await expect(selected.locator(".fin-financials-selected-value strong")).toHaveText("2.90");
+  await expect(selected.locator(".fin-financials-selected-value")).toContainText("USD / 股");
+  await selected.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: testInfo.outputPath("financials-selected-metric-zh.png"), animations: "disabled" });
 });
 
 test("Financials snapshot preserves period columns when a metric is incomplete", async ({ page }) => {

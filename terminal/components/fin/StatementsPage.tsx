@@ -13,7 +13,7 @@
  * columns map to the fiscal-year-end quarter. Icon renders only when a tx exists
  * (absence IS the empty state — §7.5).
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick, fmtNum, fmtPct, fmtDate, statementCurrencyLabel } from "../../lib/finFormat";
 import type { Fund, StatementNormalizationMethod, StatementPeriodSet, StatementSourceFamily } from "../../lib/fund";
@@ -135,6 +135,9 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
   const zh = lang === "zh";
   const [stmt, setStmt] = useState<Stmt>(focus?.stmt ?? "income");
   const [requestedAQ, setAQ] = useState<AQ>(focus?.basis ?? "annual");
+  const [selectedMetric, setSelectedMetric] = useState<{ sym: string; stmt: Stmt; id: string } | null>(null);
+  const metricPanelId = useId();
+  const historyId = useId();
   const annualAvailable = statementBasisAvailable(fund?.statements?.annual);
   const interimAvailable = statementBasisAvailable(fund?.statements?.quarterly);
   const aq: AQ = resolveStatementBasis(requestedAQ, annualAvailable, interimAvailable);
@@ -195,7 +198,7 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
 
   // Keep canonical array positions intact until the compact snapshot selects its period window.
   // Both the trajectory and table below use the same normalized source; full history remains paged.
-  const chartSeries: Series[] = buildChartSeries(stmt, set, view, zh);
+  const chartIncome = incomeChartValues(view);
 
   // ── table rows: TV taxonomy per statement ──
   const rows: MiniRow[] = buildRows(stmt, set, view, aq, zh);
@@ -325,25 +328,25 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
         {
           id: "top-line",
           label: incomeViewTopLineLabel(view, zh),
-          values: snapshotValues(view.income.revenue),
+          values: snapshotValues(chartIncome.revenue),
           bold: true,
         },
         ...(isIndustrialIncomeView(view)
           ? [{
               id: "gross-profit",
               label: pick(zh, "Gross profit", "毛利"),
-              values: snapshotValues(view.income.gross_profit),
+              values: snapshotValues(chartIncome.gross_profit),
             }]
           : []),
         {
           id: "operating-income",
           label: pick(zh, "Operating income", "营业利润"),
-          values: snapshotValues(view.income.op_income),
+          values: snapshotValues(chartIncome.op_income),
         },
         {
           id: "net-income",
           label: pick(zh, "Net income", "净利润"),
-          values: snapshotValues(view.income.net_income),
+          values: snapshotValues(chartIncome.net_income),
           bold: true,
         },
         ...(isIndustrialIncomeView(view)
@@ -376,10 +379,13 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
           { id: "capex", label: pick(zh, "Capital expenditure", "资本支出"), values: snapshotValues(set?.cashflow?.capex) },
           { id: "fcf", label: pick(zh, "Free cash flow", "自由现金流"), values: snapshotValues(set?.cashflow?.fcf), bold: true },
         ];
-  const trajectorySeries: Series[] = chartSeries.slice(0, 1).map((series) => ({
-    ...series,
-    values: snapshotValues(series.values),
-  }));
+  const activeMetric = (selectedMetric?.sym === sym && selectedMetric.stmt === stmt
+    ? snapshotRows.find(row => row.id === selectedMetric.id) : null) ?? snapshotRows[0];
+  const metricValue = activeMetric?.values[snapshotCount - 1] ?? null;
+  const metricFormat = activeMetric?.fmt ?? fmtNum;
+  const trajectorySeries: Series[] = activeMetric
+    ? [{ name: activeMetric.label, values: activeMetric.values, color: "var(--brand)" }]
+    : [];
 
   return (
     <div className="fin-stmts" data-financials-vnext="">
@@ -423,35 +429,11 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
       </section>
 
       <section className="fin-financials-core-grid" data-financials-vnext-explorer="">
-        <article className="fin-card fin-financials-trajectory">
-          <header className="fin-financials-card-head">
-            <div>
-              <h3>
-                {stmt === "income"
-                  ? pick(zh, "Income trajectory", "利润趋势")
-                  : stmt === "balance"
-                    ? pick(zh, "Balance-sheet trajectory", "资产负债趋势")
-                    : pick(zh, "Cash-flow trajectory", "现金流趋势")}
-              </h3>
-            </div>
-            <small>{pick(zh, "Latest four normalized periods", "最近四个标准化报告期")}</small>
-          </header>
-          {snapshotPeriods.length > 0 && trajectorySeries.length > 0 ? (
-            <Bars labels={snapshotPeriods} series={trajectorySeries} fmtY={fmtNum} zh={zh} height={190} />
-          ) : (
-            <div className="fin-empty fin-empty-lg" role="status">
-              <div className="fin-empty-title">{pick(zh, "No trajectory available", "暂无趋势数据")}</div>
-              <div className="fin-empty-why">
-                {pick(zh, "The selected statement basis has no published periods.", "当前所选报表口径没有已发布报告期。")}
-              </div>
-            </div>
-          )}
-        </article>
-
         <article className="fin-card fin-financials-statement-snapshot">
           <header className="fin-financials-card-head">
             <div>
               <h3>{stmtTitle}</h3>
+              <p>{pick(zh, "Select a metric to explore its reported history.", "选择指标，查看已报告的历史数据。")}</p>
             </div>
           </header>
           {snapshotPeriods.length > 0 ? (
@@ -465,8 +447,13 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
                 </thead>
                 <tbody>
                   {snapshotRows.map((row) => (
-                    <tr key={row.id}>
-                      <th scope="row" className={row.bold ? "strong" : ""}>{row.label}</th>
+                    <tr key={row.id} data-selected={activeMetric?.id === row.id}>
+                      <th scope="row" className={row.bold ? "strong" : ""}>
+                        <button type="button" className="fin-financials-metric-button" aria-pressed={activeMetric?.id === row.id}
+                          aria-controls={metricPanelId} onClick={() => setSelectedMetric({ sym, stmt, id: row.id })}>
+                          {row.label}
+                        </button>
+                      </th>
                       {row.values.map((value, index) => (
                         <td className={row.bold ? "strong num" : "num"} key={snapshotPeriods[index] ?? index}>
                           {value == null ? "—" : row.fmt ? row.fmt(value) : fmtNum(value)}
@@ -480,6 +467,30 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
           ) : (
             <div className="fin-empty fin-empty-lg" role="status">
               <div className="fin-empty-title">{pick(zh, "No statement snapshot", "暂无报表快照")}</div>
+              <div className="fin-empty-why">
+                {pick(zh, "The selected statement basis has no published periods.", "当前所选报表口径没有已发布报告期。")}
+              </div>
+            </div>
+          )}
+        </article>
+
+        <article className="fin-card fin-financials-trajectory" id={metricPanelId} aria-label={pick(zh, "Selected metric history", "所选指标历史")}>
+          <header className="fin-financials-card-head">
+            <div>
+              <span>{pick(zh, "Selected metric", "所选指标")}</span>
+              <h3>{activeMetric?.label ?? stmtTitle}</h3>
+            </div>
+            <a className="fin-link" href={`#${historyId}`}>{pick(zh, "Full statement", "完整报表")} <span aria-hidden>↘</span></a>
+          </header>
+          <div className="fin-financials-selected-value" aria-live="polite" aria-atomic="true">
+            <strong className="num">{metricValue == null ? "—" : metricFormat(metricValue)}</strong>
+            <span>{latestPeriod} · {ccyLabel}{activeMetric?.id === "diluted-eps" ? pick(zh, " per share", " / 股") : ""}</span>
+          </div>
+          {snapshotPeriods.length > 0 && trajectorySeries.length > 0 ? (
+            <Bars labels={snapshotPeriods} series={trajectorySeries} fmtY={metricFormat} zh={zh} height={190} noLegend />
+          ) : (
+            <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty-title">{pick(zh, "No trajectory available", "暂无趋势数据")}</div>
               <div className="fin-empty-why">
                 {pick(zh, "The selected statement basis has no published periods.", "当前所选报表口径没有已发布报告期。")}
               </div>
@@ -554,7 +565,7 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
       )}
 
       {/* ── 3. DATA TABLE ── */}
-      <section className="fin-sec">
+      <section className="fin-sec" id={historyId}>
         <div className="fin-sec-h fin-rail fin-rule" style={{ "--rail": "var(--brand)" } as React.CSSProperties}>
           {pick(zh, "Full history", "完整历史")}
           {span && (
@@ -606,47 +617,6 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
       <div className="fin-asof">{basisLine}</div>
     </div>
   );
-}
-
-/* ── mini-chart series per statement type (§1.2) ── */
-function buildChartSeries(
-  stmt: Stmt,
-  set: StatementPeriodSet | null | undefined,
-  view: IncomeView,
-  zh: boolean,
-): Series[] {
-  if (!set) return [];
-  const bal = set.balance,
-    cf = set.cashflow;
-  if (stmt === "income") {
-    // The NORMALIZED block — never `set.income`. These arrays are the same objects
-    // buildRows prints, so the strip and the table cannot show different numbers.
-    const inc = incomeChartValues(view);
-    const common: Series[] = [
-      { name: incomeViewTopLineLabel(view, zh), values: inc.revenue, color: "var(--brand)" },
-      { name: pick(zh, "Operating income", "营业利润"), values: inc.op_income, color: "var(--warn)" },
-      { name: pick(zh, "Pretax income", "税前利润"), values: inc.pretax_income, color: "var(--brand-2)" },
-      { name: pick(zh, "Net income", "净利润"), values: inc.net_income, color: "var(--code-fn)" },
-    ];
-    if (isIndustrialIncomeView(view)) {
-      common.splice(1, 0, {
-        name: pick(zh, "Gross profit", "毛利"),
-        values: inc.gross_profit,
-        color: "var(--up)",
-      });
-    }
-    return common;
-  }
-  if (stmt === "balance")
-    return [
-      { name: pick(zh, "Total assets", "总资产"), values: bal.assets, color: "var(--brand)" },
-      { name: pick(zh, "Total liabilities", "总负债"), values: bal.liabilities, color: "var(--up)" },
-    ];
-  return [
-    { name: pick(zh, "Operating", "经营活动"), values: cf.cfo, color: "var(--brand)" },
-    { name: pick(zh, "Investing", "投资活动"), values: cf.cfi, color: "var(--up)" },
-    { name: pick(zh, "Financing", "筹资活动"), values: cf.cff, color: "var(--warn)" },
-  ];
 }
 
 /* ── TV row taxonomy per statement (§4–6) ── */

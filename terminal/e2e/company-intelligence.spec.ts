@@ -362,9 +362,12 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperResults).toContainText("18.4%");
   await expect(paperResults).toContainText("16.3% prior");
   await expect(paperResults).toContainText("+2.1 pp vs prior");
-  await expect(paperResults).toContainText("Guidance is not available in the published research record.");
-  await expect(paperResults).toContainText("Unavailable · no licensed pre-event estimates");
-  await expect(paperResults).toContainText("Research context · no trade ranking or position sizing");
+  await expect(paperResults).toContainText("Structured guidance is not available in this research record.");
+  const fallbackLimits = paperResults.locator(".ci-paper-results-boundary");
+  await fallbackLimits.locator("summary").click();
+  await expect(fallbackLimits.getByText("Unavailable · no licensed pre-event estimates", { exact: true })).toBeVisible();
+  await expect(fallbackLimits.getByText("Research context · no trade ranking or position sizing", { exact: true })).toBeVisible();
+  await fallbackLimits.locator("summary").click();
   await expectNoDocumentOverflow(page);
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
@@ -844,7 +847,7 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('[data-fin-family="intelligence"]')).toHaveText("公司情报");
-  await expect(page.locator(".ci-hero").getByRole("button", { name: "查看凭证" })).toBeVisible();
+  await expect(page.locator(".ci-hero").getByRole("button", { name: "来源", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "询问 Mastermind" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "策展篮子背景" })).toBeVisible();
   await expect(page.locator(".ci-theme-card")).toContainText("代理映射");
@@ -1044,10 +1047,13 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperResults).toContainText("$109.4B");
   await expect(paperResults).toContainText("9–11%");
   await expect(paperResults).toContainText("Comparable prior-event metrics are not available");
-  await expect(paperResults).toContainText("Unavailable · pre-event estimates are unlicensed");
-  await expect(paperResults).toContainText("Unavailable · event and price data are not linked");
-  await expect(paperResults).toContainText("Research context · no trade ranking or position sizing");
-  await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
+  const currentLimits = paperResults.locator(".ci-paper-results-boundary");
+  await currentLimits.locator("summary").click();
+  await expect(currentLimits.getByText("Unavailable · pre-event estimates are unlicensed", { exact: true })).toBeVisible();
+  await expect(currentLimits.getByText("Unavailable · event and price data are not linked", { exact: true })).toBeVisible();
+  await expect(currentLimits.getByText("Research context · no trade ranking or position sizing", { exact: true })).toBeVisible();
+  await currentLimits.locator("summary").click();
+  await expect(page.locator("[data-ci-repricing-evidence]")).toContainText("no beat/miss claim");
   const repricing = page.locator("[data-ci-repricing-evidence]");
   await expect(repricing).toBeVisible();
   await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
@@ -1182,7 +1188,7 @@ test("AAPL workspace remains usable in Chinese without overflow", async ({ page 
   await expect(page.locator(".ci-honest")).toContainText("暂无结构化计数");
   await expect(page.locator(".ci-honest")).not.toContainText("14");
   const close = page.locator(".ci-evidence-close");
-  await page.getByRole("button", { name: "查看凭证" }).click();
+  await page.locator(".ci-hero").getByRole("button", { name: "来源", exact: true }).click();
   await expect(page.locator(".ci-evidence")).toHaveAttribute("aria-hidden", "false");
   await expectTapTarget(close, { height: 44 });
   await closeEvidenceOverlay(page);
@@ -1194,8 +1200,8 @@ test("AAPL workspace remains usable in Chinese without overflow", async ({ page 
   await page.locator(".ci-lenses").getByRole("tab", { name: "来源" }).click();
   const sources = page.locator("[data-ci-paper-sources]");
   await expect(sources).toBeVisible();
-  await expect(sources).toContainText("来源与方法");
-  await expect(sources).toContainText("覆盖矩阵");
+  await expect(sources).toContainText("证据与覆盖范围");
+  await expect(sources).toContainText("可用材料");
   await expect(sources).toContainText("未授权");
   await expect(sources).toContainText("未关联");
   await expect(sources).toContainText("仅供背景参考");

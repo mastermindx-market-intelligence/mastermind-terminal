@@ -52,6 +52,9 @@
 .ci-paper-call-actions{display:flex!important;align-items:center!important;gap:6px!important;min-width:180px!important}
 .ci-paper-call-actions button{min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:6px;color:var(--brand-2);font:620 12px/1 var(--font-ui);white-space:nowrap}
 .ci-paper-call-actions button:hover{background:color-mix(in srgb,var(--brand) 6%,transparent)}
+.ci-paper-call-expand{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px 16px;border-top:1px solid var(--line);color:var(--muted);font:400 12px/1.5 var(--font-ui)}
+.ci-paper-call-expand button{min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:6px;color:var(--brand-2);font:550 12px/1.4 var(--font-ui)}
+.ci-paper-call-expand button:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
 .ci-paper-call-search{display:grid}
 .ci-paper-call-search>header{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid var(--line-2)}
 .ci-paper-call-search>header p{margin:0;color:var(--muted);font:500 12px/1.3 var(--font-ui)}
