@@ -140,7 +140,7 @@ describe("rotation_read proxy-only source (COO rulings 57/65)", () => {
   it("keeps rotation_read out of the workspace fetch lists", () => {
     expect(SECTOR_FEEDS).not.toContain("rotation_read");
     expect(FINVIZ_FEEDS).not.toContain("rotation_read");
-    expect(PROXY_ONLY_SOURCES).toEqual(["rotation_read"]);
+    expect(PROXY_ONLY_SOURCES).toEqual(["rotation_read", "flagship_cycles"]);
   });
   it("admits the strict v1 envelope and stamps the receipt from its own as_of day", () => {
     expect(readableOwnerEnvelope("rotation_read", rotationRead)).toBe(true);

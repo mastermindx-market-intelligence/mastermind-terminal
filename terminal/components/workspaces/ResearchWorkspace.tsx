@@ -308,7 +308,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  </section>;
  return <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
   <header className={styles.heading}><div><h1>{c.title}</h1>{!hasSelection && <p>{c.intro}</p>}</div>
-   <div className={styles.actions}>{hasSelection && <a href="#research-library" onClick={() => setLibraryOpen(true)}>{e.browseLibrary}</a>}<Link href="/analysis?view=investigations">{c.saved}</Link><Link href="/research_screener.html">{pick(lang === "zh", "Research screener", "研究筛选器")}</Link><Link href="/today">{c.return}</Link></div>
+   <div className={styles.actions}>{hasSelection && <a href="#research-library" onClick={() => setLibraryOpen(true)}>{e.browseLibrary}</a>}<Link href="/analysis?view=investigations">{c.saved}</Link><Link href="/cycle-intelligence">{pick(lang === "zh", "周期研究", "Cycle Intelligence")}</Link><Link href="/research_screener.html">{pick(lang === "zh", "Research screener", "研究筛选器")}</Link><Link href="/today">{c.return}</Link></div>
   </header>
   {ended ? <div role="status" className={styles.notice}>{c.auth} <button onClick={() => onboarding.open("signin")}>{c.signIn}</button><button onClick={retryIdentity}>{pick(lang === "zh", "Recheck selected context", "重新验证所选内容")}</button></div>
    : identityUnavailable ? <div role="status" className={styles.notice}><p>{pick(lang === "zh", "The account service is unavailable. Private research is hidden.", "账户服务暂不可用。私人研究已隐藏。")}</p><button onClick={retryIdentity}>{c.retry}</button></div>

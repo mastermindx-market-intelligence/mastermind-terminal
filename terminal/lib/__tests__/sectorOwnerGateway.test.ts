@@ -63,6 +63,26 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+describe("protected flagship cycle model", () => {
+  it("uses the fixed cycle asset and stamps the measurement clock", async () => {
+    const data = {version:1, order:["gold"], tape_as_of:"2026-03-03", notes_as_of:"2026-01-01",
+      cycles:{gold:{id:"gold",short:"Gold",bands:[{band:"secular",tier:"frame",turns:[]}]}}};
+    upstream.mockResolvedValueOnce(Response.json(data));
+    const response = await GET(request("flagship_cycles"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).receipt).toMatchObject({source:"flagship_cycles",asOf:"2026-03-03"});
+    expect(String(upstream.mock.calls[0][0])).toBe(OWNER+"/cycledata/cycle_engine.json");
+    expect(upstream.mock.calls[0][1]).toMatchObject({cache:"no-store",redirect:"manual",headers:{Cookie:FILTERED_COOKIE}});
+  });
+  it("withholds the cycle body from guests and refused members", async () => {
+    expect((await GET(request("flagship_cycles",null))).status).toBe(401);
+    expect(upstream).not.toHaveBeenCalled();
+    upstream.mockResolvedValueOnce(new Response(null,{status:403}));
+    const response=await GET(request("flagship_cycles"));expect(response.status).toBe(403);
+    expect((await response.json()).data).toBeNull();
+  });
+});
+
 describe("sector gateway owner-envelope admission", () => {
   it.each(["accepted", "stale", "degraded"])("keeps the native %s verdict without inferring temporal staleness", async qualification => {
     const data = entitledGeneration();
