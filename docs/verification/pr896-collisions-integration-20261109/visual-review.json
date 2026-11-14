@@ -1,0 +1,10 @@
+{
+  "schema": "terminal_pr896_actual_visual_review.v1",
+  "paths": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png"
+  ],
+  "observations": "Actual current matrix inspected: Chinese unresolved condition explains non-observation, desktop degraded state preserves last successful check and retry, phone watching state shows one condition, Chinese never-ran state does not imply a completed check. No developer indicator or corrupted raster seen."
+}

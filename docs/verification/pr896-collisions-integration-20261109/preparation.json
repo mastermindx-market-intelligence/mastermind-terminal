@@ -1,0 +1,220 @@
+{
+  "completedAt": "2026-11-09T16:27:51.282655+00:00",
+  "head": "cb3b9a937c9eeb8d8cb2b10c9f1a0d1e8510bfa0",
+  "lawPin": "494d095813dad415938800fa0e4d2719497738fa",
+  "merge": {
+    "exit": 1,
+    "stderr": "",
+    "stdout": "Auto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/EVIDENCE.yml\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390-zh.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390-zh.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390-zh.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png\nAutomatic merge failed; fix conflicts and then commit the result.\n"
+  },
+  "operation": "terminal-pr896-collisions-integration-20261109",
+  "priorPackets": {
+    "prior-master": {
+      "files": {
+        "EVIDENCE.yml": {
+          "bytes": 2054,
+          "gitBlob": "8ef269500636a8c2a5a8e7ae79fa411bc9e2939e",
+          "sha256": "504edcd0874d73d2723ad19a6963eecbeac3540099033d5a701296b4ed6c2fb0"
+        },
+        "suite-degraded-1440-zh.png": {
+          "bytes": 144319,
+          "gitBlob": "bd0828210ba0ded9f845855d49a1c10876e9124b",
+          "sha256": "e1b459a0c797bba25446ac0e86f64f559086bfd40f312b18fb68203a1ac88d11"
+        },
+        "suite-degraded-1440.png": {
+          "bytes": 139495,
+          "gitBlob": "1126096cfb45f3b9ac99aab2936f74d378ddd6d3",
+          "sha256": "7b5d7062f36723dbf407f515be8164d29c09c935d10c484b75a77b883eaa9b72"
+        },
+        "suite-degraded-390-zh.png": {
+          "bytes": 85046,
+          "gitBlob": "2d1a43ba18fd8c5ffb5b00501e34bfa43c891652",
+          "sha256": "b5351c4ffb1a18e29ecd7c8cb762113094b08166d11d02d8541dbbac5bcc0450"
+        },
+        "suite-degraded-390.png": {
+          "bytes": 69238,
+          "gitBlob": "b9a9b7207c99e2ebfd8bd1de4508699de8b3dadd",
+          "sha256": "dc3ba2a2cd24b8a024a0fea6c5281057491843ada78bbed4cbe6b84d1c38b6bf"
+        },
+        "suite-never-ran-1440-zh.png": {
+          "bytes": 125343,
+          "gitBlob": "8b2e397f9c9c707cba32b2f91fbcfd29aecb8e35",
+          "sha256": "67de200503b6b647eeda471a3e5bb0032e81e0b1af5683ac05016c1ce4e2ba68"
+        },
+        "suite-never-ran-1440.png": {
+          "bytes": 118761,
+          "gitBlob": "6ee5a69f332723839b4ba98e083697926a58b1a0",
+          "sha256": "d9d1c8871cb649ec5fc11736644948a6e5270e82ff775ade09eb9aa1a6cb240d"
+        },
+        "suite-never-ran-390-zh.png": {
+          "bytes": 77225,
+          "gitBlob": "c9ffb110956cc28c01b515b80bfdbe13ac9af399",
+          "sha256": "aea3088c3f4557fd4271946eb36aa5f310beab942ce81922b4f47f6ee09a5873"
+        },
+        "suite-never-ran-390.png": {
+          "bytes": 63904,
+          "gitBlob": "8dd1d10cd13989fddc01eb494d91d72a306c5aef",
+          "sha256": "4daa8b1cea684ce10e615b1f656710371725475a28089e2dfe9d53d84b27c2bd"
+        },
+        "unresolved-1440-zh.png": {
+          "bytes": 125288,
+          "gitBlob": "a2fe528cda9b24fd3f9e22513caf5225ea4f2e00",
+          "sha256": "158fe61d38eb1da76ec02ad91b12e5d8aabda537f54d446fcd4c711ef9a7a456"
+        },
+        "unresolved-1440.png": {
+          "bytes": 117775,
+          "gitBlob": "b624fc4c60f5dcc17bf705fcb12f3642cfbf05e6",
+          "sha256": "f5a163d675d5d56675924722bba16e264043f6f927d15eb6a0f945d5d29d56e6"
+        },
+        "unresolved-390-zh.png": {
+          "bytes": 82361,
+          "gitBlob": "d0afdea15236883c696b6b79c68da1c76f8e871e",
+          "sha256": "845437680f67b56c53af561c5c343668bb71af21a3dd32a56fbc6f361bafd207"
+        },
+        "unresolved-390.png": {
+          "bytes": 71248,
+          "gitBlob": "74f2629c7c33c62d78296628c24133dce30ff160",
+          "sha256": "f02e9f8df46a1e7fb9f3bf4bab26b7e7b909fcb7d18731eeb8691b316bed59b5"
+        },
+        "watching-1440-zh.png": {
+          "bytes": 115962,
+          "gitBlob": "94fad19a09f4c77bad19f37544a66d690a69ac81",
+          "sha256": "47da327a92252c309c1392df8f99452252196ba7e313f87ea1b031f97cc2d300"
+        },
+        "watching-1440.png": {
+          "bytes": 107993,
+          "gitBlob": "a022ddde7e826825c7294e6bd551f2f2209adfbf",
+          "sha256": "838244783a290c705d2aa8544267d06462627bdcb8da650f4d8b52afe2f00e00"
+        },
+        "watching-390-zh.png": {
+          "bytes": 73027,
+          "gitBlob": "688b50a4ef0d35beca84942c6cc260489afe4296",
+          "sha256": "165bec759419ed924c87bedd9267ca92e709810878469aa7aefac5c025b142c9"
+        },
+        "watching-390.png": {
+          "bytes": 61334,
+          "gitBlob": "da1be0b3fd39df3840b2f0af94a4300303e858a8",
+          "sha256": "0918ede4866181a20513dfdf900209c6417ea6b3aefb1859332c501b5adc95eb"
+        }
+      },
+      "ref": "03af393ce05c12282003a3919cc473c032264922"
+    },
+    "prior-pr": {
+      "files": {
+        "EVIDENCE.yml": {
+          "bytes": 2636,
+          "gitBlob": "75c0631bc436175c65469a9c3945f683af015fd9",
+          "sha256": "ff9b29bded2835f2d5d6af8cc77074b8b9c6f52095cb9ba6addbb69d641495ff"
+        },
+        "suite-degraded-1440-zh.png": {
+          "bytes": 139803,
+          "gitBlob": "a5728e181e1a2f4876d89e247894e44abc8bd545",
+          "sha256": "f7e9fde451e3ea30ec2979434f3c99602700385a27a920e030d775fc1d7ca2e2"
+        },
+        "suite-degraded-1440.png": {
+          "bytes": 134444,
+          "gitBlob": "0bfee2622f52dedab0736b6d9eb307ea10740cfd",
+          "sha256": "a6d0fb058a4a6377cb6f6111db695a5ca644aed1d0b8de6f08fba8a7200ff329"
+        },
+        "suite-degraded-390-zh.png": {
+          "bytes": 82561,
+          "gitBlob": "2636e7b38117703c5a32fc1c47a6434f49212be6",
+          "sha256": "8d60706287a989f12e4c19a0bc50692e4f53f6aab0a408880a43564237a0130f"
+        },
+        "suite-degraded-390.png": {
+          "bytes": 69188,
+          "gitBlob": "64552d8ff6a010891d90653cc28fcd8858cea1eb",
+          "sha256": "eb4ccd089e161275ba23a85f813e40784bb910a0c63a5622a4b060b5f9c1f1f1"
+        },
+        "suite-never-ran-1440-zh.png": {
+          "bytes": 120796,
+          "gitBlob": "870dd59c87677bd059abe49f413a740ca62e643e",
+          "sha256": "1739ac55ba7db54994ed9c5acf26ccc9a7ef54c2e341b51258e49f07bc56480b"
+        },
+        "suite-never-ran-1440.png": {
+          "bytes": 113763,
+          "gitBlob": "5bbef9b83bf61b1bd781a1546e9775357c6233a9",
+          "sha256": "84edfc4047618b8f2efea3769e3c60d1ecb99bea26a6ab7b69b8473520dc76a1"
+        },
+        "suite-never-ran-390-zh.png": {
+          "bytes": 76907,
+          "gitBlob": "6928e15eb179f9ca870bb0291637e5af3318c083",
+          "sha256": "a98870e5aa02140671047631d66900d38ab7ef6b16002488912c52e7aea53680"
+        },
+        "suite-never-ran-390.png": {
+          "bytes": 63971,
+          "gitBlob": "11d4d5334ea020a79dc9482fdcab388107cadcd0",
+          "sha256": "2cffaf3380c139c0b26103223904f1c6c97d1ad78e4711316174ac35ecb1873d"
+        },
+        "unresolved-1440-zh.png": {
+          "bytes": 120638,
+          "gitBlob": "c0e779fc9d56a0b873ffba9bef73d7b3f7afdf62",
+          "sha256": "b43772b227921f32eb6cb96ccf6158bd3707a5e11c7148ecd92057bf0d700cb4"
+        },
+        "unresolved-1440.png": {
+          "bytes": 111935,
+          "gitBlob": "09cacb356a26e2fe7ec37492e8472c783a6d024b",
+          "sha256": "3258ed4fffdc0a766e224b6898ffff994cd07231aca9ab8dc8f7ac7f83625603"
+        },
+        "unresolved-390-zh.png": {
+          "bytes": 77907,
+          "gitBlob": "e271ec15df37eae67efbab4977a96fc0e1f06b7b",
+          "sha256": "fc434fc98c29e139d8922f45a3e67a9246a34d866a98314608bfd4ba915f7fd1"
+        },
+        "unresolved-390.png": {
+          "bytes": 72814,
+          "gitBlob": "4b43a1db6a041c51dc293e72ad5aa6aa7d475923",
+          "sha256": "a2f071e1884ad4af774e21cd6a9c646a7edb467b2c0cba9b67c27ed069fad74c"
+        },
+        "watching-1440-zh.png": {
+          "bytes": 111252,
+          "gitBlob": "6b28e1b6faf8db823153883f9eccd965f979ffca",
+          "sha256": "9473ecdbf26133e70afc169e671b0a3f8d25f7a43fb6a543fa21584fc73ceb8c"
+        },
+        "watching-1440.png": {
+          "bytes": 108505,
+          "gitBlob": "e5e238dd26c9d0bda54958d284c30ce9a5570276",
+          "sha256": "2a710026ff80a571ba3c376ac3fd9f84d72b61edb2264d1601c3ff6e855a2903"
+        },
+        "watching-390-zh.png": {
+          "bytes": 68670,
+          "gitBlob": "cb9f3704e6a72f5f3a4e4648105ce2d637370ba3",
+          "sha256": "fc04c5dfcc1c0a804aa1a21a343368c512c9a4e6c2c650760add2a4daf7f9fce"
+        },
+        "watching-390.png": {
+          "bytes": 66155,
+          "gitBlob": "988ffb277c97bfef775f786547efcd84115fa7b5",
+          "sha256": "8c57ebe09e829a29b2611618fb90ac883cbb48427ee27342f3ce555901055034"
+        }
+      },
+      "ref": "cb3b9a937c9eeb8d8cb2b10c9f1a0d1e8510bfa0"
+    }
+  },
+  "producerGitBlob": "b7c35f2e530a080c9c640d0d8f09c5041fba64a6",
+  "producerSha256": "9ce58a01efc73effb8c0dd7db87b49a6aef2144a8d87499a106d7fdef6deb202",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "protectedWorkflowUnchanged": true,
+  "resolvedConflicts": [
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/EVIDENCE.yml",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-1440.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-degraded-390.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-1440.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/suite-never-ran-390.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-1440.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/unresolved-390.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-1440.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390-zh.png",
+    "terminal/docs/pr-crops/b-f08-b5-3-collisions/watching-390.png"
+  ],
+  "schema": "terminal_pr896_integration_preparation.v1",
+  "startedAt": "2026-11-09T16:27:44.842631+00:00",
+  "state": "INTEGRATED_PRIOR_PACKETS_PRESERVED_NONDESTRUCTIVE_INDICATOR_ASSERTION",
+  "takeoverComment": 6745298157
+}

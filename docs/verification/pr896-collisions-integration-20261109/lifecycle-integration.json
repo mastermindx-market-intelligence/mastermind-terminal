@@ -1,0 +1,29 @@
+{
+  "at": "2026-11-09T16:33:22.272785+00:00",
+  "incumbentOwnerSha256": "476924e45e29dbf4577bc17b262b429fca2ac4a4501438e1ff0f56c9c93f145f",
+  "preservedPriorPacket": {
+    "EVIDENCE.yml": "1bea845d85b4570c85482952656fbb0c0f223cd1277c88720c70d6daa045f319",
+    "suite-degraded-1440-zh.png": "212f15435b638fffe91622a449c4730c58601b15ddbfeff0415a329e0895b97d",
+    "suite-degraded-1440.png": "4e1f2982df4dd3ccbb626e503698d4793254938067bceeb1baf2092aaffbc53b",
+    "suite-degraded-390-zh.png": "2b075cf485a1dc3ca0043c1ab246138146c41e588005d6bdbe7c6872a30d60fb",
+    "suite-degraded-390.png": "e8ddd403fe6ff06c28e007cc54db91d027175134202a657fb073e5fa76db815d",
+    "suite-never-ran-1440-zh.png": "a8353e11511f98c3377f0c4a0acf4721b07a42e2e666bc136765f3125080d21e",
+    "suite-never-ran-1440.png": "0ac2308722101ba170ed8fd09545d596550f38676451d1e48aaf6b79a928ff85",
+    "suite-never-ran-390-zh.png": "4d6b68b52b8326fe578d20b4dc0b544505a177fd6915eb2df314cc8554eaaa27",
+    "suite-never-ran-390.png": "9b29090951534f7c08cacc795a7aa19ba2dfb2efc789b6da0490dca6614cf6e6",
+    "unresolved-1440-zh.png": "de7e62457ce36ab990180f0516c9420f199c295f3a5cdc8e1b76a29ff9169ef3",
+    "unresolved-1440.png": "25e633552c824748f5093e2737fda19f17c2f34b62f3c777370455e0b37bd577",
+    "unresolved-390-zh.png": "f967e8acc4155d674754f484148c3fc30815f5030fd25a78c59b152ed62d4615",
+    "unresolved-390.png": "530b9c15f548e21a452b85e616158a37b947fa64ddda8b266cb1d5149a446c83",
+    "watching-1440-zh.png": "241ca6569bc61d887400170bfd793e6e243a2958950c6be7ad9e89ebdee13e16",
+    "watching-1440.png": "5268c92a6c1d52d4d5da7dc82164cb0d4f2e64c6d82202955b01767a1958a4ec",
+    "watching-390-zh.png": "85e89b345678a331bd3fbda8486bcb858b2ebae1a970e067c5fc49c18030e184",
+    "watching-390.png": "f0fe0f8fa9f7304a6f505c82c52cc8397569fe09f6306f039f7af26c925a05e0"
+  },
+  "priorCaptureState": "FULL_16_CAPTURE_QUALIFIED",
+  "priorProducerSha256": "9ce58a01efc73effb8c0dd7db87b49a6aef2144a8d87499a106d7fdef6deb202",
+  "producerSha256": "799930ffbff45bdd401b321e021f2877d454ef28bf002f0fb5fb69613c360894",
+  "reason": "The old shutdown swallowed non-ESRCH signal errors and readiness accepted any 4xx; reuse the existing repository lifecycle owner.",
+  "schema": "terminal_pr896_shared_lifecycle_integration.v1",
+  "syntaxExit": 0
+}
