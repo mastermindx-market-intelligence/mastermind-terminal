@@ -209,9 +209,8 @@
   .briefColumns, .exploreColumns, .dossierColumns { flex-direction: column; }
   /* Row-layout grow rules must not apply once the columns stack: with
    * flex-basis 0 in a column container they collapse the card to its border. */
-  .briefMain, .dossierMain, .rankCard { flex: 0 0 auto; }
-  .rankCard { width: 100%; }
-  .briefSide, .inspector, .dossierSide { flex-basis: auto; width: 100%; }
+  .briefMain, .dossierMain, .rankCard { flex: 0 0 auto; width: 100%; min-width: 0; }
+  .briefSide, .inspector, .dossierSide { flex-basis: auto; width: 100%; min-width: 0; }
   .hero { flex-direction: column; gap: 18px; }
   .heroStats { padding-left: 0; padding-top: 18px; border-left: 0; border-top: 1px solid var(--sn-line); gap: 40px; }
 }

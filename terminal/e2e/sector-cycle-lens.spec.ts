@@ -242,7 +242,7 @@ for (const [lang, theme] of cases) {
       const date = (await observation.locator("time").textContent())!.trim();
       const value = (await observation.locator("strong").first().textContent())!.trim();
       const selectFamily = async (label: string) => {
-        if (initialViewport.width >= 641 && initialViewport.width <= 980) {
+        if (initialViewport.width <= 980) {
           await page.getByTestId("sector-cycle-lens").getByRole("button", { name: L.changeSeries, exact: true }).click();
           const sheet = page.getByRole("dialog");
           await expect(sheet).toBeVisible();
@@ -306,9 +306,9 @@ for (const [lang, theme] of cases) {
 
     const rail = page.getByTestId("cycle-phase-rail");
     const panel = page.getByTestId("cycle-chart-panel");
-    // R5-Y04 replaces the rail with the real picker only in the tablet band.
+    // Compact layouts use the real series picker on phones and tablets.
     const width = page.viewportSize()!.width;
-    const usesPicker = width >= 641 && width <= 980;
+    const usesPicker = width <= 980;
     const heroTicker = page.getByTestId("cycle-hero").locator("h3 > b");
     const openPicker = async () => {
       await expect(rail).toBeHidden();

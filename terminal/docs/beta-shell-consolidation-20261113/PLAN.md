@@ -195,3 +195,16 @@ The member browser qualifier retains desktop 1440, tablet 820 and 320px stress a
 Full `/sector_cycles.html`, its 24 legacy anchors, CN cycles, universe/price/oscillator/DNA/hazard/forecast depth, same-close basket comparison and authoritative deep publication remain unretired. This is useful native history, not complete Cycles parity. No merge, deployment or whole-program acceptance is claimed.
 
 Next safe source phase: P3 native Macro detail over the existing authenticated Macro command/validated workspace reader. Current summary alone cannot replace `/macro.html`; inspect the existing rich Liquidity Regime view, published state and actual dated changes, preserve missing-history semantics, and bind the exact existing Paper board before implementation. Continue the remaining P0–P17 acceptance graph.
+
+## P2 qualification repair — original CI receipts
+
+PR1495 head `a243b08a59a74d3222b11882539c9e7b4728c989`, [CI run 43566949906](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43566949906), passed all three unit shards with the published synthetic fixture, TypeScript and the production build. This resolves the locally capacity-blocked changed-input unit qualification; it does not establish production acceptance.
+
+The original serial member qualifier and mobile-4 failures were diagnosed from their original logs and hash-verified artifacts, without rerunning a browser or weakening assertions/authentication:
+
+- Serial job `132363031186`: the 320px Brief measured 608px page width. Its chart's initial 560px width sized an unconstrained stacked flex child; the side column also retained a 300px minimum inside the 292px content area. The repair constrains stacked Brief/dossier/rank columns to the available width and clears their minimum widths so the existing ResizeObserver can measure the actual container. No global overflow hiding or chart clipping is added.
+- Mobile-4 job `132363031302`: four EN/ZH Cycle cases still chose the hidden rail at phone width. The product now deliberately uses the existing series picker for every width at or below 980px. Both test helpers now drive that picker, retaining draft, Apply, selected-state and history assertions.
+- Serial artifact `14103134121`, ZIP SHA-256 `14357938a70277817b945114572885b6d97b7210a5a5b0b3082b3909fcaf22f6`; the failure screenshot was inspected. Its qualification receipt identifies runner checkout `a0ba5f0ce150d80414cbd2d1f132581b1a98dcf5`, while the workflow artifact metadata identifies PR head `a243b08a…`; those identities are not conflated.
+- Mobile artifact `14103495092`, ZIP SHA-256 `cf56280fb05c7326ef0fe2fc081f2db7f88b90eeecd9bcdaea64e2453a31c862`, matched the published digest. These are original failed-run receipts, not repaired-run proof.
+
+The bounded repair stays on the original PR/carrier. Browser qualification of the corrected head is still required. Native P3 Liquidity design and implementation continue independently; no merge, deployment, full Cycles parity or parent-program completion is claimed.
