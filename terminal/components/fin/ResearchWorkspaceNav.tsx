@@ -43,27 +43,70 @@ export interface ResearchWorkspaceNavProps {
   page: FinPage;
   zh: boolean;
   onPage: (page: FinPage) => void;
+  /** Present the shared route state at its physical level; never introduce a second page router. */
+  variant?: "combined" | "families" | "local";
 }
 
 function pickLabel(labels: [string, string], zh: boolean) {
   return labels[zh ? 1 : 0];
 }
 
-export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorkspaceNavProps) {
+export function researchPageLabel(page: FinPage, zh: boolean) {
+  return pickLabel(LOCAL_LABELS[page], zh);
+}
+
+export default function ResearchWorkspaceNav({ page, zh, onPage, variant = "combined" }: ResearchWorkspaceNavProps) {
   const currentFamily = familyForPage(page);
   const localPages = FIN_FAMILY_PAGES[currentFamily];
   const [familySheetOpen, setFamilySheetOpen] = useState(false);
   const familyTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const navigationRef = useRef<HTMLElement | null>(null);
+  const sheetRef = useRef<HTMLElement | null>(null);
+  const focusFrameRef = useRef<number | null>(null);
 
   const familyLabel = useMemo(
     () => pickLabel(FAMILY_LABELS[currentFamily], zh),
     [currentFamily, zh],
   );
 
+  // A queued handoff belongs to this mounted navigation. A later user focus
+  // choice wins; stale frames cannot steal it or focus a hidden breakpoint owner.
+  const queueOwnedFocus = useCallback((target: () => HTMLElement | null) => {
+    if (focusFrameRef.current !== null) window.cancelAnimationFrame(focusFrameRef.current);
+    const previous = document.activeElement;
+    const frame = window.requestAnimationFrame(() => {
+      if (focusFrameRef.current !== frame) return;
+      focusFrameRef.current = null;
+      const active = document.activeElement;
+      if (active !== previous && active !== document.body && active?.isConnected) return;
+      const next = target();
+      if (next?.isConnected && next.getClientRects().length > 0) next.focus();
+    });
+    focusFrameRef.current = frame;
+    return frame;
+  }, []);
+
+  useEffect(() => () => {
+    if (focusFrameRef.current !== null) window.cancelAnimationFrame(focusFrameRef.current);
+    focusFrameRef.current = null;
+  }, []);
+
+  const returnFamilyFocus = useCallback((family: FinFamily) => queueOwnedFocus(() =>
+    window.matchMedia("(max-width: 860px)").matches
+      ? familyTriggerRef.current
+      : navigationRef.current?.querySelector<HTMLButtonElement>(`[data-fin-family="${family}"]`) ?? null,
+  ), [queueOwnedFocus]);
+
+  const closeFamilySheet = useCallback(() => {
+    setFamilySheetOpen(false);
+    returnFamilyFocus(currentFamily);
+  }, [currentFamily, returnFamilyFocus]);
+
   const chooseFamily = useCallback((family: FinFamily) => {
     onPage(defaultPageForFamily(family));
     setFamilySheetOpen(false);
-  }, [onPage]);
+    if (familySheetOpen) returnFamilyFocus(family);
+  }, [familySheetOpen, onPage, returnFamilyFocus]);
 
   const chooseLocal = useCallback((next: FinPage) => {
     onPage(next);
@@ -77,9 +120,9 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
     if (next < 0) return false;
     const target = FIN_FAMILY_ORDER[next];
     chooseFamily(target);
-    window.requestAnimationFrame(() => document.getElementById(`fin-family-${target}`)?.focus());
+    queueOwnedFocus(() => navigationRef.current?.querySelector<HTMLButtonElement>(`[data-fin-family="${target}"]`) ?? null);
     return true;
-  }, [chooseFamily]);
+  }, [chooseFamily, queueOwnedFocus]);
 
   const moveLocalFocus = useCallback((current: FinPage, key: string) => {
     const index = localPages.indexOf(current);
@@ -89,26 +132,59 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
     if (next < 0) return false;
     const target = localPages[next];
     chooseLocal(target);
-    window.requestAnimationFrame(() => document.getElementById(`fin-local-${target}`)?.focus());
+    queueOwnedFocus(() => navigationRef.current?.querySelector<HTMLButtonElement>(`[data-fin-local="${target}"]`) ?? null);
     return true;
-  }, [chooseLocal, localPages]);
+  }, [chooseLocal, localPages, queueOwnedFocus]);
 
   useEffect(() => {
     if (!familySheetOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
+    if (variant === "local") {
       setFamilySheetOpen(false);
-      window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
+      return;
+    }
+    const media = window.matchMedia("(max-width: 860px)");
+    if (!media.matches) {
+      closeFamilySheet();
+      return;
+    }
+    const entryFrame = queueOwnedFocus(() => sheetRef.current?.querySelector<HTMLButtonElement>(
+      `[data-fin-family-sheet="${currentFamily}"]`,
+    ) ?? sheetRef.current?.querySelector<HTMLButtonElement>("button") ?? null);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeFamilySheet();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const buttons = Array.from(sheetRef.current?.querySelectorAll<HTMLButtonElement>("button:not([disabled])") ?? [])
+        .filter(button => button.getClientRects().length > 0);
+      const first = buttons[0], last = buttons.at(-1);
+      if (!first || !last) return;
+      const active = document.activeElement;
+      if (!sheetRef.current?.contains(active) || (event.shiftKey ? active === first : active === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
     };
+    const onBreakpoint = () => { if (!media.matches) closeFamilySheet(); };
     window.addEventListener("keydown", onKey, { capture: true });
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [familySheetOpen]);
+    media.addEventListener("change", onBreakpoint);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      media.removeEventListener("change", onBreakpoint);
+      if (focusFrameRef.current === entryFrame) {
+        window.cancelAnimationFrame(entryFrame);
+        focusFrameRef.current = null;
+      }
+    };
+  }, [closeFamilySheet, currentFamily, familySheetOpen, queueOwnedFocus, variant]);
 
   return (
     <>
-      <nav className="fin-research-nav" aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
+      {variant !== "local" && (
+      <nav ref={navigationRef} className={`fin-research-nav${variant === "families" ? " fin-research-nav--primary" : ""}`} aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
         <div className="fin-family-tabs" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
           {FIN_FAMILY_ORDER.map((family) => {
             const active = family === currentFamily;
@@ -134,7 +210,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           })}
         </div>
 
-        {localPages.length > 1 && (
+        {variant === "combined" && localPages.length > 1 && (
           <>
             <span className="fin-research-nav-divider" aria-hidden />
             <span className="fin-local-label">{familyLabel}</span>
@@ -179,8 +255,36 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           </button>
         </div>
       </nav>
+      )}
 
-      {localPages.length > 1 && (
+      {variant === "local" && localPages.length > 1 && (
+        <nav ref={navigationRef} className="fin-page-subnav" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
+          <h2 className="fin-page-subnav-title">{familyLabel}</h2>
+          <div className="fin-local-tabs fin-local-tabs--desktop" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
+            {localPages.map((local) => (
+              <button
+                key={local}
+                id={`fin-local-${local}`}
+                type="button"
+                className={`fin-local-tab${page === local ? " on" : ""}`}
+                role="tab"
+                aria-selected={page === local}
+                aria-controls="fin-active-panel"
+                tabIndex={page === local ? 0 : -1}
+                data-fin-local={local}
+                onClick={() => chooseLocal(local)}
+                onKeyDown={(event) => {
+                  if (moveLocalFocus(local, event.key)) event.preventDefault();
+                }}
+              >
+                {pickLabel(LOCAL_LABELS[local], zh)}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+
+      {variant !== "families" && localPages.length > 1 && (
         <div className="fin-local-tabs-mobile" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
           {localPages.map((local) => (
             <button
@@ -198,18 +302,16 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
         </div>
       )}
 
-      {familySheetOpen && (
+      {variant !== "local" && familySheetOpen && (
         <div className="fin-family-sheet-layer" role="presentation">
           <button
             type="button"
             className="fin-family-sheet-scrim"
-            aria-label={pick(zh, "Close company page menu", "关闭公司页面菜单")}
-            onClick={() => {
-              setFamilySheetOpen(false);
-              window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
-            }}
+            tabIndex={-1}
+            aria-hidden="true"
+            onClick={closeFamilySheet}
           />
-          <section className="fin-family-sheet" role="dialog" aria-modal="true" aria-label={pick(zh, "Company pages", "公司页面")}>
+          <section ref={sheetRef} className="fin-family-sheet" role="dialog" aria-modal="true" aria-label={pick(zh, "Company pages", "公司页面")}>
             <div className="fin-family-sheet-handle" aria-hidden />
             <header>
               <div>
@@ -220,10 +322,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
                 type="button"
                 className="fin-family-sheet-close"
                 aria-label={pick(zh, "Close", "关闭")}
-                onClick={() => {
-                  setFamilySheetOpen(false);
-                  window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
-                }}
+                onClick={closeFamilySheet}
               >
                 ×
               </button>

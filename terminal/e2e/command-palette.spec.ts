@@ -116,9 +116,10 @@ for (const lang of ["en", "zh"] as const) {
       if (isTouch(testInfo)) {
         // Touch layouts open research where the menu's Analysis link does, with its own way back.
         await expect(page).toHaveURL(/\/analysis\?symbol=NVDA&page=statements$/);
-        const back = page.locator(".analysis-context-back");
-        await expect(back).toBeVisible();
-        await back.click();
+        await page.locator(".mobilebar").getByRole("button", { name: "Menu", exact: true }).tap();
+        const chart = page.locator('.m-drawer.open .m-nav a[href="/terminal?symbol=NVDA"]');
+        await expect(chart).toBeVisible();
+        await chart.tap();
         await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
         await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
         return;

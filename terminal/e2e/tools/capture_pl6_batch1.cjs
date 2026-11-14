@@ -36,6 +36,10 @@ const LAYOUT_FILES = [
   "terminal/components/StockAnalysis.tsx",
   "terminal/components/StockAnalysisImpl.tsx",
   "terminal/components/workspaces/AnalysisWorkspace.tsx",
+  "terminal/components/fin/ResearchWorkspaceNav.tsx",
+  "terminal/components/fin/MegaPane.tsx",
+  "terminal/app/analysis-nav-vnext.css",
+  "terminal/app/fin.css",
   "terminal/components/ChartPanel.tsx",
   "terminal/lib/pricePaneSvgScope.ts",
   "terminal/components/DayRange.tsx",
@@ -296,14 +300,13 @@ async function captureAnalysis(page, width, lang, outPath) {
   await gotoReady(page, "/analysis?symbol=SPY", lang);
   const shell = page.locator(".analysis-shell").first();
   await shell.waitFor({ state: "visible", timeout: 45_000 });
-  // The server renders English and LangProvider applies mm.lang only after hydration, so a
-  // visible shell can still carry the SSR language for seconds under load. Wait for the
-  // hydrated back-link label (backToChart) like the other surfaces wait for their own strings.
-  const backLabel = lang === "zh" ? "返回图表" : "Back to chart";
-  await shell.getByText(backLabel, { exact: true }).first().waitFor({ state: "visible", timeout: 45_000 });
-  const bar = page.locator(".analysis-context-bar").first();
-  const target = (await bar.count()) && (await bar.isVisible().catch(() => false)) ? bar : shell;
-  await cropLocator(page, target, outPath, 12);
+  // Wait for the localized control that is actually visible in this viewport.
+  const bar = shell.locator(".analysis-context-bar");
+  const control = width <= 640
+    ? bar.locator(".analysis-context-actions > summary").and(page.getByLabel(lang === "zh" ? "研究操作" : "Research actions", { exact: true }))
+    : bar.getByRole("link", { name: lang === "zh" ? "你的研究论点：SPY" : "Your theses on SPY", exact: true });
+  await control.waitFor({ state: "visible", timeout: 45_000 });
+  await cropLocator(page, bar, outPath, 12);
 }
 
 // Default-on Terminal studies for a fresh SPY chart (see the legend: Moving Averages,

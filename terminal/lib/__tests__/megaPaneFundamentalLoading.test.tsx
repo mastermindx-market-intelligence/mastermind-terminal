@@ -10,7 +10,10 @@ const state = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: state.lang }), useT: () => (key: string) => key }));
 vi.mock("@/lib/useMediaQuery", () => ({ useIsMobile: () => false }));
 vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({ useOptionalSharedShellPresentation: () => null }));
-vi.mock("@/components/fin/ResearchWorkspaceNav", () => ({ default: () => null }));
+vi.mock(import("@/components/fin/ResearchWorkspaceNav"), async (importOriginal) => ({
+  ...await importOriginal(),
+  default: () => <></>,
+}));
 vi.mock("@/components/fin/OverviewPage", () => ({ default: ({ fund }: { fund: unknown }) => <p data-fund-child>{fund ? "published data" : "uncovered"}</p> }));
 vi.mock("@/components/fin/StatementsPage", () => ({ default: ({ fund }: { fund: unknown }) => <p data-fund-child>{fund ? "published data" : "uncovered"}</p> }));
 vi.mock("@/components/fin/StatisticsPage", () => ({ default: ({ fund }: { fund: unknown }) => <p data-fund-child>{fund ? "published data" : "uncovered"}</p> }));

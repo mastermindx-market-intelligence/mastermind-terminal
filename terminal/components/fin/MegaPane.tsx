@@ -50,7 +50,7 @@ import SharedShellCompanyIntelligence from "./SharedShellCompanyIntelligence";
 import RegionalIntelligenceWorkspace from "./RegionalIntelligenceWorkspace";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import FinComparePage from "./FinComparePage";
-import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
+import ResearchWorkspaceNav, { researchPageLabel } from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
@@ -342,10 +342,10 @@ export default function MegaPane({
           </div>
         )}
 
-        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} />
+        <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant={workspace && host === "route" && !chartHosted ? "local" : "combined"} />
 
         {/* ── body ── */}
-        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
+        <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-label={researchPageLabel(page, zh)}>
           {fundLoading && !fund && FUND_SNAPSHOT_PAGES.has(page) ? (
             <div className="fin-empty fin-empty-lg" role="status" aria-busy="true" data-testid="fundamentals-loading">
               <span className="fin-empty-title">{pick(zh, "Loading financial data…", "正在加载财务数据…")}</span>

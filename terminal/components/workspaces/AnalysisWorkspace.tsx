@@ -9,6 +9,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
+import ResearchWorkspaceNav from "@/components/fin/ResearchWorkspaceNav";
+import "../../app/analysis-nav-vnext.css";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
@@ -289,12 +291,6 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
-          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("backToChart")}
-        </button>}
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
@@ -302,7 +298,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          eyebrow=""
           label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
@@ -311,11 +307,12 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
+        {!invalidSymbol && <ResearchWorkspaceNav page={page} zh={zh} onPage={onPage} variant="families" />}
         <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
-        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose} aria-label={pick(zh, "Open current chart", "打开当前图表")}>
           {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
         </button>}
         {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
