@@ -1,0 +1,72 @@
+{
+  "lawPin": "dae5a4622f560b7cc470f3f6614a69a3784a323d",
+  "originalBranch": "sol/beta-shared-shell-lazy-catalog-20261030",
+  "expectedOriginalHead": "201b325a20c8750a8080e24681dd32654778534a",
+  "protectedCompositionParent": "74c007125129090cc762f2bc4b1b152123326444",
+  "observedCurrentProtected": "18fabe9d3c1439c4185559ba5ce491518fe999c9",
+  "protectedIncrement": "Two screener-only paths; no overlap with this composition.",
+  "takeover": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1188#issuecomment-6792091800",
+  "effectiveSourcePaths": [
+    "terminal/components/chrome/shared-shell/SharedShellRuntime.tsx",
+    "terminal/lib/__tests__/sharedShellLazyCatalog.test.tsx",
+    "terminal/lib/__tests__/sharedShellPublicPresentation.test.tsx",
+    "terminal/lib/__tests__/sharedShellSearchIntent.test.tsx",
+    "terminal/lib/__tests__/sharedShellLazyPortal.test.tsx"
+  ],
+  "originalFeaturePaths": [
+    "terminal/components/SymbolPicker.tsx",
+    "terminal/components/chrome/shared-shell/SharedShellRuntime.tsx",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx",
+    "terminal/lib/__tests__/sharedShellLazyCatalog.test.tsx",
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx",
+    "terminal/lib/__tests__/sharedShellLazyPortal.test.tsx",
+    "terminal/lib/__tests__/sharedShellPublicPresentation.test.tsx",
+    "terminal/lib/__tests__/sharedShellSearchIntent.test.tsx"
+  ],
+  "protectedPostimagesPreserved": {
+    "terminal/components/SymbolPicker.tsx": "d6171749e2166b402c488d70f87f1dcbb91a393e",
+    "terminal/components/chrome/shared-shell/ShellSearch.tsx": "e1069167b7595bf7389e8eedd5fd2445daf43d8e",
+    "terminal/lib/__tests__/sharedShellLazyFocus.test.tsx": "7733777ef77ecdf448fcf7fddbe970738bf084f6"
+  },
+  "exactOriginalPostimagesPreserved": {
+    "terminal/components/chrome/shared-shell/SharedShellRuntime.tsx": "258ef6d5fad8cb02dbd68c43c158d997bef431d5",
+    "terminal/lib/__tests__/sharedShellLazyCatalog.test.tsx": "8f9559cc84422e4be9b2467f29b868a9d577d117"
+  },
+  "validation": {
+    "focusedCases": 95,
+    "focusedFiles": 10,
+    "publicPresentationFinalCases": 17,
+    "publicPresentationRetestReason": "Replace pre-existing this alias with lexical this in existing arrow callbacks for current lint.",
+    "fullStrictTypecheck": true,
+    "changedFileLint": true,
+    "negativeControl": {
+      "mutation": "Remove both first-use mount guards without changing deferred mock owners.",
+      "selectedCases": 1,
+      "failedAsExpected": 1,
+      "observedUnneededNativeRenders": 3,
+      "expectedUnneededNativeRenders": 0,
+      "candidateRestoredExactly": true
+    }
+  },
+  "sourceMembership": {
+    "legacyPaths": 14048,
+    "allLegacyHtml": true
+  },
+  "runtime": {
+    "next": "16.4.6",
+    "react": "19.2.4",
+    "vitest": "2.1.9"
+  },
+  "browserExecuted": false,
+  "compileGraphMeasured": false,
+  "historicalCompilerPacketReusedAsCurrent": false,
+  "preservedHolds": [
+    "Draft",
+    "no auto-merge",
+    "no deployment",
+    "actual cold-popup and real-browser legacy READY unobserved",
+    "old38e801d Fabric-review refusal not replayed",
+    "local SingletonSocket EPERM not retried or rerouted"
+  ],
+  "nextProof": "Natural exact-head CI; separate runtime acceptance remains held under its original boundary."
+}

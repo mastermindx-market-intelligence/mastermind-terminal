@@ -1,0 +1,33 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1188/terminal
+
+ ❯ lib/__tests__/sharedShellLazyCatalog.test.tsx (6 tests | 1 failed | 5 skipped) 37ms
+   × Shared Shell native first-frame cost > does not mount the 13k-route consumers while switching native workspaces 36ms
+     → expected 3 to be +0 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/sharedShellLazyCatalog.test.tsx > Shared Shell native first-frame cost > does not mount the 13k-route consumers while switching native workspaces
+AssertionError: expected 3 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 3
+
+ ❯ lib/__tests__/sharedShellLazyCatalog.test.tsx:79:31
+     77|     await render("/research");
+     78|     await render("/monitor");
+     79|     expect(state.hostRenders).toBe(0);
+       |                               ^
+     80|     expect(state.directoryRenders).toBe(0);
+     81|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 skipped (6)
+   Start at  04:34:57
+   Duration  1.25s (transform 359ms, setup 0ms, collect 518ms, tests 37ms, environment 322ms, prepare 58ms)

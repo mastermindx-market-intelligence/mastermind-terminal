@@ -1,0 +1,23 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1188/terminal
+
+ ✓ lib/__tests__/sharedSearchReturn.test.tsx (4 tests) 87ms
+ ✓ lib/__tests__/companySearchReturn.test.tsx (3 tests) 99ms
+ ✓ lib/__tests__/symbolPickerRecovery.test.tsx (29 tests) 205ms
+ ✓ lib/__tests__/sharedShellLazyFocus.test.tsx (6 tests) 343ms
+ ✓ lib/__tests__/sharedShellSearchIntent.test.tsx (4 tests) 81ms
+ ✓ lib/__tests__/searchReturnFocus.test.tsx (16 tests) 627ms
+ ✓ lib/__tests__/sharedSearchWorkspace.test.tsx (7 tests) 659ms
+ ✓ lib/__tests__/sharedShellLazyCatalog.test.tsx (6 tests) 52ms
+ ✓ lib/__tests__/sharedShellLazyPortal.test.tsx (3 tests) 1582ms
+   ✓ Shared Shell lazy company search portal > keeps a closed shell silent: no manifest read and no dialog 503ms
+   ✓ Shared Shell lazy company search portal > click intent mounts the real picker and portals the real company dialog to document.body 586ms
+   ✓ Shared Shell lazy company search portal > reopens the retained picker with no duplicate eager manifest reads 491ms
+ ✓ lib/__tests__/sharedShellPublicPresentation.test.tsx (17 tests) 1715ms
+   ✓ explicit Settings presentation intent after a public override > does not reapply a saved theme on a real Settings trade edit 585ms
+
+ Test Files  10 passed (10)
+      Tests  95 passed (95)
+   Start at  04:28:27
+   Duration  4.18s (transform 2.42s, setup 0ms, collect 6.24s, tests 5.45s, environment 4.92s, prepare 882ms)

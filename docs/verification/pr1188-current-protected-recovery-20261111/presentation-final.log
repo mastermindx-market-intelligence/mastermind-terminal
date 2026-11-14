@@ -1,0 +1,11 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr1188/terminal
+
+ ✓ lib/__tests__/sharedShellPublicPresentation.test.tsx (17 tests) 1985ms
+   ✓ explicit Settings presentation intent after a public override > does not reapply a saved theme on a real Settings trade edit 596ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  04:35:46
+   Duration  3.70s (transform 810ms, setup 0ms, collect 1.01s, tests 1.98s, environment 361ms, prepare 63ms)
