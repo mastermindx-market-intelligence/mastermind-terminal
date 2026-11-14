@@ -206,6 +206,24 @@ test("company search opens a chart and returns to the selected listing from Opti
   await expect(search.locator('[data-company-symbol="AAPL"]')).toHaveAttribute("aria-selected", "true");
 });
 
+test("an Options Flow drill opens its own chart and restores the user's filtered tape", async ({ page, baseURL }) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.goto("/options?tab=tape");
+  const belt = page.locator(".flow-heat-strip");
+  await belt.getByRole("button", { name: "QQQ", exact: true }).click();
+  const chartLink = page.getByRole("link", { name: "Open QQQ chart", exact: true });
+  const chartHref = new URL((await chartLink.getAttribute("href"))!, page.url());
+  expect(chartHref.searchParams.get("symbol")).toBe("QQQ");
+  const returnUrl = new URL(chartHref.searchParams.get("ret")!);
+  expect(returnUrl.pathname).toBe("/options");
+  expect(decodeTapeView(returnUrl.searchParams.get("tapeView"))?.drillTicker).toBe("QQQ");
+  await chartLink.click();
+  await page.locator("[data-beta-chart] [data-chart-workspaces]:visible").click();
+  await page.getByRole("dialog", { name: "Workspaces" }).getByRole("button", { name: /return to previous workspace/i }).click();
+  await expect(page).toHaveURL(returnUrl.href);
+  await expect(belt.getByRole("button", { name: "QQQ", exact: true })).toHaveAttribute("aria-pressed", "true");
+});
+
 test("phone company search keeps its scope in both languages and dismisses by touch",async({page},info)=>{
  test.skip(info.project.name!=="mobile","Actual phone sheet and touch context");
  await page.goto("/discover");
@@ -579,11 +597,14 @@ test("market control remains reachable at 320px alongside existing header action
   await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
 });
 
-test("Prophet Setup opens the selected company's chart and returns to the same Setup", async ({ page, baseURL }) => {
+test("Prophet Setup opens the selected company's chart and returns to the same Setup", async ({ page, baseURL }, info) => {
   await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=setup&prophetGroup=us_sector_industrials&prophetSymbol=CARR");
   const setup = page.getByTestId("prophet-sector-setup");
   await expect(setup).toBeVisible();
+  const opener = info.project.name === "desktop" ? page.locator(".topbar .shared-shell-company-search")
+    : page.locator(".mobilebar").getByRole("button", { name: "Search companies", exact: true });
+  await expect(opener).toContainText("CARR");
   const chartLink = setup.getByTestId("prophet-sector-chart-link");
   const origin = page.url();
   await chartLink.click();
