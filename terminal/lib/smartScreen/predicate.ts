@@ -393,7 +393,7 @@ function evalNode(node: ScreenNode, row: ScreenRow, trace: LeafTrace[]): Tri {
 export type RowStatus = "match" | "fail" | "unknown" | "unpriced" | "out_of_scope";
 export type RowVerdict = { status: RowStatus; trace: LeafTrace[] };
 
-export const isPriced = (row: ScreenRow): boolean => {
+export const isPriced = (row: Pick<ScreenRow, "last" | "sec">): boolean => {
   if (typeof row.last !== "number" || !Number.isFinite(row.last)) return false;
   return !(row.last <= 0 && POSITIVE_PRICE_ASSETS.has(row.sec || ""));
 };

@@ -2,6 +2,8 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { chooseDiscoverOption, openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { dataRows, prepare, routeManifest, secondDevice } from "./smartScreensFixture";
 import { DISCOVER_CURRENT_KEY, DEFAULT_DISCOVER_COLUMNS, discoverViewKey } from "../lib/discoverWorkspace";
+import { installDiscoverResearchWorld } from "./discoverResearchFixture";
+import technicalProducer from "../lib/__tests__/fixtures/screenerScan/technical.producer.json";
 
 // Account writes use the shipped route and fixture DB. Context B receives only
 // the account cookie, never A's localStorage or a mocked save acknowledgement.
@@ -85,7 +87,12 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator('thead [data-column="dv"]')).toHaveAttribute("aria-sort", "descending");
     if (!touch) {
       const grip = last.getByRole("button").first(); await grip.focus();
-      await page.keyboard.press("Space"); await page.keyboard.press("ArrowRight"); await page.keyboard.press("Space");
+      await page.keyboard.press("Space");
+      await expect(last).toHaveAttribute("data-dragging", "true");
+      await page.keyboard.press("ArrowRight");
+      const announcement = zh ? "最新将移至第4列。" : "Last will move to column 4 of 8.";
+      await expect(page.getByRole("status").filter({ hasText: announcement })).toHaveText(announcement);
+      await page.keyboard.press("Space");
       await expect.poll(() => columnOrder(page)).toEqual(DEFAULT_DISCOVER_COLUMNS);
     }
 
@@ -222,4 +229,126 @@ test("regular prices update without reordering rows and expired overnight trades
   quoteNow += 21_000; await page.clock.setFixedTime(quoteNow);
   await expect(overnight).toContainText("—", { timeout: 15_000 });
   await expect(page.locator('tbody [data-column="last"]').first()).toContainText("103.00"); expect(await symbols()).toEqual(order);
+});
+
+for (const lang of ["en", "zh"] as const) {
+  test(`${lang}: inspect evidence, compare four candidates and preserve the account view`, async ({ page, baseURL }, info) => {
+    const zh = lang === "zh", key = `discover-research-${info.project.name}-${lang}-${Date.now()}-${info.retry}`;
+    await prepare(page.context(), baseURL!, key, zh);
+    const world = await installDiscoverResearchWorld(page);
+    await open(page, 5);
+    await expect(page.locator("tbody tr", { has: page.locator('[data-discover-inspect="AAA"]') }).locator('[data-signal-age="historical"]')).toHaveCount(1);
+    // Quote columns are hidden deliberately: the inspector must create its own bounded
+    // demand, while selecting a closed comparison tray must create none.
+    await page.locator("[data-discover-columns]").click();
+    await dialog(page).locator('[data-discover-column="last"]').uncheck();
+    await dialog(page).locator('[data-discover-column="chg"]').uncheck();
+    await dialog(page).press("Escape"); await expect(sync(page)).toHaveAttribute("data-discover-sync", "saved");
+    const baseline = await account(page), layout = await columnOrder(page);
+    const chartBefore = await page.locator('a.sym-cell[href*="sym=AAA"]').getAttribute("href");
+    const opener = page.locator('[data-discover-inspect="AAA"]');
+    world.quoteRequests.length = 0;
+    await opener.click();
+    const inspector = page.locator('[data-discover-inspector="AAA"]');
+    await expect(inspector).toBeVisible();
+    await expect.poll(() => world.quoteRequests.some(symbols => symbols.includes("AAA"))).toBe(true);
+    await expect(inspector).toContainText(zh ? "延迟15分钟" : "15 min delayed");
+    await expect(inspector).toContainText(zh ? "入场机会尚未核实" : "Entry unverified");
+    await expect(inspector).toContainText(zh ? "历史事件" : "Historical event");
+    await expect(inspector).toContainText(zh ? "暂无合格的当前夜盘成交" : "No current qualified overnight trade");
+    const capture = async (name: string) => {
+      const box = (await dialog(page).boundingBox())!, viewport = page.viewportSize()!;
+      expect(box.x).toBeGreaterThanOrEqual(0); expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1); expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const file = info.outputPath(`${lang}-research-${name}.png`);
+      await page.screenshot({ path: file, animations: "disabled" }); await info.attach(`${lang}-research-${name}`, { path: file, contentType: "image/png" });
+    };
+    await capture("inspector");
+    const margin = inspector.locator('[data-research-fund="fund.net_margin_fy"]');
+    await expect(margin).toContainText("15%"); await expect(margin).toContainText("2025-09-27");
+    await expect(margin).toHaveAttribute("aria-label", /15%.*2025-09-27/);
+    await margin.scrollIntoViewIfNeeded();
+    // Candidate navigation stays reachable while reading the lowest evidence section.
+    await expect(dialog(page).getByRole("button", { name: zh ? "上一个结果" : "Previous result", exact: true })).toBeInViewport();
+    await capture("fundamentals");
+    await margin.click();
+    await expect(page.locator('[data-fund-evidence="AAA"]')).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(1); await expect(inspector).toHaveCount(0);
+    await page.locator("[data-fund-evidence-close]").click();
+    await expect(inspector).toBeVisible(); await expect(margin).toBeFocused();
+    await dialog(page).press("Escape"); await expect(opener).toBeFocused();
+    expect(await page.locator('a.sym-cell[href*="sym=AAA"]').getAttribute("href")).toBe(chartBefore);
+    expect(await columnOrder(page)).toEqual(layout);
+    const beforeSelection = world.quoteRequests.length;
+    for (const sym of ["AAA", "BBB", "CCC", "DDD"]) await page.locator(`[data-discover-compare="${sym}"]`).click();
+    expect(world.quoteRequests).toHaveLength(beforeSelection);
+    await page.locator('[data-discover-inspect="EEE"]').click();
+    await expect(dialog(page).getByRole("button", { name: zh ? "加入比较" : "Add to compare", exact: true })).toBeDisabled();
+    await expect(dialog(page)).toContainText(zh ? "最多比较四个标的" : "You can compare four stocks");
+    await dialog(page).press("Escape");
+    await page.locator("[data-discover-compare-tray]").getByRole("button", { name: zh ? "比较" : "Compare", exact: true }).click();
+    const comparison = page.locator("[data-discover-comparison]"); await expect(comparison).toBeVisible();
+    await expect(comparison).toContainText("HKD"); await expect(comparison).toContainText("USD");
+    await expect(comparison.locator('[data-research-fund="fund.net_margin_fy"][data-research-fund-symbol="AAA"]')).toContainText("2025-09-27");
+    await expect(comparison.locator('[data-research-fund="fund.net_margin_fy"][data-research-fund-symbol="BBB"]')).toContainText("2025-06-30");
+    const matrix = comparison.getByRole("region");
+    await matrix.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect(matrix.locator("thead th").first()).toBeInViewport();
+    await capture("comparison");
+    await dialog(page).press("Escape");
+    expect((await account(page)).values).toEqual(baseline.values);
+    await page.locator(".scr2-search").fill("$aaa, $bbb"); await expect(dataRows(page)).toHaveCount(2);
+    await page.getByRole("button", { name: zh ? "清除搜索" : "Clear search", exact: true }).first().click(); await expect(dataRows(page)).toHaveCount(5);
+  });
+}
+
+test("saved filter screens cannot silently omit search or technical conditions", async ({ page, baseURL }, info) => {
+  await prepare(page.context(), baseURL!, `discover-screen-complete-${info.project.name}-${Date.now()}-${info.retry}`, false);
+  await installDiscoverResearchWorld(page);
+  // This case edits a technical predicate; other research journeys retain the
+  // fixture's deliberate unavailable source. Reuse the real producer observations.
+  const technical = structuredClone(technicalProducer);
+  const buy = technical.rows.find(row => row.sym === "NVDA");
+  const sell = technical.rows.find(row => row.sym === "AAPL");
+  expect(buy).toBeTruthy(); expect(sell).toBeTruthy();
+  technical.rows = ["AAA", "BBB", "CCC", "DDD", "EEE"].map((sym, index) => ({
+    ...structuredClone(index === 1 ? sell! : buy!), sym,
+  }));
+  technical.universe.count = technical.rows.length;
+  await page.route("**/data/scan/technical.json**", route => route.fulfill({ json: technical }));
+  await open(page, 5);
+  const layout = await columnOrder(page);
+  await openDiscoverFilters(page, true);
+  const screens = page.locator("[data-smart-screens]");
+  await expect(screens).not.toHaveAttribute("data-ss-status", "loading");
+  await screens.locator("[data-ss-toggle]").click();
+  await screens.locator("[data-ss-name-input]").fill("All candidates");
+  await screens.locator("[data-ss-save-button]").click();
+  await expect(screens.locator("[data-ss-on-table]")).toHaveCount(1);
+  await page.locator(".scr2-search").fill("$AAA"); await expect(dataRows(page)).toHaveCount(1);
+  // Search alone must not be silently omitted by a legacy filter screen.
+  await expect(screens.locator("[data-ss-extra-conditions]")).toBeVisible();
+  await expect(screens.locator("[data-ss-save-button]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-replace]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-on-table]")).toHaveCount(0);
+  await page.locator("[data-tech-toggle]").click();
+  await expect(page.locator("[data-tech-signal]")).toBeEnabled();
+  await chooseDiscoverOption(page.locator("[data-tech-tf]"), "3D");
+  await chooseDiscoverOption(page.locator("[data-tech-signal]"), "buyside");
+  await expect(dataRows(page)).toHaveCount(1);
+  // Clear search so refusal also proves the technical condition independently.
+  await page.locator(".scr2-search").fill("");
+  await expect(dataRows(page)).toHaveCount(4);
+  await expect(screens.locator("[data-ss-extra-conditions]")).toBeVisible();
+  await expect(screens.locator("[data-ss-save-button]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-replace]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-on-table]")).toHaveCount(0);
+  await page.locator(".scr2-search").fill("$AAA"); await expect(dataRows(page)).toHaveCount(1);
+  await screens.locator("[data-ss-open]").click();
+  await expect(page.locator(".scr2-search")).toHaveValue("");
+  await expect(dataRows(page)).toHaveCount(5);
+  await expect(screens.locator("[data-ss-notice]")).toContainText("Search and technical conditions were cleared");
+  await expect(screens.locator("[data-ss-on-table]")).toHaveCount(1);
+  expect(await columnOrder(page)).toEqual(layout);
 });

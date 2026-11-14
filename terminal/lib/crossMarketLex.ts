@@ -22,6 +22,7 @@ export const CROSS_MARKET_LEX: Record<string, [string, string]> = {
   cmMoneyLine: ["Traded value in {c} · not converted", "成交额以 {c} 计 · 未换算"],
   cmMoneyOther: ["{n} in other currencies not compared", "{n} 个其他币种未比较"],
   cmMoneyUnknown: ["{n} with unknown currency not compared", "{n} 个币种未知未比较"],
+  cmMoneyMissing: ["{n} with unavailable traded value not evaluated", "{n} 个成交额不可用，未评估"],
   cmMoneyNotMoney: ["{n} indices / rates / FX / futures have no traded value", "{n} 个指数 / 利率 / 外汇 / 期货无成交额"],
   cmCcyUnknownTitle: ["Listing currency unknown — not comparable", "上市币种未知 — 无法比较"],
   cmNotMoneyTitle: ["Price × volume is not traded value for this instrument", "该品种的价格 × 成交量不代表成交额"],

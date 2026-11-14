@@ -143,6 +143,7 @@ export default function CrossMarketStrip(p: StripProps) {
             <span className={styles.name}>{fill(ct("cmMoneyLine"), { c: fl.code })}</span>
             {ex.otherCurrency > 0 && <span data-cm-excluded="otherCurrency">{fill(ct("cmMoneyOther"), { n: ex.otherCurrency.toLocaleString() })}</span>}
             {ex.currencyUnknown > 0 && <span className={styles.warn} data-cm-excluded="currencyUnknown">{fill(ct("cmMoneyUnknown"), { n: ex.currencyUnknown.toLocaleString() })}</span>}
+            {(ex.valueMissing ?? 0) > 0 && <span className={styles.warn} data-cm-excluded="valueMissing">{fill(ct("cmMoneyMissing"), { n: ex.valueMissing!.toLocaleString() })}</span>}
             {ex.notMoney > 0 && <span data-cm-excluded="notMoney">{fill(ct("cmMoneyNotMoney"), { n: ex.notMoney.toLocaleString() })}</span>}
           </>
         ) : fl.kind === "unread" ? (
@@ -228,4 +229,3 @@ export function EmptyExclusionNote({ n }: { n: number }) {
   if (n <= 0) return null;
   return <div className={styles.emptyNote} data-cm-empty-excluded={n}>{fill(ct("cmEmptyExcluded"), { n: n.toLocaleString() })}</div>;
 }
-

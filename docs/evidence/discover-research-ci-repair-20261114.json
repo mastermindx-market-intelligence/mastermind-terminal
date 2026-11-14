@@ -1,0 +1,169 @@
+{
+  "schema": "mastermind.discover.ci_repair.v1",
+  "parentHead": "a2eea2e5545a4cca5904ef22edf40809a5db23db",
+  "branch": "sol/discover-research-workspace-20261114-c3",
+  "governingPin": "199fd4f91ecc426b1d974eb3bf47f5162476cf24",
+  "sourceCarrier": "original GitHub API branch with expected-head CAS",
+  "productionSourceChanged": false,
+  "custody": "Current Terminal-wide assignment resumes the original branch after its canonical source-complete/stopped-advisory statement. PR/head/comment reads showed no newer source writer or repair.",
+  "failures": [
+    {
+      "name": "keyboard drop destination race",
+      "job": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43603067326/job/132472161832",
+      "testedMerge": "6d626b67e067bbe38f375b3c0999300d1d38c703",
+      "inheritedFrom": "#1515",
+      "artifactId": 14118552048,
+      "artifactSha256": "a4863ae4e57dd2b005a9242d957acf9f58a9bf0e2d8438e03b53fdfb410a4217",
+      "observed": "Keyboard drag activated and ArrowRight changed the overlay; final Space followed 2.856 ms later before the destination announcement changed. Final exact order remained at column 3.",
+      "repair": "Wait for actual drag activation and exact localized destination announcement before dropping. Keep the exact final order assertion."
+    },
+    {
+      "name": "lossy currency predicate expectation",
+      "job": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43604185474/job/132475437290",
+      "relatedJobs": [
+        132475437198,
+        132475437101
+      ],
+      "source": "terminal/lib/__tests__/crossMarketScreen.test.ts at parent explicitly refuses the same mixed US fixture as floor_unknown_currency.",
+      "repair": "Keep applied-floor assertion; expect disabled legacy save, no representable current definition and the existing complete-view alternative. Preserve earlier positive GICS case and subsequent HKD refusal."
+    },
+    {
+      "name": "unavailable technical fixture used for an interactive predicate",
+      "job": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43604185474/job/132475437347",
+      "relatedJobs": [
+        132475437166
+      ],
+      "source": "Default research fixture deliberately returns technical HTTP503. Technical controls require ready source.",
+      "repair": "Override that one case with mapped producer observations for its five research symbols, choose actual produced3D, and prove search-only and technical-only refusal independently. Other research journeys keep the unavailable source."
+    }
+  ],
+  "syntax": {
+    "schema": "mastermind.discover.ci_repair.syntax.v1",
+    "typescriptVersion": "5.9.3",
+    "source": "Canonical raw GitHub blobs from published f0c5e8c00a998e5c64063c59d68476499be3e695",
+    "files": [
+      {
+        "path": "terminal/e2e/discover-workspace.spec.ts",
+        "bytes": 26580,
+        "gitBlobSha": "8b89f6cb545acbdefeef5a6b685f212c39b0f7b9",
+        "sha256": "ddb213e099c25e6b112a4ee9229d1033832557c63865fae908bb404f4b86ed59",
+        "syntaxErrors": []
+      },
+      {
+        "path": "terminal/e2e/screener-cross-market.spec.ts",
+        "bytes": 22176,
+        "gitBlobSha": "ad7228027de38f963545e75514273ff9fd261bf7",
+        "sha256": "6cf67094421106f1e6e0e3ed6d1ae7d15823b301690e4639d3b4fb061eb58dfb",
+        "syntaxErrors": []
+      }
+    ],
+    "claim": "Syntactic transpilation only; hosted full typecheck and browser qualification remain pending.",
+    "fixture": {
+      "rows": [
+        {
+          "sym": "AAA",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "BBB",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "SELL"
+        },
+        {
+          "sym": "CCC",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "DDD",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "EEE",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        }
+      ],
+      "count": 5,
+      "generation": 1791684000,
+      "generatedAt": "2026-10-11T02:00:00Z",
+      "clock": "2026-10-11T12:00:00Z"
+    }
+  },
+  "browser": "No new local browser execution. Original denied browser/localhost/authentication effects remain closed. The next original hosted CI run must qualify these exact changed tests and its captures.",
+  "priorQualification": "Original 165 focused unit passes and accepted product source are retained, not counted as newly run.",
+  "release": "Original native auto and merge-on-green label are retained. No reenrollment, old-run replay, direct merge or deployment.",
+  "parentDoneWhenProven": false,
+  "supersededSyntax": {
+    "schema": "mastermind.discover.ci_repair.syntax.v1",
+    "typescriptVersion": "5.9.3",
+    "files": [
+      {
+        "path": "terminal/e2e/discover-workspace.spec.ts",
+        "bytes": 26580,
+        "gitBlobSha": "8b89f6cb545acbdefeef5a6b685f212c39b0f7b9",
+        "sha256": "ddb213e099c25e6b112a4ee9229d1033832557c63865fae908bb404f4b86ed59",
+        "syntaxErrors": []
+      },
+      {
+        "path": "terminal/e2e/screener-cross-market.spec.ts",
+        "bytes": 22181,
+        "gitBlobSha": "136081697f86642b0611ad0cd3941e40059237a3",
+        "sha256": "ee42053c0a4bb2c450fd82b27d75c83ea53d8605b90c05f533e13f400f07f077",
+        "syntaxErrors": []
+      }
+    ],
+    "fixture": {
+      "rows": [
+        {
+          "sym": "AAA",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "BBB",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "SELL"
+        },
+        {
+          "sym": "CCC",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "DDD",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "EEE",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        }
+      ],
+      "count": 5,
+      "generation": 1791684000,
+      "generatedAt": "2026-10-11T02:00:00Z",
+      "clock": "2026-10-11T12:00:00Z"
+    },
+    "claim": "Syntactic transpilation and explicit fixture mapping only; hosted typecheck/browser qualification remains pending."
+  },
+  "qualificationCorrection": {
+    "reason": "A replacement-string substitution expanded the existing $& literal into PAYLOAD in the diagnostic copy of screener-cross-market.spec.ts. The published GitHub source remained correct. Qualification was repeated from the exact raw published blobs.",
+    "publishedProductionOrTestSourceChanged": false,
+    "canonicalSourceCommit": "f0c5e8c00a998e5c64063c59d68476499be3e695",
+    "correctedCrossMarketGitBlob": "ad7228027de38f963545e75514273ff9fd261bf7"
+  }
+}

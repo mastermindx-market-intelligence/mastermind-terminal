@@ -1,0 +1,24 @@
+{
+  "schema": "mastermind.discover.local_qualification.v1",
+  "observed_at_utc": "2026-11-14 14:16:01 UTC",
+  "mastermind_pin": "199fd4f91ecc426b1d974eb3bf47f5162476cf24",
+  "source_base": "e47986399d82da6ee85ac615c8215c2e6f2bc288",
+  "integration_master": "a0b8e670185a989d141422c0d3dad5016abc863f",
+  "branch": "sol/discover-research-workspace-20261114-c3",
+  "tests": {
+    "framework": "Vitest 2.1.9",
+    "files": 10,
+    "passed": 165,
+    "failed": 0,
+    "command": "node node_modules/vitest/vitest.mjs run lib/__tests__/discoverResearch.test.ts lib/__tests__/discoverResearchEvidence.test.ts lib/__tests__/crossMarketScreen.test.ts lib/__tests__/useTechnicalScan.test.tsx lib/__tests__/screenerInteractionContinuity.test.tsx lib/__tests__/discoverWorkspace.test.ts lib/__tests__/discoverQuoteSubscription.test.tsx lib/__tests__/discoverPreferences.test.ts lib/__tests__/discoverAccount.test.ts lib/__tests__/screenerPresetPersistence.test.tsx --maxWorkers=1 --minWorkers=1 --reporter=json --outputFile=../../qa/discover-research-tests.json"
+  },
+  "typechecks": {
+    "source": "passed",
+    "browser_journeys": "passed"
+  },
+  "browser": {
+    "local_execution": "not_performed",
+    "qualification": "GitHub CI and screenshot inspection pending"
+  },
+  "acceptance": "source_qualified_not_production_accepted"
+}

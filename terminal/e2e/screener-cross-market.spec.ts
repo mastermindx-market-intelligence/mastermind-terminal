@@ -357,11 +357,17 @@ test("a smart screen is saved only in a sense its grammar holds (E04 hand-over, 
   await expect(saveBtn).toBeDisabled();
   await expect(current).toHaveCount(0);
 
-  // A USD floor in the US is a USD floor; the same number in Hong Kong is HKD and is refused.
+  // This US fixture includes futures, FX and indices without affirmative monetary
+  // units. The table can apply its qualified USD floor, but the legacy screen
+  // grammar cannot preserve that classification/currency qualification.
   await chooseDiscoverOption(control(page, "taxonomy"), "");
   await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
-  await expect(saveBtn).toBeEnabled();
+  await expect(saveBtn).toBeDisabled();
+  await expect(current).toHaveCount(0);
+  await expect(ss.locator("[data-ss-extra-conditions]")).toContainText("These classification or currency conditions cannot be preserved");
+  await expect(ss.getByRole("button", { name: "Save a complete view", exact: true })).toBeVisible();
+  // A later HKD floor also remains unavailable to the legacy USD-number grammar.
   await chooseDiscoverOption(marketSelect(page), "hk");
   await expect(page.locator('[data-cm-cleared="liq"]')).toHaveCount(1);
   await chooseDiscoverOption(control(page, "liq"), "5000000");

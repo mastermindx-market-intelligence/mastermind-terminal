@@ -14,17 +14,18 @@ export function DiscoverIcon({ name }: { name: "columns" | "views" | "filter" | 
 }
 
 /** The platform dialog supplies focus trapping/top-layer behavior; the product supplies styling. */
-export function DiscoverDialog({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+export function DiscoverDialog({ title, onClose, children, wide = false, className = "", returnFocus, headerContent }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string; returnFocus?: () => HTMLElement | null; headerContent?: ReactNode }) {
   const tPlain = useDiscoverT();
   const ref = useRef<HTMLDialogElement>(null), id = useId();
+  const restore = useRef(returnFocus); restore.current = returnFocus;
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null, dialog = ref.current;
     dialog?.showModal();
-    return () => { dialog?.close(); if (opener?.isConnected) opener.focus({ preventScroll: true }); };
+    return () => { dialog?.close(); const target = restore.current ? restore.current() : opener; if (target?.isConnected) target.focus({ preventScroll: true }); };
   }, []);
-  return <dialog ref={ref} aria-labelledby={id} className={`${styles.dialog} ${wide ? styles.dialogWide : ""}`}
+  return <dialog ref={ref} aria-labelledby={id} className={`${styles.dialog} ${wide ? styles.dialogWide : ""} ${className}`}
     onCancel={e => { e.preventDefault(); onClose(); }} onClick={e => { if (e.target === e.currentTarget) { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose(); } }}>
-    <header className={styles.dialogHeader}><h2 id={id}>{title}</h2><button type="button" className={styles.iconButton} aria-label={tPlain("close")} onClick={onClose}><DiscoverIcon name="close" /></button></header>
+    <header className={`${styles.dialogHeader} ${headerContent ? styles.dialogHeaderStack : ""}`}><h2 id={id}>{title}</h2><button type="button" className={styles.iconButton} aria-label={tPlain("close")} onClick={onClose}><DiscoverIcon name="close" /></button>{headerContent && <div className={styles.dialogHeaderExtra}>{headerContent}</div>}</header>
     {children}
   </dialog>;
 }
