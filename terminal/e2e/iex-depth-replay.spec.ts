@@ -67,3 +67,17 @@ test("shared language, exact share units and source-contract refusal remain resp
   await expect(page.getByTestId("iex-depth-unavailable")).toBeVisible();
   await expect(page.getByTestId("iex-executed-total")).toHaveCount(0);
 });
+
+test("context-bearing replay entry and symbol choice retain the research market and fragment",async({page})=>{
+  await prepare(page);await source(page);
+  await page.goto("/options/equity-replay?symbol=SPY&workspaceMarket=hk#source");
+  await expect(page.getByTestId("iex-executed-total")).toHaveText("60");
+  await page.getByLabel("Symbol",{exact:true}).selectOption("QQQ");
+  await expect(page).toHaveURL(/symbol=QQQ&workspaceMarket=hk#source$/);
+  await expect(page.getByTestId("iex-depth-unavailable")).toBeVisible();
+  await expect(page.getByTestId("iex-depth-source")).toHaveCount(0);
+  const chart=page.getByRole("link",{name:"Price chart",exact:true});
+  const url=new URL((await chart.getAttribute("href"))!,page.url());
+  expect(url.searchParams.get("sym")??url.searchParams.get("symbol")).toBe("QQQ");
+  await fits(page);
+});

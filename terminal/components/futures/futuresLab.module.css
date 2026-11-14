@@ -7,3 +7,7 @@
 .empty{padding:16px;color:#c8a86c;font-size:13px;margin:0;line-height:1.6}
 
 .scaleNote{margin:0;padding:8px 12px;border-top:1px solid #2a3650;color:#a9b6cb;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+
+.headerLinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px;font-size:13px}
+.headerLinks a,.headerLinks span{display:inline-flex;align-items:center;min-height:44px;min-width:44px;overflow-wrap:anywhere}
+.headerLinks a:focus-visible{outline:2px solid #80baff;outline-offset:2px;border-radius:3px}

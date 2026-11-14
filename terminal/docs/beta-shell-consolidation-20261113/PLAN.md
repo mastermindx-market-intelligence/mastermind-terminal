@@ -656,6 +656,40 @@ Portfolio source/read and fixture contracts. Continue P12's bounded IEX/Futures
 navigation work while new binding hosted results are pending. No protected
 release, production acceptance, Paper recovery or parent completion is claimed.
 
+## P12A — Equity replay and exact chart return
+
+[The P12A packet](P12_EQUITY_REPLAY_CONTEXT.md) records the bounded next native
+consumer repair. `/options/equity-replay` previously rejected the market context
+added by the shell, discarded context/hash on instrument choice, retained a stale
+local symbol on traversal, and opened an unspecified chart. It now shares one
+strict page/client query decoder, follows the URL's accepted symbol, preserves
+market-only source/control continuity, and retires old data before a restored
+instrument's new read. Price chart carries the actual equity and exact return;
+the incumbent validated return owner names Equity depth replay in EN/ZH.
+
+This builds on read-back P11 PR1516
+`a310840a858fab271a429b40065913f40cb46fb2`, tree
+`8ca88896cbe77154a3215a6708682eb7df6e669b`. Combined Monitor/Portfolio
+mounted checks pass41. The P9/P10 failed browser receipts and their original
+repairs stay canonical; new hosted results remain owed. P12's final affected
+unit run passes66, including pending-symbol/denied-restoration and exact return
+boundaries. Existing API, source math and share units remain unchanged.
+
+The exact seven-file custody comparison preserves held Options1248. Current
+navigation1509 `65f020dedc3a35e1265e82276cb0ff8d3aaff7a1` changes no IEX
+consumer or return-label file. Its qualifier appearance/nav changes have an
+explicit future three-way composition seam; P12 only appends an IEX journey to
+the existing owner. Hosted proof must click the real chart, verify its rendered
+QQQ subject, and return to the exact context-bearing URL at responsive widths.
+No new runner, authority, workflow or Paper transition is introduced.
+
+Next safe P12B work is Futures context admission and navigation. Its page,
+control URL writer and history handler all need the same page-only adapter;
+the strict API parser and account/request polling key must stay unchanged.
+Enable reciprocal IEX/Futures context links only after that seam is repaired.
+The full Options suite, all remaining P0–P17 scope and deployed acceptance remain
+open. No duplicate engine or legacy route is archived on fixture evidence.
+
 ### P9 acceptance readback and P10 fixture repair — 14 November
 
 P9 head `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff` has exact-tree synthetic
@@ -676,3 +710,7 @@ identity and all acceptance assertions remain binding. See
 No unrelated rerun or release enrollment was created. Continue the authorized
 P12 workspace work while the existing observer qualifies the corrected head.
 Parent P0–P17 acceptance, held carriers and production proof obligations remain open.
+
+P12A composes corrected P11 head `c3379c7736571f89ab2270e18bd1a346c7be9e34`
+so the same original observer can reach Portfolio and equity replay after the
+Research fixture repair. IEX source, product and acceptance assertions are unchanged.

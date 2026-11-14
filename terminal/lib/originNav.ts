@@ -158,10 +158,11 @@ export function safeMacroHref(raw: string | null | undefined): string {
 }
 
 /** Recognizable return destinations are named only after the existing redirect gate accepts them. */
-export function macroReturnWorkspace(raw: string | null | undefined): "analysis" | "discover" | "portfolio" | "monitor" | "research" | "today" | null {
+export function macroReturnWorkspace(raw: string | null | undefined): "analysis" | "discover" | "portfolio" | "monitor" | "research" | "today" | "equityReplay" | null {
   const safe = safeMacroHref(raw);
   if (!safe) return null;
   const path = new URL(safe).pathname.replace(/\/$/, "");
+  if (path === "/options/equity-replay") return "equityReplay";
   const names = ["analysis", "discover", "portfolio", "monitor", "research", "today"] as const;
   return names.find(name => path === `/${name}`) ?? null;
 }

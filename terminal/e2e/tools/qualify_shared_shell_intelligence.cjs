@@ -38,6 +38,7 @@ const defenseFixture = require('../../lib/__tests__/fixtures/catalystDefenseOwne
 const {monitorWatchlistsFixture,monitorAlertsFixture,monitorRetainedEventFixture} = require('../../lib/__tests__/fixtures/monitorDesk.ts');
 const {researchSelection,researchBody,researchCatalogFixture,researchFilterFixture,researchOutlineFixture} = require('../../lib/__tests__/fixtures/researchReader.ts');
 const {portfolioWorkspaceManifest,portfolioWorkspaceRecords} = require('../fixtures/portfolio-workspace.ts');
+const iexReplayFixture = require('../../lib/__tests__/fixtures/iexDepthReplay.synthetic.json');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -99,6 +100,12 @@ report.sourceFiles=Object.fromEntries([
  'components/PortfolioWorkspace.module.css', 'app/(shell)/portfolio/page.tsx',
  'app/api/portfolio/route.ts', 'lib/portfolio.ts', 'lib/watchlistsFixtureDb.ts',
  'e2e/fixtures/portfolio-workspace.ts',
+ 'app/(shell)/options/equity-replay/page.tsx', 'components/mounts/IexDepthReplayMount.tsx',
+ 'components/futures/IexDepthReplayView.tsx', 'components/futures/futuresLab.module.css',
+ 'lib/iexDepthQuery.ts', 'lib/iexDepthReplay.ts', 'lib/largeTrades/client.ts',
+ 'lib/__tests__/fixtures/iexDepthReplay.synthetic.json',
+ 'lib/originNav.ts', 'components/DashboardBackButton.tsx',
+ 'public/data/QQQ.json', 'public/data/QQQ.slice.json',
  'components/catalyst-opportunity/CatalystOpportunityView.tsx',
  'components/catalyst-opportunity/CatalystOpportunity.module.css', 'lib/catalystOpportunityLex.ts',
  'components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx',
@@ -866,6 +873,97 @@ async function qualifyMonitor(page,cell) {
     destinationProof:'IMMUTABLE_LINK_FIELDS_ONLY; downstream Analysis consumer remains its existing owner',passed:true});
 }
 
+async function qualifyEquityReplay(page,cell) {
+  const zh=locale==='zh',pick=(en,cn)=>zh?cn:en,reads=[],failed=[];
+  let holdQQQ=true,holdRestoredSPY=false,pendingQQQ=null,pendingSPY=null;
+  // Existing cross-route fixture identity seam: replay shell and Terminal must
+  // derive the same account. This does not qualify production authentication.
+  const fixtureKey=`iex-context-${page.viewportSize().width}-${crypto.randomUUID()}`;
+  await page.context().addCookies([{name:'mm_e2e_wl',value:fixtureKey,url:BASE},{name:'mm_e2e_rs30',value:'1',url:BASE}]);
+  await page.addInitScript(()=>{
+    if(!sessionStorage.getItem('iex-chart-cursor-seeded')){
+      localStorage.setItem('mm.activeSymbol','NVDA');sessionStorage.setItem('iex-chart-cursor-seeded','1');
+    }
+  });
+  page.on('requestfailed',request=>{
+    const url=new URL(request.url());if(url.pathname==='/api/large-trades')failed.push({symbol:url.searchParams.get('sym'),reason:request.failure()?.errorText??null});
+  });
+  await page.route('**/api/large-trades?*',async route=>{
+    const request=route.request(),url=new URL(request.url()),symbol=url.searchParams.get('sym');
+    reads.push({symbol,keys:[...url.searchParams.keys()],method:request.method()});
+    if(request.method()!=='GET'||url.searchParams.size!==1||url.searchParams.getAll('sym').length!==1){
+      report.errors.push({cell,error:'Unexpected IEX source request contract'});
+      return route.fulfill({status:400,json:{state:'invalid',reason:'fixture_request_contract'}});
+    }
+    if(symbol==='QQQ'&&holdQQQ){pendingQQQ=route;return;}
+    if(symbol==='SPY'){
+      if(holdRestoredSPY){pendingSPY=route;return;}
+      return route.fulfill({json:{state:'ready',envelope:iexReplayFixture,artifactSha256:'a'.repeat(64),servedAtNs:iexReplayFixture.provenance.generatedAtNs}});
+    }
+    return route.fulfill({json:{state:'unavailable',reason:'feed_not_admitted'}});
+  });
+  await page.goto(BASE+'/options/equity-replay?symbol=SPY&workspaceMarket=us#source');
+  const view=page.getByTestId('iex-depth-replay'),source=page.getByTestId('iex-depth-source');
+  const symbol=()=>view.getByRole('combobox',{name:pick('Symbol','代码'),exact:true});
+  const chart=()=>view.getByRole('link',{name:pick('Price chart','价格图表'),exact:true});
+  const market=()=>page.getByRole('combobox',{name:pick('Workspace market','工作区市场'),exact:true}).filter({visible:true});
+  await expect(source).toContainText('SPY');await expect(page.getByTestId('iex-executed-total')).toHaveText('60');
+  await expect(view).toContainText(pick('IEX venue only','仅 IEX 场所'));
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(view.locator('iframe')).toHaveCount(0);
+  const slider=view.getByRole('slider',{name:pick('Observed snapshot','观测快照'),exact:true});
+  await slider.focus();await slider.press('Home');await expect(page.getByTestId('iex-executed-total')).toHaveText('50');
+  await view.getByRole('tab',{name:pick('Executed volume','成交量'),exact:true}).click();
+  await view.getByRole('combobox',{name:pick('Price window','价格视窗'),exact:true}).selectOption('all');
+  await expect(page.getByTestId('iex-footprint-row')).toHaveCount(1);
+  await source.evaluate(el=>{window.__iexAcceptedSource=el;});
+  const firstHref=page.url(),initialReads=reads.length;expect(initialReads).toBe(1);
+  await market().selectOption('hk');await expect(page).toHaveURL(/workspaceMarket=hk#source$/);
+  await expect(market()).toHaveValue('hk');await expect(slider).toHaveValue('0');
+  await expect(view.getByRole('tab',{name:pick('Executed volume','成交量'),exact:true})).toHaveAttribute('aria-selected','true');
+  await expect(view.getByRole('combobox',{name:pick('Price window','价格视窗'),exact:true})).toHaveValue('all');
+  await expect.poll(async()=>new URL(await chart().getAttribute('href'),BASE).searchParams.get('ret')).toBe(page.url());
+  expect(await source.evaluate(el=>el===window.__iexAcceptedSource)).toBe(true);expect(reads).toHaveLength(initialReads);
+  const marketOnlyAdditionalReads=reads.length-initialReads;
+  expect(await page.evaluate(()=>localStorage.getItem('mm.activeSymbol'))).toBe('NVDA');
+  for(const action of await view.locator('select:visible,button:visible,nav a:visible').all()){
+    await action.scrollIntoViewIfNeeded();const box=await action.boundingBox();expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
+    await action.focus();await expect(action).toBeFocused();
+  }
+  await noOverflow(page);await view.scrollIntoViewIfNeeded();
+  await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-accepted-'+(zh?'zh':'en')+'.png')});
+  await symbol().selectOption('QQQ');await expect(symbol()).toHaveValue('QQQ');
+  await expect.poll(()=>Boolean(pendingQQQ)).toBe(true);await expect(source).toHaveCount(0);
+  await expect(page.getByTestId('iex-executed-total')).toHaveCount(0);
+  const qqqHref=page.url();expect(new URL(qqqHref).searchParams.get('workspaceMarket')).toBe('hk');expect(new URL(qqqHref).hash).toBe('#source');
+  holdRestoredSPY=true;
+  await page.goBack();await expect(page).toHaveURL(firstHref);await expect(symbol()).toHaveValue('SPY');
+  await expect.poll(()=>Boolean(pendingSPY)).toBe(true);await expect.poll(()=>failed.some(item=>item.symbol==='QQQ'&&/ERR_ABORTED/.test(item.reason??''))).toBe(true);
+  await expect(source).toHaveCount(0);await expect(page.getByTestId('iex-executed-total')).toHaveCount(0);
+  await expect(view.getByRole('status')).toHaveText(pick('Reading the published archive…','正在读取已发布档案…'));
+  holdQQQ=false;holdRestoredSPY=false;
+  await pendingSPY.fulfill({status:403,json:{state:'denied',reason:'access_denied'}});
+  await expect(page.getByTestId('iex-depth-unavailable')).toBeVisible();await expect(source).toHaveCount(0);
+  await page.goForward();await expect(page).toHaveURL(qqqHref);await expect(symbol()).toHaveValue('QQQ');
+  await expect(page.getByTestId('iex-depth-unavailable')).toBeVisible();
+  const returnHref=page.url(),chartUrl=new URL(await chart().getAttribute('href'),BASE);
+  expect(chartUrl.searchParams.get('symbol')).toBe('QQQ');expect(chartUrl.searchParams.get('ret')).toBe(returnHref);expect(chartUrl.searchParams.get('from')).toBe('macro');
+  await chart().click();await expect(page).toHaveURL(chartUrl.href);
+  await expect(page.locator('.mm-ptag:visible .mm-ptag-sym')).toHaveText('QQQ',{timeout:60000});
+  await expect(page.locator('.chart-empty:visible')).toHaveCount(0);
+  const back=page.locator('.brand-back:visible,.m-back-prom:visible');await expect(back).toHaveCount(1);
+  await expect(back).toHaveAccessibleName(pick('Back to Equity depth replay','返回股票深度回放'));
+  await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-chart-'+(zh?'zh':'en')+'.png')});
+  await back.click();await expect(page).toHaveURL(returnHref);await expect(symbol()).toHaveValue('QQQ');
+  await expect(market()).toHaveValue('hk');await expect(page.getByTestId('iex-depth-unavailable')).toBeVisible();
+  await expect(source).toHaveCount(0);await noOverflow(page);
+  await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-returned-'+(zh?'zh':'en')+'.png')});
+  report.cells.push({w:page.viewportSize().width,journey:'equity-replay-context-and-chart-return',
+    sourceProof:'ORIGINAL_SYNTHETIC_IEX_AND_COMMITTED_CHART_SPECIMENS_NOT_PRODUCTION',
+    fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(iexReplayFixture)).digest('hex'),
+    reads,failedRequests:failed,initialSourceReads:initialReads,marketOnlyAdditionalReads,chartSymbol:'QQQ',returnHref,
+    returnRestores:'URL symbol, market and hash; local replay cursor/mode/range are not URL-owned',passed:true});
+}
+
 async function qualifyPortfolioContext(page,cell) {
   // Use the incumbent account-shaped test store, never a second portfolio reader.
   // These six deliberate test seeds precede observation of all UI mutations.
@@ -1349,6 +1447,10 @@ async function qualifyToday(page,cell) {
    const portfolioContext=await context(),portfolioPage=await portfolioContext.newPage();
    await portfolioPage.setViewportSize({width,height});portfolioPage.on('pageerror',error=>report.errors.push({cell:`portfolio-${width}`,error:error.message}));
    await qualifyPortfolioContext(portfolioPage,`portfolio-${width}`);await portfolioContext.close();
+   theme='dark';locale=width===320?'zh':'en';
+   const equityContext=await context(),equityPage=await equityContext.newPage();
+   await equityPage.setViewportSize({width,height});equityPage.on('pageerror',error=>report.errors.push({cell:`equity-replay-${width}`,error:error.message}));
+   await qualifyEquityReplay(equityPage,`equity-replay-${width}`);await equityContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

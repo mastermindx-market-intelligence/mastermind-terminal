@@ -53,6 +53,9 @@ describe("Shared Shell investigation handoff", () => {
 it("names only recognizable validated return workspaces",()=>{
  expect(macroReturnWorkspace("https://beta.mastermind-x.com/analysis?symbol=AAPL")).toBe("analysis");
  expect(macroReturnWorkspace("https://beta.mastermind-x.com/discover?tab=sectors")).toBe("discover");
+ expect(macroReturnWorkspace("https://beta.mastermind-x.com/options/equity-replay?symbol=QQQ&workspaceMarket=hk#source")).toBe("equityReplay");
+ expect(macroReturnWorkspace("https://attacker.example/options/equity-replay")).toBeNull();
+ expect(macroReturnWorkspace("https://beta.mastermind-x.com/options/equity-replay-extra")).toBeNull();
  expect(macroReturnWorkspace("https://attacker.example/analysis")).toBeNull();
  expect(macroReturnWorkspace("https://beta.mastermind-x.com/bonds.html")).toBeNull();
 });
