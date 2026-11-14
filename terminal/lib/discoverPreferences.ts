@@ -28,7 +28,7 @@ export class DiscoverPreferenceClient {
   private sending = false;
   private formatBlocked = false;
   private requests = new Set<AbortController>();
-  constructor(private owner: string, private storage: StoragePort | null, private changed: () => void, private request: typeof fetch = fetch) {
+  constructor(private owner: string, private storage: StoragePort | null, private changed: () => void, private request: typeof fetch = (input, init) => globalThis.fetch(input, init)) {
     const cached = storage ? readOwnerSlot(storage, DISCOVER_LOCAL_KEY, owner) : null;
     if (object(cached) && (cached.v === 1 || cached.v === 2) && object(cached.ack) && object(cached.pending)) {
       this.ack = scopeDiscoverWrite(cached.ack).data; this.pending = scopeDiscoverWrite(cached.pending).data;

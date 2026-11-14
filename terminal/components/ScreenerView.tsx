@@ -1443,7 +1443,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         />
       )}
 
-          <details className={workspaceStyles.legacy}><summary>{tPlain("quick_filters_device_presets")}</summary>          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
+          <details className={workspaceStyles.legacy} data-discover-legacy><summary>{tPlain("quick_filters_device_presets")}</summary>          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
             <div className="scr2-presets">
               {BUILTIN_PRESETS.map((p) => (
                 <button

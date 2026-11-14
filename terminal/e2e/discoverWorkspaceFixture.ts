@@ -15,7 +15,7 @@ export async function openDiscoverFilters(page: Page, legacy = false) {
   if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
   await expect(page.locator("#discover-advanced")).toBeVisible();
   if (legacy) {
-    const presets = page.locator("#discover-advanced details");
+    const presets = page.locator("[data-discover-legacy]");
     if (await presets.getAttribute("open") === null) await presets.locator("summary").click();
   }
 }

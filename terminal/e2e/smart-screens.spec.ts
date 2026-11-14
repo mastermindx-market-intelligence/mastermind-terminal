@@ -50,6 +50,7 @@ test("a screen saved on one device reopens on another and explains what entered 
   await expect(screenA.locator("[data-ss-correction]")).toHaveCount(0);
 
   // ── device B, generation 2: the screen arrives through the account ──
+  await expect(page.locator("[data-discover-sync]")).toHaveAttribute("data-discover-sync", "saved");
   const b = await secondDevice(browser, page, !!testInfo.project.use.hasTouch, origin, key, zh);
   try {
     await routeManifest(b.page, () => "g2");

@@ -33,9 +33,23 @@ async function seed(values: Record<string, unknown>) { const result = await writ
 async function values() { const read = await readDiscoverWorkspace(db(), user); if (!read.ok) throw new Error(read.error); return read.values; }
 const putBodies = () => transport.mock.calls.filter(([, init]) => init?.method === "PUT").map(([, init]) => JSON.parse(String(init?.body)));
 beforeEach(() => { vi.useFakeTimers(); resetFixtureStores(); storage = new MemoryStorage(); before = null; after = null; transport.mockClear(); });
-afterEach(() => { clients.splice(0).forEach(c => c.dispose()); vi.useRealTimers(); });
+afterEach(() => { clients.splice(0).forEach(c => c.dispose()); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("Discover durable edits and account conflicts", () => {
+  it("uses the platform fetch receiver for both account reads and saves", async () => {
+    // Window.fetch rejects a class instance as its receiver before issuing a request.
+    // Arrow transports injected by other tests intentionally do not model that binding.
+    vi.stubGlobal("fetch", function (this: unknown, input: RequestInfo | URL, init?: RequestInit) {
+      if (this !== undefined && this !== globalThis) throw new TypeError("Illegal invocation");
+      return transport(input, init);
+    });
+    const c = new DiscoverPreferenceClient(owner, storage, vi.fn()); clients.push(c);
+    await c.load(); expect(c.snapshot()).toMatchObject({ base: "loaded", issue: null });
+    expect(c.save(view(), true)).toBe(true); await flush();
+    expect(c.snapshot().sync.phase).toBe("saved"); expect((await values())[keyA]).toEqual(view());
+    expect(transport.mock.calls.map(([, init]) => init?.method)).toEqual(["GET", "PUT"]);
+  });
+
   it("persists original preimages across a conflict and browser reload", async () => {
     await seed({ [keyA]: view() }); const first = client(); await first.load();
     await writeDiscoverWorkspace(db(), user, { [keyA]: view(a, "Other device") }, { [keyA]: view() });
