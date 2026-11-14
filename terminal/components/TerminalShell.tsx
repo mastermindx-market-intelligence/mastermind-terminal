@@ -3596,7 +3596,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, [refreshLayouts]);
   // Keep the current language refresh once the library has actually been requested.
   useEffect(() => { if (layoutReadStartedRef.current) void refreshLayouts(); }, [refreshLayouts]);
-  const { openBrain, cancelPendingBrainOpen } = useBrainOpenIntent(setBrainIncluded);
+  const { openBrain, toggleBrain, cancelPendingBrainOpen } = useBrainOpenIntent(setBrainIncluded);
   // shallow deep-link: ?pane=<page> opens the MegaPane on that page (MegaPane keeps the URL in sync
   // and strips ?pane= on close). Reactive so clicking ?pane= links while already on /terminal works.
   // Only OPEN when a valid pane is present — do NOT force-close when absent (MegaPane owns its close).
@@ -6255,6 +6255,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
           <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
         </button>
+        <button className="ai" onClick={toggleBrain}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
       )}

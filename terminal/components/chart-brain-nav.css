@@ -1,0 +1,4 @@
+/* The chart rail owns the desktop AI action when it has mounted. */
+.app:has(> .appnav [data-chart-brain-trigger]) > .topbar > button.ai {
+  display: none;
+}
