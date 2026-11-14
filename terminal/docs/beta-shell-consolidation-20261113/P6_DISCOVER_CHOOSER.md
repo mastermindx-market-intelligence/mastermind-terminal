@@ -139,3 +139,33 @@ review, genuine listing and market-universe proof, and deliberate filter/return
 handoff contracts where useful. Source work can continue in the independently
 owned P7 evidence journey while existing CI/release lanes progress. No engine or
 legacy presentation is archived by this chooser change.
+
+## Original-run hydration qualification repair
+
+The original P6 run43582423756 completed its unit, typecheck, build and all other
+browser lanes, but serial job132410517286 failed in the new chooser geometry
+loop at820px. The trace shows the first Search companies button was deliberately
+disabled at the moment of programmatic focus. It became enabled afterward, but
+the earlier focus call was a no-op. The existing component's `ready` boundary
+matches this trace. This is an unsynchronized test action, not evidence that
+enabled controls refuse focus.
+
+The original artifact14110290244 was downloaded and read back. ZIP SHA-256 is
+`6affe9ab09514d7351392475ff8021bd94e45227d9e91358e2ca447b72ec96c9`.
+Report merge `9f25d87a8fb966b8aa35815a1466be35a9711048` includes the exact
+P6 head `2ad0e7fa8bc802b0d0f8322ec88c5dc9c5603d51` and P5 parent, with
+tree `772f675ed00b41b1ea7adf390d50524862b1d899` equal to P6. It records15
+completed cells and the focus failure, with no reported page errors, external
+requests, fixture writes or tracked changes. It is not a passing P6 receipt.
+
+The original qualifier now waits for each chooser action to be enabled before
+measuring and focusing it. The normal readiness deadline and every geometry,
+focus, no-read and destination assertion remain. There is no sleep, retry,
+removed assertion, production change or workflow change. Qualifier syntax and
+scoped ESLint pass. Exact repaired-head hosted proof remains owed.
+
+Separately, descendant P7's original serial run43584849198 passed all24 cells,
+including all three Discover widths, in artifact14110053623. Its exact P7 tree
+and viewed phone/desktop images are recorded by the parent construction packet.
+That useful evidence does not relabel the failed P6 run or remove this observed
+readiness race. The repair stays on the original P6 carrier.
