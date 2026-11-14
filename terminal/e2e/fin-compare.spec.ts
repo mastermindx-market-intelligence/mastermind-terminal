@@ -230,6 +230,8 @@ test("opening a cell lands on the exact company, period and row in the Statement
   const panel = page.locator("[data-fc-source]");
   await expect(panel).toHaveAttribute("data-fc-source", "AMD:annual:income:4");
   await expect(panel).toHaveAttribute("data-fc-source-end", "2025-12-31");
+  await expect(panel.locator("#fc-source-title")).toBeFocused();
+  await expect(panel.locator("#fc-source-title")).toContainText("AMD");
   await expect(panel.locator("[data-fc-source-for]")).toContainText("AMD");
   await expect(panel.locator("[data-fc-source-for]")).toContainText("2025");
   await expect(panel.locator('thead th[data-focus="true"]')).toHaveText("2025");
@@ -250,6 +252,8 @@ test("opening a cell lands on the exact company, period and row in the Statement
   await page.locator('[data-fc-cell="revenue:JPM:F0"]').click();
   await expect(panel).toHaveAttribute("data-fc-source", /^JPM:annual:income:/);
   await expect(panel.locator("[data-fc-source-refusal]")).toHaveAttribute("data-fc-source-refusal", "family_mismatch");
+  await expect(panel.locator("[data-fc-source-boundary]")).toHaveText("Not comparable");
+  await expect(panel.locator("[data-fc-source-boundary]")).toBeInViewport({ ratio: 1 });
   await panel.locator("[data-fc-close-source]").click();
 
   // Interim: the newest AMD quarter, not NVDA's differently numbered fiscal quarter.

@@ -238,6 +238,9 @@ for(const lang of ["en","zh"] as const) {
   const source=page.locator("[data-fc-source]");
   await expect(source).toHaveAttribute("data-fc-source","AMD:annual:income:2");
   await expect(source).toHaveAttribute("data-fc-source-end","2026-01-25");
+  await expect(source.locator("#fc-source-title")).toBeFocused();
+  await expect(source.locator("#fc-source-title")).toContainText("AMD");
+  await expect(source.locator("[data-fc-source-selection]")).toHaveText(zh?"营业收入 · FY2025":"Revenue · FY2025");
   const focusedCell=source.locator('td[data-focus-cell="true"]');
   await expect(focusedCell).toHaveCount(1);
   await expect(focusedCell.locator(".fin-cell-v")).toHaveText("50.00B");
@@ -252,12 +255,13 @@ for(const lang of ["en","zh"] as const) {
     const scroller=cell.closest<HTMLElement>(".fin-table-scroll")!;
     const body=cell.closest<HTMLElement>(".fin-pane > .fin-body")!;
     const pane=body.closest<HTMLElement>(".fin-pane")!;
-    const texts=[cell.querySelector(".fin-cell-v")!,table.querySelector('thead th[data-focus="true"]')!,cell.parentElement!.querySelector('th[scope="row"]')!];
+    const source=cell.closest("[data-fc-source]")!;
+    const texts=[cell.querySelector(".fin-cell-v")!,table.querySelector('thead th[data-focus="true"]')!,cell.parentElement!.querySelector('th[scope="row"]')!,source.querySelector("#fc-source-title")!,source.querySelector("[data-fc-source-selection]")!,source.querySelector("[data-fc-close-source]")!];
     const port=body.getBoundingClientRect(),clip=scroller.getBoundingClientRect();
     const boxes=texts.map(el=>{const range=document.createRange();range.selectNodeContents(el);return range.getBoundingClientRect();});
     const readable=boxes.every((box,index)=>{
-     const top=Math.max(0,port.top,clip.top),bottom=Math.min(innerHeight,port.bottom,clip.bottom);
-     const left=Math.max(0,port.left,clip.left),right=Math.min(innerWidth,port.right,clip.right);
+     const top=Math.max(0,port.top,index<3?clip.top:port.top),bottom=Math.min(innerHeight,port.bottom,index<3?clip.bottom:port.bottom);
+     const left=Math.max(0,port.left,index<3?clip.left:port.left),right=Math.min(innerWidth,port.right,index<3?clip.right:port.right);
      if(box.width<=0||box.height<=0||box.top<top-1||box.bottom>bottom+1||box.left<left-1||box.right>right+1)return false;
      return [box.left+1,(box.left+box.right)/2,box.right-1].every(x=>texts[index].contains(document.elementFromPoint(x,(box.top+box.bottom)/2)));
     });

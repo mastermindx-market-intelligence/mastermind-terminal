@@ -344,6 +344,7 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
     if (!open) return;
     const panel = panelRef.current;
     if (!panel) return;
+    panel.querySelector<HTMLElement>("#fc-source-title")?.focus({ preventScroll: true });
     panel.scrollIntoView({ block: "start", inline: "nearest" });
     const raf = requestAnimationFrame(() => {
       const cell = panel.querySelector<HTMLElement>('[data-focus-cell="true"]');
@@ -362,6 +363,11 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
         const inset = Math.max(0, (s.right - visibleLeft - c.width) / 2);
         scroller.scrollLeft += c.left - visibleLeft - inset;
       }
+      const contextHeight = panel.querySelector<HTMLElement>("[data-fc-source-context]")?.getBoundingClientRect().height ?? 0;
+      const columnHeadingHeight = cell.closest("table")?.tHead?.getBoundingClientRect().height ?? 0;
+      // Native nearest scrolling does not know that the source context is
+      // sticky. Reserve it, plus the column heading, when revealing the row.
+      cell.style.scrollMarginTop = `${contextHeight + columnHeadingHeight + 12}px`;
       cell.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
     return () => cancelAnimationFrame(raf);
@@ -939,10 +945,18 @@ function SourcePanel({
       data-fc-source={`${source.sym}:${source.basis}:${source.block}:${source.index}`}
       data-fc-source-end={source.end}
     >
-      <div className={styles.sourceHead}>
-        <h3 id="fc-source-title" className="fin-sec-h fin-rail" style={{ "--rail": "var(--brand-2)" } as CSSProperties}>
-          {t("fcSourceTitle")}
-        </h3>
+      <div className={styles.sourceHead} data-fc-source-context>
+        <div className={styles.sourceIdentity}>
+          <h3 id="fc-source-title" className="fin-sec-h" tabIndex={-1}>
+            {source.sym}{" · "}{t("fcSourceTitle")}
+          </h3>
+          <p className={styles.sourceSelection} data-fc-source-selection>{label}{" · "}{source.label}</p>
+          {(!present || refusal) && (
+            <span className={styles.sourceBoundary} data-fc-source-boundary>
+              {!present ? t("fcStatusUnavailable") : refusal?.word}
+            </span>
+          )}
+        </div>
         <button type="button" className={styles.close} onClick={onClose} data-fc-close-source>
           {t("fcCloseSource")}
         </button>
