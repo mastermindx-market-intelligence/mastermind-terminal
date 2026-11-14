@@ -573,6 +573,9 @@ async function qualifyDiscover(page,cell) {
     await presentation(lang,mode);
     await expect(chooser.getByRole('heading',{level:1,name:lang==='zh'?'发现':'Discover',exact:true})).toBeVisible();
     for(const action of await chooser.locator('button,a').all()){
+      // Search belongs to the existing command-palette readiness boundary.
+      // Focusing a disabled button is a no-op before client hydration completes.
+      await expect(action).toBeEnabled();
       await action.scrollIntoViewIfNeeded();
       const box=await action.boundingBox();expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
       expect(await action.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);

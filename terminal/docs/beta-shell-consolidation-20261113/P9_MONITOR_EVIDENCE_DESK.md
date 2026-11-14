@@ -173,3 +173,31 @@ public editorial archive separate. In parallel, reconcile existing P5/P6/P7
 binding CI and original Macro release controllers at material milestones;
 pending checks block only their release lanes. No accepted source or live
 writer is replaced, and no phase or PR is treated as parent completion.
+
+
+## Original-head qualification reconciliation — 14 November
+
+PR1512 head `06f372502e7a81bc916b7bee494456b88a9f823c` produced hosted
+artifact14111447502 in run43587343813. ZIP SHA-256:
+`e2ecf722e51a108afe98426a83d019662f18c04763cd1e0bb5d95f5b353a58f8`.
+The receipt checkout `7774ce968dd0949627fc4d29357735e3514f90ae` has the
+candidate as a parent and exact candidate tree
+`c0d6b43bac057e309f598ce87c2ad48baa93893e`. Its report is **failed** after ten
+completed cells. The Monitor journey had not run. An independent enclosing
+serial-standalone job success is not this qualifier's acceptance result.
+
+The failure is the already diagnosed P6 Discover hydration boundary at1440px:
+programmatic focus ran while Search companies was disabled (four observations),
+then the existing readiness owner enabled it (ten observations). Focus had
+already been skipped by the browser. No product assertion mismatch was proved.
+Errors, external requests, fixture writes and tracked changes were empty, and
+the owned server closed.
+
+Apply the same existing P6 repair here on P9's original carrier: await the
+button's enabled state before geometry and focus checks. Preserve all focus,
+geometry and timeout assertions. No product, browser permission, workflow,
+runner, source contract or unrelated timeout changes. Qualifier syntax,
+scoped lint and whitespace checks pass. A new exact-head hosted receipt remains
+required; the original failed artifact is not relabelled or counted as Monitor
+proof. The downstream Research composition already includes this readiness
+repair through the recorded P6 parent.
