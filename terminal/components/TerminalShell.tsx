@@ -7166,7 +7166,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                           sym={sym}
                           section={sec}
                           selected={wlSelected.has(sym)}
-                          selectedDescription={t("wlTickerSelected")}
+                          selectedDescription={t("wlSymbolsSelected").replace("{n}", "1").replace("1 tickers", "1 ticker")}
                           dragLabel={t("wlDragSymbol").replace("{symbol}", sym)}
                           className={`wl-row${sym === active ? " on" : ""}${wlSelected.has(sym) ? " selected" : ""}${set.tableView ? " tv" : ""}`}
                           style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW, height: set.tableView ? 32 : 46 }}

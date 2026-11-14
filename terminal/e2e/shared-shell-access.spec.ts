@@ -36,8 +36,8 @@ test("guest access actions stay reachable and open their existing dialogs", asyn
   await expect(gate.getByRole("button", { name: "Create your free account", exact: true })).toBeVisible();
   for (const zh of [false, true]) {
     if (zh) {
-      await page.getByRole("button", { name: "Light theme", exact: true }).click();
-      await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+      await page.getByRole("button", { name: /^(?:Dark|Light) — Light theme$/ }).click();
+      await page.getByRole("button", { name: /^EN — Chinese language$/ }).click();
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
       await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
     }
