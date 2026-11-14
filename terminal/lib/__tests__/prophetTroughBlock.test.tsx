@@ -20,7 +20,7 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
     const { TroughReadBlock, parseProphetTroughRead } = await modules();
     mount(<TroughReadBlock read={parseProphetTroughRead(troughSpecimen(state))} symbol="ADP" lang={lang} />);
     expect(container.textContent).not.toMatch(TROUGH_BANNED_WORDS);
-    expect(container.textContent).not.toContain("Studied on three stocks");
+    expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
     expect(container.querySelectorAll("a,[role=alert]")).toHaveLength(0);
     if (state === "D") { expect(container.querySelector("button")).toBeNull(); return; }
     const button = container.querySelector("button")!;
@@ -28,6 +28,8 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
     expect(container.querySelector("[hidden]")).not.toBeNull();
     act(() => button.click());
     expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
+    expect(container.textContent).toContain(lang === "en" ? "Turned up is read on 3‑day bars only: momentum crossed back up after sitting in its low zone, and a faster momentum gauge was rising too. Only completed bars count." : "回升只在3日K线上判断：动能在低位区停留后重新上穿，且一个更快的动能指标也在上升。只计算已完成的K线。");
     expect(container.querySelectorAll('[data-testid="trough-frame"]')).toHaveLength(4);
     expect(container.textContent).not.toMatch(TROUGH_BANNED_WORDS);
     if (lang === "en") {
@@ -42,7 +44,7 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
       for (const i of [0, 2, 3]) expect(rows[i].lastElementChild!.textContent).toBe("—");
       expect(container.textContent).not.toMatch(/Most of this decline|K_gt_D|hist_rising/);
       if (state === "C") { expect(container.textContent).toContain("No decline right now"); expect(container.querySelector('[title^="◯"]')).toBeNull(); }
-      if (state === "E") expect(container.querySelectorAll('[data-testid="trough-frame"]')[3].textContent).toBe("2-week——");
+      if (state === "E") expect(container.querySelectorAll('[data-testid="trough-frame"]')[3].textContent).toBe("2‑week——");
     }
     act(() => container.querySelectorAll("button")[1].click());
     expect(button.getAttribute("aria-expanded")).toBe("false"); expect(document.activeElement).toBe(button);

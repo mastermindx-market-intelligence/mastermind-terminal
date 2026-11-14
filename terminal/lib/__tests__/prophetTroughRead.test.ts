@@ -43,7 +43,7 @@ describe("trough publication", () => {
     const row = getRow();
     for (const variant of ["count", "named"] as const) {
       expect(troughHeadline(row, lang, variant)).not.toMatch(/\{|\}/);
-      expect(TROUGH_STRINGS[lang].variants[variant].record).toBeTruthy();
+      expect(TROUGH_STRINGS[lang].variants[variant].record).toBe("");
       expect(TROUGH_STRINGS[lang].variants[variant].method).toBeTruthy();
     }
   });
@@ -57,15 +57,15 @@ describe("trough publication", () => {
     expect(TROUGH_HEADLINE_VARIANT).toBe("named"); expect(TROUGH_RECORD_ENABLED).toBe(false);
     expect(troughHeadline(getRow(), "en")).toBe(troughHeadline(getRow(), "en", "named"));
     const row = getRow(); row.timeframes.forEach(f => { f.washed_out = true; });
-    expect(troughHeadline(row, "en")).toBe("Washed out on Daily, 3-day, Weekly and 2-week · turning up");
+    expect(troughHeadline(row, "en")).toBe("Washed out on Daily, 3‑day, Weekly and 2‑week · turning up");
     expect(troughHeadline(troughSpecimen("C").tickers.ADP, "en")).toBe("Not washed out on any timeframe");
   });
   it("joins one, two and multiple named timeframes and keeps Chinese notPart aligned", () => {
     const row = getRow();
     row.timeframes[2].washed_out = false;
-    expect(troughHeadline(row, "en")).toBe("Washed out on Daily and 3-day; not on Weekly and 2-week · turning up");
+    expect(troughHeadline(row, "en")).toBe("Washed out on Daily and 3‑day; not on Weekly and 2‑week · turning up");
     row.timeframes[0].washed_out = false;
-    expect(troughHeadline(row, "en")).toBe("Washed out on 3-day; not on Daily, Weekly and 2-week · turning up");
+    expect(troughHeadline(row, "en")).toBe("Washed out on 3‑day; not on Daily, Weekly and 2‑week · turning up");
     expect(troughHeadline(getRow(), "zh")).toBe("处于低位：日线, 3日线, 周线；2周线未处于低位 · 正在回升");
     expect(TROUGH_STRINGS.en.variants.named.disclosureNote).toBe("Which timeframe matters for which kind of stock is still being measured; this headline only lists them.");
     expect(TROUGH_STRINGS.en.variants.count.disclosureNote).toBe("Which timeframe matters for which kind of stock is still being measured; this headline only counts.");
@@ -85,7 +85,7 @@ describe("trough publication", () => {
   ])("rejects invalid REV 1.1 fields %#", mutate => { const data = troughSpecimen(); mutate(data.tickers.ADP); expect(parseProphetTroughRead(data)).toEqual(TROUGH_READ_UNAVAILABLE); });
   it("selects exact count and named headlines", () => {
     expect(troughHeadline(getRow(), "en", "count")).toBe("Washed out on 3 of 4 timeframes · turning up");
-    expect(troughHeadline(getRow(), "en", "named")).toBe("Washed out on Daily, 3-day and Weekly; not on 2-week · turning up");
+    expect(troughHeadline(getRow(), "en", "named")).toBe("Washed out on Daily, 3‑day and Weekly; not on 2‑week · turning up");
     expect(TROUGH_STRINGS.en.variants.named.method).toBe("More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.");
   });
   it.each([404, 401, 403, 500])("HTTP %s stays quietly unavailable", async status => {

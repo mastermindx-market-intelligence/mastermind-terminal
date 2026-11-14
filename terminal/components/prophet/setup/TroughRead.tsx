@@ -19,6 +19,12 @@ export function troughHeadline(row: TroughRow, lang: Lang, variant: TroughHeadli
     notPart: rest.length ? setupFill(s.notPart, { rest: join(rest) }) : "", rest: join(rest) || s.none });
 }
 
+function timeframeText(text: string) {
+  return text.split(/(3‑day|2‑week|3日K线|3日线|2周线)/).map((part, i) =>
+    /^(3‑day|2‑week|3日K线|3日线|2周线)$/.test(part)
+      ? <span key={i} className={styles.timeframeName}>{part}</span> : part);
+}
+
 function History({ row, lang }: { row: TroughRow; lang: Lang }) {
   const s = TROUGH_STRINGS[lang];
   const h = row.own_history;
@@ -61,7 +67,7 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
   return <section className={`${styles.block} ${expanded ? styles.expanded : ""}`} data-testid="trough-read" aria-label={s.title}>
     <div className={styles.summary}>
       <h2>{s.title}</h2>
-      <p className={styles.headline} data-testid="trough-headline">{troughHeadline(row, lang)}</p>
+      <p className={styles.headline} data-testid="trough-headline">{timeframeText(troughHeadline(row, lang))}</p>
       <p className={styles.headlineMethod}>{copy.method}</p>
       <p>{row.kind ? setupFill(s.kind, { kind: s.kinds[row.kind.label] }) : s.kindPending}</p>
       <p>{groupLine}</p>
@@ -71,7 +77,7 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
     <div id={id} hidden={!expanded} className={styles.disclosure} data-testid="trough-disclosure">
       <aside className={styles.method}>
         <header className={styles.methodHeader}><h3>{s.how}</h3><button className={styles.control} type="button" onClick={close} aria-expanded={expanded} aria-controls={id}>{s.hide}</button></header>
-        {s.definitions.map(line => <p key={line}>{line}</p>)}
+        {s.definitions.map(line => <p key={line}>{timeframeText(line)}</p>)}
         <p>{copy.method}</p>
         {copy.disclosureNote !== copy.method ? <p>{copy.disclosureNote}</p> : null}
         <h3>{s.groupStates}</h3><p>{s.stateList}</p><p>{s.groupMeaning}</p>
@@ -81,7 +87,7 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
         <div>{row.timeframes.map(f => {
           const available = f.available && f.bar_end !== null;
           return <div key={f.tf} className={styles.frame} data-testid="trough-frame">
-            <strong>{s.frames[f.tf]}</strong>
+            <strong className={styles.timeframeName}>{s.frames[f.tf]}</strong>
             <span>{!available || f.washed_out === null ? "—" : f.washed_out ? s.washed : s.notWashedRow}</span>
             <span>{!available || f.tf !== "3D" || f.turned_up === null ? "—" : f.turned_up ? s.turned : s.falling}</span>
           </div>;

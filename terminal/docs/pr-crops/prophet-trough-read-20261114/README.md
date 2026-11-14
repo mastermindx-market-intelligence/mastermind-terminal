@@ -6,6 +6,8 @@ Lead amendment 1, 2026-11-14: named headline is the default, with its method dir
 
 Amendment 2 aligns named copy with read-only Paper boards `2A6G-0` (390) and `2A9B-0` (1440): English lists use a final “and” and “; not on”; Chinese uses “；{rest}未处于低位”. Named disclosure says “this headline only lists them”; count retains “only counts”. Collapsed method is unchanged. A reproducible 390 English B fold failure (856.67px against 844px) was repaired with local summary spacing only; the unchanged fold assertion and 44px controls pass afterward. Refreshed 34 affected crops; unavailable crops and desktop none-collapsed crops are preserved.
 
+Amendment 3 removes the former study record from both languages and variants; only empty `record: ""` placeholders remain with the record flag false. English timeframe names use U+2011 and nowrap spans; relevant Chinese names are nowrap in headlines, rows and definitions. The EN/ZH turn definition now describes the producer's completed 3-day-only reading. All 157 affected/neighboring tests and all 24 responsive cases pass; browser assertions verify one-line timeframe names, no overflow and unchanged dash-only non-3D turn cells. Refreshed 32 affected crops, preserving unavailable and no-washout collapsed crops. Source scan found no removed record copy in shipped Trough code.
+
 ## Source and design pins
 
 - Terminal base: `c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40`.

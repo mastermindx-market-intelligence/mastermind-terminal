@@ -51,11 +51,17 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     for (const row of await block.getByTestId("trough-frame").all()) expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await expect(block).toContainText(lang === "en" ? "Group figures: not yet available" : "组内数据：尚未提供");
     await expect(block).not.toContainText(TROUGH_BANNED_WORDS);
-    if (lang === "en" && state === "E") await expect(block.getByTestId("trough-frame").last()).toHaveText("2-week——");
+    if (lang === "en" && state === "E") await expect(block.getByTestId("trough-frame").last()).toHaveText("2‑week——");
     const method = disclosure.locator("aside"); const frames = block.getByTestId("trough-frame").first();
     if (width === 1440) expect((await method.boundingBox())!.x).toBeGreaterThan((await frames.boundingBox())!.x);
     else expect((await method.boundingBox())!.y).toBeLessThan((await frames.boundingBox())!.y);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    for (const name of await block.locator("span, strong").filter({ hasText: /^(3‑day|2‑week|3日K线|3日线|2周线)$/ }).all()) {
+      expect(await name.evaluate(el => {
+        const range = document.createRange(); range.selectNodeContents(el);
+        return { nowrap: getComputedStyle(el).whiteSpace, lines: range.getClientRects().length };
+      })).toEqual({ nowrap: "nowrap", lines: 1 });
+    }
     if (crops) await block.screenshot({ path: path.join(crops, `${state}-${lang}-${width}-expanded.png`) });
     const hide = block.getByRole("button", { name: lang === "en" ? "Hide ▴" : "收起 ▴", exact: true });
     const hideBox = (await hide.boundingBox())!; expect(hideBox.height).toBeGreaterThanOrEqual(44); expect(hideBox.width).toBeGreaterThanOrEqual(44);
