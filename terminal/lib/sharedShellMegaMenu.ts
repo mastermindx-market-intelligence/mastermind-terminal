@@ -182,7 +182,7 @@ export const megaMenuSections: readonly MegaMenuSection[] = [
     groups: [
       group("Core research", "核心研究", [
         macro("/intelligence_hub.html", "Intelligence Hub", "情报中心", "Read today’s market intelligence across desks", "查看各研究台的当日市场情报"),
-        macro("/reports.html", "Research Reports", "研究报告", "Read in-depth research and market calls", "阅读深度研究与市场判断"),
+        native("/research/reports", "Research Reports", "研究报告", "Read in-depth research and market calls", "阅读深度研究与市场判断"),
       ]),
       group("Find the edge", "发现机会", [
         macro("/state_of_themes.html", "Theme Tracker", "主题追踪", "See which themes are gaining or losing strength", "查看哪些主题走强或走弱"),

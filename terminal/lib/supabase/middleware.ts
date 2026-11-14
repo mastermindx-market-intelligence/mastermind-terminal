@@ -92,9 +92,9 @@ function landingUrl(request: NextRequest, fallback: string): URL {
 // Refreshes the auth session on every request and guards the /terminal area.
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  if (path === "/reference.html") {
+  if (path === "/reference.html" || path === "/reports.html") {
     const destination = request.nextUrl.clone();
-    destination.pathname = "/market-reference";
+    destination.pathname = path === "/reference.html" ? "/market-reference" : "/research/reports";
     return NextResponse.redirect(destination);
   }
   const landingPath = process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal";
@@ -112,7 +112,7 @@ export async function updateSession(request: NextRequest) {
     }
     if (hasAuthCookie(request)) return await refreshPublicSession(request);
     const response = NextResponse.next({ request });
-    if (path === "/brain" || path === "/market-reference") applyAuthResponseHeaders(response.headers);
+    if (path === "/brain" || path === "/market-reference" || path === "/research/reports") applyAuthResponseHeaders(response.headers);
     return response;
   }
 
