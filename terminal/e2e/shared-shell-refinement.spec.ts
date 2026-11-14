@@ -5,6 +5,7 @@ import {contextFixture,themeContextFixture,institutionalContextFixture} from "./
 import {techLabFixture} from "../lib/__tests__/fixtures/techLab";
 import {retainedCompanyResearchFixture} from "./fixtures/retainedCompanyResearch";
 import {expectSelectLabelFits} from "./selectLabel";
+import {settled} from "./settle";
 import {canonicalTranscriptBodySha256} from "../lib/transcriptSearch";
 import {gzipSync} from "node:zlib";
 
@@ -212,12 +213,93 @@ for(const lang of ["en","zh"] as const) {
   const sourceCell=page.locator('[data-fc-cell="revenue:AMD:F0"]');
   await expect(sourceCell.locator("[data-fc-value]")).toHaveText("50.00B");
   await compactAnalysisChrome(page);
+  const options=page.locator("[data-fc-options]");
+  await expect(options).not.toHaveAttribute("open","");
+  await expect(page.locator("[data-fc-frame]")).toBeInViewport({ratio:1});
+  // A real figure must fit in the initial reading area, before any click or
+  // scroll can repair a layout that put every value below the fold.
+  await expect(page.locator('[data-fc-cell="revenue:NVDA:F2"] [data-fc-value]')).toBeInViewport({ratio:1});
+  await expect(page.locator(".fin-pane > .fin-body")).toHaveJSProperty("scrollTop",0);
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-compare-${lang}.png`)});
+  const summary=options.locator("summary");
+  await summary.focus();
+  await summary.press("Enter");
+  await expect(options).toHaveAttribute("open","");
+  const marginOption=options.locator('[data-fc-metric-option="net_margin"]');
+  await marginOption.click();
+  await expect(page.locator('[data-fc-table="net_margin"]')).toHaveCount(1);
+  await expect(options.locator("[data-fc-options-readout]")).toContainText(zh?"3 项指标":"3 metrics");
+  await marginOption.click();
+  await summary.focus();
+  await summary.press("Enter");
+  await expect(options).not.toHaveAttribute("open","");
+  await expect(summary).toBeFocused();
   await sourceCell.click();
   const source=page.locator("[data-fc-source]");
   await expect(source).toHaveAttribute("data-fc-source","AMD:annual:income:2");
-  await expect(source.locator('td[data-focus-cell="true"] .fin-cell-v')).toHaveText("50.00B");
+  await expect(source).toHaveAttribute("data-fc-source-end","2026-01-25");
+  const focusedCell=source.locator('td[data-focus-cell="true"]');
+  await expect(focusedCell).toHaveCount(1);
+  await expect(focusedCell.locator(".fin-cell-v")).toHaveText("50.00B");
+  await expect(focusedCell.locator("xpath=..").locator('th[scope="row"]')).toHaveText(zh?"营业收入":"Revenue");
+  await expect(focusedCell.locator("xpath=ancestor::table[1]").locator('thead th[data-focus="true"]')).toHaveText("FY2025");
+  // Observe the application's reveal. Do not scroll or modify styles here:
+  // text in the DOM is insufficient if smooth scrolling has not completed,
+  // or the table's sticky metric column covers the selected figure.
+  await settled({
+   read:()=>focusedCell.evaluate(cell=>{
+    const table=cell.closest("table")!;
+    const scroller=cell.closest<HTMLElement>(".fin-table-scroll")!;
+    const body=cell.closest<HTMLElement>(".fin-pane > .fin-body")!;
+    const pane=body.closest<HTMLElement>(".fin-pane")!;
+    const texts=[cell.querySelector(".fin-cell-v")!,table.querySelector('thead th[data-focus="true"]')!,cell.parentElement!.querySelector('th[scope="row"]')!];
+    const port=body.getBoundingClientRect(),clip=scroller.getBoundingClientRect();
+    const boxes=texts.map(el=>{const range=document.createRange();range.selectNodeContents(el);return range.getBoundingClientRect();});
+    const readable=boxes.every((box,index)=>{
+     const top=Math.max(0,port.top,clip.top),bottom=Math.min(innerHeight,port.bottom,clip.bottom);
+     const left=Math.max(0,port.left,clip.left),right=Math.min(innerWidth,port.right,clip.right);
+     if(box.width<=0||box.height<=0||box.top<top-1||box.bottom>bottom+1||box.left<left-1||box.right>right+1)return false;
+     return [box.left+1,(box.left+box.right)/2,box.right-1].every(x=>texts[index].contains(document.elementFromPoint(x,(box.top+box.bottom)/2)));
+    });
+    return {readable:readable&&pane.scrollLeft===0&&body.scrollLeft===0,bounds:boxes.map(box=>[box.x,box.y,box.width,box.height]),scroll:[body.scrollTop,scroller.scrollLeft]};
+   }),
+   ok:value=>value.readable,
+   same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),
+   message:"The selected source row must be readable and settled without test scrolling",
+  });
   await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-compare-source-cell-${lang}.png`)});
+  // Source context and the full-history row are separate reading positions
+  // on a phone; capture both explicitly after proving automatic row reveal.
+  const sourceFor=source.locator("[data-fc-source-for]");
+  await sourceFor.scrollIntoViewIfNeeded();
+  await expect(sourceFor).toContainText("AMD");
+  await expect(sourceFor).toContainText("FY2025");
+  await expect(sourceFor).toContainText(zh?"营业收入":"Revenue");
+  await expect(sourceFor).toBeInViewport({ratio:1});
+  await settled({
+   read:()=>source.evaluate(panel=>{
+    const body=panel.closest<HTMLElement>(".fin-pane > .fin-body")!;
+    const port=body.getBoundingClientRect();
+    const texts=[panel.querySelector("#fc-source-title")!,panel.querySelector("[data-fc-source-for]")!];
+    const bounds:number[][]=[];
+    const readable=texts.every(el=>{
+     const range=document.createRange();range.selectNodeContents(el);
+     // Probe each line separately; a wrapped context sentence's union box
+     // includes blank space that is not part of its rendered text.
+     const lines=Array.from(range.getClientRects()).filter(box=>box.width>0&&box.height>0);
+     return lines.length>0&&lines.every(box=>{
+      bounds.push([box.x,box.y,box.width,box.height]);
+      if(box.top<Math.max(0,port.top)-1||box.bottom>Math.min(innerHeight,port.bottom)+1||box.left<Math.max(0,port.left)-1||box.right>Math.min(innerWidth,port.right)+1)return false;
+      return [box.left+1,(box.left+box.right)/2,box.right-1].every(x=>el.contains(document.elementFromPoint(x,(box.top+box.bottom)/2)));
+     });
+    });
+    return {readable,bounds,scroll:body.scrollTop};
+   }),
+   ok:value=>value.readable,
+   same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),
+   message:"The source heading and context must remain readable and settled before capture",
+  });
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-compare-source-${lang}.png`)});
   await source.locator("[data-fc-close-source]").click();
   await expect(sourceCell).toBeFocused();

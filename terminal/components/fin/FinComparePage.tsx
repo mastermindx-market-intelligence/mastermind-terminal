@@ -355,7 +355,12 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
       if (scroller) {
         const s = scroller.getBoundingClientRect();
         const c = cell.getBoundingClientRect();
-        scroller.scrollLeft += c.left - s.left - (s.width - c.width) / 2;
+        const sticky = cell.closest("table")?.querySelector<HTMLElement>(".fin-cell-sticky")?.getBoundingClientRect();
+        // Reserve the sticky metric column: centering against the whole table
+        // viewport can put part of the selected figure underneath it on phones.
+        const visibleLeft = Math.max(s.left, Math.min(s.right, sticky?.right ?? s.left));
+        const inset = Math.max(0, (s.right - visibleLeft - c.width) / 2);
+        scroller.scrollLeft += c.left - visibleLeft - inset;
       }
       cell.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
@@ -401,59 +406,6 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
         <h2 className="fin-sec-h fin-rail fin-rule" style={{ "--rail": "var(--brand)" } as CSSProperties}>
           {t("fcTitle")}
         </h2>
-        <p className={styles.intro}>{t("fcIntro", { anchor: sym })}</p>
-
-        <div className={styles.controls}>
-          <div className={styles.ctrl}>
-            <span className={styles.ctrlLabel} id="fc-basis-label">{t("fcBasisLabel")}</span>
-            <div className="fin-toggle" role="group" aria-labelledby="fc-basis-label">
-              <button
-                type="button"
-                className={basis === "annual" ? "on" : ""}
-                aria-pressed={basis === "annual"}
-                disabled={!annualAvailable}
-                onClick={() => setBasis("annual")}
-                data-fc-basis-option="annual"
-              >
-                {t("fcAnnual")}
-              </button>
-              <button
-                type="button"
-                className={basis === "quarterly" ? "on" : ""}
-                aria-pressed={basis === "quarterly"}
-                disabled={!interimAvailable}
-                onClick={() => setBasis("quarterly")}
-                data-fc-basis-option="quarterly"
-              >
-                {statementCadenceLabel(fund.statements?.quarterly, "quarterly", zh)}
-              </button>
-            </div>
-          </div>
-          <div className={styles.ctrl}>
-            <span className={styles.ctrlLabel} id="fc-align-label">{t("fcAlignLabel")}</span>
-            <div className="fin-toggle" role="group" aria-labelledby="fc-align-label">
-              <button
-                type="button"
-                className={alignment === "fiscal" ? "on" : ""}
-                aria-pressed={alignment === "fiscal"}
-                onClick={() => setAlignment("fiscal")}
-                data-fc-align-option="fiscal"
-              >
-                {t("fcAlignFiscal")}
-              </button>
-              <button
-                type="button"
-                className={alignment === "calendar" ? "on" : ""}
-                aria-pressed={alignment === "calendar"}
-                onClick={() => setAlignment("calendar")}
-                data-fc-align-option="calendar"
-              >
-                {t("fcAlignCalendar")}
-              </button>
-            </div>
-          </div>
-        </div>
-
         {frame && (
           <p className={styles.frameLine} data-fc-frame>
             {t("fcFrame", {
@@ -464,12 +416,6 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
             })}
           </p>
         )}
-        <p className={styles.note} data-fc-alignment-note>
-          {alignment === "fiscal"
-            ? t("fcAlignFiscalNote")
-            : t("fcAlignCalendarNote", { unit: t(UNIT_WORD[frame?.kind ?? "full_year"]) })}
-        </p>
-
         <div className={styles.peerBlock}>
           <span className={styles.ctrlLabel} id="fc-peers-label">{t("fcPeersLabel")}</span>
           <ul className={styles.chips} aria-labelledby="fc-peers-label">
@@ -519,31 +465,102 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
           </p>
         </div>
 
-        <div className={styles.metricBlock}>
-          <span className={styles.ctrlLabel} id="fc-metrics-label">{t("fcMetricsLabel")}</span>
-          <div className={styles.metricChips} role="group" aria-labelledby="fc-metrics-label">
-            {COMPARE_METRICS.map((m) => {
-              const on = metrics.includes(m.id);
-              const blocked = !on && metrics.length >= MAX_COMPARE_METRICS;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  className={styles.metricChip}
-                  aria-pressed={on}
-                  disabled={blocked || (on && metrics.length === 1)}
-                  onClick={() => toggleMetric(m.id)}
-                  data-fc-metric-option={m.id}
-                >
-                  {metricLabel(t, m, frame, zh)}
-                </button>
-              );
-            })}
+        <details className={styles.options} data-fc-options>
+          <summary className={styles.optionsSummary}>
+            <strong>{t("fcOptions")}</strong>
+            <span className={styles.optionsReadout} data-fc-options-readout>
+              {basis === "annual" ? t("fcAnnual") : statementCadenceLabel(fund.statements?.quarterly, "quarterly", zh)}
+              {" · "}{t(alignment === "fiscal" ? "fcAlignFiscal" : "fcAlignCalendar")}
+              {" · "}{metrics.length === 1 ? t("fcSelectedMetric") : t("fcSelectedMetrics", { n: metrics.length })}
+            </span>
+            <span className={styles.optionsChevron} aria-hidden>⌄</span>
+          </summary>
+          <div className={styles.optionsBody}>
+            <div className={styles.controls}>
+              <div className={styles.ctrl}>
+                <span className={styles.ctrlLabel} id="fc-basis-label">{t("fcBasisLabel")}</span>
+                <div className="fin-toggle" role="group" aria-labelledby="fc-basis-label">
+                  <button
+                    type="button"
+                    className={basis === "annual" ? "on" : ""}
+                    aria-pressed={basis === "annual"}
+                    disabled={!annualAvailable}
+                    onClick={() => setBasis("annual")}
+                    data-fc-basis-option="annual"
+                  >
+                    {t("fcAnnual")}
+                  </button>
+                  <button
+                    type="button"
+                    className={basis === "quarterly" ? "on" : ""}
+                    aria-pressed={basis === "quarterly"}
+                    disabled={!interimAvailable}
+                    onClick={() => setBasis("quarterly")}
+                    data-fc-basis-option="quarterly"
+                  >
+                    {statementCadenceLabel(fund.statements?.quarterly, "quarterly", zh)}
+                  </button>
+                </div>
+              </div>
+              <div className={styles.ctrl}>
+                <span className={styles.ctrlLabel} id="fc-align-label">{t("fcAlignLabel")}</span>
+                <div className="fin-toggle" role="group" aria-labelledby="fc-align-label">
+                  <button
+                    type="button"
+                    className={alignment === "fiscal" ? "on" : ""}
+                    aria-pressed={alignment === "fiscal"}
+                    onClick={() => setAlignment("fiscal")}
+                    data-fc-align-option="fiscal"
+                  >
+                    {t("fcAlignFiscal")}
+                  </button>
+                  <button
+                    type="button"
+                    className={alignment === "calendar" ? "on" : ""}
+                    aria-pressed={alignment === "calendar"}
+                    onClick={() => setAlignment("calendar")}
+                    data-fc-align-option="calendar"
+                  >
+                    {t("fcAlignCalendar")}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.metricBlock}>
+              <span className={styles.ctrlLabel} id="fc-metrics-label">{t("fcMetricsLabel")}</span>
+              <div className={styles.metricChips} role="group" aria-labelledby="fc-metrics-label">
+                {COMPARE_METRICS.map((m) => {
+                  const on = metrics.includes(m.id);
+                  const blocked = !on && metrics.length >= MAX_COMPARE_METRICS;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={styles.metricChip}
+                      aria-pressed={on}
+                      disabled={blocked || (on && metrics.length === 1)}
+                      onClick={() => toggleMetric(m.id)}
+                      data-fc-metric-option={m.id}
+                    >
+                      {metricLabel(t, m, frame, zh)}
+                    </button>
+                  );
+                })}
+              </div>
+              {metrics.length >= MAX_COMPARE_METRICS && (
+                <p className={styles.msg}>{t("fcMetricLimit", { n: MAX_COMPARE_METRICS })}</p>
+              )}
+            </div>
+            <p className={styles.intro}>{t("fcIntro", { anchor: sym })}</p>
+            <p className={styles.note} data-fc-alignment-note>
+              {alignment === "fiscal"
+                ? t("fcAlignFiscalNote")
+                : t("fcAlignCalendarNote", { unit: t(UNIT_WORD[frame?.kind ?? "full_year"]) })}
+            </p>
+
           </div>
-          {metrics.length >= MAX_COMPARE_METRICS && (
-            <p className={styles.msg}>{t("fcMetricLimit", { n: MAX_COMPARE_METRICS })}</p>
-          )}
-        </div>
+        </details>
       </section>
 
       {frameIssue && (

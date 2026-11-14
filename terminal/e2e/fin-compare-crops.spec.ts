@@ -106,12 +106,16 @@ for (const lang of ["en", "zh"] as const) {
     }
 
     // 3. Calendar-aligned: relabelled columns, and MSFT's split June year left out.
+    await page.locator("[data-fc-options] > summary").click();
     await page.locator('[data-fc-align-option="calendar"]').click();
+    await page.locator("[data-fc-options] > summary").click();
     await page.mouse.move(0, 0);
     await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="CY2025"]')).toBeVisible();
     const calendar = await steady(page, '[data-fc-table="revenue"]', { withinScrollport: true });
     await calendar.screenshot({ path: join(OUT, `${tag}-calendar-revenue.png`), animations: "disabled" });
+    await page.locator("[data-fc-options] > summary").click();
     await page.locator('[data-fc-align-option="fiscal"]').click();
+    await page.locator("[data-fc-options] > summary").click();
     await page.mouse.move(0, 0);
 
     // 4. Source drilldown: AMD's latest FY revenue opens AMD's Statements on that column and row.

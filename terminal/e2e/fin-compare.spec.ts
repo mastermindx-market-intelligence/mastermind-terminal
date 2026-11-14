@@ -149,6 +149,8 @@ test("peers share one explicit frame; other formats, currencies and split period
   // Fiscal-relative headers name fiscal generations, never calendar years.
   await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="F0"]')).toHaveText("Latest FY");
   await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="F1"]')).toHaveText("FY −1");
+  await page.locator("[data-fc-options] > summary").click();
+  await expect(page.locator('[data-fc-alignment-note]')).toBeVisible();
   await expect(page.locator('[data-fc-alignment-note]')).toContainText("Fiscal-relative");
 
   // Comparable cells carry the value, the company's own period and a rank among comparable rows.
@@ -251,6 +253,7 @@ test("opening a cell lands on the exact company, period and row in the Statement
   await panel.locator("[data-fc-close-source]").click();
 
   // Interim: the newest AMD quarter, not NVDA's differently numbered fiscal quarter.
+  await page.locator("[data-fc-options] > summary").click();
   await page.locator('[data-fc-basis-option="quarterly"]').click();
   const qOpener = page.locator('[data-fc-cell="revenue:AMD:F0"]');
   await expect(qOpener).toContainText("Q2 '26");
