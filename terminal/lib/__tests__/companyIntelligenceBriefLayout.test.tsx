@@ -28,6 +28,29 @@ async function mount(value: ComponentProps<typeof CompanyIntelligenceBriefLayout
 }
 
 describe("Intelligence brief evidence access", () => {
+  it.each([
+    { zh: false, accessibleName: "Headline source" },
+    { zh: true, accessibleName: "标题来源" },
+  ])("keeps the promoted headline receipt selectable without repeating its text (zh=$zh)", async ({ zh, accessibleName }) => {
+    const headlineEvidence = { id: "nvda-q1:positive:0", label: "Reported change", value: "Record revenue" };
+    const value = { ...props(), zh, headline: headlineEvidence.value, headlineEvidence, selectedId: headlineEvidence.id };
+    const el = await mount(value);
+    const button = el.querySelector<HTMLButtonElement>(`button[aria-label='${accessibleName}']`)!;
+    expect(button).not.toBeNull();
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+    expect(el.textContent?.split(headlineEvidence.value)).toHaveLength(2);
+    await act(async () => button.click());
+    expect(value.onSelect).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(value.onSelect).mock.calls[0][0]).toBe(headlineEvidence);
+    await act(async () => root!.render(<CompanyIntelligenceBriefLayout {...value} selectedId={null} />));
+    expect(button.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("does not add a headline source action when none is supplied", async () => {
+    const el = await mount(props());
+    expect(el.querySelector("button[aria-label='Headline source']")).toBeNull();
+  });
+
   it("keeps each hero fact and distinct takeaway selectable without duplicating panel evidence", async () => {
     const value = props();
     const el = await mount(value);

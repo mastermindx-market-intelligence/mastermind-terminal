@@ -16,6 +16,7 @@ interface CompanyIntelligenceBriefLayoutProps {
   periodLabel: string;
   eventDate: string;
   headline: string;
+  headlineEvidence?: CompanyIntelligenceBriefItem | null;
   summary?: string | null;
   metrics: CompanyIntelligenceBriefItem[];
   takeaways: CompanyIntelligenceBriefItem[];
@@ -113,6 +114,7 @@ export default function CompanyIntelligenceBriefLayout({
   periodLabel,
   eventDate,
   headline,
+  headlineEvidence,
   summary,
   metrics,
   takeaways,
@@ -148,6 +150,17 @@ export default function CompanyIntelligenceBriefLayout({
             <span>{label(zh, "Event brief", "事件简报")}</span>
             <i aria-hidden />
             <time dateTime={eventDate}>{periodLabel} · {eventDate}</time>
+            {headlineEvidence && (
+              <button
+                type="button"
+                className={s.headlineSource}
+                aria-label={label(zh, "Headline source", "标题来源")}
+                aria-pressed={selectedId === headlineEvidence.id}
+                onClick={() => onSelect(headlineEvidence)}
+              >
+                {label(zh, "Source", "来源")} <span aria-hidden>↗</span>
+              </button>
+            )}
           </div>
           <h3>{headline}</h3>
           {summary && <p>{summary}</p>}
