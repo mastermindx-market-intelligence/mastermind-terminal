@@ -1,0 +1,257 @@
+diff --git a/terminal/components/alerts/AlertDetail.tsx b/terminal/components/alerts/AlertDetail.tsx
+index e6c0a72606..f5e88956e1 100644
+--- a/terminal/components/alerts/AlertDetail.tsx
++++ b/terminal/components/alerts/AlertDetail.tsx
+@@ -8,0 +9 @@ import { pick } from "@/lib/finFormat";
++import { isMarketWideOptKind } from "@/lib/optionsAlerts";
+@@ -14,2 +15,2 @@ export interface AlertDetailData {
+-  // Ticker only — there is no portfolio/position join yet (F08 V2 owns true holding-coverage
+-  // mapping). `null` means the ticker itself could not be resolved, never a fabricated match.
++  // Root identity, or canonical MARKET for aggregate options alerts. The condition kind
++  // determines aggregate scope; this field does not establish portfolio/position coverage.
+@@ -48,0 +50,2 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
++  const coveredTapeScope = (data.kind === undefined || data.kind === "alert")
++    && isMarketWideOptKind(data.conditionType ?? "");
+@@ -69 +72 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
+-        <span className={s.detailLabel}>{lang === "zh" ? "代码" : "Symbol"}</span>
++        <span className={s.detailLabel}>{coveredTapeScope ? (lang === "zh" ? "范围" : "Scope") : (lang === "zh" ? "代码" : "Symbol")}</span>
+@@ -72 +75,3 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
+-        <span>{data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
++        <span>{coveredTapeScope
++          ? pick(lang === "zh", "Covered options tape", "覆盖范围内的期权交易")
++          : data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png
+index 9aed3ed6c4..69487b8106 100644
+Binary files a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png and b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440-zh.png differ
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png
+index 44c07cbadc..b60e9e76c9 100644
+Binary files a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png and b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-1440.png differ
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png
+index fad075eb00..ed39c56696 100644
+Binary files a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png and b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390-zh.png differ
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png
+index a4af81d14c..6d3927c87b 100644
+Binary files a/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png and b/terminal/docs/pr-crops/b-pl-6-batch-3/AlertDetail-390.png differ
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml b/terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml
+index 1430a9a57b..f7d8429e56 100644
+--- a/terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml
++++ b/terminal/docs/pr-crops/b-pl-6-batch-3/EVIDENCE.yml
+@@ -4,2 +4,2 @@
+-# capturedAtHead: bbca43c03dd2748de73b47a1b16b6623236cef89
+-# capturedAt: 2026-11-12T06:58:11.906Z
++# capturedAtHead: fe49f3b5765dd4e10721928716a6a730e78c7ae1
++# capturedAt: 2026-11-14T14:17:27.422Z
+@@ -11 +11 @@ layoutFiles:
+-  terminal/components/alerts/AlertDetail.tsx: "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd"
++  terminal/components/alerts/AlertDetail.tsx: "3b99898131ddc09b3e7fcbbb6ae8b83a75a81dba49d29e67ee8e97db6f7f4ad0"
+diff --git a/terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390.png b/terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390.png
+index 4e1f722ffe..8302f83d0c 100644
+Binary files a/terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390.png and b/terminal/docs/pr-crops/b-pl-6-batch-3/OptionsFlowBoard-390.png differ
+diff --git a/terminal/e2e/alert-detail-options-scope.spec.ts b/terminal/e2e/alert-detail-options-scope.spec.ts
+new file mode 100644
+index 0000000000..6f955d852a
+--- /dev/null
++++ b/terminal/e2e/alert-detail-options-scope.spec.ts
+@@ -0,0 +1,100 @@
++import { expect, test, type Page } from "@playwright/test";
++
++test.setTimeout(75_000);
++const sharedShell = process.env.MMX_SHARED_SHELL === "1";
++const themes = sharedShell ? ["dark", "light"] as const : ["dark"] as const;
++const kinds = ["opt_premium_burst", "opt_0dte_spike"] as const;
++type AggregateKind = typeof kinds[number];
++
++async function installFixture(page: Page, lang: "en" | "zh", theme: "dark" | "light", kind: AggregateKind) {
++  await page.addInitScript(({ lang, theme }) => {
++    localStorage.setItem("mm.lang", lang);
++    localStorage.setItem("mmx.shell.theme", theme);
++  }, { lang, theme });
++  const now = new Date().toISOString();
++  const id = kind === "opt_premium_burst" ? "scope-premium" : "scope-0dte";
++  const firedAt = "2026-11-13T15:41:00Z";
++  const condition = kind === "opt_premium_burst"
++    ? { type: kind, root: "MARKET", leg: "ncp", z: 3, triggered: { at: firedAt, value: 3.8 } }
++    : { type: kind, root: "MARKET", share_pct: 55, triggered: { at: firedAt, value: 62 } };
++  const summary = kind === "opt_premium_burst"
++    ? "Net call premium accelerated across the covered options tape."
++    : "0DTE share reached 62% of the covered options activity.";
++  const evidenceUrl = "https://example.com/evidence/" + id;
++  await page.route("**/api/alerts", route => route.fulfill({ json: { alerts: [{
++    id, symbol: "MARKET", active: false, created_at: "2026-11-12T12:00:00Z", condition,
++  }] } }));
++  await page.route("**/api/alerts/receipts", route => route.fulfill({ json: {
++    run: { lane: "alerts_engine", run_id: "scope-run-" + id, started_at: now, concluded_at: now,
++      outcome: "success", lane_cadence_budget_s: 300 },
++    runs_state: "READ_OK", last_success_at: now, outbox_state: "READ_OK",
++    outbox: [{
++      alert_id: id, fire_event_id: "fired-" + id, status: "failed", attempts: 2,
++      last_error: "source-response-" + id, deliver_after: null, delivered_at: null, created_at: firedAt,
++      payload: { subject: summary, summary_plain: summary, condition_plain: summary,
++        ticker: "MARKET", evidence_url: evidenceUrl, fired_at: firedAt },
++    }],
++  } }));
++  return { id, evidenceUrl, summary };
++}
++
++for (const lang of ["en", "zh"] as const) for (const theme of themes) for (const kind of kinds) {
++  test(`aggregate alert detail retains exact evidence and covered scope (${kind}, ${lang}, ${theme})`, async ({ page }, info) => {
++    const errors: string[] = [], writes: string[] = [];
++    page.on("pageerror", error => errors.push(error.message));
++    page.on("request", request => {
++      if (new URL(request.url()).pathname.startsWith("/api/alerts") && !["GET", "HEAD"].includes(request.method())) {
++        writes.push(request.method() + " " + new URL(request.url()).pathname);
++      }
++    });
++    await page.emulateMedia({ colorScheme: theme });
++    const fixture = await installFixture(page, lang, theme, kind);
++    await page.goto("/alerts");
++    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
++    if (sharedShell) await expect(page.locator("html")).toHaveAttribute("data-mmx-shared-shell", "1");
++    const row = page.locator('[data-alerts-module="recent-activity"]').getByRole("button").first();
++    await expect(row).toBeVisible(); await row.focus(); await row.press("Enter");
++    const dialog = page.getByRole("dialog", { name: lang === "zh" ? "警报详情" : "Alert detail", exact: true });
++    await expect(dialog).toBeVisible();
++    await expect(dialog.getByRole("heading", { level: 2 })).toBeFocused();
++    await expect(dialog.getByText(lang === "zh" ? "范围" : "Scope", { exact: true })).toBeVisible();
++    await expect(dialog.getByText(lang === "zh" ? "覆盖范围内的期权交易" : "Covered options tape", { exact: true })).toBeVisible();
++    await expect(dialog.getByText(lang === "zh" ? "代码" : "Symbol", { exact: true })).toHaveCount(0);
++    await expect(dialog.locator('a[href="/portfolio"]')).toHaveCount(0);
++    await expect(dialog).not.toContainText(/MARKET|market-wide|全市场/);
++    const evidence = dialog.getByRole("link", { name: lang === "zh" ? "查看证据" : "View evidence", exact: true });
++    await expect(evidence).toHaveAttribute("href", fixture.evidenceUrl);
++    if (lang === "en") await expect(dialog).toContainText(fixture.summary);
++
++    const close = dialog.getByRole("button", { name: lang === "zh" ? "关闭" : "Close", exact: true });
++    await page.keyboard.press("Tab"); await expect(close).toBeFocused();
++    expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44);
++    const box = await dialog.boundingBox(), viewport = page.viewportSize()!;
++    expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
++    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width + 1);
++    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height + 1);
++    expect(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
++    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
++    const screenshot = info.outputPath("aggregate-alert-scope.png");
++    await page.screenshot({ animations: "disabled", path: screenshot });
++    await info.attach("aggregate-alert-scope", { path: screenshot, contentType: "image/png" });
++
++    // Removing a misleading symbol link leaves the real evidence next in keyboard order.
++    await close.press("Tab"); await expect(evidence).toBeFocused();
++    await evidence.press("Tab");
++    const receipt = dialog.locator("summary"); await expect(receipt).toBeFocused();
++    await receipt.press("Enter"); await expect(dialog.locator("details")).toHaveAttribute("open", "");
++    await expect(dialog.locator("details")).toContainText("source-response-" + fixture.id);
++    await dialog.locator("details > div").last().scrollIntoViewIfNeeded();
++    await expect(dialog.locator("details > div").last()).toBeInViewport();
++    await page.keyboard.press("Escape"); await expect(dialog).toBeHidden(); await expect(row).toBeFocused();
++    if (await page.evaluate(() => matchMedia("(pointer: coarse)").matches)) await row.tap();
++    else await row.click();
++    await expect(dialog).toBeVisible();
++    await close.click(); await expect(dialog).toBeHidden(); await expect(row).toBeFocused();
++    expect(writes).toEqual([]); expect(errors).toEqual([]);
++    await info.attach("scope-consumer-proof", { contentType: "application/json",
++      body: Buffer.from(JSON.stringify({ kind, lang, theme, sharedShell, viewport,
++        evidenceUrl: fixture.evidenceUrl, scope: "covered-options-tape", writes, pageErrors: errors }, null, 2)) });
++  });
++}
+diff --git a/terminal/lib/__tests__/alertDetailOptionsScope.test.tsx b/terminal/lib/__tests__/alertDetailOptionsScope.test.tsx
+new file mode 100644
+index 0000000000..aa85c12a6c
+--- /dev/null
++++ b/terminal/lib/__tests__/alertDetailOptionsScope.test.tsx
+@@ -0,0 +1,96 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot, type Root } from "react-dom/client";
++import { afterEach, beforeEach, describe, expect, it } from "vitest";
++import AlertDetail, { type AlertDetailData } from "@/components/alerts/AlertDetail";
++
++const kinds = ["opt_premium_burst", "opt_0dte_spike"] as const;
++const dataFor = (conditionType: string | null, holdingSymbol: string | null = "MARKET"): AlertDetailData => ({
++  conditionText: "Options activity crossed its threshold.",
++  holdingSymbol,
++  summaryPlain: "The recorded options activity crossed its threshold.",
++  conditionPlain: "Options activity crossed its threshold.",
++  triggeredValue: 72.5,
++  conditionType,
++  firedAt: "2026-11-13T15:41:00Z",
++  armedAt: "2026-11-12T12:00:00Z",
++  evidenceUrl: "/options?tab=tide&receipt=aggregate-scope",
++  lastAttemptAt: "2026-11-13T15:42:00Z",
++  lastAttemptState: "READ_OK",
++  lastSuccessAt: "2026-11-13T15:40:00Z",
++  lastSuccessState: "READ_OK",
++  resolution: "open",
++  delivery: "failed",
++  attempts: 2,
++  lastError: "recorded-source-response",
++  deliverAfter: null,
++});
++
++let host: HTMLDivElement, root: Root;
++beforeEach(() => {
++  (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
++  host = document.createElement("div"); document.body.appendChild(host);
++  root = createRoot(host);
++});
++afterEach(async () => { await act(async () => root.unmount()); host.remove(); });
++async function render(data: AlertDetailData, lang: "en" | "zh") {
++  await act(async () => root.render(<AlertDetail data={data} lang={lang} onClose={() => {}} />));
++  return document.body.querySelector<HTMLElement>('[role="dialog"]')!;
++}
++const leaf = (dialog: HTMLElement, value: string) =>
++  [...dialog.querySelectorAll("span")].find(node => node.children.length === 0 && node.textContent === value);
++
++describe("aggregate options alert detail identifies the covered tape", () => {
++  for (const lang of ["en", "zh"] as const) for (const type of kinds) for (const kind of [undefined, "alert"] as const) {
++    it(`${type} uses bounded scope in ${lang} with kind ${kind ?? "default"}`, async () => {
++      const data = { ...dataFor(type), kind };
++      const before = JSON.stringify(data);
++      const dialog = await render(data, lang);
++      const label = leaf(dialog, lang === "zh" ? "范围" : "Scope");
++      expect(label).toBeDefined();
++      expect(label?.parentElement?.textContent).toContain(lang === "zh" ? "覆盖范围内的期权交易" : "Covered options tape");
++      expect(leaf(dialog, lang === "zh" ? "代码" : "Symbol")).toBeUndefined();
++      expect(dialog.querySelector('a[href="/portfolio"]')).toBeNull();
++      expect(dialog.textContent).not.toMatch(/MARKET|market-wide|全市场/);
++      expect(dialog.querySelector('a[href="/options?tab=tide&receipt=aggregate-scope"]')).not.toBeNull();
++      expect(leaf(dialog, lang === "zh" ? "时间线" : "Timeframe")).toBeDefined();
++      expect(leaf(dialog, lang === "zh" ? "投递结果" : "Delivery")).toBeDefined();
++      expect(dialog.querySelector("details")?.textContent).toContain("recorded-source-response");
++      expect(dialog.querySelector("details")?.textContent).toContain("2");
++      expect(JSON.stringify(data)).toBe(before);
++    });
++  }
++
++  for (const type of kinds) for (const symbol of ["SPY", null]) {
++    it(`${type} derives scope from the condition despite legacy symbol ${symbol}`, async () => {
++      const dialog = await render(dataFor(type, symbol), "en");
++      expect(leaf(dialog, "Scope")?.parentElement?.textContent).toContain("Covered options tape");
++      expect(dialog.querySelector('a[href="/portfolio"]')).toBeNull();
++      expect(leaf(dialog, "Symbol")).toBeUndefined();
++      expect(dialog.textContent).not.toContain("SPY");
++    });
++  }
++
++  it.each(["price", "opt_gamma_flip", null])("preserves ticker detail for %s", async type => {
++    const dialog = await render(dataFor(type, "NVDA"), "en");
++    expect(leaf(dialog, "Symbol")).toBeDefined();
++    expect(leaf(dialog, "Scope")).toBeUndefined();
++    expect(dialog.querySelector('a[href="/portfolio"]')?.textContent).toBe("NVDA");
++  });
++
++  for (const lang of ["en", "zh"] as const) {
++    it(`preserves thesis detail in ${lang}`, async () => {
++      const dialog = await render({ ...dataFor("opt_premium_burst"), kind: "thesis" }, lang);
++      expect(leaf(dialog, lang === "zh" ? "范围" : "Scope")).toBeUndefined();
++      expect(leaf(dialog, lang === "zh" ? "代码" : "Symbol")).toBeUndefined();
++      expect(leaf(dialog, lang === "zh" ? "发生了什么" : "What changed")).toBeUndefined();
++    });
++    it(`preserves position event detail in ${lang}`, async () => {
++      const dialog = await render({ ...dataFor("opt_premium_burst", "NVDA"), kind: "position" }, lang);
++      expect(leaf(dialog, lang === "zh" ? "范围" : "Scope")).toBeUndefined();
++      expect(leaf(dialog, lang === "zh" ? "事件" : "Event")).toBeDefined();
++      expect(dialog.querySelector('a[href="/portfolio"]')?.textContent).toBe("NVDA");
++      expect(dialog.textContent).toContain("The recorded options activity crossed its threshold.");
++    });
++  }
++});

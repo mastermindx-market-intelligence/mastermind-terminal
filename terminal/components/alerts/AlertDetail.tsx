@@ -6,13 +6,14 @@ import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 import layout from "./AlertDetail.module.css";
 import s from "./alerts.module.css";
 import { pick } from "@/lib/finFormat";
+import { isMarketWideOptKind } from "@/lib/optionsAlerts";
 import { copy, firedEventTextZh, formatFiredAt, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
 
 export interface AlertDetailData {
   kind?: "alert" | "thesis" | "position";
   conditionText: string;
-  // Ticker only — there is no portfolio/position join yet (F08 V2 owns true holding-coverage
-  // mapping). `null` means the ticker itself could not be resolved, never a fabricated match.
+  // Root identity, or canonical MARKET for aggregate options alerts. The condition kind
+  // determines aggregate scope; this field does not establish portfolio/position coverage.
   holdingSymbol: string | null;
   summaryPlain: string | null;
   conditionPlain: string | null;
@@ -46,6 +47,8 @@ export interface AlertDetailData {
 export default function AlertDetail({ data, lang, onClose }: { data: AlertDetailData; lang: "en" | "zh"; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus(dialogRef, onClose);
+  const coveredTapeScope = (data.kind === undefined || data.kind === "alert")
+    && isMarketWideOptKind(data.conditionType ?? "");
   // Plain-language law: a human reads a date and a time, never a machine timestamp with
   // seconds. toLocaleString's default includes seconds; force minute precision instead.
   const plainOpts: Intl.DateTimeFormatOptions = { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" };
@@ -66,10 +69,12 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
       <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{data.kind === "position" ? (lang === "zh" ? "事件" : "Event") : (lang === "zh" ? "条件" : "Condition")}</span><span>{data.conditionText}</span></div>
       {data.kind !== "thesis" && (
       <div className={`${s.detailFact} ${layout.fact}`}>
-        <span className={s.detailLabel}>{lang === "zh" ? "代码" : "Symbol"}</span>
+        <span className={s.detailLabel}>{coveredTapeScope ? (lang === "zh" ? "范围" : "Scope") : (lang === "zh" ? "代码" : "Symbol")}</span>
         {/* No holdings join yet (F08 V2) — labelled Symbol, never Holding, so this never
             asserts ownership the account has not established. */}
-        <span>{data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
+        <span>{coveredTapeScope
+          ? pick(lang === "zh", "Covered options tape", "覆盖范围内的期权交易")
+          : data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
       </div>
       )}
       {/* Minor 4 (round-6 review): summaryPlain/conditionPlain are the fired-event payload's own

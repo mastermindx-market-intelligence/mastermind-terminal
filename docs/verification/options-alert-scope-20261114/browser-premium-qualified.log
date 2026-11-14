@@ -1,0 +1,32 @@
+[warmup] /terminal?symbol=NVDA → 200 in 54ms
+[warmup] /options → 200 in 1434ms
+[warmup] /portfolio → 200 in 571ms
+[warmup] /alerts → 200 in 468ms
+[warmup] /analysis → 200 in 927ms
+[warmup] /discover → 200 in 1130ms
+[warmup] /admin → 200 in 342ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 250ms
+[warmup] /login → 200 in 101ms
+[warmup] /reset-password → 200 in 242ms
+[warmup] /api/me → 200 in 911ms
+[warmup] /api/watchlist → 200 in 321ms
+[warmup] /api/layouts → 200 in 752ms
+[warmup] /api/watchlist/annotations → 409 in 276ms
+[warmup] 14 routes compiled in 8s
+[fixture-ready] prophet_idx fixture 200 in 1116ms
+
+Running 12 tests using 1 worker
+
+[1/12] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[2/12] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[3/12] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[4/12] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+[5/12] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[6/12] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[7/12] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[8/12] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+[9/12] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[10/12] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[11/12] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[12/12] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+  12 passed (54.8s)

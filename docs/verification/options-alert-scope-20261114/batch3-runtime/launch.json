@@ -1,0 +1,12 @@
+{
+  "captureId": "options-alert-aggregate-scope-20261114-c3-batch3",
+  "startedAt": "2026-11-14T14:16:44.064166+00:00",
+  "parentPid": 74196,
+  "supervisorPid": 74210,
+  "driverSource": "terminal/docs/verification/pr898-evidence-renewal-20261109/capture-execution.json",
+  "driverSourceSha256": "ce5305aa933b7214681b14ce608aa333db75933d34f057c62f71db7d3daf57ad",
+  "driverSha256": "25eba8b3afb44b0519cd00a0f7c08db638b434d75485c4b0bc5e3dcb26f99bf3",
+  "driver": "const fs=require(\"node:fs\"),path=require(\"node:path\");const {superviseLegacy}=require(\"./e2e/tools/capture_ci_evidence.cjs\");(async()=>{const dir=process.env.BATCH3_PROOF_RUNTIME;const result=await superviseLegacy(process.execPath,[\"e2e/tools/capture_pl6_batch3.cjs\"],{cwd:process.cwd(),env:process.env,stdio:[\"ignore\",\"inherit\",\"inherit\",\"ipc\"]},{deadlineMs:8*60_000,onState:value=>fs.appendFileSync(path.join(dir,\"supervision-events.ndjson\"),JSON.stringify(value)+\"\\n\")});fs.writeFileSync(path.join(dir,\"supervision.json\"),JSON.stringify({...result,error:result.error?{message:result.error.message,code:result.error.code}:null},null,2)+\"\\n\");if(result.error||result.signal||result.status!==0||result.timedOut||!result.closed||!result.serverSettled)process.exitCode=1;})().catch(error=>{console.error(error);process.exitCode=1;});",
+  "port": 3572,
+  "originalFlowCaptureUntouched": true
+}

@@ -1,0 +1,27 @@
+[dev] ▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://127.0.0.1:3572
+- Network:       http://127.0.0.1:3572
+✓ Ready in 627ms
+capture OptionsFlowBoard-1440.png … ok
+capture FlowDesk-1440.png … ok
+capture AlertDetail-1440.png … ok
+capture HeatmapTreemap-1440.png … ok
+capture PineLibrary-1440.png … ok
+capture OptionsFlowBoard-1440-zh.png … ok
+capture FlowDesk-1440-zh.png … ok
+capture AlertDetail-1440-zh.png … ok
+capture HeatmapTreemap-1440-zh.png … ok
+capture PineLibrary-1440-zh.png … ok
+capture OptionsFlowBoard-390.png … ok
+capture FlowDesk-390.png … ok
+capture AlertDetail-390.png … ok
+capture HeatmapTreemap-390.png … ok
+capture PineLibrary-390.png … ok
+capture OptionsFlowBoard-390-zh.png … ok
+capture FlowDesk-390-zh.png … ok
+capture AlertDetail-390-zh.png … ok
+capture HeatmapTreemap-390-zh.png … ok
+capture PineLibrary-390-zh.png … ok
+{"legacyEvidence":{"captureId":"options-alert-aggregate-scope-20261114-c3-batch3-copy-routing","packet":"batch3","capturedAtHead":"531356748643ff8005fe0bfccc3a6d4fdf5abebf","manifestSha256":"6e25958d7f73a463316708d7e00a10638fd3972dca9dc8a524e815db50e0709f","files":[{"file":"OptionsFlowBoard-1440.png","sha256":"5d3993b0226dce8989bee4e65e2fd32f4e712045093397f17c7e22cc61acaf10"},{"file":"FlowDesk-1440.png","sha256":"e020b0cb94fd3882751935faafe6f30ebb04c52aaaaf56eba0ec1250be830297"},{"file":"AlertDetail-1440.png","sha256":"ccddd0bfcd5ec12e8d7e90b2d788b54d3e64163ca75c60377f023f839a61b5cf"},{"file":"HeatmapTreemap-1440.png","sha256":"5e7cd1416339adae93a22826464fc47fe2fe076572bd71149d3a4dfd5088a183"},{"file":"PineLibrary-1440.png","sha256":"47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b"},{"file":"OptionsFlowBoard-1440-zh.png","sha256":"fc0dcda5d0217ad4735fa1726e3423df1591b2bddcbd5b595589578d46cb655c"},{"file":"FlowDesk-1440-zh.png","sha256":"07499465c95ac0bf530cc0ebd1d77de1a7dddaa43da21a07fa7de172c7509260"},{"file":"AlertDetail-1440-zh.png","sha256":"cc80b0baf24575304b34881cb53da6e517e4b88dabb904975ca78d805b7344ad"},{"file":"HeatmapTreemap-1440-zh.png","sha256":"d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13"},{"file":"PineLibrary-1440-zh.png","sha256":"339bfb08142c48c2ad510f3eff30227e0996301ed979016e42e48c45bf4348f8"},{"file":"OptionsFlowBoard-390.png","sha256":"e698e9a99e6b09f73638af4cb120d864f3bd1318fce1bdfc0acc0fa8ef66f49c"},{"file":"FlowDesk-390.png","sha256":"67549b9c1ec2db83a6ff7ff38a98e2c1b330051f7ab0dc09b479daa091e17e50"},{"file":"AlertDetail-390.png","sha256":"08ed637cbdb0b79df31069ceba42635f88aa85fd5715341212b22a121c4a2605"},{"file":"HeatmapTreemap-390.png","sha256":"c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394"},{"file":"PineLibrary-390.png","sha256":"222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16"},{"file":"OptionsFlowBoard-390-zh.png","sha256":"3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab"},{"file":"FlowDesk-390-zh.png","sha256":"22f68c3ce945a4ba09c2e486aecf7555d09b688cd1d937f99369a72738b176d3"},{"file":"AlertDetail-390-zh.png","sha256":"b7043daed32a9a0baa99a7c8e566faf79cb3f8c8948f6695f804cd21b1dda6ee"},{"file":"HeatmapTreemap-390-zh.png","sha256":"dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12"},{"file":"PineLibrary-390-zh.png","sha256":"972aedc6292b85ab872cb44300d721a3fe5de26916dc6373029b65854c0b9a5b"}]}}
+capturedAtHead 531356748643ff8005fe0bfccc3a6d4fdf5abebf
+wrote 20 crops + EVIDENCE.yml to /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/docs/pr-crops/b-pl-6-batch-3

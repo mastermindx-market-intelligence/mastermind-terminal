@@ -1,0 +1,56 @@
+[warmup] /terminal?symbol=NVDA → 200 in 57ms
+[warmup] /options → 200 in 2302ms
+[warmup] /portfolio → 200 in 1181ms
+[warmup] /alerts → 200 in 552ms
+[warmup] /analysis → 200 in 1508ms
+[warmup] /discover → 200 in 4194ms
+[warmup] /admin → 200 in 320ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 277ms
+[warmup] /login → 200 in 146ms
+[warmup] /reset-password → 200 in 285ms
+[warmup] /api/me → 200 in 399ms
+[warmup] /api/watchlist → 200 in 171ms
+[warmup] /api/layouts → 200 in 172ms
+[warmup] /api/watchlist/annotations → 409 in 211ms
+[warmup] 14 routes compiled in 12s
+[fixture-ready] prophet_idx fixture 200 in 700ms
+
+Running 33 tests using 1 worker
+
+[1/33] [desktop] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in en
+[2/33] [desktop] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in zh
+[3/33] [desktop] › e2e/alert-detail-keyboard.spec.ts:119:5 › short alert detail keeps the full receipt and close action reachable
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[4/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[5/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, dark)
+[6/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[7/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, light)
+[8/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[9/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, dark)
+[10/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+[11/33] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, light)
+[12/33] [tablet] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in en
+[13/33] [tablet] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in zh
+[14/33] [tablet] › e2e/alert-detail-keyboard.spec.ts:119:5 › short alert detail keeps the full receipt and close action reachable
+[15/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[16/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, dark)
+[17/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[18/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, light)
+[19/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[20/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, dark)
+[21/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+[22/33] [tablet] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, light)
+[23/33] [mobile] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in en
+[24/33] [mobile] › e2e/alert-detail-keyboard.spec.ts:60:7 › alert detail contains keyboard focus and returns to its opener in zh
+[25/33] [mobile] › e2e/alert-detail-keyboard.spec.ts:119:5 › short alert detail keeps the full receipt and close action reachable
+[26/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[27/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, dark)
+[28/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[29/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, en, light)
+[30/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[31/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, dark)
+[32/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+[33/33] [mobile] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_0dte_spike, zh, light)
+  2 skipped
+  31 passed (1.2m)

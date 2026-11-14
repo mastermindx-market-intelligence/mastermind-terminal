@@ -1,0 +1,24 @@
+[warmup] /terminal?symbol=NVDA → 200 in 70ms
+[warmup] /options → 200 in 1747ms
+[warmup] /portfolio → 200 in 743ms
+[warmup] /alerts → 200 in 642ms
+[warmup] /analysis → 200 in 1198ms
+[warmup] /discover → 200 in 1601ms
+[warmup] /admin → 200 in 632ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 391ms
+[warmup] /login → 200 in 124ms
+[warmup] /reset-password → 200 in 361ms
+[warmup] /api/me → 200 in 589ms
+[warmup] /api/watchlist → 200 in 281ms
+[warmup] /api/layouts → 200 in 323ms
+[warmup] /api/watchlist/annotations → 409 in 202ms
+[warmup] 14 routes compiled in 9s
+[fixture-ready] prophet_idx fixture 200 in 547ms
+
+Running 4 tests using 1 worker
+
+[1/4] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)
+[2/4] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)
+[3/4] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)
+[4/4] [desktop] › e2e/alert-detail-options-scope.spec.ts:42:7 › aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)
+  4 passed (29.2s)
