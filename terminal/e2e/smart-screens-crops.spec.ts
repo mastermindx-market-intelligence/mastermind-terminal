@@ -1,3 +1,4 @@
+import { chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -52,7 +53,7 @@ for (const lang of ["en", "zh"] as const) {
 
     // ── 1. save a screen on the 10-09 scan and mark it reviewed ──
     await openScreener(page, 5);
-    await moveSelect(page).selectOption("up3");
+    await chooseDiscoverOption(moveSelect(page), "up3");
     await expect(dataRows(page)).toHaveCount(4);
     const p = await openPanel(page);
     await expect(p).toHaveAttribute("data-ss-status", "ready");
@@ -71,7 +72,7 @@ for (const lang of ["en", "zh"] as const) {
       await routeManifest(pageB, () => "g2");
       await pageB.route("**/api/smart-screens", (route) =>
         failPuts && route.request().method() === "PUT" ? route.abort("failed") : route.fallback());
-      await openScreener(pageB, 5);
+      await openScreener(pageB, 3); // Account workspace restores up3 on the newer manifest.
       const pb = await openPanel(pageB);
       const screen = pb.locator("[data-ss-screen]");
       await screen.locator("[data-ss-open]").click();
@@ -97,3 +98,4 @@ for (const lang of ["en", "zh"] as const) {
     }
   });
 }
+

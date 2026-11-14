@@ -245,7 +245,7 @@ def test_a_manifest_gics_snapshot_is_never_the_current_sector(data_dir):
 
 
 def test_a_dated_record_that_disagrees_with_the_snapshot_is_a_reclassification(data_dir):
-    _add(data_dir, "ZZRC", {"sec": "Equities", "mkt": "NYSE", "gics": "Financials"},
+    _add(data_dir, "ZZRC", {"sec": "Equities", "mkt": "NYSE", "gics": "Financials", "gics_asof": "2026-09-01"},
          _rec("ZZRC", sector="Information Technology"))
     c = _rows(scan.build_scan(data_dir, NOW))["ZZRC"]["class"]["gics_sector"]
     assert (c["status"], c["label"], c["reclassified_from"]) == (E, "Information Technology",
@@ -501,3 +501,4 @@ def test_the_producer_fixture_is_this_producers_output(data_dir):
     assert FIXTURE.read_bytes() == data, (
         "terminal/lib/__tests__/fixtures/screenerScan/classification.producer.json is stale — "
         "regenerate with UPDATE_SCAN_FIXTURE=1 (see module docstring)")
+

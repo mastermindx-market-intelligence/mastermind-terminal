@@ -27,13 +27,15 @@ ATTRIBUTED to a taxonomy only when the record's own provenance proves which one 
   deliberately NOT merged into Yahoo's even though its labels look alike — and the sentinel
   is ``unavailable/not_classified``, exactly as the owner's own consumers treat it.
 
-Every attributed label carries the owner record's emission date (``asof``) — the date the
+Non-US attributed labels carry the owner record's emission date (``asof``) — the date the
 owner asserted it. Providers publish no effective dates, and the fund emitters may carry a
 profile forward from an earlier emission, so that date is never claimed as a reclassification
 date; the reader ages a label whose record date is old.
 
 No crosswalk exists between these taxonomies, so none is published: a screen picks ONE native
-taxonomy (the E03 falsifier). The manifest's ``gics`` field is a retained, UNDATED reference
+taxonomy (the E03 falsifier). US profiles use their source cache observation date,
+not the rebuild date; explicit field provenance disambiguates Yahoo and site fallbacks.
+The manifest's ``gics`` field is a retained reference
 snapshot; it is carried as ``stale/snapshot_undated`` so it is shown with that label and can
 never pass for the current sector (AC-E03-03). A dated owner-record label that disagrees with
 the snapshot is published with ``reclassified_from``.
@@ -149,7 +151,7 @@ TAXONOMIES: dict[str, dict] = {
 CN_UNCLASSIFIED_SENTINELS = frozenset(TAXONOMIES["cn_profile_sector"]["unclassified_sentinels"])
 
 # Owner-record lanes, identified by the record's OWN provenance (src.statements).
-LANE_OF_STATEMENTS = {"yfinance": "yfinance_profile", "akshare": "hk_akshare", "tushare": "cn_tushare"}
+LANE_OF_STATEMENTS = {"yfinance": "yfinance_profile", "yfinance+massive": "yfinance_profile", "akshare": "hk_akshare", "tushare": "cn_tushare"}
 NON_MONETARY_SECS = frozenset({"Indices", "Bonds", "Forex", "Futures"})
 CLASSIFIED_SECS = frozenset({"Equities"})
 
@@ -227,9 +229,10 @@ def crypto_catalog() -> frozenset[str]:
 
 # ── the classification of one listing ───────────────────────────────────────────────────
 def classify_sectors(lane: str | None, record: dict | None, rec_state: str,
-                     gics_snapshot: str | None) -> dict[str, dict]:
+                     gics_snapshot: str | None, gics_as_of: str | None = None) -> dict[str, dict]:
     """The four native-taxonomy cells for one EQUITY listing (see the module doc)."""
-    snap = (_cell("snapshot_undated", label=gics_snapshot, as_of=None, source="manifest_gics")
+    snap = ((_evaluated(gics_snapshot, gics_as_of, "manifest_gics") if is_iso_date(gics_as_of)
+             else _cell("snapshot_undated", label=gics_snapshot, as_of=None, source="manifest_gics"))
             if gics_snapshot else None)
 
     def gics_fallback(reason: str, **extra: Any) -> dict:
@@ -248,6 +251,12 @@ def classify_sectors(lane: str | None, record: dict | None, rec_state: str,
     profile = record.get("profile") if isinstance(record.get("profile"), dict) else {}
     sector, industry = _label(profile.get("sector")), _label(profile.get("industry"))
     as_of = record.get("asof")
+    if lane == "yfinance_profile":
+        # +massive enriches statements only; classification stays with the profile.
+        # Legacy documents retain the documented owner-record emission date.
+        # New records carry the selecting branch's actual observation date (or
+        # explicit null). A Yahoo timestamp never dates a site-profile fallback.
+        as_of = profile.get("sector_asof") if "sector_asof" in profile else record.get("asof")
     dated = is_iso_date(as_of)
 
     def ev(label: str, **extra: Any) -> dict:
@@ -282,12 +291,21 @@ def classify_sectors(lane: str | None, record: dict | None, rec_state: str,
     # yfinance_profile: info.sector OR site_profile.sector — attribute by vocabulary only.
     if sector is None:
         gs, ys = gics_fallback("not_classified"), _cell("not_classified")
+    elif profile.get("sector_source") == "yfinance" and sector in _Y:
+        gs, ys = gics_fallback("taxonomy_not_supplied"), ev(sector)
     elif sector in _Y and sector in _G:
         gs = gics_fallback("taxonomy_ambiguous", label=sector)
         ys = _cell("taxonomy_ambiguous", label=sector)
     elif sector in _G:
-        extra = {"reclassified_from": gics_snapshot} if gics_snapshot and gics_snapshot != sector else {}
-        gs, ys = ev(sector, **extra), _cell("taxonomy_not_supplied")
+        # Reference snapshots now carry their own observation date. An older or
+        # undated profile must not replace newer evidence in this same taxonomy.
+        if snap and snap["status"] == "evaluated" and (not dated or gics_as_of > as_of):
+            gs = snap
+        else:
+            changed = (gics_snapshot and gics_snapshot != sector and dated
+                       and is_iso_date(gics_as_of) and as_of > gics_as_of)
+            gs = ev(sector, **({"reclassified_from": gics_snapshot} if changed else {}))
+        ys = _cell("taxonomy_not_supplied")
     elif sector in _Y:
         gs, ys = gics_fallback("taxonomy_not_supplied"), ev(sector)
     else:
@@ -295,8 +313,12 @@ def classify_sectors(lane: str | None, record: dict | None, rec_state: str,
         ys = _cell("label_outside_vocabulary", label=sector)
     if industry is None:
         yi = _cell("not_classified")
-    elif ys["status"] in ("evaluated", "stale"):
-        yi = ev(industry)
+    elif profile.get("industry_source") == "site_profile_sic":
+        yi = _cell("taxonomy_not_supplied")
+    elif profile.get("industry_source") == "yfinance" or ys["status"] in ("evaluated", "stale"):
+        industry_date = profile.get("industry_asof", as_of)
+        yi = (_evaluated(industry, industry_date, "fund_profile") if is_iso_date(industry_date)
+              else _cell("record_undated", label=industry, as_of=None, source="fund_profile"))
     else:
         # The industry may be Yahoo's or the site profile's SIC description; the record does
         # not say which, so it is shown, never filed under Yahoo.
@@ -342,7 +364,7 @@ def classify_symbol(data_dir: Path, sym: str, mrow: dict, crypto: frozenset[str]
         cell = _cell("asset_class_not_covered")
         out["class"] = {t: dict(cell) for t in TAXONOMY_IDS}
     else:
-        out["class"] = classify_sectors(lane, record, rec_state, gics_snapshot)
+        out["class"] = classify_sectors(lane, record, rec_state, gics_snapshot, mrow.get("gics_asof"))
     return out
 
 
@@ -564,3 +586,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

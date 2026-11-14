@@ -1,0 +1,26 @@
+[warmup] /terminal?symbol=NVDA → 200 in 81ms
+[warmup] /options → 200 in 1260ms
+[warmup] /portfolio → 200 in 524ms
+[warmup] /alerts → 200 in 446ms
+[warmup] /analysis → 200 in 835ms
+[warmup] /discover → 200 in 1126ms
+[warmup] /admin → 200 in 265ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 210ms
+[warmup] /login → 200 in 89ms
+[warmup] /reset-password → 200 in 247ms
+[warmup] /api/me → 200 in 281ms
+[warmup] /api/watchlist → 200 in 128ms
+[warmup] /api/layouts → 200 in 136ms
+[warmup] /api/watchlist/annotations → 409 in 110ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 295ms
+
+Running 6 tests using 1 worker
+
+[1/6] [tablet] › e2e/options-session-flow-signed.spec.ts:57:7 › Tide Session keeps signed totals through display toggles (en)
+[2/6] [tablet] › e2e/options-session-flow-signed.spec.ts:57:7 › Tide Session keeps signed totals through display toggles (zh)
+[3/6] [tablet] › e2e/options-session-flow-signed.spec.ts:85:5 › Surface Session keeps signed replay totals and withdraws archived premium data
+[4/6] [mobile] › e2e/options-session-flow-signed.spec.ts:57:7 › Tide Session keeps signed totals through display toggles (en)
+[5/6] [mobile] › e2e/options-session-flow-signed.spec.ts:57:7 › Tide Session keeps signed totals through display toggles (zh)
+[6/6] [mobile] › e2e/options-session-flow-signed.spec.ts:85:5 › Surface Session keeps signed replay totals and withdraws archived premium data
+  6 passed (24.7s)

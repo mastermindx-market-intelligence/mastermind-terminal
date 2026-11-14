@@ -2001,5 +2001,22 @@
     "child_pr": 1524,
     "observed_child_base": "master",
     "child_draft": true
+  },
+  "protected_reconciliation": {
+    "candidate_parent": "36f05d10a2e08d1ca60b175ea6a574c9a9d8426b",
+    "protected_parent": "62315b351dbadd85db29ff77809af823d7251b1c",
+    "common_base": "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+    "candidate_changed_paths": 177,
+    "protected_changed_paths": 223,
+    "overlap_paths": 16,
+    "protected_overlap_exact_1517_blobs": 16,
+    "candidate_unchanged_overlap_blobs": 12,
+    "retained_integration_delta_paths": [
+      "terminal/components/macro-economy/MacroEconomy.module.css",
+      "terminal/components/macro-economy/MacroEconomyOverview.tsx",
+      "terminal/components/macro-economy/MacroEconomyWorkspace.tsx",
+      "terminal/lib/__tests__/macroEconomyConsumer.test.tsx"
+    ],
+    "release_request": false
   }
 }

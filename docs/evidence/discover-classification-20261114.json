@@ -1,0 +1,544 @@
+{
+  "scope": "Discover sector-source repair; read-only production inputs",
+  "source_head": "3c08537f70e1020be64c8bb89a3794fb41b05347",
+  "installed_production_sha": "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+  "production_mutated": false,
+  "inputs": {
+    "generation": 1794628368,
+    "generated_at": "2026-11-14T03:52:48Z",
+    "observations": {
+      "NVDA": {
+        "manifest": {
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "gics": "Information Technology"
+        },
+        "fund": {
+          "asof": "2026-11-13",
+          "src": {
+            "cache_fetched_at": "2026-11-11T00:34:31Z",
+            "dividends": "yfinance",
+            "estimates": "yfinance",
+            "statement_lineage": "sec_companyfacts",
+            "statements": "yfinance+massive"
+          },
+          "profile": {
+            "sector": "Technology",
+            "industry": "Semiconductors"
+          }
+        },
+        "current": {
+          "class": {
+            "cn_profile_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "gics_sector": {
+              "as_of": null,
+              "label": "Information Technology",
+              "reason": "snapshot_undated",
+              "source": "manifest_gics",
+              "status": "stale"
+            },
+            "yahoo_industry": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "yahoo_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            }
+          },
+          "currency": {
+            "as_of": "2026-11-13",
+            "code": "USD",
+            "reason": "ok",
+            "source": "fund_quote_currency",
+            "status": "evaluated"
+          },
+          "lane": null,
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "sym": "NVDA"
+        }
+      },
+      "AAPL": {
+        "manifest": {
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "gics": "Information Technology"
+        },
+        "fund": {
+          "asof": "2026-11-13",
+          "src": {
+            "cache_fetched_at": "2026-11-13T23:51:22Z",
+            "dividends": "yfinance",
+            "estimates": "yfinance",
+            "statement_lineage": "sec_companyfacts",
+            "statements": "yfinance+massive"
+          },
+          "profile": {
+            "sector": "Technology",
+            "industry": "Consumer Electronics"
+          }
+        },
+        "current": {
+          "class": {
+            "cn_profile_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "gics_sector": {
+              "as_of": null,
+              "label": "Information Technology",
+              "reason": "snapshot_undated",
+              "source": "manifest_gics",
+              "status": "stale"
+            },
+            "yahoo_industry": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "yahoo_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            }
+          },
+          "currency": {
+            "as_of": "2026-11-13",
+            "code": "USD",
+            "reason": "ok",
+            "source": "fund_quote_currency",
+            "status": "evaluated"
+          },
+          "lane": null,
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "sym": "AAPL"
+        }
+      },
+      "AMD": {
+        "manifest": {
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "gics": "Information Technology"
+        },
+        "fund": {
+          "asof": "2026-11-13",
+          "src": {
+            "cache_fetched_at": "2026-11-14T00:01:30Z",
+            "dividends": "yfinance",
+            "estimates": "yfinance",
+            "statement_lineage": "sec_companyfacts",
+            "statements": "yfinance+massive"
+          },
+          "profile": {
+            "sector": "Technology",
+            "industry": "Semiconductors"
+          }
+        },
+        "current": {
+          "class": {
+            "cn_profile_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "gics_sector": {
+              "as_of": null,
+              "label": "Information Technology",
+              "reason": "snapshot_undated",
+              "source": "manifest_gics",
+              "status": "stale"
+            },
+            "yahoo_industry": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "yahoo_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            }
+          },
+          "currency": {
+            "as_of": "2026-11-13",
+            "code": "USD",
+            "reason": "ok",
+            "source": "fund_quote_currency",
+            "status": "evaluated"
+          },
+          "lane": null,
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "sym": "AMD"
+        }
+      },
+      "TSLA": {
+        "manifest": {
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "gics": "Consumer Discretionary"
+        },
+        "fund": {
+          "asof": "2026-11-13",
+          "src": {
+            "cache_fetched_at": "2026-11-12T01:28:47Z",
+            "dividends": "yfinance",
+            "estimates": "yfinance",
+            "statement_lineage": "sec_companyfacts",
+            "statements": "yfinance+massive"
+          },
+          "profile": {
+            "sector": "Consumer Cyclical",
+            "industry": "Auto Manufacturers"
+          }
+        },
+        "current": {
+          "class": {
+            "cn_profile_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "gics_sector": {
+              "as_of": null,
+              "label": "Consumer Discretionary",
+              "reason": "snapshot_undated",
+              "source": "manifest_gics",
+              "status": "stale"
+            },
+            "yahoo_industry": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "yahoo_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            }
+          },
+          "currency": {
+            "as_of": "2026-11-13",
+            "code": "USD",
+            "reason": "ok",
+            "source": "fund_quote_currency",
+            "status": "evaluated"
+          },
+          "lane": null,
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "sym": "TSLA"
+        }
+      },
+      "MSFT": {
+        "manifest": {
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "gics": "Information Technology"
+        },
+        "fund": {
+          "asof": "2026-11-13",
+          "src": {
+            "cache_fetched_at": "2026-11-11T00:25:35Z",
+            "dividends": "yfinance",
+            "estimates": "yfinance",
+            "statement_lineage": "sec_companyfacts",
+            "statements": "yfinance+massive"
+          },
+          "profile": {
+            "sector": "Technology",
+            "industry": "Software - Infrastructure"
+          }
+        },
+        "current": {
+          "class": {
+            "cn_profile_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "gics_sector": {
+              "as_of": null,
+              "label": "Information Technology",
+              "reason": "snapshot_undated",
+              "source": "manifest_gics",
+              "status": "stale"
+            },
+            "yahoo_industry": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            },
+            "yahoo_sector": {
+              "reason": "lane_unrecognized",
+              "status": "unsupported"
+            }
+          },
+          "currency": {
+            "as_of": "2026-11-13",
+            "code": "USD",
+            "reason": "ok",
+            "source": "fund_quote_currency",
+            "status": "evaluated"
+          },
+          "lane": null,
+          "mkt": "NASDAQ",
+          "sec": "Equities",
+          "sym": "MSFT"
+        }
+      }
+    }
+  },
+  "proof": {
+    "source_generation": 1794628368,
+    "candidate": "3c08537f70e1020be64c8bb89a3794fb41b05347",
+    "production_mutated": false,
+    "results": {
+      "NVDA": {
+        "before": {
+          "cn_profile_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "gics_sector": {
+            "as_of": null,
+            "label": "Information Technology",
+            "reason": "snapshot_undated",
+            "source": "manifest_gics",
+            "status": "stale"
+          },
+          "yahoo_industry": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "yahoo_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          }
+        },
+        "after": {
+          "gics_sector": {
+            "status": "stale",
+            "reason": "snapshot_undated",
+            "label": "Information Technology",
+            "as_of": null,
+            "source": "manifest_gics"
+          },
+          "yahoo_sector": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Technology",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "yahoo_industry": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Semiconductors",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "cn_profile_sector": {
+            "status": "unsupported",
+            "reason": "taxonomy_not_supplied"
+          }
+        }
+      },
+      "AAPL": {
+        "before": {
+          "cn_profile_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "gics_sector": {
+            "as_of": null,
+            "label": "Information Technology",
+            "reason": "snapshot_undated",
+            "source": "manifest_gics",
+            "status": "stale"
+          },
+          "yahoo_industry": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "yahoo_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          }
+        },
+        "after": {
+          "gics_sector": {
+            "status": "stale",
+            "reason": "snapshot_undated",
+            "label": "Information Technology",
+            "as_of": null,
+            "source": "manifest_gics"
+          },
+          "yahoo_sector": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Technology",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "yahoo_industry": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Consumer Electronics",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "cn_profile_sector": {
+            "status": "unsupported",
+            "reason": "taxonomy_not_supplied"
+          }
+        }
+      },
+      "AMD": {
+        "before": {
+          "cn_profile_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "gics_sector": {
+            "as_of": null,
+            "label": "Information Technology",
+            "reason": "snapshot_undated",
+            "source": "manifest_gics",
+            "status": "stale"
+          },
+          "yahoo_industry": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "yahoo_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          }
+        },
+        "after": {
+          "gics_sector": {
+            "status": "stale",
+            "reason": "snapshot_undated",
+            "label": "Information Technology",
+            "as_of": null,
+            "source": "manifest_gics"
+          },
+          "yahoo_sector": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Technology",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "yahoo_industry": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Semiconductors",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "cn_profile_sector": {
+            "status": "unsupported",
+            "reason": "taxonomy_not_supplied"
+          }
+        }
+      },
+      "TSLA": {
+        "before": {
+          "cn_profile_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "gics_sector": {
+            "as_of": null,
+            "label": "Consumer Discretionary",
+            "reason": "snapshot_undated",
+            "source": "manifest_gics",
+            "status": "stale"
+          },
+          "yahoo_industry": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "yahoo_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          }
+        },
+        "after": {
+          "gics_sector": {
+            "status": "stale",
+            "reason": "snapshot_undated",
+            "label": "Consumer Discretionary",
+            "as_of": null,
+            "source": "manifest_gics"
+          },
+          "yahoo_sector": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Consumer Cyclical",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "yahoo_industry": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Auto Manufacturers",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "cn_profile_sector": {
+            "status": "unsupported",
+            "reason": "taxonomy_not_supplied"
+          }
+        }
+      },
+      "MSFT": {
+        "before": {
+          "cn_profile_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "gics_sector": {
+            "as_of": null,
+            "label": "Information Technology",
+            "reason": "snapshot_undated",
+            "source": "manifest_gics",
+            "status": "stale"
+          },
+          "yahoo_industry": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          },
+          "yahoo_sector": {
+            "reason": "lane_unrecognized",
+            "status": "unsupported"
+          }
+        },
+        "after": {
+          "gics_sector": {
+            "status": "stale",
+            "reason": "snapshot_undated",
+            "label": "Information Technology",
+            "as_of": null,
+            "source": "manifest_gics"
+          },
+          "yahoo_sector": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Technology",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "yahoo_industry": {
+            "status": "evaluated",
+            "reason": "ok",
+            "label": "Software - Infrastructure",
+            "as_of": "2026-11-13",
+            "source": "fund_profile"
+          },
+          "cn_profile_sector": {
+            "status": "unsupported",
+            "reason": "taxonomy_not_supplied"
+          }
+        }
+      }
+    }
+  }
+}

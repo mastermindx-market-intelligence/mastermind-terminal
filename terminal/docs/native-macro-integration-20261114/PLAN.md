@@ -210,3 +210,23 @@ base; it must reconcile after11246's protected release rather than change the
 authority allowlist. Registry qualification must use this repaired integration's
 new immutable head as T, not the superseded failing source. Parent DONE_WHEN is
 still open; continue with canonical registry qualification and source/consumer proof.
+
+
+## Protected squash reconciliation
+
+After the source parent merged, GitHub correctly reported this Draft as conflicting
+with protected `62315b351dbadd85db29ff77809af823d7251b1c`. A complete comparison
+from the common `c67a68e...` base found177 candidate changed paths and223 protected
+changed paths. Their16-path overlap is exactly the original #1517 contribution,
+and all16 protected blobs match #1517's exact accepted source. Twelve are already
+identical in the candidate; four contain the documented integration deltas to
+Economy CSS, overview, workspace and consumer tests.
+
+The reconciliation preserves the current integration source and imports the
+complete protected tree, retaining every disjoint Prophet, Options and Discover
+change. Both the current integration head and exact protected master are commit
+parents. No live parent branch is mutated; the integration remains Draft with
+no release request. This restores honest composite qualification after the squash.
+The canonical registry generated at the preceding head passed276 tests and
+structurally preserved every inherited Terminal row and unrelated Macro/Mastermind
+row; it must be regenerated against this reconciled immutable T before saving.

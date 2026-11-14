@@ -1,0 +1,183 @@
+.workspace { --discover-radius: 10px; position: relative; min-width: 0; min-height: 0; }
+/* Filter disclosure yields space before the virtual table does. Keep results in view
+   while the advanced controls scroll inside their existing panel. */
+.workspace :global(.scr2-bar) { flex: 0 1 auto; min-height: 0; padding: 16px 20px 12px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.workspace :global(.scr2-table) { flex: 1 0 224px; min-height: 224px; }
+.toolbar { display: flex; flex: none; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.search { position: relative; flex: 1 1 260px; min-width: 180px; max-width: 420px; }
+.search > svg { position: absolute; left: 12px; top: 12px; color: var(--text-2); pointer-events: none; }
+.workspace .search input { width: 100%; height: 42px; margin: 0; padding: 0 14px 0 40px; border: 1px solid var(--line); border-radius: var(--discover-radius); background: var(--bg); color: var(--text); font: inherit; font-size: 13px; }
+.toolbarActions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.control, .primaryButton, .textButton, .iconButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; border: 1px solid var(--line); border-radius: var(--r-md, 8px); padding: 8px 12px; background: var(--panel); color: var(--text); font: inherit; font-size: 13px; font-weight: 550; cursor: pointer; white-space: nowrap; }
+.control:hover, .iconButton:hover { background: var(--panel-2); }
+.control[aria-expanded="true"], .control[aria-pressed="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--text-2); }
+.control:disabled, .primaryButton:disabled, .textButton:disabled, .iconButton:disabled { opacity: .45; cursor: default; }
+.primaryButton { background: var(--brand, #2d65d8); border-color: transparent; color: var(--text-on-brand, #fff); }
+.textButton { background: transparent; border-color: transparent; color: var(--text-2); padding-inline: 8px; }
+.textButton:hover { color: var(--text); background: var(--panel-2); }
+.iconButton { width: 40px; padding: 8px; flex-shrink: 0; background: transparent; border-color: transparent; }
+.icon { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.secondaryBar { display: flex; flex: none; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
+.viewName { font-size: 13px; color: var(--text); display: inline-flex; align-items: center; gap: 8px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saveStatus { font-size: 11px; color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; }
+.saveStatus[data-failed="true"] { color: var(--warn); }
+.secondaryActions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.advanced { flex: 0 1 auto; min-height: 0; margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); padding: 16px; max-height: min(32dvh, 320px); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.advancedHeading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.advancedHeading h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.advanced :global(.scr2-row) { padding: 0 0 14px; gap: 10px; flex-wrap: wrap; }
+.advanced :global(.scr2-presets) { flex-wrap: wrap; overflow: visible; }
+.advanced :global(.scr2-presetbar) { width: 100%; }
+.advancedSection { border: 0; padding: 0; margin: 0 0 14px; min-width: 0; }
+.advancedSection legend, .menuEyebrow { font-size: 11px; color: var(--text-2); font-weight: 600; padding-bottom: 8px; }
+.advancedSection > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.legacy { border-top: 1px solid var(--line); padding-top: 12px; }
+.legacy summary { min-height: 40px; padding-block: 10px; cursor: pointer; color: var(--text-2); font-size: 13px; }
+.select { display: inline-flex !important; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; max-width: 260px; padding: 9px 12px !important; border: 1px solid var(--line); border-radius: var(--discover-radius); color: var(--text); background: var(--bg); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.select > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select > svg { width: 14px; height: 14px; flex-shrink: 0; fill: none; stroke: var(--text-2); stroke-width: 1.6; }
+.select:hover, .select[aria-expanded="true"] { background: var(--panel-2); }
+.select:disabled { opacity: .45; cursor: default; }
+.selectPopover { position: fixed; z-index: 10050; display: flex; flex-direction: column; box-sizing: border-box; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); box-shadow: 0 16px 50px rgba(0,0,0,.4); font-size: 13px; }
+.selectPopover .menuEyebrow { padding: 8px; }
+.menuSearch { width: 100%; min-height: 40px; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 12px; color: var(--text); font: inherit; font-size: 13px; box-sizing: border-box; }
+.optionList { overflow: auto; min-height: 0; overscroll-behavior: contain; margin-top: 4px; }
+.option { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 12px; border: 0; border-radius: 7px; text-align: left; background: transparent; color: var(--text); cursor: pointer; font: inherit; line-height: 1.35; }
+.option[aria-selected="true"] { font-weight: 650; background: var(--panel-2); }
+.option[data-active="true"] { outline: 1px solid var(--line); outline-offset: -1px; background: var(--panel-2); }
+.option:disabled { opacity: .4; cursor: default; }
+.menuEmpty { padding: 16px 12px; color: var(--text-2); }
+.dialog { margin: auto; padding: 0; width: min(480px, calc(100vw - 32px)); max-width: calc(100vw - 32px); max-height: min(82dvh, 780px); border: 1px solid var(--line); border-radius: 18px; color: var(--text); background: var(--panel); box-shadow: 0 28px 100px rgba(0,0,0,.5); overflow: auto; }
+.dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
+.dialogWide { width: min(780px, calc(100vw - 32px)); }
+.dialogHeader { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--panel); z-index: 2; }
+.dialogHeader h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.025em; }
+.dialog h3 { margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+.dialogFooter { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--panel); }
+.columnsBody { padding: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.columnsBody section { min-width: 0; }
+.hint { color: var(--text-2); font-size: 12px; line-height: 1.55; margin: 0 0 14px; }
+.orderedColumns { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.orderedColumns li { display: flex; align-items: center; gap: 8px; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 0 4px 0 10px; font-size: 12px; }
+.orderNumber { width: 18px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.orderedColumns small { margin-left: auto; color: var(--text-2); padding: 10px; }
+.moveActions { margin-left: auto; display: flex; flex-shrink: 0; }
+.moveActions button { width: 34px; min-height: 40px; border: 0; border-radius: 5px; background: transparent; color: var(--text-2); cursor: pointer; font-size: 16px; }
+.moveActions button:hover { background: var(--panel-2); color: var(--text); }
+.moveActions button:disabled { opacity: .25; cursor: default; }
+.columnGroup { border: 0; padding: 14px 0 0; margin: 10px 0 0; min-width: 0; }
+.columnGroup legend { color: var(--text-2); font-size: 11px; font-weight: 600; }
+.columnChoice { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 13px; cursor: pointer; }
+.columnChoice input { width: 16px; height: 16px; accent-color: var(--brand); }
+.viewsBody { padding: 20px; }
+.viewsBody > h3:not(:first-child) { margin-top: 24px; }
+.viewOption { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px; margin-bottom: 4px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--text); text-align: start; cursor: pointer; }
+.viewOption:hover { border-color: var(--line); background: var(--panel-2); }
+.viewOption strong { display: block; font-size: 13px; font-weight: 600; }
+.viewOption small { display: block; font-size: 12px; color: var(--text-2); margin-top: 4px; line-height: 1.5; }
+.savedView { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; min-height: 44px; border-bottom: 1px solid var(--line); }
+.savedViewName { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; min-height: 44px; border: 0; background: transparent; color: var(--text); text-align: start; cursor: pointer; font: inherit; font-size: 13px; }
+.savedViewName > span { overflow-wrap: anywhere; }
+.savedViewName[aria-current] { font-weight: 650; }
+.saveViewForm { padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); }
+.saveViewForm label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 8px; }
+.saveViewForm > div { display: flex; gap: 8px; }
+.deleteConfirm { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 8px; }
+.deleteConfirm button { color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 10px; cursor: pointer; }
+.columnHeader { position: relative; padding: 0 !important; }
+.headerContent { display: flex; align-items: center; justify-content: flex-end; min-height: 46px; padding-inline: 8px; white-space: nowrap; }
+.columnHeader:first-child .headerContent { justify-content: flex-start; padding: 0; }
+.columnHeader:first-child .sortButton { width: 100%; min-height: 46px; padding-inline: 18px; text-align: left; }
+.sortButton { padding: 12px 4px; min-height: 44px; color: inherit; font: inherit; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; border: 0; background: transparent; cursor: pointer; white-space: nowrap; }
+.dragHandle { width: 28px; height: 40px; border: 0; padding: 5px; color: var(--text-2); background: transparent; cursor: grab; touch-action: none; opacity: .35; }
+.columnHeader:hover .dragHandle, .dragHandle:focus-visible { opacity: 1; }
+.dragHandle:active { cursor: grabbing; }
+.dragPreview { display: flex; align-items: center; gap: 8px; border: 1px solid var(--text-2); border-radius: 10px; background: var(--panel-2); color: var(--text); padding: 12px 18px; box-shadow: 0 12px 36px rgba(0,0,0,.35); font-size: 12px; }
+.workspace :global(table.scr2) { width: max-content; min-width: 100%; table-layout: auto; }
+.workspace :global(table.scr2) td { min-width: 112px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.workspace :global(table.scr2) td:first-child { min-width: 205px; position: sticky; left: 0; z-index: 1; background: var(--bg); }
+.workspace :global(table.scr2) th:first-child { position: sticky; left: 0; z-index: 4; background: var(--panel); min-width: 205px; }
+.workspace :global(table.scr2) tr:hover td:first-child { background: var(--panel); }
+.workspace :global(.scr2-sec) { min-width: 190px !important; text-align: left; }
+.signalButton, .regimeButton { padding: 4px 8px; min-height: 30px; border: 0; border-radius: 6px; background: transparent; color: inherit; font: inherit; font-size: 12px; cursor: pointer; }
+.signalButton { font-weight: 650; }
+.signalButton:global(.up), .regimeButton:global(.up) { color: var(--up); }
+.signalButton:global(.down) { color: var(--down); }
+.signalButton:hover, .regimeButton:hover { background: var(--panel-2); }
+.uncovered { color: var(--text-3, var(--text-2)); font-size: 11px; }
+.quoteCell { display: inline-flex; align-items: flex-end; justify-content: flex-end; gap: 6px; }
+.quoteMark { width: 4px; height: 4px; border-radius: 50%; background: var(--brand-2); align-self: center; }
+.quoteChanged { animation: quoteChange 700ms ease-out; }
+@keyframes quoteChange { from { background: var(--panel-2); } to { background: transparent; } }
+.researchNote { padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); color: var(--text-2); font-size: 12px; }
+.helpBody { padding: 22px; line-height: 1.65; font-size: 13px; }
+.helpBody h3 { margin-top: 22px; }
+.helpBody h3:first-child { margin-top: 0; }
+.helpBody p { margin: 8px 0 14px; color: var(--text-2); }
+.helpBody dl { display: grid; grid-template-columns: minmax(90px, 1fr) 2fr; gap: 12px; margin: 16px 0; }
+.helpBody dt { color: var(--text-2); }
+.helpBody dd { margin: 0; overflow-wrap: anywhere; }
+.helpBody a { color: var(--brand-2); }
+.workspace :where(button, input):focus-visible, .dialog :where(button, input):focus-visible, .selectPopover :where(button, input):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+:global(html[data-lang="zh"]) .sortButton { letter-spacing: 0; text-transform: none; }
+:global(html[data-theme="light"]) .dialog, :global(html[data-theme="light"]) .selectPopover { box-shadow: 0 18px 60px rgba(24,35,50,.16); }
+@media (max-width: 900px) {
+  .workspace :global(.scr2-bar) { padding: 12px; }
+  .search { max-width: none; flex-basis: calc(100% - 220px); }
+  .toolbarActions { margin-left: 0; }
+  .secondaryActions { gap: 5px; }
+  .workspace :global(table.scr2) th, .workspace :global(table.scr2) td { display: table-cell !important; }
+}
+/* The shared mobile shell otherwise grows with its content. Give this workspace
+   a definite viewport so filters shrink before the table or provenance is clipped. */
+@media (max-width: 860px) {
+  :global(.app2):has(.workspace) { height: 100dvh; }
+}
+@media (max-width: 560px) {
+  .search { flex-basis: 100%; }
+  .toolbar { gap: 6px; }
+  .toolbar > .select { flex: 1; min-width: 0; max-width: none; }
+  .toolbarActions { width: 100%; }
+  .toolbarActions .control { flex: 1; }
+  .secondaryBar { gap: 6px; }
+  .secondaryActions { margin-left: auto; }
+  .columnsBody { grid-template-columns: 1fr; gap: 22px; padding: 18px; }
+  .dialog { width: calc(100vw - 32px); max-height: 90dvh; border-radius: 14px; }
+  .dialogHeader { padding: 12px 16px; }
+  .dialogHeader h2 { font-size: 18px; }
+  .advanced { max-height: min(28dvh, 240px); padding: 12px; }
+  .workspace :global(.scr2-table) { flex-basis: 180px; min-height: 180px; }
+  .advancedSection > div { display: grid; grid-template-columns: minmax(0,1fr); }
+  .advanced .select { max-width: none; width: 100%; }
+  .workspace :global(table.scr2) td:first-child, .workspace :global(table.scr2) th:first-child { min-width: 150px; }
+  .workspace :global(.sym-cell .nm) { max-width: 118px; }
+  .moveActions button { width: 40px; }
+  .researchNote { padding: 10px 12px; }
+}
+/* Short/landscape screens use one scrollable controls region, so even wrapped
+   primary controls stay reachable while the table keeps its header and two rows. */
+@media (max-height: 640px) {
+  .workspace :global(.scr2-bar) { overflow: auto; overscroll-behavior: contain; }
+  .advanced { flex: none; max-height: none; }
+  .workspace :global(.scr2-table) { flex-basis: 136px; min-height: 136px; }
+}
+@media (max-height: 480px) {
+  .workspace :global(.scr2-table) { flex-basis: 92px; min-height: 92px; }
+}
+@media (prefers-reduced-motion: reduce) { .quoteChanged, .dragPreview, .columnHeader { animation: none; transition: none !important; } }
+
+.advanced[hidden] { display: none; }
+.advancedSection h3 { font-size: 12px; color: var(--text-2); font-weight: 550; margin: 0 0 10px; }
+.saveViewForm input { min-width: 0; flex: 1; }
+.saveViewForm .primaryButton { flex-shrink: 0; }
+.select { background-image: none !important; border-radius: 10px; }
+.quoteLive { display: inline-block; width: 4px; height: 4px; margin-left: 6px; vertical-align: middle; border-radius: 50%; background: var(--brand-2); }
+.quoteButton { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; min-height: 30px; border: 0; border-radius: 6px; padding: 4px 2px 4px 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.quoteButton:hover { background: var(--panel-2); }
+.quoteInfo { font-size: 11px; color: var(--text-3); }
+/* Keep controls inside the exact 44/36px virtual row contract. */
+@media (pointer: coarse) { .quoteButton, .signalButton, .regimeButton { min-height: 40px; } .workspace:global(.den-k) .quoteButton, .workspace:global(.den-k) .signalButton, .workspace:global(.den-k) .regimeButton { min-height: 32px; } .moveActions button { width: 44px; min-height: 44px; } }
+.workspace :global(table.scr2) th, .workspace :global(table.scr2) td { width: auto; }
+.workspace :global(table.scr2) .columnHeader { width: auto; }
+.workspace :global(.scr2-status) { min-height: 42px; padding: 8px 20px; }
+@media (pointer: coarse) { .signalButton, .regimeButton { padding-block: 6px; } .dragHandle { width: 44px; height: 44px; } }

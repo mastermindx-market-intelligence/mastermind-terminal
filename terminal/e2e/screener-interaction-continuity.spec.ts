@@ -1,3 +1,4 @@
+import { isolateDiscoverAccount, openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 import { useLang as selectLanguage } from "./layoutStore";
 
@@ -11,10 +12,12 @@ async function scroll(page: Page, top: number) {
   await table(page).evaluate((el, value) => { el.scrollTop = value; el.dispatchEvent(new Event("scroll")); }, top);
 }
 async function open(page: Page, lang: "en" | "zh") {
+  await isolateDiscoverAccount(page);
   await selectLanguage(page, lang);
   await page.addInitScript(() => { localStorage.removeItem("mm.scrPresets"); localStorage.setItem("mm.scrDensity", "c"); });
   await page.route("**/data/manifest.json**", route => route.fulfill({ json: MANIFEST }));
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(results(page).first()).toBeVisible({ timeout: 45_000 });
 }
 
@@ -22,16 +25,9 @@ for (const lang of ["en", "zh"] as const) {
   test(`${lang} screener keeps a visible result and deliberate keyboard actions`, async ({ page }, info) => {
     await open(page, lang);
     const search = page.locator(".scr2-search");
-    const nestedScroll = info.project.name === "desktop";
-    // The existing ≤860px shell uses document scrolling, while desktop virtualizes
-    // within the result table. Exercise the actual owner in both layouts.
-    if (nestedScroll) {
-      await scroll(page, 6000);
-      await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeGreaterThan(3000);
-    } else {
-      await results(page).last().scrollIntoViewIfNeeded();
-      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(3000);
-    }
+    // Results virtualize inside the table at every responsive size.
+    await scroll(page, 6000);
+    await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeGreaterThan(3000);
     await search.fill("Focus company");
     await expect(results(page)).toHaveCount(2);
     await expect(results(page).first()).toBeVisible();
@@ -44,7 +40,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(results(page).first()).toBeVisible();
 
     const sort = page.locator("thead th").first().getByRole("button");
-    const th = sort.locator("..");
+    const th = sort.locator("xpath=ancestor::th");
     const buttonBox = await sort.boundingBox(); const headerBox = await th.boundingBox();
     expect(buttonBox!.height).toBeGreaterThanOrEqual(info.project.use.hasTouch ? 44 : 32);
     expect(Math.abs(buttonBox!.width - headerBox!.width)).toBeLessThanOrEqual(1);
@@ -60,15 +56,15 @@ for (const lang of ["en", "zh"] as const) {
     await expect(results(page).first()).toHaveAttribute("href", "/terminal?sym=S000");
 
     const density = page.getByRole("group", { name: lang === "zh" ? "行密度" : "Row density", exact: true });
-    if (nestedScroll) await scroll(page, 4000);
+    await scroll(page, 4000);
     const oldTop = await table(page).evaluate(el => el.scrollTop);
     await density.getByRole("button", { name: lang === "zh" ? "紧凑" : "Compact", exact: true }).click();
     await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeCloseTo(oldTop * 36 / 44, 0);
-    if (nestedScroll) await scroll(page, 100000);
+    await scroll(page, 100000);
     await density.getByRole("button", { name: lang === "zh" ? "宽松" : "Comfortable", exact: true }).click();
-    if (nestedScroll) await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+    await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
     await density.getByRole("button", { name: lang === "zh" ? "紧凑" : "Compact", exact: true }).click();
-    if (nestedScroll) await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+    await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
     await results(page).last().scrollIntoViewIfNeeded();
     await expect(results(page).last()).toBeVisible();
     await expect(results(page).last()).toHaveAttribute("href", "/terminal?sym=S299");
@@ -108,3 +104,4 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page).toHaveURL(new RegExp(href!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"));
   });
 }
+

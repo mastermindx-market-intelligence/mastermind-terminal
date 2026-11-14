@@ -1,0 +1,40 @@
+[warmup] /terminal?symbol=NVDA → 200 in 62ms
+[warmup] /options → 200 in 1317ms
+[warmup] /portfolio → 200 in 907ms
+[warmup] /alerts → 200 in 1073ms
+[warmup] /analysis → 200 in 1766ms
+[warmup] /discover → 200 in 1107ms
+[warmup] /admin → 200 in 258ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 275ms
+[warmup] /login → 200 in 252ms
+[warmup] /reset-password → 200 in 552ms
+[warmup] /api/me → 200 in 959ms
+[warmup] /api/watchlist → 200 in 602ms
+[warmup] /api/layouts → 200 in 751ms
+[warmup] /api/watchlist/annotations → 409 in 551ms
+[warmup] 14 routes compiled in 10s
+[fixture-ready] prophet_idx fixture 200 in 845ms
+
+Running 18 tests using 1 worker
+
+[1/18] [desktop] › e2e/flow-projection.spec.ts:75:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/18] [desktop] › e2e/flow-projection.spec.ts:75:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector
+[3/18] [desktop] › e2e/flow-projection.spec.ts:204:7 › [en] a held feed keeps its reason and projection over the last read
+[4/18] [desktop] › e2e/flow-projection.spec.ts:75:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[5/18] [desktop] › e2e/flow-projection.spec.ts:75:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector
+[6/18] [desktop] › e2e/flow-projection.spec.ts:204:7 › [zh] a held feed keeps its reason and projection over the last read
+[7/18] [tablet] › e2e/flow-projection.spec.ts:75:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[8/18] [tablet] › e2e/flow-projection.spec.ts:75:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector
+[9/18] [tablet] › e2e/flow-projection.spec.ts:204:7 › [en] a held feed keeps its reason and projection over the last read
+[10/18] [tablet] › e2e/flow-projection.spec.ts:75:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[11/18] [tablet] › e2e/flow-projection.spec.ts:75:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector
+[12/18] [tablet] › e2e/flow-projection.spec.ts:204:7 › [zh] a held feed keeps its reason and projection over the last read
+[13/18] [mobile] › e2e/flow-projection.spec.ts:75:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[14/18] [mobile] › e2e/flow-projection.spec.ts:75:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector
+[15/18] [mobile] › e2e/flow-projection.spec.ts:204:7 › [en] a held feed keeps its reason and projection over the last read
+[16/18] [mobile] › e2e/flow-projection.spec.ts:75:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[17/18] [mobile] › e2e/flow-projection.spec.ts:75:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector
+[18/18] [mobile] › e2e/flow-projection.spec.ts:204:7 › [zh] a held feed keeps its reason and projection over the last read
+  18 passed (1.1m)

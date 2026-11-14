@@ -664,6 +664,17 @@ def build_stats(cache: dict) -> dict:
     }
 
 
+def profile_cache_date(cache: dict) -> str | None:
+    value = cache.get("fetched_at")
+    if not isinstance(value, str):
+        return None
+    try:
+        text = value[:10]
+        return text if dt.date.fromisoformat(text).isoformat() == text else None
+    except ValueError:
+        return None
+
+
 def build_profile(cache: dict, site: dict) -> dict:
     info = cache.get("info") or {}
     sp = (site or {}).get("profile") or {}
@@ -675,7 +686,11 @@ def build_profile(cache: dict, site: dict) -> dict:
         "website": info.get("website"),
         "employees": num(info.get("fullTimeEmployees")) or sp.get("employees"),
         "sector": info.get("sector") or sp.get("sector"),
+        "sector_source": "yfinance" if info.get("sector") else "site_profile" if sp.get("sector") else None,
+        "sector_asof": profile_cache_date(cache) if info.get("sector") else None,
         "industry": info.get("industry") or sp.get("sic_description"),
+        "industry_source": "yfinance" if info.get("industry") else "site_profile_sic" if sp.get("sic_description") else None,
+        "industry_asof": profile_cache_date(cache) if info.get("industry") else None,
         "description": info.get("longBusinessSummary") or sp.get("description"),
         "founded": sp.get("founded"),
         "hq": hq,
@@ -900,3 +915,4 @@ def main(argv: list[str]) -> None:
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+

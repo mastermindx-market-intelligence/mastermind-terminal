@@ -61,7 +61,7 @@ def test_us_constituent_union_admits_off_index_equity_without_inventing_history(
     monkeypatch.setattr(U, "OUT", out)
     monkeypatch.setattr(U, "MANIFEST", out / "manifest.json")
     monkeypatch.setattr(U, "us_exchange_map", lambda: {})
-    monkeypatch.setattr(U, "_load_polygon_reference", lambda: ({}, {}))
+    monkeypatch.setattr(U, "_load_polygon_reference", lambda: ({}, {}, {}))
     monkeypatch.setattr(U, "reconcile_flagship_verdicts", lambda *a: {
         "rederived": 0, "demoted": 0, "matched": 0})
 
@@ -89,3 +89,4 @@ def test_us_members_keep_source_priority_and_survive_one_unreadable_group(tmp_pa
     members = U.load_us_members(tmp_path)
     assert list(members.index) == ["SAME"]
     assert members.loc["SAME", "name"] == "Primary name"
+

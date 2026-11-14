@@ -15,7 +15,10 @@ vi.mock("@/lib/i18n", () => ({
     scr2DeletePreset: ["Delete preset", "删除预设"], scr2Retry: ["Retry", "重试"],
   } as Record<string, [string, string]>)[key]?.[locale.lang === "zh" ? 1 : 0] ?? key),
 }));
-vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: { enabled: [] }, ready: false }) }));
+vi.mock("@/lib/useMarketPrefs", () => ({ currentOwnerToken: () => ({owner:"guest",generation:1}), ownerTokenIsCurrent: () => true,
+  useMarketPrefs: () => ({ prefs: {enabled:["us","cn","hk","ca","intl","crypto"]}, ready:true, owner:"guest", base:"loaded", discover:{current:null,views:[],blocked:false}, discoverReady:true,discoverBase:"loaded",discoverSync:{phase:"local"},discoverIssue:null,discoverDevice:true,openDiscover:()=>{},retryDiscover:()=>{},reloadDiscover:()=>{},
+    sync:{phase:"local"}, saveDiscover:()=>true, deleteDiscover:()=>true, renameDiscover:()=>true }) }));
+vi.mock("@/components/screener/useDiscoverQuotes", () => ({useDiscoverQuotes: () => ({regular:{},overnight:{},now:Date.now(),status:"ready"})}));
 vi.mock("@/lib/dataCache", () => ({ getJSONResult: async () => ({ status: "data", data: { symbols: {} } }), invalidate: vi.fn() }));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: vi.fn() }));
 vi.mock("@/lib/signalVerdict", () => ({ verdictIsStale: () => false }));
@@ -56,6 +59,7 @@ beforeEach(() => {
     }
     return nativeSet.call(this, key, value);
   });
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {configurable:true,value:()=>{}});
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} unobserve() {} });
 });
 afterEach(() => {
@@ -70,7 +74,7 @@ const seed = (items: ReturnType<typeof preset>[]) => nativeSet.call(localStorage
 const names = () => Array.from(host.querySelectorAll(".scr2-preset-wrap .fin-tab")).map(el => el.textContent);
 const alert = () => host.querySelector('[role="alert"]');
 const button = (text: string) => {
-  const el = Array.from(host.querySelectorAll("button")).find(el => el.textContent === text);
+  const el = Array.from(host.querySelectorAll<HTMLButtonElement>("details button")).find(el => el.textContent === text);
   expect(el, `button ${text}`).toBeTruthy();
   return el!;
 };
@@ -81,11 +85,10 @@ const type = (value: string) => act(() => {
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input(), value);
   input().dispatchEvent(new Event("input", { bubbles: true }));
 });
-const changeFilter = (value: string) => act(() => {
-  const select = host.querySelector<HTMLSelectElement>('select[aria-label="scr2Move"]')!;
-  select.value = value;
-  select.dispatchEvent(new Event("change", { bubbles: true }));
-});
+const changeFilter = (value: string) => {
+  click(host.querySelector('[role="combobox"][aria-label="scr2Move"]')!);
+  click(document.querySelector(`[role="option"][data-value="${value}"]`)!);
+};
 const beginSave = (name: string) => { click(button(locale.lang === "zh" ? "+ 保存" : "+ Save")); type(name); };
 const save = (name: string) => { beginSave(name); key(input(), "Enter"); };
 const remove = (name: string) => click(host.querySelector(`[aria-label="${locale.lang === "zh" ? "删除预设" : "Delete preset"}: ${name}"]`)!);
@@ -93,6 +96,8 @@ async function mount() {
   host = document.createElement("div"); document.body.appendChild(host);
   root = createRoot(host);
   await act(async () => { root!.render(<StrictMode><ScreenerView identity={{ kind: "guest" }} /></StrictMode>); });
+  click(Array.from(host.querySelectorAll("button")).find(el => el.getAttribute("aria-controls") === "discover-advanced")!);
+  const legacy = host.querySelector("details"); if (legacy) legacy.open = true;
 }
 async function remount() { act(() => root!.unmount()); host.remove(); root = null; await mount(); }
 
@@ -160,11 +165,11 @@ describe("Screener device-local preset acknowledgements", () => {
     seed([preset("A", { move: "up3" })]); const original = raw(); await mount(); click(button("A"));
     writeDenied = true; remove("A");
     expect(raw()).toBe(original); expect(names()).toEqual(["A"]); expect(button("A").classList.contains("on")).toBe(true);
-    expect(host.querySelector<HTMLSelectElement>('select[aria-label="scr2Move"]')!.value).toBe("up3");
+    expect(host.querySelector('[role="combobox"][aria-label="scr2Move"]')!.getAttribute("data-value")).toBe("up3");
     expect(alert()).not.toBeNull(); expect(writes).toHaveLength(1);
     writeDenied = false; click(button("Retry"));
     expect(writes).toHaveLength(2); expect(names()).toEqual([]);
-    expect(host.querySelector<HTMLSelectElement>('select[aria-label="scr2Move"]')!.value).toBe("up3");
+    expect(host.querySelector('[role="combobox"][aria-label="scr2Move"]')!.getAttribute("data-value")).toBe("up3");
     await remount(); expect(names()).toEqual([]); expect(writes).toHaveLength(2);
   });
 
@@ -194,7 +199,7 @@ describe("Screener device-local preset acknowledgements", () => {
     expect(input()?.value).toBe("B"); act(() => input().focus());
     writeDenied = false; click(button("Retry"));
     expect(JSON.parse(raw()!).items.find((p: { name: string }) => p.name === "B").f.move).toBe("up3");
-    expect(host.querySelector<HTMLSelectElement>('select[aria-label="scr2Move"]')!.value).toBe("down3");
+    expect(host.querySelector('[role="combobox"][aria-label="scr2Move"]')!.getAttribute("data-value")).toBe("down3");
     expect(writes).toHaveLength(2);
   });
 
@@ -250,7 +255,7 @@ describe("Screener device-local preset acknowledgements", () => {
   it("does not clear another active preset's highlight on successful Delete", async () => {
     seed([preset("A"), preset("B", { move: "up3" })]); await mount(); click(button("B")); remove("A");
     expect(button("B").classList.contains("on")).toBe(true);
-    expect(host.querySelector<HTMLSelectElement>('select[aria-label="scr2Move"]')!.value).toBe("up3");
+    expect(host.querySelector('[role="combobox"][aria-label="scr2Move"]')!.getAttribute("data-value")).toBe("up3");
   });
 
   it("does not replace a known baseline with a failed StrictMode hydration replay", async () => {
@@ -334,3 +339,4 @@ describe("Screener device-local preset acknowledgements", () => {
   });
 
 });
+

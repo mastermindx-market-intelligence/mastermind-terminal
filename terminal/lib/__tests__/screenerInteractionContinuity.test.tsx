@@ -10,7 +10,10 @@ const symbols = Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`S${St
 }]));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: state.push }) }));
 vi.mock("next/link", () => ({ default: ({ prefetch, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { prefetch?: boolean }) => { void prefetch; return <a {...props} />; } }));
-vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: { enabled: [] }, ready: false }) }));
+vi.mock("@/lib/useMarketPrefs", () => ({ currentOwnerToken: () => ({owner:"guest",generation:1}), ownerTokenIsCurrent: () => true,
+  useMarketPrefs: () => ({ prefs: {enabled:["us","cn","hk","ca","intl","crypto"]}, ready:true, owner:"guest", base:"loaded", discover:{current:null,views:[],blocked:false}, discoverReady:true,discoverBase:"loaded",discoverSync:{phase:"local"},discoverIssue:null,discoverDevice:true,openDiscover:()=>{},retryDiscover:()=>{},reloadDiscover:()=>{},
+    sync:{phase:"local"}, saveDiscover:()=>true, deleteDiscover:()=>true, renameDiscover:()=>true }) }));
+vi.mock("@/components/screener/useDiscoverQuotes", () => ({useDiscoverQuotes: () => ({regular:{},overnight:{},now:Date.now(),status:"ready"})}));
 vi.mock("@/lib/dataCache", () => ({ getJSONResult: async (url: string, options?: { onRevalidate?: (data: unknown) => void }) => {
   if (url === "/data/manifest.json") { state.revalidate = options?.onRevalidate ?? null; return { status: "data", data: { symbols } }; }
   return { status: "absent" };
@@ -48,6 +51,17 @@ async function search(value: string) {
 function scroll(top: number) { act(() => { table().scrollTop = top; table().dispatchEvent(new Event("scroll")); }); }
 
 describe("Screener result continuity", () => {
+  it("explains fundamental coverage before a filter or column is added", async () => {
+    const before = [...host.querySelectorAll("thead [data-column]")].map(node => node.getAttribute("data-column"));
+    await act(async () => { host.querySelector<HTMLButtonElement>('[aria-controls="discover-advanced"]')!.click(); });
+    await act(async () => { host.querySelector<HTMLButtonElement>("[data-fund-toggle]")!.click(); });
+    const coverage = host.querySelector('[data-fund-coverage="fund.net_margin_fy"]');
+    expect(coverage?.getAttribute("data-fund-total")).toBe("300");
+    expect(coverage?.querySelector('[data-fund-status="unavailable"]')?.getAttribute("data-fund-n")).toBe("300");
+    expect(host.querySelectorAll("thead [data-fund-col]")).toHaveLength(0);
+    expect([...host.querySelectorAll("thead [data-column]")].map(node => node.getAttribute("data-column"))).toEqual(before);
+  });
+
   it("reveals a small filtered result after scrolling deeply into a large universe", async () => {
     expect(rows().length).toBeGreaterThan(0); scroll(6000);
     expect(host.querySelector<HTMLTableRowElement>(".scr2-spacer")!.style.height).not.toBe("0px");
@@ -93,3 +107,4 @@ describe("Screener result continuity", () => {
     expect(state.push).toHaveBeenCalledWith("/terminal?sym=S299");
   });
 });
+

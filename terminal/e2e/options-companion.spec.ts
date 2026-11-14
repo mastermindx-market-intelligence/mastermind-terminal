@@ -285,9 +285,43 @@ test("switching the real chart symbol resets the pin and binds the new heatmap",
   await page.locator('input[role="combobox"]').press("Enter");
   await expect(panel).toHaveAttribute("data-options-root", "QQQ");
   await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Open Exposure desk" })).toHaveAttribute("href", "/options?tab=gex&view=matrix&symbol=QQQ");
   await expect.poll(() => chartPin(page)).toBeNull();
   expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
 });
+
+
+for (const perspective of ["Gamma", "Vanna"] as const) {
+  test(`opening the exposure desk from ${perspective} retains the chart symbol`, async ({ page }, info) => {
+    const errors: string[] = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, "en", "QQQ");
+    const panel = await openPanel(page);
+    await expect(panel).toHaveAttribute("data-options-root", "QQQ");
+    if (perspective === "Vanna") {
+      await panel.getByRole("tab", { name: "Vanna", exact: true }).click();
+    } else {
+      await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+    }
+    const open = panel.getByRole("link", { name: "Open Exposure desk" });
+    await expect(open).toBeVisible();
+    // Exercise the real navigation consumer, not just an href string.
+    await open.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/options\?tab=gex&view=(matrix|strike)&symbol=QQQ$/);
+    const ticker = page.locator('.obs-gexdesk-controls input[list="gex-roots"]');
+    await expect(ticker).toHaveValue("QQQ");
+    if (perspective === "Gamma") {
+      const map = page.getByTestId("gex-matrix-map");
+      await expect(map.locator("[data-options-companion]")).toHaveAttribute("data-options-root", "QQQ");
+      await expect(map.locator("[data-options-grid] table")).toBeVisible();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    mkdirSync(crops, { recursive: true });
+    await page.screenshot({ path: `${crops}/${info.project.name}-${perspective.toLowerCase()}-qqq-desk.png`, fullPage: false });
+    expect(errors).toEqual([]);
+  });
+}
 
 const reviewSession = "2026-07-10", reviewLater = "2026-07-13", reviewLast = "2026-07-14";
 const reviewCell = (strike: number, expiry: string, gex: number | null) => ({ strike, expiry, gex, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0 });
