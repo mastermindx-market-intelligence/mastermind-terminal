@@ -89,7 +89,9 @@ const CSP = [
   // Brain's native templates use a governed CSS asset beside its existing JS.
   // This admits that exact first-party origin, not arbitrary styles or data reads.
   "style-src 'self' 'unsafe-inline' https://www.mastermind-x.com",
-  "img-src 'self' data: blob: https://*.r2.dev",
+  // Issuer brand artwork is opt-in in Shared Search. Permit only the existing
+  // Macro icon CDN and Logo.dev image origin; never widen connect-src or script-src.
+  "img-src 'self' data: blob: https://*.r2.dev https://cdn.jsdelivr.net https://img.logo.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",
   "worker-src 'self' blob:",
