@@ -12,10 +12,14 @@ import { useEffect } from "react";
 import { TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import { readTfDeepLink, stripTfDeepLink, tfDeepLinkTarget } from "@/lib/terminalTfDeepLink";
 
-export default function TerminalTfDeepLink() {
+export default function TerminalTfDeepLink({ sharedShellEnabled = false }: { sharedShellEnabled?: boolean }) {
   useEffect(() => {
     const link = readTfDeepLink(window.location.search);
     if (!link) return;
+    // Beta owns a named chart’s interval as shareable URL state. Its chart boot
+    // applies the interval and subsequent chart changes update the same address.
+    // The installed app and links without a named chart still use this one-shot handoff.
+    if (sharedShellEnabled && link.symbol && new URLSearchParams(window.location.search).get("shell") !== "app") return;
     let done = false;
     const onFrame = (e: Event) => {
       if (done) return;
@@ -35,6 +39,6 @@ export default function TerminalTfDeepLink() {
     window.addEventListener(TERMINAL_VISUAL_READY_EVENT, onFrame);
     window.addEventListener(TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT, onFrame);
     return detach;
-  }, []);
+  }, [sharedShellEnabled]);
   return null;
 }

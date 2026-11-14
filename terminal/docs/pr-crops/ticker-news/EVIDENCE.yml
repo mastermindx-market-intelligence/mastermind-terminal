@@ -1,17 +1,14 @@
-# Current-package ticker-news capture: 14 passed, 7 authored skips, zero failures/flakes/retries.
-# Original GitHub Actions run 43160725037 attempt 1, serial job 130991417439, artifact 13918917251.
-# Actual runner GitHub Actions 1000589090 (ubuntu-24.04). Capture checkout is preserved below.
-# Original receipts, prior 11-file packet, source/runtime bindings and root image review:
-# docs/verification/pr-estate-security-toolchain-20261112/current-hosted-evidence-43160725037/ticker-qualification.json
-# Viewport dimensions differ from element PNG dimensions. No installed/production acceptance.
-capturedAtHead: 35d6b1f9305b445949f1c49512bfe3bce0ac3460
+# Ticker News browser evidence from run 43592107275, job 132439057775, artifact 14112903173.
+# Archive SHA-256 5481902dc5f4f895fb2472f36fe30650a7cc994e4b259f397f86995100fb6f29. Qualified receipt ticker-news-current/capture.json.
+# 14 passing cases, 7 authored skips, 0 retries. Ten dark-theme English and Chinese captures.
+capturedAtHead: 1776debfec08b5c1a9a79cd9750f278bcdc636b0
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: 623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb
+    sha256: 782ec75472e5f9fe73d7de8bf88c9dbf0d11d3c6b0111028356a832231d6b6e4
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
@@ -47,7 +44,7 @@ crops:
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae
+    sha256: 6d475bf2e4ad68b53b42c6eac86853dae069f1c290b23deaf21c53490b59667f
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh

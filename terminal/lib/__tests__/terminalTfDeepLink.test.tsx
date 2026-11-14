@@ -71,7 +71,7 @@ describe("the one functional-timeframe definition", () => {
     expect(src("components/TerminalShell.tsx")).toMatch(/if \(nt && FUNCTIONAL\.has\(nt\)\) setTf\(nt\)/);
   });
   it("the terminal layout mounts the deep link beside the page", () => {
-    expect(src("app/terminal/layout.tsx")).toMatch(/<TerminalTfDeepLink \/>/);
+    expect(src("app/terminal/layout.tsx")).toMatch(/<TerminalTfDeepLink sharedShellEnabled=/);
   });
   it("a daily handover is exact; an intraday request is disclosed as unsupported", () => {
     expect(technicalChartHandover("NVDA", "3D", DAILY_FUNCTIONAL_TIMEFRAMES)).toMatchObject({ href: "/terminal?sym=NVDA&tf=3D", support: "exact" });
@@ -99,10 +99,10 @@ describe("TerminalTfDeepLink", () => {
     window.history.replaceState(null, "", "/");
   });
 
-  const mount = (url: string) => {
+  const mount = (url: string, sharedShellEnabled = false) => {
     window.history.replaceState(null, "", url);
     root = createRoot(host);
-    act(() => root!.render(<TerminalTfDeepLink />));
+    act(() => root!.render(<TerminalTfDeepLink sharedShellEnabled={sharedShellEnabled} />));
   };
   const frame = (symbol: string, timeframe: string, diag = false) =>
     act(() => { window.dispatchEvent(new CustomEvent(diag ? TERMINAL_VISUAL_READY_DIAGNOSTIC_EVENT : TERMINAL_VISUAL_READY_EVENT, { detail: { symbol, timeframe, generation: 1, state: "data" } })); });
@@ -137,6 +137,23 @@ describe("TerminalTfDeepLink", () => {
     frame("NVDA", "D");
     expect(seen).toEqual([]);
     expect(window.location.search).toBe("?sym=NVDA&tf=bogus");
+  });
+
+  it.each(["symbol", "sym"])("preserves a named Beta chart interval after the announced frame (%s)", key => {
+    const url = "/terminal?" + key + "=AAPL&tf=W";
+    mount(url, true);
+    frame("AAPL", "W");
+    expect(window.location.pathname + window.location.search).toBe(url);
+    expect(seen).toEqual([]);
+  });
+
+  it("keeps the installed chart's one-shot handoff on a Beta host", () => {
+    mount("/terminal?shell=app&symbol=AAPL&tf=W", true);
+    frame("NVDA", "D");
+    expect(seen).toEqual([]);
+    frame("AAPL", "D");
+    expect(seen).toEqual(["W"]);
+    expect(window.location.search).toBe("?shell=app&symbol=AAPL");
   });
 
   it("unmount detaches (StrictMode remount safe)", () => {
