@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { acquireScrollLock } from "@/lib/scrollLock";
 import { useLang } from "@/lib/i18n";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
@@ -19,6 +21,8 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
 }) {
   const t = useSharedShellT();
   const { lang } = useLang();
+  const path = usePathname(), params = useSearchParams();
+  const market = workspaceMarket(path ?? "", params?.toString() ?? "");
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const allCategory = useRef<HTMLButtonElement>(null);
@@ -185,7 +189,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
           ) : (
             <div className="shared-directory-grid">
               {matches.slice(0, limit).map(entry => (
-                <Link key={entry.href} href={entry.href} prefetch={false}
+                <Link key={entry.href} href={inheritWorkspaceMarketHref(entry.href, market)} prefetch={false}
                   onNavigate={() => { selected.current = true; onClose(); }}
                   className="shared-directory-link">
                   <span className="shared-directory-link-icon" aria-hidden="true">

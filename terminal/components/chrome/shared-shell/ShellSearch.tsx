@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SharedSearchResume } from "@/components/SharedSearchWorkspace";
 import SymbolPicker from "@/components/SymbolPicker";
@@ -100,7 +101,7 @@ export default function ShellSearch({ open, onOpenChange }: {
     setResume(selection);
     writeActiveSymbol(next);
     onOpenChange(false);
-    router.push(href);
+    router.push(inheritWorkspaceMarketHref(href, workspaceMarket(window.location.pathname, window.location.search)));
   };
   const openTool = (href: string, query: string) => {
     // The lazy directory supplies an exact finite member; this host never manufactures a route.
@@ -110,7 +111,7 @@ export default function ShellSearch({ open, onOpenChange }: {
     window.history.replaceState({ ...window.history.state,
       [COMPANY_SEARCH_HISTORY_KEY]: { scope: "tools", query, selected: href, href: window.location.href },
     }, "", window.location.href);
-    onOpenChange(false); router.push(href);
+    onOpenChange(false); router.push(inheritWorkspaceMarketHref(href, workspaceMarket(window.location.pathname, window.location.search)));
   };
   if (!activated) return <button type="button" className="sym-pick shared-shell-company-search"
     aria-label={searchLabel} aria-haspopup="dialog" aria-expanded={false} title={searchLabel}

@@ -10,7 +10,7 @@ import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
-import { SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 // Line glyphs — all share the 24-box, 1.7-stroke, fill:none house style (.navbtn svg).
 // Multi-path keys draw each `d` as a stacked <path>; a few workspaces need composite
@@ -139,14 +139,6 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
           </Tip>
         );
       })}
-      {sharedShell && <div className="shared-shell-market-nav">
-        {labelled && <h2>{t("shellMarkets")}</h2>}
-        {SHARED_SHELL_MARKETS.map(item => <Link key={item.k} href={item.href}
-          className={`shared-shell-market-link${path === item.href ? " on" : ""}`}
-          aria-label={t(item.k, item.label)} aria-current={path === item.href ? "page" : undefined}>
-          <span aria-hidden="true">{item.code}</span>{labelled && <span>{t(item.k, item.label)}</span>}
-        </Link>)}
-      </div>}
       <div className="gap" />
       {sharedShell && <button type="button" className="navbtn" onClick={onOpenDirectory}
         aria-label={t("shellAllTools")} aria-haspopup="dialog">

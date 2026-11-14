@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useLang } from "@/lib/i18n";
 import { INTELLIGENCE_DESTINATIONS, intelligenceActiveKey, type IntelligenceKey } from "@/lib/shared-shell/intelligenceNavigation";
 import s from "./Intelligence.module.css";
+import { marketNavigationHref, workspaceMarket } from "@/lib/sharedShellMarket";
 const GLYPHS: Record<IntelligenceKey, string> = {
  overview: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
  macro: "M3 19h18M5 15V9m7 6V4m7 11v-7",
@@ -16,10 +17,11 @@ export default function IntelligenceNav({ mode = "context", labelled = true, onN
 }) {
  const path = usePathname(), params = useSearchParams(), { lang } = useLang();
  const active = intelligenceActiveKey(path, params.toString());
+ const market = workspaceMarket(path, params.toString());
  const title = lang === "zh" ? "市场情报" : "Market Intelligence";
  return <div role="group" aria-label={title} className={`${s.navigation} ${s[mode]} ${!labelled ? s.compact : ""}`} data-intelligence-nav={mode}>
   {mode !== "context" && labelled && <h2>{title}</h2>}
-  <div className={s.links}>{INTELLIGENCE_DESTINATIONS.map(item => <Link key={item.key} href={item.href}
+  <div className={s.links}>{INTELLIGENCE_DESTINATIONS.map(item => <Link key={item.key} href={marketNavigationHref(item.href, market)}
    onClick={onNavigate} prefetch={false} title={item.label[lang === "zh" ? 1 : 0]}
    aria-label={item.label[lang === "zh" ? 1 : 0]} aria-current={active === item.key ? "page" : undefined}>
    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={GLYPHS[item.key]} /></svg>
