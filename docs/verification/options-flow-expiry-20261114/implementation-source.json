@@ -1,0 +1,8 @@
+{
+  "preimageBlob": "e2d9ab999a7891856f54b6f4f1577db28789609c",
+  "preimageSha256": "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479",
+  "source": "terminal/components/flowdesk/FiltersPanel.tsx",
+  "existingBrowserSelectorsUpdated": 3,
+  "unitFixtureClarification": "empty and omitted option-list rows are named object parameters",
+  "initialCandidateSha256": "e2542200c90b1a6234f9675a75f1207b6852da0d2b6abfd09435aaa5e911036e"
+}

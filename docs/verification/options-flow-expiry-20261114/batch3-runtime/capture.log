@@ -1,0 +1,26 @@
+[dev] - Local:         http://127.0.0.1:3572
+- Network:       http://127.0.0.1:3572
+✓ Ready in 692ms
+capture OptionsFlowBoard-1440.png … ok
+capture FlowDesk-1440.png … ok
+capture AlertDetail-1440.png … ok
+capture HeatmapTreemap-1440.png … ok
+capture PineLibrary-1440.png … ok
+capture OptionsFlowBoard-1440-zh.png … ok
+capture FlowDesk-1440-zh.png … ok
+capture AlertDetail-1440-zh.png … ok
+capture HeatmapTreemap-1440-zh.png … ok
+capture PineLibrary-1440-zh.png … ok
+capture OptionsFlowBoard-390.png … ok
+capture FlowDesk-390.png … ok
+capture AlertDetail-390.png … ok
+capture HeatmapTreemap-390.png … ok
+capture PineLibrary-390.png … ok
+capture OptionsFlowBoard-390-zh.png … ok
+capture FlowDesk-390-zh.png … ok
+capture AlertDetail-390-zh.png … ok
+capture HeatmapTreemap-390-zh.png … ok
+capture PineLibrary-390-zh.png … ok
+{"legacyEvidence":{"captureId":"options-flow-expiry-identity-20261114-c3-batch3","packet":"batch3","capturedAtHead":"62315b351dbadd85db29ff77809af823d7251b1c","manifestSha256":"a85488af5edfbbc49da0f75c94dc1448ee853dc56f8b99b5014d6307ea45913e","files":[{"file":"OptionsFlowBoard-1440.png","sha256":"7a2f395489d6150557a626304e8361e2bedbb961ab1fd4f8a7ab527441aeb2cc"},{"file":"FlowDesk-1440.png","sha256":"7b382a401d1d52b76940eaf2495bd66546d5571a7dfecf747ccc0b722d1a674f"},{"file":"AlertDetail-1440.png","sha256":"5ad199d19b45951f33b515a6d45e0b3829bdbe74e8ec50b197722dd3f619fda5"},{"file":"HeatmapTreemap-1440.png","sha256":"5e7cd1416339adae93a22826464fc47fe2fe076572bd71149d3a4dfd5088a183"},{"file":"PineLibrary-1440.png","sha256":"47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b"},{"file":"OptionsFlowBoard-1440-zh.png","sha256":"fc0dcda5d0217ad4735fa1726e3423df1591b2bddcbd5b595589578d46cb655c"},{"file":"FlowDesk-1440-zh.png","sha256":"34da87e4ad7dd179b953b0d4ff9357a0ac1aa37f6055a9486ff7fadd77408164"},{"file":"AlertDetail-1440-zh.png","sha256":"aacf330ad40cfa6b0caca5c6f69e4a96828304168c3ba7ea9189dd94658a87e4"},{"file":"HeatmapTreemap-1440-zh.png","sha256":"d774dd2c5941c19929d4ed0d90650c163aed0821433b1d7c68252199e3f50a13"},{"file":"PineLibrary-1440-zh.png","sha256":"339bfb08142c48c2ad510f3eff30227e0996301ed979016e42e48c45bf4348f8"},{"file":"OptionsFlowBoard-390.png","sha256":"e698e9a99e6b09f73638af4cb120d864f3bd1318fce1bdfc0acc0fa8ef66f49c"},{"file":"FlowDesk-390.png","sha256":"f8dcbbce6919d7a95f2102ba94152732818b7c0d310f33eddd0ef3d4cfdf9b37"},{"file":"AlertDetail-390.png","sha256":"3071da71eb7d2bbe94f3e44e08d0615d0f7a1ae1d090d42bab895dd7f5bd0046"},{"file":"HeatmapTreemap-390.png","sha256":"c6f2388d3eecdb3f2eaee098e3df3a60da92517ddcf956ab486c4bcd2098f394"},{"file":"PineLibrary-390.png","sha256":"222a6e224a2ddfe36fc109741fd98a325eae17230ed52e42bee6171d7b941a16"},{"file":"OptionsFlowBoard-390-zh.png","sha256":"3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab"},{"file":"FlowDesk-390-zh.png","sha256":"9ba6835daacb17a7565b49fba0adc6bc72990f81d733c2fb149168e3934a431c"},{"file":"AlertDetail-390-zh.png","sha256":"736e8f70de883fad8059a80dd5ee326517a490c936fe959aba88ca54625b8f46"},{"file":"HeatmapTreemap-390-zh.png","sha256":"dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12"},{"file":"PineLibrary-390-zh.png","sha256":"972aedc6292b85ab872cb44300d721a3fe5de26916dc6373029b65854c0b9a5b"}]}}
+capturedAtHead 62315b351dbadd85db29ff77809af823d7251b1c
+wrote 20 crops + EVIDENCE.yml to /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/docs/pr-crops/b-pl-6-batch-3

@@ -12,6 +12,7 @@
  */
 
 import { fmtDate, pick } from "@/lib/finFormat";
+import styles from "./FiltersPanel.module.css";
 import { FD } from "@/lib/flowdeskStrings";
 import { flowSideLabel } from "@/lib/plainLabels";
 import type { DteBucket, MnyBucket, Side } from "./FeedPane";
@@ -202,6 +203,13 @@ const DETECTION_OPTIONS: { key: DetectionFlag; label: string; zh: string; tip: T
 
 export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }: FiltersPanelProps) {
   const zh = lang === "zh";
+  const availableExpiries = expiryOptions ?? [];
+  // A saved exact expiry stays visible when it is absent from the loaded feed.
+  // Only an explicit user choice changes it; this is not a market-availability claim.
+  const retainedExpiry = filters.exp !== null && !availableExpiries.includes(filters.exp)
+    ? filters.exp : null;
+  const expiryChoices = retainedExpiry === null
+    ? availableExpiries : [retainedExpiry, ...availableExpiries];
 
   function patch(partial: Partial<FlowFilters>) {
     onFiltersChange({ ...filters, ...partial });
@@ -259,9 +267,9 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }: 
         </div>
       </FilterRow>
 
-      {/* ── Expiry (W3A) — the distinct expiries present in the feed ── */}
+      {/* ── Expiry (W3A) — loaded expiries plus the exact saved selection ── */}
       <FilterRow label={zh ? "到期日" : "Expiry"}>
-        <div style={CHIP_ROW_STYLE} data-testid="flow-filter-exp">
+        <div className={styles.expiryChoices} style={CHIP_ROW_STYLE} data-testid="flow-filter-exp">
           <button
             className={`obs-chip${filters.exp === null ? " on" : ""}`}
             onClick={() => patch({ exp: null })}
@@ -269,14 +277,14 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }: 
           >
             {pick(zh, FD.allExpirations.en, FD.allExpirations.zh)}
           </button>
-          {(expiryOptions ?? []).map((exp) => (
+          {expiryChoices.map((exp) => (
             <button
               key={exp}
               className={`obs-chip${filters.exp === exp ? " on" : ""}`}
               onClick={() => patch({ exp })}
               aria-pressed={filters.exp === exp}
             >
-              {fmtDate(exp, { short: true })}
+              {exp === retainedExpiry ? pick(zh, "Selected expiry: ", "已选到期日：") : ""}{fmtDate(exp)}
             </button>
           ))}
         </div>

@@ -1,0 +1,54 @@
+[
+  {
+    "name": "unit-after-touch",
+    "exit": 0,
+    "runtimeSeconds": 2.23,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/flowExpirySelection.test.tsx",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/docs/verification/options-flow-expiry-20261114/unit-after-touch.json"
+    ]
+  },
+  {
+    "name": "plain-language",
+    "exit": 0,
+    "runtimeSeconds": 3.74,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "scripts/check_plain_language.mjs",
+      "--mode",
+      "enforce-added",
+      "--diff-file",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/docs/verification/options-flow-expiry-20261114/added-lines.diff"
+    ]
+  },
+  {
+    "name": "touch-lint",
+    "exit": 0,
+    "runtimeSeconds": 6.49,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "components/flowdesk/FiltersPanel.tsx",
+      "lib/__tests__/flowExpirySelection.test.tsx",
+      "e2e/options-flow-expiry-selection.spec.ts",
+      "e2e/options-r1-w3a-flow-inspector.spec.ts",
+      "lib/__tests__/b_pl_6Batch3Evidence.test.ts"
+    ]
+  },
+  {
+    "name": "typescript",
+    "exit": 0,
+    "runtimeSeconds": 100.48,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/typescript/lib/tsc.js",
+      "--noEmit",
+      "--pretty",
+      "false"
+    ]
+  }
+]

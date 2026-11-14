@@ -1,0 +1,6 @@
+@media (pointer: coarse), (max-width: 860px) {
+  .expiryChoices > button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,51 @@
+diff --git a/terminal/components/flowdesk/FiltersPanel.tsx b/terminal/components/flowdesk/FiltersPanel.tsx
+index e2d9ab999a..50b8a8ba05 100644
+--- a/terminal/components/flowdesk/FiltersPanel.tsx
++++ b/terminal/components/flowdesk/FiltersPanel.tsx
+@@ -14,0 +15 @@ import { fmtDate, pick } from "@/lib/finFormat";
++import styles from "./FiltersPanel.module.css";
+@@ -204,0 +206,7 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }:
++  const availableExpiries = expiryOptions ?? [];
++  // A saved exact expiry stays visible when it is absent from the loaded feed.
++  // Only an explicit user choice changes it; this is not a market-availability claim.
++  const retainedExpiry = filters.exp !== null && !availableExpiries.includes(filters.exp)
++    ? filters.exp : null;
++  const expiryChoices = retainedExpiry === null
++    ? availableExpiries : [retainedExpiry, ...availableExpiries];
+@@ -262 +270 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }:
+-      {/* ── Expiry (W3A) — the distinct expiries present in the feed ── */}
++      {/* ── Expiry (W3A) — loaded expiries plus the exact saved selection ── */}
+@@ -264 +272 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }:
+-        <div style={CHIP_ROW_STYLE} data-testid="flow-filter-exp">
++        <div className={styles.expiryChoices} style={CHIP_ROW_STYLE} data-testid="flow-filter-exp">
+@@ -272 +280 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }:
+-          {(expiryOptions ?? []).map((exp) => (
++          {expiryChoices.map((exp) => (
+@@ -279 +287 @@ export function FiltersPanel({ filters, onFiltersChange, lang, expiryOptions }:
+-              {fmtDate(exp, { short: true })}
++              {exp === retainedExpiry ? pick(zh, "Selected expiry: ", "已选到期日：") : ""}{fmtDate(exp)}
+diff --git a/terminal/e2e/options-r1-w3a-flow-inspector.spec.ts b/terminal/e2e/options-r1-w3a-flow-inspector.spec.ts
+index 1297a21524..732ee23a1f 100644
+--- a/terminal/e2e/options-r1-w3a-flow-inspector.spec.ts
++++ b/terminal/e2e/options-r1-w3a-flow-inspector.spec.ts
+@@ -93 +93 @@ test("the 23 Oct expiry filter hides the 20 Nov row and never changes the covera
+-  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }).click();
++  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }).click();
+@@ -101 +101 @@ test("the expiry filter survives a reload through flowdesk.filters.v1", async ({
+-  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }).click();
++  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }).click();
+@@ -109 +109 @@ test("the expiry filter survives a reload through flowdesk.filters.v1", async ({
+-    page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }),
++    page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }),
+diff --git a/terminal/e2e/tools/capture_pl6_batch3.cjs b/terminal/e2e/tools/capture_pl6_batch3.cjs
+index ce7882e51b..d41a7267d6 100644
+--- a/terminal/e2e/tools/capture_pl6_batch3.cjs
++++ b/terminal/e2e/tools/capture_pl6_batch3.cjs
+@@ -33,0 +34 @@ const LAYOUT_FILES = [
++  "terminal/components/flowdesk/FiltersPanel.module.css",
+diff --git a/terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts b/terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts
+index 128df679ef..0c6150224b 100644
+--- a/terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts
++++ b/terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts
+@@ -15,0 +16 @@ const LAYOUT_FILES = [
++  "terminal/components/flowdesk/FiltersPanel.module.css",

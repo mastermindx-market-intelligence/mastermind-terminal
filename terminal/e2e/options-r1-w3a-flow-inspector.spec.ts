@@ -90,7 +90,7 @@ test("the 23 Oct expiry filter hides the 20 Nov row and never changes the covera
   await expect(novRow).toHaveCount(1);
 
   await page.getByRole("button", { name: "Filters" }).click();
-  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }).click();
+  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }).click();
   await expect(novRow).toHaveCount(0);
   await expect(page.locator('[data-testid="flow-coverage"]')).toHaveText(before ?? "");
 });
@@ -98,7 +98,7 @@ test("the 23 Oct expiry filter hides the 20 Nov row and never changes the covera
 test("the expiry filter survives a reload through flowdesk.filters.v1", async ({ page }) => {
   await openDesk(page, "en");
   await page.getByRole("button", { name: "Filters" }).click();
-  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }).click();
+  await page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }).click();
   await expect(card(page, "2026-11-20")).toHaveCount(0);
 
   await page.reload();
@@ -106,7 +106,7 @@ test("the expiry filter survives a reload through flowdesk.filters.v1", async ({
   await expect(card(page, "2026-11-20")).toHaveCount(0);
   await page.getByRole("button", { name: "Filters" }).click();
   await expect(
-    page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23" }),
+    page.locator('[data-testid="flow-filter-exp"]').getByRole("button", { name: "Oct 23, 2026", exact: true }),
   ).toHaveClass(/on/);
 });
 

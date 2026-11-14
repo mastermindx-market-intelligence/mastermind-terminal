@@ -1,0 +1,1198 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/options-flow-expiry-selection.spec.ts",
+      "e2e/options-r1-w3a-flow-inspector.spec.ts",
+      "--grep",
+      "exact expiry|expiry filter",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-flow-expiry-shared"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 52368",
+      "url": "http://127.0.0.1:52368/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-flow-expiry-selection.spec.ts",
+      "file": "options-flow-expiry-selection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5265,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:21.487Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "retained-expiry",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--desktop/attachments/retained-expiry-1cae6cae45c200405d540d30352ca5ae2683fdb0.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-c980cb77030de2fc9416",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5310,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:27.176Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "retained-expiry",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--desktop/attachments/retained-expiry-9b2ab3bee85aac0d9f0fc07a9c0e89148fa926cf.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-072d57d1d40938cf1970",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5906,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:32.500Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "retained-expiry",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--desktop/attachments/retained-expiry-b26a09cfb4bbf053925bc38f4f0c83c483e2c00f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-36b2229a734fc0203a43",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:38.417Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "retained-expiry",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--desktop/attachments/retained-expiry-10044bde973b814e4efd7ac8e616bc0aa84eae62.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-4216a2c21f05ea2b7708",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6747,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:48.401Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-e37b810893d82ceb02b0",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5669,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:56.659Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-f71707610b045de58760",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5343,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:03.414Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-7d6f5ba158a67acb0a34",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6480,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:10.034Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-62d046dae0c5d2157b20",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6554,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:24.277Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-ab3cfdd964f3baec2482",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (en, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5849,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:31.998Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-932c8435dcb4efe257f3",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, dark)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5745,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:39.146Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-1685b5c0e85e4559e513",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        },
+        {
+          "title": "exact expiry survives source changes and reload, then clears independently (zh, light)",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 5515,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67",
+                    "location": {
+                      "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                      "column": 67,
+                      "line": 116
+                    },
+                    "snippet": "  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                        "column": 67,
+                        "line": 116
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m44\u001b[39m\nReceived:    \u001b[31m26\u001b[39m\n\n  114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);\n  115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);\n> 116 |       if (info.project.name !== \"desktop\") expect(bounds!.height).toBeGreaterThanOrEqual(44);\n      |                                                                   ^\n  117 |     }\n  118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);\n  119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:46.000Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts",
+                    "column": 67,
+                    "line": 116
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a35532a5756dc7b4d3bf-85a6bcf9596fda5b3381",
+          "file": "options-flow-expiry-selection.spec.ts",
+          "line": 47,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "options-r1-w3a-flow-inspector.spec.ts",
+      "file": "options-r1-w3a-flow-inspector.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1678,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:43.222Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-3d61d8035b10adb416fd",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "title": "the expiry filter survives a reload through flowdesk.filters.v1",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2905,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:37:44.910Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-7e91a6e3f6f071df8bb1",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 98,
+          "column": 5
+        },
+        {
+          "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1989,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:18.018Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-1597bb2540f725995b48",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "title": "the expiry filter survives a reload through flowdesk.filters.v1",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3326,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:20.387Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-1408b87cfb953e5e70c7",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 98,
+          "column": 5
+        },
+        {
+          "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2155,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:52.645Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-6fce13a44092fa8f7208",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 85,
+          "column": 5
+        },
+        {
+          "title": "the expiry filter survives a reload through flowdesk.filters.v1",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3450,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:38:55.095Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3ca57bb461b4e1cd01b0-9a472b551f444e11b15b",
+          "file": "options-r1-w3a-flow-inspector.spec.ts",
+          "line": 98,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T14:37:01.944Z",
+    "duration": 116820.387,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 8,
+    "flaky": 0
+  }
+}
