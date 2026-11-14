@@ -37,6 +37,7 @@ const PATHS: Record<ProxySource, string> = {
   // Proxy-only (COO ruling 65): one fixed entitled read for Prophet's company
   // Setup. No workspace surface fetches it; it has no OWNER_STEPS entry.
   rotation_read: "/sectordata/rotation_read.json",
+  flagship_cycles: "/cycledata/cycle_engine.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 

@@ -1,3 +1,4 @@
+import { parseCycleModel } from "./flagshipCycle";
 import { normalizeFinviz } from "./finvizThemes";
 /** Read-only presentation of the existing Sector Central owner feeds.
  * This module neither emits a dossier nor creates rankings/entry permission.
@@ -14,7 +15,7 @@ export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[numbe
  * workspace surface fetches them. SECTOR_FEEDS and FINVIZ_FEEDS stay the exact
  * workspace fetch lists. Prophet's company Setup reads rotation_read through
  * this same proxy, so no second route copies the cookie filter or the size cap. */
-export const PROXY_ONLY_SOURCES = ["rotation_read"] as const;
+export const PROXY_ONLY_SOURCES = ["rotation_read", "flagship_cycles"] as const;
 export type ProxyOnlySource = typeof PROXY_ONLY_SOURCES[number];
 export type ProxySource = SectorFeed | ProxyOnlySource;
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -259,6 +260,7 @@ export function sourceDate(data: unknown): string | null {
  * clock with a transport convenience. No other feed's stamp changes.
  */
 export function feedSourceStamp(source: ProxySource, data: unknown): string | null {
+  if (source === "flagship_cycles") return strictDay(object(data).tape_as_of);
   if (source === "intraday") return readIntradaySourceStamp(data);
   if (source === "generation") return strictDay(object(data).source_session);
   // rotation_read keeps its strict as_of day: sourceDate already reads as_of first.
@@ -307,6 +309,7 @@ export function readableOwnerEnvelope(source: ProxySource, data: unknown): boole
   if (source === "holdings") return sectorHoldingsCoverage(data) !== null;
   if (source === "intraday") return sectorIntradayEnvelope(data);
   if (source === "rotation_read") return rotationReadEnvelope(data);
+  if (source === "flagship_cycles") return parseCycleModel(data) !== null;
 
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }

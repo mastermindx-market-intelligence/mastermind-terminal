@@ -1,0 +1,29 @@
+.viewport { min-width:0; overflow:auto; background:var(--bg); color:var(--text); }
+.page { display:grid; gap:20px; max-width:1160px; margin:0 auto; padding:32px clamp(16px,4vw,50px) 72px; }
+.page h1,.page h2,.page p { margin:0; }
+.page header { display:grid; gap:6px; }
+.page h1 { font-size:clamp(28px,4vw,42px); letter-spacing:-.04em; line-height:1.12; }
+.page small,.page p { color:var(--text-2); }
+.page small { font-size:13px; }
+.page p { font-size:15px; line-height:1.5; }
+.controls,.controls label { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.controls { gap:12px 20px; }
+.page select,.page button { min-height:44px; padding:8px 12px; border-radius:var(--r-lg); color:var(--text); background:var(--panel-2); border:1px solid var(--line-3); max-width:100%; }
+.hero,.card { border:1px solid var(--line); border-radius:var(--r-card); padding:clamp(18px,3vw,32px); display:grid; align-content:start; justify-items:start; gap:12px; }
+.hero { background:var(--panel-2); }
+.hero h2 { font-size:clamp(25px,3.5vw,38px); line-height:1.15; letter-spacing:-.035em; }
+.hero button { cursor:pointer; background:var(--brand); color:white; }
+.panels { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:16px; }
+.card { background:var(--panel); min-width:0; }
+.card h2 { font-size:21px; }
+.card strong { font-size:24px; font-variant-numeric:tabular-nums; }
+.chart,.field,.card details { width:100%; }
+.chart svg { display:block; max-width:100%; }
+.chart text { fill:var(--text-2); font-size:10px; }
+.chart line { stroke:var(--line); }
+.chart path { fill:none; stroke:var(--brand-2); stroke-width:2; stroke-linejoin:round; }
+.field { display:grid; gap:6px; color:var(--text-2); }
+.page summary,.link { min-height:44px; padding:10px 0; }
+.page summary { cursor:pointer; }
+.link { color:var(--link); justify-self:start; }
+@media (max-width:740px) { .panels { grid-template-columns:minmax(0,1fr); } .page { padding-top:20px; gap:14px; } }
