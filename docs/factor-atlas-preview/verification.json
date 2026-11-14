@@ -1,0 +1,578 @@
+{
+  "schema": "factor_atlas.terminal_native_preview_verification.v1",
+  "observed_at": "2026-10-13T10:34:20.703755+00:00",
+  "operation": "factor-atlas-terminal-preview-20261011-c1",
+  "base_sha": "fc76cf495781e5f53254aa3c457411de0cb64654",
+  "protected_procedure_sha": "d837e04bf60a9fb60b7c530d287115a298fc1af0",
+  "source_binding": "file hashes; final commit binds this receipt without self-reference",
+  "source_sha256": {
+    "terminal/lib/factorAtlasHistory.ts": "7ad1b9bf51890dca18ba0de65cc631e7aa1ee5cc766b47d9cbc3c66ff8e9397d",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "cd24cd7d155d091e81e26d58ad1d933af793eda0a0cc92d14d2d65bdc4738c88",
+    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "264a384412336a1dc6497817f53dc4dbfc29f2d1c08d5138dd5e215b0657c09c",
+    "terminal/lib/__tests__/factorAtlasHistory.test.ts": "9801edc09f252548ea26d02ca62008587b0b3f486d4d1958d6678b281bc07f55",
+    "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "12d726246b44dcf677d8d5f4fbd85e13bc5f077a1c7719046dab54dffa350f2c",
+    "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
+    "docs/factor-atlas-preview/preview-entry.tsx": "9e341a88d40eca61899ff190c5ddc375d74d3806320cf00714319745fb40a98e",
+    "docs/factor-atlas-preview/serve.mjs": "a0bdb9bf28e8d764e82d4e320449c80edce39468f89ff99476dffaebf7588c9d",
+    "docs/factor-atlas-preview/prove.mjs": "3d349818fb9fb40b80e72b1cc7afb61f29de3c89991a9acaeb0d502d0ad3c0cf",
+    "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
+    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
+    "docs/factor-atlas-preview/prove-shell.mjs": "bcd4ba5807c59a59d0dbdab2b135eccf5ba005cf32f11c89dc5dd55e11a3d20a",
+    "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
+    "terminal/lib/__tests__/factorAtlasLocation.test.ts": "4ae3a56fd12999d3e2171c70873eba0963879ea0471d8ee4abc8ec5d21f94648",
+    "terminal/lib/__tests__/factorAtlasLocationDOM.test.tsx": "3a7a8ec8b731fa10fe4a989f9cddef26ad5fa8e71535b527c5dc6e18acfdd3b6",
+    "docs/factor-atlas-preview/S5_TERMINAL_PRODUCT_CENSUS.md": "439766826d0d8bd68c2c1ea045d2db64e7b767ba10715df510deb9b8d4db09be",
+    "docs/factor-atlas-preview/README.md": "9830a4a452b99ba756107c0393f0cc6b5414ab39ebac9cbdae08582936ea28d7",
+    "terminal/lib/__tests__/factorAtlasDiagnostics.test.ts": "158c06bdf7a502e0f8f7a8df4cde8fe6e3fc7f94262697f7964c6034e44ddbe6",
+    "docs/factor-atlas-preview/R6_EVIDENCE_LIMITATIONS.md": "445abf53a39789c644e200add9dc15417ca4204a6c203ebbbeac2e4799d25b3d",
+    "docs/factor-atlas-preview/evidence/R6_VERIFICATION_BOUNDARY.json": "a56cfa8341c6de399caf7203dc542773cbb7bb1968580b50155c7c352fda16b6"
+  },
+  "source_native_fixture": {
+    "repo": "mastermindx-market-intelligence/macro",
+    "commit": "ddf1f07f2059caebb4bfa6b1db6c4008dd97859c",
+    "blob": "3590dc40e3116834b79ae17628b399d4be01a18f",
+    "sha256": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
+    "scope": "fabricated AAA/BBB/CCC, not actual mag7"
+  },
+  "tests": {
+    "baseline_passed": 1,
+    "history_red_expected_failures": 64,
+    "history_green_passed": 64,
+    "dom_initial_harness_error_skipped": 10,
+    "dom_initial_error_is_not_red_proof": true,
+    "dom_corrected_red_expected_failures": 10,
+    "combined_native_passed": 141,
+    "focused_eslint_errors": 0,
+    "focused_eslint_warnings": 0,
+    "application_typecheck_exit": 0,
+    "full_terminal_regression": "NOT_RUN_LOCALLY",
+    "initial_combined_native_passed": 74,
+    "ci_repair_red_expected_failures": 8,
+    "ci_repair_red_previous_tests_passed": 74,
+    "plain_language_enforce_added_exit": 0,
+    "catalog_more_than_eight_red_failures": 4,
+    "catalog_beyond_first_render_page_red_failures": 1,
+    "catalog_scale_upper_bound": 4096,
+    "catalog_visible_page_bound": 64,
+    "r3_focused_lint_exit": 0,
+    "r3_typescript_exit": 0,
+    "r3_plain_language_gate_exit": 0,
+    "test_files_passed": 5,
+    "url_codec_case_count": 15,
+    "url_dom_case_count": 7,
+    "ssr_initial_wrong_basket_red": 1,
+    "ssr_fail_closed_green": true,
+    "full_typescript_after_generated_dev_cleanup_exit": 0,
+    "r5_source_status_regressions_red": 3,
+    "r5_source_label_regressions_red": 2,
+    "r5_source_status_regressions_green": 3,
+    "r5_source_label_regressions_green": 2,
+    "r5_local_eslint_exit": 0,
+    "r5_local_typescript_exit": 0,
+    "r6_red_no_diagnostics": 13,
+    "r6_red_inconsistent_diagnostics": 3,
+    "r6_final_tests_exit": 0,
+    "r6_lint_exit": 0,
+    "r6_typescript_exit": 0,
+    "r6_plain_language_exit": 0
+  },
+  "browser": {
+    "contexts_passed": 24,
+    "assertion_groups_passed": 529,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "page_errors": 0,
+    "external_requests": 0,
+    "scope": "real native component bundled in loopback harness; shared theme variables supplied by harness, not full Next.js/auth route",
+    "receipt_sha256": "1d64cb6199eaf75ec1457e4d331f07c165f5ca7f0de103e9c19b318516c51c58",
+    "latest_source_verified": true
+  },
+  "logs": {
+    "baseline.log": {
+      "bytes": 516,
+      "sha256": "2048ec306d8a45dfbe17574065fe25780329278c4be65a2568142a3d8d82488c"
+    },
+    "history-red.log": {
+      "bytes": 38538,
+      "sha256": "f5e79f4b93506888e67ff31f43d682a1a67879c5f5228aad80bfb72ba240b3a7"
+    },
+    "history-green.log": {
+      "bytes": 513,
+      "sha256": "7eda298e2e3bb674145a22607ae309f55cc180f8839561a0e53af6a264ec4208"
+    },
+    "preview-red.log": {
+      "bytes": 1135,
+      "sha256": "0fd3bffd31c15a62b41c6c68222a1168399862fa09d2ba22e17b06314f5fcd63"
+    },
+    "preview-red-corrected.log": {
+      "bytes": 11274,
+      "sha256": "d34fb3d6194b1ab84481e059d1fd87e03647041f524952ff6d3c495bdf8894dc"
+    },
+    "native-green.log": {
+      "bytes": 582,
+      "sha256": "5807f7098e66663e9de86c9312dba9adb96e21b4b36378a3d254706314c97d71"
+    },
+    "focused-lint-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "browser-run.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "ci-repair-red.log": {
+      "bytes": 5089,
+      "sha256": "868e83f190515db977a6eb55f1c0e6e871089e6970c0d82518e18509fa1e32a7"
+    },
+    "ci-repair-green.log": {
+      "bytes": 584,
+      "sha256": "578620a0758d7a3a1f7f87d0447d8d1f40c9faf204e800984ba506e0f1b9fe38"
+    },
+    "ci-repair-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ci-repair-typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ci-repair-plain-language.log": {
+      "bytes": 1550,
+      "sha256": "ce489c635f569c940eec47aaf2308d7192ca678a9579f661f9fe81e8665ac848"
+    },
+    "ci-repair-browser.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "hosted-unit-first.log": {
+      "bytes": 175320,
+      "sha256": "fad67eca696daf5630e5f97afc14ddf33a6a94917c17bf211f65bd34616da062"
+    },
+    "hosted-codeql-annotations.json": {
+      "bytes": 484,
+      "sha256": "f86f0746c5dec3b1b5f405dbac08932505370114a1ee138331e4ec7e7311c94d"
+    },
+    "catalog-green.log": {
+      "bytes": 584,
+      "sha256": "b065339ebb9ac7c948f8b91ee98ebdf83665133319d5aa0f24fc001739b6fd28"
+    },
+    "catalog-scale-red.log": {
+      "bytes": 3527,
+      "sha256": "ed974f5f7e827720b1d35ad17a166763dcec72bdf0847b41880c6c221ceee162"
+    },
+    "catalog-scale-green.log": {
+      "bytes": 704,
+      "sha256": "4e4ae439b1afb5ad2c8dbaa3a693934d5a320c3a249e9e48f1383db956c9e108"
+    },
+    "catalog-route-unit.log": {
+      "bytes": 584,
+      "sha256": "6a3fcf07eeaa67d16af7ba7d08b9797e5e04720c9fe2f772cc9b6243a8cb3573"
+    },
+    "catalog-route-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "catalog-route-types.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "catalog-route-plain-language-repaired.log": {
+      "bytes": 1683,
+      "sha256": "e51e81349279edd76463d3cc4b8116477177a43a6d41de6faab04b5507b03de7"
+    },
+    "catalog-harness-final.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "next-shell-final-r3.log": {
+      "bytes": 97,
+      "sha256": "63ec875e74bdae4e83020105f50c69c0fd5155bad034e8f61ae6ad7c48c9b326"
+    },
+    "r3-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r3-typescript.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r3-plain.log": {
+      "bytes": 1683,
+      "sha256": "e51e81349279edd76463d3cc4b8116477177a43a6d41de6faab04b5507b03de7"
+    },
+    "location-red.log": {
+      "bytes": 1073,
+      "sha256": "1f34e0d10d86a9726557ed6926ecdcb77e9f17f5efbdd6856e3da562f95816d5",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-green.log": {
+      "bytes": 512,
+      "sha256": "c226d39139abe25a016230088a3e5fd8f2337df5b9c80bac70ce9013a607d9d9",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-dom-red.log": {
+      "bytes": 7725,
+      "sha256": "682ced435c6fcd79c3c731c548f87e2f6ae10aee5e84cbac8b6d965e7cdc4fb7",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-dom-green.log": {
+      "bytes": 714,
+      "sha256": "7e8e45c38e53c9a0f75eb83f854883bcfd9bd082016ded0287efe97a08a013be",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-red.log": {
+      "bytes": 6031,
+      "sha256": "4d46a42456f778d0c3c241b3f62bbcd46e9db20329e635e306575c248e4338db",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-green.log": {
+      "bytes": 713,
+      "sha256": "adb1913b34c85297cb57091f5eebd3efb9bdfa979ee6b043cb732d29a862f719",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "continuation-typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-typecheck-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-standalone-browser.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-next-browser.log": {
+      "bytes": 97,
+      "sha256": "63ec875e74bdae4e83020105f50c69c0fd5155bad034e8f61ae6ad7c48c9b326",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-next-build.log": {
+      "bytes": 4373,
+      "sha256": "274a737b25d45e8b9f4940b156d1241c3b51051f6d45c665748cac14552e2c28",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-production-negative.log": {
+      "bytes": 118,
+      "sha256": "55ed6870c35fcb5c8c8cd2f50011c6d32e22514a34a6c2aa3539b7212a3d6f7e",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "status-red.log": {
+      "bytes": 5310,
+      "sha256": "10c6cbc664aeaa3812bb97e5d125b5bf16d0dd51f52015db8b4eb292534aeb68",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "status-green.log": {
+      "bytes": 714,
+      "sha256": "fe7dd179bf29fa8d9db822a19b32293059261d05443a52a4e0103754ae55d0ed",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "unavailable-copy-red.log": {
+      "bytes": 3637,
+      "sha256": "de92edf154e5b794aa2536cc84835df0182ca3f38f6aebae413c62a75d1f9bf1",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "unavailable-copy-green.log": {
+      "bytes": 713,
+      "sha256": "38b35e33f0b4ed9a6a9f8b54bbc3b4926bb24a7e5df6551f67236072055c63d8",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "validation-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "validation-tsc.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "status-final-next-build.log": {
+      "bytes": 4398,
+      "sha256": "a41eda2788b6d5753d03333cab8d00cf4e8b60516c5efb1a21c449380a205c3c",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "status-next-browser.log": {
+      "bytes": 97,
+      "sha256": "63ec875e74bdae4e83020105f50c69c0fd5155bad034e8f61ae6ad7c48c9b326",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "status-standalone-browser.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "source-status-production-refusal.log": {
+      "bytes": 118,
+      "sha256": "f8ab3e2e9e9bcb95b058eff80e69f549cbfe71bea278a1b649d809b309b439bb",
+      "storage": "WORKSPACE_ONLY_IGNORED"
+    },
+    "r6-native-full-green.log": {
+      "sha256": "ca3aaa7e55b018a28d0fcd9c9d5fda221dc0e28a6b7452691e0e3ba8f1bff415",
+      "bytes": 782,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-eslint.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-typecheck.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-plain-language.log": {
+      "sha256": "258e5896c8911908fb83cbc9db010653190ca87ab56be7639532d2650176c031",
+      "bytes": 4040,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-standalone-verified.log": {
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b",
+      "bytes": 117,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-final-build-exit.log": {
+      "sha256": "944b644f3050b8ba5a86249e3c1950cdc68bbf230a958f7d843d86abddccf60c",
+      "bytes": 4397,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-next-webpack-browser.log": {
+      "sha256": "01d06d92661a1552a48db5787f046c223a183f2508ecc67cb7665931ca043dd0",
+      "bytes": 490,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-next-turbopack-failure.json": {
+      "sha256": "233bfed3b41dbee350387f840fd78b9e7fbe2d6b29dab205af71c90af6edac7c",
+      "bytes": 14477,
+      "storage": "WORKSPACE_IGNORED"
+    },
+    "r6-prod-negative.json": {
+      "sha256": "207feddf0b5cbf0b1b58edfe8684a68acfdfc533d8750b60612beb1e73db4a08",
+      "bytes": 685,
+      "storage": "WORKSPACE_IGNORED"
+    }
+  },
+  "screenshots": {
+    "screenshots/chromium-1440-dark-en-compare.png": "f8b5aa5df4670b60d7bcc99929173d998741b03a12f9f4883e3dc33709a9e0de",
+    "screenshots/chromium-1440-light-en.png": "55b0c3fbc05916838b29049a28e00556836d576884c63a719355d4a5830eb0d2",
+    "screenshots/chromium-390-dark-en.png": "b3edaa1dae276afd1357d276a000fa14645e24952882555dd5dd34231b68965a",
+    "screenshots/webkit-390-light-zh.png": "98a2947c978c24eb18e0507b05ab0b2f6ea621ee4fe6dd22d5ecfbf52c0bd23a",
+    "screenshots/webkit-820-light-zh.png": "55b2c95cf3264cd92827665e2d734830e04466b83eccaba781927657412f388b",
+    "screenshots/chromium-1440-dark-en-catalog.png": "a4eaebe369919ccd3ab686b1c0d4b288b54647652f2d172c6be6de277e9ff1c3",
+    "screenshots/next-shell/chromium-1440-dark-en.png": "5d51a8dff0ffcc61daad9ab0f9b47e9fa05de63c54c4a9f9f5fa206b520ff4eb",
+    "screenshots/next-shell/chromium-390-dark-en.png": "14e4fa7bcb1271e125685b687c803e771256778cebd891a69834641f29e220d1",
+    "screenshots/next-shell/chromium-390-light-zh.png": "76d764a7e6c47e781127278897dbec4e40748821e3f6091d699be53d61f3e739"
+  },
+  "source_admission": false,
+  "authenticated_production": false,
+  "customer_publication": false,
+  "independent_review": null,
+  "merged": false,
+  "deployed": false,
+  "notes": [
+    "Final source has 82 native passes, clean lint/typecheck and enforce-added plain-language; refreshed browser proof binds the repaired source. Prior 74-test milestone is historical.",
+    "No Macro source/custody refusal replay; no change to S1/S2/S4/S6 sources or leases.",
+    "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status.",
+    "R3: actual Next route developer-admin-only; test auth fixture and Chromium/WebKit proof do not establish real authenticated production. The route returns notFound in non-development mode before querying rights or delivering any fixture.",
+    "R3: 160+ factor catalog works with 64-choice bounded rendering and eight simultaneous selections; every clone is synthetic, not a provider-sourced catalog or validated historical cohort.",
+    "R4 proof: server-rendered URL-enabled preview returns a bilingual validation state until exact factor ID/date allowlist checks complete, avoiding wrong-default flash. The 109 tests include this source-visible RED/GREEN invariant.",
+    "One optional final local lint/plain-language diagnostic was blocked before dispatch; earlier pre-SSR-edit focused lint/plain-language passed and source modifications were only the bilingual LEX validation state and its hooks. Current-head hosted checks are required.",
+    "R5: 3 source-status/return contradictions and 2 misleading unavailable labels reproduced RED then GREEN in 114 tests. Local browser proof after repairs remains synthetic; full real authenticated product still blocked.",
+    "R6: 141 PASS native tests and 24/24 standalone browser contexts/529 assertions are current. Next development-shell proof is negative/unverified: WebKit HMR errors and Webpack page timeout. Production build and negative local 404 checks separately pass. This is not an admitted customer product."
+  ],
+  "hosted_predecessor": {
+    "head_sha": "233a529c75e4a0215a5efa4cec1be9d8bfd011c2",
+    "run_id": 38128680548,
+    "unit_job_id": 114438291179,
+    "unit_test_files_passed": 531,
+    "unit_tests_passed": 8681,
+    "todo": 4,
+    "job_conclusion": "FAILURE",
+    "reason": "5 plain-language findings after successful full unit suite",
+    "codeql_check_id": 114438415187,
+    "codeql_new_alerts": 1,
+    "codeql_reason": "single-percent replacement in numeric unit display"
+  },
+  "repair": {
+    "scope": "brand/status routing through recognized bilingual pick helper; explicit numeric percentage-point formatter instead of replacing a percent sign",
+    "local_tests_passed": 82,
+    "local_plain_language_exit": 0,
+    "local_lint_exit": 0,
+    "local_typecheck_exit": 0,
+    "fresh_browser_contexts_passed": 24,
+    "fresh_hosted_ci": "PENDING_NEW_HEAD",
+    "fresh_codeql": "NOT_YET_PROVEN",
+    "no_test_or_gate_waiver": true
+  },
+  "next_shell": {
+    "route": "/admin/factor-atlas-preview",
+    "deployment_exposure": "NODE_ENV_development_only",
+    "host": "127.0.0.1",
+    "authentication": "EXISTING_ADMIN_DEV_AND_E2E_FIXTURE_ONLY_NOT_REAL_IDENTITY",
+    "real_next_route_red_404": true,
+    "real_next_route_green_200": true,
+    "browser_contexts_passed": 24,
+    "assertion_groups_passed": 384,
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "source_sha256": {
+      "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
+      "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
+      "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "7edb41aa4f36b1daabfd00c3e306e708b45404e4927a3e2e416b54bd38fb3d00",
+      "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
+      "terminal/lib/factorAtlasHistory.ts": "a6dea56b5f41b4fbd79adc41cc8914b4af3a481a8ce2e23584f8b6d388fdaa29",
+      "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
+      "docs/factor-atlas-preview/prove-shell.mjs": "dcc01e0f18cbc5a7c7b6b9b42f6455ff6ba0dd82cec0761d2f7ebe57e3cddedc",
+      "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
+    },
+    "receipt_sha256": "064186d86d2a327bb87938314ea8f5490e2ba7fd13760cc9907d5378d53ee3a8",
+    "production_not_proven": true,
+    "shareable_url_state": {
+      "reload": true,
+      "back": true,
+      "forward": true,
+      "unknown_id": "REFUSED_NO_FALLBACK",
+      "direct_valid": "EXACT_WINDOW",
+      "ssr_hydration": "WITHHELD_UNTIL_VALIDATION"
+    },
+    "evidence_status": "HISTORICAL_R5_ONLY",
+    "r6_current_source_verified": false
+  },
+  "production_proven": false,
+  "real_house_data_qualified": false,
+  "r4_source_parent_head": "e3446da05eae17d32c5a54cb589258927c595717",
+  "production_build_current_candidate": {
+    "exit_code": 0,
+    "log_sha256": "274a737b25d45e8b9f4940b156d1241c3b51051f6d45c665748cac14552e2c28",
+    "optimized_next": "16.2.9",
+    "authenticated_production": false
+  },
+  "production_route_negative_current_candidate": {
+    "anonymous_status": 404,
+    "spoofed_cookie_status": 404,
+    "direct_factor_link_status": 404,
+    "invalid_link_status": 404,
+    "fixture_bytes_leaked": false,
+    "host": "127.0.0.1",
+    "source": "PLACEHOLDER_SUPABASE_CONFIGURATION_LOCAL_ONLY",
+    "log_sha256": "55ed6870c35fcb5c8c8cd2f50011c6d32e22514a34a6c2aa3539b7212a3d6f7e"
+  },
+  "s5_principal_design": {
+    "path": "docs/factor-atlas-preview/S5_TERMINAL_PRODUCT_CENSUS.md",
+    "sha256": "439766826d0d8bd68c2c1ea045d2db64e7b767ba10715df510deb9b8d4db09be",
+    "is_original_specialist_receipt": false,
+    "adopted_product_ia": false
+  },
+  "r5_parent_head": "7097ee51c0cc4ac25bdfd9ebe2412229b4868719",
+  "r5_source_status_consistency": {
+    "missing_held_nav_numeric_interval_return": "INVALID_NOT_DISPLAYED",
+    "status_unavailable_nonnull_points": "WITHHELD_NO_NUMERIC",
+    "projected_source_status_unavailable": "WINDOW_UNAVAILABLE_NULL_RETURN",
+    "localized_unavailable_reason": "EN_ZH",
+    "data_source_admission": false,
+    "customer_publication": false
+  },
+  "r5_local_build": {
+    "exit": 0,
+    "optimized_next_build": true,
+    "log_sha256": "a41eda2788b6d5753d03333cab8d00cf4e8b60516c5efb1a21c449380a205c3c"
+  },
+  "r5_production_negative": {
+    "anonymous": 404,
+    "spoofed_admin": 404,
+    "direct_factor_link": 404,
+    "invalid_link": 404,
+    "fixture_bytes_leaked": false,
+    "live_account_auth_test": false,
+    "log_sha256": "f8ab3e2e9e9bcb95b058eff80e69f549cbfe71bea278a1b649d809b309b439bb"
+  },
+  "r6_precommit_head": "e446151ac5da32599f1f5da8fb63da7d44681dce",
+  "r6_next_shell": {
+    "state": "NOT_VERIFIED",
+    "turbopack_contexts_passed": 12,
+    "turbopack_attempted": 13,
+    "failure": "WEBKIT_HMR_CHUNK_LOAD_ERROR",
+    "webpack_attempted": 0,
+    "webpack_failure": "FIRST_PAGE_NAVIGATION_TIMED_OUT",
+    "negative_evidence_file": "docs/factor-atlas-preview/evidence/R6_VERIFICATION_BOUNDARY.json"
+  },
+  "r6_local_build": {
+    "exit": 0,
+    "log_sha256": "944b644f3050b8ba5a86249e3c1950cdc68bbf230a958f7d843d86abddccf60c"
+  },
+  "r6_production_negative": {
+    "four_local_statuses": [
+      404,
+      404,
+      404,
+      404
+    ],
+    "fixture_leaked": false,
+    "actual_customer_auth": false
+  },
+  "r6_evidence_sha256": "a56cfa8341c6de399caf7203dc542773cbb7bb1968580b50155c7c352fda16b6",
+  "r6_source_diagnostics": {
+    "source_projection": "NATIVE_S1_FIELDS_ONLY",
+    "coverage_denominators": true,
+    "breadth_status": true,
+    "concentration_hhi_n": true,
+    "client_flow_inference": false,
+    "source_release": false
+  }
+}

@@ -1,0 +1,216 @@
+// @vitest-environment jsdom
+import React, { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { existsSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
+import nativeFixture from "./fixtures/factorAtlasNativeSynthetic.json";
+import type { FactorHistoryPreview as PreviewType } from "../../components/factor-atlas/FactorHistoryPreview";
+
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+let Preview: typeof PreviewType | undefined;
+beforeAll(async () => {
+  const path = resolve(process.cwd(), "components/factor-atlas/FactorHistoryPreview.tsx");
+  if (existsSync(path)) Preview = (await import(/* @vite-ignore */ pathToFileURL(path).href)).FactorHistoryPreview;
+});
+const baseProps = () => ({
+  items: [{ basketId: "mag7", label: ["Synthetic round trip", "合成往返示例"] as const, payload: structuredClone(nativeFixture) }],
+  initialWindow: { anchorDate: "2026-01-28", endDate: "2026-01-30" },
+  audience: "synthetic-preview" as const,
+  lang: "en" as const,
+});
+
+describe("native Factor Atlas preview component", () => {
+  let container: HTMLDivElement, root: Root;
+  beforeEach(() => { container = document.createElement("div"); document.body.appendChild(container); root = createRoot(container); });
+  afterEach(() => { act(() => root.unmount()); container.remove(); });
+  async function mount(props: Parameters<typeof PreviewType>[0] = baseProps()) {
+    expect(Preview, "native Factor Atlas preview component must exist").toBeDefined();
+    await act(async () => { root.render(React.createElement(Preview!, props)); });
+  }
+  it("labels the real native fixture as synthetic, never live or source-admitted", async () => {
+    await mount();
+    expect(container.textContent).toContain("Synthetic preview");
+    expect(container.textContent).toContain("not live market data");
+    expect(container.textContent).toContain("Synthetic round trip");
+    expect(container.textContent).toContain("0.0%");
+    expect(container.querySelector('svg[role="img"]')).not.toBeNull();
+    expect(container.innerHTML).not.toContain('preserveAspectRatio="none"');
+  });
+  it("displays native observation coverage, breadth and concentration with denominators", async () => {
+    await mount();
+    const source = container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+    expect(source?.querySelector('[data-source="weight-coverage"]')?.textContent).toBe("100.0%");
+    expect(source?.querySelector('[data-source="advance-fraction"]')?.textContent).toBe("33.3%");
+    expect(source?.querySelector('[data-source="largest-weight"]')?.textContent).toBe("50.0%");
+    expect(source?.querySelector('[data-source="effective-n"]')?.textContent).toBe("2.67");
+    expect(source?.querySelector('[data-source="hhi"]')?.textContent).toBe("0.375");
+    expect(container.textContent).toContain("Held start weight");
+    expect(container.textContent).toContain("end weights");
+  });
+  it("shows a partial native breadth assessment as unavailable rather than 33% participation", async () => {
+    const props=baseProps();props.items[0].payload.points[0].breadth.status="PARTIAL";
+    await mount(props);
+    const source=container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="advance-fraction"]')?.textContent).toBe("—");
+    expect(source?.querySelector('[data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+  });
+  it("uses an unknown marker instead of fabricated concentration from a null native object", async () => {
+    const props=baseProps();Object.assign(props.items[0].payload.points[0],{concentration:null});
+    await mount(props);
+    const source=container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="largest-weight"]')?.textContent).toBe("—");
+    expect(source?.querySelector('[data-source="effective-n"]')?.textContent).toBe("—");
+  });
+  it("labels native diagnostics in Chinese without renaming its source basis", async () => {
+    await mount({ ...baseProps(), lang:"zh" });
+    expect(container.textContent).toContain("有效成员");
+    expect(container.textContent).toContain("期初持仓权重覆盖");
+    expect(container.textContent).toContain("期末最大权重");
+    expect(container.querySelector('[data-observation="2026-01-29"] [data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+  });
+  it("keeps customer mode entirely withheld", async () => {
+    await mount({ ...baseProps(), audience: "customer" });
+    expect(container.textContent).toContain("Source admission required");
+    expect(container.textContent).not.toContain("Synthetic round trip");
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.textContent).not.toContain("33.3%");
+  });
+  it("discloses source unavailability rather than falsely suggesting a synthetic-input type mismatch", async () => {
+    const props = baseProps(); props.items[0].payload.status = "UNAVAILABLE";
+    await mount(props);
+    expect(container.textContent).toContain("Source unavailable");
+    expect(container.textContent).not.toContain("Synthetic fixture required");
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.querySelector('[data-metric="window-return"]')).toBeNull();
+  });
+  it("explains source unavailability in Chinese", async () => {
+    const props = baseProps(); props.items[0].payload.status = "UNAVAILABLE";
+    await mount({ ...props, lang: "zh" });
+    expect(container.textContent).toContain("数据源不可用");
+    expect(container.textContent).not.toContain("仅支持合成测试数据");
+  });
+  it("cannot preview a real retained-owner payload by caller flag alone", async () => {
+    const props = baseProps(); props.items[0].payload.evidence_kind = "RETAINED_OWNER_INPUT";
+    await mount(props);
+    expect(container.textContent).toContain("Synthetic fixture required");
+    expect(container.querySelector("svg")).toBeNull();
+  });
+  it("switches to customer mode without a stale numeric frame", async () => {
+    await mount();
+    await mount({ ...baseProps(), audience: "customer" });
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.textContent).not.toContain("33.3%");
+  });
+  it("reuses source holdings when the explicit date control changes", async () => {
+    await mount();
+    const input = container.querySelector('input[aria-label="Comparison anchor"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "2026-01-29");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.querySelector('[data-metric="window-return"]')?.textContent).toBe("-25.0%");
+    expect(container.textContent).not.toContain("-16.7%");
+  });
+  it("does not silently substitute a nonexistent reference date", async () => {
+    await mount({ ...baseProps(), initialWindow: { anchorDate: "2026-01-27", endDate: "2026-01-30" } });
+    expect(container.textContent).toContain("Exact reference or end date is unavailable");
+    expect(container.querySelector("svg")).toBeNull();
+  });
+  it("shows a source gap as unavailable, not flat performance", async () => {
+    const props = baseProps(); props.items[0].payload.status = "PARTIAL";
+    Object.assign(props.items[0].payload.points[1], { return: null, index_level: null, reasons: ["MISSING_OR_INVALID_HELD_PRICE"] });
+    await mount(props);
+    expect(container.querySelector('[data-metric="window-return"]')?.textContent).toBe("—");
+    expect(container.textContent).toContain("Valuation gap");
+    expect(container.querySelectorAll('[data-observation="2026-01-30"]')[0]?.textContent).toContain("—");
+  });
+  it("renders Chinese without leaking English explanatory copy", async () => {
+    await mount({ ...baseProps(), lang: "zh" });
+    expect(container.textContent).toContain("合成数据预览");
+    expect(container.textContent).toContain("合成往返示例");
+    expect(container.textContent).not.toContain("Synthetic preview");
+    expect(container.querySelector('input[aria-label="参考日期"]')).not.toBeNull();
+  });
+  it("selection changes do not create a fetch or an implicit new date", async () => {
+    await mount();
+    const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    await act(async () => checkbox.click());
+    expect(container.textContent).toContain("Select at least one factor");
+    expect((container.querySelector('input[aria-label="Comparison anchor"]') as HTMLInputElement).value).toBe("2026-01-28");
+    expect(container.querySelector("svg")).toBeNull();
+  });
+  it("does not create stock-price or vendor-data links for a factor", async () => {
+    await mount();
+    expect(container.querySelector('a[href*="/data/"]')).toBeNull();
+    expect(container.querySelector('a[href*="/stock/"]')).toBeNull();
+    expect(container.textContent).toContain("construction");
+  });
+
+  function catalog(count: number) {
+    return Array.from({ length: count }, (_, i) => {
+      const n = String(i + 1).padStart(2, "0"), payload = structuredClone(nativeFixture);
+      payload.basket_id = payload.request.basket_id = `fixture:cohort-${n}`;
+      // Synthetic-only fixture variations: the inherited digest is a reference, not an attestation.
+      return { basketId: payload.basket_id, label: [`Cohort ${n}`, `合成样本${n}`] as const, payload };
+    });
+  }
+  it("supports a catalog larger than eight without disabling the entire workspace", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    expect(container.textContent).not.toContain("Choose up to eight distinct factors");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(12);
+    expect(container.textContent).toContain("Selected 3 of 8");
+    expect(container.querySelector('input[aria-label="Find factors"]')).not.toBeNull();
+  });
+  it("filters larger catalogs without changing already-selected basket histories", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    const query = container.querySelector('input[aria-label="Find factors"]') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(query, "Cohort 12");
+      query.dispatchEvent(new Event("input", { bubbles: true }));
+      query.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.textContent).toContain("Cohort 12");
+    expect(container.textContent).not.toContain("Cohort 05");
+    expect(container.querySelectorAll('[data-metric="window-return"]')).toHaveLength(3);
+    expect(container.textContent).toContain("Selected 3 of 8");
+  });
+  it("enforces eight simultaneous selections, not eight catalog entries", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    const boxes = [...container.querySelectorAll('input[type="checkbox"]')] as HTMLInputElement[];
+    expect(boxes.slice(0, 3).every(b => b.checked)).toBe(true);
+    for (const box of boxes.slice(3, 8)) await act(async () => box.click());
+    expect(container.textContent).toContain("Selected 8 of 8");
+    expect((container.querySelectorAll('input[type="checkbox"]')[8] as HTMLInputElement).disabled).toBe(true);
+    await act(async () => (container.querySelectorAll('input[type="checkbox"]')[0] as HTMLInputElement).click());
+    expect((container.querySelectorAll('input[type="checkbox"]')[8] as HTMLInputElement).disabled).toBe(false);
+  });
+  it("renders localized catalog search without leaking English into Chinese", async () => {
+    await mount({ ...baseProps(), items: catalog(12), lang: "zh" });
+    expect(container.querySelector('input[aria-label="查找因子"]')).not.toBeNull();
+    expect(container.textContent).toContain("已选 3 / 8");
+    expect(container.textContent).not.toContain("Find factors");
+  });
+
+  it("locates a factor beyond the first rendered catalog page without dropping the original selection", async () => {
+    await mount({ ...baseProps(), items: catalog(160) });
+    expect(container.textContent).not.toContain("Factor catalog is unavailable");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(64);
+    expect(container.textContent).toContain("Showing 64 of 160");
+    const query = container.querySelector('input[aria-label="Find factors"]') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(query, "Cohort 160");
+      query.dispatchEvent(new Event("input", { bubbles: true }));
+      query.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.textContent).toContain("Cohort 160");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(1);
+    await act(async () => (container.querySelector('input[type="checkbox"]') as HTMLInputElement).click());
+    expect(container.textContent).toContain("Selected 4 of 8");
+    expect(container.querySelectorAll('[data-metric="window-return"]')).toHaveLength(4);
+  });
+});
