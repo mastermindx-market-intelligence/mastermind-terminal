@@ -50,13 +50,17 @@ export function useReadingScope(ownerKey: string) {
 }
 export async function readingJson(scope: { current: AbortController | null }, url: string, init?: RequestInit) {
   const controller = scope.current;
-  if (!controller || controller.signal.aborted) throw Error("inactive");
+  const consumerSignal = init?.signal;
+  if (!controller || controller.signal.aborted || consumerSignal?.aborted) throw Error("inactive");
   const request = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort = () => {};
   const boundary = new Promise<never>((_resolve, reject) => {
     onAbort = () => { request.abort(); reject(Error("inactive")); };
     controller.signal.addEventListener("abort", onAbort, { once: true });
+    // A child lane may leave while the account remains active. Cancel that
+    // request through this existing boundary without ending the identity scope.
+    consumerSignal?.addEventListener("abort", onAbort, { once: true });
     timer = setTimeout(() => { request.abort(); reject(Error("read deadline")); }, 18000);
   });
   try {
@@ -68,8 +72,8 @@ export async function readingJson(scope: { current: AbortController | null }, ur
         if (response.ok) throw error;
         return null;
       });
-      if (scope.current !== controller || controller.signal.aborted) throw Error("inactive");
+      if (scope.current !== controller || controller.signal.aborted || consumerSignal?.aborted) throw Error("inactive");
       return { response, value };
     })()]);
-  } finally { clearTimeout(timer); controller.signal.removeEventListener("abort", onAbort); }
+  } finally { clearTimeout(timer); controller.signal.removeEventListener("abort", onAbort); consumerSignal?.removeEventListener("abort", onAbort); }
 }

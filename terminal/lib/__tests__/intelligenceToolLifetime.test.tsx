@@ -18,10 +18,10 @@ let root:Root,host:HTMLDivElement;
 beforeEach(()=>{state.ready=true;state.unavailable=false;state.lang='en';state.cache='previous-account';state.reads=[];state.invalidations=0;host=document.createElement('div');document.body.appendChild(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();});
 describe("dedicated Prophet preserves the incumbent cache boundary",()=>{
- it.each(['en','zh'] as const)("%s names the native plan tool and links back to the full workspace",async lang=>{
+ it.each(['en','zh'] as const)("%s names the unified Prophet tool and links back to the full workspace",async lang=>{
   state.lang=lang;await act(async()=>root.render(<Tool ownerKey="A" kind="prophet"/>));
-  expect(host.querySelector('h1')?.textContent).toBe(lang==='zh'?'模型计划与期权':'Model plans & options');
-  expect(host.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain(lang==='zh'?'打开 Prophet 工作台':'Open Prophet workspace');
+  expect(host.querySelector('h1')?.textContent).toBe('Prophet');
+  expect(host.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain(lang==='zh'?'完整工作台':'Full workspace');
  });
  it("clears the existing cache before child passive reads and again on account departure",async()=>{
   await act(async()=>root.render(<Tool ownerKey="A" kind="prophet"/>));expect(state.reads).toEqual(['cleared']);expect(state.invalidations).toBe(1);

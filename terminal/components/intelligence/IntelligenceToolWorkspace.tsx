@@ -19,7 +19,7 @@ export default function IntelligenceToolWorkspace({ownerKey,kind}:{ownerKey:stri
 }
 function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
  const {lang} = useLang(), zh = lang === "zh";
- const {ready,ended,unavailable,retryIdentity} = useReadingScope(ownerKey);
+ const {scope,ready,ended,unavailable,retryIdentity,invalidateIdentity} = useReadingScope(ownerKey);
  // Reuse the incumbent display-cache invalidation before child passive reads.
  // An old account's module cache must not seed a newly verified tool lifetime.
  useLayoutEffect(()=>{
@@ -27,15 +27,17 @@ function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
   flowInvalidate();
   return ()=>flowInvalidate();
  },[kind,ready]);
- const title = kind === "prophet" ? pick(lang, "Model plans & options", "模型计划与期权") : zh ? "行业情报" : "Sector Intelligence";
+ const title = kind === "prophet" ? "Prophet" : zh ? "行业情报" : "Sector Intelligence";
  const identityMessage = ended
   ? pick(lang, "Your account changed or your session ended. Private readings have been cleared.", "账户已更改或会话已结束。私人读数已清除。")
   : unavailable
     ? pick(lang, "Account verification is unavailable. Private readings are hidden.", "账户核验暂不可用。私人读数已隐藏。")
     : pick(lang, "Verifying your account…", "正在核验账户…");
  return <div className={`main2 ${s.workspace}`} data-intelligence-tool={kind}>
-  {(kind !== "sectors" || !ready) && <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav />
-   {kind === "prophet" && <Link className={s.action} href="/us_stocks.html" prefetch={false}>{pick(lang, "Open Prophet workspace", "打开 Prophet 工作台")} →</Link>}
+  {(kind !== "sectors" || !ready) && <header className={`${s.workspaceHeader}${kind === "prophet" && ready ? ` ${s.prophetHeader}` : ""}`}><div><h1>{title}</h1>
+   {kind === "prophet" && ready && <p>{pick(lang,"Candidates, sector research and model plans.","候选股票、板块研究与模型计划。")}</p>}</div>
+   {!ready && <IntelligenceNav />}
+   {kind === "prophet" && <Link className={ready ? s.prophetFullLink : s.action} href="/us_stocks.html" prefetch={false}>{pick(lang, "Full workspace", "完整工作台")} ↗</Link>}
   </header>}
   {!ready ? <main id="shared-shell-content" tabIndex={-1} className={s.root}>
    <div role="status" className={s.notice}><p>{identityMessage}</p>
@@ -44,7 +46,7 @@ function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
      <button className={s.action} onClick={retryIdentity}>{pick(lang, "Recheck account", "重新核验账户")}</button>
     </div>}
    </div>
-  </main> : kind === "prophet" ? <main id="shared-shell-content" tabIndex={-1} className={s.workspaceBody}><Prophet /></main>
+  </main> : kind === "prophet" ? <main id="shared-shell-content" tabIndex={-1} className={s.workspaceBody}><Prophet reading={{scope,invalidateIdentity}} /></main>
    : <div className={s.workspaceBody}><Sectors /></div>}
  </div>;
 }

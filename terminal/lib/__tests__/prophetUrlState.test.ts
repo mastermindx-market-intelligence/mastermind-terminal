@@ -32,7 +32,7 @@ import {
   DEFAULT_PROPHET_STATE, DEFAULT_PROPHET_STATE_LEGACY, PROPHET_SEL_MAX,
   encodeProphetFrom, parseProphetFrom, parseProphetSel, parseProphetState,
   prophetFromHrefAdmissible, prophetFromReturnHref, prophetHref,
-  prophetMountForPathname, toggleProphetSel, writeProphetState,
+  prophetMountForPathname, prophetQuery, toggleProphetSel, writeProphetState,
   type ProphetUrlState,
 } from "@/lib/prophetUrlState";
 
@@ -84,6 +84,22 @@ describe("mount inference", () => {
 });
 
 describe("state round-trip", () => {
+  it("retains a candidate detail and Chinese search in the existing canonical key family", () => {
+    const state:ProphetUrlState={...DEFAULT_PROPHET_STATE,lane:"candidates",view:"setup",symbol:"DEMOC",q:"材料"};
+    expect(roundTrip(state)).toEqual(state);
+    const params=url(prophetHref(state,"canonical")).searchParams;
+    expect(params.get("tab")).toBe("candidates");expect(params.get("symbol")).toBe("DEMOC");
+    expect(params.get("prophetQ")).toBe("材料");expect(params.has("prophetView")).toBe(false);
+    expect(params.has("prophetSymbol")).toBe(false);
+  });
+  it("keeps candidate-only search grammar out of every incumbent server-backed lane", () => {
+    expect(prophetQuery("科技","candidates")).toBe("科技");
+    for(const lane of ["today","screener","sector","plans","options","issue"] as const) expect(prophetQuery("科技",lane)).toBe("");
+    expect(prophetQuery("Cedar Networks","screener")).toBe("Cedar Networks");
+    expect(prophetQuery("bad\nquery","candidates")).toBe("");
+    expect(prophetQuery("bad\n","candidates")).toBe("");
+    expect(prophetQuery("x".repeat(65),"candidates")).toBe("");
+  });
   it("DEFAULT_PROPHET_STATE survives write → parse unchanged on both mounts", () => {
     expect(roundTrip(DEFAULT_PROPHET_STATE)).toEqual(DEFAULT_PROPHET_STATE);
     expect(roundTrip(DEFAULT_PROPHET_STATE_LEGACY, "legacy")).toEqual(DEFAULT_PROPHET_STATE_LEGACY);

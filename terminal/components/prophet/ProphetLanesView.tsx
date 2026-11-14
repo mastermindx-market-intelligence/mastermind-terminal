@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { flowPrefetch } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import type { ProphetLane } from "@/lib/prophetUrlState";
@@ -10,15 +11,16 @@ import { ProphetView as MacroPlansView } from "./ProphetView";
 import { makeProphetT, type ProphetKey } from "./prophetStrings";
 import { ProphetSectorView } from "./sector/ProphetSectorView";
 import { TodayView } from "./today/TodayView";
+import { ProphetCandidateView, type ProphetCandidateBoundary } from "./candidates/ProphetCandidateView";
 import { useProphetUrlState } from "./useProphetUrlState";
 import styles from "./today/today.module.css";
 
 /**
  * The Prophet surface's lane navigation (gaps G2/G21, fix M1/M3/P2/P3).
  *
- * Reading order: Today / Screener / Plans are the primary lanes and ride ONE
- * row at every width — no captions under the labels (the design's lane row is
- * three words). Options Alpha and Issue Desk stay reachable as secondary
+ * Reading order: Today / Candidates / Screener / Plans are the canonical
+ * primary lanes and ride one row at every width. The legacy Options mount
+ * retains its three primary lanes. Options Alpha and Issue Desk are secondary
  * lanes: inline on desktop/tablet, behind a "More" disclosure at ≤640 so the
  * Prophet-owned chrome never becomes a second navigation block on a phone.
  * The shared Options hub category row and vol strip are not this file's.
@@ -33,6 +35,7 @@ import styles from "./today/today.module.css";
  */
 const PRIMARY_LANES: readonly { lane: ProphetLane; testid: string; labelKey: ProphetKey }[] = [
   { lane: "today", testid: "prophet-tab-today", labelKey: "tabToday" },
+  { lane: "candidates", testid: "prophet-tab-candidates", labelKey: "tabCandidates" },
   { lane: "screener", testid: "prophet-tab-screener", labelKey: "tabScreener" },
   { lane: "plans", testid: "prophet-tab-plans", labelKey: "lanePlans" },
 ];
@@ -47,7 +50,7 @@ function visibleTabs(root: HTMLElement): HTMLButtonElement[] {
     .filter(tab => tab.offsetParent !== null || tab.getClientRects().length > 0);
 }
 
-export function ProphetLanesView() {
+export function ProphetLanesView({ reading }: { reading?: ProphetCandidateBoundary } = {}) {
   const { lang } = useLang();
   const t = makeProphetT(lang);
   const { state, update } = useProphetUrlState();
@@ -56,14 +59,17 @@ export function ProphetLanesView() {
   const secondaryActive = lane === "options" || lane === "issue";
   const [moreOpen, setMoreOpen] = useState(false);
   const navRef = useRef<HTMLDivElement | null>(null);
+  const secondaryRef = useRef<HTMLDivElement | null>(null);
+  const moreRef = useRef<HTMLButtonElement | null>(null);
   const secondaryId = `prophet-secondary-lanes-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   const selectLane = useCallback((next: ProphetLane) => {
     if (next === "options") flowPrefetch("options_prophet_idx");
     else if (next === "plans") flowPrefetch("prophet_idx");
-    if (next === "screener") update({ lane: next, view: "overview" });
+    if (next === "candidates") update({ lane: next, symbol: null, group: null, view: "overview", plan: null, state: null, offset: 0, q: lane === "candidates" ? state.q : "" });
+    else if (next === "screener") update({ lane: next, view: "overview" });
     else update({ lane: next });
-  }, [update]);
+  }, [update, lane, state.q]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -79,6 +85,13 @@ export function ProphetLanesView() {
       document.removeEventListener("pointerdown", closeOutside);
       document.removeEventListener("keydown", closeEscape);
     };
+  }, [moreOpen]);
+
+  useLayoutEffect(() => {
+    // At phone widths a selected secondary tab disappears when More closes.
+    // Return focus to its actual visible disclosure, including on Escape.
+    if (!moreOpen && secondaryRef.current?.contains(document.activeElement)
+        && moreRef.current && moreRef.current.getClientRects().length > 0) moreRef.current.focus();
   }, [moreOpen]);
 
   const pick = (next: ProphetLane) => {
@@ -107,7 +120,7 @@ export function ProphetLanesView() {
   // selected (its tab is inside the closed disclosure at phone widths).
   const rovingLane: ProphetLane = lane === "screener" || lane === "sector"
     ? "screener"
-    : lane === "today" || lane === "plans" ? lane : "today";
+    : lane === "today" || lane === "plans" || lane === "candidates" && reading ? lane : "today";
 
   const tabButton = (
     { lane: tabLane, testid, labelKey }: { lane: ProphetLane; testid: string; labelKey: ProphetKey },
@@ -122,6 +135,7 @@ export function ProphetLanesView() {
       aria-selected={selected}
       aria-controls={
         tabLane === "today" ? "prophet-panel-today"
+          : tabLane === "candidates" ? "prophet-panel-candidates"
           : tabLane === "screener" ? "prophet-panel-sector"
             : tabLane === "plans" ? "prophet-panel-macro"
               : tabLane === "options" ? "prophet-panel-options" : "prophet-panel-issue"
@@ -147,16 +161,17 @@ export function ProphetLanesView() {
 
   return (
     <div className="obs-prophet-lane-shell">
-      <div className={styles.nav} ref={navRef}>
+      <div className={`${styles.nav}${reading ? ` ${styles.nativeNav}` : ""}`} ref={navRef}>
         <div
           className={styles.navTabs}
           role="tablist"
           aria-label={t("laneNavPrimaryAria")}
           onKeyDown={onTabKeyDown}
         >
-          {PRIMARY_LANES.map(tab => tabButton(tab, tab.lane === "today" ? lane === "today" : tab.lane === "screener" ? screenerActive : lane === "plans"))}
+          {PRIMARY_LANES.filter(tab => tab.lane !== "candidates" || reading).map(tab => tabButton(tab, tab.lane === "screener" ? screenerActive : lane === tab.lane))}
           <div
             className={styles.navSecondary}
+            ref={secondaryRef}
             id={secondaryId}
             data-open={moreOpen ? "true" : "false"}
             role="presentation"
@@ -165,6 +180,7 @@ export function ProphetLanesView() {
           </div>
         </div>
         <button
+          ref={moreRef}
           type="button"
           className={`${styles.moreButton}${secondaryActive ? ` ${styles.on}` : ""}`}
           data-testid="prophet-lane-more"
@@ -176,7 +192,7 @@ export function ProphetLanesView() {
             : t("laneMoreAria")}
           onClick={() => setMoreOpen(open => !open)}
         >
-          {secondaryActive ? t(lane === "options" ? "laneOptions" : "laneIssueDesk") : t("laneMore")}
+          {reading ? t("laneMore") : secondaryActive ? t(lane === "options" ? "laneOptions" : "laneIssueDesk") : t("laneMore")}
         </button>
       </div>
 
@@ -188,6 +204,17 @@ export function ProphetLanesView() {
         hidden={lane !== "today"}
       >
         {lane === "today" && <TodayView state={state} update={update} />}
+      </div>
+      <div
+        id="prophet-panel-candidates"
+        role={reading ? "tabpanel" : undefined}
+        aria-labelledby={reading ? "prophet-tab-candidates" : undefined}
+        className="obs-prophet-lane-panel"
+        hidden={lane !== "candidates"}
+      >
+        {lane === "candidates" && (reading
+          ? <ProphetCandidateView reading={reading} state={state} update={update} />
+          : <div className={styles.board}><Link href="/prophet?tab=candidates" prefetch={false}>{t("openCandidateWorkspace")} →</Link></div>)}
       </div>
       <div
         id="prophet-panel-sector"

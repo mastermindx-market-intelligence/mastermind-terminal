@@ -114,6 +114,22 @@ afterEach(() => {
 });
 
 describe('authentication', () => {
+  it('uses the existing identity boundary for the query-free candidate resource', async () => {
+    const res=await proxyReading(bffRequest('https://app.test/api/shared-shell/prophet-candidates'), 'prophetCandidates');
+    expect(res.status).toBe(200);await expectSecureHeaders(res);
+    expect(lastCall().url).toBe(DEFAULT_BASE+'/api/prophet/candidates/v1');
+    expect(lastCall().headers.get('authorization')).toBe('Bearer '+SERVER_TOKEN);
+    expect(lastCall().init.cache).toBe('no-store');
+  });
+  it.each(['?market=CN','?symbol=DEMOA','?path=../private','?x=1&x=2'])('refuses candidate query %s before upstream IO', async query => {
+    const res=await proxyReading(bffRequest('https://app.test/api/shared-shell/prophet-candidates'+query),'prophetCandidates');
+    expect(res.status).toBe(400);await expectSecureHeaders(res);expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it('authenticates before rejecting candidate query parameters', async () => {
+    supabase.getUser.mockResolvedValue({data:{user:null},error:null});
+    const res=await proxyReading(bffRequest('https://app.test/api/shared-shell/prophet-candidates?path=../private'),'prophetCandidates');
+    expect(res.status).toBe(401);await expectSecureHeaders(res);expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('returns 401 when there is no authenticated user', async () => {
     supabase.getUser.mockResolvedValue({ data: { user: null }, error: null });
     const res = await proxyReading(bffRequest(), 'catalog');

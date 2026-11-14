@@ -19,3 +19,16 @@ it("a subject abort ends a hanging JSON body immediately",async()=>{
  const controller=new AbortController(),pending=readingJson({current:controller},"/api/shared-shell/today");
  const failure=expect(pending).rejects.toThrow("inactive");controller.abort();await failure;
 });
+it("a departing child aborts its exact read without ending the account scope",async()=>{
+ let signal:AbortSignal|undefined;
+ vi.stubGlobal("fetch",vi.fn((_url:string,init:RequestInit)=>{signal=init.signal!;return new Promise(()=>{});}));
+ const account=new AbortController(),child=new AbortController();
+ const pending=readingJson({current:account},"/api/shared-shell/prophet-candidates",{signal:child.signal});
+ const failure=expect(pending).rejects.toThrow("inactive");child.abort();await failure;
+ expect(signal?.aborted).toBe(true);expect(account.signal.aborted).toBe(false);
+});
+it("does not start a read for an already departed child",async()=>{
+ const fetch=vi.fn();vi.stubGlobal("fetch",fetch);const child=new AbortController();child.abort();
+ await expect(readingJson({current:new AbortController()},"/api/shared-shell/prophet-candidates",{signal:child.signal})).rejects.toThrow("inactive");
+ expect(fetch).not.toHaveBeenCalled();
+});
