@@ -11,6 +11,7 @@ export default function AssetLogo({
   size = 24,
   className = "",
   brand = false,
+  brandToken,
 }: {
   symbol: string;
   name?: string | null;
@@ -20,11 +21,13 @@ export default function AssetLogo({
   className?: string;
   /** Opt-in artwork for the company search; all other mounts stay offline. */
   brand?: boolean;
+  /** Existing Macro publishable token loaded once by Shared Search. */
+  brandToken?: string;
 }) {
   const fallback = assetLogoPath(symbol, market || undefined);
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [loadedSource, setLoadedSource] = useState<string | null>(null);
-  const candidates = brand ? companyBrandLogoSources(symbol, market, name) : [];
+  const candidates = brand ? companyBrandLogoSources(symbol, market, name, brandToken || undefined) : [];
   const remoteSource = candidates.find((candidate) => !failedSources.includes(candidate));
   const src = remoteSource ?? fallback;
   const isRemote = !!remoteSource;
