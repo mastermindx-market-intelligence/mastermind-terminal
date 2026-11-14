@@ -23,6 +23,12 @@ describe("Portfolio allocation", () => {
     expect(marketAllocation([p("A", 10),p("B", 1)], {A:q(1,"USD"), B:q(2,"HKD")}, {})).toBeNull();
     expect(marketAllocation([p("A", 10)], {A: { last: 10 }}, {A: q(5,"USD")})).toBeNull();
   });
+  it("combines an institution-valued contract with a market-priced manual lot", () => {
+    const broker = { ...p("OPTION", 1), brokerage: {account:"Brokerage",name:"Contract",symbol:"OPTION",type:"derivative",price:20,
+      value:2000,currency:"USD",asOf:"2025-11-03",syncedAt:"2025-11-04T00:00:00Z"} };
+    const book=marketAllocation([broker,p("STOCK",10)],{STOCK:q(200,"USD"),OPTION:q(22,"USD")},{});
+    expect(book?.total).toBe(4000);expect(book?.rows.map(row=>row.weight)).toEqual([50,50]);
+  });
   it("measures close against a positive 52-week high", () => {
     expect(distanceFromHigh(45,50)).toBeCloseTo(-10);
     expect(distanceFromHigh(45,0)).toBeNull();

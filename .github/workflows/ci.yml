@@ -581,6 +581,30 @@ jobs:
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Produce a risk-history packet when its Portfolio source lock drifts
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 10
+        env:
+          TERMINAL_CROP_PORT: "47285"
+          MMX_SHARED_SHELL: "0"
+          MMX_INVESTOR_SHELL_PREVIEW: "0"
+        run: |
+          set -euo pipefail
+          node - <<'JS' || { code=$?; if [ "$code" -eq 10 ]; then exit 0; fi; exit "$code"; }
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const { LAYOUT_FILES } = require('./e2e/tools/capture_b_f08_9_risk_history.cjs');
+          const touched = new Set(fs.readFileSync(process.env.EVIDENCE_PR_TOUCHED_FILE, 'utf8').split('\n'));
+          const manifest = fs.readFileSync('docs/pr-crops/b-f08-9-risk-history/EVIDENCE.yml', 'utf8');
+          const drift = LAYOUT_FILES.some(path => touched.has(path) &&
+            !manifest.includes(path + ': "' + crypto.createHash('sha256').update(fs.readFileSync('../' + path)).digest('hex') + '"'));
+          if (!drift) process.exit(10);
+          JS
+          node e2e/tools/capture_b_f08_9_risk_history.cjs
+          mkdir -p "${RUNNER_TEMP}/terminal-ci-evidence"
+          cp -R docs/pr-crops/b-f08-9-risk-history "${RUNNER_TEMP}/terminal-ci-evidence/portfolio-risk-history"
+          # The evidence gate below still validates the packet committed to the candidate.
+          git restore --source=HEAD --worktree -- docs/pr-crops/b-f08-9-risk-history
       - name: Capture current-source E18 alert-management evidence
         timeout-minutes: 8
         env:

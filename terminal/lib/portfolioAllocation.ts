@@ -1,4 +1,5 @@
-import { finite, finiteProduct, nativePrice, priceCurrency, type PriceObservation } from "./portfolioMoney";
+import { finite, priceCurrency, type PriceObservation } from "./portfolioMoney";
+import { holdingValue, positionPrice, type InstitutionHolding } from "./portfolioInstitutionValue";
 import type { Position } from "./portfolio";
 
 export const SAMPLE_LOTS = [
@@ -11,7 +12,7 @@ export const SAMPLE_LOTS = [
 export type Allocation = { ticker: string; value: number; weight: number };
 
 /** Market-value weights require every open lot, one currency, positive gross value and no shorts. */
-export function marketAllocation(positions: readonly Pick<Position, "ticker" | "shares" | "status">[],
+export function marketAllocation(positions: readonly (Pick<Position, "ticker" | "shares" | "status"> & {brokerage?: InstitutionHolding})[],
   quotes: Readonly<Record<string, PriceObservation>>, manifest: Readonly<Record<string, PriceObservation>>) {
   const byTicker = new Map<string, number>();
   let currency: string | null = null;
@@ -20,11 +21,12 @@ export function marketAllocation(positions: readonly Pick<Position, "ticker" | "
     if (p.status !== "open") continue;
     if (!finite(p.shares) || p.shares < 0) return null;
     if (p.shares === 0) continue;
-    const q = nativePrice(quotes[p.ticker], manifest[p.ticker]);
-    if (!q?.currency || q.last <= 0 || (currency && currency !== q.currency)) return null;
-    const value = finiteProduct(q.last, p.shares);
-    if (value === null) return null;
-    currency = q.currency;
+    const q = positionPrice(p, quotes[p.ticker], manifest[p.ticker]);
+    const unit = q?.currency ?? priceCurrency(p.brokerage?.currency);
+    if (!unit || (currency && currency !== unit)) return null;
+    const value = holdingValue(p, q?.last ?? null, unit);
+    if (value === null || value <= 0) return null;
+    currency = unit;
     byTicker.set(p.ticker, (byTicker.get(p.ticker) ?? 0) + value);
     total += value;
   }
