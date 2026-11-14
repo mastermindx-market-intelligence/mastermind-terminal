@@ -36,6 +36,24 @@ export const SETUP_LEX = {
   tabEvidence:        ["Evidence", "证据"],
   tabContext:         ["Context", "背景"],
 
+  // ── SI breadth read (SR-05–08; description, independent of Prophet) ─────
+  rotationTitle:       ["Sector and theme rotation", "行业与主题轮动"],
+  rotationCopy:        ["Breadth change inside the group on today's roster. Description only; not a forecast.", "基于当前成员名单的组内广度变化。仅描述现状，不作预测。"],
+  rotationSource:      ["From Sector Intelligence", "来自行业情报"],
+  rotationWeek:        ["Week ending {date}", "截至 {date} 的一周"],
+  rotationAsOf:        ["As of {date}", "截至 {date}"],
+  rotationSector:      ["SECTOR", "行业"],
+  rotationTheme:       ["THEME", "主题"],
+  rotationImproving:   ["Improving", "改善"],
+  rotationFlat:        ["Flat", "持平"],
+  rotationDeteriorating: ["Deteriorating", "走弱"],
+  rotationFew:         ["Too few members to read", "成员过少，无法解读"],
+  rotationChange:      ["Share of members above their 200-day average: {value} over 13 weeks", "高于200日均线的成员占比：13周变化 {value}"],
+  rotationLongChange:  ["26 weeks: {value}", "26周变化：{value}"],
+  rotationPoints:      ["{value} pts", "{value} 个百分点"],
+  rotationMoreOne:     ["+1 more theme", "+1 个主题"],
+  rotationMore:        ["+{n} more themes", "+{n} 个主题"],
+
   // ── Setup · the one unavailable card (T2-C5) ─────────────────────────────
   caseUnavailable:    ["Research case unavailable", "研究案例不可用"],
   caseUnavailableBody: ["The source has not published a case for {symbol}. We show what is missing rather than fill it in.", "数据源尚未为 {symbol} 发布研究案例。我们如实说明缺失内容，而不是自行填补。"],
