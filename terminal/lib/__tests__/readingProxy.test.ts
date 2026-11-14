@@ -192,6 +192,17 @@ describe('authentication', () => {
 });
 
 describe('fixed upstream paths', () => {
+  it('forwards only the closed native Liquidity selector to the incumbent Macro route', async () => {
+    const response = await proxyReading(bffRequest('https://app.test/bff?workspace=liquidity_regime'), 'today');
+    expect(response.status).toBe(200);
+    expect(lastCall().url).toBe(`${DEFAULT_BASE}/api/macro/command?workspace=liquidity_regime`);
+    expect(lastCall().headers.get('authorization')).toBe(`Bearer ${SERVER_TOKEN}`);
+    await expectSecureHeaders(response);
+  });
+  it.each(['workspace=', 'workspace=growth_real_economy', 'workspace=liquidity_regime&workspace=liquidity_regime', 'workspace=liquidity_regime&region=CN', 'path=workspaces/liquidity_regime/US/latest.json'])('rejects non-admitted Macro query %s without upstream reads', async query => {
+    const response = await proxyReading(bffRequest(`https://app.test/bff?${query}`), 'today');
+    expect(response.status).toBe(400);expect(fetchMock).not.toHaveBeenCalled();await expectSecureHeaders(response);
+  });
   it.each([
     ['catalog', '/api/research/catalog'],
     ['search', '/api/research/search'],

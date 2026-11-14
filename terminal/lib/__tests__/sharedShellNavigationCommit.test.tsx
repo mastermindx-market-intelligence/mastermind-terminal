@@ -215,6 +215,34 @@ afterEach(async () => {
 });
 
 describe("Shared Shell committed navigation", () => {
+  it("keeps workspace market on the parent while the issuer owns its source canonical URL", async () => {
+    await renderCommittedRoute("/stock.html?workspaceMarket=cn#AAPL", "replace");
+    await resolveGate();
+    const init = await loadFrame();
+    expect(init.canonicalPath).toBe("/stock.html#AAPL");
+    expect(latestFrameNavigation().url.searchParams.has("workspaceMarket")).toBe(false);
+    await childMessage(readyBody("/stock.html#AAPL")); expectVisible(true);
+    const generation = latestFrameNavigation().generation;
+    await childMessage({ type: "NAVIGATE", href: "/stock.html?ticker=NVDA#NVDA", mode: "push", sameDocument: true, requestId: "issuer-context" });
+    expect(browserHref()).toBe("/stock.html?ticker=NVDA&workspaceMarket=cn#NVDA");
+    expect(postToFrame.mock.calls.at(-1)?.[0]).toMatchObject({ type: "LOCATION_ACCEPTED", canonicalPath: "/stock.html?ticker=NVDA#NVDA" });
+    await renderCommittedRoute(browserHref(), "replace");
+    expect(latestFrameNavigation().generation).toBe(generation);
+    expect(requests).toHaveLength(1);
+  });
+  it("retains Intl-owned market and raw pins across READY and same-document navigation", async () => {
+    const source = "/intl.html?view=overview&market=JP&pins=JP,KR&basis=local";
+    await renderCommittedRoute(source + "&workspaceMarket=intl", "replace");
+    await resolveGate();
+    expect((await loadFrame()).canonicalPath).toBe(source);
+    expect(latestFrameNavigation().url.search).toContain("pins=JP,KR");
+    expect(latestFrameNavigation().url.search).not.toContain("workspaceMarket");
+    await childMessage(readyBody(source)); expectVisible(true);
+    const target = "/intl.html?view=history&market=JP&pins=JP,KR&basis=local";
+    await childMessage({ type: "NAVIGATE", href: target, mode: "push", sameDocument: true, requestId: "intl-context" });
+    expect(browserHref()).toBe(target);
+    expect(postToFrame.mock.calls.at(-1)?.[0]).toMatchObject({ type: "LOCATION_ACCEPTED", canonicalPath: target });
+  });
   function diagnostic() {
     const el = container.querySelector("main")!;
     return { phase: el.getAttribute("data-shared-shell-phase"), failure: el.getAttribute("data-shared-shell-failure"),

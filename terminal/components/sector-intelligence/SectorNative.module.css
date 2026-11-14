@@ -5,7 +5,7 @@
 .root { min-width: 0; display: flex; flex-direction: column; gap: 20px; color: var(--sn-text); font: 14px/1.45 var(--font-ui); }
 .root * { box-sizing: border-box; }
 .root h1, .root h2, .root h3, .root p { margin: 0; }
-.root button, .root select { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:where(.root) :where(button, select) { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 .root :is(button, select, a, summary):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 .root :is(button, a, summary) { -webkit-tap-highlight-color: transparent; }
 
@@ -82,6 +82,9 @@
 .statusStrip { display: flex; flex-direction: column; gap: 10px; }
 .statusStrip p { color: var(--sn-warn); font-size: 12px; line-height: 20px; }
 .statusLinks { display: flex; flex-wrap: wrap; gap: 16px; }
+.coverageDisclosure { border: 1px solid var(--sn-line); border-radius: 12px; background: var(--sn-card); }
+.coverageDisclosure > summary { min-height: 48px; padding: 14px 20px; color: var(--sn-muted); font-weight: 600; cursor: pointer; }
+.coverageContent { display: flex; flex-direction: column; gap: 16px; padding: 0 20px 20px; }
 
 /* ---- Brief (S01) ---- */
 .hero { display: flex; align-items: flex-start; gap: 24px; }
@@ -113,21 +116,20 @@
 .investigation p { color: var(--sn-muted); font-size: 13px; line-height: 18px; margin-top: 3px; }
 
 /* ---- Explore (S02) ---- */
-.exploreColumns { display: flex; align-items: stretch; gap: 24px; }
-.rankCard { flex: 1 1 0; min-width: 0; gap: 0; padding: 0; overflow: hidden; }
-.rankHeaderRow { display: grid; grid-template-columns: minmax(140px, 224px) minmax(72px, 96px) minmax(72px, 96px) minmax(96px, 116px);
-  gap: 12px; align-items: center; min-height: 40px; padding: 0 20px; border-bottom: 1px solid var(--sn-line);
-  color: var(--sn-muted); font-size: 12px; font-weight: 500; }
-.rankHeaderRow :is(.num, .right) { text-align: right; }
-.rankRows { display: flex; flex-direction: column; }
-.rankRow { display: grid; grid-template-columns: minmax(140px, 224px) minmax(72px, 96px) minmax(72px, 96px) minmax(96px, 116px);
-  gap: 12px; align-items: center; padding: 0 12px; border-bottom: 1px solid var(--sn-line); }
+.exploreColumns { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+.rankCard { flex: 2 1 460px; min-width: 0; max-width: 100%; gap: 0; padding: 0; overflow: hidden; }
+.rankTableWrap { overflow-x: auto; }
+.rankTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.rankCaption { padding: 16px; color: var(--sn-muted); font-size: 12px; line-height: 18px; text-align: left; }
+.rankTable th, .rankTable td { padding: 10px 16px; text-align: right; vertical-align: middle; }
+.rankTable th:first-child { width: 48%; text-align: left; }
+.rankTable thead th { color: var(--sn-muted); font-size: 12px; font-weight: 500; border-bottom: 1px solid var(--sn-line); }
+.rankRow { border-bottom: 1px solid var(--sn-line); }
 .rankRow:last-child { border-bottom: 0; }
 .rankRow[data-selected="true"] { background: var(--sn-raised); border-radius: 8px; }
 .rankRow[data-selected="true"] + .rankRow { border-top-color: transparent; }
 .rankRow[data-selected="true"] { border-bottom-color: transparent; }
-.rankSector { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 44px; }
-.rankName { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 8px 8px 8px 0;
+.rankName { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-width: 0; min-height: 44px; padding: 4px 0; overflow-wrap: anywhere;
   color: var(--sn-text); font-size: 14px; font-weight: 500; line-height: 18px; text-align: left; }
 .rankRow[data-selected="true"] .rankName { font-weight: 700; }
 .rankTicker { color: var(--sn-muted); font-size: 11px; line-height: 14px; }
@@ -141,7 +143,7 @@
 .checkBox[aria-pressed="true"] { background: var(--sn-text); border-color: var(--sn-text); }
 .rankFoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 12px 20px; color: var(--sn-muted); font-size: 12px; line-height: 20px; }
-.inspector { flex: 0 0 344px; min-width: 0; }
+.inspector { flex: 1 1 300px; min-width: 0; max-width: 100%; }
 .inspectorChipRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .assessment { color: var(--sn-text); font-size: 18px; font-weight: 600; line-height: 24px; }
 .participationLabel { color: var(--sn-text); font-size: 13px; font-weight: 600; line-height: 18px; }
@@ -207,8 +209,8 @@
   .briefColumns, .exploreColumns, .dossierColumns { flex-direction: column; }
   /* Row-layout grow rules must not apply once the columns stack: with
    * flex-basis 0 in a column container they collapse the card to its border. */
-  .briefMain, .dossierMain, .rankCard { flex: 0 0 auto; }
-  .briefSide, .inspector, .dossierSide { flex-basis: auto; width: 100%; }
+  .briefMain, .dossierMain, .rankCard { flex: 0 0 auto; width: 100%; min-width: 0; }
+  .briefSide, .inspector, .dossierSide { flex-basis: auto; width: 100%; min-width: 0; }
   .hero { flex-direction: column; gap: 18px; }
   .heroStats { padding-left: 0; padding-top: 18px; border-left: 0; border-top: 1px solid var(--sn-line); gap: 40px; }
 }
@@ -221,9 +223,9 @@
   .dossierHeader { flex-direction: column; align-items: flex-start; }
   .card { padding: 18px 16px; gap: 16px; }
   .statValue { font-size: 28px; line-height: 38px; }
-  .rankCard { overflow-x: auto; }
-  .rankHeaderRow, .rankRow { grid-template-columns: minmax(120px, 1fr) 76px 76px 84px; gap: 8px; padding-right: 8px; }
-  .rankName { padding: 8px 6px 8px 0; }
+  .rankCard { padding: 0; gap: 0; }
+  .rankTable th, .rankTable td { padding: 8px; }
+  .rankValue { font-size: 13px; }
   .lookStats { gap: 28px; }
   .leadershipStats { gap: 36px; }
   .investigation { flex-direction: column; align-items: flex-start; gap: 6px; }

@@ -5,6 +5,7 @@ import { identityOwnerKey } from "@/lib/accountIdentity";
 import LegacyPageHost from "./LegacyPageHost";
 import ShellDirectory from "./ShellDirectory";
 import { useSharedShellPresentation } from "./SharedShellPresentation";
+import SharedShellMarketBoundary from "./SharedShellMarketBoundary";
 
 export default function SharedShellRuntime({
   legacyOrigin, directoryOpen, onCloseDirectory, onOpenDirectory, onSearchCompanies, onTitle,
@@ -33,8 +34,10 @@ export default function SharedShellRuntime({
 
   return (
     <>
-      <LegacyPageHost legacyOrigin={legacyOrigin} identityKey={identityKey} context={context}
-        onContextRequest={requestContext} onTitle={onTitle} />
+      <SharedShellMarketBoundary silent>
+        <LegacyPageHost legacyOrigin={legacyOrigin} identityKey={identityKey} context={context}
+          onContextRequest={requestContext} onTitle={onTitle} />
+      </SharedShellMarketBoundary>
       <ShellDirectory open={directoryOpen} onClose={onCloseDirectory} onSearchCompanies={onSearchCompanies} />
     </>
   );

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import styles from "./legacy-workspace-boundary.module.css";
+import { inheritWorkspaceMarketHref, workspaceDocumentHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -173,7 +174,8 @@ export default function LegacyPageHost({
     // HistoryUpdater's insertion effect. Sample after that commit, preserving
     // raw query/hash bytes. Repeated router/location signals for the same URL
     // must not replay a same-document transition as a new frame generation.
-    setCanonical(window.location.pathname + window.location.search + window.location.hash);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sample the external committed URL after Next's insertion effect, before frame admission.
+    setCanonical(workspaceDocumentHref(window.location.pathname + window.location.search + window.location.hash));
   }, [path, params, revision]);
 
   useEffect(() => {
@@ -183,6 +185,7 @@ export default function LegacyPageHost({
     // Retire the previous transaction without admitting its old document again.
     if (canonical === null || canonical.split(/[?#]/, 1)[0] !== path) {
       live.current = null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- retire the old document transaction while the committed external URL is being synchronized.
       setDiagnostic(INITIAL_DIAGNOSTIC);
       setStatus("loading");
       return;
@@ -304,6 +307,9 @@ export default function LegacyPageHost({
         if (current.requests.size > 128) current.requests.delete(current.requests.values().next().value!);
         const target = resolveSharedShellLink(message.href, current.canonical, window.location.origin, legacyOrigin);
         if (target.kind !== "legacy" && target.kind !== "native") { finishAttempt(current, "failed", { failure: "navigation-target" }); return; }
+        // The child owns its exact source URL; the parent owns workspace context.
+        // Validate/admit first, then preserve that context only on the parent URL.
+        const parentHref = inheritWorkspaceMarketHref(target.href, workspaceMarket(window.location.pathname, window.location.search));
         if (message.sameDocument) {
           if (target.kind !== "legacy" || new URL(target.href, legacyOrigin).pathname !== path) {
             finishAttempt(current, "failed", { failure: "navigation-target" }); return;
@@ -312,7 +318,7 @@ export default function LegacyPageHost({
           const key = message.mode === "push" ? crypto.randomUUID() : current.entry;
           // Next's supported native History integration preserves its internal router state.
           window.history[message.mode === "push" ? "pushState" : "replaceState"](
-            { ...(window.history.state || {}), [ENTRY_KEY]: key }, "", target.href);
+            { ...(window.history.state || {}), [ENTRY_KEY]: key }, "", parentHref);
           current.canonical = target.href;
           current.entry = key;
           previousEntry.current = { key, canonical: target.href };
@@ -320,8 +326,8 @@ export default function LegacyPageHost({
             type: "LOCATION_ACCEPTED", requestId: message.requestId, canonicalPath: target.href });
           window.dispatchEvent(new Event(LOCATION_EVENT));
         } else {
-          if (message.mode === "replace") router.replace(target.href, { scroll: false });
-          else router.push(target.href, { scroll: false });
+          if (message.mode === "replace") router.replace(parentHref, { scroll: false });
+          else router.push(parentHref, { scroll: false });
         }
       } else if (message.type === "CONTEXT_REQUEST") {
         onContextRequest(message);

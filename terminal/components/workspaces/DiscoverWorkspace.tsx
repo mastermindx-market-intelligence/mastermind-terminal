@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import DiscoverLanding from "./DiscoverLanding";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
@@ -14,6 +14,7 @@ import { DiscoverLeadersMount, DiscoverRadarMount } from "@/components/workspace
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useT } from "@/lib/i18n";
 import { SECTOR_INTELLIGENCE_LEX } from "@/lib/sectorIntelligenceLex";
+import { marketNavigationHref, workspaceMarket } from "@/lib/sharedShellMarket";
 
 /**
  * Discover workspace composer (Wave-2 IA) — the `/discover` body.
@@ -46,6 +47,9 @@ const TABS: WorkspaceTab[] = [
   { key: "radar", labelKey: "wtRadar" },
   { key: "rs-pivot", labelKey: "RS · 30m Pivot", zhLabel: "相对强度·30分钟枢轴" },
 ];
+// The beta has one Sector Intelligence workspace. Keep the ordinary Terminal
+// tabs and existing sector URLs, without making a tool-tab arrow key leave Discover.
+const SHARED_SHELL_TABS = TABS.filter(tab => tab.key !== "sectors");
 
 const KEYS = new Set(["screener", "heatmap", "sectors", "catalysts", "leaders", "radar", "rs-pivot"]);
 const DEFAULT_TAB = "screener";
@@ -53,11 +57,13 @@ const DEFAULT_TAB = "screener";
 export default function DiscoverWorkspace() {
   const t = useT();
   const presentation = useOptionalSharedShellPresentation();
+  const router = useRouter();
   const params = useSearchParams();
   const selected = params.get("tab");
   const chooser = !!presentation && (!selected || !KEYS.has(selected));
   const identity = useShellIdentity(); // resolved once by the (shell) layout → AppShell context
   const tab = selected && KEYS.has(selected) ? selected : DEFAULT_TAB;
+  const tabs = presentation ? SHARED_SHELL_TABS : TABS;
   // Bumped on every tab click so re-selecting the active Leaders/Radar tab
   // remounts its hub engine — the only way back after a row drills into the hub's
   // Tickers view (the hub's internal drill flips LOCAL state we don't otherwise
@@ -66,6 +72,7 @@ export default function DiscoverWorkspace() {
   const [focusRevision, setFocusRevision] = useState(0);
   // Server-rendered chooser controls become available only after this owner can handle them.
   const [ready, setReady] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration is the availability boundary for these server-rendered controls.
   useEffect(() => setReady(true), []);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const chooserHeadingRef = useRef<HTMLHeadingElement | null>(null);
@@ -98,12 +105,17 @@ export default function DiscoverWorkspace() {
 
   const onSelect = useCallback((key: string) => {
     if (!KEYS.has(key)) return;
+    if (presentation && key === "sectors") {
+      focusIntent.current = null;
+      router.push(marketNavigationHref("/sectors", workspaceMarket(window.location.pathname, window.location.search)));
+      return;
+    }
     setNonce((n) => n + 1);
     const u = new URL(window.location.href);
     u.searchParams.set("tab", key);
     if (u.href !== window.location.href) window.history.pushState(null, "", u.toString());
     window.dispatchEvent(new Event("mmx:shell-location"));
-  }, []);
+  }, [presentation, router]);
 
   if (chooser) return <div ref={workspaceRef} className="main2 ws-shell discover-chooser-shell">
     <DiscoverLanding ready={ready} headingRef={chooserHeadingRef} onSelect={key => {
@@ -111,6 +123,13 @@ export default function DiscoverWorkspace() {
       recordFocusIntent(key);
       onSelect(key);
     }} onSearchCompanies={() => window.dispatchEvent(new Event("mmx:shell-company-search"))} />
+  </div>;
+
+  // A bookmarked Discover sector investigation keeps its exact URL and history
+  // return state. The incumbent sector owner renders the same page hierarchy as
+  // /sectors; no redirect can erase a depth return or reinterpret a saved view.
+  if (presentation && tab === "sectors") return <div className="main2 ws-shell">
+    <SectorIntelligenceWorkspace />
   </div>;
 
   return (
@@ -126,14 +145,14 @@ export default function DiscoverWorkspace() {
           window.dispatchEvent(new Event("mmx:shell-location"));
         }}>{presentation.context.locale === "zh" ? "发现" : "Discover"} ←</button>}
         <WorkspaceTabs
-          tabs={TABS}
+          tabs={tabs}
           active={tab}
           onSelect={onSelect}
           aria-label={t("wtDiscoverTabs")}
         />
       </div>
 
-      {TABS.map(({ key }) => (
+      {tabs.map(({ key }) => (
         <div
           key={key}
           id={`wpanel-${key}`}

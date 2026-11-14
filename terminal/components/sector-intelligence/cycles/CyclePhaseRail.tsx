@@ -35,6 +35,7 @@ export interface CyclePhaseRailProps {
   onSelect: (id: string) => void;
   /** Pinned focus stays valid while a filter hides it (C07). */
   measuredCount: { measured: number; total: number };
+  neutralPhases?: boolean;
 }
 
 export default function CyclePhaseRail(props: CyclePhaseRailProps) {
@@ -74,7 +75,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
         })}{" "}
         · {t(familyLabelKey[props.family])}
       </p>
-      <div className={s.universeTabs} role="tablist" aria-label={t(headKey)}>
+      {props.families.length > 1 && <div className={s.universeTabs} role="tablist" aria-label={t(headKey)}>
         {CYCLE_FAMILIES.filter((f) => props.families.includes(f.key)).map((f) => (
           <button
             key={f.key}
@@ -86,7 +87,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
             {t(familyLabelKey[f.key])}
           </button>
         ))}
-      </div>
+      </div>}
       <label className={s.railSearch}>
         <span className={s.sr}>{t("scRailSearch")}</span>
         <input
@@ -108,7 +109,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
       {groups.map((g) => (
         <div key={g.phase} className={s.railGroup}>
           <h4>
-            {t(phaseLabelKey[g.phase])} <span>{g.items.length}</span>
+            {t(phaseLabelKey[g.phase] + (props.neutralPhases ? "Full" : ""))} <span>{g.items.length}</span>
           </h4>
           {g.items.length ? (
             g.items.map((r) => (
@@ -116,6 +117,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
                 key={r.id}
                 type="button"
                 aria-pressed={props.selectedId === r.id}
+                data-sector-choice={r.id}
                 onClick={() => props.onSelect(r.id)}
               >
                 <span>{name(r)}</span>
@@ -124,7 +126,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
             ))
           ) : (
             <p className={s.railEmpty}>
-              {t("scRailEmptyGroup", { phase: t(phaseLabelKey[g.phase]) })}
+              {t("scRailEmptyGroup", { phase: t(phaseLabelKey[g.phase] + (props.neutralPhases ? "Full" : "")) })}
             </p>
           )}
         </div>
@@ -139,6 +141,7 @@ export default function CyclePhaseRail(props: CyclePhaseRailProps) {
               key={r.id}
               type="button"
               aria-pressed={props.selectedId === r.id}
+              data-sector-choice={r.id}
               onClick={() => props.onSelect(r.id)}
             >
               <span>{name(r)}</span>

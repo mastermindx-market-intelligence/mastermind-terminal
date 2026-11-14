@@ -6,6 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
+import { identityOwnerKey } from "@/lib/accountIdentity";
+import { acceptedCycleHistory } from "@/lib/sectorCycleSnapshot";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
   groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
@@ -22,6 +25,7 @@ import SectorGenerationQualification from "./SectorGenerationQualification";
 import SectorConstituentEvidence from "./SectorConstituentEvidence";
 import SectorNativeJobShell from "./SectorNativeJobShell";
 import SectorNativeDossier from "./SectorNativeDossier";
+import SectorCycleHistory from "./SectorCycleHistory";
 import { sectorNativeContext } from "./sectorNativeSlots";
 import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
@@ -42,12 +46,13 @@ const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
 };
 type OuterWorkspace = Exclude<SectorState["workspace"], "detail">;
-const OUTER_WORKSPACES: readonly OuterWorkspace[] = ["rotation", "discover", "breadth"];
+const OUTER_WORKSPACES: readonly OuterWorkspace[] = ["rotation", "discover", "breadth", "cycles"];
+const CYCLE_HISTORY_FEEDS: readonly SectorFeed[] = ["history", "events"];
 const WORKSPACE_KEYS: Record<OuterWorkspace, string> = {
-  rotation: "siRotation", discover: "siDiscoverSectors", breadth: "siMarketBreadth",
+  rotation: "siRotation", discover: "siDiscoverSectors", breadth: "siMarketBreadth", cycles: "siCycleHistory",
 };
 const RETURN_KEYS: Record<OuterWorkspace, string> = {
-  rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
+  rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth", cycles: "siReturnToCycles",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
   sector: "siFeedSector", generation: "siFeedGeneration", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
@@ -85,7 +90,7 @@ const cycleFeed = (feed: FeedPayload | undefined): SectorCycleFeed | undefined =
     : status === "access" ? "unauthenticated"
     : status === "loading" ? "loading"
     : "unavailable";
-  return { state, data: feed.data };
+  return { state, ...(status === "ready" ? { data: feed.data } : {}) };
 };
 const count = (v: unknown): number | null => {
   const n = number(v); return n !== null && n >= 0 && Number.isInteger(n) ? n : null;
@@ -157,10 +162,16 @@ export function sectorRowBlocksFromFeed(
 
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
+  const presentation = useOptionalSharedShellPresentation();
   const sc = sectorPortfolioCopy(lang);
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
+  const [urlReady, setUrlReady] = useState(false);
+  // The shell already owns appearance. Preserve legacy URL theme intent for
+  // standalone Terminal, without installing a competing theme inside beta.
+  const theme = presentation?.context.theme ?? state.theme;
   const [revision, setRevision] = useState(0);
-  const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
+  const activeFeeds = state.workspace === "cycles" ? CYCLE_HISTORY_FEEDS
+    : state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
   // Each visit owns fresh responses, even if a user leaves and re-enters Finviz
   // before the intervening customer feeds settle. Neither access refusal nor
   // retained internal data contributes to the ordinary customer workspace.
@@ -175,9 +186,12 @@ export default function SectorIntelligenceWorkspace() {
   const sourceReturn = useRef<string | null>(null);
   const rootElement = useRef<HTMLElement>(null);
   const currentWorkspace = useRef<SectorState["workspace"]>("discover");
+  const currentSector = useRef(state.sector);
+  const cycleFocus = useRef<{ sector: string; restore: boolean } | null>(null);
   const scrollPositions = useRef<Record<SectorState["workspace"], { inner: number; outer: number; focus: string | null }>>({
     rotation: { inner: 0, outer: 0, focus: null }, discover: { inner: 0, outer: 0, focus: null },
     breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
+    cycles: { inner: 0, outer: 0, focus: null },
   });
   const saveWorkspaceScroll = useCallback(() => {
     const active = document.activeElement;
@@ -196,14 +210,18 @@ export default function SectorIntelligenceWorkspace() {
       // The clean canonical /sectors entry (no sector keys at all) opens the
       // Brief job; every other URL keeps its exact legacy meaning.
       const next = parseSectorState(params, window.location.pathname);
+      if (next.workspace === "cycles" && (currentWorkspace.current !== "cycles" || next.sector !== currentSector.current)) {
+        cycleFocus.current = { sector: next.sector, restore: currentWorkspace.current !== "cycles" };
+      }
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
       if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
       else {
         const opener = resolveSectorDepthReturn(params.get(SECTOR_DEPTH_RETURN_PARAM), window.history.state?.[SECTOR_DEPTH_RETURN_HISTORY_KEY]);
         setReturnState(opener);
-        setReturnWorkspace(opener?.workspace === "discover" || opener?.workspace === "breadth" ? opener.workspace : "rotation");
+        setReturnWorkspace(opener?.workspace === "discover" || opener?.workspace === "breadth" || opener?.workspace === "cycles" ? opener.workspace : "rotation");
       }
       setState(next);
+      setUrlReady(true);
       setGroupBrowserOpen(false);
     };
     sync(); window.addEventListener("popstate", sync);
@@ -215,7 +233,7 @@ export default function SectorIntelligenceWorkspace() {
     const frame = window.requestAnimationFrame(() => {
       if (rootElement.current) rootElement.current.scrollTop = saved.inner;
       window.scrollTo({ top: saved.outer, behavior: "instant" });
-      if (saved.focus) {
+      if (saved.focus && state.workspace !== "cycles") {
         const [kind, value] = saved.focus.split(":", 2);
         const attribute = kind === "return" ? "data-sector-return-focus" : "data-sector-choice";
         rootElement.current?.querySelector<HTMLButtonElement>(`[${attribute}="${CSS.escape(value || "")}"]`)?.focus({ preventScroll: true });
@@ -224,6 +242,7 @@ export default function SectorIntelligenceWorkspace() {
     return () => window.cancelAnimationFrame(frame);
   }, [state.workspace]);
   useEffect(() => {
+    if (!urlReady) return;
     const controller = new AbortController(); let alive = true;
     const pending = new Set<SectorFeed>();
     async function read(source: SectorFeed) {
@@ -305,7 +324,34 @@ export default function SectorIntelligenceWorkspace() {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", refreshVisible);
     };
-  }, [requestOwner]);
+  }, [requestOwner, urlReady]);
+
+  const cycleHistory = useMemo(() => acceptedCycleHistory(feeds.history, `${identityOwnerKey(identity)}#${revision}`),
+    [feeds.history, identity, revision]);
+  useEffect(() => {
+    currentSector.current = state.sector;
+    if (state.workspace !== "cycles") { cycleFocus.current = null; return; }
+    if (cycleFocus.current?.sector !== state.sector || !cycleHistory?.sectors.some(row => row.id === state.sector)) return;
+    const frame = window.requestAnimationFrame(() => {
+      const saved = cycleFocus.current?.restore ? scrollPositions.current.cycles : null;
+      const [kind, value] = saved?.focus?.split(":", 2) ?? [];
+      const savedSelector = value ? `[${kind === "return" ? "data-sector-return-focus" : "data-sector-choice"}="${CSS.escape(value)}"]` : null;
+      const compact = window.matchMedia?.("(max-width: 980px)").matches;
+      const selector = compact ? "[data-cycle-change-series]" : `[data-sector-choice="${CSS.escape(state.sector)}"]`;
+      const target = (savedSelector ? rootElement.current?.querySelector<HTMLElement>(savedSelector) : null)
+        || rootElement.current?.querySelector<HTMLElement>(selector)
+        || rootElement.current?.querySelector<HTMLElement>("[data-cycle-selection-focus]");
+      if (target) {
+        cycleFocus.current = null;
+        if (saved) {
+          if (rootElement.current) rootElement.current.scrollTop = saved.inner;
+          window.scrollTo({ top: saved.outer, behavior: "instant" });
+        }
+        target.focus({ preventScroll: true });
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state.workspace, state.sector, cycleHistory]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
   // Native PSL evidence has its own explicit source. Never relabel the narrower
@@ -318,13 +364,13 @@ export default function SectorIntelligenceWorkspace() {
   // different binding, so a late reply for the old tuple can never render.
   const nativeContext = useMemo(() => sectorNativeContext({
     generation: nativeGeneration, transport: nativeStatus, subjectId: state.sector || null,
-    language: lang === "zh" ? "zh" : "en", theme: state.theme,
+    language: lang === "zh" ? "zh" : "en", theme,
     ownerRevision: `${identity.kind === "account" ? identity.userId : "guest"}#${revision}`,
     // Only the read's full lineage check ever attaches this cause; the slot
     // factory normalizes it against the live transport before it can render.
     accessCause: (feeds.generation as SectorFeedPayload | undefined)?.receipt.failure,
-  }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision, feeds.generation]);
-  const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail";
+  }), [nativeGeneration, nativeStatus, state.sector, theme, lang, identity, revision, feeds.generation]);
+  const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail" && state.workspace !== "cycles";
   const nativeDossierActive = state.workspace === "detail" && state.sectorJob !== null;
   // Round 2 part 2: the five lane 7 row reads, gated on the wire having
   // carried a typed-blocks map at all (see sectorRowBlocksFromFeed). Null on
@@ -400,6 +446,9 @@ export default function SectorIntelligenceWorkspace() {
   const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
   const change = useCallback((patch: Partial<SectorState>, push = false, opener = returnState) => {
     const next = { ...state, ...patch };
+    if (next.workspace === "cycles" && state.workspace !== "cycles") {
+      cycleFocus.current = { sector: next.sector, restore: true };
+    }
     if (next.workspace !== state.workspace) saveWorkspaceScroll();
     setState(next);
     const url = new URL(window.location.href);
@@ -420,7 +469,7 @@ export default function SectorIntelligenceWorkspace() {
     setReturnWorkspace(workspace); setReturnState(null);
     // Leaving the native job family for a legacy outer workspace restores the
     // legacy meaning (no sectorJob in the address).
-    change({ workspace, sourcesOpen: false, sectorJob: null }, true);
+    change({ workspace, sourcesOpen: false, sectorJob: null, ...(workspace === "cycles" ? { sourceFamily: "sectors" as const } : {}) }, true);
   };
   const openSectorResearch = (sectorId: string) => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
@@ -431,7 +480,7 @@ export default function SectorIntelligenceWorkspace() {
   };
   const openNativeDossier = (sectorId: string, view: SectorView = "intelligence") => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
-    change({ sector: sectorId, workspace: "detail", view, group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
+    change({ sector: sectorId, sectorJob: state.sectorJob ?? "explore", workspace: "detail", view, group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
@@ -482,21 +531,21 @@ export default function SectorIntelligenceWorkspace() {
     <p className={styles.note}>{cap ? t("siCohortCopy") : t("siConcentrationMissing")}</p>
   </Card>;
 
-  return <main ref={rootElement} className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme} data-sector-workspace={state.workspace}>
+  return <main id="shared-shell-content" tabIndex={-1} ref={rootElement} className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={theme} data-sector-workspace={state.workspace}>
     <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
       sourceSectorName={text(sector.name) || null} sectorLabel={sectorName} asOf={feeds.confluence?.receipt.asOf || null}
-      status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
+      status={feeds.confluence?.receipt.status || "loading"} theme={theme}
       onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); window.requestAnimationFrame(() => openSources()); }}
       onSelect={group => {
         setGroupBrowserOpen(false);
         if (group !== state.group) change({ group, view: "intelligence", query: "", sort: "source", company: "", expanded: false }, true);
       }} />
     <MobileSheet open={state.sourcesOpen} onClose={closeSources} ariaLabel={t("siSourcesPanel")}
-      maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${state.theme === "light" ? styles.light : ""}`}>
+      maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${theme === "light" ? styles.light : ""}`}>
       <div className={styles.sourceContent}>
         <header className={styles.sourcePanelHeader}><div><h2>{t("siSourcesPanel")}</h2>
           <p>{state.workspace === "detail" ? `${groupName || state.group || sectorName} · ${t(VIEW_KEYS[state.view])}`
-            : t(state.workspace === "rotation" ? "siRotation" : state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
+            : t(WORKSPACE_KEYS[state.workspace])}</p></div>
           <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
         <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
           {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
@@ -514,7 +563,7 @@ export default function SectorIntelligenceWorkspace() {
     </MobileSheet>
     <div className={styles.page}>
       {!nativeJobActive && !nativeDossierActive && <>
-      <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
+      <header className={styles.header}><div><p className={styles.eyebrow}>{t(presentation ? "siNativeRegionUs" : "siEyebrow")}</p><h1>{t(presentation ? "siNativeTitle" : "siTitle")}</h1><p className={styles.subtitle}>{t(state.workspace === "cycles" ? "siCycleHistoryCopy" : "siSubtitle")}</p></div>
         <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
             {!selectionSectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
@@ -523,11 +572,14 @@ export default function SectorIntelligenceWorkspace() {
           <label>{t("siGroup")}<button type="button" className={styles.button}
             aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
             onClick={event => { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }}>{groupName || t("siChooseGroup")} ▾</button></label></>}
-          <button type="button" className={styles.button} onClick={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}>{t(state.theme === "dark" ? "siUseLight" : "siUseDark")}</button>
+          {!presentation && <button type="button" className={styles.button} onClick={() => change({ theme: theme === "dark" ? "light" : "dark" })}>{t(theme === "dark" ? "siUseLight" : "siUseDark")}</button>}
+          {state.workspace === "cycles" && <button type="button" className={styles.button} ref={sourceTrigger}
+            onClick={event => openSources(event.currentTarget)}>{t("siNativeSources")}</button>}
           <button type="button" className={styles.button} onClick={() => setRevision(n => n + 1)}>{t("siRefresh")}</button>
         </div>
       </header>
       <nav className={styles.workspaceNavigation} aria-label={t("siWorkspaceViews")}>
+        {state.workspace === "cycles" && <button type="button" onClick={() => setJob("brief")}>← {t("siNativeJobBrief")}</button>}
         {OUTER_WORKSPACES.map(workspace => <button key={workspace} type="button"
           aria-current={state.workspace === workspace ? "page" : undefined}
           onClick={() => openOuterWorkspace(workspace)}>{t(WORKSPACE_KEYS[workspace])}</button>)}
@@ -548,16 +600,22 @@ export default function SectorIntelligenceWorkspace() {
       {nativeJobActive ? <SectorNativeJobShell context={nativeContext} job={state.sectorJob as SectorJob}
         onJob={setJob} onSelect={sector => change({ sector }, true)}
         onOpenDossier={openNativeDossier}
-        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onOpenExplorer={() => openOuterWorkspace("discover")}
+        onOpenCycles={() => openOuterWorkspace("cycles")}
+        onTheme={presentation ? undefined : () => change({ theme: theme === "dark" ? "light" : "dark" })}
         onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
       : nativeDossierActive ? <SectorNativeDossier context={nativeContext} view={state.view}
         onView={view => go(view)} onBack={returnToOuterWorkspace} onJob={setJob}
         onOpenRotation={() => openOuterWorkspace("rotation")}
-        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onTheme={presentation ? undefined : () => change({ theme: theme === "dark" ? "light" : "dark" })}
         onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()}
         onSelect={sectorId => change({ sector: sectorId }, true)}
         historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)}
         rowBlocks={nativeRowBlocks} />
+      : state.workspace === "cycles" ? <SectorCycleHistory binding={cycleHistory} feed={feeds.history}
+        events={cycleFeed(feeds.events)} sector={state.sector} theme={theme}
+        onSelect={sector => { cycleFocus.current = { sector, restore: false }; change({ sector }, true); }}
+        onOpenDossier={openNativeDossier} onSources={() => openSources()} onRetry={() => setRevision(n => n + 1)} />
       : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
         status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
@@ -641,7 +699,7 @@ export default function SectorIntelligenceWorkspace() {
           {comparison}
           <SectorConstituentEvidence fund={text(sector.ticker) || null}
             coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}
-            feed={feeds.holdings ?? null} identity={identity} presentation={state.theme} />
+            feed={feeds.holdings ?? null} identity={identity} presentation={theme} />
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
           <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}

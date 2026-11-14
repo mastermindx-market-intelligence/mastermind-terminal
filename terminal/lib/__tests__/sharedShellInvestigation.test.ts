@@ -45,7 +45,7 @@ describe("Shared Shell investigation handoff", () => {
     expect(SHARED_SHELL_MARKETS.map(({code,href}) => [code,href])).toEqual([
       ["US","/us_stocks.html"],["CN","/china.html"],["HK","/hk.html"],["CA","/canada.html"],["INTL","/intl.html"],
     ]);
-    expect(SHARED_SHELL_MARKETS.map(({k}) => SHARED_SHELL_COPY[k]("zh"))).toEqual(["美国","中国","香港","加拿大","全球"]);
+    expect(SHARED_SHELL_MARKETS.map(({k}) => SHARED_SHELL_COPY[k]("zh"))).toEqual(["美国","中国","香港","加拿大","国际"]);
     expect(SHARED_SHELL_MARKETS.map(({k,label}) => SHARED_SHELL_COPY[k]("en") === label)).toEqual([true,true,true,true,true]);
   });
 });

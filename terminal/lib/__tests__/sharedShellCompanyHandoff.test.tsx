@@ -7,7 +7,7 @@ import { ACTIVE_SYMBOL_KEY, readActiveSymbol, resetActiveSymbolCache } from "@/l
 
 const navigation = vi.hoisted(() => ({ path: "/stock.html", params: new URLSearchParams() }));
 vi.mock("next/navigation", () => ({
- usePathname: () => navigation.path, useSearchParams: () => navigation.params,
+ usePathname: () => navigation.path, useSearchParams: () => navigation.params, useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock("next/link", () => ({
  default: ({ children, href, className }: React.ComponentProps<"a">) =>

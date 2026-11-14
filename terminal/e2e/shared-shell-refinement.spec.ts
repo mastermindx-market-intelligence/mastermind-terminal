@@ -174,7 +174,7 @@ test("company search selects one canonical company from desktop, tablet and phon
  await dialog.getByRole("combobox").press("Enter");
  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
  await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
- await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
+ await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple&workspaceMarket=us$/);
  await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
 });
@@ -489,4 +489,67 @@ test("the current legacy company opens its chart and returns to the exact resear
  await page.locator(".brand-back").click();
  await expect(page).toHaveURL(origin+next);
  await expect(page.locator("[data-shared-shell-frame]")).toBeVisible();
+});
+
+// URL-owned market context uses this already-qualified beta responsive lane.
+test("market selection preserves the workspace and history without displaying another market", async ({ page }, info) => {
+  await page.goto("/discover");
+  const selector = page.getByRole("combobox", { name: "Workspace market" }).filter({ visible: true });
+  await expect(selector).toHaveValue("us");
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await selector.focus(); await expect(selector).toBeFocused();
+  await selector.selectOption("cn");
+  await expect(page).toHaveURL(/\/discover\?workspaceMarket=cn$/);
+  await expect(page.getByRole("heading", { name: "This workspace is not available for this market yet" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toHaveCount(0);
+  await expect(page.locator(".shared-shell-market-coverage a").first()).toHaveAttribute("href", "/china.html");
+  await selector.selectOption("hk");
+  await expect(selector).toHaveValue("hk");
+  await expect(page.locator(".shared-shell-market-eyebrow")).toHaveText("Hong Kong");
+  await page.goBack(); await expect(selector).toHaveValue("cn");
+  await page.reload(); await expect(selector).toHaveValue("cn");
+  await page.goBack(); await expect(selector).toHaveValue("us");
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await page.goForward(); await expect(selector).toHaveValue("cn");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  if (info.project.name === "desktop") {
+    const nav = page.locator("#shared-primary-navigation");
+    await expect(nav.getByRole("link", { name: "Macro Dashboard", exact: true })).toHaveAttribute("href", "/china.html");
+    await expect(nav.getByRole("link", { name: "Prophet", exact: true })).toHaveAttribute("href", "/china_stocks.html");
+    await expect(nav.getByRole("link", { name: "Sector Intelligence", exact: true })).toHaveAttribute("href", "/sectors?workspaceMarket=cn");
+    await expect(nav.getByRole("link", { name: "China", exact: true })).toHaveCount(0);
+  }
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-coverage-dark-en.png") });
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "此市场暂未提供这个工作区" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "工作区市场" }).filter({ visible: true })).toHaveValue("cn");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-coverage-light-zh.png") });
+});
+
+test("market control remains reachable at 320px alongside existing header actions", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile", "One smallest-width stress test");
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/discover");
+  const selector = page.locator(".mobilebar select");
+  await expect(selector).toBeVisible();
+  const box = await selector.boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+  const reachable = await selector.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
+  });
+  expect(reachable).toBe(true);
+  await selector.selectOption("intl");
+  await expect(selector).toHaveValue("intl");
+  await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+  await expect(page.locator(".m-drawer").getByRole("link", { name: "Macro Dashboard", exact: true })).toHaveAttribute("href", "/intl.html");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open navigation", exact: true })).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
 });

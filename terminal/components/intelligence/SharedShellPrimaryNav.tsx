@@ -8,6 +8,7 @@ import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
 import IntelligenceNav from "./IntelligenceNav";
+import { marketNavigationHref, workspaceMarket } from "@/lib/sharedShellMarket";
 
 /** Read the query only for the beta's own nav. Ordinary AppNav and MobileNav never
  * subscribe to it; their legacy preview/runtime tests and CSR boundaries stay intact. */
@@ -22,6 +23,7 @@ export default function SharedShellPrimaryNav({ mode, labelled, activeSymbol, ac
   const path = usePathname();
   const search = useSearchParams();
   const t = useSharedShellT();
+  const market = workspaceMarket(path, search.toString());
   const intelligenceKey = intelligenceActiveKey(path, search.toString());
   const activeKey = intelligenceKey ? null : (activeKeyOverride ?? sharedShellActiveKey(path));
   return <>
@@ -33,7 +35,7 @@ export default function SharedShellPrimaryNav({ mode, labelled, activeSymbol, ac
         ? (activeKeyOverride || path === item.href ? "page" : "location")
         : undefined;
       const label = t(item.k, item.label);
-      const href = navHref(item, activeSymbol, path);
+      const href = marketNavigationHref(navHref(item, activeSymbol, path), market);
       return mode === "rail" ? (
         <Tip key={item.k} label={label} side="right" size="mini" disabled={labelled}>
           <Link href={href} className={`navbtn${selected ? " on" : ""}`}

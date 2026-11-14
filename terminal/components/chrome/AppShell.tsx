@@ -19,6 +19,7 @@ import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { backToMacro, useFromMacro } from "@/lib/originNav";
 import { accountIdentity, GUEST_IDENTITY, identityEmail, type AccountIdentity } from "@/lib/accountIdentity";
 import { SharedShellPresentation } from "./shared-shell/SharedShellPresentation";
+import SharedShellMarketBoundary from "./shared-shell/SharedShellMarketBoundary";
 
 /**
  * AppShell — the ONE shared chrome for every non-chart workspace (Wave-2 IA).
@@ -278,7 +279,7 @@ export default function AppShell({
             onAuthRequired={requireBrainShellAuth}
           />
         )}
-        {children}
+        {sharedShell ? <SharedShellMarketBoundary>{children}</SharedShellMarketBoundary> : children}
       </div>
       </SettingsProvider>
       </SharedShellPresentation>

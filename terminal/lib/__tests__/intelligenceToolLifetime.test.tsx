@@ -8,7 +8,9 @@ vi.mock("@/lib/shared-shell/useReadingScope",()=>({useReadingScope:()=>({ready:s
 vi.mock("@/lib/flowClientCache",()=>({flowInvalidate:()=>{state.cache='cleared';state.invalidations++;}}));
 vi.mock("@/components/intelligence/IntelligenceNav",()=>({default:()=>null}));
 vi.mock("next/link",()=>({default:({children,prefetch,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{prefetch?:boolean})=>{void prefetch;return <a {...props}>{children}</a>;}}));
-vi.mock("next/dynamic",()=>({default:()=>function Child(){useEffect(()=>{state.reads.push(state.cache);},[]);return <div>Existing tool</div>;}}));
+vi.mock("next/dynamic",()=>({default:(loader:()=>unknown)=>function Child(){useEffect(()=>{state.reads.push(state.cache);},[]);return String(loader).includes("SectorIntelligenceWorkspace")
+ ? <main id="shared-shell-content" tabIndex={-1}><h1>Sector Intelligence</h1><p>Existing tool</p></main>
+ : <div>Existing tool</div>;}}));
 import Tool from "@/components/intelligence/IntelligenceToolWorkspace";
 import TodayIntelligenceEntry from "@/components/intelligence/TodayIntelligenceEntry";
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
@@ -52,4 +54,13 @@ describe("dedicated Prophet preserves the incumbent cache boundary",()=>{
   expect(host.querySelector('a[href="/intelligence"] strong')?.textContent).toBe("Market Intelligence");
  });
  it("does not clear the unrelated options cache when opening sectors",async()=>{await act(async()=>root.render(<Tool ownerKey="A" kind="sectors"/>));expect(state.invalidations).toBe(0);});
+ it("lets the sector owner supply one heading and main, while retaining the account boundary",async()=>{
+  await act(async()=>root.render(<Tool ownerKey="A" kind="sectors"/>));
+  expect(host.querySelectorAll('h1')).toHaveLength(1);expect(host.querySelectorAll('main')).toHaveLength(1);
+  expect(host.querySelector('main')?.id).toBe('shared-shell-content');
+  state.ready=false;await act(async()=>root.render(<Tool ownerKey="A" kind="sectors"/>));
+  expect(host.querySelectorAll('h1')).toHaveLength(1);expect(host.querySelectorAll('main')).toHaveLength(1);
+  expect(host.textContent).not.toContain('Existing tool');expect(host.textContent).toContain('Private readings have been cleared.');
+  expect(state.invalidations).toBe(0);
+ });
 });

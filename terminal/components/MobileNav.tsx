@@ -10,10 +10,11 @@ import SettingsButton from "@/components/settings/SettingsButton";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
-import { SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
 import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
+import SharedShellMarketSelect from "./chrome/shared-shell/SharedShellMarketSelect";
 
 // Shared Shell beta viewport ceiling (px). MobileNavModal keeps PR697's default 860
 // breakpoint for any other consumer; the beta follows the same incumbent 860px boundary.
@@ -31,7 +32,7 @@ const SHARED_SHELL_BREAKPOINT_PX = 860;
  * (commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33), mounted ONLY while open so a
  * closed drawer contains no hidden keyboard-focusable links. The beta flag is
  * supplied by AppShell from MMX_SHARED_SHELL=1 and retains SHARED_SHELL_NAV plus
- * SHARED_SHELL_MARKETS; the public path retains TOP and its symbol-preserving
+ * the top-bar market context; the public path retains TOP and its symbol-preserving
  * routes. Exactly one mobile primary-nav owner is mounted, with the existing
  * modal owning focus, scroll lock, dismissal and action handoff for both paths.
  *
@@ -143,6 +144,7 @@ export default function MobileNav({
           )}
         <span className="m-brand"><BrandMark size={22} /><b>MASTERMIND</b></span>
         <div className="m-right">
+          {sharedShell && <SharedShellMarketSelect />}
           {fromMacro && (
             <button
               type="button"
@@ -196,18 +198,6 @@ export default function MobileNav({
               <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
                 activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
                 renderGlyph={key => <NavGlyph k={key} />} />
-              <span className="m-nav-sect">{t("shellMarkets")}</span>
-              {SHARED_SHELL_MARKETS.map((mk) => (
-                <Link
-                  key={mk.k}
-                  href={mk.href}
-                  className={navPath === mk.href ? "on" : undefined}
-                  aria-current={navPath === mk.href ? "page" : undefined}
-                  onClick={closeDrawer}
-                >
-                  {t(mk.k, mk.label)}
-                </Link>
-              ))}
               {/* Callback only — the existing directory stays wherever it is mounted; no second one. */}
               <button type="button" onClick={() => { closeDrawer(); onOpenDirectory?.(); }}>{t("shellAllTools")}</button>
               {/* Client-only surface: this JSX renders ONLY while the modal is mounted (drawer

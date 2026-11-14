@@ -8,6 +8,7 @@ import { useSharedShellT } from "@/lib/sharedShellCopy";
 import ShellSearch from "./ShellSearch";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import SharedShellPresentationControls from "./SharedShellPresentationControls";
+import SharedShellMarketSelect from "./SharedShellMarketSelect";
 
 export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onOpenDirectory }: {
   symbolOpen: boolean; onSymbolOpenChange: (open: boolean) => void; onOpenDirectory: () => void;
@@ -53,6 +54,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
       <span>{t("shellAllTools")}</span><kbd>⌘ K</kbd>
     </button>
     <SharedShellPresentationControls />
+    <SharedShellMarketSelect />
     {!invalidCompany && <Link className="shared-shell-terminal-link" href={terminalHref} prefetch={false}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-6 4 3 6-9M14 5h5v5" /></svg>
       <span>{t("shellOpenCurrentChart")}</span><span aria-hidden="true">↗</span>

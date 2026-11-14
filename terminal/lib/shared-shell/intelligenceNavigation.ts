@@ -1,3 +1,5 @@
+import { workspaceMarketFamily } from "@/lib/sharedShellMarket";
+
 /** Presentation only. Route admission remains the canonical generated catalog. */
 export const INTELLIGENCE_DESTINATIONS = [
   { key: "overview", href: "/intelligence", label: ["Overview", "总览"] },
@@ -8,6 +10,8 @@ export const INTELLIGENCE_DESTINATIONS = [
 ] as const;
 export type IntelligenceKey = typeof INTELLIGENCE_DESTINATIONS[number]["key"];
 export function intelligenceActiveKey(path: string, search = ""): IntelligenceKey | null {
+  const regionalFamily = workspaceMarketFamily(path);
+  if (regionalFamily) return regionalFamily;
   if (path === "/intelligence") return "overview";
   if (/^\/macro(?:_[a-z0-9_]+)?\.html$/.test(path)) return "macro";
   // The complete opportunity workspace remains Macro-owned. The native route

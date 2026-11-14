@@ -31,14 +31,14 @@ function nav(mode: "rail" | "drawer", activeKeyOverride?: string) {
 beforeEach(() => { mock.path="/intelligence"; mock.search=""; mock.lang="en"; });
 describe("beta-only primary nav and intelligence current-page policy", () => {
   it.each([
-    ["/intelligence", "", "/intelligence"],
+    ["/intelligence", "", "/intelligence?workspaceMarket=us"],
     ["/macro.html", "", "/macro.html"],
     ["/us_stocks.html", "", "/us_stocks.html"],
     ["/prophet", "", "/us_stocks.html"],
     ["/sector_cycles.html", "", "/sector_cycles.html"],
-    ["/sectors", "", "/sectors"],
+    ["/sectors", "", "/sectors?workspaceMarket=us"],
     ["/options", "tab=prophet", "/us_stocks.html"],
-    ["/discover", "tab=sectors", "/sectors"],
+    ["/discover", "tab=sectors", "/sectors?workspaceMarket=us"],
   ])("%s %s has one current destination, not Today", (path,search,expected) => {
     mock.path=path; mock.search=search;
     for(const mode of ["rail","drawer"] as const) {
@@ -69,7 +69,7 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
     mock.path="/today";
     const host=nav("rail");
     const refs=[...host.querySelectorAll("a")].map(a=>a.getAttribute("href"));
-    expect(refs.find(x=>x?.startsWith("/analysis"))).toBe("/analysis?symbol=SMR");
+    expect(refs.find(x=>x?.startsWith("/analysis"))).toBe("/analysis?symbol=SMR&workspaceMarket=us");
     expect(refs).toContain("/us_stocks.html");
     expect(refs).not.toContain("/prophet");
   });

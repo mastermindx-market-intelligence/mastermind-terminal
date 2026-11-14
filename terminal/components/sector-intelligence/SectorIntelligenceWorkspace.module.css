@@ -13,7 +13,7 @@
 .root * { box-sizing: border-box; }
 .page { width: 100%; max-width: 1500px; margin: 0 auto; padding: 26px 28px max(30px, env(safe-area-inset-bottom)); }
 .root h1, .root h2, .root h3, .root p { margin: 0; }
-.root button, .root input, .root select { font: inherit; }
+:where(.root) :where(button, input, select) { font: inherit; }
 .root button, .root summary, .root a, .root select { -webkit-tap-highlight-color: transparent; }
 .root button, .root input, .root select, .root summary { min-height: 44px; }
 .root :is(button, input, select, a, summary):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
