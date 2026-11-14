@@ -65,10 +65,10 @@ describe("asset logos stay local and quota-independent", () => {
     const css = readFileSync(path.join(process.cwd(), "app/globals.css"), "utf8");
     const nextConfig = readFileSync(path.join(process.cwd(), "next.config.ts"), "utf8");
 
-    const imagePolicy = nextConfig.split("\\n").find((line) => line.includes('"img-src'));
+    const imagePolicy = nextConfig.split("\n").find((line) => line.includes('"img-src'));
     expect(imagePolicy).toContain("https://cdn.jsdelivr.net");
     expect(imagePolicy).toContain("https://img.logo.dev");
-    expect(nextConfig).not.toMatch(/"connect-src [^"]*logo\\.dev/);
+    expect(nextConfig).not.toMatch(/"connect-src [^"]*logo\.dev/);
     expect(css).toMatch(/\.asset-logo img\{[^}]*background:inherit[^}]*padding:0/);
     expect(css).toMatch(/\.status-symbol-logo img\{[^}]*background:inherit[^}]*padding:0/);
   });
@@ -110,12 +110,12 @@ describe("asset logos stay local and quota-independent", () => {
     expect(logo?.getAttribute("title")).toBe("Alibaba");
     expect(logo?.querySelector(".asset-logo-fallback")?.textContent).toBe("99");
     let image = host.querySelector<HTMLImageElement>(".asset-logo img")!;
-    expect(image.getAttribute("src")).toMatch(/^https:\\/\\//);
+    expect(image.getAttribute("src")).toMatch(/^https:\/\//);
     for (let n = 0; n < 5 && image.getAttribute("src")?.startsWith("https:"); n++) {
       act(() => { image.dispatchEvent(new Event("error")); });
       image = host.querySelector<HTMLImageElement>(".asset-logo img")!;
     }
-    expect(image.getAttribute("src")).toMatch(/^data:image\\/svg\\+xml/);
+    expect(image.getAttribute("src")).toMatch(/^data:image\/svg\+xml/);
     expect(logo?.querySelector(".asset-logo-fallback")?.textContent).toBe("99");
   });
 
