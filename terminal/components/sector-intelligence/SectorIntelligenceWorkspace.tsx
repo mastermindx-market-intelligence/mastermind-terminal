@@ -561,6 +561,7 @@ export default function SectorIntelligenceWorkspace() {
       : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
         status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
+        legacySnapshot={{ rows: sectors, status, asOf: feeds.sector?.receipt.asOf ?? null }}
         asOf={state.rotationMethod === "relative_trend_ema" ? feeds.sector?.receipt.asOf || null : nativeGeneration?.receipt.source_session || null}
         measured={state.rotationMethod === "relative_trend_ema" ? null : measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         history={rotationHistory} historyStatus={nativeStatus}

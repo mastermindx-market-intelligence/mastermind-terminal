@@ -401,6 +401,61 @@ describe("SectorRotationMap", () => {
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
     expect(host.textContent).not.toContain("+7.0%");
   });
+  it("distinguishes a missing native generation from empty data and only offers a dated legacy snapshot by choice", async () => {
+    const legacySnapshot = { rows, status: "ready" as const, asOf: "2026-09-25" };
+    await render({ rows: [], status: "unavailable", legacySnapshot });
+    expect(host.textContent).toContain("The native rotation generation is unavailable.");
+    expect(host.textContent).not.toContain("No readable sector rotation rows are available.");
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')).toBeNull();
+    const open = host.querySelector<HTMLButtonElement>('[data-testid="rotation-legacy-open"]');
+    // The control displays the source's actual ISO day, never a client clock.
+    expect(open?.textContent).toContain("2026-09-25");
+    await act(async () => open!.click());
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')?.textContent).toContain("Legacy Sector Central snapshot");
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')?.textContent).toContain("not an accepted native-generation read");
+    expect(host.querySelector('[data-testid="rotation-history-trail"]')).toBeNull();
+    expect(host.querySelector('[data-testid="rotation-native-episodes"]')).toBeNull();
+
+    await act(async () => host.querySelector<HTMLButtonElement>('[data-testid="rotation-legacy-close"]')!.click());
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
+    expect(host.querySelector('[data-testid="rotation-legacy-open"]')).not.toBeNull();
+
+    await act(async () => host.querySelector<HTMLButtonElement>('[data-testid="rotation-legacy-open"]')!.click());
+    await render({ rows, status: "ready", asOf: "2026-10-01", legacySnapshot });
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')).toBeNull();
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Oct 1 · 6 sectors");
+  });
+
+  it.each(["access", "loading", "ready"] as const)("never bypasses native %s with legacy observations", async status => {
+    await render({ rows: [], status, legacySnapshot: { rows, status: "ready", asOf: "2026-09-25" } });
+    expect(host.querySelector('[data-testid="rotation-legacy-open"]')).toBeNull();
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
+    if (status === "ready") expect(host.textContent).toContain("No readable sector rotation rows are available.");
+    if (status === "access") expect(host.textContent).toContain("requires access");
+  });
+
+  it("requires a qualified, dated legacy feed and distinguishes request failure from invalid content", async () => {
+    await render({ rows: [], status: "error", legacySnapshot: { rows, status: "unavailable", asOf: "2026-09-25" } });
+    expect(host.textContent).toContain("The rotation source request failed.");
+    expect(host.querySelector('[data-testid="rotation-legacy-open"]')).toBeNull();
+    await render({ rows: [], status: "unavailable", legacySnapshot: { rows, status: "ready", asOf: null } });
+    expect(host.querySelector('[data-testid="rotation-legacy-open"]')).toBeNull();
+    await render({ rows: [], status: "invalid" });
+    expect(host.textContent).toContain("could not be read safely");
+  });
+
+  it("localizes native-outage and opt-in legacy provenance without inventing source measurements", async () => {
+    await render({ rows: [], status: "unavailable", legacySnapshot: { rows, status: "ready", asOf: "2026-09-25" } });
+    await act(async () => applyLang("zh"));
+    expect(host.textContent).toContain("原生板块轮动数据暂不可用");
+    const open = host.querySelector<HTMLButtonElement>('[data-testid="rotation-legacy-open"]')!;
+    await act(async () => open.click());
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')?.textContent).toContain("并非已验证的原生版本读取");
+    expect(host.querySelector('[data-testid="rotation-legacy-notice"]')?.textContent).toContain("2026-09-25");
+  });
   it("connects a truthful daily reconstructed history without changing current coordinates", async () => {
     await render();
     const history = host.querySelector('[data-testid="rotation-history"]');
