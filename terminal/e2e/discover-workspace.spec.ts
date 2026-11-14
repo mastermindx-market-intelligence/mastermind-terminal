@@ -61,7 +61,15 @@ for (const lang of ["en", "zh"] as const) {
     // Pointer drag on desktop; the visible arrow alternative is genuinely tapped on touch.
     const last = page.locator('thead [data-column="last"]');
     if (!touch) {
-      await last.getByRole("button").first().dragTo(page.locator('thead [data-column="regimeBull"]'));
+      const grip = last.getByRole("button").first();
+      await grip.scrollIntoViewIfNeeded();
+      const start = (await grip.boundingBox())!, target = (await page.locator('thead [data-column="regimeBull"]').boundingBox())!;
+      const x = start.x + start.width / 2, y = start.y + start.height / 2;
+      await page.mouse.move(x, y); await page.mouse.down();
+      await page.mouse.move(x + 10, y, { steps: 2 });
+      await expect(last).toHaveAttribute("data-dragging", "true");
+      await page.mouse.move(target.x + target.width / 2, target.y + target.height / 2, { steps: 8 });
+      await page.mouse.up();
     } else {
       await page.locator("[data-discover-columns]").tap();
       await dialog(page).getByRole("button", { name: zh ? "最新左移" : "Move Last left", exact: true }).tap();
@@ -173,27 +181,30 @@ test("conflicting device edits survive reload and a failed account-version read"
 test("regular prices update without reordering rows and expired overnight trades disappear", async ({ page, baseURL }, info) => {
   const key = `discover-quotes-${info.project.name}-${Date.now()}-${info.retry}`;
   await prepare(page.context(), baseURL!, key, false); await routeManifest(page, () => "g1");
-  let tick = 100, issued = 0;
+  let tick = 100, quoteNow = Date.now();
+  const issued = quoteNow / 1000;
+  await page.clock.setFixedTime(quoteNow);
+  const symbols = () => page.locator('tbody [data-discover-quote]').evaluateAll(nodes => nodes.map(node => node.getAttribute("data-discover-quote")));
   await page.route("**/api/quote?**", route => {
     const url = new URL(route.request().url()); expect(url.searchParams.get("view")).toBe("regular");
-    return route.fulfill({ json: { quotes: Object.fromEntries((url.searchParams.get("syms") ?? "").split(",").map(sym => [sym, { regularPrice: tick, regularChg: tick - 100, ts: Date.now() / 1000, live: true }])) } });
+    return route.fulfill({ json: { quotes: Object.fromEntries((url.searchParams.get("syms") ?? "").split(",").map(sym => [sym, { regularPrice: tick, regularChg: tick - 100, ts: quoteNow / 1000, live: true }])) } });
   });
   await page.route("**/api/ext-quote?**", route => {
-    issued ||= Date.now() / 1000;
     const url = new URL(route.request().url());
     return route.fulfill({ json: { quotes: Object.fromEntries((url.searchParams.get("syms") ?? "").split(",").map(sym => [sym, {
       extSource: "tiingo_boats", extBasis: "LIVE", extVenue: "BOATS", extPriceKind: "LAST_TRADE", extSession: "overnight", extTs: issued,
-      extReceivedTs: issued, extPublishedTs: issued, extExpiresTs: issued + 8, extCaptureId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", extGeneration: 1, extPrice: 102, extChg: 2,
+      extReceivedTs: issued, extPublishedTs: issued, extExpiresTs: issued + 20, extCaptureId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", extGeneration: 1, extPrice: 102, extChg: 2,
     }])) } });
   });
-  await open(page, 5); const order = await dataRows(page).allTextContents();
+  await open(page, 5); const order = await symbols();
   await expect(page.locator('tbody [data-column="last"]').first()).toContainText("100.00"); tick = 103;
   await expect(page.locator('tbody [data-column="last"]').first()).toContainText("103.00", { timeout: 15_000 });
-  await expect(page.locator('tbody [data-column="chg"]').first()).toContainText("+3.00%"); expect(await dataRows(page).allTextContents()).toEqual(order);
+  await expect(page.locator('tbody [data-column="chg"]').first()).toContainText("+3.00%"); expect(await symbols()).toEqual(order);
   await page.locator("[data-discover-views]").click(); await dialog(page).getByRole("button", { name: /Overnight watch/ }).click();
   const overnight = page.locator('tbody [data-column="overnight"]').first(); await expect(overnight).toContainText("102.00");
   await page.locator("[data-discover-quote]").first().click(); await expect(dialog(page)).toContainText("Tiingo · BOATS");
   await shoot(page, info, "quote-details"); await dialog(page).press("Escape");
+  quoteNow += 21_000; await page.clock.setFixedTime(quoteNow);
   await expect(overnight).toContainText("—", { timeout: 15_000 });
-  await expect(page.locator('tbody [data-column="last"]').first()).toContainText("103.00"); expect(await dataRows(page).allTextContents()).toEqual(order);
+  await expect(page.locator('tbody [data-column="last"]').first()).toContainText("103.00"); expect(await symbols()).toEqual(order);
 });
