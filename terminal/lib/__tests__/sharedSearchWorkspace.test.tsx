@@ -24,6 +24,22 @@ function Harness({ companyState = "ready" }: { companyState?: "ready" | "unavail
  selectedCompany={selected} activeCompanyIndex={1} onSelectCompany={setSelected} onCompanyKey={()=>{}}
  listingDetail={<span data-picked-symbol={selected}>HKEX · Trading currency HKD</span>} options={{ onOpenTool: state.opened }}/></LangProvider>;
 }
+it("uses real issuer-image candidates for each exact listing without changing Tools icons", async () => {
+ await act(async()=>root.render(<Harness/>));
+ const listings=Array.from(host.querySelectorAll<HTMLButtonElement>("[data-company-symbol]"));
+ expect(listings.map(row=>row.getAttribute("data-company-symbol"))).toEqual(["BABA","9988.HK"]);
+ const imageUrls=listings.map(row=>row.querySelector<HTMLImageElement>(".asset-logo img")?.getAttribute("src"));
+ expect(imageUrls[0]).toContain("BABA");
+ expect(imageUrls[1]).toContain("9988.HK");
+ expect(imageUrls[1]).not.toContain("/BABA.");
+ expect(listings.every(row=>row.querySelector(".asset-logo")?.getAttribute("aria-hidden")==="true")).toBe(true);
+ expect(listings.every(row=>row.querySelector(".asset-logo-fallback"))).toBe(true);
+ expect(host.querySelector("[data-picked-symbol]")?.getAttribute("data-picked-symbol")).toBe("9988.HK");
+ await click("Tools");
+ expect(host.querySelectorAll(".asset-logo")).toHaveLength(0);
+ expect(host.textContent).toContain("No published tools or pages match");
+});
+
 it("keeps exact listing/query when tools fail and retries only the tool service",async()=>{
  state.load.mockRejectedValueOnce(new Error("chunk"));await act(async()=>root.render(<Harness/>));
  expect(host.textContent).toContain("The tool directory could not be searched.");expect(host.querySelector("input")?.value).toBe("Alibaba");
