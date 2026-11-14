@@ -633,6 +633,7 @@ export const LEX: Record<string, [string, string]> = {
   clearWatchlist: ["Clear list", "清空列表"],
   clearWatchlistConfirm: ["Remove every symbol from this list? Sections are kept.", "从此列表中移除所有代码？分区将保留。"],
   wlSymbolsSelected: ["{n} tickers selected", "已选择 {n} 个代码"],
+  wlTickerSelected: ["Ticker selected", "已选择代码"],
   wlClearSelection: ["Clear selection", "清除选择"],
   wlBulkActions: ["Selected ticker actions", "所选代码操作"],
   wlMoveToSection: ["Move to section", "移动到分区"],

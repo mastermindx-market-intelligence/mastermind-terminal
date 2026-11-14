@@ -53,8 +53,8 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, onV
     ? `${pick(zh, "Historical signal", "历史信号")}: ${oracle.historicalSignal.label} · ${oracle.historicalSignal.date}`
     : null;
   return <button className={`sig-btn ${styles.launcher}`} onClick={onView} title={title}
-    data-testid="intelligence-launcher" data-prophet={early ? true : undefined} aria-expanded={expanded} aria-controls="intelligence-workspace"
-    aria-label={pick(zh, "Open Intelligence workspace", "打开情报工作区")}>
+    data-testid="intelligence-launcher" data-prophet={early ? true : undefined} aria-expanded={expanded} aria-controls="intelligence-workspace">
+    <span className={styles.srOnly}>{pick(zh, "Open Intelligence workspace", "打开情报工作区")}. </span>
     <span className={styles.heading}>
       <span className={styles.identity}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" aria-hidden="true"><path d="M3 13V7l7-4 7 4v6l-7 4-7-4Z" /><path d="m3 7 7 4 7-4M10 11v6" /></svg>{pick(zh, "Intelligence", "情报")}</span>
       <svg className={styles.chevron} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m12 5-5 5 5 5" /></svg>

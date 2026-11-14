@@ -509,7 +509,7 @@ export default function ChartFrameBar({
           disabled={!isIntraday || !extendedEligible}
           onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours, overnightHours: false })}
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
-          aria-label={t("cfbExtendedHours")}
+          aria-label={`ETH — ${t("cfbExtendedHours")}`}
           aria-pressed={!!(s.extHours && extendedEligible && isIntraday)}
         >ETH</button>
         {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? " on" : ""}`}

@@ -293,7 +293,8 @@ function FinMiniControls({ stmt, setStmt, annual, setAnnual, annualAvailable, in
   };
   return (
     <div className="sa-fin-ctl">
-      <select className="sa-fin-sel" value={stmt} onChange={(e) => setStmt(e.target.value as StmtKey)}>
+      <select className="sa-fin-sel" aria-label={pick("Financial statement", "财务报表")}
+        value={stmt} onChange={(e) => setStmt(e.target.value as StmtKey)}>
         {STMT_KEYS.map((k) => <option key={k} value={k}>{label[k]}</option>)}
       </select>
       <div className="sa-fin-aq">

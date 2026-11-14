@@ -66,7 +66,7 @@ export default function DataOriginChip({ symbol, origin }: { symbol?: string; or
       <button type="button"
         className={`cfb-chip cfb-chip-adj cfb-origin cfb-origin-${state}`}
         data-testid="cfb-origin" data-origin-state={state}
-        aria-expanded={open} aria-haspopup="dialog" aria-label={t("originAria")}
+        aria-expanded={open} aria-haspopup="dialog" aria-label={`${label} — ${t("originAria")}`}
         onClick={() => setOpen(o => !o)}>{label}</button>
       {open && (
         <div className="qsg-menu cfb-origin-pop" role="dialog" aria-label={t("originTitle")} data-testid="cfb-origin-pop"

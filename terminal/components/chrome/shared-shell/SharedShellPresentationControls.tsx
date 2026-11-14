@@ -9,8 +9,9 @@ export default function SharedShellPresentationControls() {
   const light = context.theme === "light";
   const chinese = context.locale === "zh";
   const theme = t(light ? "shellThemeLight" : "shellThemeDark");
+  const languageCode = t("shellLanguageCode");
   return <div className="shared-shell-presentation" role="group" aria-label={t("shellPresentation")}>
-    <button type="button" className="shared-shell-presentation-toggle" aria-label={t("shellLightTheme")}
+    <button type="button" className="shared-shell-presentation-toggle" aria-label={`${theme} — ${t("shellLightTheme")}`}
       aria-pressed={light} title={`${t("shellTheme")}: ${theme}`}
       onClick={() => requestContext({ theme: light ? "dark" : "light" })}>
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -19,10 +20,10 @@ export default function SharedShellPresentationControls() {
       </svg>
       <span className="shared-shell-theme-label" aria-hidden="true">{theme}</span>
     </button>
-    <button type="button" className="shared-shell-presentation-toggle" aria-label={t("shellChineseLanguage")}
+    <button type="button" className="shared-shell-presentation-toggle" aria-label={`${languageCode} — ${t("shellChineseLanguage")}`}
       aria-pressed={chinese} title={`${t("shellLanguage")}: ${t(chinese ? "shellLanguageChinese" : "shellLanguageEnglish")}`}
       onClick={() => requestContext({ locale: chinese ? "en" : "zh" })}>
-      <span aria-hidden="true">{t("shellLanguageCode")}</span>
+      <span aria-hidden="true">{languageCode}</span>
     </button>
   </div>;
 }

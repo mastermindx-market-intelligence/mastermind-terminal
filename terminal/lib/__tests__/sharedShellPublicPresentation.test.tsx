@@ -140,15 +140,17 @@ async function start(props: Partial<ComponentProps<typeof AppShell>> = {}) {
   return admitFrame();
 }
 function control(surface: Surface, kind: "theme" | "language") {
-  const zh = document.documentElement.dataset.lang === "zh";
-  const label = kind === "theme" ? (zh ? "浅色主题" : "Light theme") : (zh ? "中文界面" : "Chinese language");
   const scope = container.querySelector(surface);
   expect(scope, `Missing actual ${surface}`).not.toBeNull();
-  const buttons = scope!.querySelectorAll<HTMLButtonElement>(`button[aria-label="${label}"]`);
-  expect(buttons, `Missing unique public ${kind} control in ${surface}`).toHaveLength(1);
-  expect(buttons[0].type).toBe("button");
-  expect(buttons[0].disabled).toBe(false);
-  return buttons[0];
+  const buttons = scope!.querySelectorAll<HTMLButtonElement>("button.shared-shell-presentation-toggle");
+  expect(buttons, `Missing public presentation controls in ${surface}`).toHaveLength(2);
+  const button = buttons[kind === "theme" ? 0 : 1];
+  const visible = button.textContent?.trim();
+  expect(visible).toBeTruthy();
+  expect(button.getAttribute("aria-label")).toContain(visible);
+  expect(button.type).toBe("button");
+  expect(button.disabled).toBe(false);
+  return button;
 }
 async function click(surface: Surface, kind: "theme" | "language") {
   const button = control(surface, kind);
