@@ -530,7 +530,7 @@ export default function TranscriptSearchWorkspace({
           <div><span className="fin-eyebrow">{localized(zh, "叙事对比", "NARRATIVE COMPARE")}</span><h4 id="ci-ts-compare-title">{localized(zh, "并列查看两个事件中的相同短语", "Place the same phrase beside two events")}</h4></div>
           <span>{localized(zh, "无模型改写", "No model paraphrase")}</span>
         </div>
-        <div className="ci-ts-compare-controls">
+        <div className={`ci-ts-compare-controls ${styles.compareControls}`}>
           <label><span>{localized(zh, "左侧事件", "Left event")}</span><select value={leftEventId} onChange={(event) => { invalidateCompare(); setLeftEventId(event.target.value); }}>{sourceEvents.map((event) => <option key={event.event_id} value={event.event_id}>{event.label} · {event.call_date}</option>)}</select></label>
           <span className="ci-ts-compare-swap" aria-hidden>⇄</span>
           <label><span>{localized(zh, "右侧事件", "Right event")}</span><select value={rightEventId} onChange={(event) => { invalidateCompare(); setRightEventId(event.target.value); }}>{sourceEvents.map((event) => <option key={event.event_id} value={event.event_id}>{event.label} · {event.call_date}</option>)}</select></label>

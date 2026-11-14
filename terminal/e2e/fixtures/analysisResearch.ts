@@ -1,4 +1,5 @@
 /** Synthetic research inputs shared by the standalone and Beta browser journeys. */
+import type { FundAnalyst, FundEstimates, Insider, Transcript } from "../../lib/fund";
 export const overviewFundFixture = {
   schema: "mastermind.fund/v1",
   ticker: "NVDA",
@@ -105,6 +106,72 @@ export const overviewFundFixture = {
   guidance: null,
   segments: null,
 };
+
+/** Populated detail views; these synthetic figures are never market evidence. */
+export const detailFundFixture = {
+  ...overviewFundFixture,
+  src: { ...overviewFundFixture.src, estimates: "synthetic_fixture", estimates_acquired_at: "2026-09-23T12:00:00Z" },
+  analyst: {
+    dist: { strongBuy: 4, buy: 8, hold: 2, sell: 1, strongSell: 0 },
+    rating_label: "Buy", target: { mean: 250, high: 300, low: 180, n: 15 },
+  } satisfies FundAnalyst,
+  estimates: {
+    eps_fy: { periods: ["FY2026", "FY2027"], avg: [4.5, 5.8], high: [5.1, 6.4], low: [3.9, 5.2], n: [15, 12] },
+    rev_fy: { periods: ["FY2026", "FY2027"], avg: [170e9, 210e9], high: [185e9, 225e9], low: [155e9, 195e9], n: [15, 12] },
+    eps_q: { periods: ["Q3 2026", "Q4 2026"], avg: [1.1, 1.3], high: [1.2, 1.4], low: [1, 1.2], n: [15, 12] },
+    growth: { rev_yoy: 0.30, eps_yoy: 0.40 },
+  } satisfies FundEstimates,
+  earnings: {
+    ...overviewFundFixture.earnings,
+    fy: [
+      { period: "FY2024", eps_a: 1.9, eps_e: 1.8, rev_a: 90e9, rev_e: 88e9, surp_pct: 5.56 },
+      { period: "FY2025", eps_a: 2.95, eps_e: 2.8, rev_a: 130e9, rev_e: 125e9, surp_pct: 5.36 },
+    ],
+    q: [
+      { period: "Q1 2026", end: "2026-03-31", report_date: "2026-05-20", eps_a: 0.8, eps_e: 0.75, rev_a: 32e9, rev_e: 30e9, surp_pct: 6.67, tx: "2026Q1" },
+      { period: "Q2 2026", end: "2026-06-30", report_date: "2026-08-20", eps_a: 0.95, eps_e: 0.9, rev_a: 36e9, rev_e: 35e9, surp_pct: 5.56, tx: "2026Q2" },
+    ],
+  },
+  dividends: {
+    ...overviewFundFixture.dividends,
+    events: [
+      { ex: "2026-03-12", amount: 0.01, pay: "2026-04-02", type: "regular" },
+      { ex: "2026-06-11", amount: 0.01, pay: "2026-07-02", type: "regular" },
+      { ex: "2026-09-10", amount: 0.01, pay: "2026-10-01", type: "regular" },
+    ],
+  },
+};
+
+export const insiderActivityFixture: Insider = {
+  ticker: "NVDA", asof: "2026-09-23", window_days: 360,
+  score: 50, signal: "NEUTRAL", confidence: "None", analysis: "Synthetic reported activity",
+  insider_buy: false, insider_sell: false, buyers: 1, sellers: 1,
+  buy_usd: 200_000, sell_usd: 300_000, net_usd: -100_000,
+  buy_shares: 1_000, sell_shares: 1_500, last_trade_age_d: 13,
+  series: [
+    { month: "2026-06", buy_usd: 200_000, sell_usd: 0, net_usd: 200_000, buy_shares: 1_000, sell_shares: 0 },
+    { month: "2026-09", buy_usd: 0, sell_usd: 300_000, net_usd: -300_000, buy_shares: 0, sell_shares: 1_500 },
+  ],
+  trades: [
+    { date: "2026-09-10", trade_date: "2026-09-08", code: "S", side: "sell", role: "Officer", title: "Chief Financial Officer", shares: 1_500, price: 200, usd: 300_000, weight: 1 },
+    { date: "2026-06-11", trade_date: "2026-06-09", code: "P", side: "buy", role: "Director", title: "Director", shares: 1_000, price: 200, usd: 200_000, weight: 1 },
+  ],
+};
+
+export const archiveCallsFixture: Transcript[] = [
+  {
+    schema: "mastermind.tx/v1", ticker: "NVDA", id: "2026Q1", period: "Q1 FY2026", date: "2026-05-20", title: "NVIDIA Earnings Call Q1 FY2026",
+    segments: [
+      { speaker: "Jordan Lee", role: "Chief Financial Officer", text: "Reported revenue grew across the synthetic reporting period." },
+      { speaker: "Operator", role: "Operator", text: "Our first question comes from Morgan Chen." },
+      { speaker: "Morgan Chen", role: "Analyst", text: "How did capacity change during the period?" },
+    ],
+  },
+  {
+    schema: "mastermind.tx/v1", ticker: "NVDA", id: "2025Q4", period: "Q4 FY2025", date: "2026-02-19", title: "NVIDIA Earnings Call Q4 FY2025",
+    segments: [{ speaker: "Alex Rivera", role: "Chief Executive Officer", text: "This prepared update establishes the prior-period capacity baseline." }],
+  },
+];
 
 export function marketBarsFixture() {
   const bars: [string, number, number, number, number, number][] = [];

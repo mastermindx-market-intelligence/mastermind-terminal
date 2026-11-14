@@ -7,13 +7,13 @@
 
 @media (max-width: 760px) {
   .actions :global(.ci-event-select) {
-    flex: 1 0 196px;
-    min-width: 196px;
+    flex: 1 0 min(224px, 100%);
+    min-width: min(224px, 100%);
   }
 
   .actions :global(.ci-event-select select) {
     width: 100%;
-    min-width: 196px;
+    min-width: 0;
   }
 
   .secondary {

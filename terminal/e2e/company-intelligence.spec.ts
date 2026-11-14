@@ -6,6 +6,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
+import { expectSelectLabelFits } from "./selectLabel";
 import { canonicalTranscriptBodySha256 } from "../lib/transcriptSearch";
 import aaplWorkspace from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 import aaplQaExchanges from "../lib/__tests__/fixtures/aapl-qa-exchanges.json";
@@ -467,6 +468,12 @@ test("literal transcript search and compare use the local revision-verified BFF"
     windowY: window.scrollY,
   }))).toEqual(scrollBeforeReceipt);
 
+  if (testInfo.project.name.endsWith("mobile")) {
+    for (const field of await page.locator(".ci-ts-compare-controls select").all()) {
+      await expectSelectLabelFits(field);
+      await expectTapTarget(field, { height: 44, width: 44 });
+    }
+  }
   await page.locator(".ci-ts-compare-controls > .btn").click();
   await expect(page.locator(".ci-ts-compare-grid")).toBeVisible();
   await expect(page.locator(".ci-ts-compare-col")).toHaveCount(2);
