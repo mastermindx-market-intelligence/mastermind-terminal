@@ -33,6 +33,7 @@ import { ContextTab } from "../setup/ContextTab";
 import { EvidenceTab } from "../setup/EvidenceTab";
 import { ModelPlanRail } from "../setup/ModelPlanRail";
 import { SourcesSheet } from "../setup/SourcesSheet";
+import { RotationRead } from "../setup/RotationRead";
 import { StudyCard } from "../setup/StudyCard";
 import { makeSetupT } from "../setup/setupStrings";
 import caseStyles from "../setup/setup.module.css";
@@ -127,6 +128,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
       />
 
       <CaseTabs tab={tab} onTab={setTab} lang={lang} />
+      {tab === "setup" ? <RotationRead key={payload.symbol} symbol={payload.symbol} lang={lang} /> : null}
 
       <div className={`${caseStyles.caseBody} ${tab === "setup" ? "" : caseStyles.caseBodySolo}`}>
         {tab === "setup" ? (
