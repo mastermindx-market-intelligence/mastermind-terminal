@@ -1,0 +1,54 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r2-scenario-terminal-contract-20260918-sol-001/terminal
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts (9 tests | 2 failed) 13ms
+   × scenarioSurfaceContract > rejects source clocks or vintages outside the frozen information set 7ms
+     → expected true to be false // Object.is equality
+   × scenarioSurfaceContract > pins the producer time/sign/unit semantics instead of accepting a relabeled model 1ms
+     → expected true to be false // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/scenarioSurfaceContract.test.ts > scenarioSurfaceContract > rejects source clocks or vintages outside the frozen information set
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts:196:9
+    194|         oi_vintage: "2026-09-18",
+    195|       },
+    196|     })).toBe(false);
+       |         ^
+    197|     expect(isScenarioSurfaceV1({
+    198|       ...SCENARIO,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/scenarioSurfaceContract.test.ts > scenarioSurfaceContract > pins the producer time/sign/unit semantics instead of accepting a relabeled model
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts:228:9
+    226|         time: "forecasted_theta_path",
+    227|       },
+    228|     })).toBe(false);
+       |         ^
+    229|     expect(isScenarioSurfaceV1({
+    230|       ...SCENARIO,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 7 passed (9)
+   Start at  16:45:29
+   Duration  797ms (transform 63ms, setup 0ms, collect 82ms, tests 13ms, environment 0ms, prepare 93ms)

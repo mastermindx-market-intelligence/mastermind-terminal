@@ -1,0 +1,33 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r2-scenario-terminal-contract-20260918-sol-001/terminal
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts (8 tests | 1 failed | 7 skipped) 26ms
+   × scenarioSurfaceContract > rejects source clocks or vintages from after the market information set 23ms
+     → expected true to be false // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/scenarioSurfaceContract.test.ts > scenarioSurfaceContract > rejects source clocks or vintages from after the market information set
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ lib/__tests__/scenarioSurfaceContract.test.ts:178:9
+    176|         iv_observed_at: "2026-09-18T14:00:01Z",
+    177|       },
+    178|     })).toBe(false);
+       |         ^
+    179|     expect(isScenarioSurfaceV1({
+    180|       ...SCENARIO,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  04:33:12
+   Duration  1.86s (transform 164ms, setup 0ms, collect 191ms, tests 26ms, environment 1ms, prepare 275ms)
