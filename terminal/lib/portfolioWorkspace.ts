@@ -77,6 +77,7 @@ export const PORTFOLIO_LEX = {
   invalidPositionShares: ["Enter a valid share count, or leave it blank.", "请输入有效的数量，或留空。"],
   invalidPositionPrice: ["Enter a valid entry price, or leave it blank.", "请输入有效的入场价，或留空。"],
   invalidPositionCurrency: ["Use a valid entry currency code, such as USD or HKD.", "请填写有效的入场币种代码，例如 USD 或 HKD。"],
+  invalidExecutionHistory: ["Check the entry and exit dates and times.", "请检查建仓和平仓日期及时间。"],
   invalidPositionDate: ["Enter a valid calendar date, or leave it blank.", "请输入有效的日期，或留空。"],
   invalidPositionNotes: ["Notes can contain up to 1,000 characters. Remove any unsupported characters.", "备注最多可填写 1,000 个字符，请移除不支持的字符。"],
   invalidPositionIntent: ["This entry needs to be reopened. Copy your details, then close it and add the position again.", "请复制填写的信息，关闭此窗口后重新添加持仓。"],

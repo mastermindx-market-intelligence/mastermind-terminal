@@ -10,7 +10,8 @@ import {
   FIXTURE_FAULT_COOKIE,
   FIXTURE_STORE_COOKIE,
 } from "@/lib/watchlistsFixtureDb";
-import { readPositions, type PortfolioDb } from "@/lib/portfolio";
+import { type PortfolioDb } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { joinEventImpact, type TouchedPosition } from "@/lib/eventImpact";
 

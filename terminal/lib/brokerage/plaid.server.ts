@@ -27,7 +27,8 @@ export function unseal(config: BrokerageConfig, value: string, binding: string):
   cipher.setAAD(Buffer.from(binding)); cipher.setAuthTag(tag);
   return Buffer.concat([cipher.update(data),cipher.final()]).toString("utf8");
 }
-export async function plaid(config: BrokerageConfig, path: string, body: Record<string, unknown>) {
+type Endpoint = "/link/token/create" | "/link/token/get" | "/item/public_token/exchange" | "/investments/holdings/get" | "/item/remove";
+export async function plaid(config: BrokerageConfig, path: Endpoint, body: Record<string, unknown>) {
   const res = await fetch(config.host + path, {method:"POST", cache:"no-store", redirect:"error",
     headers: {"Content-Type":"application/json","PLAID-CLIENT-ID":config.clientId,"PLAID-SECRET":config.secret,"Plaid-Version":"2020-09-14"},
     body: JSON.stringify(body), signal: AbortSignal.timeout(15000)});

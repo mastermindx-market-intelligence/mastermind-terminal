@@ -1,5 +1,5 @@
 import {
-  normalizeEntryCurrency, normalizeEntryDate, normalizeNotes, normalizeNumeric,
+  normalizeEntryCurrency, normalizeEntryDate, normalizeExecutionTime, normalizeNotes, normalizeNumeric,
   normalizeStatus, normalizeTicker, type Position,
 } from "@/lib/portfolio";
 
@@ -11,6 +11,7 @@ const POSITION_REFUSALS = [
   [400, "invalid entry price", "invalidPositionPrice"],
   [400, "invalid entry currency", "invalidPositionCurrency"],
   [400, "invalid entry date", "invalidPositionDate"],
+  [400, "invalid execution history", "invalidExecutionHistory"],
   [400, "invalid notes", "invalidPositionNotes"],
   [400, "invalid position intent", "invalidPositionIntent"],
   [404, "position not found", "positionNotFound"],
@@ -75,6 +76,7 @@ export function mutationPostcondition(
     for (const [key, normalize] of [
       ["shares", normalizeNumeric], ["entryPrice", normalizeNumeric],
       ["entryCurrency", normalizeEntryCurrency], ["entryDate", normalizeEntryDate],
+      ["entryAt",normalizeExecutionTime],["exitDate",normalizeEntryDate],["exitAt",normalizeExecutionTime],
       ["notes", normalizeNotes],
     ] as const) {
       const field = normalize(body[key]);
@@ -91,5 +93,6 @@ export function mutationPostcondition(
     && reread.shares === written.shares && reread.entryPrice === written.entryPrice
     && (reread.entryCurrency ?? null) === (written.entryCurrency ?? null)
     && reread.entryDate === written.entryDate && reread.notes === written.notes
+    && (reread.entryAt ?? null) === (written.entryAt ?? null) && (reread.exitDate ?? null) === (written.exitDate ?? null) && (reread.exitAt ?? null) === (written.exitAt ?? null)
     && reread.status === written.status && reread.createdAt === written.createdAt;
 }

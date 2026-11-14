@@ -30,7 +30,8 @@ export type PortfolioDb = WatchlistDb;
 export type { WatchlistQuery as PortfolioQuery };
 
 export const POSITIONS_TABLE = "portfolio_positions";
-const POSITION_FIELDS = "id,ticker,shares,entry_price,entry_currency,entry_currency_basis,entry_date,notes,status,created_at";
+const LEGACY_FIELDS = "id,ticker,shares,entry_price,entry_currency,entry_currency_basis,entry_date,notes,status,created_at";
+const positionFields = () => process.env.PORTFOLIO_EXECUTION_TIMES === "1" ? LEGACY_FIELDS + ",entry_executed_at,exit_date,exit_executed_at" : LEGACY_FIELDS;
 
 export type PositionStatus = "open" | "closed";
 
@@ -38,12 +39,16 @@ export type PositionStatus = "open" | "closed";
  *  unsized position (ticker only) is a legal, deliberate state, not a broken row. */
 export type Position = {
   id: string;
+  brokerage?: { account: string; name: string; type?: string | null; symbol: string | null; price: number | null; value: number | null; currency: string | null; asOf: string | null; syncedAt: string };
   ticker: string;
   shares: number | null;
   entryPrice: number | null;
   /** Legacy/older HTTP rows remain unknown; this is not the current quote currency. */
   entryCurrency?: string | null;
   entryDate: string | null;
+  entryAt?: string | null;
+  exitDate?: string | null;
+  exitAt?: string | null;
   notes: string | null;
   status: PositionStatus;
   createdAt: string | null;
@@ -138,6 +143,31 @@ export function normalizeEntryDate(value: unknown): TextField {
   return realDay ? { kind: "value", value: raw } : { kind: "invalid" };
 }
 
+const isoInstant = (v:unknown) => typeof v==="string" && Number.isFinite(Date.parse(v)) ? new Date(v).toISOString() : null;
+export function normalizeExecutionTime(value:unknown):TextField{
+  if(value===undefined)return {kind:"absent"};
+  if(value===null || value==="")return {kind:"value",value:null};
+  if(typeof value!=="string" || !/^\d{4}-\d{2}-\d{2}T\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?(?:Z|[+-]\d\d:\d\d)$/.test(value)
+      || normalizeEntryDate(value.slice(0,10)).kind!=="value" || !isoInstant(value))return {kind:"invalid"};
+  return {kind:"value",value:isoInstant(value)};
+}
+function executionPatch(input:PositionInput,owned?:Position):DbRow|null{
+  const data:DbRow={};
+  for(const [field,dbField,normalize] of [["entryAt","entry_executed_at",normalizeExecutionTime],["exitDate","exit_date",normalizeEntryDate],["exitAt","exit_executed_at",normalizeExecutionTime]] as const){
+    const v=normalize(input[field]);
+    if(v.kind==="invalid" || v.kind==="value" && process.env.PORTFOLIO_EXECUTION_TIMES!=="1")return null;
+    if(v.kind==="value")data[dbField]=v.value;
+  }
+  const entryDate=input.entryDate===undefined?owned?.entryDate:input.entryDate;
+  const exitDate=input.exitDate===undefined?owned?.exitDate:input.exitDate;
+  const entry=Object.hasOwn(data,"entry_executed_at")?data.entry_executed_at:owned?.entryAt;
+  const exit=Object.hasOwn(data,"exit_executed_at")?data.exit_executed_at:owned?.exitAt;
+  if(normalizeStatus(input.status ?? owned?.status)==="open" && (data.exit_date || data.exit_executed_at) || entry && !entryDate || exit && !exitDate ||
+     typeof entryDate==="string" && typeof exitDate==="string" && exitDate && entryDate>exitDate ||
+     typeof entry==="string" && typeof exit==="string" && entry>exit)return null;
+  return data;
+}
+
 /** `notes`: free text, bounded, newlines allowed. Over-length is REFUSED, never truncated — a
  *  silently shortened note is a lie about what was saved. */
 export function normalizeNotes(value: unknown): TextField {
@@ -183,6 +213,7 @@ export function rowToPosition(row: DbRow): Position | null {
       && (basis.price === null || finite(basis.price))
       && basis.price === numeric(row.entry_price) ? priceCurrency(row.entry_currency) : null,
     entryDate: text(row.entry_date),
+    ...(Object.hasOwn(row,"entry_executed_at") ? {entryAt: isoInstant(row.entry_executed_at),exitDate:text(row.exit_date),exitAt:isoInstant(row.exit_executed_at)} : {}),
     notes: text(row.notes),
     status: normalizeStatus(row.status),
     createdAt: text(row.created_at),
@@ -234,7 +265,7 @@ export async function readPositions(db: PortfolioDb, userId: string): Promise<Po
   let result: DbResult;
   try {
     result = await db.from(POSITIONS_TABLE)
-      .select(POSITION_FIELDS)
+      .select(positionFields())
       .eq("user_id", userId)
       .order("created_at")
       .limit(MAX_POSITIONS);
@@ -274,7 +305,7 @@ export async function getOwnedPosition(
   // Query construction stays outside the transport catch: a fault building the call is a
   // programming error, not evidence the store failed to answer.
   const query = db.from(POSITIONS_TABLE)
-    .select(POSITION_FIELDS)
+    .select(positionFields())
     .eq("user_id", userId).eq("id", id);
   let result: DbResult;
   try {
@@ -297,6 +328,9 @@ export type PositionInput = {
   entryPrice?: unknown;
   entryCurrency?: unknown;
   entryDate?: unknown;
+  entryAt?: unknown;
+  exitDate?: unknown;
+  exitAt?: unknown;
   notes?: unknown;
   status?: unknown;
 };
@@ -342,7 +376,10 @@ export async function createPosition(
   }
   const clientPositionId = typeof suppliedId === "string" ? suppliedId.toLowerCase() : null;
   const now = new Date().toISOString();
+  const history=executionPatch(input);
+  if(!history)return {ok:false,status:400,error:"invalid execution history"};
   const values = {
+    ...history,
     ...(clientPositionId ? { id: clientPositionId } : {}),
     user_id: userId,
     ticker,
@@ -355,12 +392,12 @@ export async function createPosition(
     status: normalizeStatus(input.status),
     updated_at: now,
   };
-  const inserted = await db.from(POSITIONS_TABLE).insert(values).select(POSITION_FIELDS).maybeSingle();
+  const inserted = await db.from(POSITIONS_TABLE).insert(values).select(positionFields()).maybeSingle();
 
   // A retry never upserts or replaces an existing record. Only the expected unique-key
   // refusal admits an owner-scoped readback; an outage cannot turn into a new insertion.
   if (clientPositionId && inserted.error?.code === "23505") {
-    const reread = await db.from(POSITIONS_TABLE).select(POSITION_FIELDS)
+    const reread = await db.from(POSITIONS_TABLE).select(positionFields())
       .eq("user_id", userId).eq("id", clientPositionId).maybeSingle();
     if (reread.error) return { ok: false, error: "position confirmation failed", status: 500 };
     const existingRow = one(reread);
@@ -369,6 +406,9 @@ export async function createPosition(
       && existing.shares === values.shares && existing.entryPrice === values.entry_price
       && (existing.entryCurrency ?? null) === values.entry_currency
       && existing.entryDate === values.entry_date && existing.notes === values.notes
+      && (existing.entryAt ?? null) === (history.entry_executed_at ?? null)
+      && (existing.exitDate ?? null) === (history.exit_date ?? null)
+      && (existing.exitAt ?? null) === (history.exit_executed_at ?? null)
       && existing.status === values.status) {
       return { ok: true, position: existing };
     }
@@ -409,7 +449,8 @@ export async function updatePosition(
   }
   if (!owned) return { ok: false, error: "position not found", status: 404 };
 
-  const values: DbRow = {};
+  const values=executionPatch(patch,owned);
+  if(!values)return {ok:false,status:400,error:"invalid execution history"};
   if (patch.ticker !== undefined) {
     const ticker = normalizeTicker(patch.ticker);
     if (!ticker) return { ok: false, error: "invalid ticker", status: 400 };
@@ -453,7 +494,7 @@ export async function updatePosition(
     .update(values)
     .eq("user_id", userId)
     .eq("id", owned.id)
-    .select(POSITION_FIELDS)
+    .select(positionFields())
     .maybeSingle();
   if (updated.error) return { ok: false, error: "position update failed", status: 500 };
   const row = one(updated);
@@ -516,6 +557,18 @@ export function resolveLast(
   return pick(quotes[ticker]?.last) ?? pick(manifest[ticker]?.last);
 }
 
+export function positionPrice(position:Position,quote:PriceObservation,fallback:PriceObservation){
+  const broker=position.brokerage;
+  if(!broker)return nativePrice(quote,fallback);
+  // Institution prices can represent options contracts or fixed-income instruments with a multiplier.
+  // Only a simple equity whose provider value proves the multiplier of one can use a share quote.
+  const unit=priceCurrency(broker.currency);
+  const quoted=broker.symbol && ["equity","etf","mutual fund"].includes(broker.type??"") && unit && finite(broker.value) && finite(broker.price) && finite(position.shares) &&
+    Math.abs(position.shares*broker.price-broker.value)<0.011 ? nativePrice(quote,null) : null;
+  if(quoted?.currency===unit && quoted)return quoted;
+  return unit && finite(broker.value) && finite(position.shares) && position.shares!==0 ?
+    {last:broker.value/position.shares,currency:unit,chg:null} : null;
+}
 export function marketValue(position: Position, last: number | null, quoteCurrency?: unknown): number | null {
   return priceCurrency(quoteCurrency) ? finiteProduct(position.shares, last) : null;
 }
@@ -569,7 +622,7 @@ export function bookTotals(
       costs.push({ amount: historicalCost ?? NaN, currency: entryUnit });
       if (!entryUnit || historicalCost === null) gap(monetaryGaps, position.ticker);
     }
-    const quote = nativePrice(quotes[position.ticker], manifest[position.ticker]);
+    const quote = positionPrice(position,quotes[position.ticker],manifest[position.ticker]);
     const value = quote ? finiteProduct(position.shares, quote.last) : null;
     if (!quote || !finite(position.shares)) { if (!quote) gap(unpriced, position.ticker); continue; }
     values.push({ amount: value ?? NaN, currency: quote.currency });
@@ -610,5 +663,5 @@ export function bookTotals(
 /** Distinct tickers to ask the quote hub for — one batched call, deduped, open AND closed (a closed
  *  row still shows a last price so the user can see what they left). */
 export function quoteSymbols(positions: readonly Position[]): string[] {
-  return [...new Set(positions.map((position) => position.ticker))];
+  return [...new Set(positions.filter(p => !p.brokerage || p.brokerage.symbol).map(position => position.ticker))];
 }

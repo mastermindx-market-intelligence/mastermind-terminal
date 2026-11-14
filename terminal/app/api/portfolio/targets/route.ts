@@ -4,7 +4,8 @@ import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
-import { normalizeTicker, readPositions, type PortfolioDb } from "@/lib/portfolio";
+import { normalizeTicker, type PortfolioDb } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import type { DbRow } from "@/lib/watchlists";
 import {
   computePortfolioTargets,

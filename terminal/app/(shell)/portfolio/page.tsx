@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL, SHARED_SHELL_DEV_SUBJECT } from "@/lib/shared-shell/devOpen";
 import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
+import {readPositions as readConnectedPositions} from "@/lib/brokerage/book.server";
 import SignupGate from "@/components/gates/SignupGate";
 import { readPositions } from "@/lib/portfolio";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -45,6 +46,7 @@ export default async function PortfolioPage() {
         // The SAME immutable id the seed was read under — owner and seed bind in one server
         // result, so the client's write fence can never name a different account than the one
         // this page rendered.
+        historyEnabled={process.env.PORTFOLIO_EXECUTION_TIMES === "1"}
         userId={userId}
         email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"}
       />
@@ -76,13 +78,15 @@ export default async function PortfolioPage() {
   // of honest on a holdings surface, and in practice the service had already swallowed the error
   // before this try/catch could observe it. The view now receives the FACT that the read failed
   // and says so, with a retry that re-reads through the same /api/portfolio contract.
-  const read = await readPositions(supabase as never, user.id);
+  const read = await readConnectedPositions(supabase as never, user.id);
   return (
     <PortfolioViewMount
       positions={read.ok ? read.positions : []}
       unreadable={!read.ok}
       // `user.id` is OWNERSHIP; the email above is presentation. The view fences every queued
       // write and quote generation on this id, in the same result that scoped the seed read.
+      historyEnabled={process.env.PORTFOLIO_EXECUTION_TIMES === "1"}
+      brokerageEnabled={process.env.PORTFOLIO_BROKERAGE_ENABLED === "1"}
       userId={user.id}
       email={user.email || ""}
     />
