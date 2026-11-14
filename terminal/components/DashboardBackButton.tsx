@@ -16,7 +16,7 @@ export default function DashboardBackButton({
   const t = useT();
   const { lang } = useLang();
   const workspace = macroReturnWorkspace(returnHref);
-  const names = { analysis: ["Analysis", "分析"], discover: ["Discover", "发现"], portfolio: ["Portfolio", "投资组合"], monitor: ["Monitor", "监控"], research: ["Research", "研究"], today: ["Today", "今日"] };
+  const names = { analysis: ["Analysis", "分析"], discover: ["Discover", "发现"], portfolio: ["Portfolio", "投资组合"], monitor: ["Monitor", "监控"], research: ["Research", "研究"], today: ["Today", "今日"], equityReplay: ["Equity depth replay", "股票深度回放"] };
   const destination = workspace ? names[workspace][lang === "zh" ? 1 : 0] : t("dashboard");
   const label = workspace ? (lang === "zh" ? `返回${destination}` : `Back to ${destination}`) : t("backToDashboard");
 

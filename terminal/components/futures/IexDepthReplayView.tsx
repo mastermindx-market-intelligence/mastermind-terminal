@@ -1,8 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useLang, applyLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { parseIexDepthQuery } from "@/lib/iexDepthQuery";
 import { fetchLargeTrades } from "@/lib/largeTrades/client";
 import { parseIexDepthEnvelope, iexExecutionProfile, iexDepthPriceRange, type IexDepthEnvelope, type IexDepthPoint } from "@/lib/iexDepthReplay";
 import { useChartWidth, padDomain, niceTicks, fmtTick, thinLabels } from "@/components/charts/svgChart";
@@ -45,13 +49,39 @@ function DepthSnapshots({ samples, zh, range }: { samples: IexDepthPoint[]; zh: 
 type State = { key: string; status: "loading" | "ready" | "unavailable"; envelope?: IexDepthEnvelope };
 export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: string }) {
   const { lang } = useLang(), owner = useShellIdentity(), zh = lang === "zh";
+  const path = usePathname(), search = useSearchParams().toString();
+  const shell = useOptionalSharedShellPresentation();
+  const selection = useMemo(() => parseIexDepthQuery(new URLSearchParams(search)), [search]);
+  const symbol = selection?.symbol ?? null;
+  const sourceKey = JSON.stringify(owner) + ":" + symbol;
   const pick = (en: string, cn: string) => zh ? cn : en;
-  const [symbol, setSymbol] = useState(initialSymbol), [refresh, setRefresh] = useState(0);
+  const [refresh, setRefresh] = useState(0);
   const [index, setIndex] = useState(-1), [mode, setMode] = useState<"depth" | "footprint">("depth");
+  const [boundSource, setBoundSource] = useState(sourceKey);
   const [range, setRange] = useState<"near" | "all">("near");
   const [state, setState] = useState<State>({ key: "", status: "loading" });
-  const key = JSON.stringify(owner) + ":" + symbol + ":" + refresh;
+  // Retire this visit's accepted archive before a different/restored instrument
+  // or account can paint. A→B→A must await A's new read, including after refusal.
+  // Market context alone changes neither this binding nor the source lifecycle.
+  if (boundSource !== sourceKey) {
+    setBoundSource(sourceKey); setIndex(-1); setState({ key: "", status: "loading" });
+  }
+  const [returnHref, setReturnHref] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    const update = () => setReturnHref(window.location.href);
+    update();
+    window.addEventListener("popstate", update);
+    window.addEventListener("hashchange", update);
+    window.addEventListener("mmx:shell-location", update);
+    return () => {
+      window.removeEventListener("popstate", update);
+      window.removeEventListener("hashchange", update);
+      window.removeEventListener("mmx:shell-location", update);
+    };
+  }, [path, search]);
+  const key = sourceKey + ":" + refresh;
   useEffect(() => {
+    if (!symbol) return;
     const controller = new AbortController();
     void fetchLargeTrades(symbol, controller.signal).then(result => {
       if (controller.signal.aborted) return;
@@ -60,7 +90,8 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
     }).catch(() => { if (!controller.signal.aborted) setState({ key, status: "unavailable" }); });
     return () => controller.abort();
   }, [key, symbol]);
-  const active = state.key === key ? state : { key, status: "loading" as const };
+  const active = !symbol ? { key, status: "unavailable" as const }
+    : state.key === key ? state : { key, status: "loading" as const };
   const envelope = active.status === "ready" ? active.envelope : undefined;
   const points = envelope?.depthReplay.samples ?? [];
   const cursor = index < 0 ? points.length - 1 : Math.min(index, points.length - 1), current = points[cursor];
@@ -68,16 +99,38 @@ export default function IexDepthReplayView({ initialSymbol }: { initialSymbol: s
     if (!envelope || !current) return null;
     try { return iexExecutionProfile(envelope, current); } catch { return null; }
   }, [envelope, current]);
-  const choose = (s: string) => { setSymbol(s); setIndex(-1); window.history.replaceState(null, "", "/options/equity-replay?symbol="+s); };
+  const choose = (next: string) => {
+    const url = new URL(window.location.href);
+    if (url.pathname !== "/options/equity-replay") return;
+    url.searchParams.set("symbol", next);
+    if (!parseIexDepthQuery(url.searchParams)) return;
+    setIndex(-1);
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event("mmx:shell-location"));
+  };
+  let chartHref: string | null = symbol && !shell ? `/terminal?sym=${encodeURIComponent(symbol)}` : null;
+  if (symbol && shell && returnHref) {
+    const current = new URL(returnHref);
+    // popstate can precede Next's parameter commit. Never pair one symbol with
+    // another symbol's return address during that transition.
+    if (current.pathname === "/options/equity-replay" && current.pathname === path
+      && current.searchParams.toString() === search && parseIexDepthQuery(current.searchParams)?.symbol === symbol)
+      chartHref = sharedShellTerminalHref(returnHref, symbol);
+  }
   return <main className="main2" style={{ overflow: "auto", minWidth: 0 }}><section className={css.page} data-testid="iex-depth-replay" lang={lang}>
     <header className={css.header}><div><h1>{pick("Equity depth replay", "股票深度回放")}</h1>
       <p>{pick("IEX venue only · historical archive · shares, not futures contracts", "仅 IEX 场所 · 历史档案 · 单位为股，不是期货合约")}</p>
-      <p><Link href="/options/futures">{pick("Futures workspace", "期货工作区")}</Link> · <Link href="/terminal">{pick("Price chart", "价格图表")}</Link></p></div>
+      <nav className={css.headerLinks} aria-label={pick("Related workspaces", "相关工作区")}>
+        <Link href="/options/futures" prefetch={false}>{pick("Futures workspace", "期货工作区")}</Link>
+        {chartHref ? <Link href={chartHref} prefetch={false}>{pick("Price chart", "价格图表")}</Link>
+          : <span aria-disabled="true">{pick("Price chart", "价格图表")}</span>}
+      </nav></div>
       <button aria-label="Language" onClick={() => applyLang(zh ? "en" : "zh")}>{pick("中文", "English")}</button>
     </header>
     <section className={css.controls}>
-      <label>{pick("Symbol", "代码")}<select aria-label={pick("Symbol", "代码")} value={symbol} onChange={e => choose(e.target.value)}>
-        {[...new Set([initialSymbol,"NVDA","SPY","QQQ"])].map(s => <option key={s}>{s}</option>)}</select></label>
+      <label>{pick("Symbol", "代码")}<select aria-label={pick("Symbol", "代码")} value={symbol ?? ""} onChange={e => choose(e.target.value)}>
+        {!symbol && <option value="" disabled>{pick("Choose a symbol", "选择代码")}</option>}
+        {[...new Set([initialSymbol,...(symbol ? [symbol] : []),"NVDA","SPY","QQQ"])].map(s => <option key={s}>{s}</option>)}</select></label>
       <button onClick={() => { setIndex(-1); setRefresh(n => n+1); }}>{pick("Refresh source", "刷新来源")}</button>
       <label>{pick("Price window", "价格视窗")}<select aria-label={pick("Price window", "价格视窗")} value={range} onChange={e => setRange(e.target.value as "near" | "all")}>
         <option value="near">{pick("Near observed top (±1%)", "观测簿顶附近（±1%）")}</option><option value="all">{pick("All retained levels", "全部保留价位")}</option></select></label>

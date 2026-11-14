@@ -4,6 +4,7 @@ import { getLiveOptionsAccessDetail } from "@/lib/entitlement";
 import OptionsPaywall from "@/components/OptionsPaywall";
 import OptionsServiceUnavailable from "@/components/OptionsServiceUnavailable";
 import IexDepthReplayMount from "@/components/mounts/IexDepthReplayMount";
+import { parseIexDepthQuery } from "@/lib/iexDepthQuery";
 
 export const metadata: Metadata = { title: "Equity depth replay · Mastermind Terminal", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -21,9 +22,14 @@ export default async function EquityReplayPage({ searchParams }: {
     if (access.access === "denied") return <OptionsPaywall verifySession={access.reason === "authentication_denied"} />;
     if (access.access === "unavailable") return <OptionsServiceUnavailable />;
   }
-  const query = await searchParams;
-  if (Object.keys(query).some(k => k !== "symbol") || Array.isArray(query.symbol)) notFound();
-  const symbol = query.symbol ?? "NVDA";
-  if (!/^[A-Z0-9][A-Z0-9.\-]{0,7}$/.test(symbol)) notFound();
-  return <IexDepthReplayMount initialSymbol={symbol} />;
+  const input = await searchParams, query = new URLSearchParams();
+  if (Object.keys(input).some(key => key !== "symbol" && key !== "workspaceMarket")) notFound();
+  if (Array.isArray(input.symbol) || Array.isArray(input.workspaceMarket)) notFound();
+  for (const [key, value] of Object.entries(input)) {
+    if (Array.isArray(value)) value.forEach(item => query.append(key, item));
+    else if (value !== undefined) query.append(key, value);
+  }
+  const selection = parseIexDepthQuery(query);
+  if (!selection) notFound();
+  return <IexDepthReplayMount initialSymbol={selection.symbol} />;
 }

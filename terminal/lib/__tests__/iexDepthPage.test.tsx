@@ -18,6 +18,22 @@ describe("historical depth page keeps the incumbent Options boundary",()=>{
  it("authority outage stays closed without a misleading paywall",async()=>{vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({ access: "unavailable", reason: "authority_unavailable" });expect((await ask()).type).toBe(Unavailable);});
  it("transient authentication denial invokes bounded session verification",async()=>{vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({ access: "denied", reason: "authentication_denied" });const result=await ask();expect(result.type).toBe(Paywall);expect(result.props.verifySession).toBe(true);});
  it("an authorized user gets the exact validated source symbol",async()=>{vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({ access: "allowed", reason: "verified" });const r=await ask({symbol:"SPY"});expect(r.type).toBe(Mount);expect(r.props.initialSymbol).toBe("SPY");});
- for(const query of [{symbol:["SPY","QQQ"]},{symbol:"../NVDA"},{url:"https://example.com"},{symbol:"aapl"}])
+ it.each(["us","cn","hk","ca","intl"])("admits %s research context without changing the IEX symbol",async workspaceMarket=>{
+  vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({access:"allowed",reason:"verified"});
+  const r=await ask({symbol:"SPY",workspaceMarket});expect(r.type).toBe(Mount);expect(r.props).toEqual({initialSymbol:"SPY"});
+ });
+ it("keeps the absent-symbol default under research context",async()=>{
+  vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({access:"allowed",reason:"verified"});
+  expect((await ask({workspaceMarket:"hk"})).props.initialSymbol).toBe("NVDA");
+ });
+ it.each(["", "crypto", "US", ["us"], [], ["us","us"], ["us","hk"]])("refuses invalid or repeated market context %s",async workspaceMarket=>{
+  vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({access:"allowed",reason:"verified"});
+  await expect(ask({symbol:"SPY",workspaceMarket})).rejects.toThrow("NOT_FOUND");
+ });
+ it("does not use valid market context to bypass unavailable authority",async()=>{
+  vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({access:"unavailable",reason:"authority_unavailable"});
+  expect((await ask({symbol:"SPY",workspaceMarket:"us"})).type).toBe(Unavailable);
+ });
+ for(const query of [{symbol:["SPY","QQQ"]},{symbol:"../NVDA"},{url:"https://example.com"},{url:undefined},{url:[]},{symbol:"aapl"}])
   it("refuses malformed or arbitrary source selectors",async()=>{vi.mocked(getLiveOptionsAccessDetail).mockResolvedValue({ access: "allowed", reason: "verified" });await expect(ask(query)).rejects.toThrow("NOT_FOUND");});
 });
