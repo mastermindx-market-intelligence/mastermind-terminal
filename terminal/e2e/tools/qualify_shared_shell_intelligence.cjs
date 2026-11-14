@@ -19,7 +19,8 @@ require.extensions['.ts'] = (module, filename) => {
   const historyFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorCycleHistory.ts');
   const liquidityFixture = path.join(ROOT,'lib/__tests__/fixtures/macroLiquidity.ts');
   const candidateFixture = path.join(ROOT,'lib/__tests__/fixtures/prophetCandidatePool.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture) throw Error('fixture loader scope');
+  const todayFixture = path.join(ROOT,'lib/__tests__/fixtures/todayDailyDesk.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture && resolved !== todayFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
@@ -28,6 +29,8 @@ const sectorGeneration = require('../../lib/__tests__/fixtures/sector_generation
 const {syntheticCycleHistory:cycleHistory,syntheticCycleHistorySha:cycleHistorySha} = require('../../lib/__tests__/fixtures/sectorCycleHistory.ts');
 const {liquidityFixture} = require('../../lib/__tests__/fixtures/macroLiquidity.ts');
 const {candidatePoolFixture} = require('../../lib/__tests__/fixtures/prophetCandidatePool.ts');
+const {todayMarketFixture,todayPersonalBriefFixture,todayChangesFixture,todayDigestFixture,
+ todayCatalogFixture,todayWatchlistFixture,TODAY_SAVED_SELECTION} = require('../../lib/__tests__/fixtures/todayDailyDesk.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -68,6 +71,10 @@ report.sourceFiles=Object.fromEntries([
  'lib/prophetCandidatePool.ts', 'lib/prophetUrlState.ts',
  'lib/shared-shell/useReadingScope.ts', 'lib/shared-shell/readingProxy.ts',
  'lib/__tests__/fixtures/prophetCandidatePool.ts',
+ 'components/workspaces/TodayWorkspace.tsx', 'components/workspaces/TodayWorkspace.module.css',
+ 'components/workspaces/TodayDeskDestinations.tsx', 'components/workspaces/TodaySinceLastVisit.tsx',
+ 'components/workspaces/TodayRiskEvents.tsx', 'components/workspaces/TodayResearchAttention.tsx',
+ 'components/workspaces/TodayBreadthReading.tsx', 'lib/__tests__/fixtures/todayDailyDesk.ts',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
  'components/sector-intelligence/SectorCycleHistory.tsx',
  'components/sector-intelligence/SectorCycleLens.tsx',
@@ -524,6 +531,118 @@ async function qualifyCandidates(page,cell) {
   report.cells.push({w:page.viewportSize().width,journey:'native-prophet-candidates',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_DATA',fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(candidatePoolFixture())).digest('hex'),candidateReads,sectorQueries,passed:true});
 }
 
+async function qualifyToday(page,cell) {
+  let marketRead=todayMarketFixture(),marketStatus=200,changesStatus=200;
+  const counts={market:0,brief:0,comparison:0,catalog:0,watchlists:0,breadth:0,reportBodies:0},comparisonInputs=[];
+  await page.addInitScript(({owner,selection})=>{
+    // Seed one synthetic existing revision using readingContracts' exact key format.
+    // Never substitute a current revision when the user resumes this saved selection.
+    const pointer=`mm.research.last.v1:${owner}`;
+    if(!localStorage.getItem(pointer)){
+      const key=['reading-progress',owner,selection.docId,selection.sourcePdfSha256,selection.extractedTextSha256,selection.extractorVersion,selection.segmenterVersion].join('|');
+      localStorage.setItem(key,JSON.stringify({segmentStart:7}));localStorage.setItem(pointer,JSON.stringify({selection}));
+    }
+    window.__todayDigestWrites=0;
+    const write=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(key,value){if(key==='mmx.today.since.v1')window.__todayDigestWrites++;return write.call(this,key,value);};
+  },{owner:OWNER,selection:TODAY_SAVED_SELECTION});
+  await page.route('**/api/shared-shell/today',route=>{counts.market++;return route.fulfill({status:marketStatus,json:marketStatus===200?marketRead:{error:'synthetic source unavailable'}});});
+  await page.route('**/api/portfolio-brief',route=>{counts.brief++;return route.fulfill({json:todayPersonalBriefFixture()});});
+  await page.route('**/api/portfolio-changes',route=>{
+    counts.comparison++;expect(route.request().method()).toBe('POST');
+    const previous=route.request().postDataJSON().previous;comparisonInputs.push(previous);
+    return route.fulfill({status:changesStatus,json:changesStatus===200?{...todayChangesFixture(),first_visit:previous===null}:{error:'synthetic comparison unavailable'}});
+  });
+  await page.route('**/api/shared-shell/research/catalog',route=>{counts.catalog++;return route.fulfill({json:todayCatalogFixture()});});
+  await page.route('**/api/shared-shell/research/read/**',route=>{counts.reportBodies++;return route.fulfill({status:503,json:{error:'No automatic body read'}});});
+  await page.route('**/api/watchlist',route=>{counts.watchlists++;return route.fulfill({json:todayWatchlistFixture()});});
+  await page.route('**/api/market-breadth',route=>{counts.breadth++;return route.fulfill({status:503,json:{error:'synthetic independent source unavailable'}});});
+  await page.route('**/api/shared-shell/prophet-candidates',route=>route.fulfill({json:candidatePoolFixture()}));
+  const presentation=async(lang,mode)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(mode==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',mode);
+  };
+  const savedHref='/research?'+new URLSearchParams({doc_id:TODAY_SAVED_SELECTION.docId,source_pdf_sha256:TODAY_SAVED_SELECTION.sourcePdfSha256,
+    extracted_text_sha256:TODAY_SAVED_SELECTION.extractedTextSha256,extractor_version:TODAY_SAVED_SELECTION.extractorVersion,
+    segmenter_version:TODAY_SAVED_SELECTION.segmenterVersion,segment_start:'7'}).toString();
+  const since=page.locator('[data-today-since-state]'),summary=page.locator('[data-today-market-summary]'),market=page.locator('[data-today-market-snapshot]');
+  const capture=async name=>{await noOverflow(page);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-'+name+'.png')});};
+  const width=page.viewportSize().width,height=page.viewportSize().height;
+  await page.goto(BASE+'/today?workspaceMarket=us');
+  await expect(since).toHaveAttribute('data-today-since-state','ready',{timeout:30000});
+  await presentation('en',width===1440?'dark':'light');
+  await expect(summary).toHaveText('Liquidity is mixed. Growth is picking up.');
+  await expect(page.getByRole('heading',{level:1,name:'Today',exact:true})).toBeVisible();
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);
+  await expect(market.locator('iframe')).toHaveCount(0);
+  await expect(page.locator('[data-breadth-cell]')).toContainText('Breadth reading unavailable');
+  await expect(since).toContainText('No earlier comparison is available');
+  await expect(page.locator('[data-today-brief-context]')).toContainText("The desk's daily read: Mixed.");
+  await expect(page.locator('section[aria-labelledby$="-continue"]').getByRole('heading',{name:'Memory & storage: what still needs proof',exact:true})).toBeVisible();
+  await expect(page.locator('[data-today-attention-state]')).toHaveAttribute('data-today-attention-state','ready');
+  await expect(page.getByRole('link',{name:'Resume reading',exact:true})).toHaveAttribute('href',savedHref);
+  await expect(page.locator('[data-today-source-details]')).not.toHaveAttribute('open','');
+  expect(counts.comparison).toBe(1);expect(counts.reportBodies).toBe(0);
+  expect(await page.evaluate(()=>window.__todayDigestWrites)).toBe(1);
+  const stored=await page.evaluate(()=>localStorage.getItem('mmx.today.since.v1'));
+  expect(JSON.parse(stored)[`account:${OWNER}`]).toEqual(todayDigestFixture());
+  await capture('reading-visible-en');
+  const before={...counts};
+  await since.evaluate(el=>{window.__todaySinceNode=el;});
+  const disclosure=page.locator('[data-today-source-details] summary');
+  await disclosure.focus();await page.keyboard.press('Enter');await expect(disclosure).toBeFocused();
+  await expect(page.locator('[data-today-source-details]')).toHaveAttribute('open','');
+  await expect(page.locator('[data-today-reading="inflation"]')).toBeVisible();
+  await since.locator('summary').click();await expect(since).toContainText('This account · this browser');
+  await presentation('zh',width===820?'light':'dark');
+  await expect(summary).toHaveText('流动性不均衡。增长正在回升。');
+  await page.setViewportSize({width:width===320?820:320,height});await noOverflow(page);
+  await page.setViewportSize({width,height});await noOverflow(page);
+  expect(await since.evaluate(el=>window.__todaySinceNode===el)).toBe(true);
+  expect(counts).toEqual(before);expect(await page.evaluate(()=>window.__todayDigestWrites)).toBe(1);
+  expect(await page.evaluate(()=>localStorage.getItem('mmx.today.since.v1'))).toBe(stored);
+  await expect(page.getByRole('link',{name:'继续阅读',exact:true})).toHaveAttribute('href',savedHref);
+  await capture('sources-and-basis-zh');
+
+  // A new explicit visit may read again; a failed comparison must preserve its accepted baseline.
+  marketRead=todayMarketFixture();marketRead.read.clauses=[];changesStatus=503;
+  await page.reload();await presentation('en','light');
+  await expect(summary).toHaveText('A market summary was not published.');
+  await expect(page.locator('[data-today-reading="money"]')).toContainText('Tight and thin');
+  await expect(since).toHaveAttribute('data-today-since-state','unavailable');
+  await expect(page.locator('[data-today-brief-context]')).toContainText("The desk's daily read: Mixed.");
+  expect(await page.evaluate(()=>localStorage.getItem('mmx.today.since.v1'))).toBe(stored);
+  expect(await page.evaluate(()=>window.__todayDigestWrites)).toBe(0);
+  await capture('summary-and-comparison-unavailable');
+  changesStatus=200;await since.getByRole('button',{name:'Check again',exact:true}).click();
+  await expect(since).toHaveAttribute('data-today-since-state','ready');await expect(since).toContainText('No tracked changes in this reading.');
+  expect(comparisonInputs.at(-1)).toEqual(todayDigestFixture());
+  marketStatus=503;await page.reload();await presentation('en','light');
+  await expect(page.getByRole('heading',{name:'Market reading unavailable',exact:true})).toBeVisible();
+  await expect(since).toHaveAttribute('data-today-since-state','ready');await expect(summary).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Resume reading',exact:true})).toHaveAttribute('href',savedHref);
+  await capture('market-unavailable-desk-retained');
+  marketStatus=200;marketRead=todayMarketFixture();await page.getByRole('button',{name:'Try again',exact:true}).click();await expect(summary).toBeVisible();
+  await market.getByRole('link',{name:'Open market overview',exact:true}).click();
+  await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');await expect(page.locator('[data-intelligence-overview]')).toBeVisible();
+  await page.goBack();await expect(page).toHaveURL(BASE+'/today?workspaceMarket=us');await expect(summary).toBeVisible();
+  await page.locator('main a[href="/prophet?tab=candidates&workspaceMarket=us"]').click();
+  await expect(page).toHaveURL(BASE+'/prophet?tab=candidates&workspaceMarket=us');
+  await expect(page.getByTestId('prophet-candidates')).toHaveAttribute('data-read-state','ready');
+  await page.goBack();await expect(summary).toBeVisible();
+  await page.locator('main a[href="/sectors?sectorJob=explore&workspaceMarket=us"]').click();
+  await expect(page).toHaveURL(BASE+'/sectors?sectorJob=explore&workspaceMarket=us');
+  await expect(page.getByTestId('sector-native-job-explore')).toHaveAttribute('aria-selected','true');
+  await page.goBack();await expect(summary).toBeVisible();
+  expect(counts.reportBodies).toBe(0);
+  report.cells.push({w:width,journey:'native-today-daily-desk',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_OR_ACCOUNT_DATA',
+    fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(todayMarketFixture())).digest('hex'),counts,
+    presentationKeptReaderIdentity:true,presentationDigestWrites:1,savedRevisionHref:savedHref,passed:true});
+}
+
 (async()=>{
  try{
   const authBase=await startFixture();
@@ -537,8 +656,8 @@ async function qualifyCandidates(page,cell) {
   for(let i=0;i<100;i++){if(child.exitCode!==null)throw Error(`Next exited ${child.exitCode}`);try{const r=await fetch(BASE+'/api/shared-shell/status',{signal:AbortSignal.timeout(2000)});if(r.ok){ready=true;break;}}catch{}await sleep(1000);}
   if(!ready)throw Error('local Next readiness not established');
   browser=await chromium.launch({headless:true});
-  // Warm only these exact three real routes, with the same synthetic authority.
-  for(const dest of ['/intelligence','/prophet','/sectors']){
+  // Warm only the qualified real routes, with the same synthetic authority.
+  for(const dest of ['/intelligence','/prophet','/sectors','/today']){
    const r=await fetch(BASE+dest,{headers:{cookie:`sb-127-auth-token=base64-${Buffer.from(JSON.stringify(session())).toString('base64url')}`},signal:AbortSignal.timeout(120000)});
    if(!r.ok)throw Error(`${dest} warm HTTP ${r.status}`);await r.text();
   }
@@ -626,6 +745,9 @@ async function qualifyCandidates(page,cell) {
    const candidateContext=await context(),candidatePage=await candidateContext.newPage();
    await candidatePage.setViewportSize({width,height});candidatePage.on('pageerror',error=>report.errors.push({cell:`candidates-${width}`,error:error.message}));
    await qualifyCandidates(candidatePage,`candidates-${width}`);await candidateContext.close();
+   const todayContext=await context(),todayPage=await todayContext.newPage();
+   await todayPage.setViewportSize({width,height});todayPage.on('pageerror',error=>report.errors.push({cell:`today-${width}`,error:error.message}));
+   await qualifyToday(todayPage,`today-${width}`);await todayContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

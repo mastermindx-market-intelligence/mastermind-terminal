@@ -4,7 +4,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TodayDeskDestinations from "@/components/workspaces/TodayDeskDestinations";
 import routes from "@/lib/sharedShellRoutes.generated.json";
-import { SHARED_SHELL_MARKETS } from "@/lib/sharedShellNavigation";
+import { parseSectorState } from "@/lib/sectorIntelligence";
+import { parseProphetState } from "@/lib/prophetUrlState";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const locale = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
@@ -24,21 +25,27 @@ describe("Today existing research destinations", () => {
     await render();
     const paths = new Set<string>([...routes.legacyPaths, ...routes.nativePaths]);
     const links = Array.from(container.querySelectorAll("a"));
-    expect(links).toHaveLength(8);
+    expect(links).toHaveLength(5);
     for (const link of links) {
       expect(paths.has(new URL(link.href).pathname), link.getAttribute("href")!).toBe(true);
       expect(link.dataset.prefetch).toBe("false");
       expect(link.getAttribute("target")).toBeNull();
     }
     expect(container.querySelector('a[href="/discover?tab=catalysts"]')).toBeTruthy();
-    expect(container.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain("Prophet candidates");
+    expect(container.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain("Full US stock workspace");
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("reuses existing regional navigation and keeps it separate from the US reading", async () => {
+  it("enters the native candidate and Explore owners while global chrome keeps market selection", async () => {
     await render();
-    const marketLinks = Array.from(container.querySelectorAll('[aria-label="Other market overviews"] a')).map(a => a.getAttribute("href"));
-    expect(marketLinks).toEqual(SHARED_SHELL_MARKETS.filter(m => m.code !== "US").map(m => m.href));
+    const candidates=new URL(container.querySelector<HTMLAnchorElement>('a[href^="/prophet?"]')!.href);
+    const sectors=new URL(container.querySelector<HTMLAnchorElement>('a[href^="/sectors?"]')!.href);
+    expect(candidates.pathname).toBe("/prophet");
+    expect(parseProphetState(candidates.searchParams,"canonical").lane).toBe("candidates");
+    expect(parseSectorState(sectors.searchParams,sectors.pathname).sectorJob).toBe("explore");
+    expect(candidates.searchParams.get("workspaceMarket")).toBe("us");expect(sectors.searchParams.get("workspaceMarket")).toBe("us");
+    expect(container.querySelector('[aria-label="Other market overviews"]')).toBeNull();
+    expect(container.querySelector('a[href="/macro_context.html"]')).toBeTruthy();
     expect(container.textContent).not.toMatch(/\b(?:live|buy now|ranked|no risk)\b/i);
   });
 
@@ -46,7 +53,7 @@ describe("Today existing research destinations", () => {
     await render(); const before = Array.from(container.querySelectorAll("a")).map(a => a.getAttribute("href"));
     locale.lang = "zh"; await render();
     expect(container.textContent).toContain("先知候选"); expect(container.textContent).toContain("公司催化剂");
-    expect(container.textContent).toContain("香港"); expect(container.textContent).toContain("加拿大");
+    expect(container.textContent).toContain("完整的美股工作区");expect(container.textContent).toContain("完整的已发布候选池");
     expect(Array.from(container.querySelectorAll("a")).map(a => a.getAttribute("href"))).toEqual(before);
     expect(fetch).not.toHaveBeenCalled();
   });
