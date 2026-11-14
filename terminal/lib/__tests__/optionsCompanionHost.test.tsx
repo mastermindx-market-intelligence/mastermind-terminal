@@ -98,7 +98,7 @@ describe("options companion host", () => {
     expect(element.querySelector("[data-options-companion]")?.getAttribute("data-options-host")).toBe("rail");
     expect(buttonsNamed("Close options panel")).toHaveLength(1);
     expect(buttonsNamed("Pin strike on chart")).toHaveLength(1);
-    expect(element.querySelector('a[href="/options?tab=prism"]')).toBeTruthy();
+    expect(element.querySelector('a[href="/options?tab=gex&view=matrix&symbol=NVDA"]')).toBeTruthy();
     expect(pressEscape().defaultPrevented).toBe(true);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
