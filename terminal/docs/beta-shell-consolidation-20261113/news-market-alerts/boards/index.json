@@ -1,0 +1,170 @@
+[
+  {
+    "key": "N01-briefing",
+    "name": "News Intelligence \u00b7 desktop",
+    "width": 1440,
+    "height": 960,
+    "source": "N01-briefing.html"
+  },
+  {
+    "key": "N02-correction",
+    "name": "News Intelligence \u00b7 Correction reader",
+    "width": 1440,
+    "height": 960,
+    "source": "N02-correction.html"
+  },
+  {
+    "key": "N03-source-origins",
+    "name": "News Intelligence \u00b7 Compare reporting origins",
+    "width": 1440,
+    "height": 960,
+    "source": "N03-source-origins.html"
+  },
+  {
+    "key": "N04-saved-basis",
+    "name": "News Intelligence \u00b7 Saved revision",
+    "width": 1440,
+    "height": 960,
+    "source": "N04-saved-basis.html"
+  },
+  {
+    "key": "N05-buffered-stream",
+    "name": "News Intelligence \u00b7 Buffered story stream",
+    "width": 1440,
+    "height": 960,
+    "source": "N05-buffered-stream.html"
+  },
+  {
+    "key": "N06-phone-briefing",
+    "name": "News Intelligence \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "N06-phone-briefing.html"
+  },
+  {
+    "key": "N07-phone-filters",
+    "name": "News Intelligence \u00b7 Staged topic filters \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "N07-phone-filters.html"
+  },
+  {
+    "key": "N08-phone-withdrawn",
+    "name": "News Intelligence \u00b7 Withdrawn report \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "N08-phone-withdrawn.html"
+  },
+  {
+    "key": "A01-now",
+    "name": "Market Alerts \u00b7 desktop",
+    "width": 1440,
+    "height": 960,
+    "source": "A01-now.html"
+  },
+  {
+    "key": "A02-regime-evidence",
+    "name": "Market Alerts \u00b7 Observation evidence",
+    "width": 1440,
+    "height": 960,
+    "source": "A02-regime-evidence.html"
+  },
+  {
+    "key": "A03-copper-history",
+    "name": "Market Alerts \u00b7 Observed firing history",
+    "width": 1440,
+    "height": 960,
+    "source": "A03-copper-history.html"
+  },
+  {
+    "key": "A04-priority",
+    "name": "Market Alerts \u00b7 Attention priority",
+    "width": 1440,
+    "height": 960,
+    "source": "A04-priority.html"
+  },
+  {
+    "key": "A05-explore",
+    "name": "Market Alerts \u00b7 Alert explorer",
+    "width": 1440,
+    "height": 960,
+    "source": "A05-explore.html"
+  },
+  {
+    "key": "A06-phone-now",
+    "name": "Market Alerts \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "A06-phone-now.html"
+  },
+  {
+    "key": "A07-phone-partial",
+    "name": "Market Alerts \u00b7 phone \u00b7 partial coverage",
+    "width": 390,
+    "height": 844,
+    "source": "A07-phone-partial.html"
+  },
+  {
+    "key": "A08-phone-quiet",
+    "name": "Market Alerts \u00b7 Quiet edition \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "A08-phone-quiet.html"
+  },
+  {
+    "key": "A09-phone-copper",
+    "name": "Market Alerts \u00b7 Observed firing history \u00b7 phone",
+    "width": 390,
+    "height": 844,
+    "source": "A09-phone-copper.html"
+  },
+  {
+    "key": "A10-retained-history",
+    "name": "Market Alerts \u00b7 Retained market history",
+    "width": 1440,
+    "height": 960,
+    "source": "A10-retained-history.html"
+  },
+  {
+    "key": "N09-investigation",
+    "name": "Investigation \u00b7 saved evidence",
+    "width": 1440,
+    "height": 960,
+    "source": "N09-investigation.html"
+  },
+  {
+    "key": "N10-following",
+    "name": "Following \u00b7 focused stream",
+    "width": 390,
+    "height": 844,
+    "source": "N10-following.html"
+  },
+  {
+    "key": "A11-original-current",
+    "name": "Source comparison \u00b7 exact return",
+    "width": 1440,
+    "height": 960,
+    "source": "A11-original-current.html"
+  },
+  {
+    "key": "A12-coverage",
+    "name": "Source coverage \u00b7 investigation",
+    "width": 1440,
+    "height": 960,
+    "source": "A12-coverage.html"
+  },
+  {
+    "key": "N11-advanced-filters",
+    "name": "News Intelligence \u00b7 Advanced story filters",
+    "width": 1440,
+    "height": 960,
+    "source": "N11-advanced-filters.html"
+  },
+  {
+    "key": "N12-retained-reports",
+    "name": "News Intelligence \u00b7 Retained reports",
+    "width": 1440,
+    "height": 960,
+    "source": "N12-retained-reports.html"
+  }
+]
