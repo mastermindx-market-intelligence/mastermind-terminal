@@ -109,7 +109,7 @@ async function analysisChartReturn(page:Page,lang:"en"|"zh",symbol:string) {
  const researchUrl=page.url();
  const visibleChrome=page.locator(".shared-shell > .topbar:visible, .shared-shell > .mobilebar:visible");
  await expect(visibleChrome).toHaveCount(1);
- const desktopChart=page.locator(".shared-shell > .topbar .shared-shell-terminal-link");
+ const desktopChart=page.locator(".shared-shell .appnav a[data-shell-terminal]");
  let href:string|null;
  if(await page.locator(".shared-shell > .topbar").isVisible()) {
   await expect(desktopChart).toBeVisible();
@@ -621,7 +621,7 @@ for(const lang of ["en","zh"] as const) {
    await page.locator(".ci-evidence-close").click();
    const chartUrl=await analysisChartReturn(page,lang,"AAPL");
    const researchUrl=page.url();
-   await page.locator(".shared-shell-terminal-link").click();
+   await page.locator(".shared-shell .appnav a[data-shell-terminal]").click();
    await expect(page).toHaveURL(chartUrl);
    await expect(page.locator(".pair b")).toHaveText("AAPL");
    await page.locator(".brand-back").click();

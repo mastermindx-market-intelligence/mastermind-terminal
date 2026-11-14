@@ -30,10 +30,10 @@ export function historySegments(points: EconomicPoint[], x: (point: EconomicPoin
 }
 export const economicNumber = (value: number | null, lang: "en" | "zh", missing: string) => value === null ? missing : new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 6 }).format(value);
 
-export default function MacroEconomicHistory({ entries, sources, selection, onSelect, lang, onEvidence }: {
+export default function MacroEconomicHistory({ entries, sources, selection, onSelect, lang, onEvidence, heading, description }: {
   sources: EconomicSource[];
   entries: EconomicSeries[]; selection: EconomicSelection; onSelect: (change: Partial<EconomicSelection>) => void;
-  lang: "en" | "zh"; onEvidence: (sourceId: string) => void;
+  lang: "en" | "zh"; onEvidence: (sourceId: string) => void; heading?: string; description?: string;
 }) {
   const c = COPY[lang], container = useRef<HTMLDivElement>(null), width = useChartWidth(container, 700), id = useId();
   const chosen = entries.find(entry => entry.series_id === selection.series) ?? (selection.series ? null : entries.find(entry => entry.points?.some(point => point.v !== null)) ?? entries[0]);
@@ -55,7 +55,7 @@ export default function MacroEconomicHistory({ entries, sources, selection, onSe
   const number = (value: number | null) => economicNumber(value, lang, c.missing);
   const selectDate = (index: number) => { const point = points[index]; if (point && chosen) onSelect({ series: chosen.series_id, observation: point.t }); };
   return <section className={s.history} aria-labelledby={`${id}-title`}>
-    <div className={s.sectionHeading}><h2 id={`${id}-title`}>{c.title}</h2><div className={s.segment} aria-label={c.title}>
+    <div className={s.sectionHeading}><div><h2 id={`${id}-title`}>{heading ?? c.title}</h2>{description && <p className={s.caption}>{description}</p>}</div><div className={s.segment} aria-label={heading ?? c.title}>
       <button type="button" aria-pressed={selection.display === "chart"} onClick={() => onSelect({ display: "chart" })}>{c.chart}</button>
       <button type="button" aria-pressed={selection.display === "table"} onClick={() => onSelect({ display: "table" })}>{c.table}</button>
     </div></div>
@@ -82,8 +82,8 @@ export default function MacroEconomicHistory({ entries, sources, selection, onSe
           {points.map(point => point.v !== null && <circle key={point.t} cx={x(point)} cy={y(point.v)} r={points.length < 8 ? 3 : 1.5} className={s.point}/>)}
           {selected && <g><line x1={x(selected)} x2={x(selected)} y1={top} y2={bottom} className={s.crosshair}/>{selected.v !== null && <circle cx={x(selected)} cy={y(selected.v)} r={5} className={s.selectedPoint}/>}</g>}
           <rect x={left} y={top} width={right - left} height={bottom - top} fill="transparent" onPointerDown={event => {
-            const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect(); if (!rect) return;
-            const location = event.clientX - rect.left;
+            const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect(); if (!rect?.width) return;
+            const location = (event.clientX - rect.left) * width / rect.width;
             const index = points.reduce((best, point, next) => Math.abs(x(point) - location) < Math.abs(x(points[best]) - location) ? next : best, 0);
             selectDate(index);
           }}/>
