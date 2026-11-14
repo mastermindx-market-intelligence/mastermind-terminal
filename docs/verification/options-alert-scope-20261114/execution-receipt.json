@@ -1,12 +1,12 @@
 {
   "schema": "options-alert-scope-qualification.v1",
-  "recordedAt": "2026-11-14T14:26:55.635494+00:00",
+  "recordedAt": "2026-11-14T14:48:40.687889+00:00",
   "operation": "options-alert-aggregate-scope-20261114-c3",
   "base": "fe49f3b5765dd4e10721928716a6a730e78c7ae1",
   "source": {
     "terminal/components/alerts/AlertDetail.tsx": {
-      "bytes": 9546,
-      "sha256": "3b99898131ddc09b3e7fcbbb6ae8b83a75a81dba49d29e67ee8e97db6f7f4ad0"
+      "bytes": 9548,
+      "sha256": "6543513d6a694ebf6885474cf944fcd6e5c274e3c8cb5459024adab5fcbbc1bf"
     },
     "terminal/lib/__tests__/alertDetailOptionsScope.test.tsx": {
       "bytes": 5127,
@@ -17,8 +17,8 @@
       "sha256": "375eb9ce2d7f5101ef9a84c348d2562f8fbca11a4530a7479649610e5732d0ca"
     },
     "docs/OPTIONS_SUITE_COMPLETION_2026-11-14.md": {
-      "bytes": 17909,
-      "sha256": "c9aa900291175d0c96bfe474a41480ddb6a3eedc7141c13f7ba97f32b55da0ab"
+      "bytes": 17961,
+      "sha256": "62c6ae1e93125648d2301a29cbfd137f1a7e5bf32b3b56ba6964c49ebae1c105"
     }
   },
   "unit": {
@@ -41,27 +41,42 @@
     "requalificationAddedDistinctCases": 0
   },
   "capture": {
-    "id": "options-alert-aggregate-scope-20261114-c3-batch3",
+    "id": "options-alert-aggregate-scope-20261114-c3-batch3-copy-routing",
     "qualifiedFrames": 20,
     "preservedHistoricalFrames": 18,
     "sourceCount": 16,
-    "verification": "batch3-runtime/verification.json"
+    "verification": "batch3-copy-routing-runtime/verification.json",
+    "priorVerification": "batch3-runtime/verification.json",
+    "reader": "copy-routing-evidence-reader.json"
   },
   "visualReview": {
     "reviewer": "assigned principal",
     "images": [
       "captures/desktop-en-dark-opt_premium_burst.png",
       "captures/mobile-zh-light-opt_premium_burst.png",
-      "captures/desktop-zh-light-opt_0dte_spike.png"
+      "captures/desktop-zh-light-opt_0dte_spike.png",
+      "captures/copy-routing-desktop-zh-light-opt_premium_burst.png"
     ],
     "result": "readable scope, fact hierarchy and reachable focus/close controls"
   },
   "checks": "final-checks.json",
   "release": {
     "sourceQualified": true,
-    "ciAcceptance": "pending exact published head",
-    "protectedRelease": "not yet requested for this new operation",
-    "productionBrowserAcceptance": "not proven"
+    "ciAcceptance": "copy-routing failure repaired locally; new published head still requires hosted acceptance",
+    "protectedRelease": "one native auto request recorded at prior published head; retained without re-enrollment",
+    "productionBrowserAcceptance": "not proven",
+    "pr": 1527
   },
-  "unresolvedOtherOperation": "flow-receipt-pl6-control-20261114-c3 remains unqualified and was not retried"
+  "unresolvedOtherOperation": "flow-receipt-pl6-control-20261114-c3 remains unqualified and was not retried",
+  "copyRoutingCorrection": {
+    "originalPublishedHead": "531356748643ff8005fe0bfccc3a6d4fdf5abebf",
+    "failedJob": 132479106788,
+    "codeChange": "existing pick helper, same visible EN/ZH text",
+    "requalifiedUnitCases": 19,
+    "requalifiedBrowserCases": 4,
+    "additionalDistinctCases": 0,
+    "checks": "copy-routing-checks.json",
+    "browser": "copy-routing-browser.json",
+    "sourceSha256": "6543513d6a694ebf6885474cf944fcd6e5c274e3c8cb5459024adab5fcbbc1bf"
+  }
 }

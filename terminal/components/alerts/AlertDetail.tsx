@@ -73,7 +73,7 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
         {/* No holdings join yet (F08 V2) — labelled Symbol, never Holding, so this never
             asserts ownership the account has not established. */}
         <span>{coveredTapeScope
-          ? (lang === "zh" ? "覆盖范围内的期权交易" : "Covered options tape")
+          ? pick(lang === "zh", "Covered options tape", "覆盖范围内的期权交易")
           : data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
       </div>
       )}

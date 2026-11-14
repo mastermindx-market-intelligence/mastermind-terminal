@@ -1,0 +1,53 @@
+{
+  "sourceSha256": "6543513d6a694ebf6885474cf944fcd6e5c274e3c8cb5459024adab5fcbbc1bf",
+  "checks": [
+    {
+      "name": "copy-routing-unit",
+      "exit": 0,
+      "runtimeSeconds": 2.97,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/alertDetailOptionsScope.test.tsx",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/docs/verification/options-alert-scope-20261114/copy-routing-unit.json"
+      ]
+    },
+    {
+      "name": "copy-routing-plain-language",
+      "exit": 0,
+      "runtimeSeconds": 3.83,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--diff-file",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/docs/verification/options-alert-scope-20261114/copy-routing-added.diff"
+      ]
+    },
+    {
+      "name": "copy-routing-lint",
+      "exit": 0,
+      "runtimeSeconds": 4.6,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/alerts/AlertDetail.tsx"
+      ]
+    },
+    {
+      "name": "copy-routing-typescript",
+      "exit": 0,
+      "runtimeSeconds": 16.98,
+      "command": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "node_modules/typescript/lib/tsc.js",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "file": "captures/copy-routing-desktop-en-dark-opt_premium_burst.png",
+    "originalPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-copy-routing/alert-detail-options-scope-a5d90--opt-premium-burst-en-dark--desktop/attachments/aggregate-alert-scope-7ffc308087bbbeb8bac0e13c6db063952f94f1d1.png",
+    "report": "copy-routing-browser.json",
+    "project": "desktop",
+    "lang": "en",
+    "theme": "dark",
+    "kind": "opt_premium_burst",
+    "bytes": 134728,
+    "sha256": "da36cb49a5b8ee9fb9339f84a81048f19826dbf490a9f3440d4cb319883bbd69"
+  },
+  {
+    "file": "captures/copy-routing-desktop-zh-light-opt_premium_burst.png",
+    "originalPath": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-copy-routing/alert-detail-options-scope-7c798-opt-premium-burst-zh-light--desktop/attachments/aggregate-alert-scope-54df7741a227eb2cb6eb15ff808786960324d7bd.png",
+    "report": "copy-routing-browser.json",
+    "project": "desktop",
+    "lang": "zh",
+    "theme": "light",
+    "kind": "opt_premium_burst",
+    "bytes": 135111,
+    "sha256": "37c28980d813c3447e432be6769fc3472e9335f3da3bb0f10c5562c526220f76"
+  }
+]

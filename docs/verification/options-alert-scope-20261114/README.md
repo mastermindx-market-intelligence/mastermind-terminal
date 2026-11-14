@@ -13,7 +13,7 @@ This is one qualified C6 slice of the full [Options completion programme](../../
 - Acquired Terminal base: `fe49f3b5765dd4e10721928716a6a730e78c7ae1`.
 - Governing Mastermind pin: `199fd4f91ecc426b1d974eb3bf47f5162476cf24`; current Chairman full-suite assignment and Web review waiver apply.
 - Design doctrine and shared product design system read at accepted Macro `45531010b236c434504b716dbe63a88a261e317a`; Terminal keeps its existing tokens, drawer, focus owner and EN/ZH presentation.
-- One production file changes: `terminal/components/alerts/AlertDetail.tsx`. The preimage Git blob is `e6c0a726066c18e514ab7528fc85352be9d01d3a`; the qualified SHA-256 is `3b99898131ddc09b3e7fcbbb6ae8b83a75a81dba49d29e67ee8e97db6f7f4ad0`.
+- One production file changes: `terminal/components/alerts/AlertDetail.tsx`. The preimage Git blob is `e6c0a726066c18e514ab7528fc85352be9d01d3a`; the qualified SHA-256 is `6543513d6a694ebf6885474cf944fcd6e5c274e3c8cb5459024adab5fcbbc1bf`.
 
 The implementation calls the existing `isMarketWideOptKind` owner for only `opt_premium_burst` and `opt_0dte_spike`. It applies only to ordinary alerts, including the legacy omitted-kind shape. Root-specific options, price alerts, position events and thesis events retain their existing behavior. Persisted identities, trigger evaluation, throttling, delivery, holdings, API handlers and evidence URLs are unchanged.
 
@@ -60,6 +60,16 @@ The earlier, separate Flow batch1 operation `flow-receipt-pl6-control-20261114-c
 The first acquisition was NOT_APPLIED because the exact protected base object was absent from the original canonical repository. After verifying its origin, that exact commit object was fetched without updating refs, index, working tree or FETCH_HEAD. The bounded same-operation acquisition then returned an adapter qualification uncertainty. Same-owner native status and publisher readback reconciled it to this exact clean workspace and base; no further acquisition was attempted.
 
 The existing Node 22.23.4 binary was reused read-only with SHA-256 `2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0`. Child PATH was set explicitly; no HOME override or old-workspace mutation occurred.
+
+## CI copy-routing correction
+
+PR [#1527](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1527) was published at `531356748643ff8005fe0bfccc3a6d4fdf5abebf`, and one native protected release request was recorded. Hosted run [43604974983](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43604974983/job/132479106788) passed its source evidence captures and unit readers, then reported the new English literal as missing the required copy-helper route. The original [job receipt](ci-fanin-first-job.json) and [log](ci-fanin-first.log) are retained.
+
+The translated phrase now uses the already imported `pick()` owner. Its visible EN/ZH text and alert behavior are unchanged. The forward-only plain-language guard, 19 affected mounted cases, focused lint and full TypeScript all pass in [copy-routing-checks.json](copy-routing-checks.json). Four existing premium desktop browser cases across EN/ZH and dark/light passed again in [copy-routing-browser.json](copy-routing-browser.json). These are requalifications within the original 115 unit/evidence and 31 browser totals, not additional distinct tests.
+
+Because the component's bound source bytes changed, the original full batch3 producer ran again for this new source under capture ID `options-alert-aggregate-scope-20261114-c3-batch3-copy-routing`. Producer 77228 and server 77247 settled successfully at 2026-11-14T14:45:16.673368Z. [The current verification](batch3-copy-routing-runtime/verification.json) binds all 16 current inputs, all 20 frames and all 18 preserved historical images; [the current evidence reader](copy-routing-evidence-reader.json) passes four cases. The original capture and its receipts remain as history. The latest manifest SHA-256 is `6e25958d7f73a463316708d7e00a10638fd3972dca9dc8a524e815db50e0709f`, captured from actual starting head `531356748643ff8005fe0bfccc3a6d4fdf5abebf`.
+
+[Two fresh render attachments](copy-routing-capture-index.json) preserve EN dark and ZH light desktop results. Principal visual review rechecked [the ZH light result](captures/copy-routing-desktop-zh-light-opt_premium_burst.png), confirming the same readable scope, facts and visible Close focus. Unchanged mobile, keyboard and other-alert proof is retained with its original reports. The existing native auto request is preserved; no second enrollment or failed-run replay is issued.
 
 ## Next acceptance
 
