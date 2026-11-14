@@ -23,7 +23,7 @@ import {
 import { prophetFromReturnHref, type ProphetUrlState } from "@/lib/prophetUrlState";
 import { SectorGroupPicker } from "./SectorGroupPicker";
 import { SectorFocus } from "./SectorFocus";
-import { SectorMemberPopulation, readProphetSelection, toggleProphetSelection } from "./SectorMemberPopulation";
+import { SectorMemberPopulation, readProphetSelection, toggleProphetSelection, chooseProphetCompareSubject, PROPHET_COMPARE_CAP } from "./SectorMemberPopulation";
 import { MemberCompare } from "./MemberCompare";
 import { MemberSetup } from "./MemberSetup";
 import { SectorSourcesDisclosure } from "./SectorSourcesDisclosure";
@@ -45,37 +45,41 @@ function useSectorMembersFetch<T extends SectorMembersPayload>(
   query: () => { group?: string; symbol?: string; offset?: number; limit?: number; q?: string | null; state?: ProphetMemberState | null },
   keyOf: () => string,
 ): { read: Read<T>; retry: () => void } {
-  const [read, setRead] = useState<Read<T>>({ status: "loading" });
+  const [snapshot, setSnapshot] = useState<{ key: string; read: Read<T> }>({ key: "", read: { status: "loading" } });
   const [attempt, setAttempt] = useState(0);
   const seq = useRef(0);
   const abort = useRef<AbortController | null>(null);
+  const key = `${enabled}:${attempt}:${keyOf()}`;
 
   useEffect(() => {
-    if (!enabled) return;
     const mine = ++seq.current;
+    let current = true;
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
     void (async () => {
+      const setRead = (read: Read<T>) => setSnapshot({ key, read });
       setRead({ status: "loading" });
+      if (!enabled) return;
       let result: Awaited<ReturnType<typeof fetchProphetSectorMembers>>;
       try {
         result = await fetchProphetSectorMembers({ ...query(), signal: controller.signal });
       } catch (error) {
         // A superseded fetch's abort is expected; the newer cycle owns the state.
         if (error instanceof DOMException && error.name === "AbortError") return;
-        throw error;
+        if (current && mine === seq.current) setRead({ status: "unavailable" });
+        return;
       }
-      if (mine !== seq.current) return;
+      if (!current || mine !== seq.current) return;
       if (result.status === "ok") setRead({ status: "ready", payload: result.payload as T });
       else if (result.status === "retry") setRead({ status: "retry", retryAfterSec: result.retryAfterSec });
       else setRead({ status: result.status } as Read<T>);
     })();
-    return () => { controller.abort(); };
-  }, [enabled, attempt, keyOf()]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { current = false; controller.abort(); };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const retry = useCallback(() => setAttempt(n => n + 1), []);
-  return { read, retry };
+  return { read: snapshot.key === key ? snapshot.read : { status: "loading" }, retry };
 }
 
 type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
@@ -93,9 +97,18 @@ export function ProphetSectorView({ state, update }: {
   // after each render) moves focus onto the new view's heading — which may only
   // mount once the view's read is ready, so it keeps waiting instead of firing
   // on the loading block.
-  const pendingFocus = useRef(false);
+  const pendingFocus = useRef(state.view === "compare" || state.view === "setup");
+  const returnFocusPending = useRef(false);
+  const returnFocusSawReload = useRef(false);
+  const focusKey = `${state.view}|${state.group ?? ""}|${state.symbol ?? ""}`;
+  const focusView = useRef(focusKey);
   const laneBodyRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
+    if (focusView.current !== focusKey) {
+      pendingFocus.current = !returnFocusPending.current;
+      focusView.current = focusKey;
+    }
+    if (returnFocusPending.current) return;
     if (!pendingFocus.current) return;
     const body = laneBodyRef.current;
     if (body === null) return;
@@ -142,19 +155,20 @@ export function ProphetSectorView({ state, update }: {
   // its own symbol. Compare is its own view (`prophetView=compare`) — the
   // selection decides what is fetched, never a symbol-less setup address.
   const selection = readProphetSelection(state);
+  const compareSymbols = selection.slice(0, PROPHET_COMPARE_CAP);
   const compareActive = state.view === "compare";
   const cmpFetch0 = useSectorMembersFetch<SymbolPayload>(
-    compareActive && selection.length > 0,
-    () => ({ symbol: selection[0] }),
-    () => `cmp0:${compareActive ? selection[0] ?? "" : ""}`);
+    compareActive && compareSymbols.length > 0,
+    () => ({ symbol: compareSymbols[0] }),
+    () => `cmp0:${compareActive ? compareSymbols[0] ?? "" : ""}`);
   const cmpFetch1 = useSectorMembersFetch<SymbolPayload>(
-    compareActive && selection.length > 1,
-    () => ({ symbol: selection[1] }),
-    () => `cmp1:${compareActive ? selection[1] ?? "" : ""}`);
+    compareActive && compareSymbols.length > 1,
+    () => ({ symbol: compareSymbols[1] }),
+    () => `cmp1:${compareActive ? compareSymbols[1] ?? "" : ""}`);
   const cmpFetch2 = useSectorMembersFetch<SymbolPayload>(
-    compareActive && selection.length > 2,
-    () => ({ symbol: selection[2] }),
-    () => `cmp2:${compareActive ? selection[2] ?? "" : ""}`);
+    compareActive && compareSymbols.length > 2,
+    () => ({ symbol: compareSymbols[2] }),
+    () => `cmp2:${compareActive ? compareSymbols[2] ?? "" : ""}`);
   const compareFetches = [cmpFetch0, cmpFetch1, cmpFetch2];
   const comparePayloadOf = (symbol: string): SymbolPayload | null => {
     for (const fetcher of compareFetches) {
@@ -168,11 +182,9 @@ export function ProphetSectorView({ state, update }: {
     .map(fetcher => (fetcher.read.status === "ready" ? fetcher.read.payload : null))
     .find(payload => payload !== null) ?? null;
 
-  // Compare selection: toggled from the population, read tolerantly from the
-  // address. Until the URL codec publishes `sel` (Lane A's file), the patch
-  // rides the hook's React state — same call sites either way.
+  // The complete ordered URL selection is the only array sent to writers.
   const toggleSelect = (symbol: string) =>
-    update({ sel: toggleProphetSelection(selection, symbol) } as unknown as Partial<ProphetUrlState>);
+    update({ sel: toggleProphetSelection(selection, symbol) });
 
   // Every navigation arms the heading focus; filter/selection updates do not.
   const navigate = (patch: Partial<ProphetUrlState>) => {
@@ -194,11 +206,11 @@ export function ProphetSectorView({ state, update }: {
   // re-entry (its rows unmount for a loading commit), so the generic
   // view-change pass would focus the stale pre-Setup heading and then lose it
   // with the remount; this return waits for the re-read to settle instead.
-  const returnFocusPending = useRef(false);
-  const returnFocusSawReload = useRef(false);
   const returnFromSetup = () => {
+    if (state.group === null) { navigate({ view: "overview", symbol: null, plan: null }); return; }
     returnFocusPending.current = true;
     returnFocusSawReload.current = false;
+    pendingFocus.current = false;
     update({ view: "population", plan: null });
   };
   const groupReadStatus = groupFetch.read.status;
@@ -220,7 +232,7 @@ export function ProphetSectorView({ state, update }: {
     if (heading !== null) heading.focus({ preventScroll: true });
   }, [state.view, groupReadStatus]);
   const backToPopulation = () =>
-    navigate({ view: "population", symbol: null, plan: null });
+    navigate({ view: state.group === null ? "overview" : "population", symbol: null, plan: null });
   const openCompare = () =>
     navigate({ view: "compare", symbol: null, plan: null });
 
@@ -402,7 +414,7 @@ export function ProphetSectorView({ state, update }: {
         {state.view === "setup" ? (
           state.symbol !== null ? (
             symbolFetch.read.status === "ready"
-              ? <MemberSetup payload={symbolFetch.read.payload} onBack={returnFromSetup} originGroupId={state.group} />
+              ? <MemberSetup key={symbolFetch.read.payload.symbol} payload={symbolFetch.read.payload} onBack={returnFromSetup} originGroupId={state.group} />
               : fetchStateBlock(symbolFetch.read as Read<never>, symbolFetch.retry, "prophet-sector-symbol")
           ) : (
             // Setup always names a company; an address without one is not a
@@ -410,7 +422,7 @@ export function ProphetSectorView({ state, update }: {
             <div className={styles.stateCopy} data-testid="prophet-sector-setup-no-symbol" role="status">
               <p>{t("setupMissingSymbol")}</p>
               <button type="button" className={styles.smallButton} onClick={backToPopulation}>
-                {t("compareBack")}
+                {t(state.group === null ? "compareBackScreener" : "compareBack")}
               </button>
             </div>
           )
@@ -419,12 +431,15 @@ export function ProphetSectorView({ state, update }: {
         {state.view === "compare" ? (
           selection.length >= 2 ? (
             <MemberCompare
-              symbols={selection}
+              symbols={compareSymbols}
+              allSymbols={selection}
+              returnToPopulation={state.group !== null}
+              onChooseSubject={(index, symbol) => update({ sel: chooseProphetCompareSubject(selection, index, symbol) })}
               payloadOf={comparePayloadOf}
               stateBlock={index => fetchStateBlock(
                 compareFetches[index].read as Read<never>,
                 compareFetches[index].retry,
-                `prophet-sector-compare-${selection[index] ?? index}`,
+                `prophet-sector-compare-${compareSymbols[index] ?? index}`,
               )}
               onBack={backToPopulation}
               onOpenMember={openMember}
@@ -433,13 +448,11 @@ export function ProphetSectorView({ state, update }: {
             <div className={styles.stateCopy} data-testid="prophet-sector-compare-needs-more" role="status">
               <p>{t("compareNeedsMore")}</p>
               <button type="button" className={styles.smallButton} onClick={backToPopulation}>
-                {t("compareBack")}
+                {t(state.group === null ? "compareBackScreener" : "compareBack")}
               </button>
             </div>
           ) : (
-            // Refresh with compare in the address: the selection currently
-            // rides React state (Lane A's `sel` key is not merged), so it is
-            // gone. Say that — never show an empty comparison.
+            // A hand-edited comparison can have no selected subjects.
             <div className={styles.stateCopy} data-testid="prophet-sector-compare-lost" role="status">
               <p>{t("compareSelectionLost")}</p>
               <button
@@ -448,7 +461,7 @@ export function ProphetSectorView({ state, update }: {
                 data-testid="prophet-sector-compare-lost-back"
                 onClick={backToPopulation}
               >
-                {t("compareBack")}
+                {t(state.group === null ? "compareBackScreener" : "compareBack")}
               </button>
             </div>
           )

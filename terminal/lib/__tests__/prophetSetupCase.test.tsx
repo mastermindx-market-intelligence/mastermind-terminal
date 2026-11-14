@@ -9,6 +9,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+vi.mock("next/navigation", () => ({ usePathname: () => "/prophet" }));
+vi.mock("@/components/fin/CompanyWatchSave", () => ({
+  default: ({ symbol }: { symbol: string }) => <div data-testid="watch-save-owner" data-symbol={symbol}>Shared watchlist control</div>,
+}));
 vi.mock("@/lib/useProphetObservation", () => ({ useProphetObservation: vi.fn() }));
 vi.mock("@/components/chrome/AppShell", () => ({
   useShellIdentity: () => ({ kind: "account", userId: "u1", email: "unit@example.com" }),
@@ -252,46 +256,12 @@ describe("ModelPlanRail (P0-1: no trade ticket)", () => {
 });
 
 describe("SaveFollow states (T2-20, P2-1 / P2-6)", () => {
-  it("rides the existing watchlist endpoint and confirms with the no-alerts footnote", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response("{\"ok\":true}", { status: 200, headers: { "content-type": "application/json" } }));
+  it("delegates saving to the shared confirmed-membership owner without another POST protocol", () => {
     mount(<SaveFollow symbol="CARR" />);
-    await click('[data-testid="save-security"]');
-    const [url, init] = vi.mocked(fetch).mock.calls[0];
-    expect(String(url)).toBe("/api/watchlist");
-    expect(JSON.parse(String(init?.body))).toEqual({ action: "add", symbol: "CARR", section: "prophet" });
-    const body = text();
-    expect(body).toContain("Saved to your list");
-    expect(body).toContain("does not save a dated thesis or start alerts");
-    expect(body).toContain("View saved list");
-    // P2-1: one "Done" on the page — the panel's — and the top button reads
-    // "Saved ✓" instead of a second Done.
-    expect(body.match(/Done/g)).toHaveLength(1);
-    expect(container!.querySelector('[data-testid="save-security"]')?.textContent).toBe("Saved ✓");
-    await click('[data-testid="save-done"]');
-    expect(container!.querySelector('[data-testid="save-result"]')).toBeNull();
-    expect(text()).not.toContain("Done");
-  });
-
-  it("shows the not-saved state with a primary retry and another-list exit", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response("{}", { status: 502 }));
-    mount(<SaveFollow symbol="CARR" />);
-    await click('[data-testid="save-security"]');
-    expect(text()).toContain("Couldn't save to this list");
-    expect(text()).toContain("Your list is unchanged");
-    expect(text()).toContain("Choose another list"); // T2-20 exit (item 11)
-    // P2-6: the top button is not a second save action while Retry is shown.
-    expect(container!.querySelector<HTMLButtonElement>('[data-testid="save-security"]')?.disabled).toBe(true);
-    await click('[data-testid="save-result"] button'); // Retry save is the panel's primary button
-    expect(vi.mocked(fetch).mock.calls).toHaveLength(2);
-  });
-
-  it("states the missing account instead of saving anonymously", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response("{}", { status: 401 }));
-    mount(<SaveFollow symbol="CARR" />);
-    await click('[data-testid="save-security"]');
-    expect(text()).toContain("Sign in to save this security");
-    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    expect(container!.querySelector('[data-testid="watch-save-owner"]')?.getAttribute("data-symbol")).toBe("CARR");
+    expect(text()).toContain("does not save a dated thesis or start alerts");
+    expect(fetch).not.toHaveBeenCalled();
+    expect(container!.querySelector('[data-testid="save-security"]')).toBeNull();
   });
 
   it("follow opens the no-change-feed state and returns", async () => {

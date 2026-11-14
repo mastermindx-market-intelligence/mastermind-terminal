@@ -19,9 +19,9 @@
   gap: 12px;
   flex-wrap: wrap;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(112deg, rgba(41, 98, 255, 0.10), rgba(255, 255, 255, 0.02));
+  background: var(--panel);
 }
 /* The in-lane title card (.laneTitle/.laneCaption) was folded away in review:
    the active lane tab already carries the lane name and caption; .laneHead now
@@ -31,7 +31,7 @@
   align-items: center;
   min-height: 36px;
   padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: rgba(5, 7, 12, 0.45);
   font: 600 12.5px/1 var(--font-ui);
@@ -93,9 +93,9 @@
 /* ── Context strip (SX01) ──────────────────────────────────────────────── */
 .contextStrip {
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  background: var(--panel);
 }
 .contextHead {
   display: flex;
@@ -131,7 +131,7 @@
   gap: 3px;
   min-width: 86px;
   padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
   border-radius: 10px;
   background: rgba(5, 7, 12, 0.3);
 }
@@ -180,7 +180,7 @@
   padding: 9px 12px;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   font: 600 12px/1 var(--font-ui);
   color: var(--text);
   text-decoration: none;
@@ -215,9 +215,9 @@
   flex-direction: column;
   gap: 4px;
   padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+  background: var(--panel);
 }
 .heroKicker {
   margin: 0;
@@ -265,16 +265,16 @@
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+  background: var(--panel);
   cursor: pointer;
   text-align: left;
   transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
 }
-.pickerCard:hover { border-color: rgba(255, 255, 255, 0.2); }
+.pickerCard:hover { border-color: var(--line-3); }
 .pickerCardOn {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--line-3);
   background: rgba(41, 98, 255, 0.10);
 }
 .pickerCardOn .pickerName { color: #dce6ff; }
@@ -367,7 +367,7 @@
 }
 .stateChip:hover { border-color: var(--line-3); }
 .stateChipOn {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--line-3);
   background: rgba(41, 98, 255, 0.14);
   color: var(--text);
 }
@@ -383,7 +383,7 @@
 
 .tableWrap {
   overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(5, 7, 12, 0.22);
 }
@@ -478,7 +478,7 @@
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   font: 600 11.5px/1 var(--font-ui);
   color: var(--text-2);
   cursor: pointer;
@@ -575,7 +575,7 @@
 .setupPlan :global(.obs-prophet-analysis) { border-radius: 12px; }
 .setupGroupBlock, .setupWhy {
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(5, 7, 12, 0.22);
 }
@@ -603,7 +603,7 @@
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   font: 600 12px/1 var(--font-ui);
   color: var(--link);
   text-decoration: none;
@@ -716,7 +716,7 @@
    colored edges; sign ink only on the numbers themselves. */
 .leadershipWrap {
   overflow-x: auto;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(5, 7, 12, 0.22);
 }
@@ -743,7 +743,7 @@
   white-space: nowrap;
 }
 .leadershipTable tr:last-child td { border-bottom: none; }
-.leadershipTable tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.leadershipTable tbody tr:hover td { background: var(--panel-2); }
 .leadershipSectorCell { white-space: normal; min-width: 150px; }
 .leadershipName {
   display: block;
@@ -855,9 +855,9 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--panel-2);
 }
 /* SX02's secondary return, desktop only — phones keep the breadcrumb. */
 .focusReturnToday {
@@ -911,9 +911,9 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+  background: var(--panel);
 }
 .focusPanelTitle {
   margin: 0;
@@ -952,7 +952,7 @@
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   font: 600 12px/1 var(--font-ui);
   color: var(--link);
   text-decoration: none;
@@ -989,7 +989,7 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 9px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(13, 15, 19, 0.92);
 }
@@ -1011,7 +1011,7 @@
   padding: 4px 6px 4px 10px;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   font: 700 11.5px/1 var(--font-num);
   color: var(--text);
 }
@@ -1023,12 +1023,12 @@
   height: 22px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--panel-2);
   font: 600 12px/1 var(--font-ui);
   color: var(--muted);
   cursor: pointer;
 }
-.selectionChipRemove:hover { color: var(--text); background: rgba(255, 255, 255, 0.12); }
+.selectionChipRemove:hover { color: var(--text); background: var(--panel-2); }
 .selectionNote {
   font: 500 10.5px/1.3 var(--font-ui);
   color: var(--muted);
@@ -1102,18 +1102,25 @@
 }
 .compareGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
+.compareGrid[data-count="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.compareColumn { display: grid; grid-template-rows: subgrid; grid-row: span 12; min-width: 0; gap: 8px; }
+.comparePicker { display: grid; gap: 5px; min-width: 0; font: 600 11px/1.4 var(--font-ui); color: var(--muted); }
+.comparePicker select { width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); color: var(--text); font: 600 13px/1.3 var(--font-num); }
+.comparePicker select:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.comparePending { grid-row: span 11; min-width: 0; overflow-wrap: anywhere; }
 .compareCard {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 11;
   gap: 8px;
   min-width: 0;
   padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016));
+  background: var(--panel);
 }
 .compareCardHead {
   display: flex;
@@ -1130,8 +1137,9 @@
   color: var(--text);
 }
 .compareOpenButton {
-  align-self: flex-start;
-  min-width: 150px;
+  align-self: end;
+  min-width: 0;
+  width: 100%;
   min-height: 44px;
   margin-top: 2px;
   padding: 10px 16px;
@@ -1156,8 +1164,10 @@
 }
 .compareDetails {
   display: grid;
-  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
-  gap: 5px 12px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: subgrid;
+  grid-row: span 6;
+  gap: 4px;
   margin: 0;
 }
 .compareDetailLabel {
@@ -1165,12 +1175,14 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  white-space: nowrap;
+  white-space: normal;
 }
 .compareDetailValue {
   font: 500 12px/1.45 var(--font-ui);
   color: var(--text-2);
   min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 .compareUnavailable {
   color: var(--text-dim);
@@ -1199,6 +1211,15 @@
   padding: 0 2px;
   font: 500 11px/1.45 var(--font-ui);
   color: var(--muted);
+}
+@media (max-width: 640px) {
+  .compareGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .compareColumn:nth-child(n+3) { display: none; }
+  .compareCard { padding: 12px 9px; border-radius: 10px; }
+  .compareCardHead { flex-direction: column; align-items: flex-start; gap: 4px; overflow-wrap: anywhere; }
+  .compareChartBlock { padding: 8px; overflow-wrap: anywhere; }
+  .compareEntryChip { white-space: normal; line-height: 1.4; }
+  .compareOpenButton { padding: 10px 6px; line-height: 1.4; }
 }
 
 /* ── Responsive composition ─────────────────────────────────────────────── */
@@ -1253,7 +1274,7 @@
     gap: 8px 12px;
     margin: 0 0 10px;
     padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--line);
     border-radius: 14px;
     background: rgba(13, 15, 19, 0.72);
   }
@@ -1273,7 +1294,7 @@
     margin: 0;
     min-height: 44px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--panel-2);
     color: var(--text);
   }
   .cellLabel {
@@ -1300,7 +1321,7 @@
     gap: 4px 12px;
     margin: 0 0 10px;
     padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--line);
     border-radius: 14px;
     background: rgba(13, 15, 19, 0.72);
   }
@@ -1353,7 +1374,7 @@
     padding: 0 10px 0 8px;
     border: 1px solid var(--line);
     border-radius: var(--r-pill);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--panel-2);
   }
   .memberTable tbody tr.memberRowHighlight {
     border-color: rgba(63, 118, 255, 0.45);
@@ -1373,3 +1394,5 @@
   .sourcesSummary { min-height: 44px; padding-top: 14px; padding-bottom: 14px; }
   .copyButton { min-width: 44px; min-height: 44px; }
 }
+.compareSelection { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.compareSelection p { margin: 0 0 14px; color: var(--text-2); font: 12px/1.5 var(--font-ui); }

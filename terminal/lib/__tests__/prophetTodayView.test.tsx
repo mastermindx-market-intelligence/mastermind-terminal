@@ -200,6 +200,10 @@ describe("Today board — committed-fixture acceptance", () => {
     expect(strip.textContent).toContain("CLX");
     expect(strip.textContent).toContain("PG");
     expect(strip.textContent).toContain("2 of 12 selected");
+    const compare = strip.querySelector<HTMLButtonElement>('[data-testid="prophet-today-compare-selected"]')!;
+    expect(compare.disabled).toBe(false);
+    await act(async () => { compare.click(); });
+    expect(patches.at(-1)).toEqual({ lane: "sector", view: "compare", group: "defensives", symbol: null, plan: null });
     await act(async () => {
       strip.querySelector<HTMLButtonElement>('button[aria-label*="CLX"]')!.click();
     });

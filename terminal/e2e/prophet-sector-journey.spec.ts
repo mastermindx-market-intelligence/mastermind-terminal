@@ -550,10 +550,10 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(tray).toContainText("Selections stay fixed as you change filters");
     await expect(page.getByTestId("prophet-sector-compare-selected")).toBeEnabled();
 
-    // A third name reaches the cap; the cap is stated, never a silent no-op.
+    // A third name remains selected; the full URL selection can retain twelve.
     await page.getByTestId("prophet-sector-select-ALLE").check();
     await expect(tray).toContainText("3 selected");
-    await expect(tray).toContainText("Up to 3 names can be compared");
+    await expect(tray).not.toContainText("Up to 3 names can be compared");
 
     // A chip removes exactly its name; the count follows.
     await page.getByTestId("prophet-sector-selection-remove-ALLE").click();
@@ -629,13 +629,16 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("prophet-sector-selection")).toContainText("2 selected");
 
-    // Phone and the smallest contract width: the compare cards stack to one
-    // column with zero horizontal overflow (T2-13).
+    // Paper phone comparison keeps two aligned columns with no page overflow.
     await page.getByTestId("prophet-sector-compare-selected").click();
     await expect(compare).toBeVisible({ timeout: 15_000 });
     for (const size of [{ width: 390, height: 844 }, { width: 320, height: 600 }]) {
       await page.setViewportSize(size);
       await expect(carrCard).toBeVisible();
+      const left = await carrCard.boundingBox(), right = await adpCard.boundingBox();
+      expect(left).not.toBeNull(); expect(right).not.toBeNull();
+      expect(Math.abs(left!.y - right!.y)).toBeLessThanOrEqual(1);
+      expect(right!.x).toBeGreaterThan(left!.x);
       expect(await page.getByTestId("prophet-sector-lane").evaluate(() =>
         document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     }

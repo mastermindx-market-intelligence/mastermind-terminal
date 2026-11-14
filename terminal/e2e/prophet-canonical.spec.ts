@@ -148,6 +148,9 @@ test("the lane tabs follow the tabs pattern (roving tabindex, arrows)", async ({
 
   await page.getByTestId("prophet-tab-today").focus();
   await page.keyboard.press("ArrowRight");
+  await expect(page.getByTestId("prophet-tab-candidates")).toHaveAttribute("aria-selected", "true");
+  await expect(page).toHaveURL(/[?&]tab=candidates/);
+  await page.keyboard.press("ArrowRight");
   await expect(page.getByTestId("prophet-tab-screener")).toHaveAttribute("aria-selected", "true");
   await expect(page).toHaveURL(/[?&]tab=screener/);
 

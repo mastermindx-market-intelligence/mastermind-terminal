@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { flowGetResult } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
-import { DEFAULT_PROPHET_STATE, prophetHref } from "@/lib/prophetUrlState";
+import { DEFAULT_PROPHET_STATE, prophetHref, parseProphetState, prophetMountForPathname, writeProphetState } from "@/lib/prophetUrlState";
 import { companyHref } from "@/lib/sectorIntelligence";
 import { CaseHeader, handleCaseBackClick } from "../setup/CaseHeader";
 import { CaseTabs, type CaseTab } from "../setup/CaseTabs";
@@ -58,6 +58,11 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   const [boardAttempt, setBoardAttempt] = useState(0);
   const [backHref, setBackHref] = useState<string | null>(null);
   const sourcesRef = useRef<HTMLDivElement | null>(null);
+  const caseRef = useRef<HTMLElement | null>(null);
+  const studyDestination = (next: CaseTab) => {
+    setTab(next);
+    caseRef.current?.querySelector<HTMLButtonElement>(`#case-tab-${next}`)?.focus();
+  };
 
   const membership = payload.memberOf.find(entry => entry.group.id === originGroupId)
     ?? payload.memberOf[0] ?? null;
@@ -107,16 +112,17 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const url = new URL(window.location.href);
-      url.searchParams.set("prophetView", "population");
-      setBackHref(`${url.pathname}${url.search}${url.hash}`);
-      const mount = url.pathname.startsWith("/prophet") ? "canonical" : "legacy";
+      const mount = prophetMountForPathname(url.pathname);
+      const state = parseProphetState(url.searchParams, mount);
+      setBackHref(writeProphetState(url, { ...state, view: originGroupId === null ? "overview" : "population",
+        symbol: originGroupId === null ? null : state.symbol, plan: null }, mount));
       setPlansHref(prophetHref({ ...DEFAULT_PROPHET_STATE, lane: "plans", plan: planId }, mount));
     });
     return () => cancelAnimationFrame(frame);
-  }, [planId]);
+  }, [planId, originGroupId, payload.symbol]);
 
   return (
-    <section className={`${styles.setup} ${caseStyles.caseSurface}`} data-testid="prophet-sector-setup">
+    <section ref={caseRef} className={`${styles.setup} ${caseStyles.caseSurface}`} data-testid="prophet-sector-setup">
       <CaseHeader
         symbol={payload.symbol}
         name={member?.name ?? null}
@@ -124,6 +130,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
         groupName={groupName}
         onBack={onBack}
         backHref={backHref}
+        returnToPopulation={originGroupId !== null}
         lang={lang}
       />
 
@@ -165,7 +172,7 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
             <StudyLinks
               symbol={payload.symbol}
               chartHref={chartHref}
-              onTab={setTab}
+              onTab={studyDestination}
               onOpenSources={() => {
                 const sheet = sourcesRef.current?.querySelector("details");
                 if (sheet instanceof HTMLDetailsElement) {
@@ -211,11 +218,11 @@ export function MemberSetup({ payload, onBack, originGroupId }: {
           same selection as the breadcrumb. */}
       {backHref !== null ? (
         <a className={caseStyles.backBottom} data-testid="prophet-sector-setup-back-bottom" href={backHref} onClick={event => handleCaseBackClick(event, onBack)}>
-          ← {setupT("backToMembers")}
+          ← {setupT(originGroupId === null ? "backToScreener" : "backToMembers")}
         </a>
       ) : (
         <button type="button" className={caseStyles.backBottom} data-testid="prophet-sector-setup-back-bottom" onClick={onBack}>
-          ← {setupT("backToMembers")}
+          ← {setupT(originGroupId === null ? "backToScreener" : "backToMembers")}
         </button>
       )}
     </section>

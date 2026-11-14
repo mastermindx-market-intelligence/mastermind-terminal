@@ -35,7 +35,7 @@ import {
   fetchProphetSectorMembers, type ProphetMemberState, type SectorMembersPayload,
   type SectorMembersRead,
 } from "@/lib/prophetSectorMembers";
-import { toggleProphetSel, type ProphetUrlState } from "@/lib/prophetUrlState";
+import { toggleProphetSel, PROPHET_SEL_MAX, type ProphetUrlState } from "@/lib/prophetUrlState";
 import { makeProphetT } from "../prophetStrings";
 import {
   contextNullKey, makeProphetSectorT, prophetSectorFill,
@@ -157,7 +157,8 @@ export function TodayView({ state, update }: {
     () => ({ group: focusId ?? undefined, limit: 100 }),
     () => casesKey,
   );
-  const casesReady = casesFetch.read.status === "ready" ? casesFetch.read.payload : null;
+  const casesRead: Read<Extract<SectorMembersPayload, { mode: "group" }>> = casesFetch.read.key === casesKey ? casesFetch.read : { status: "loading", key: casesKey };
+  const casesReady = casesRead.status === "ready" ? casesRead.payload : null;
 
   // Bounded population walk: a candidate whose population is not published
   // (404 unknown_group at the BFF) yields to the next candidate — at most
@@ -221,7 +222,7 @@ export function TodayView({ state, update }: {
   const openPlans = () => update({ lane: "plans" });
   const toggleCompare = (symbol: string) => update({ sel: toggleProphetSel(state.sel, symbol) });
 
-  const selectionFull = state.sel.length >= 12;
+  const selectionFull = state.sel.length >= PROPHET_SEL_MAX;
 
   const fetchStateBlock = (read: Read<never>, retry: () => void, testId: string) => {
     if (read.status === "loading") return <p className={styles.stateCopy} data-testid={testId}>{sectorT("loading")}</p>;
@@ -306,6 +307,11 @@ export function TodayView({ state, update }: {
             </span>
           ))}
           <span className={styles.selCount}>{prophetSectorFill(t("todaySelectedCount"), { n: state.sel.length })}</span>
+          <button type="button" className={styles.researchAction} data-testid="prophet-today-compare-selected"
+            disabled={state.sel.length < 2}
+            onClick={() => update({ lane: "sector", view: "compare", group: focusId, symbol: null, plan: null })}>
+            {t("todayCompareSelected")} →
+          </button>
         </div>
       ) : null}
       {selectionFull && state.sel.length > 0 ? <p className={styles.selFull}>{t("todaySelectionFull")}</p> : null}
@@ -400,7 +406,7 @@ export function TodayView({ state, update }: {
             {prophetSectorFill(t("todayCasesBasis"), { asof: prophetClock })}
           </span>
         </div>
-        {casesFetch.read.status === "ready" ? (
+        {casesRead.status === "ready" ? (
           casesReady !== null && casesReady.group !== null ? (
             shownCases.length > 0 ? (
               <>
@@ -451,7 +457,7 @@ export function TodayView({ state, update }: {
             </div>
           )
         ) : focusId !== null ? (
-          fetchStateBlock(casesFetch.read as Read<never>, casesFetch.retry, "prophet-today-cases")
+          fetchStateBlock(casesRead as Read<never>, casesFetch.retry, "prophet-today-cases")
         ) : null}
       </section>
     </div>

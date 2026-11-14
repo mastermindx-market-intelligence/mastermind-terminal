@@ -13,7 +13,7 @@ import type { CoverageCounts, SectorGroupSummary } from "@/lib/prophetSectorMemb
 import type { ProphetUrlState } from "@/lib/prophetUrlState";
 import { rankLeadershipGroups } from "@/components/prophet/sector/SectorGroupPicker";
 import {
-  PROPHET_COMPARE_CAP, readProphetSelection, toggleProphetSelection,
+  PROPHET_COMPARE_CAP, readProphetSelection, toggleProphetSelection, chooseProphetCompareSubject,
 } from "@/components/prophet/sector/SectorMemberPopulation";
 
 const counts: CoverageCounts = {
@@ -62,11 +62,21 @@ describe("rankLeadershipGroups", () => {
 });
 
 describe("the compare selection", () => {
-  it("caps at three and never silently replaces", () => {
+  it("retains the full selection while comparison stays bounded at three", () => {
     let sel: string[] = [];
     for (const symbol of ["CARR", "ADP", "ALLE", "HWM"]) sel = toggleProphetSelection(sel, symbol);
-    expect(sel).toEqual(["CARR", "ADP", "ALLE"]);
+    expect(sel).toEqual(["CARR", "ADP", "ALLE", "HWM"]);
     expect(PROPHET_COMPARE_CAP).toBe(3);
+  });
+
+  it("preserves overflow when removing or changing visible comparison subjects", () => {
+    const selected = ["A", "B", "C", "D", "E"];
+    expect(toggleProphetSelection(selected, "B")).toEqual(["A", "C", "D", "E"]);
+    expect(toggleProphetSelection(selected, "D")).toEqual(["A", "B", "C", "E"]);
+    expect(chooseProphetCompareSubject(selected, 0, "D")).toEqual(["D", "B", "C", "A", "E"]);
+    expect(chooseProphetCompareSubject(selected, 0, "MISSING")).toBe(selected);
+    const full = "ABCDEFGHIJKL".split("");
+    expect(toggleProphetSelection(full, "M")).toEqual(full);
   });
 
   it("toggles off and validates symbols against the wire grammar", () => {
@@ -74,12 +84,12 @@ describe("the compare selection", () => {
     sel = toggleProphetSelection(sel, "ADP");
     sel = toggleProphetSelection(sel, "CARR");
     expect(sel).toEqual(["ADP"]);
-    expect(toggleProphetSelection(sel, "not a symbol!")).toBe(sel);
+    expect(toggleProphetSelection(sel, "not a symbol!")).toEqual(sel);
   });
 
   it("reads tolerantly: drops invalid, duplicate and over-cap entries", () => {
     const state = { sel: ["CARR", "adp", "CARR", "ADP", "ALLE", "HWM"] } as unknown as ProphetUrlState;
-    expect(readProphetSelection(state)).toEqual(["CARR", "ADP", "ALLE"]);
+    expect(readProphetSelection(state)).toEqual(["CARR", "ADP", "ALLE", "HWM"]);
     expect(readProphetSelection({} as ProphetUrlState)).toEqual([]);
   });
 });

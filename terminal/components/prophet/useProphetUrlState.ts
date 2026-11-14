@@ -25,14 +25,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_PROPHET_STATE, parseProphetState, prophetMountForPathname, writeProphetState,
-  type ProphetUrlState,
+  type ProphetUrlState, type ProphetMount,
 } from "@/lib/prophetUrlState";
 
 export function useProphetUrlState(): {
   state: ProphetUrlState;
   update: (patch: Partial<ProphetUrlState>) => void;
+  mount: ProphetMount | null;
 } {
   const [state, setState] = useState<ProphetUrlState>(DEFAULT_PROPHET_STATE);
+  const [mount, setMount] = useState<ProphetMount | null>(null);
   const ref = useRef(state);
 
   const adopt = useCallback((next: ProphetUrlState) => {
@@ -42,6 +44,7 @@ export function useProphetUrlState(): {
 
   const sync = useCallback(() => {
     const mount = prophetMountForPathname(window.location.pathname);
+    setMount(mount);
     adopt(parseProphetState(new URLSearchParams(window.location.search), mount));
   }, [adopt]);
 
@@ -68,5 +71,5 @@ export function useProphetUrlState(): {
     }
   }, [adopt]);
 
-  return { state, update };
+  return { state, update, mount };
 }

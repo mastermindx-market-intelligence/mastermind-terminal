@@ -35,7 +35,7 @@ export function handleCaseBackClick(event: MouseEvent<HTMLAnchorElement>, onBack
   onBack();
 }
 
-export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref, lang }: {
+export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref, returnToPopulation = true, lang }: {
   symbol: string;
   name: string | null;
   prophet: SectorMemberProphet;
@@ -46,6 +46,7 @@ export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref,
   /** Population href computed post-hydration (keeps prophetSymbol); null →
    * render the onBack button fallback (server render + first client render). */
   backHref: string | null;
+  returnToPopulation?: boolean;
   lang: Lang;
 }) {
   const t = makeSetupT(lang);
@@ -56,7 +57,7 @@ export function CaseHeader({ symbol, name, prophet, groupName, onBack, backHref,
     : prophet.state === "none" ? "stateNone" : "stateUnavailable");
   // The crumb names the group and the kept selection; the short form keeps
   // the same meaning at phone width, where the group name would wrap.
-  const crumb = (group: string | null) => (
+  const crumb = (group: string | null) => !returnToPopulation ? <span>← {t("backToScreener")}</span> : (
     <>
       <span className={styles.backLong}>
         ← {group ?? t("crumbsShort")} · {t("crumbsMembers")} · {symbol} {t("crumbsSelected")}
