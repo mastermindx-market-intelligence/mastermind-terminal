@@ -190,6 +190,25 @@ test.describe("native shell mode", () => {
     const rail = page.locator("aside.rail");
     await expect(rail).toBeVisible();
     await expect(page.locator(".detail-board")).toBeVisible();
+    // The shared detail owner carries the lightweight Returns entry into the native dossier slice.
+    const returnsPreview = page.locator(".returns-preview");
+    await expect(returnsPreview).toBeVisible({ timeout: 30_000 });
+    await expect(returnsPreview.locator(".returns-preview-strip > div")).toHaveCount(5);
+    await returnsPreview.getByRole("button", { name: /Open study|打开研究/ }).click();
+    await expect(page.locator(".returns-study")).toBeVisible();
+    await expect(page.locator(".returns-range-track")).toBeVisible();
+    const selectedDay = page.locator('button.returns-day[aria-pressed="true"]');
+    const selectedId = await selectedDay.getAttribute("id");
+    await selectedDay.focus();
+    await selectedDay.press("ArrowLeft");
+    // Arrow keys move the roving focus; activation alone changes the selected study.
+    await expect(page.locator('button.returns-day[aria-pressed="true"]')).toHaveAttribute("id", selectedId || "");
+    const focusedDay = page.locator("button.returns-day:focus");
+    await expect(focusedDay).not.toHaveAttribute("id", selectedId || "");
+    await expect(page.locator('button.returns-day[tabindex="0"]')).toHaveCount(1);
+    const focusedId = await focusedDay.getAttribute("id");
+    await focusedDay.press("Enter");
+    await expect(page.locator('button.returns-day[aria-pressed="true"]')).toHaveAttribute("id", focusedId || "");
     // Watchlist board + resizer stay out at every viewport (the native list owns them).
     await expect(page.locator(".rail .wl-board")).toBeHidden();
     await expect(page.locator(".rail-resizer")).toHaveCount(0);
@@ -241,6 +260,8 @@ test.describe("native shell mode", () => {
     await expect(page.locator("[data-dossier]")).toHaveCount(0);
     await expect(page.locator(".workspace")).toHaveCount(1);
     await expect(page.locator("aside.rail")).toHaveCount(1);
+    // Browser Terminal uses the same shared lightweight Returns entry as the native dossier slice.
+    await expect(page.locator(".returns-preview")).toBeVisible({ timeout: 30_000 });
   });
 
   // ── R2.5 bridge additions: tool activation, panels, history, richer payloads ──────────
