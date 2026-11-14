@@ -382,8 +382,8 @@ export const DISCOVER_WORKSPACE_LEX = {
     "引擎确认的看涨动能事件。"
   ],
   "a_fast_bullish_reversal_within_three_3": [
-    "A fast bullish reversal within three 3-session bars of a recent exit.",
-    "在近期退出后的三个3日线K线内出现快速看涨反转。"
+    "A bullish momentum reversal within three 3-session bars after the engine’s bearish momentum signal. It does not imply a position was sold or confirm a new entry. Previously labeled Buy again.",
+    "引擎发出看跌动能信号后，在三个3交易日K线内出现看涨动能反转；这不代表之前已经卖出，也不表示已确认新入场。原标签为Buy again。"
   ],
   "trend_repair_after_an_exit_or_a": [
     "Trend repair after an exit, or a previously blocked entry whose blocker clears. The summary does not distinguish these cases. Previously labeled Take back.",
