@@ -21,6 +21,7 @@ import {
   type CompanyIntelligenceSource,
 } from "../../lib/companyIntelligence";
 import { getCurrentEventWorkspace, type EventWorkspaceResult } from "../../lib/eventWorkspace";
+import { selectBriefChanges, type IndexedBriefClaim } from "../../lib/companyIntelligenceBriefPresentation";
 import CompanyIntelligenceV2Current from "./CompanyIntelligenceV2Current";
 import CompanyIntelligenceBriefLayout, { type CompanyIntelligenceBriefItem } from "./CompanyIntelligenceBriefLayout";
 import CompanyIntelligenceCallLayout from "./CompanyIntelligenceCallLayout";
@@ -456,21 +457,44 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     || event.summary
     || pick(zh, "No structured event context is present for this event.", "本事件暂无结构化事件背景。");
   const briefSummary = event.summary && event.summary !== briefHeadline ? event.summary : null;
-  const briefTakeaways = event.highlights.slice(1, 4).map((text, offset) => {
-    const index = offset + 1;
+  const takeawayClaims = event.highlights.slice(1, 4).map((text, offset) => ({
+    eventId: event.event_id,
+    index: offset + 1,
+    text,
+    sourceRef: sourceByRef(event, event.field_lineage.highlights[offset + 1])?.source_ref ?? null,
+  }));
+  const briefTakeaways = takeawayClaims.map(({ text, index }) => {
     const id = `${event.event_id}:highlight:${index}`;
     return registerBriefItem(
       { id, label: pick(zh, "Event fact", "事件事实"), value: text },
       { id, kind: "highlight", label: pick(zh, "Event fact", "事件事实"), text, source: sourceByRef(event, event.field_lineage.highlights[index]) },
     );
   });
-  const briefChanges = positiveItems.slice(0, 3).map((text, index) => {
+  const briefPresentation = selectBriefChanges({
+    headline: {
+      eventId: event.event_id,
+      text: briefHeadline,
+      sourceRef: sourceByRef(event, event.highlights[0] ? event.field_lineage.highlights[0] : event.field_lineage.summary)?.source_ref ?? null,
+    },
+    takeaways: takeawayClaims,
+    changes: positiveItems.map((text, index) => ({
+      eventId: event.event_id,
+      index,
+      text,
+      sourceRef: sourceByRef(event, positiveLineage[index])?.source_ref ?? null,
+    })),
+  });
+  const registerPositiveItem = ({ text, index }: IndexedBriefClaim) => {
     const id = `${event.event_id}:positive:${index}`;
     return registerBriefItem(
       { id, label: pick(zh, "Reported change", "报告变化"), value: text },
       { id, kind: "highlight", label: pick(zh, "Reported change", "报告变化"), text, source: sourceByRef(event, positiveLineage[index]) },
     );
-  });
+  };
+  const briefHeadlineEvidence = briefPresentation.headlineEvidence
+    ? registerPositiveItem(briefPresentation.headlineEvidence)
+    : null;
+  const briefChanges = briefPresentation.changes.map(registerPositiveItem);
   const briefRisks = event.negative_highlights.slice(0, 3).map((text, index) => {
     const id = `${event.event_id}:negative:${index}`;
     return registerBriefItem(
@@ -763,6 +787,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
               periodLabel={eventPeriod(event)}
               eventDate={event.call_date}
               headline={briefHeadline}
+              headlineEvidence={briefHeadlineEvidence}
               summary={briefSummary}
               metrics={briefMetrics}
               takeaways={briefTakeaways}

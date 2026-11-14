@@ -11,6 +11,13 @@
 .brief :global(.ci-paper-brief-copy) { align-content: start; gap: 14px; padding: 4px 0 0; }
 .brief :global(.ci-paper-brief-meta) { gap: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .brief :global(.ci-paper-brief-meta) > span { color: var(--text-2); letter-spacing: 0; font-weight: 500; }
+.brief .headlineSource {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 8px;
+  border: 0; border-radius: 4px; background: transparent; box-shadow: none;
+  color: var(--text-2); font: 500 12px/1.5 var(--font-ui); cursor: pointer;
+}
+.brief .headlineSource:hover,
+.brief .headlineSource[aria-pressed="true"] { background: var(--panel-2); color: var(--text); }
 .brief :global(.ci-paper-brief-copy) h3 {
   max-width: 40ch; font-size: clamp(25px, 2.15vw, 32px); line-height: 1.25;
   font-weight: 600; letter-spacing: -.025em; text-wrap: pretty; overflow-wrap: anywhere;
