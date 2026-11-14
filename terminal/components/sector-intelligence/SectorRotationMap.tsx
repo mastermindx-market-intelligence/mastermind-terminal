@@ -736,7 +736,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <span className={styles.axisLeft}>{t(trend ? "trendWeaker" : "weaker")}</span><span className={styles.axisRight}>{t(trend ? "trendStronger" : "stronger")}</span>
             <SectorRotationTrails trails={trajectoryTracks} selected={props.selected} hovered={hoveredTrail}
               display={trailDisplay} kind={trend ? "weekly" : "daily"} width={plotBox.width} height={plotBox.height}
-              selectedDate={historical?.date} trailRuns={trendTrail?.runs.length} trailWeeks={trendTrail?.weeks} />
+              selectedDate={trend ? trendSelected?.weekEnd : historical?.date} trailRuns={trendTrail?.runs.length} trailWeeks={trendTrail?.weeks} />
             {trend ? trendPlotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
               data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel()
