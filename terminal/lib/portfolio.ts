@@ -22,7 +22,8 @@
 // Web or alerts authority. Everything this module produces is display tier, joined client-side.
 
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
-import { commonMoney, finite, finiteProduct, nativePrice, priceCurrency, type MoneyPart, type PriceObservation } from "@/lib/portfolioMoney";
+import { holdingValue, positionPrice, type InstitutionHolding } from "./portfolioInstitutionValue";
+import { commonMoney, finite, finiteProduct, priceCurrency, type MoneyPart, type PriceObservation } from "@/lib/portfolioMoney";
 
 /** Structural view of the Supabase client — the same subset `lib/watchlists.ts` narrows, so the
  *  e2e fixture transport and the unit tests satisfy one shape for both tables. */
@@ -39,7 +40,7 @@ export type PositionStatus = "open" | "closed";
  *  unsized position (ticker only) is a legal, deliberate state, not a broken row. */
 export type Position = {
   id: string;
-  brokerage?: { account: string; name: string; type?: string | null; symbol: string | null; price: number | null; value: number | null; currency: string | null; asOf: string | null; syncedAt: string };
+  brokerage?: InstitutionHolding;
   ticker: string;
   shares: number | null;
   entryPrice: number | null;
@@ -557,27 +558,8 @@ export function resolveLast(
   return pick(quotes[ticker]?.last) ?? pick(manifest[ticker]?.last);
 }
 
-export function positionPrice(position:Pick<Position,"shares"|"brokerage">,quote:PriceObservation,fallback:PriceObservation){
-  const broker=position.brokerage;
-  if(!broker)return nativePrice(quote,fallback);
-  // Institution prices can represent options contracts or fixed-income instruments with a multiplier.
-  // Only a simple equity whose provider value proves the multiplier of one can use a share quote.
-  const unit=priceCurrency(broker.currency);
-  const quoted=broker.symbol && ["equity","etf","mutual fund"].includes(broker.type??"") && unit && finite(broker.value) && finite(broker.price) && finite(position.shares) &&
-    Math.abs(position.shares*broker.price-broker.value)<0.011 ? nativePrice(quote,null) : null;
-  if(quoted?.currency===unit && quoted)return quoted;
-  return unit && finite(broker.price) ? {last:broker.price,currency:unit,chg:null} : null;
-}
-export function marketValue(position: Pick<Position,"shares"|"brokerage">, last: number | null, quoteCurrency?: unknown): number | null {
-  const broker=position.brokerage;
-  if(broker && priceCurrency(broker.currency) && finite(broker.value)){
-    // Fixed income, options, cash and other non-unit holdings use the source's absolute value.
-    if(!broker.symbol || !["equity","etf","mutual fund"].includes(broker.type??"") ||
-       !finite(broker.price) || !finite(position.shares) || Math.abs(position.shares*broker.price-broker.value)>=0.011 ||
-       !finite(last) || quoteCurrency!==broker.currency)return broker.value;
-  }
-  return priceCurrency(quoteCurrency) ? finiteProduct(position.shares, last) : null;
-}
+export { positionPrice };
+export const marketValue = holdingValue;
 
 export function costBasis(position: Position): number | null {
   return priceCurrency(position.entryCurrency) ? finiteProduct(position.shares, position.entryPrice) : null;
