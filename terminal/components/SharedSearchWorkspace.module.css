@@ -25,6 +25,13 @@
 .result small { display: block; margin-top: 8px; color: var(--text-2); font: 400 13px/1.4 var(--font-ui); overflow-wrap: anywhere; }
 .result:hover, .active { background: var(--panel-2); border-color: var(--text-2); }
 .monogram { display: flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: var(--r); color: var(--text-2); font: 600 14px/1 var(--mono); }
+/* Macro's issuer artwork often has a white transparent mark: the fixed dark
+   neutral plate keeps it legible in both light and dark search presentations. */
+.companyLogo { border-radius: var(--r); border-color: var(--line); }
+.companyLogo :global(.asset-logo-fallback) { color: #e7ebf3; font: 600 14px/1 var(--mono); text-shadow: none; }
+.brandCredit { display: inline-block; margin-inline-start: 16px; color: var(--text-2); font: 400 11px/1.5 var(--font-ui); text-decoration: underline; text-underline-offset: 2px; }
+.brandCredit:hover { color: var(--text); }
+
 .hint { margin-top: 16px; font-size: 12px; }
 .detail { min-width: 0; border-inline-start: 1px solid var(--line); padding-inline-start: 28px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
 .detail h3 { margin: 0; font: 650 28px/1.25 var(--font-ui); overflow-wrap: anywhere; }
