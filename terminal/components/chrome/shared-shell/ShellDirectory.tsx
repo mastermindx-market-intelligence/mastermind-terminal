@@ -185,7 +185,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
           ) : (
             <div className="shared-directory-grid">
               {matches.slice(0, limit).map(entry => (
-                <Link key={entry.href} href={entry.href} prefetch={false}
+                <Link key={entry.href} href={entry.href === "/ontology.html" ? "/wti-live-path" : entry.href} prefetch={false}
                   onNavigate={() => { selected.current = true; onClose(); }}
                   className="shared-directory-link">
                   <span className="shared-directory-link-icon" aria-hidden="true">

@@ -30,6 +30,8 @@
  *   invalidates the whole context.
  */
 
+import { WTI_CHAIN, WTI_LEGS } from "./wtiPath";
+
 // Measured 2026-09-27: the apex ontology URL redirects to this www URL. The
 // pure helper stays on the served www host; lib/originNav.ts separately allows
 // both macro hosts without canonicalizing them.
@@ -275,7 +277,7 @@ export function stripMarketOntologyParams(params: URLSearchParams): URLSearchPar
 /**
  * Construct the return href for navigating back to the validated origin.
  *
- * Format: ontology contexts return to `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`
+ * The four native WTI conditions return to /wti-live-path. Other ontology contexts return to `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`
  * + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "").
  * Transmission contexts return to `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(chain)}`.
  *
@@ -287,7 +289,8 @@ export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
     return `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(ctx.chain)}`;
   }
 
-  let href = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;
+  const native = ctx.chain === WTI_CHAIN && (!ctx.focus || WTI_LEGS.some(id => id === ctx.focus));
+  let href = native ? "/wti-live-path" : `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;
 
   if (ctx.pathRev && hasValidQueryValue("mo_path_rev", ctx.pathRev)) {
     href += `?rev=${ctx.pathRev}`;
