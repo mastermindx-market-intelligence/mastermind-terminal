@@ -32,10 +32,10 @@ interface Props {
 export default function SectorRotationTrails({ trails, selected, hovered, display, kind, width, height, selectedDate, trailRuns, trailWeeks }: Props) {
   if (display === "off" || !trails.length) return null;
   const primary = hovered && trails.some(trail => trail.id === hovered) ? hovered : selected;
-  const background = display === "all" ? trails.slice(0, 24) : [];
   const focus = trails.find(trail => trail.id === primary);
-  const visible = focus && !background.some(trail => trail.id === primary) ? [...background, focus] : background;
-  const drawn = display === "selected" ? (focus ? [focus] : []) : visible;
+  // Render the emphasized line LAST, above at most 23 subdued peers.
+  const background = display === "all" ? trails.filter(trail => trail.id !== primary).slice(0, 23) : [];
+  const drawn = display === "selected" ? (focus ? [focus] : []) : focus ? [...background, focus] : background;
   if (!drawn.length || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
 
   return <svg className={styles.historyTrail} data-testid={kind === "daily" ? "rotation-history-trail" : "rotation-trend-trail"}
