@@ -228,6 +228,7 @@
 .releasePanel .detailHero span { max-width:26ch; font-size:17px; line-height:1.4; }
 .releasePanel .detailSection:first-child { margin-top:0; }
 .forecastInterval { margin:20px 0; padding:18px 0 0; }
+.releasePanel > .forecastInterval { padding-top:2px; }
 .intervalTrack { position:relative; height:10px; border-radius:4px; background:var(--panel-3); margin:4px 6px 15px; }
 .intervalTrack > span { position:absolute; height:100%; border-radius:3px; background:var(--brand-2); opacity:.4; }
 .intervalTrack > i { position:absolute; top:-3px; height:16px; width:1px; background:var(--text-2); }
