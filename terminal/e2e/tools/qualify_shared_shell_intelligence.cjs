@@ -37,6 +37,7 @@ const catalystFixture = require('../../lib/__tests__/fixtures/catalystOpportunit
 const defenseFixture = require('../../lib/__tests__/fixtures/catalystDefenseOwner.json');
 const {monitorWatchlistsFixture,monitorAlertsFixture,monitorRetainedEventFixture} = require('../../lib/__tests__/fixtures/monitorDesk.ts');
 const {researchSelection,researchBody,researchCatalogFixture,researchFilterFixture,researchOutlineFixture} = require('../../lib/__tests__/fixtures/researchReader.ts');
+const {portfolioWorkspaceManifest,portfolioWorkspaceRecords} = require('../fixtures/portfolio-workspace.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -93,6 +94,11 @@ report.sourceFiles=Object.fromEntries([
  'lib/shared-shell/readingPayloads.ts', 'lib/shared-shell/readingRequests.ts',
  'lib/shared-shell/researchOutline.ts', 'lib/shared-shell/researchLibrary.ts',
  'lib/__tests__/fixtures/researchReader.ts', 'app/(shell)/research/page.tsx',
+ 'components/chrome/shared-shell/SharedShellMarketSelect.tsx',
+ 'components/PortfolioView.tsx', 'components/PortfolioWorkspace.tsx',
+ 'components/PortfolioWorkspace.module.css', 'app/(shell)/portfolio/page.tsx',
+ 'app/api/portfolio/route.ts', 'lib/portfolio.ts', 'lib/watchlistsFixtureDb.ts',
+ 'e2e/fixtures/portfolio-workspace.ts',
  'components/catalyst-opportunity/CatalystOpportunityView.tsx',
  'components/catalyst-opportunity/CatalystOpportunity.module.css', 'lib/catalystOpportunityLex.ts',
  'components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx',
@@ -860,6 +866,140 @@ async function qualifyMonitor(page,cell) {
     destinationProof:'IMMUTABLE_LINK_FIELDS_ONLY; downstream Analysis consumer remains its existing owner',passed:true});
 }
 
+async function qualifyPortfolioContext(page,cell) {
+  // Use the incumbent account-shaped test store, never a second portfolio reader.
+  // These six deliberate test seeds precede observation of all UI mutations.
+  const key=`portfolio-context-${page.viewportSize().width}-${crypto.randomUUID()}`;
+  // Same existing opt-in as sector-portfolio-continuity: shell and book derive
+  // one fixtureUserId. Browser auth/preferences remain outside this proof.
+  await page.context().addCookies([{name:'mm_e2e_wl',value:key,url:BASE},{name:'mm_e2e_rs30',value:'1',url:BASE}]);
+  let seedWrites=0;
+  for(const row of portfolioWorkspaceRecords){
+    const response=await page.request.post(BASE+'/api/portfolio',{data:{action:'create',entryCurrency:'USD',...row}});
+    expect(response.ok()).toBe(true);seedWrites++;
+  }
+  const readBook=async()=>{
+    const response=await page.request.get(BASE+'/api/portfolio?view=positions');
+    expect(response.ok()).toBe(true);return response.json();
+  };
+  const original=await readBook();expect(original.positions).toHaveLength(6);
+  const second=original.positions.find(row=>row.notes==='Second record — keep its identity.');
+  expect(second?.ticker).toBe('NVDA');expect(second?.entryCurrency).toBe('USD');
+  const reads={positions:0,risk:0,history:0,targets:0,brief:0,events:0},navigation=[],mutations=[];
+  const writesBefore=report.fixtureWrites.length;
+  page.on('request',request=>{
+    const url=new URL(request.url()),headers=request.headers();
+    if(url.pathname==='/portfolio'&&(request.isNavigationRequest()||headers.rsc==='1')
+      && headers['next-router-prefetch']!=='1'&&headers.purpose!=='prefetch')
+      navigation.push({path:url.pathname+url.search,kind:request.isNavigationRequest()?'document':'rsc'});
+  });
+  await page.route('**/data/manifest.json',route=>route.fulfill({json:portfolioWorkspaceManifest}));
+  await page.route('**/api/**',route=>{
+    const request=route.request(),url=new URL(request.url());
+    if(!['GET','HEAD','OPTIONS'].includes(request.method())){
+      mutations.push({method:request.method(),path:url.pathname});
+      return route.fulfill({status:405,json:{error:'context journey is read-only'}});
+    }
+    if(url.pathname==='/api/quote')return route.fulfill({json:{quotes:portfolioWorkspaceManifest.symbols}});
+    if(url.pathname==='/api/portfolio'&&url.search==='?view=positions'){
+      reads.positions++;return route.continue();
+    }
+    const optional={
+      '/api/portfolio':'risk','/api/portfolio/risk-history':'history',
+      '/api/portfolio/targets':'targets','/api/portfolio-brief':'brief','/api/event-impact':'events',
+    }[url.pathname];
+    if(optional){reads[optional]++;return route.fulfill({status:503,json:{error:'optional synthetic evidence unavailable'}});}
+    return route.fallback();
+  });
+  await page.goto(BASE+'/portfolio?workspaceMarket=us&contextNote=second%2Frecord#holdings');
+  const desk=page.locator('[data-portfolio]');
+  await expect(desk).toHaveAttribute('data-position-count','6',{timeout:30_000});
+  await expect(desk.locator('time[datetime]')).toHaveCount(1);
+  await expect(desk.getByTestId('portfolio-shape-unavailable')).toBeAttached();
+  await expect(desk.getByTestId('portfolio-targets-unavailable')).toBeAttached();
+  await page.locator('#portfolio-tab-risk').click();
+  await expect(desk.getByTestId('portfolio-risk-history-unavailable')).toBeVisible();
+  await page.locator('#portfolio-tab-holdings').click();
+  const panel=page.locator('#portfolio-panel-holdings'),query=panel.getByRole('searchbox');
+  await query.fill('second record');
+  const rows=desk.getByTestId('portfolio-open').locator('tr[data-position-id]');
+  await expect(rows).toHaveCount(1);await expect(rows).toHaveAttribute('data-position-id',second.id);
+  await expect.poll(()=>reads.brief).toBeGreaterThan(0);await expect.poll(()=>reads.events).toBeGreaterThan(0);
+  const originalDesk=await desk.elementHandle(),baseline={...reads},navigationBefore=navigation.length;
+  const checked=await desk.locator('time[datetime]').getAttribute('datetime');expect(checked).toBeTruthy();
+  const market=page.getByRole('combobox',{name:'Workspace market',exact:true});
+  await expect(market).toHaveAccessibleDescription('Research market. Your portfolio keeps all holdings and their recorded currencies.');
+  const assertContext=async value=>{
+    await expect(market).toHaveValue(value);
+    expect(new URL(page.url()).searchParams.get('workspaceMarket')).toBe(value);
+    expect(new URL(page.url()).searchParams.get('contextNote')).toBe('second/record');
+    expect(new URL(page.url()).hash).toBe('#holdings');
+    await expect(panel).toBeVisible();await expect(query).toHaveValue('second record');
+    await expect(rows).toHaveCount(1);await expect(rows).toHaveAttribute('data-position-id',second.id);
+    await expect(rows).toContainText('155.00');await expect(rows).toContainText('USD');
+    await expect(desk).toHaveAttribute('data-position-count','6');
+    expect(await originalDesk.evaluate(node=>node.isConnected)).toBe(true);
+    await expect(desk.locator('time[datetime]')).toHaveAttribute('datetime',checked);
+    const destination=new URL(await rows.locator('a.pf-tk').getAttribute('href'),BASE);
+    expect(destination.pathname).toBe('/terminal');expect(destination.searchParams.get('symbol')).toBe('NVDA');
+    expect(destination.searchParams.get('ret')).toBe(page.url());
+    expect(reads).toEqual(baseline);expect(navigation).toHaveLength(navigationBefore);expect(mutations).toEqual([]);
+    await noOverflow(page);
+  };
+  await market.selectOption('hk');await assertContext('hk');
+  await market.selectOption('ca');await assertContext('ca');
+  await page.goBack();await assertContext('hk');
+  await page.goForward();await assertContext('ca');
+  await page.screenshot({path:path.join(OUT,`${cell}-filtered-holdings.png`),animations:'disabled'});
+  const trigger=rows.getByRole('button');await trigger.click();
+  const dialog=page.getByRole('dialog');
+  await expect(dialog).toContainText('Second record — keep its identity.');
+  await expect(dialog).toContainText('155.00 · USD');
+  const originalDialog=await dialog.elementHandle();
+  // A native modal makes the top-bar select inert. Real history traversal is
+  // the supported way to exercise context continuity while it remains open.
+  await page.goBack();await expect(page).toHaveURL(/workspaceMarket=hk#holdings$/);
+  await expect(dialog).toBeVisible();expect(await originalDialog.evaluate(node=>node.isConnected)).toBe(true);
+  expect(await dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+  await expect(dialog).toContainText('Second record — keep its identity.');
+  const backChart=new URL(await dialog.getByRole('link',{name:'Open current chart',exact:true}).getAttribute('href'),BASE);
+  expect(backChart.searchParams.get('ret')).toBe(page.url());
+  await page.goForward();await expect(page).toHaveURL(/workspaceMarket=ca#holdings$/);
+  await expect(dialog).toBeVisible();expect(await originalDialog.evaluate(node=>node.isConnected)).toBe(true);
+  expect(await dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+  const chart=new URL(await dialog.getByRole('link',{name:'Open current chart',exact:true}).getAttribute('href'),BASE);
+  expect(chart.searchParams.get('ret')).toBe(page.url());expect(chart.searchParams.get('symbol')).toBe('NVDA');
+  await noOverflow(page);await page.screenshot({path:path.join(OUT,`${cell}-exact-record.png`),animations:'disabled'});
+  await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(trigger).toBeFocused();
+  await query.fill('RKLB');const filter=panel.getByRole('combobox',{name:'Filter records',exact:true});
+  await filter.selectOption('details');await expect(rows).toHaveCount(1);
+  const unsized=original.positions.find(row=>row.ticker==='RKLB');expect(unsized.shares).toBeNull();
+  await market.selectOption('us');await expect(market).toHaveValue('us');
+  await expect(panel).toBeVisible();await expect(query).toHaveValue('RKLB');await expect(filter).toHaveValue('details');
+  await expect(rows).toHaveAttribute('data-position-id',unsized.id);await expect(rows).toContainText('No size');
+  await filter.selectOption('all');
+  await query.fill('');await expect(rows).toHaveCount(6);
+  const displayedIds=await rows.evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-position-id')).sort());
+  expect(displayedIds).toEqual(original.positions.map(row=>row.id).sort());
+  const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/}),light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+  await language.click();await light.click();
+  await expect(page.locator('html')).toHaveAttribute('data-lang','zh');await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await expect(page.getByRole('combobox',{name:'工作区市场',exact:true})).toHaveAccessibleDescription('研究市场。投资组合保留全部持仓及其已记录币种。');
+  await expect(rows).toHaveCount(6);await expect(rows.filter({hasText:'NVDA'}).nth(1)).toContainText('USD');
+  await noOverflow(page);await page.screenshot({path:path.join(OUT,`${cell}-holdings-zh-light.png`),animations:'disabled'});
+  expect(await originalDesk.evaluate(node=>node.isConnected)).toBe(true);
+  expect(await readBook()).toEqual(original);expect(reads).toEqual(baseline);expect(navigation).toHaveLength(navigationBefore);expect(mutations).toEqual([]);
+  expect(report.fixtureWrites.length).toBe(writesBefore);
+  await page.unrouteAll({behavior:'wait'});
+  report.cells.push({w:page.viewportSize().width,journey:'portfolio-research-context',
+    sourceProof:'INCUMBENT_SYNTHETIC_FIXTURE_STORE_NOT_LIVE_ACCOUNT_OR_PRODUCTION',
+    fixtureSha256:crypto.createHash('sha256').update(JSON.stringify({manifest:portfolioWorkspaceManifest,records:portfolioWorkspaceRecords})).digest('hex'),
+    seedWrites,reads,contextNavigationRequests:navigation.slice(navigationBefore),mutations,
+    exactRecordId:second.id,bookKey:original.bookKey,scope:'personal book retained; research market only',
+    identityProof:'incumbent loopback fixture shell/page/API identity; auth metadata hydration and production entitlement not covered',
+    optionalEvidence:'unavailable; no risk, target, event or brief values invented',passed:true});
+}
+
 async function qualifyResearch(page,cell) {
   const writesBefore=report.fixtureWrites.length,reads={catalog:0,search:0,body:0},bodyQueries=[];
   let holdRead=true,releaseRead=null,readStatus=200;
@@ -1206,6 +1346,9 @@ async function qualifyToday(page,cell) {
    const researchContext=await context(),researchPage=await researchContext.newPage();
    await researchPage.setViewportSize({width,height});researchPage.on('pageerror',error=>report.errors.push({cell:`research-${width}`,error:error.message}));
    await qualifyResearch(researchPage,`research-${width}`);await researchContext.close();
+   const portfolioContext=await context(),portfolioPage=await portfolioContext.newPage();
+   await portfolioPage.setViewportSize({width,height});portfolioPage.on('pageerror',error=>report.errors.push({cell:`portfolio-${width}`,error:error.message}));
+   await qualifyPortfolioContext(portfolioPage,`portfolio-${width}`);await portfolioContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

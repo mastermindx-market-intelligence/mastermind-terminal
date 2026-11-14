@@ -554,6 +554,108 @@ Analysis integration, regional engines, full Macro/Prophet parity, deployed
 journeys and retirement in the parent acceptance. No phase or queued PR closes
 the mission; CI/release boundaries affect only their dependent lanes.
 
+## P11A — Portfolio research context, 2026-11-14
+
+The [Portfolio continuity packet](./P11_PORTFOLIO_CONTEXT.md) records the complete
+source/design/custody binding, changed behavior, fixture contract and remaining
+production proof. This candidate is based on P10 PR1513,
+`b71c0f9fa8be8c33dab72aaf5704b73fc19e867c`, whose eight files, commit/tree,
+parents, branch and Ready PR were fully read back. P10 is published, not accepted
+in production; its current run43589674862 remains in progress.
+
+Only same-page Portfolio market changes use the existing native-history path and
+location event. The selected market changes research context without replacing
+the server seed for the account-owned book. Strict parsing prevents duplicate
+history for an identical valid market while preserving repair of ambiguous query
+fields. Other engine routes retain router navigation. EN/ZH accessible copy
+explains holdings/currency scope without adding a new layout or Portfolio owner.
+
+Active Portfolio1502 and1506 retain their held allocation/import/controller
+work; source-bound brief1216/Macro10551 and EventImpact804 remain separately
+owned. No held effect or competing financial state is adopted. The exact Paper
+transition from P10 remains unconfirmed and retry-disabled. This slice uses the
+accepted native Portfolio design and does not claim a new Paper composition.
+
+All28 targeted selector/market-boundary/helper tests pass; full TypeScript,
+scoped lint and script checks pass. The original six-record responsive fixture
+is shared with the existing authenticated qualifier. The new journey checks
+the real canonical fixture store at1440/820/320px: market and history changes,
+exact duplicated-ticker record, retained query/non-default filter, modal focus,
+current chart return links, book identity and zero context-triggered writes or
+book/RSC navigation. Hosted execution and actual-account production proof are
+still owed. Optional evidence remains explicitly unavailable in this fixture.
+
+### Earlier lanes reconciled during P11
+
+- P5 PR1504 remains `bb0e95d9d67910fa5c7ee060fad0f2016fe94032`.
+  After the original run completed, one failed-job retry was accepted for
+  job132418198212. Run43585154012 now reports attempt2 completed success.
+  No source/timeout/assertion weakening and no second retry occurred. Root
+  verified browser artifact14110428865:18 cells passed,41 recorded source hashes
+  matched, exact candidate tree, no errors/external requests/fixture writes or
+  tracked changes. Root viewed the Today1440px reading capture. All exact
+  artifact/checkout/ZIP hashes are in the P11 packet. This supersedes the earlier
+  pending-run observation without erasing the original failure.
+- P6 repaired PR1508 `ce55946034d4060919926c790efe98f4f036569a` has
+ 21 passing browser cells in artifact14111396937 from run43587853302. Its tested
+  merge includes the existing P5 doc/test repair; all45 qualifier source hashes
+  match P6. The report records one unrelated ticker-news screenshot change, so
+  it is not described as a clean working tree. Root viewed phone EN and desktop
+  ZH Discover captures. Full binding CI/deep-engine parity/release remain open.
+- P9 repaired run43589237107 is in progress. The finite artifact inventory did
+  not yet contain an intelligence qualifier result; serial-standalone results
+  are not substituted for it. New-head Monitor proof remains owed.
+- Macro11246 and11248 remain singly enrolled with their original release
+  controller. Sweep43589602483/job132431315778 explicitly deferred both refreshes
+  after relevant main changes because the hosted CI pool had no admitted slot.
+  No update-branch write occurred. Do not bypass that capacity decision through
+  caller merge-main, a new watcher, another opt-in or direct merge.
+
+### Parent reassessment
+
+P11's context repair is a bounded step, not completion of Portfolio's held
+imports/allocation/source-bound brief or of the beta shell. Next safe work is
+P12's existing Options→Terminal→Options consumer path, after verifying active
+Options1266/navigation1509/Analysis1494 custody. Retain all original P0–P17
+acceptance, missing Paper compositions, full native engine parity, market-specific
+coverage, production/browser evidence and duplicate/iframe retirement gates.
+
+The P12 custody read additionally binds held Options1248 at
+`1b2d4da5e784063c7c0c2b1a1c8f9394b1c0c0b2`, Draft/merge-blocked. Root
+read comment6767578188: the original native evidence-tree effect remains
+TREE_EFFECT_UNKNOWN_NO_REPLAY, expected4140c0b7f69b24d068023e5cc6bbc0ef6975fa85,
+with a separate GMI EPERM hold. No retry, target query through a replacement
+carrier, prepared-source adoption or competing Options rewrite was attempted.
+Keep that lane fenced while diagnosing the next path-disjoint consumer.
+
+## Monitor market-commit repair across the owned stack
+
+P11 is published/read back at Ready PR1516, original head
+`3bb22d3577eacb1b074ac047b3f95728208a833d`. The next finite artifact reads
+found the same genuine Monitor failure in P9 run43589237107/artifact14112546230
+and P10 run43589674862/artifact14111344676:12 completed cells, then expected
+Canada destination context but observed China. Neither report reaches Research
+or Portfolio. Exact candidate-tree, archive/report hashes and the source-bound
+cause are preserved in [P9](P9_MONITOR_EVIDENCE_DESK.md#committed-market-navigation-repair--14-november).
+
+Original P9 PR1512 is repaired at
+`37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff`, tree
+`dc9f44afe91b85ac016de2ad7aea038fe7c70644`; original P10 PR1513 composes it
+at `b80e58a2b254ed49eb9e573c1131cf09e13e18af`, tree
+`8bf8905ea89edfb581272a9623c2a693c7e1b2da`. All changed contents, trees,
+parentage, branch heads and PR bodies were read back. The new regression fails
+on the preimage and passes with committed-layout URL reflection. It retains
+exact return encoding/hash, list/evidence identity and the two inventory reads.
+Affected P9 suites pass101 cases; combined Monitor/Research suites pass107.
+Full P9 TypeScript, scoped lint, syntax, nonempty-diff language and whitespace
+checks pass. The qualifier still requires all immutable pins and unchanged reads;
+it waits for real consumer destinations without a synthetic refresh or sleep.
+
+Compose that same repair through this P11 carrier, preserving the existing
+Portfolio source/read and fixture contracts. Continue P12's bounded IEX/Futures
+navigation work while new binding hosted results are pending. No protected
+release, production acceptance, Paper recovery or parent completion is claimed.
+
 ### P9 acceptance readback and P10 fixture repair — 14 November
 
 P9 head `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff` has exact-tree synthetic
