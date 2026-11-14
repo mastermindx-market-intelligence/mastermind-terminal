@@ -275,3 +275,86 @@ Local focused qualification passed109 tests. It proves the settled comparison wr
 The original release lanes remain independent: Macro11246 has one read-back `merge-on-green` opt-in, not a merge/deploy receipt. Macro11248's original CI pack2 exposed an originating deploy import-closure failure for newly imported `engine/us_candidate_lanes.py`; repair of that exact restart dependency is being diagnosed on its original carrier, with the check and release controller retained. Terminal1495/1500 keep their original exact-head CI observers and no release opt-in. CI/release waiting does not stop P6 source work.
 
 Next safe source phase: P6 Discover, beginning with the existing Paper and source workbench entrances, canonical Sector/Catalysts links and preserved screener/heatmap/leader engines. No filter, data coverage or market universe is invented or silently replaced.
+
+## P6A — Discover chooser and integration reassessment, 14 Nov
+
+The first P6 slice implements the existing Paper chooser's next refinement:
+compact questions, differentiated tool rows, a separate timing study and explicit
+native candidate/theme entrances. BioCatalyst and the full US stock workspace
+remain named depth destinations; Signal Board no longer implies transfer of the
+current native screen. The existing engine, filter, URL, focus, market and
+personal-state owners are retained. See [P6 source/acceptance packet](P6_DISCOVER_CHOOSER.md).
+The21 affected chooser/focus tests, targeted lint and nonempty language guard
+pass. New Paper board48N-0/48V-0/493-0 onp-8-0 were visually inspected and their
+owned indicators released. Authenticated browser execution remains owed on the
+published head; full P6 workbench and all-market acceptance are still open.
+
+### Material receipts and current release boundaries
+
+- PR1495's repaired head627b87e1 has an exact-tree browser receipt: run43576950807,
+  artifact14107458273, ZIP SHA-256
+  `85e8e7f15fe10cc17eec6c5140c48b5c5bb6c870a23e0c42e9f60b7d9bfbe0c2`.
+  Tested merged24cc0b7 has parentsc67a68ee/627b87e1 and the same
+  `6d448e71566fe4941a9742913e2f5f2fec165eaa` tree. All12 recorded cells pass,
+  with no page errors, external requests, fixture writes or tracked source
+  changes. Phone EN and desktop ZH Liquidity images were read back. This is
+  fixture proof; deployed source, real account reads and production CSP remain.
+- Macro11246 retains its single merge-on-green opt-in at80ca3040. Original
+  full sweep43579102282 explicitly deferred its required proof refresh because
+  no effective CI workload slots were available. A later green sweep without
+  a per-PR verdict is not a merge. The existing controller owns refresh/merge;
+  no duplicate rearm, manual refresh or additional observer is created.
+- Macro11248's actual restart-closure failure is repaired at
+  `ffd95ec212dbffb7144e87df995e9a063cc68d89`, tree
+  `b65ea6e459c095e085d4076b2a3e58878289be5a`. Only the exact imported candidate
+  module was added to the incumbent restart predicate. The unchanged closure
+  test passed with all app/engine/lib Python dependencies materialized; Bash
+  syntax passed. Both published files and the original branch were read back.
+  Binding CI43580506806 is separate from release and served API acceptance.
+- Terminal1500's sourcecff2126a passed15 recorded fixture-browser cells in
+  artifact14107094187. Visual QA nevertheless found a one-character-wide ZH
+  Inspect label at320px. Original carrier repair
+  `dc8039571b40a0d0ce3765b92560f4cbf7d195d5` places the action in normal grid
+  flow and adds label/target geometry proof. Exact remote source was read back;
+  its CI43580992587 must qualify the repaired head.
+- P5's original CI43579891771 found two stale reading-workspace expectations
+  for the old Macro entrance. The two selectors now assert the intentional
+  native overview, with all source-clock and qualification assertions retained;
+  the full affected59-test suite passes. The P5 carrier composes the P4 visual
+  fix without replacing its Today fixture or journey. Repaired-head hosted
+  acceptance is still owed. The composed repair is published and read back at
+  `6a83fb906b4ee2d449c333657f59775d34129b25`, tree
+  `5bd6697cc25e9503637b0151b1644cb8519f5a4c`; P6 uses that parent.
+- P5's original browser artifact `14109095060` passed all 18 cells in run
+  `43579891771`. Test merge `9b3f36fcf1cad665ea92f67022e4299b035860e6`
+  has original P4/P5 parents and the exact P5 tree `2ad386155b466c8f169cf42f49c79f8cd32b9284`.
+  ZIP SHA-256 is `1eb44239254431eef69f5e87a3cac037bfa5ae91a102b990f8cb67676fb1b1b8`.
+  Root read back desktop and phone images, including the separate summary-absence
+  state. The report preserves reader identity, one accepted digest write and
+  the exact saved report revision, with no report-body request or reported
+  error/external request/fixture write/source change. This is fixture evidence
+  for the original head; repaired-head, production CSP and served acceptance remain.
+
+### Existing work to integrate, without duplicate owners
+
+| Scope | Current carrier and disposition | Acceptance still owed |
+|---|---|---|
+| Full Macro Dashboard beyond selected Liquidity detail | PR1503 at6aba1efb is the active continuation; preserve its native overview/history/factor/release/health work | Companion Macro11253 now publishes source at2943a7ce and is enrolled in its existing controller; protected merge, produced/served artifact and immutable T → protected R → produced/served P → exact-R catalog → consumer proof remain |
+| Native complete Prophet population | PR1500 + Macro11248 remain this plan's foundation | Repaired browser geometry, real complete payload size, served authenticated endpoint and protected release |
+| Prophet observations, canonical save, comparison and setup refinements | Useful deltas in live PR1505 atca0b9229 | Reconcile its second candidate endpoint/decoder/read lifetime onto one owner before integration; preserve independent observation identity and personal-save receipts. Companion setup-detail source is now published in Macro11254 at38c45cd3; no served acceptance is inferred |
+| Global tool directory/rail/mobile chrome and Market Reference | Live PR1501 atf58e7c47 | Existing writer's exact-head proof and compatible integration; P6 does not reproduce these surfaces |
+| Company Analysis and chart integration | Live PR1494, currently664e7011 | Its existing owner/proof path; do not recreate its bodies |
+
+PR1505 and1500 have six candidate-related changed-file collisions. A mechanically
+clean merge would not resolve the duplicate consumer. Preserve the live source,
+compose useful research deltas explicitly and retain one transport, accepted
+population, account lifetime and URL owner. Neither branch is overwritten or
+released as a consequence of this inventory. PR1503's query-free macroDashboard
+resource must compose additively with the existing selected Liquidity query and
+candidate resources in readingProxy; no older baseline may erase them.
+
+The next safe lane is the existing P7 Catalyst/Defense evidence journey, starting
+with source/custody and Paper inspection. Full engine migration, regional
+coverage, production proofs and retirement remain governed by the original
+P0–P17 DONE_WHEN. Pending CI and release capacity block their affected lanes,
+not this parent construction mission.

@@ -17,7 +17,7 @@ vi.mock("next/navigation", async () => {
     return new URLSearchParams(search);
   } };
 });
-vi.mock("next/link", () => ({ default: ({ href, children, ...props }: { href: string; children: ReactNode }) => <a href={href} {...props}>{children}</a> }));
+vi.mock("next/link", () => ({ default: ({ href, children, prefetch, ...props }: { href: string; children: ReactNode; prefetch?: boolean }) => <a href={href} {...props} data-prefetch={String(prefetch)}>{children}</a> }));
 vi.mock("next/dynamic", () => ({ default: () => () => <main id="shared-shell-content" tabIndex={-1}><h1>Existing sector owner</h1><button>Study action</button></main> }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }), useT: () => (key: string) => key }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => ({}) }));
@@ -46,7 +46,7 @@ describe("Discover chooser focus continuity", () => {
     await act(async () => root.unmount());
     host.innerHTML = renderToString(<DiscoverWorkspace />);
     const actions = () => [...host.querySelectorAll<HTMLButtonElement>("button")];
-    expect(actions()).toHaveLength(7);
+    expect(actions()).toHaveLength(8);
     expect(actions().every(action => action.disabled)).toBe(true);
     expect(document.activeElement).toBe(external);
 
@@ -57,12 +57,12 @@ describe("Discover chooser focus continuity", () => {
     expect(selected().id).toBe("wtab-heatmap");
     expect(document.activeElement).toBe(selected());
     await activate(button("Discover ←"));
-    expect(actions()).toHaveLength(7);
+    expect(actions()).toHaveLength(8);
     expect(actions().every(action => !action.disabled)).toBe(true);
     expect(document.activeElement).toBe(host.querySelector("h1"));
   });
 
-  it.each([["Open Heatmap", "heatmap"], ["Open Stock Screener", "screener"], ["Open study", "rs-pivot"]])("continues from %s into the selected tool and back to the chooser", async (label, key) => {
+  it.each([["Open Heatmap", "heatmap"], ["Open Stock Screener", "screener"], ["Open study", "rs-pivot"], ["Open Catalyst Intelligence", "catalysts"], ["Open Leaders", "leaders"], ["Open Leader Radar", "radar"]])("continues from %s into the selected tool and back to the chooser", async (label, key) => {
     await render(); expect(document.activeElement).toBe(external);
     await activate(button(label));
     expect(selected().id).toBe(`wtab-${key}`); expect(document.activeElement).toBe(selected());
@@ -92,6 +92,18 @@ describe("Discover chooser focus continuity", () => {
     await render(); await activate(button("Open Sectors"));
     expect(navigation.push).toHaveBeenCalledWith("/sectors?workspaceMarket=us");
     expect(window.location.search).toBe("?workspaceMarket=us");
+  });
+
+  it("preserves an existing Catalyst case, unrelated query and fragment through chooser return", async () => {
+    window.history.replaceState(null, "", "/discover?case=retained-case&origin=fixture&workspaceMarket=us#evidence");
+    await render(); await activate(button("Open Catalyst Intelligence"));
+    expect(selected().id).toBe("wtab-catalysts"); expect(document.activeElement).toBe(selected());
+    expect(window.location.search).toBe("?case=retained-case&origin=fixture&workspaceMarket=us&tab=catalysts");
+    expect(window.location.hash).toBe("#evidence");
+    await activate(button("Discover ←"));
+    expect(window.location.search).toBe("?case=retained-case&origin=fixture&workspaceMarket=us");
+    expect(window.location.hash).toBe("#evidence");
+    expect(document.activeElement).toBe(host.querySelector("h1"));
   });
 
   it("preserves a bookmarked sector investigation and its depth-return state without the Discover tab layer", async () => {
