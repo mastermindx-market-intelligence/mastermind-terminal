@@ -153,7 +153,7 @@
   .shared-shell .mobilebar .shared-shell-presentation { gap:2px; }
   .shared-shell .mobilebar .shared-shell-presentation-toggle { width:44px;height:44px;padding:0; }
   .shared-shell .mobilebar .shared-shell-theme-label { display:none; }
-  .shared-shell .mobilebar .m-ic { width:44px;height:44px; }
+  .shared-shell .mobilebar .m-ic { min-width:44px;height:44px; }
   .shared-shell .m-nav a,.shared-shell .m-nav button { min-height:46px; }
   .shared-shell-boundary { padding:24px; }
 }

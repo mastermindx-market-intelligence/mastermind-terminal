@@ -65,10 +65,8 @@ for (const lang of ["en", "zh"] as const) {
     page.on("request", request => {
       if (new URL(request.url()).pathname.startsWith("/api/alerts") && !["GET", "HEAD"].includes(request.method())) writes.push(request.method());
     });
+    if (sharedShell && lang === "zh") await page.addInitScript(() => localStorage.setItem("mmx.shell.theme", "light"));
     await page.goto("/alerts");
-    if (sharedShell && lang === "zh") {
-      await page.getByRole("button", { name: "浅色主题", exact: true }).click();
-    }
     await expect(page.locator("html")).toHaveAttribute("data-theme", sharedShell && lang === "zh" ? "light" : "dark");
     const { row, dialog, close } = await openDetail(page, lang);
     await expect(dialog.getByRole("heading", { level: 2 })).toBeFocused();

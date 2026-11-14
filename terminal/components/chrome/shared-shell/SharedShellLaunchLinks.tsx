@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { useShellLocation } from "./useShellLocation";
+import { shellCompanySubject, useShellLocation } from "./useShellLocation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { normalizeActiveSymbol, useActiveSymbol } from "@/lib/activeSymbol";
+import { useActiveSymbol } from "@/lib/activeSymbol";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
@@ -24,14 +23,7 @@ export default function SharedShellLaunchLinks({ labelled, drawer = false, onNav
   const returnHref = useShellLocation();
 
   // The explicit URL identity wins over the last chart cursor on company pages.
-  let companySymbol: string | null = null;
-  if (path === "/analysis") companySymbol = normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
-  if (path === "/stock.html" && returnHref) {
-    try {
-      const url = new URL(returnHref);
-      companySymbol = normalizeActiveSymbol(url.hash ? decodeURIComponent(url.hash.slice(1)) : url.searchParams.get("ticker"));
-    } catch { /* Malformed symbols must not select an unrelated previous chart. */ }
-  }
+  const companySymbol = shellCompanySubject(path, params.get("symbol"), returnHref);
   const invalidCompany = (path === "/analysis" && params.has("symbol") && !companySymbol)
     || (path === "/stock.html" && !companySymbol);
   const terminalHref = !invalidCompany && returnHref

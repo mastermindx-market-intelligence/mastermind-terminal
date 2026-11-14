@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useId, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
@@ -15,6 +15,7 @@ import { sharedShellActiveKey } from "@/lib/sharedShellNavigation";
 import { TerminalViews } from "./chrome/shared-shell/TerminalWorkspaceNav";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
+import { shellCompanySubject, useShellLocation } from "./chrome/shared-shell/useShellLocation";
 import SharedShellMarketSelect from "./chrome/shared-shell/SharedShellMarketSelect";
 
 // Shared Shell beta viewport ceiling (px). MobileNavModal keeps PR697's default 860
@@ -69,6 +70,19 @@ export interface MobileNavProps {
   isTerminal?: boolean;
   /** Disable viewport prefetch; warm sibling workspaces only on explicit intent. */
   intentPrefetch?: boolean;
+}
+
+function MobileShellSearch({ onOpen }: { onOpen?: () => void }) {
+  const path = usePathname();
+  const params = useSearchParams();
+  const location = useShellLocation();
+  const t = useSharedShellT();
+  const subject = shellCompanySubject(path, params.get("symbol"), location);
+  return <button type="button" className={`m-ic ${styles.search}`} onClick={onOpen}
+    aria-haspopup="dialog" aria-label={t("shellSearchCompanies")}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
+    <span>{subject ?? t("shellSearch")}</span>
+  </button>;
 }
 
 export default function MobileNav({
@@ -161,9 +175,7 @@ export default function MobileNav({
               <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
             </button>
           )}
-          {sharedShell && <button className="m-ic" onClick={onOpenSearch} aria-label={t("shellSearchCompanies")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
-          </button>}
+          {sharedShell && <MobileShellSearch onOpen={onOpenSearch} />}
           {onOpenCommandPalette && (
             <button className="m-ic" type="button" onClick={onOpenCommandPalette} aria-label={commandPaletteLabel} aria-haspopup="dialog" data-command-palette-trigger="mobile">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>

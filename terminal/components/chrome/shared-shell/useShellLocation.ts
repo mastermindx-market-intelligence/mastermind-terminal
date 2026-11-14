@@ -1,4 +1,6 @@
 "use client";
+import { normalizeActiveSymbol } from "@/lib/activeSymbol";
+import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { useLayoutEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -21,4 +23,16 @@ export function useShellLocation() {
   }, [path, search]);
 
   return returnHref;
+}
+
+/** The explicit company in a shared route, independent of the last chart cursor. */
+export function shellCompanySubject(path: string, symbol: string | null, href: string): string | null {
+  if (path === "/analysis") return normalizeAnalysisSymbol(symbol ?? undefined);
+  if (path !== "/stock.html" || !href) return null;
+  try {
+    const url = new URL(href);
+    return normalizeActiveSymbol(url.hash ? decodeURIComponent(url.hash.slice(1)) : url.searchParams.get("ticker"));
+  } catch {
+    return null;
+  }
 }

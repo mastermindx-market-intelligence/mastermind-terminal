@@ -1,3 +1,4 @@
+import { decodeTapeView } from "../lib/optionsTapeView";
 import { setShellAppearance } from "./fixtures/shellAppearance";
 import {expect,test} from "@playwright/test";
 import {SHARED_SHELL_PROTOCOL,SHARED_SHELL_BRIDGE_VERSION,SHARED_SHELL_DOCUMENT_VERSION} from "../lib/sharedShellContracts";
@@ -176,6 +177,35 @@ test("company search selects one canonical company from desktop, tablet and phon
  await noOverflow(page);
 });
 
+test("company search opens a chart and returns to the selected listing from Options Flow", async ({ page, baseURL }, info) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.route("**/data/manifest.json*", route => route.fulfill({ json: { as_of: null, symbols: {
+    AAPL: { name: "Apple Inc.", zh: "苹果公司", col: "#aaa", verdict: null, mkt: "NASDAQ", sec: "Equities" },
+  } } }));
+  await page.goto("/discover?tab=screener");
+  const origin = page.url();
+  const opener = info.project.name === "desktop" ? page.locator(".topbar .shared-shell-company-search")
+    : page.locator(".mobilebar").getByRole("button", { name: "Search companies", exact: true });
+  await expect(opener).toContainText("Search");
+  await opener.click();
+  const search = page.getByRole("dialog", { name: "Search companies and tools", exact: true });
+  await search.getByRole("combobox").fill("Apple");
+  await search.getByRole("option").filter({ hasText: "AAPL" }).click();
+  await search.getByRole("button", { name: "Open chart", exact: true }).click();
+  await expect(page).toHaveURL(url => url.pathname === "/terminal" && url.searchParams.get("symbol") === "AAPL" && url.searchParams.get("ret") === origin);
+  const menu = page.locator("[data-beta-chart] [data-chart-workspaces]:visible");
+  await menu.click();
+  const drawer = page.getByRole("dialog", { name: "Workspaces", exact: true });
+  await drawer.getByRole("link", { name: "Options Flow · AAPL", exact: true }).click();
+  await expect(page).toHaveURL(url => url.pathname === "/options" && decodeTapeView(url.searchParams.get("tapeView"))?.drillTicker === "AAPL");
+  await page.goBack();
+  await expect(menu).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(origin);
+  await expect(search.getByRole("combobox")).toHaveValue("Apple");
+  await expect(search.locator('[data-company-symbol="AAPL"]')).toHaveAttribute("aria-selected", "true");
+});
+
 test("phone company search keeps its scope in both languages and dismisses by touch",async({page},info)=>{
  test.skip(info.project.name!=="mobile","Actual phone sheet and touch context");
  await page.goto("/discover");
@@ -203,15 +233,14 @@ for (const lang of ["en", "zh"] as const) {
   test(`SS12 unknown-page recovery opens company search and returns keyboard focus at 320px (${lang})`, async ({ page }, info) => {
     test.skip(info.project.name !== "mobile", "Original 320px phone recovery");
     await page.setViewportSize({ width: 320, height: 844 });
-    await page.addInitScript(language => localStorage.setItem("mm.lang", language), lang);
+    await page.addInitScript(language => {
+      localStorage.setItem("mm.lang", language);
+      localStorage.setItem("mmx.shell.theme", language === "zh" ? "light" : "dark");
+    }, lang);
     const response = await page.goto("/__beta_missing_route_ui_probe");
     expect(response?.status()).toBe(404);
     await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
     const zh = lang === "zh";
-    if (zh) {
-      const theme = page.getByRole("button", { name: "浅色主题", exact: true });
-      if (await theme.getAttribute("aria-pressed") !== "true") await theme.click();
-    }
     await expect(page.locator("html")).toHaveAttribute("data-theme", zh ? "light" : "dark");
     const recovery = page.getByRole("main");
     const opener = recovery.getByRole("button", { name: zh ? "搜索公司" : "Search companies", exact: true });
@@ -553,6 +582,7 @@ test("market control remains reachable at 320px alongside existing header action
 test("the Beta chart opens labelled workspaces without a second rail", async ({ page, baseURL }, info) => {
   await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 720 });
+  await page.addInitScript(() => localStorage.setItem("mm.dtm", "true"));
   await page.goto("/terminal?symbol=AAPL&tf=W");
   const chart = page.locator(".app[data-beta-chart]");
   const menu = chart.locator("[data-chart-workspaces]:visible");
@@ -574,10 +604,19 @@ test("the Beta chart opens labelled workspaces without a second rail", async ({ 
     await expect(drawer.getByRole("link", {name, exact: true})).toBeVisible();
   }
   await expect(drawer.getByRole("link", {name: "Analysis", exact: true})).toHaveAttribute("href", "/analysis?symbol=AAPL");
-  await expect(drawer.getByRole("button", {name: "Settings", exact: true})).toBeAttached();
+  await expect(drawer.getByRole("button", {name: "Settings", exact: true})).toBeVisible();
   expect((await chart.locator(".workspace").boundingBox())!.width).toBe(width);
   await page.keyboard.press("Escape");
   await expect(menu).toBeFocused();
+  await menu.click();
+  await drawer.getByRole("button", {name: "Settings", exact: true}).click();
+  const settings = page.locator(".acs-card[role=dialog]");
+  await expect(settings).toBeVisible();
+  await expect(drawer).toHaveCount(0);
+  await settings.getByRole("tab", {name: "Preferences", exact: true}).click();
+  await expect(settings.getByRole("group", {name: "Appearance", exact: true})).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(settings).toBeHidden();
   await menu.click();
   await drawer.getByRole("link", {name: "Options Flow", exact: true}).click();
   await expect(page).toHaveURL(url => url.pathname === "/options");

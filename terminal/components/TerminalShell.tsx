@@ -2379,9 +2379,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       dtmBootRef.current = true;
       const snap = load("mm.dtmSnapshot", null);
       if (snap && typeof snap === "object" && Array.isArray(snap.inds)) dtmSnapshotRef.current = snap as DtmSnapshot;
-      // ?sym= deep-link sessions skip the workspace restore above, so the persisted in-mode tf never
-      // loads — land such sessions on the mode's 5m instead of the daily default (mode is ON here).
-      if (initialSymbol) setTimeout(() => setTf("5m"), 0);
+      // An episode uses five-minute bars. For other links, a supported explicit interval wins.
+      if (initialSymbol && (initialEpisode || !initialTimeframe || startTf !== initialTimeframe)) {
+        setTimeout(() => setTf("5m"), 0);
+      }
       setTimeout(() => setDtm(true), 0);
     }
     // ?sym=&episode= deep links land on 5m: a dislocation episode is built from 5-minute bars and the daily
@@ -6231,7 +6232,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         below are children of it, which is what matters. */}
     <SharedShellPresentation enabled={!shellMode} identity={identity} appearanceOnly>
     <SettingsProvider identity={identity} defaultSection="terminal">
-    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-beta-chart={betaWorkspace ? "" : undefined} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-beta-chart={betaWorkspace ? "" : undefined} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ "--rail-w": `${railW}px` } as React.CSSProperties}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
         loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
         // A historical read is an unnamed local working copy. It must never target the

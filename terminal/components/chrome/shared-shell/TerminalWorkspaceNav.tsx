@@ -89,7 +89,7 @@ export default function TerminalWorkspaceMenu({ symbol, email, optionsHref, onOp
         <button type="button" onClick={() => { close(); setBrowse(true); }}>{t("shellBrowseTools")}</button>
         {onReturn && <button type="button" onClick={() => { close(); onReturn(); }}>← {t("shellReturnWorkspace")}</button>}
       </div>
-      <div className="m-drawer-ft"><SettingsButton email={email} /></div>
+      <div className="m-drawer-ft" onClickCapture={close}><SettingsButton email={email} /></div>
     </MobileNavModal>}
     {browse && <div className={styles.browse}><BrowseTools mode="browse" onClose={closeBrowse} /></div>}
   </>;

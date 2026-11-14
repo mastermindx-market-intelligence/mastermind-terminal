@@ -182,6 +182,19 @@ async function noOverflow(page) {
  expect(bounds.document).toBeLessThanOrEqual(bounds.viewport + 1);
  for (const main of bounds.main) expect(main.scroll).toBeLessThanOrEqual(main.client + 1);
 }
+// Drive the same document appearance inputs observed by the mounted workspaces.
+// This read-only source fixture deliberately has no account preference write endpoint.
+async function setFixtureAppearance(page, nextTheme, nextLocale = 'en') {
+  theme = nextTheme;
+  locale = nextLocale;
+  await page.evaluate(({theme, locale}) => {
+    localStorage.setItem('mmx.shell.theme', theme);
+    localStorage.setItem('mm.lang', locale);
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.lang = locale;
+    window.dispatchEvent(new CustomEvent('mm:lang'));
+  }, {theme, locale});
+}
 // These member-only assertions use the existing authenticated qualifier. The
 // anonymous Shared Shell lane must continue to show its real account gate.
 async function qualifySectorCoherence(page, cell) {
@@ -194,7 +207,7 @@ async function qualifySectorCoherence(page, cell) {
       contentHash: "3e275fc69d22e990f81261c8a803576a832be9332484c7a99b2dddd165a5d425", stale: false,
     } } });
   });
-  await page.goto(BASE + "/discover");
+  await page.goto(BASE + "/discover?tab=guide");
   await page.getByRole("button", { name: "Open Sectors", exact: true }).click();
   await expect(page).toHaveURL(/\/sectors\?workspaceMarket=us$/);
   const workspace = page.getByTestId("sector-intelligence");
@@ -218,7 +231,7 @@ async function qualifySectorCoherence(page, cell) {
   await table.getByRole("button", { name: "Select sector: Financials", exact: true }).click();
   await expect(workspace.getByTestId("sector-native-inspector")).toContainText("Financials");
   await noOverflow(page);
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await setFixtureAppearance(page, "light");
   await expect(workspace).toHaveAttribute("data-sector-theme", "light");
   await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "sectors-explore-light-en.png") });
   await workspace.getByTestId("sector-native-inspector-open").click();
@@ -233,14 +246,13 @@ async function qualifySectorCoherence(page, cell) {
   await expect(page.locator("#wtab-sectors")).toHaveCount(0);
   // Reloaded account metadata remains authoritative. Exercise the shell's
   // explicit light-view intent even when this legacy URL requests dark.
-  const light = page.getByRole("button", { name: "Light theme", exact: true });
-  if (await light.getAttribute("aria-pressed") !== "true") await light.click();
+  await setFixtureAppearance(page, "light");
   await expect(workspace).toHaveAttribute("data-sector-theme", "light");
   await noOverflow(page);
 }
 
 async function qualifyCycleHistory(page, cell) {
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await setFixtureAppearance(page, "light");
   const sources = [];
   await page.route("**/api/sector-intelligence?**", route => {
     const source = new URL(route.request().url()).searchParams.get("source");
@@ -314,8 +326,7 @@ async function qualifyCycleHistory(page, cell) {
   await page.goBack();
   await expect(hero).toContainText("Technology");
   await expect(hero.getByRole("button", { name: "Open sector dossier", exact: true })).toBeFocused();
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
-  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await setFixtureAppearance(page, "light", "zh");
   await expect(workspace).toHaveAttribute("data-sector-theme", "light");
   await expect(workspace.getByRole("heading", { name: "周期历史", exact: true })).toBeVisible();
   await noOverflow(page);
@@ -362,7 +373,7 @@ async function qualifyLiquidity(page,cell) {
   Object.assign(missing,{prior:null,prior_raw:null,prior_present:false,delta:null,delta_raw:null,delta_present:false,comparable:false,is_movement:false,absence:{label:{en:'Previous value unavailable',zh:'上次值不可用'}}});
   await detail.getByRole('button',{name:'Refresh',exact:true}).click();await expect(detail).toHaveAttribute('data-read-state','ready');
   await expect(detail.getByRole('table')).toContainText('Previous value unavailable');await expect(detail.getByRole('table')).toContainText('Unchanged');await noOverflow(page);
-  await page.getByRole('button',{name:'Light theme',exact:true}).click();await page.getByRole('button',{name:'Chinese language',exact:true}).click();
+  await setFixtureAppearance(page, "light", "zh");
   await expect(detail.getByRole('heading',{level:1,name:'流动性状态',exact:true})).toBeVisible();await noOverflow(page);
   await page.locator('main').evaluate(el=>el.scrollTo(0,0));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-liquidity-partial-light-zh.png')});
   fixtureRead=liquidityFixture();const view=fixtureRead.selected_workspace.view;
@@ -407,7 +418,8 @@ async function qualifyLiquidity(page,cell) {
    await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','ready');
    const bounds=await overflow(page);if(bounds.document>bounds.viewport+1||bounds.main.some(x=>x.scroll>x.client+1))throw Error(`overflow ${JSON.stringify(bounds)}`);
    const file=`overview-${w}-${theme}-${locale}.png`;await page.screenshot({path:path.join(OUT,file),fullPage:false});
-   if(w>860){await expect(page.locator('.appnav [aria-current="page"]')).toHaveCount(1);}else{
+   await expect(page.locator('[data-intelligence-nav="context"] [aria-current="page"]')).toHaveAttribute("href", /\/intelligence(?:\?|$)/);
+   if(w>860){await expect(page.locator('.appnav [aria-current="page"]')).toHaveCount(0);}else{
     await page.getByRole('button',{name:locale==='zh'?'打开导航':'Open navigation',exact:true}).click();
     await expect(page.getByRole('dialog').locator('[data-intelligence-nav="drawer"]')).toBeVisible();
     await page.keyboard.press('Escape');

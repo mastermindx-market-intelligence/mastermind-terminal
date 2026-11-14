@@ -4,7 +4,7 @@ import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMa
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SharedSearchResume } from "@/components/SharedSearchWorkspace";
 import SymbolPicker from "@/components/SymbolPicker";
-import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
+import { shellCompanySubject, useShellLocation } from "./useShellLocation";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import { useLang } from "@/lib/i18n";
@@ -21,7 +21,8 @@ export default function ShellSearch({ open, onOpenChange }: {
   const t = useSharedShellT();
   const path = usePathname();
   const params = useSearchParams();
-  const subject = path === "/analysis" ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : null;
+  const location = useShellLocation();
+  const subject = shellCompanySubject(path, params.get("symbol"), location);
   const triggerText = subject ?? t("shellSearch");
   const { lang } = useLang();
   const searchLabel = pick(lang === "zh", "Search companies and tools", "搜索公司和工具");
