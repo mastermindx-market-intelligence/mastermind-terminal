@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useLang } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { createAiContextProvider } from "@/lib/aiContext";
 import type { MastermindBrainHost } from "@/lib/mastermindBrain";
 import BrainWidget, { loadBrainWidget } from "./BrainWidget";
@@ -20,8 +20,7 @@ type Phase = "loading" | "ready" | "unavailable" | "compact";
 const signIn = () => window.location.assign("/login");
 
 export default function BrainWorkspace({ symbol }: { symbol: string | null }) {
-  const { lang } = useLang();
-  const zh = lang === "zh";
+  const t = useSharedShellT();
   const slot = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("loading");
   const [attempt, setAttempt] = useState(0);
@@ -60,22 +59,22 @@ export default function BrainWorkspace({ symbol }: { symbol: string | null }) {
     };
   }, [attempt]);
 
-  return <main className="main2 brain-workspace" aria-label={zh ? "操盘大脑" : "Mastermind AI"}>
+  return <main className="main2 brain-workspace" aria-label={t("shellBrainName")}>
     <BrainWidget active={symbol ?? ""} onAuthRequired={signIn} getAiContext={context.getAiContext} />
     <div className="brain-workspace-slot" ref={slot} />
     {phase !== "ready" && <section className="brain-workspace-state" aria-live="polite">
-      <h1>{zh ? "操盘大脑" : "Mastermind AI"}</h1>
-      {phase === "loading" && <p>{zh ? "正在打开对话…" : "Opening your workspace…"}</p>}
+      <h1>{t("shellBrainName")}</h1>
+      {phase === "loading" && <p>{t("shellOpening")}</p>}
       {phase === "unavailable" && <>
-        <p>{zh ? "暂时无法载入对话。" : "The chat could not be loaded."}</p>
+        <p>{t("shellBrainLoadError")}</p>
         <button type="button" className="btn" onClick={() => { setPhase("loading"); setAttempt(value => value + 1); }}>
-          {zh ? "重试" : "Try again"}
+          {t("shellRetry")}
         </button>
       </>}
       {phase === "compact" && <>
-        <p>{zh ? "当前可使用紧凑对话视图。" : "Chat is available in compact view."}</p>
+        <p>{t("shellBrainCompact")}</p>
         <button type="button" className="btn" onClick={() => (window as unknown as WorkbenchHost).MMBrain?.open?.()}>
-          {zh ? "打开对话" : "Open chat"}
+          {t("shellBrainOpenChat")}
         </button>
       </>}
     </section>}
