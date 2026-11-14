@@ -16,7 +16,8 @@ vi.mock("@/lib/i18n", () => ({
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 type Submit = ComponentProps<typeof PositionModal>["onSubmit"];
-type DraftField = Exclude<keyof PositionDraft, "clientPositionId">;
+// The legacy editor profile deliberately exercises every always-visible field.
+type DraftField = keyof Pick<PositionDraft, "ticker" | "shares" | "entryPrice" | "entryCurrency" | "entryDate" | "notes">;
 type FailureReason = Exclude<Extract<PositionMutationResult, { ok: false }>["reason"], null>;
 const createId = "11111111-1111-4111-8111-111111111111";
 const completeDraft: Record<DraftField, string> = {

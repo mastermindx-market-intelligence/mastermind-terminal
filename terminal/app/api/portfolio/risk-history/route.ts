@@ -3,7 +3,8 @@ import { portfolioBookKey } from "@/lib/portfolioSnapshot.server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
-import { readPositions, type PortfolioDb } from "@/lib/portfolio";
+import { type PortfolioDb } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import {
   computePortfolioRiskHistory,
   parseOhlcBars,

@@ -56,6 +56,7 @@ START_N=$(count "$LIVE")
 # Source-owned market context belongs to this existing refresh lane. It is
 # independent of per-name signal emission and cannot gate the universe refresh.
 run "$PY" ingest/pull_macro_risk.py
+run "$PY" ingest/sync_portfolio_brokerage.py
 
 # ── PHASE 1: flagship + fast price refresh (~5 min) ──
 # flagship 37 -> staging manifest + fresh real-OHLC/slices/verdicts (OHLC/slices go to live dir)

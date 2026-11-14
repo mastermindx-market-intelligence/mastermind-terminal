@@ -5,7 +5,7 @@ import type { Position } from "@/lib/portfolio";
  * a mutation receipt nor a persisted version/authorization authority. */
 export function portfolioBookKey(positions: readonly Position[]): string {
   const rows = positions.map(p => [p.id, p.ticker, p.shares, p.entryPrice,
-    p.entryCurrency ?? null, p.entryDate, p.notes, p.status, p.createdAt]);
+    p.entryCurrency ?? null, p.entryDate, p.notes, p.status, p.createdAt, ...(p.brokerage ? [p.brokerage] : []), ...(p.entryAt || p.exitDate || p.exitAt ? [p.entryAt,p.exitDate,p.exitAt] : [])]);
   rows.sort((a, b) => String(a[0]).localeCompare(String(b[0]), "en"));
   return createHash("sha256").update(JSON.stringify(rows)).digest("hex");
 }

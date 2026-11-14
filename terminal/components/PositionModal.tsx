@@ -21,6 +21,7 @@ import type { Position } from "@/lib/portfolio";
 import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
 import styles from "./PortfolioWorkspace.module.css";
+import { usePortfolioHistoryAccess } from "./PortfolioHistoryAccess";
 
 export type PositionDraft = {
   clientPositionId?: string;
@@ -29,6 +30,10 @@ export type PositionDraft = {
   entryPrice: string;
   entryCurrency: string;
   entryDate: string;
+  entryAt?: string;
+  exitDate?: string;
+  exitAt?: string;
+  status?: string;
   notes: string;
 };
 
@@ -44,6 +49,10 @@ const draftFrom = (position: Position | null, initialTicker?: string): PositionD
   entryPrice: position?.entryPrice == null ? "" : String(position.entryPrice),
   entryCurrency: position?.entryCurrency ?? "",
   entryDate: position?.entryDate ?? "",
+  ...(position?.entryAt ? {entryAt:position.entryAt} : {}),
+  ...(position?.exitAt ? {exitAt:position.exitAt} : {}),
+  ...(position?.exitDate ? {exitDate:position.exitDate} : {}),
+  ...(position?.status==="closed" ? {status:"closed"} : {}),
   notes: position?.notes ?? "",
 });
 
@@ -63,6 +72,7 @@ export default function PositionModal({
   const t = useT();
   const { lang } = useLang();
   const titleId = useId();
+  const historyEnabled=usePortfolioHistoryAccess();
   const copy = portfolioCopy(lang);
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);
@@ -113,6 +123,7 @@ export default function PositionModal({
     )?.focus();
   }, [errorField, saving]);
 
+  const localTime = (instant:string|undefined) => instant ? new Date(instant).toISOString().slice(11,16) : "";
   const set = useCallback((key: keyof PositionDraft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
     if (key === errorField) { setError(null); setErrorField(null); }
@@ -214,10 +225,25 @@ export default function PositionModal({
                 name="entryDate" {...fieldError("entryDate")}
                 type="date"
                 value={draft.entryDate}
-                onChange={(event) => set("entryDate", event.target.value)}
+                onChange={event=>{const day=event.target.value;setDraft(current=>({...current,entryDate:day,
+                  ...(historyEnabled && current.entryAt?{entryAt:day?day+"T"+localTime(current.entryAt)+":00Z":""}:{})}));}}
               />
             </label>
 
+            {historyEnabled && <div className="pf-field-row">
+              <label className="pf-field"><span>{lang==="zh"?"建仓时间 (UTC)":"Entry time (UTC)"}</span>
+                <input type="time" name="entryAt" disabled={!draft.entryDate} value={localTime(draft.entryAt)}
+                  onChange={e=>set("entryAt",e.target.value ? draft.entryDate+"T"+e.target.value+":00Z" : "")} /></label>
+              <label className="pf-field"><span>{lang==="zh"?"持仓状态":"Position status"}</span>
+                <select value={draft.status??"open"} onChange={e=>setDraft(current=>({...current,status:e.target.value,
+                  ...(e.target.value==="open"?{exitDate:"",exitAt:""}:{})}))}><option value="open">{copy("open")}</option><option value="closed">{copy("closed")}</option></select></label>
+            </div>}
+            {historyEnabled && draft.status==="closed" && <div className="pf-field-row">
+              <label className="pf-field"><span>{lang==="zh"?"平仓日期":"Exit date"}</span><input type="date" name="exitDate" min={draft.entryDate||undefined} value={draft.exitDate??""}
+                onChange={e=>{const day=e.target.value;setDraft(current=>({...current,exitDate:day,exitAt:day && current.exitAt?day+"T"+localTime(current.exitAt)+":00Z":""}));}} /></label>
+              <label className="pf-field"><span>{lang==="zh"?"平仓时间 (UTC)":"Exit time (UTC)"}</span><input type="time" name="exitAt" disabled={!draft.exitDate} value={localTime(draft.exitAt)}
+                onChange={e=>set("exitAt",e.target.value?draft.exitDate+"T"+e.target.value+":00Z":"")} /></label>
+            </div>}
             <label className="pf-field">
               <span>{t("positionNotes")}</span>
               <textarea

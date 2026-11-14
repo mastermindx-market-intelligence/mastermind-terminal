@@ -32,6 +32,8 @@ import { isPortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import EventImpactPanel from "@/components/EventImpactPanel";
+import { PortfolioHistoryAccess } from "./PortfolioHistoryAccess";
+import PortfolioBrokerage from "./PortfolioBrokerage";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
   bookTotals,
@@ -106,8 +108,8 @@ function originatingOwnerId(scope: OwnerScope): string {
 }
 
 export default function PortfolioView(
-  { positions: seed, userId, unreadable = false }:
-  { positions: Position[]; email: string; userId?: string | null; unreadable?: boolean },
+  { positions: seed, userId, unreadable = false, brokerageEnabled = false, historyEnabled = false }:
+  { positions: Position[]; email: string; userId?: string | null; unreadable?: boolean; brokerageEnabled?: boolean; historyEnabled?: boolean },
 ) {
   const { lang } = useLang();
   // Fail-closed must also be VISIBLE to the renderer (011 F6): omitting `userId` is legal in the
@@ -670,8 +672,8 @@ export default function PortfolioView(
   // Retire the whole rendered workspace when its immutable owner changes, including the
   // independently loaded brief/events and local record-selection state. Same-owner refreshes
   // keep this instance and its live requests; A to B to A cannot revive an earlier instance.
-  return <>
-    <PortfolioWorkspace key={ownerKey} positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
+  return <PortfolioHistoryAccess.Provider value={historyEnabled}>
+    <PortfolioWorkspace brokerage={brokerageEnabled && userId ? <PortfolioBrokerage key={ownerKey} owner={userId} onRefresh={()=>void retryRead()} /> : null} key={ownerKey} positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
       unreadable={unread} stale={bookStale} retrying={retrying} lastChecked={lastChecked}
       failure={failure} busyId={busyId} confirmDelete={confirmDelete}
       onRetry={() => void retryRead()} onAdd={() => { setFailure(null); setEditing({ mode: "add", position: null }); }}
@@ -686,7 +688,7 @@ export default function PortfolioView(
     />
     {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}
       onCancel={() => setEditing(null)} onSubmit={submit} />}
-  </>;
+  </PortfolioHistoryAccess.Provider>;
 }
 
 // Existing exposure, history and target consumers retain their computation and write authority.

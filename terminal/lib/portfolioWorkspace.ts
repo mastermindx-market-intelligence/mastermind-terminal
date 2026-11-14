@@ -1,5 +1,6 @@
 import type { Position } from "@/lib/portfolio";
-import { finite, nativePrice, priceCurrency, type PriceObservation } from "@/lib/portfolioMoney";
+import { positionPrice } from "./portfolioInstitutionValue";
+import { finite, priceCurrency, type PriceObservation } from "@/lib/portfolioMoney";
 
 export type PortfolioSection = "overview" | "holdings" | "risk" | "targets";
 export type RecordFilter = "all" | "details" | "prices";
@@ -31,7 +32,11 @@ export function decodePositionRead(value: unknown): { positions: Position[]; boo
 
 export function recordIssues(position: Position, quote: WorkspaceQuote, fallback: WorkspaceQuote): RecordIssue[] {
   const issues: RecordIssue[] = [];
-  const price = nativePrice(quote, fallback);
+  const price = positionPrice(position, quote, fallback);
+  if (position.brokerage) {
+    const snapshotValue = finite(position.brokerage.value) && priceCurrency(position.brokerage.currency);
+    return price?.currency || snapshotValue ? [] : ["quote"];
+  }
   if (position.shares === null) issues.push("shares");
   if (position.entryPrice === null) issues.push("entryPrice");
   else if (!priceCurrency(position.entryCurrency)) issues.push("entryCurrency");
@@ -56,7 +61,7 @@ export function selectPortfolioRecords(
   return positions.filter(position => {
     if (position.status !== options.status) return false;
     const row = manifest[position.ticker];
-    if (query && ![position.ticker, row?.name, row?.zh, position.notes]
+    if (query && ![position.ticker, row?.name, row?.zh, position.notes, position.brokerage?.name, position.brokerage?.account]
       .some(value => typeof value === "string" && value.toLocaleLowerCase().includes(query))) return false;
     const issues = recordIssues(position, quotes[position.ticker], row);
     return options.filter === "all" || (options.filter === "details" ? needsEntryDetails(issues) : needsPriceCoverage(issues));
@@ -77,6 +82,7 @@ export const PORTFOLIO_LEX = {
   invalidPositionShares: ["Enter a valid share count, or leave it blank.", "请输入有效的数量，或留空。"],
   invalidPositionPrice: ["Enter a valid entry price, or leave it blank.", "请输入有效的入场价，或留空。"],
   invalidPositionCurrency: ["Use a valid entry currency code, such as USD or HKD.", "请填写有效的入场币种代码，例如 USD 或 HKD。"],
+  invalidExecutionHistory: ["Check the entry and exit dates and times.", "请检查建仓和平仓日期及时间。"],
   invalidPositionDate: ["Enter a valid calendar date, or leave it blank.", "请输入有效的日期，或留空。"],
   invalidPositionNotes: ["Notes can contain up to 1,000 characters. Remove any unsupported characters.", "备注最多可填写 1,000 个字符，请移除不支持的字符。"],
   invalidPositionIntent: ["This entry needs to be reopened. Copy your details, then close it and add the position again.", "请复制填写的信息，关闭此窗口后重新添加持仓。"],

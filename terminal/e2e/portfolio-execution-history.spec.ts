@@ -1,0 +1,23 @@
+import {expect,test} from "@playwright/test";
+import {isolateWatchlistStore} from "./watchlistStore";
+import {editor,inspectRecord} from "./portfolioWorkspaceHelpers";
+test("records the historical entry and exit of a closed lot",async({page,baseURL},info)=>{
+  test.skip(process.env.PORTFOLIO_EXECUTION_TIMES!=="1","Requires the execution-time schema profile");
+  await isolateWatchlistStore(page,info,baseURL);
+  await page.goto("/portfolio");
+  await page.getByRole("button",{name:"Add position",exact:true}).first().click();
+  const form=editor(page);
+  await form.locator("[name=ticker]").fill("MSFT");
+  await form.locator("[name=entryDate]").fill("2025-11-03");
+  await form.locator("[name=entryAt]").fill("14:35");
+  await form.getByLabel("Position status").selectOption("closed");
+  await form.locator("[name=exitDate]").fill("2025-11-05");
+  await form.locator("[name=exitAt]").fill("15:45");
+  await form.getByRole("button",{name:"Save position",exact:true}).click();
+  await expect(form).not.toBeVisible();
+  await page.reload();
+  const detail=await inspectRecord(page,"MSFT","closed");
+  await expect(detail).toContainText("Exit");
+  const read=await page.request.get("/api/portfolio?view=positions");
+  expect((await read.json()).positions).toMatchObject([{entryAt:"2025-11-03T14:35:00.000Z",exitAt:"2025-11-05T15:45:00.000Z",status:"closed"}]);
+});

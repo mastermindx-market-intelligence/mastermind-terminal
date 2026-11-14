@@ -505,6 +505,9 @@ export function serializeCsv(doc: AccountExportDoc, sha256?: ExportSha256): stri
     out += csvRow(["data", "portfolio_positions", pos.id, "entry_price", pos.entryPrice]);
     out += csvRow(["data", "portfolio_positions", pos.id, "entry_currency", pos.entryCurrency ?? null]);
     out += csvRow(["data", "portfolio_positions", pos.id, "entry_date", pos.entryDate]);
+    for(const [label,value] of [["entry_executed_at",pos.entryAt],["exit_date",pos.exitDate],["exit_executed_at",pos.exitAt],["institution_account",pos.brokerage?.account],["institution_value",pos.brokerage?.value],["institution_currency",pos.brokerage?.currency],["institution_as_of",pos.brokerage?.asOf]] as const){
+      if(value!=null)out+=csvRow(["data","portfolio_positions",pos.id,label,value]);
+    }
     out += csvRow(["data", "portfolio_positions", pos.id, "notes", pos.notes]);
     out += csvRow(["data", "portfolio_positions", pos.id, "status", pos.status]);
     out += csvRow(["data", "portfolio_positions", pos.id, "created_at", pos.createdAt]);

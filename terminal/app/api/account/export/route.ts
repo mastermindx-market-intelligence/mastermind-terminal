@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
-import { readPositions, type PortfolioDb } from "@/lib/portfolio";
+import { type PortfolioDb } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import {
   assertNoSecrets,
   buildAccountExport,

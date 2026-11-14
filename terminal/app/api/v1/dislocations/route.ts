@@ -7,7 +7,8 @@ import {
   FIXTURE_FAULT_COOKIE,
   FIXTURE_STORE_COOKIE,
 } from "@/lib/watchlistsFixtureDb";
-import { readPositions, type PortfolioDb } from "@/lib/portfolio";
+import { type PortfolioDb } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import { listWatchlists, type ServerWatchlist } from "@/lib/watchlists";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { isPaidTier } from "@/lib/entitlement";

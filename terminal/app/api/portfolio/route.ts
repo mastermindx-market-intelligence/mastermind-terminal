@@ -6,11 +6,11 @@ import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FI
 import {
   createPosition,
   deletePosition,
-  readPositions,
   updatePosition,
   type PortfolioDb,
   type Position,
 } from "@/lib/portfolio";
+import { readPositions } from "@/lib/brokerage/book.server";
 import { computePortfolioRisk, type ArtifactState, type PortfolioRisk } from "@/lib/portfolioRisk";
 import { getCachedArtifact } from "@/lib/artifactCache";
 
@@ -303,6 +303,7 @@ export async function POST(req: Request) {
       entryPrice: body.entryPrice,
       entryCurrency: body.entryCurrency,
       entryDate: body.entryDate,
+      entryAt: body.entryAt, exitDate: body.exitDate, exitAt: body.exitAt,
       notes: body.notes,
       status: body.status,
     });
@@ -327,6 +328,7 @@ export async function POST(req: Request) {
         entryPrice: body.entryPrice,
       entryCurrency: body.entryCurrency,
         entryDate: body.entryDate,
+      entryAt: body.entryAt, exitDate: body.exitDate, exitAt: body.exitAt,
         notes: body.notes,
         status: body.status,
       }
