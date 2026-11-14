@@ -85,10 +85,15 @@ export default function ShellMegaMenu({ mode, onClose }: { mode: "hover" | "brow
       if (mode === "hover" && !within(document.activeElement)) onClose();
     };
     document.addEventListener("keydown", key);
-    document.addEventListener("pointerdown", outside, true);
-    document.addEventListener("focusin", outside);
-    document.addEventListener("pointerover", onMove);
-    document.documentElement.addEventListener("pointerleave", leaveWindow);
+    // The phone sheet is a native modal. It owns backdrop/cancel and
+    // focus containment; native close() temporarily restores focus outside
+    // during dialog lifecycle cleanup. Only the desktop flyout uses light dismiss.
+    if (!phone) {
+      document.addEventListener("pointerdown", outside, true);
+      document.addEventListener("focusin", outside);
+      document.addEventListener("pointerover", onMove);
+      document.documentElement.addEventListener("pointerleave", leaveWindow);
+    }
     return () => {
       clearTimeout(leaveTimer);
       document.removeEventListener("keydown", key);

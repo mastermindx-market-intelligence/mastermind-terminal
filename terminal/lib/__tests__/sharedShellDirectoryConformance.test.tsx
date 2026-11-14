@@ -72,7 +72,11 @@ describe("Shared Shell tool browser", () => {
   });
   it("only opens one mobile family at a time, and a second tap collapses it", async () => {
     phone = true;
-    await show("browse");
+    const opener = await show("browse");
+    expect(host.querySelector("dialog[open]")).not.toBeNull();
+    // Browser dialog cleanup can restore opener focus before the mobile
+    // presentation effect runs again; only an explicit dismissal owns closure.
+    await act(async () => { opener.dispatchEvent(new FocusEvent("focusin", { bubbles: true })); });
     expect(host.querySelector("dialog[open]")).not.toBeNull();
     expect(host.querySelector(".mega-content")).toBeNull();
     await act(async () => families()[3].click());
