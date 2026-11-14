@@ -158,3 +158,20 @@ held loaded-page selection and real deployed proof remain P10 work. No legacy
 report route or engine is archived. Continue P11's existing Portfolio composition
 and other available path-disjoint work while owned CI and release controllers
 run. The full P0–P17 acceptance in PLAN.md remains binding.
+
+## Inherited Monitor failure and original-carrier repair
+
+Run43589674862 on this PR's original head
+`b71c0f9fa8be8c33dab72aaf5704b73fc19e867c` produced failed artifact14111344676.
+Its exact candidate tree and archive/report hashes are recorded in
+[the P9 repair receipt](P9_MONITOR_EVIDENCE_DESK.md#committed-market-navigation-repair--14-november).
+It stopped at Monitor's Canada/China destination mismatch after 12 completed
+cells, before this Research journey. The result is not Research browser proof.
+
+Compose original P9 carrier commit `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff`
+(tree `dc9f44afe91b85ac016de2ad7aea038fe7c70644`) as an additional parent,
+preserving all Research source, reader, fixture and acceptance assertions.
+The change reflects Next's committed URL in Monitor and waits for actual
+destination attributes in the existing qualifier. No report source or Research
+reader lifecycle is changed. New-head hosted proof remains owed; the failed
+artifact is retained truthfully and is not replayed or relabelled.

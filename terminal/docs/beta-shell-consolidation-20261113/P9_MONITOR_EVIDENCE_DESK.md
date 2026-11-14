@@ -201,3 +201,54 @@ scoped lint and whitespace checks pass. A new exact-head hosted receipt remains
 required; the original failed artifact is not relabelled or counted as Monitor
 proof. The downstream Research composition already includes this readiness
 repair through the recorded P6 parent.
+
+## Committed market-navigation repair — 14 November
+
+The next original-carrier receipt reached Monitor and exposed a product defect.
+P9 head `8317d537882ad95fc2def4b17e64c2448e2be160`, run43589237107,
+artifact14112546230, is **failed**, with 12 completed cells. Its checkout
+`65d121fdb8b3b2da7062c74d9c80aba6474cba83` has the candidate as a parent
+and exact candidate tree `5c050a4b02a8e5843ab55f2a91def405f20efdd1`.
+ZIP SHA-256: `93ba983145110357614852b97168883e8e4836f794fbbbba3f3bf1b859694058`.
+Report SHA-256: `11f76de674cde12a008c32ff8a708af2f79a347b6b142ac8250a09eae45dfc8c`.
+
+The same inherited defect appears in P10 head
+`b71c0f9fa8be8c33dab72aaf5704b73fc19e867c`, run43589674862,
+artifact14111344676. Its checkout `01b4a7d38a518c6af89563b1659754ff2199d706`
+has exact candidate tree `89a8e218fa7694e8477f176d21d9820ffa120096`.
+ZIP SHA-256: `03e0387d393f096249fc2ccbf6ed957b5e9dd4c8e73078a3a80fba40113f2a0f`.
+Report SHA-256: `3e7d90b622724e5f03c024010d174af2ec668966f5c9e20d990fef63bf9bdbdf`.
+Both reports have empty page-error, external-request, fixture-write and tracked
+working-change lists and record the owned child closing. Neither is a Monitor,
+Research or Portfolio browser pass. The principal inspected the P9 failure crop.
+
+The address and toolbar changed to Canada while Monitor's onward links retained
+China. The old external-store subscription heard browser traversal and the
+existing shell event, but not Next's `router.push` commit. Next publishes route
+context during render and writes browser history in an insertion effect; reading
+the old address during that render is insufficient. Monitor now follows the
+existing toolbar pattern: Next pathname/search notify a layout effect, which
+reflects the exact committed browser URL. SSR and initial hydration still start
+with null. Existing traversal/hash/shell events remain supported. No second
+navigation controller, account lifetime or source reader is introduced.
+
+The new mounted regression holds the workspace element identity stable, changes
+Next's search context, commits history in an insertion effect, and dispatches no
+synthetic location event. It failed against the preimage (30 existing cases
+passed) and passes after the repair. It verifies all three Company destinations,
+Alerts, Portfolio, the precise chart return including differently encoded query
+values and hash, retained list/evidence DOM and selection, and exactly two
+inventory reads. The five affected suites pass 101 cases. The real retained
+reader's existing checks are included and its implementation remains unchanged.
+
+The hosted qualifier now waits for the destination attributes to reflect the
+selected market, with explicit nonzero link counts and exact parsed chart
+subject/return. Immutable event pins, accepted DOM identity and unchanged read
+counts remain required. This is a consumer readiness predicate, not a refresh,
+fixed sleep, extra source request or weaker assertion. Binding hosted proof of
+the repaired head is still required. Compose this repair through the existing
+owned P10/P11 stack before qualifying their downstream journeys.
+
+Full TypeScript, scoped ESLint, qualifier syntax and whitespace checks pass.
+The language guard read the actual nonempty 5,807-byte working diff and reports
+zero blocking findings. No local browser retry or hosted run replay was made.
