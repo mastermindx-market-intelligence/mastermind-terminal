@@ -1,6 +1,5 @@
 "use client";
 import ShellSearch from "./ShellSearch";
-import SharedShellPresentationControls from "./SharedShellPresentationControls";
 import SharedShellMarketSelect from "./SharedShellMarketSelect";
 
 export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange }: {
@@ -8,7 +7,6 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange }: {
 }) {
   return <div className="shared-shell-toolbar">
     <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
-    <SharedShellPresentationControls />
     <SharedShellMarketSelect />
   </div>;
 }

@@ -1,9 +1,11 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SharedSearchResume } from "@/components/SharedSearchWorkspace";
 import SymbolPicker from "@/components/SymbolPicker";
+import { shellCompanySubject, useShellLocation } from "./useShellLocation";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import { useLang } from "@/lib/i18n";
 import { pick } from "@/lib/finFormat";
@@ -17,6 +19,11 @@ export default function ShellSearch({ open, onOpenChange }: {
   const router = useRouter();
   const symbol = useActiveSymbol();
   const t = useSharedShellT();
+  const path = usePathname();
+  const params = useSearchParams();
+  const location = useShellLocation();
+  const subject = shellCompanySubject(path, params.get("symbol"), location);
+  const triggerText = subject ?? t("shellSearch");
   const { lang } = useLang();
   const searchLabel = pick(lang === "zh", "Search companies and tools", "搜索公司和工具");
   // Preserve #1188's lazy data-owner boundary: an untouched toolbar loads no manifest/catalog.
@@ -86,10 +93,10 @@ export default function ShellSearch({ open, onOpenChange }: {
     window.addEventListener("popstate", restore);
     return () => window.removeEventListener("popstate", restore);
   }, [onOpenChange]);
-  const pickCompany = (next: string, query: string) => {
+  const pickCompany = (next: string, query: string, destination: "analysis" | "chart" = "analysis") => {
     const selection = readCompanySearchSelection({ symbol: next, query });
     if (!selection) return;
-    const href = companySearchAnalysisHref(selection);
+    const href = destination === "chart" ? sharedShellTerminalHref(window.location.href, selection.symbol) : companySearchAnalysisHref(selection);
     if (!href) return;
     closedQuery.current = selection.query;
     // Annotate this existing history entry without changing its exact URL or Next state.
@@ -117,18 +124,18 @@ export default function ShellSearch({ open, onOpenChange }: {
     aria-label={searchLabel} aria-haspopup="dialog" aria-expanded={false} title={searchLabel}
     onPointerEnter={() => setActivated(true)} onClick={() => { setActivated(true); changeOpen(true); }}>
     <span className="sym-pick-mark" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></span>
-    <span className="sym-pick-id"><small>{searchLabel}</small><strong>{searchLabel}</strong></span>
+    <span className="sym-pick-id"><small>{searchLabel}</small><strong>{triggerText}</strong></span>
     <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
   </button>;
   return <SymbolPicker scope="companies" portalDialog symbol={symbol ?? ""} open={open} onOpenChange={changeOpen}
     searchSeed={scopedResume?.query ?? resume?.query} initialSelection={scopedResume?.scope === "tools" ? undefined : scopedResume?.selected ?? resume?.symbol}
-    sharedSearch={{ scope: scopedResume?.scope, selectedTool: scopedResume?.scope === "tools" ? scopedResume.selected : undefined, onOpenTool: openTool, onDraftChange: rememberDraft }}
+    sharedSearch={{ onOpenChart: (next, query) => pickCompany(next, query, "chart"), scope: scopedResume?.scope, selectedTool: scopedResume?.scope === "tools" ? scopedResume.selected : undefined, onOpenTool: openTool, onDraftChange: rememberDraft }}
     onCompanyPick={pickCompany}
     onPick={next => pickCompany(next, "")}
     className="shared-shell-company-search"
     eyebrow={t("shellSearchCompanies")}
     label={searchLabel}
-    displayLabel={searchLabel}
+    displayLabel={triggerText}
     mark={<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>}
     trackSource="shared-shell"
   />;

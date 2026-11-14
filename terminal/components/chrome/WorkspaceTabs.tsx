@@ -60,12 +60,13 @@ export default function WorkspaceTabs({
       const index = tabs.findIndex((tab) => tab.key === active);
       const button = index >= 0 ? btnRefs.current[index] : null;
       if (!nav || !button) return;
-      const left = button.offsetLeft;
-      const right = left + button.offsetWidth;
-      if (left < nav.scrollLeft) {
-        nav.scrollTo({ left, behavior: "auto" });
-      } else if (right > nav.scrollLeft + nav.clientWidth) {
-        nav.scrollTo({ left: right - nav.clientWidth, behavior: "auto" });
+      const box = button.getBoundingClientRect();
+      const left = nav.getBoundingClientRect().left + nav.clientLeft;
+      const right = left + nav.clientWidth;
+      if (box.left < left) {
+        nav.scrollTo({ left: nav.scrollLeft + box.left - left, behavior: "auto" });
+      } else if (box.right > right) {
+        nav.scrollTo({ left: nav.scrollLeft + box.right - right, behavior: "auto" });
       }
     });
     return () => window.cancelAnimationFrame(frame);

@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useLayoutEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { shellCompanySubject, useShellLocation } from "./useShellLocation";
 import { usePathname, useSearchParams } from "next/navigation";
-import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { normalizeActiveSymbol, useActiveSymbol } from "@/lib/activeSymbol";
+import { useActiveSymbol } from "@/lib/activeSymbol";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
+import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { Tip } from "@/components/ui/Tip";
 
@@ -19,41 +20,24 @@ export default function SharedShellLaunchLinks({ labelled, drawer = false, onNav
   const params = useSearchParams();
   const symbol = useActiveSymbol();
   const t = useSharedShellT();
-  const [returnHref, setReturnHref] = useState("");
-  useLayoutEffect(() => {
-    const update = () => setReturnHref(window.location.href);
-    update();
-    window.addEventListener("hashchange", update);
-    window.addEventListener("popstate", update);
-    window.addEventListener("mmx:shell-location", update);
-    return () => {
-      window.removeEventListener("hashchange", update);
-      window.removeEventListener("popstate", update);
-      window.removeEventListener("mmx:shell-location", update);
-    };
-  }, [path, params]);
+  const returnHref = useShellLocation();
 
   // The explicit URL identity wins over the last chart cursor on company pages.
-  let companySymbol: string | null = null;
-  if (path === "/analysis") companySymbol = normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
-  if (path === "/stock.html" && returnHref) {
-    try {
-      const url = new URL(returnHref);
-      companySymbol = normalizeActiveSymbol(url.hash ? decodeURIComponent(url.hash.slice(1)) : url.searchParams.get("ticker"));
-    } catch { /* Malformed symbols must not select an unrelated previous chart. */ }
-  }
+  const companySymbol = shellCompanySubject(path, params.get("symbol"), returnHref);
   const invalidCompany = (path === "/analysis" && params.has("symbol") && !companySymbol)
     || (path === "/stock.html" && !companySymbol);
   const terminalHref = !invalidCompany && returnHref
-    ? sharedShellTerminalHref(returnHref, companySymbol ?? symbol) : "/terminal";
+    ? inheritWorkspaceMarketHref(sharedShellTerminalHref(returnHref, companySymbol ?? symbol), workspaceMarket(path, params.toString())) : "/terminal";
   const brainHref = path === "/stock.html" && companySymbol
     ? "/brain?symbol=" + encodeURIComponent(companySymbol) : "/brain";
   const terminalLabel = t("shellTerminal");
   const brainLabel = t("shellMastermindAI");
   const railClass = drawer ? undefined : "navbtn";
   const labelClass = drawer ? undefined : "investor-nav-label";
-  const terminal = <Link href={terminalHref} prefetch={false} className={railClass}
-    data-shell-terminal="" aria-label={terminalLabel} onNavigate={onNavigate}>
+  const inTerminal = path === "/terminal" || path === "/analysis" || (path === "/discover" && params.get("tab") !== "sectors")
+    || ["/scripts", "/alerts", "/dislocations"].includes(path);
+  const terminal = <Link href={terminalHref} prefetch={false} className={drawer ? undefined : `navbtn${inTerminal ? " on" : ""}`}
+    aria-current={inTerminal ? "location" : undefined} data-shell-terminal="" aria-label={terminalLabel} onNavigate={onNavigate}>
     {glyph("chart")}{labelled && <span className={labelClass}>{terminalLabel}</span>}
   </Link>;
   const brainContents = <>{glyph("ai")}{labelled && <span className={labelClass}>{brainLabel}</span>}</>;

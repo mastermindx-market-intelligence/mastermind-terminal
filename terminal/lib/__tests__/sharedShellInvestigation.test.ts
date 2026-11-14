@@ -1,12 +1,23 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sharedShellTerminalHref, SHARED_SHELL_MARKETS } from "../sharedShellNavigation";
+import { chartAnalysisHref, sharedShellTerminalHref, SHARED_SHELL_MARKETS } from "../sharedShellNavigation";
 import { SHARED_SHELL_COPY } from "../sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "../sharedShellRoutes";
 import { safeMacroHref, macroReturnWorkspace } from "../originNav";
 
 describe("Shared Shell investigation handoff", () => {
   afterEach(() => vi.unstubAllEnvs());
+  it("preserves the originating instrument’s chart interval and episode only for the same listing", () => {
+    const origin = "https://beta.mastermind-x.com";
+    const analysis = new URL(chartAnalysisHref("AAPL", "5m", "clk-1234"), origin);
+    const returned = (symbol: string) => new URL(sharedShellTerminalHref(analysis.href, symbol), origin);
+    expect(returned("AAPL").searchParams.get("tf")).toBe("5m");
+    expect(returned("AAPL").searchParams.get("episode")).toBe("clk-1234");
+    analysis.searchParams.set("symbol", "BABA");
+    expect(returned("BABA").searchParams.has("tf")).toBe(false);
+    expect(returned("BABA").searchParams.has("episode")).toBe(false);
+    expect(chartAnalysisHref("AAPL", "invalid", "not/an/episode")).toBe("/analysis?symbol=AAPL");
+  });
   it("round trips an exact supported investigation URL through the chart return owner", () => {
     const investigation = "https://beta.mastermind-x.com/analysis?symbol=BRK-B&page=intelligence&pane=intelligence&tx=2026Q1&q=a%20b&q=a+b#reported-metric";
     const chart = new URL(sharedShellTerminalHref(investigation, "BRK-B"), "https://beta.mastermind-x.com");

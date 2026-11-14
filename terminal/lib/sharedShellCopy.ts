@@ -6,6 +6,12 @@ import { useLang, useT } from "@/lib/i18n";
 type ShellLang = "en" | "zh";
 const pick = (lang: ShellLang, en: string, zh: string): string => lang === "zh" ? zh : en;
 export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
+  shellOptionsFlow: (lang) => pick(lang, "Options Flow", "期权流"),
+  shellWorkspaces: (lang) => pick(lang, "Workspaces", "工作区"),
+  shellReturnWorkspace: (lang) => pick(lang, "Return to previous workspace", "返回上一工作区"),
+  shellChartActions: (lang) => pick(lang, "Chart actions", "图表操作"),
+  shellChartTools: (lang) => pick(lang, "Chart tools", "图表工具"),
+  shellSearch: (lang) => pick(lang, "Search", "搜索"),
   shellIntelligence: (lang) => pick(lang, "Market Intelligence", "市场情报"),
   shellProphet: (lang) => pick(lang, "Model plans & options", "模型计划与期权"),
   shellProphetEvaluation: (lang) => pick(lang, "Strategy Evaluation", "策略评估"),

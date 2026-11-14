@@ -69,6 +69,17 @@ describe("Shared Shell current-company chart handoff", () => {
   expect(link()?.getAttribute("href")).toBe("/terminal");
  });
 
+ it("uses the visible Prophet Setup company on both mounts without leaking a selection from another lane", async () => {
+  for (const href of ["/prophet?tab=sector&symbol=CARR", "/options?tab=prophet&prophetLane=screener&prophetView=setup&prophetSymbol=CARR"]) {
+   await render(href);
+   expect(target().searchParams.get("symbol")).toBe("CARR");
+   expect(target().searchParams.get("ret")).toBe(window.location.href);
+  }
+  for (const href of ["/options?tab=tape&prophetSymbol=CARR", "/prophet?tab=plans&symbol=CARR"]) {
+   await render(href);
+   expect(target().searchParams.get("symbol")).toBe("NVDA");
+  }
+ });
  it.each(["hashchange", "popstate", "mmx:shell-location"])("follows a committed %s without publishing another cursor", async event => {
   await render("/stock.html#AAPL");
   await act(async () => {

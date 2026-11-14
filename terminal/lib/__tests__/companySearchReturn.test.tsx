@@ -6,7 +6,7 @@ import ShellSearch from "@/components/chrome/shared-shell/ShellSearch";
 import { COMPANY_SEARCH_HISTORY_KEY } from "@/lib/companySearchContext";
 
 const state = vi.hoisted(() => ({ push: vi.fn(), active: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: state.push }) }));
+vi.mock("next/navigation", () => ({ usePathname: () => window.location.pathname, useSearchParams: () => new URLSearchParams(window.location.search), useRouter: () => ({ push: state.push }) }));
 vi.mock("@/lib/activeSymbol", () => ({ useActiveSymbol: () => "BABA", writeActiveSymbol: state.active }));
 vi.mock("@/lib/sharedShellCopy", () => ({ useSharedShellT: () => (key: string) => key }));
 vi.mock("@/components/SymbolPicker", () => ({ default: (props: {

@@ -22,7 +22,7 @@ import { marketNavigationHref, workspaceMarket } from "@/lib/sharedShellMarket";
  * Sub-tabs (spec order): screener (Stock Screener) · heatmap · leaders · radar.
  * Owns `?tab=` (shallow, window.history.replaceState — the app-router idiom that
  * keeps mounted tools local). Ordinary Terminal defaults to screener; Shared Shell
- * uses the question chooser without a valid explicit tab and keeps tool history.
+ * also opens on the screener and retains its optional guide at ?tab=guide.
  *
  * ── Layout note (nested .main2) ──────────────────────────────────────────────
  * AppShell mounts this page's root element straight into the .app2 grid, so the
@@ -60,7 +60,7 @@ export default function DiscoverWorkspace() {
   const router = useRouter();
   const params = useSearchParams();
   const selected = params.get("tab");
-  const chooser = !!presentation && (!selected || !KEYS.has(selected));
+  const chooser = !!presentation && selected === "guide";
   const identity = useShellIdentity(); // resolved once by the (shell) layout → AppShell context
   const tab = selected && KEYS.has(selected) ? selected : DEFAULT_TAB;
   const tabs = presentation ? SHARED_SHELL_TABS : TABS;
@@ -90,7 +90,7 @@ export default function DiscoverWorkspace() {
     // The router may commit after the local nonce update. Keep only the intent
     // for this explicit workspace/tab transition; unrelated navigation cancels it.
     const destination = new URL(window.location.href);
-    if (destination.pathname !== intent.pathname || destination.searchParams.get("tab") !== intent.tab) {
+    if (destination.pathname !== intent.pathname || destination.searchParams.get("tab") !== (intent.tab ?? "guide")) {
       focusIntent.current = null;
       return;
     }
@@ -140,10 +140,10 @@ export default function DiscoverWorkspace() {
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
         {presentation && <button className="discover-chooser-back" type="button" onClick={() => {
           recordFocusIntent(null);
-          const u = new URL(window.location.href); u.searchParams.delete("tab");
+          const u = new URL(window.location.href); u.searchParams.set("tab", "guide");
           window.history.pushState(null, "", u.toString());
           window.dispatchEvent(new Event("mmx:shell-location"));
-        }}>{presentation.context.locale === "zh" ? "发现" : "Discover"} ←</button>}
+        }}>{presentation.context.locale === "zh" ? "发现指南" : "Discovery guide"}</button>}
         <WorkspaceTabs
           tabs={tabs}
           active={tab}

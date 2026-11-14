@@ -16,7 +16,7 @@ test("Tools handoff owns scroll only on touch and restores it on every close", a
   } }));
   await page.goto("/discover");
   await expect(page.locator('[data-shared-shell="beta"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await expect(page.locator("#wtab-screener")).toBeVisible();
   const original = await page.evaluate(() => ({ body: document.body.style.overflow, root: document.documentElement.style.overflow }));
   const directory = page.locator("#shared-shell-tools");
   const phone = page.viewportSize()!.width <= 860;

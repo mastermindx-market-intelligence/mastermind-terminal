@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import "./shared-shell/shared-shell.css";
 import "./shared-shell/mega-menu.css";
+import { TerminalViews } from "./shared-shell/TerminalWorkspaceNav";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -248,6 +249,7 @@ export default function AppShell({
           </>)}
           {!sharedShell && <div className="spacer" />}
           {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen} />}
+          {sharedShell && (analysisRoute || path === "/discover") && <TerminalViews symbol={analysisRoute ? brainSymbol : undefined} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
               shell must render its own (review P1: dropped desktop sign-out). */}

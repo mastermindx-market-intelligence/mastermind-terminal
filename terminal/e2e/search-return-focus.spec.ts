@@ -32,7 +32,7 @@ test("Shared Search restores its opener across responsive presentations", async 
   await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
   await page.route("**/data/manifest.json", route => route.fulfill({ json: { as_of: null, symbols: { AAPL: { name: "Apple Inc.", col: "#777", verdict: null, sec: "Stock", mkt: "NASDAQ" } } } }));
   await page.goto("/discover");
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("#wtab-screener")).toBeVisible({ timeout: 30_000 });
   const opener = info.project.name === "desktop" ? page.locator(".topbar .shared-shell-company-search") : page.locator(".mobilebar").getByRole("button", { name: "Search companies", exact: true });
   await roundtrip(page, opener, page.getByRole("dialog").getByRole("combobox"), info, "shared");
 });

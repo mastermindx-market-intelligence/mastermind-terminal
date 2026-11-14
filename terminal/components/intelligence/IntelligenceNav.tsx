@@ -18,12 +18,15 @@ export default function IntelligenceNav({ mode = "context", labelled = true, onN
  const path = usePathname(), params = useSearchParams(), { lang } = useLang();
  const active = intelligenceActiveKey(path, params.toString());
  const market = workspaceMarket(path, params.toString());
+ const destinations = mode === "context" ? INTELLIGENCE_DESTINATIONS
+   : INTELLIGENCE_DESTINATIONS.filter(item => item.key !== "overview" && item.key !== "cycles");
+ const selected = mode !== "context" && active === "cycles" ? "sectors" : active;
  const title = lang === "zh" ? "市场情报" : "Market Intelligence";
  return <div role="group" aria-label={title} className={`${s.navigation} ${s[mode]} ${!labelled ? s.compact : ""}`} data-intelligence-nav={mode}>
   {mode !== "context" && labelled && <h2>{title}</h2>}
-  <div className={s.links}>{INTELLIGENCE_DESTINATIONS.map(item => <Link key={item.key} href={marketNavigationHref(item.href, market)}
+  <div className={s.links}>{destinations.map(item => <Link key={item.key} href={marketNavigationHref(item.href, market)}
    onClick={onNavigate} prefetch={false} title={item.label[lang === "zh" ? 1 : 0]}
-   aria-label={item.label[lang === "zh" ? 1 : 0]} aria-current={active === item.key ? "page" : undefined}>
+   aria-label={item.label[lang === "zh" ? 1 : 0]} aria-current={selected === item.key ? "page" : undefined}>
    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={GLYPHS[item.key]} /></svg>
    {labelled && <span>{item.label[lang === "zh" ? 1 : 0]}</span>}
   </Link>)}</div>

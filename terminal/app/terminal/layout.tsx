@@ -1,3 +1,4 @@
+import { isSharedShellEnabled } from "@/lib/sharedShellContracts";
 import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -18,5 +19,5 @@ export default async function TerminalLayout({ children }: { children: React.Rea
   }
   // `?tf=` (a Screener result's requested timeframe) is applied beside the page, through the
   // shell's existing `mm:set-tf` seam — see components/TerminalTfDeepLink.tsx.
-  return <>{children}<TerminalTfDeepLink /></>;
+  return <>{children}<TerminalTfDeepLink sharedShellEnabled={isSharedShellEnabled(process.env.MMX_SHARED_SHELL)} /></>;
 }

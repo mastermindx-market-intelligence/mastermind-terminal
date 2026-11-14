@@ -1,3 +1,4 @@
+import { isSharedShellEnabled } from "@/lib/sharedShellContracts";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
@@ -15,7 +16,7 @@ async function provisioningScreen() {
 
 // dynamic='auto': supabase reads cookies → Next auto-detects dynamic; no need to force it.
 
-export default async function Terminal({ searchParams }: { searchParams: Promise<{ sym?: string; symbol?: string; episode?: string; shell?: string; tray?: string; dossier?: string }> }) {
+export default async function Terminal({ searchParams }: { searchParams: Promise<{ sym?: string; symbol?: string; episode?: string; tf?: string; shell?: string; tray?: string; dossier?: string }> }) {
   const sp = await searchParams;
   // Canonicalized HERE, at the route boundary, so exactly one string reaches the shell, the
   // preload, and `dataCache`. A value that is not a usable symbol resolves to `undefined` — the
@@ -27,6 +28,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   const shellMode = sp?.shell === "app";
   // ?tray=1 (shell mode only) — keeps the TF quick tray visible; the symbol-preview sheet
   // embeds the full chart and has no native roller to own the interval.
+  const betaWorkspace = !shellMode && isSharedShellEnabled(process.env.MMX_SHARED_SHELL);
   const shellTray = shellMode && sp?.tray === "1";
   // ?dossier=1 (shell mode only) — the detail rail becomes the ONLY content and the chart
   // workspace is not rendered at all; the native symbol sheet draws its own chart above it.
@@ -98,7 +100,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
           .map(({ symbol, section }) => ({ symbol, section })) ?? [])
       : guestRows;
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, fixtureRows));
-    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
+    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} initialEpisode={initialEpisode} betaWorkspace={betaWorkspace} initialTimeframe={sp?.tf} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
   }
 
   const supabase = await createClient();
@@ -107,7 +109,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // login disabled for now — render an open guest workspace (no server-side persistence)
   if (!user) {
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, guestRows));
-    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
+    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} initialEpisode={initialEpisode} betaWorkspace={betaWorkspace} initialTimeframe={sp?.tf} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
   }
 
   // load or seed the user's first watchlist (idempotent via unique (user_id,name)).
@@ -158,5 +160,5 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // `userId`, not `email`, is what watchlist local state is namespaced by: an address can be
   // changed and reassigned, the auth uuid cannot, and a durable owner key that can be recycled is
   // not an owner boundary.
-  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
+  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} initialEpisode={initialEpisode} betaWorkspace={betaWorkspace} initialTimeframe={sp?.tf} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
 }

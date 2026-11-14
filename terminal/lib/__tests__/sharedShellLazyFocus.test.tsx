@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import NotFoundActions from "@/app/not-found-actions";
 import ShellSearch from "@/components/chrome/shared-shell/ShellSearch";
 import { LangProvider } from "@/lib/i18n";
-vi.mock("next/navigation",()=>({useRouter:()=>({push:vi.fn()})}));
+vi.mock("next/navigation",()=>({usePathname: () => window.location.pathname, useSearchParams: () => new URLSearchParams(window.location.search), useRouter:()=>({push:vi.fn()})}));
 vi.mock("@/lib/activeSymbol",()=>({useActiveSymbol:()=>"NVDA",writeActiveSymbol:vi.fn()}));
 vi.mock("@/lib/sharedShellCopy",async()=>({...await vi.importActual<typeof import("@/lib/sharedShellCopy")>("@/lib/sharedShellCopy"),useSharedShellT:()=>((key:string)=>key)}));
 vi.mock("@/components/chrome/AppShell",()=>({useShellIdentity:()=>({})}));

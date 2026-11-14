@@ -1,3 +1,4 @@
+import { setShellAppearance } from "./fixtures/shellAppearance";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test.skip(process.env.MMX_SHARED_SHELL !== "1", "Shared Shell is an explicit beta opt-in");
@@ -36,8 +37,7 @@ test("guest access actions stay reachable and open their existing dialogs", asyn
   await expect(gate.getByRole("button", { name: "Create your free account", exact: true })).toBeVisible();
   for (const zh of [false, true]) {
     if (zh) {
-      await page.getByRole("button", { name: "Light theme", exact: true }).click();
-      await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+      await setShellAppearance(page, "zh", "light");
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
       await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
     }
@@ -135,7 +135,7 @@ test("standalone account outage keeps a usable retry without guest chrome", asyn
 
 test("Discover focused workflows retain their destinations and usable touch targets", async ({ page }, info) => {
   if (info.project.name === "desktop") await page.setViewportSize({ width: 320, height: 568 });
-  await page.goto("/discover");
+  await page.goto("/discover?tab=guide");
   await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
   for (const href of ["/us_stocks.html", "/biocatalyst.html", "/confluence_screener.html"]) {
     const link = page.locator(`main a[href="${href}"]`);

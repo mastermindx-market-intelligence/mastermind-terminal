@@ -15,7 +15,7 @@ export const TF_DEEP_LINK_PARAM = "tf";
 export type TfDeepLink = {
   /** The canonical timeframe the link asks for. */
   tf: string;
-  /** canonicalChartSymbol(`sym`), or null when the link names no (valid) symbol. */
+  /** Canonical symbol (`symbol` or the legacy `sym`), or null when the link names no (valid) symbol. */
   symbol: string | null;
 };
 
@@ -25,7 +25,7 @@ export function readTfDeepLink(search: string): TfDeepLink | null {
   try { params = new URLSearchParams(search); } catch { return null; }
   const tf = params.get(TF_DEEP_LINK_PARAM);
   if (tf === null || !TF_CANONICAL_ORDER.includes(tf)) return null;
-  return { tf, symbol: canonicalChartSymbol(params.get("sym")) };
+  return { tf, symbol: canonicalChartSymbol(params.get("symbol") ?? params.get("sym")) };
 }
 
 /**

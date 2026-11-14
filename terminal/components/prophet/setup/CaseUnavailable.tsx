@@ -17,6 +17,10 @@
  * anchor (it leaves for the company page).
  */
 import type { Lang } from "@/lib/i18n";
+import Link from "next/link";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import { useShellLocation } from "@/components/chrome/shared-shell/useShellLocation";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { makeProphetSectorT, prophetSectorFill } from "../sector/prophetSectorStrings";
 import type { CaseTab } from "./CaseTabs";
 import { makeSetupT, setupFill, type SetupKey } from "./setupStrings";
@@ -66,6 +70,12 @@ export function CaseUnavailable({ symbol, observedAsof, lang }: {
   );
 }
 
+function SetupChartLink({ symbol, children }: { symbol: string; children: React.ReactNode }) {
+  const origin = useShellLocation();
+  const href = origin ? sharedShellTerminalHref(origin, symbol) : "/terminal?symbol=" + encodeURIComponent(symbol);
+  return <Link prefetch={false} className={styles.studyChartLink} data-testid="prophet-sector-chart-link" href={href}>{children}</Link>;
+}
+
 export function StudyLinks({ symbol, chartHref, onTab, onOpenSources, lang }: {
   symbol: string;
   chartHref: string | null;
@@ -77,6 +87,8 @@ export function StudyLinks({ symbol, chartHref, onTab, onOpenSources, lang }: {
 }) {
   const t = makeSetupT(lang);
   const sectorT = makeProphetSectorT(lang);
+  const beta = useOptionalSharedShellPresentation();
+  const chartLabel = prophetSectorFill(sectorT("setupChartLink"), { symbol });
 
   return (
     <section className={styles.card} data-testid="study-links">
@@ -101,11 +113,11 @@ export function StudyLinks({ symbol, chartHref, onTab, onOpenSources, lang }: {
           </button>
         </li>
       </ul>
-      {chartHref !== null ? (
+      {chartHref !== null && (beta ? <SetupChartLink symbol={symbol}>{chartLabel} →</SetupChartLink> :
         <a className={styles.studyChartLink} data-testid="prophet-sector-chart-link" href={chartHref}>
-          {prophetSectorFill(sectorT("setupChartLink"), { symbol })} ↗
+          {chartLabel} ↗
         </a>
-      ) : null}
+      )}
     </section>
   );
 }

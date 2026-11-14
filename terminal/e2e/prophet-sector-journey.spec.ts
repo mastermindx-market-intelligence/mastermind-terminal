@@ -338,7 +338,17 @@ test.describe("Prophet-side journey (no sector-side dependency)", () => {
     await expect(page.getByTestId("model-plan-rail")).toContainText(/no model plan is open/i);
     // The existing chart destination (attached to the next-check block, fix
     // order item 16), and no board panel anywhere.
-    await expect(page.getByTestId("prophet-sector-chart-link")).toHaveAttribute("href", /\/analysis\?symbol=ALLE/);
+    const chartLink = page.getByTestId("prophet-sector-chart-link");
+    if (process.env.MMX_SHARED_SHELL === "1") {
+      const origin = page.url();
+      await chartLink.click();
+      await expect(page).toHaveURL(url => url.pathname === "/terminal" && url.searchParams.get("symbol") === "ALLE" && url.searchParams.get("ret") === origin);
+      await page.goBack();
+      await expect(page).toHaveURL(origin);
+      await expect(page.getByTestId("case-header")).toContainText("ALLE");
+    } else {
+      await expect(chartLink).toHaveAttribute("href", /\/analysis\?symbol=ALLE/);
+    }
     await expect(setup.locator(".obs-prophet-analysis")).toHaveCount(0);
     await page.getByTestId("prophet-sector-setup-back").click();
     await expect(page.getByTestId("prophet-sector-population")).toBeVisible();

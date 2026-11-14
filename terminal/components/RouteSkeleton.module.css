@@ -58,3 +58,7 @@
 @media (prefers-reduced-motion: reduce) {
   .body, .title { animation: none; }
 }
+
+.chartEntry { display: grid; height: 100dvh; min-width: 0; background: var(--bg); }
+.chartEntry .workspace { grid-area: 1 / 1; }
+.chartEntry .rail { display: none; }

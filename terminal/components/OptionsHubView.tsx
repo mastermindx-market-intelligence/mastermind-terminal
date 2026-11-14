@@ -6,8 +6,12 @@ import {
 } from "react";
 import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import { useShellLocation } from "@/components/chrome/shared-shell/useShellLocation";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useSearchParams } from "next/navigation";
-import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
+import { createDefaultTapeView, decodeTapeView, encodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
 import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
 import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
 import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
@@ -1542,6 +1546,21 @@ const subscribeHydration = () => () => {};
 const clientHydrated = () => true;
 const serverHydrated = () => false;
 
+/** The chart return restores the filters currently on screen, including unsaved edits. */
+function TapeChartLink({ view }: { view: TapeViewState }) {
+  const { lang } = useLang();
+  const location = useShellLocation();
+  if (!view.drillTicker || !location) return null;
+  const origin = new URL(location);
+  origin.searchParams.set("tab", "tape");
+  try { origin.searchParams.set("tapeView", encodeTapeView(view)); }
+  catch { return null; }
+  const label = lang === "zh" ? `打开 ${view.drillTicker} 图表` : `Open ${view.drillTicker} chart`;
+  return <Link prefetch={false} className={screenerActionStyles.ticker} href={sharedShellTerminalHref(origin.href, view.drillTicker)}>
+    {label}
+  </Link>;
+}
+
 export default function OptionsHubView({
   allowedTabs,
   activeTab: controlledTab,
@@ -1551,6 +1570,7 @@ export default function OptionsHubView({
   onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
+  const sharedPresentation = useOptionalSharedShellPresentation();
   const t = useT();
   const doiT = useShortlistT();
   const viewText = useTapeViewText();
@@ -1711,6 +1731,11 @@ export default function OptionsHubView({
   const [sortDir, setSortDir] = useState<1 | -1>(initialTapeView.view.sortDir);
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
+
+  const currentTapeView: TapeViewState = {
+    minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets], groupFilter,
+    drillTicker, tapeTickerSearch, sideFilter, flagFilter, sortKey, sortDir,
+  };
 
   // One application path for URL restoration and saved display preferences.
   const applyTapeView = (next: TapeViewState) => {
@@ -2676,11 +2701,7 @@ export default function OptionsHubView({
                   </button>
                 )}
 
-                <OptionsTapeSavedViews state={{
-                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
-                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
-                  sortKey, sortDir,
-                }} onApply={(encoded) => {
+                <OptionsTapeSavedViews state={currentTapeView} onApply={(encoded) => {
                   // Invalid shared links keep their explicit recovery boundary.
                   const restored = decodeTapeView(encoded);
                   if (invalidTapeView || !restored) return;
@@ -2690,11 +2711,7 @@ export default function OptionsHubView({
                   url.searchParams.set("tapeView", encoded);
                   window.history.pushState(null, "", url);
                 }} />
-                <OptionsTapeViewLink state={{
-                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
-                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
-                  sortKey, sortDir,
-                }} />
+                <OptionsTapeViewLink state={currentTapeView} />
                 <OptionsCsvExportButton
                   label={t("exportCsv")}
                   rowCount={events.length}
@@ -2705,8 +2722,9 @@ export default function OptionsHubView({
               {/* Drill card */}
               {drillTicker && (
                 <div className="flow-drill-card">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
                     <span style={{ fontWeight: 700, fontSize: 15 }}>{drillTicker}</span>
+                    {sharedPresentation && <TapeChartLink view={currentTapeView} />}
                     {drillUnusual && (
                       <>
                         <span style={{ color: "var(--muted)", fontSize: 12 }}>{lang === "zh" ? drillUnusual.group_zh : drillUnusual.group}</span>

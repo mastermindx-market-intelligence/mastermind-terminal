@@ -120,6 +120,18 @@
     flex: none;
   }
 
+  .header .search:global(.m-ic) {
+    width: auto;
+    max-width: 98px;
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 7px;
+  }
+  .search svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .search span { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   /* Rounded paint should not cut the corners out of the touch target. */
   .header :global(.m-ic)::after {
     position: absolute;

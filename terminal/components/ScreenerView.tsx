@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -1597,7 +1598,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               const a = annot.get(r.sym);
               const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
               const handover = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
-              const href = handover ? handover.href : listingHref(r.sym);
+              const listing = handover ? handover.href : listingHref(r.sym);
+              // The virtualized rows only mount after the client has loaded the scan.
+              const href = listing && typeof window !== "undefined" && document.documentElement.dataset.mmxSharedShell === "1"
+                ? sharedShellTerminalHref(window.location.href, r.sym) + (handover?.timeframe ? "&tf=" + encodeURIComponent(handover.timeframe) : "")
+                : listing;
               const recordPick = () => { if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim()); };
               const symbolIdentity = <>
                 <AssetLogo className="ic" symbol={r.sym} name={r.name} market={r.mkt || r.sec} color={r.col} size={density === "k" ? 20 : 24} />

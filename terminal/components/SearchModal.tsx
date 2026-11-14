@@ -545,10 +545,11 @@ export default function SearchModal({
     }
   }
 
-  function openCompany() {
+  function openCompany(destination: "analysis" | "chart" = "analysis") {
     if (!resultsCurrent || !companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
     track(companyPreview);
-    if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
+    if (destination === "chart" && sharedSearch?.onOpenChart) sharedSearch.onOpenChart(companyPreview, q.trim());
+    else if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
     else onPick(companyPreview);
     onClose();
   }
@@ -582,7 +583,7 @@ export default function SearchModal({
       } else {
         const idx = showCompositeRow ? sel - 1 : sel;
         const row = displayRows[idx];
-        if (row && companyScope && isPick && companyPreview === row[0]) openCompany();
+        if (row && companyScope && isPick && companyPreview === row[0]) openCompany(sharedSearch?.onOpenChart ? "chart" : "analysis");
         else if (row) choose(row[0], shift);
         else if (isAdd && !q.trim() && active && !inWatchlist.has(active)) {
           track(active);
@@ -1111,7 +1112,7 @@ export default function SearchModal({
         {companyScope && isPick && companyPreview && displayRows.some(([s]) => s === companyPreview) && (
           <CompanyListingIdentity key={companyPreview} symbol={companyPreview}
             name={manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
-            venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} />
+            venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={() => openCompany()} />
         )}
         {cmp && <div className="scmp-foot">{t("compareHint")}</div>}
 
@@ -1125,7 +1126,8 @@ export default function SearchModal({
   const listingDetail = companyPreview && displayRows.some(([s]) => s === companyPreview)
     ? <CompanyListingIdentity key={companyPreview} symbol={companyPreview}
         name={!sharedSearch && manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
-        venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} /> : null;
+        venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={() => openCompany()}
+        onOpenChart={sharedSearch?.onOpenChart ? () => openCompany("chart") : undefined} /> : null;
   const presentedBody = sharedSearch ? <SharedSearchWorkspace key={sharedSearch.scope ?? "companies"} query={q} onClose={onClose}
     onQueryChange={next => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(next); selectResult(0); }}
     companies={displayRows.map(([symbol, row]) => ({ symbol, name: displayName(row, lang), venue: row.mkt }))}

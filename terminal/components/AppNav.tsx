@@ -49,7 +49,7 @@ export function Glyph({ k }: { k: string }) {
         <circle cx="17.5" cy="8" r="1.15" fill="currentColor" stroke="none" />
       </svg>
     );
-  return (<svg viewBox="0 0 24 24">{(ICON[k] ?? []).map((d, i) => <path key={i} d={d} />)}</svg>);
+  return (<svg viewBox="0 0 24 24">{(ICON[k === "shellOptionsFlow" ? "options" : k] ?? []).map((d, i) => <path key={i} d={d} />)}</svg>);
 }
 
 // The single source of truth for the primary nav. Exported so the mobile drawer (MobileNav)
