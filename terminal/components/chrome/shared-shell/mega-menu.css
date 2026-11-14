@@ -3,7 +3,8 @@
 .shell-mega {
   position:fixed;z-index:80;inset-inline-start:var(--shared-rail);bottom:16px;
   display:grid;grid-template-columns:clamp(165px,16vw,210px) minmax(0,1fr);
-  width:min(880px,calc(100vw - var(--shared-rail) - 16px));max-height:calc(100dvh - 88px);
+  /* Keep family targets stationary as the adjoining catalogue changes height. */
+  width:min(880px,calc(100vw - var(--shared-rail) - 16px));height:560px;max-height:calc(100dvh - 88px);
   overflow:hidden;border:1px solid var(--line-3);border-radius:12px;background:var(--panel);color:var(--text);
   box-shadow:var(--pop-shadow-modal);font-family:var(--font-ui);
 }
@@ -35,7 +36,7 @@
   .shell-mega-sheet { width:min(500px,100%);max-width:100%;max-height:calc(100dvh - env(safe-area-inset-top));padding:0;
     margin:auto 0 0;border:1px solid var(--line-3);border-radius:12px 12px 0 0;background:var(--panel);color:var(--text); }
   .shell-mega-sheet::backdrop { background:var(--scrim); }
-  .shell-mega-sheet .shell-mega { position:static;display:block;width:100%;max-height:inherit;overflow:auto;border:0;border-radius:inherit;box-shadow:none; }
+  .shell-mega-sheet .shell-mega { position:static;display:block;width:100%;height:auto;max-height:inherit;overflow:auto;border:0;border-radius:inherit;box-shadow:none; }
   .mega-families { overflow:visible;padding:12px 12px max(16px,env(safe-area-inset-bottom));border:0;background:var(--panel); }
   .mega-families header { position:sticky;top:0;z-index:1;margin:0 0 4px;padding:4px 6px;background:var(--panel); }
   .mega-families header button { min-height:44px;width:44px; }

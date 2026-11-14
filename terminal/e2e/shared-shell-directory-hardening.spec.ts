@@ -90,9 +90,38 @@ test("pointer crosses from the rail into family rows and dismisses outside", asy
   test.skip(info.project.name !== "desktop", "Desktop hover interaction");
   const opener = page.locator("[data-tool-browser-trigger]");
   await opener.hover();
-  await expect(directory(page)).toBeVisible();
-  await directory(page).getByRole("button", { name: /Research/ }).hover();
-  await expect(directory(page).getByRole("heading", { name: /Research/ }).first()).toBeVisible();
+  const nav = directory(page);
+  const families = nav.locator("[data-family]");
+  await expect(nav).toBeVisible();
+  const familyBounds = () => families.evaluateAll(rows => rows.map(row => {
+    const { x, y, width, height } = row.getBoundingClientRect();
+    return { x, y, width, height };
+  }));
+  const initial = await familyBounds();
+  expect(initial).toHaveLength(6);
+  for (const [index, box] of initial.entries()) {
+    const row = families.nth(index);
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(point.x, point.y);
+    await expect(row).toHaveAttribute("aria-pressed", "true");
+    // A bottom-anchored, shrink-wrapped flyout could switch families on the
+    // next paint without another pointer movement.
+    const stable = await row.evaluate(async (target, point) => {
+      for (let frame = 0; frame < 6; frame++) {
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        if (!target.contains(document.elementFromPoint(point.x, point.y)) || target.getAttribute("aria-pressed") !== "true") return false;
+      }
+      return true;
+    }, point);
+    expect(stable, "stationary pointer keeps its tool family").toBe(true);
+    expect(await familyBounds()).toEqual(initial);
+  }
+  const more = nav.locator("summary");
+  await more.click();
+  await expect(nav.locator("details")).toHaveAttribute("open", "");
+  expect(await familyBounds()).toEqual(initial);
+  await more.click();
+  expect(await familyBounds()).toEqual(initial);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.locator(".topbar-brand-group").click({ position: { x: 5, y: 5 } });
   await expect(directory(page)).toHaveCount(0);
