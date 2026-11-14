@@ -5,10 +5,11 @@ import { createNewerModalFocusGuard, restoreDialogFocus } from "@/lib/dialogFocu
 import { pick } from "./macroCopy";
 import s from "./MacroDashboard.module.css";
 
-export default function MacroDialog({ title, subtitle, closeLabel, onClose, children, lang }: {
-  lang: "en" | "zh"; title: string; subtitle: string; closeLabel: string; onClose: () => void; children: ReactNode;
+export default function MacroDialog({ title, subtitle, closeLabel, onClose, children, lang, initialFocusKey }: {
+  lang: "en" | "zh"; title: string; subtitle: string; closeLabel: string; onClose: () => void; children: ReactNode; initialFocusKey?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null), titleId = useId(), subtitleId = useId(), composing = useRef(false);
+  const preferredFocusKey = useRef(initialFocusKey);
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; }, [onClose]);
   // Close while the dialog still owns its DOM/focus; passive teardown runs after removal.
@@ -19,7 +20,9 @@ export default function MacroDialog({ title, subtitle, closeLabel, onClose, chil
     const newerOwns = createNewerModalFocusGuard(dialog);
     dialog.showModal();
     const release = acquireScrollLock();
-    dialog.querySelector<HTMLButtonElement>("button")?.focus();
+    const preferred = preferredFocusKey.current && [...dialog.querySelectorAll<HTMLElement>("[data-macro-focus]")]
+      .find(element => element.dataset.macroFocus === preferredFocusKey.current && !element.matches(":disabled, [aria-disabled='true']") && !element.closest("[hidden], [inert]"));
+    (preferred || dialog.querySelector<HTMLButtonElement>("button"))?.focus();
     const wrap = (event: KeyboardEvent) => {
       if (event.key !== "Tab" || event.defaultPrevented) return;
       const items = [...dialog.querySelectorAll<HTMLElement>('a[href],button,input,select,textarea,[tabindex]')].filter(el => el.tabIndex >= 0 && !el.matches(":disabled") && el.getClientRects().length > 0 && !el.closest("[hidden], [inert]"));
