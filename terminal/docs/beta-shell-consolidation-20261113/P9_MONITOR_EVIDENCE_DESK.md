@@ -252,3 +252,24 @@ owned P10/P11 stack before qualifying their downstream journeys.
 Full TypeScript, scoped ESLint, qualifier syntax and whitespace checks pass.
 The language guard read the actual nonempty 5,807-byte working diff and reports
 zero blocking findings. No local browser retry or hosted run replay was made.
+
+## Repaired candidate browser readback — 14 November
+
+The original hosted observer produced artifact14113254795 from run43593441675,
+head `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff`. Archive SHA-256
+`22c6113fe199e0efb49fb6408218be60517c9d22ef1708caa87f03e7aa4aa80e`;
+report SHA-256 `963f5b291ae52bcff53ad160059cb3db996c995e4b083a5c73f4d3dbfa85cd2d`.
+Test checkout `53f333929406a8d80dbc2614afc94511fca76906` has parents
+`57e1abf3ab55887f097da1c6800c1bf3da3fa6db` and that candidate. Its tree
+`dc9f44afe91b85ac016de2ad7aea038fe7c70644` is the exact candidate tree.
+All 66 reported input hashes match the candidate files.
+
+The receipt passes all 27 cells, including Monitor at 1440, 820 and 320 widths.
+Browser errors, external requests, fixture writes and tracked changes are empty;
+the owned child closed. Root inspected the 1440 EN lists and 320 ZH evidence
+captures. This qualifies the synthetic consumer journey and destination bindings,
+not deployed accounts or downstream Analysis acceptance. The overall workflow
+was still running at this observation; no rerun, merge or deployment was inferred.
+
+Canonical evidence: [original run](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43593441675),
+[artifact](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43593441675/artifacts/14113254795).

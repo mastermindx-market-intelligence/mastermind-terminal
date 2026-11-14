@@ -883,7 +883,6 @@ async function qualifyResearch(page,cell) {
     bodyQueries.push(Object.fromEntries(query));
     const expected=reads.body===1?{segment_start:'0',max_segments:'2'}:{
       source_pdf_sha256:researchSelection.sourcePdfSha256,extracted_text_sha256:researchSelection.extractedTextSha256,
-      extractor_version:researchSelection.extractorVersion,segmenter_version:researchSelection.segmenterVersion,
       segment_start:query.get('segment_start'),max_segments:'2'};
     const valid=url.pathname.endsWith('/'+researchSelection.docId)
       && [...query.keys()].length===Object.keys(expected).length
