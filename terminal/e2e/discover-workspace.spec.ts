@@ -27,6 +27,12 @@ async function saveView(page: Page, name: string, zh: boolean) {
 }
 async function shoot(page: Page, info: TestInfo, name: string) {
   await page.mouse.move(0, 0);
+  if (await dialog(page).isVisible()) {
+    const box = (await dialog(page).boundingBox())!, viewport = page.viewportSize()!;
+    expect(Math.abs(box.x - (viewport.width - box.width) / 2)).toBeLessThanOrEqual(2);
+    expect(Math.abs(box.y - (viewport.height - box.height) / 2)).toBeLessThanOrEqual(2);
+    expect(box.x).toBeGreaterThanOrEqual(16);
+  }
   const path = info.outputPath(`${name}.png`);
   await page.screenshot({ path, animations: "disabled" });
   await info.attach(name, { path, contentType: "image/png" });
@@ -84,6 +90,7 @@ for (const lang of ["en", "zh"] as const) {
     }
 
     await page.locator("[data-discover-columns]").click();
+    await shoot(page, info, `${lang}-column-order`);
     await dialog(page).locator('[data-discover-column="mcap"]').uncheck();
     await dialog(page).locator('[data-discover-column="overnight"]').check();
     await dialog(page).locator('[data-discover-column="cagr"]').check();
