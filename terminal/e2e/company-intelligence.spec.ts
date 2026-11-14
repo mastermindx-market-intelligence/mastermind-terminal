@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { contextFixture, themeContextFixture, institutionalContextFixture } from "./fixtures/companyIntelligenceContext";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
@@ -78,6 +80,77 @@ test.beforeEach(async ({ page }) => {
     });
   });
 });
+
+for (const language of ["en", "zh"] as const) {
+  test(`Theme empty-state packet renewal retains observed dark and light specimens (${language})`, async ({ page }, info) => {
+    test.setTimeout(120_000);
+    test.skip(!info.project.name.endsWith("desktop") && !info.project.name.endsWith("mobile"), "The incumbent B4 packet has desktop and mobile cells");
+    const layoutPaths = ["components/fin/CompanyThemeContextCard.tsx", "app/company-intelligence.css"];
+    const hash = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
+    const sourceHashes = (files: string[]) => Object.fromEntries(files.map(file => ["terminal/" + file, hash(readFileSync(path.join(__dirname, "..", file)))]));
+    const layoutFiles = sourceHashes(layoutPaths);
+    const controls = sourceHashes(["e2e/company-intelligence.spec.ts", "e2e/fixtures/companyIntelligenceContext.ts", "playwright.config.ts", "lib/i18n.tsx"]);
+    const languageSource = readFileSync(path.join(__dirname, "../lib/i18n.tsx"), "utf8");
+    const languageKey = languageSource.match(/localStorage\.setItem\("([^"]+)",\s*l\)/)?.[1];
+    if (!languageKey) throw new Error("Cannot identify the incumbent language preference");
+    await page.addInitScript(({ key, language }) => {
+      localStorage.setItem(key, language);
+      localStorage.setItem("theme", "dark"); localStorage.setItem("theme_auto", "0");
+    }, { key: languageKey, language });
+    await page.route(/^(?!http:\/\/127\.0\.0\.1).*/, route => route.abort());
+    await page.route("**/api/company-intelligence/NVDA**", route => route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } }));
+    await page.route("**/api/company-theme-context/NVDA**", route => route.fulfill({ status: 404,
+      json: { ok: false, state: "error", error: { code: "not_found", message: "No theme context", retryable: false } } }));
+    await page.route("**/api/company-institutional-context/NVDA**", route => route.fulfill({ status: 404,
+      json: { ok: false, state: "error", error: { code: "not_found", message: "No institutional context", retryable: false } } }));
+    await page.goto("/analysis?symbol=NVDA&page=intelligence");
+    const card = page.locator("section.ci-theme-card.ci-theme-empty");
+    await expect(card).toBeVisible();
+    await expect(card.locator("p")).toHaveText(language === "zh"
+      ? "该公司暂无主题背景；纳入跟踪主题后会显示在这里。"
+      : "No theme context for this company yet. It appears here once the company is mapped to a tracked theme.");
+    await page.evaluate(() => document.fonts.ready);
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeInViewport({ ratio: 0.99 });
+    const viewport = page.viewportSize()!;
+    const viewportKey = `${viewport.width}x${viewport.height}`;
+    const afterMount = await page.locator("html").getAttribute("data-theme");
+    const captures = [];
+    for (const theme of ["dark", "light"] as const) {
+      await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const observed = await card.evaluate(node => {
+        const box = node.getBoundingClientRect(), style = getComputedStyle(node), paragraph = node.querySelector("p");
+        return { dataTheme: document.documentElement.getAttribute("data-theme"),
+          documentLang: document.documentElement.lang, dataLang: document.documentElement.getAttribute("data-lang"),
+          bodyBackgroundColor: getComputedStyle(document.body).backgroundColor, cardBackgroundColor: style.backgroundColor,
+          borderTopStyle: style.borderTopStyle, borderTopColor: style.borderTopColor,
+          pColor: paragraph ? getComputedStyle(paragraph).color : null, innerText: (node as HTMLElement).innerText,
+          box: { x: box.x, y: box.y, width: box.width, height: box.height }, scrollX: scrollX, scrollY: scrollY };
+      });
+      const x = Math.max(0, Math.round(observed.box.x - 24)), y = Math.max(0, Math.round(observed.box.y - 24));
+      const clip = { x, y, width: Math.min(Math.ceil(observed.box.width) + 48, viewport.width - x),
+        height: Math.min(Math.ceil(observed.box.height) + 48, viewport.height - y) };
+      const file = `${viewportKey}-${language}-${theme}-theme-empty.png`;
+      const bytes = await page.screenshot({ path: info.outputPath(file), clip, animations: "disabled" });
+      captures.push({ ...observed, dataThemeAfterMount: afterMount, clip, file, lang: language, theme,
+        viewport: viewportKey, sha256: hash(bytes), bytes: bytes.length });
+    }
+    expect(sourceHashes(layoutPaths)).toEqual(layoutFiles);
+    const receipt = { schema: "terminal.theme-empty-browser-capture.v1", proof: "CI_FIXTURE_BROWSER_NOT_PRODUCTION",
+      capturedAt: new Date().toISOString(), capturedAtHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+      capturedTree: execFileSync("git", ["rev-parse", "HEAD^{tree}"], { encoding: "utf8" }).trim(),
+      runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null,
+      project: info.project.name, langStorageKey: languageKey, url: "/analysis?symbol=NVDA&page=intelligence",
+      state: "theme-context-not-found-empty", layoutFiles, controls, captures,
+      darkLightIdentical: { [viewportKey + "-" + language]: { identical: captures[0].sha256 === captures[1].sha256,
+        darkSha: captures[0].sha256, lightSha: captures[1].sha256 } } };
+    writeFileSync(info.outputPath(`theme-empty-capture-${viewportKey}-${language}.json`), JSON.stringify(receipt, null, 2) + "\n");
+    // Preserve the standalone dark-only packet's existing limitation. Both
+    // specimens above are actual browser bytes, even if this comparison fails.
+    expect(captures[1].sha256).toBe(captures[0].sha256);
+  });
+}
 
 async function closeEvidenceOverlay(page: Page) {
   if (await page.locator(".ci-evidence-scrim.open").isVisible()) {
