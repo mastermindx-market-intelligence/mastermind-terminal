@@ -41,7 +41,7 @@ test(`company switch keeps published statistics scoped without unused quotes (${
     const panel = page.locator("#fin-active-panel");
     const peRow = () => panel.getByRole("row").filter({ has: page.getByRole("rowheader", { name: lang === "zh" ? "市盈率" : "Price to earnings ratio", exact: true }) });
     await expect(peRow()).toContainText("20.00");
-    await page.locator(".analysis-context-bar").getByRole("button", { name: lang === "zh" ? "切换标的" : "Change symbol", exact: true }).click();
+    await page.locator(".fin-company-control").getByRole("button", { name: lang === "zh" ? "切换标的" : "Change symbol", exact: true }).click();
     const picker = page.getByRole("dialog");
     await picker.getByRole("combobox").fill("Apple");
     await expect(picker.getByRole("option", { name: /AAPL Apple Inc/ })).toBeVisible();

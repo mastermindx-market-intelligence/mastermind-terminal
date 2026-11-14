@@ -613,9 +613,12 @@ describe("nullable statement-set consumers", () => {
       sym: "0005.HK",
     }));
 
-    expect(html).toContain('<button type="button" aria-pressed="false" class="" disabled="">Annual</button>');
-    expect(html).toContain('<button type="button" aria-pressed="true" class="on">Semiannual</button>');
-    expect(html).not.toContain('scope="row">Gross margin</th>');
+    expect(html).toContain("Current snapshot · annual ratio history");
+    expect(html).toContain("Source cadence: Semiannual");
+    expect(html).toContain('scope="row">Price to earnings ratio</th>');
+    for (const label of ["Gross margin", "Price to sales ratio", "Enterprise value to EBITDA", "EV to sales", "Price to FCF"]) {
+      expect(html).not.toContain(`scope="row">${label}</th>`);
+    }
     expect(html).toContain("omitted for financial-services statement formats");
   });
 });
@@ -1141,8 +1144,6 @@ describe("no financials surface can reach a raw income series", () => {
     expect(statistics).toContain("const familyReceipt = annualAvailable");
     expect(statistics).toContain("? fund.statements?.quarterly");
     expect(statistics).toContain("industrialMetricsApply = !!familyReceipt && isIndustrialIncomeView(annualIncomeView)");
-    expect(statistics).toContain("resolveStatementBasis(requestedMode, annualAvailable, interimAvailable)");
-    expect(statistics.match(/\.\.\.\(industrialMetricsApply/g)?.length).toBeGreaterThanOrEqual(7);
     expect(statistics).toContain("!industrialMetricsApply");
   });
 });

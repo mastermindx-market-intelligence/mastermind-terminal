@@ -3,30 +3,31 @@
   --lab-negative: var(--down);
   max-width: 1460px;
   margin: 0 auto;
-  padding: 8px 4px 32px;
+  padding: 0 0 32px;
   color: var(--text);
   font-family: var(--font-ui);
 }
-.header { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:18px }
+.header { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:16px }
 .eyebrow { font-size:10px; font-weight:750; letter-spacing:.14em; color:var(--brand-2); margin-bottom:9px }
 .eyebrow span { color:var(--muted); letter-spacing:.06em }
-.header h2 { margin:0; font-size:clamp(22px,2.2vw,30px); font-weight:680; line-height:1.2; letter-spacing:-.025em }
+.header h2 { margin:0; font-size:24px; font-weight:680; line-height:1.2; letter-spacing:-.025em }
 .header p { margin:8px 0 0; color:var(--text-2); font-size:13px; line-height:1.5 }
 .chartLink { display:inline-flex; align-items:center; justify-content:center; gap:12px; min-height:40px; padding:0 14px; border:1px solid var(--line-3); border-radius:8px; background:var(--panel-2); color:var(--text); font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap }
 .chartLink:hover { border-color:var(--brand-2); background:var(--panel-3) }
-.snapshot { display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:var(--muted); font-size:11px; line-height:1.6; margin-bottom:22px }
+.snapshot { display:grid; gap:4px; flex:none; color:var(--muted); font-size:11px; line-height:1.5; text-align:right }
 .snapshot strong { font-weight:500; color:var(--text-2) }
 .snapshotDot { width:6px; height:6px; border:1px solid var(--muted); border-radius:50%; flex:none }
-.tabs { display:flex; gap:24px; border-bottom:1px solid var(--line); margin-bottom:20px }
+.tabs { display:flex; gap:24px; border-bottom:1px solid var(--line); margin-bottom:12px }
 .tabs button { display:flex; align-items:center; gap:9px; min-height:44px; padding:0 0 10px; border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; color:var(--muted); font:650 13px/1.3 var(--font-ui); cursor:pointer }
 .tabs button[aria-pressed=true] { color:var(--text); border-bottom-color:var(--brand-2) }
 .tabs button span { font:600 11px/1 var(--font-num); padding:4px 6px; border-radius:5px; background:var(--panel-2); color:var(--text-2) }
-.summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px }
-.summary button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:76px; padding:16px 18px; background:var(--panel); border:1px solid var(--line); border-radius:10px; cursor:pointer; text-align:left }
+.summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin-bottom:14px; border:1px solid var(--line); border-radius:8px; overflow:hidden }
+.summary button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:54px; padding:10px 14px; background:transparent; border:0; border-right:1px solid var(--line); border-radius:0; cursor:pointer; text-align:left }
+.summary button:last-child { border-right:0 }
 .summary button:hover { background:var(--panel-2); border-color:var(--line-3) }
-.summary button[aria-pressed=true] { background:color-mix(in srgb,var(--brand) 7%,var(--panel)); border-color:color-mix(in srgb,var(--brand-2) 55%,var(--line)) }
+.summary button[aria-pressed=true] { background:var(--panel-3); box-shadow:inset 0 -2px 0 var(--brand-2) }
 .summary span { color:var(--text-2); font:550 12px/1.4 var(--font-ui) }
-.summary strong { font:650 27px/1 var(--font-num); font-variant-numeric:tabular-nums }
+.summary strong { font:650 21px/1 var(--font-num); font-variant-numeric:tabular-nums }
 .neutral { color:var(--text) }
 .positive { color:var(--lab-positive) }
 .negative { color:var(--lab-negative) }
@@ -51,11 +52,11 @@
 .columns>span:nth-child(n+4) { text-align:right }
 .rows { list-style:none; padding:0; margin:0 }
 .row+ .row { border-top:1px solid var(--line) }
-.rowButton { width:100%; min-height:88px; padding-top:14px; padding-bottom:14px; text-align:left; border:0; background:transparent; color:var(--text); cursor:pointer; font-family:var(--font-ui) }
+.rowButton { width:100%; min-height:72px; padding-top:10px; padding-bottom:10px; text-align:left; border:0; background:transparent; color:var(--text); cursor:pointer; font-family:var(--font-ui) }
 .rowButton:hover { background:var(--panel-2) }
 .row[data-expanded=true]>.rowButton { background:color-mix(in srgb,var(--brand) 5%,var(--panel)) }
 .rank { color:var(--muted); font:500 11px var(--font-num) }
-.setupName { display:flex; flex-direction:column; gap:7px; min-width:0 }
+.setupName { display:flex; flex-direction:column; gap:5px; min-width:0 }
 .setupName strong { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; font-size:13px; line-height:1.4; font-weight:620 }
 .setupName>span { color:var(--muted); font-size:10px; line-height:1.5 }
 .direction { font-size:11px; font-weight:600; white-space:nowrap }
@@ -109,16 +110,18 @@
 }
 @media(max-width:700px) {
   .panel { padding:4px 0 24px }
-  .header { align-items:flex-start; gap:12px }
+  .header { align-items:flex-start; flex-direction:column; gap:10px; margin-bottom:12px }
   .header h2 { font-size:24px }
   .header p { font-size:12px; max-width:42ch }
   .header .chartLink { width:44px; min-width:44px; min-height:44px; padding:0 }
   .header .actionLabel { display:none }
-  .snapshot { font-size:10px; gap:6px; margin-bottom:18px }
-  .tabs { gap:22px; margin-bottom:16px }
-  .summary { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:16px }
-  .summary button { min-height:58px; padding:10px 12px }
-  .summary strong { font-size:24px }
+  .snapshot { font-size:10px; gap:3px; text-align:left }
+  .tabs { gap:22px; margin-bottom:10px }
+  .summary { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; margin-bottom:12px }
+  .summary button { min-height:46px; padding:8px 10px }
+  .summary button:nth-child(2) { border-right:0 }
+  .summary button:nth-child(-n+2) { border-bottom:1px solid var(--line) }
+  .summary strong { font-size:20px }
   .summary span { font-size:11px }
   .refineButton { display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:0 12px; margin:0 0 16px; border:1px solid var(--line); border-radius:7px; background:var(--panel); color:var(--text-2); font:550 11px var(--font-ui); cursor:pointer }
   .refineButton>span:nth-child(2) { margin-left:auto; color:var(--muted); font-weight:400 }

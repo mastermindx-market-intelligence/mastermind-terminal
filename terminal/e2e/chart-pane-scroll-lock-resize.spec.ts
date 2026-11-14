@@ -166,7 +166,7 @@ async function showTranscripts(page: Page, pane: Locator, testInfo: TestInfo) {
     await expect(sheet).toBeVisible(ACTION);
     await press(sheet.locator('[data-fin-family-sheet="earnings"]'), testInfo);
     await expect(sheet).toHaveCount(0, ACTION);
-    await press(pane.locator(".fin-local-mobile-tab", { hasText: "Transcripts" }), testInfo);
+    await press(pane.locator(".fin-local-tab", { hasText: "Transcripts" }), testInfo);
   } else {
     await press(pane.locator('[data-fin-family="earnings"]'), testInfo);
     await press(pane.locator('[data-fin-local="transcripts"]'), testInfo);

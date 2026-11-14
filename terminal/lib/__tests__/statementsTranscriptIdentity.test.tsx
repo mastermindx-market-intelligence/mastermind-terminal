@@ -158,13 +158,13 @@ describe.each([100, 0, null])("statement transcript identity; amount=%s", (amoun
     const check = (period: string, tx: string | null, lang: Lang) => {
       const cells = [...host!.querySelectorAll(".fin-doc-cell")]
         .filter((node) => node.querySelector(".fin-doc-per")?.textContent === period);
-      expect(cells).toHaveLength(1);
-      const cell = cells[0]!;
-      const buttons = cell.querySelectorAll<HTMLButtonElement>("button");
       if (tx === null) {
-        expect(buttons).toHaveLength(0);
-        expect(cell.querySelector(".fin-doc-none")?.textContent?.trim()).toBe("·");
+        expect(cells).toHaveLength(0);
+        expect(host!.querySelector(`[aria-label="${lang === "en" ? `Open ${period} transcript` : `打开 ${period} 记录`}"]`)).toBeNull();
       } else {
+        expect(cells).toHaveLength(1);
+        const cell = cells[0]!;
+        const buttons = cell.querySelectorAll<HTMLButtonElement>("button");
         expect(buttons).toHaveLength(1);
         expect(cell.querySelector(".fin-doc-none")).toBeNull();
         expect(buttons[0]!.getAttribute("aria-label")).toBe(
@@ -219,5 +219,91 @@ describe("current Compare source focus survives Financials composition", () => {
     renderSource("2025-12-31", 1);
     expect(host!.querySelectorAll("[data-focus]")).toHaveLength(0);
     expect(host!.querySelector(".fin-doc-strip")).toBeNull();
+  });
+});
+
+describe("statement metric exploration", () => {
+  function mountFund(fund: Fund, sym = "TEST") {
+    if (!host) {
+      document.documentElement.setAttribute("data-lang", "en");
+      host = document.createElement("div");
+      document.body.appendChild(host);
+      root = createRoot(host);
+    }
+    act(() => root!.render(<LangProvider><StatementsPage sym={sym} fund={fund} /></LangProvider>));
+  }
+  function chooseMetric(label: string) {
+    const button = [...host!.querySelectorAll<HTMLButtonElement>(".fin-financials-metric-button")]
+      .find(node => node.textContent === label)!;
+    expect(button).toBeDefined();
+    act(() => button.click());
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+    expect(document.getElementById(button.getAttribute("aria-controls")!)).not.toBeNull();
+  }
+  function selectedValue() {
+    return host!.querySelector(".fin-financials-selected-value strong")?.textContent;
+  }
+
+  it("plots the selected reported row and preserves EPS units across language changes", () => {
+    const fund = fixture(cases[2]!, 100);
+    fund.statements!.annual!.income.eps_diluted = [2.57];
+    mountFund(fund);
+    chooseMetric("Diluted EPS");
+    expect(selectedValue()).toBe("2.57");
+    expect(host!.querySelector(".fin-financials-trajectory h3")?.textContent).toBe("Diluted EPS");
+    expect(host!.querySelector(".fin-financials-selected-value")?.textContent).toContain("USD per share");
+    expect(host!.querySelectorAll(".fin-financials-trajectory .fin-bar")).toHaveLength(1);
+    setLanguage("zh");
+    expect(host!.querySelector(".fin-financials-trajectory h3")?.textContent).toBe("稀释每股收益");
+    expect(selectedValue()).toBe("2.57");
+    const link = host!.querySelector<HTMLAnchorElement>(".fin-financials-trajectory a")!;
+    expect(document.getElementById(link.hash.slice(1))?.textContent).toContain("完整历史");
+  });
+
+  it("does not shift a short metric row into the latest year or replace a missing value with zero", () => {
+    const fund = fixture(cases[2]!, 100);
+    const annual = periodSet(["2022", "2023", "2024", "2025"], ["2022-12-31", "2023-12-31", "2024-12-31", "2025-12-31"], "annual", 100);
+    annual.income.net_income = [11];
+    fund.statements!.annual = annual;
+    mountFund(fund);
+    chooseMetric("Net income");
+    expect(selectedValue()).toBe("—");
+    expect([...host!.querySelectorAll('.fin-financials-snapshot-table tr[data-selected="true"] td')].map(node => node.textContent))
+      .toEqual(["11.00", "—", "—", "—"]);
+    expect(host!.querySelectorAll(".fin-financials-trajectory .fin-bar")).toHaveLength(1);
+    expect(host!.querySelector(".fin-financials-selected-value")?.textContent).toContain("2025");
+  });
+
+  it("rebinds the selected metric to the current basis and resets incompatible statement or company selections", () => {
+    const fund = fixture(cases[2]!, 100);
+    fund.statements!.annual!.income.net_income = [23];
+    fund.statements!.quarterly!.income.net_income = [5, 7];
+    fund.statements!.quarterly!.balance.assets = [90, 110];
+    mountFund(fund);
+    chooseMetric("Net income");
+    expect(selectedValue()).toBe("23.00");
+    selectBasis("Quarterly");
+    expect(selectedValue()).toBe("7.00");
+    const balance = [...host!.querySelectorAll<HTMLButtonElement>(".fin-stmt-pills button")].find(node => node.textContent === "Balance")!;
+    act(() => balance.click());
+    expect(host!.querySelector(".fin-financials-trajectory h3")?.textContent).toBe("Total assets");
+    expect(selectedValue()).toBe("110.00");
+    chooseMetric("Total debt");
+    mountFund(fund, "SECOND");
+    expect(host!.querySelector(".fin-financials-trajectory h3")?.textContent).toBe("Total assets");
+  });
+
+  it("keeps negative cash flows signed and does not borrow the quote currency when statement currency is missing", () => {
+    const fund = fixture(cases[2]!, 100);
+    fund.stmt_currency = null;
+    fund.quote_currency = "USD";
+    fund.statements!.annual!.cashflow.capex = [-25];
+    mountFund(fund);
+    const cash = [...host!.querySelectorAll<HTMLButtonElement>(".fin-stmt-pills button")].find(node => node.textContent === "Cash flow")!;
+    act(() => cash.click());
+    chooseMetric("Capital expenditure");
+    expect(selectedValue()).toBe("−25.00");
+    expect(host!.querySelector(".fin-financials-selected-value")?.textContent).not.toContain("USD");
+    expect(host!.querySelectorAll(".fin-financials-trajectory .fin-bar")).toHaveLength(1);
   });
 });

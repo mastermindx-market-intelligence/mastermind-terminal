@@ -78,11 +78,11 @@ export default function CompanyIntelligenceSourcesLayout({
     >
       <header className="ci-paper-sources-head">
         <div>
-          <span>{pick(zh, "SOURCES & METHOD", "来源与方法")}</span>
+          <span>{pick(zh, "SOURCES", "来源")}</span>
           <h3>{pick(
             zh,
-            "Know what this research view knows — and what it does not",
-            "明确此研究视图已知什么，以及尚未知什么",
+            "Evidence & coverage",
+            "证据与覆盖范围",
           )}</h3>
         </div>
         <div className="ci-paper-sources-period">
@@ -91,9 +91,9 @@ export default function CompanyIntelligenceSourcesLayout({
         </div>
       </header>
 
-      <section className="ci-paper-sources-coverage" aria-label={pick(zh, "Coverage matrix", "覆盖矩阵")}>
+      <section className="ci-paper-sources-coverage" aria-label={pick(zh, "Source coverage", "来源覆盖")}>
         <header>
-          <span>{pick(zh, "COVERAGE MATRIX", "覆盖矩阵")}</span>
+          <span>{pick(zh, "AVAILABLE MATERIAL", "可用材料")}</span>
           <small>{pick(zh, `Selected event · ${periodLabel}`, `当前事件 · ${periodLabel}`)}</small>
         </header>
         <div className="ci-paper-sources-coverage-grid">
@@ -114,14 +114,13 @@ export default function CompanyIntelligenceSourcesLayout({
       <section className="ci-paper-sources-receipts">
         <header>
           <div>
-            <span>{pick(zh, "SOURCE RECEIPTS", "来源凭证")}</span>
+            <span>{pick(zh, "DOCUMENTS & RECORDS", "文档与记录")}</span>
             <p>{pick(
               zh,
-              "Exact material and source states available to this generation",
-              "此版本可用的精确材料与来源状态",
+              "Open the available material and inspect its source status.",
+              "打开可用材料，查看其来源状态。",
             )}</p>
           </div>
-          <small>{pick(zh, "Existing source manifest", "现有来源清单")}</small>
         </header>
         <div className="ci-paper-sources-manifest">{sourceContent}</div>
       </section>
@@ -129,15 +128,15 @@ export default function CompanyIntelligenceSourcesLayout({
       <section className="ci-paper-sources-method">
         <div>
           <header>
-            <span>{pick(zh, "TIME & IDENTITY", "时间与身份")}</span>
-            <p>{pick(zh, "Generation and selected-event boundaries", "版本与当前事件边界")}</p>
+            <span>{pick(zh, "RESEARCH VERSION", "研究版本")}</span>
+            <p>{pick(zh, "The event and version behind this view", "此视图对应的事件与版本")}</p>
           </header>
           <MethodList items={identity} />
         </div>
         <div>
           <header>
-            <span>{pick(zh, "INTEGRITY BOUNDARIES", "完整性边界")}</span>
-            <p>{pick(zh, "What the page refuses to overstate", "此页面明确拒绝夸大的内容")}</p>
+            <span>{pick(zh, "COVERAGE LIMITS", "覆盖限制")}</span>
+            <p>{pick(zh, "What this evidence can support", "这些证据可以支持的判断")}</p>
           </header>
           <MethodList items={boundaries} />
         </div>

@@ -299,7 +299,8 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).not.toContain("Open in transcript");
     expect(src).toContain("LEX.ciQaStructure");
     expect(src).toContain("LEX.ciOpenInTranscript");
-    expect(src).toContain("topicStatusLabel(");
+    expect(src).toContain("<CompanyTopicTimeline");
+    expect(readOwned("fin/CompanyTopicTimeline.tsx")).toContain("topicStatusLabel(");
     expect(src).toContain("pick(");
   });
 
@@ -581,13 +582,12 @@ describe("plain-language call sites — batch 3 round 7", () => {
     expect(src).not.toContain("申报");
   });
 
-  it("every file in this PR's batch-3 set contains zero 申报 except CompanyInstitutionalContextCard.tsx (R3(9))", () => {
+  it("keeps the plain 披露 wording throughout the established batch-3 consumers", () => {
     // Derived from `gh pr view 542 --json files` (product, e2e, capture, string
     // tables) plus the round-8 crop fixture. Binary crops and this test file
     // are omitted: pngs are not text, and this file carries the 申报 needle.
-    // CompanyInstitutionalContextCard.tsx is the single R3(9) exception —
-    // fourteen sites stay for batch 4; the test fails if that count moves
-    // in either direction.
+    // The institutional card now uses the same plain wording, so its former
+    // line-number exception is no longer necessary.
     const packet = [
       "terminal/app/x/[slug]/page.tsx",
       "terminal/components/LocalizedCopy.tsx",
@@ -614,17 +614,9 @@ describe("plain-language call sites — batch 3 round 7", () => {
       "terminal/lib/i18n.tsx",
       "terminal/lib/plainLabels.ts",
     ];
-    const exception = "terminal/components/fin/CompanyInstitutionalContextCard.tsx";
-    const pinnedLines = [43, 94, 145, 155, 156, 158, 164, 170, 174, 177, 191, 200, 230, 234];
-    expect(packet).toContain(exception);
     for (const rel of packet) {
       const src = readRepo(rel);
-      if (rel === exception) {
-        const hits = src.split("\n").flatMap((line, i) => (line.includes("申报") ? [i + 1] : []));
-        expect(hits, rel).toEqual(pinnedLines);
-      } else {
-        expect(src, rel).not.toContain("申报");
-      }
+      expect(src, rel).not.toContain("申报");
     }
   });
 

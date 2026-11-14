@@ -1,8 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { contextFixture, themeContextFixture, institutionalContextFixture } from "./fixtures/companyIntelligenceContext";
+import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { expectTapTarget } from "./tapTarget";
+import { expectSelectLabelFits } from "./selectLabel";
 import { canonicalTranscriptBodySha256 } from "../lib/transcriptSearch";
 import aaplWorkspace from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 import aaplQaExchanges from "../lib/__tests__/fixtures/aapl-qa-exchanges.json";
@@ -18,7 +22,6 @@ const AAPL_TX = JSON.parse(gunzipSync(AAPL_TX_GZ).toString("utf8")) as {
   segments: Array<{ speaker: string; role: string; text: string }>;
 };
 
-const SHA = "a".repeat(64);
 // AppShell mounts BrainWidget on every /analysis route (PR #490), which requests this
 // production script. This spec's assertions are about Company Intelligence, not the Brain
 // widget, so stub the script to a no-op instead of letting a real cross-origin network
@@ -38,225 +41,6 @@ const drawerFixtureBody = {
   ],
 };
 
-const metrics = (overrides: Record<string, number | null> = {}) => ({
-  sentiment: 68,
-  performance: 72,
-  confidence: 64,
-  combined: 68,
-  call_positivity: 71,
-  management_confidence: 66,
-  analyst_criticism: 22,
-  future_outlook: 74,
-  revenue_growth_pct: 18.4,
-  eps_growth_pct: 21.1,
-  gross_margin_pct: 74.2,
-  analysts_count: 12,
-  questions_count: 18,
-  ...overrides,
-});
-
-function event(id: string, fiscalYear: number, fiscalQuarter: number, callDate: string, summary: string) {
-  const eventMetrics = metrics();
-  return {
-    event_id: id,
-    ticker: "NVDA",
-    fiscal_year: fiscalYear,
-    fiscal_quarter: fiscalQuarter,
-    call_date: callDate,
-    summary,
-    highlights: ["Data-center demand remained broad across the period."],
-    positive_highlights: ["Revenue growth accelerated with broad data-center demand."],
-    negative_highlights: ["Supply and deployment timing remain watch items."],
-    key_quote: "We continue to see broad demand across our platform.",
-    tags: ["data center", "demand"],
-    metrics: eventMetrics,
-    field_lineage: {
-      summary: "earnings_history",
-      key_quote: "earnings_history",
-      metrics: Object.fromEntries(Object.keys(eventMetrics).map((key) => [key, "score_overlay"])),
-      positive_highlights: ["earnings_history"],
-      negative_highlights: ["earnings_history"],
-      highlights: ["earnings_history"],
-      tags: { "data center": "earnings_history", demand: "earnings_history" },
-    },
-    previous_event_deltas: metrics({ revenue_growth_pct: 2.1, eps_growth_pct: 1.6, gross_margin_pct: 0.4, questions_count: 3 }),
-    sources: [
-      {
-        source_ref: "earnings_history",
-        kind: "earnings_history",
-        status: "present",
-        citation_precision: "document",
-        url: "https://investor.nvidia.com/earnings",
-        receipt: { source_hash: SHA, source_date: callDate, record_id: `${id}-earnings` },
-      },
-      {
-        source_ref: "score_overlay",
-        kind: "score_overlay",
-        status: "metadata_only",
-        citation_precision: "metadata",
-        url: null,
-        receipt: { source_hash: "b".repeat(64), source_date: callDate, record_id: `${id}-overlay` },
-      },
-      {
-        source_ref: "transcript",
-        kind: "transcript",
-        status: "present",
-        citation_precision: "document",
-        url: `/data/tx/NVDA/${fiscalYear}Q${fiscalQuarter}.json.gz`,
-        receipt: { source_hash: "c".repeat(64), source_date: callDate, record_id: `${fiscalYear}Q${fiscalQuarter}` },
-      },
-    ],
-    claim_citations_pending: true,
-  };
-}
-
-function contextFixture() {
-  const latest = event(
-    "cie_d8488221fd8c710c53d6537d",
-    2026,
-    1,
-    "2026-05-20",
-    "NVIDIA reported broad platform demand, with revenue growth and gross-margin discipline remaining central to the event read-through.",
-  );
-  const prior = event(
-    "cie_4c0410e7c4358283cf37a557",
-    2025,
-    4,
-    "2026-02-19",
-    "The preceding event established the demand and supply baseline for this quarter-over-quarter comparison.",
-  );
-  return {
-    schema: "company_intelligence_context.v1",
-    authority: "context_only",
-    is_context_only: true,
-    generated_at: "2026-08-01T12:00:00Z",
-    generation_id: "a".repeat(24),
-    company: { ticker: "NVDA", display_name: "NVIDIA Corporation", exchange: null },
-    status: "ready",
-    latest_event_id: latest.event_id,
-    latest_event: latest,
-    history: [latest, prior],
-    topics: {
-      timeline: [
-        { tag: "data center", first_event_id: prior.event_id, last_event_id: latest.event_id, event_count: 2, status: "persistent" },
-        { tag: "demand", first_event_id: latest.event_id, last_event_id: latest.event_id, event_count: 1, status: "added" },
-      ],
-      added: ["demand"],
-      dropped: [],
-      persistent: ["data center"],
-    },
-    source_completeness: {
-      earnings_history: { status: "present", event_count: 2 },
-      score_overlay: { status: "metadata_only", event_count: 2 },
-      transcripts: { status: "present", event_count: 2 },
-    },
-    warnings: [],
-    missing_sources: [],
-    transport_lineage: {
-      earnings_manifest: { generation_id: "b".repeat(24), sha256: "d".repeat(64) },
-      tx_index: { schema: "mastermind.tx-index/v1", generation_id: "c".repeat(24), sha256: "e".repeat(64) },
-      builder: "company_intelligence.v1",
-    },
-  };
-}
-
-function themeContextFixture() {
-  return {
-    schema: "company_theme_exposure.v1",
-    authority: "context_only",
-    is_context_only: true,
-    generated_at: "2026-08-01T12:00:00Z",
-    generation_id: "f".repeat(24),
-    status: "partial",
-    company: { ticker: "NVDA" },
-    company_intelligence: {
-      generation_id: "a".repeat(24),
-      context_sha256: "9".repeat(64),
-      latest_event_id: "cie_d8488221fd8c710c53d6537d",
-      latest_event_call_date: "2026-05-20",
-    },
-    exposures: [{
-      theme_id: "ai_infrastructure",
-      name_en: "AI Infrastructure",
-      name_zh: "人工智能基础设施",
-      basket_id: "ai_semiconductors",
-      mapping_qualifier: "proxy",
-    }],
-    coverage: { status: "mixed", active_basket_count: 2, mapped_basket_count: 1, unmapped_basket_count: 1 },
-    theme_state: { status: "stale", as_of: "2026-07-28", sha256: "8".repeat(64) },
-    warnings: ["active_membership_unmapped", "theme_state_stale"],
-  };
-}
-
-function institutionalContextFixture() {
-  return {
-    schema: "company_institutional_context.v1",
-    authority: "context_only",
-    is_context_only: true,
-    generated_at: "2026-08-01T12:00:00Z",
-    generation_id: "7".repeat(24),
-    status: "ready",
-    company: { ticker: "NVDA" },
-    company_intelligence: {
-      generation_id: "a".repeat(24),
-      context_sha256: "6".repeat(64),
-      latest_event_id: "cie_d8488221fd8c710c53d6537d",
-      latest_event_call_date: "2026-05-20",
-    },
-    period: {
-      build_as_of: "2026-08-01",
-      consensus_period: "2026-03-31",
-      comparison_period: "2025-12-31",
-      filing_window_closed_on: "2026-05-15",
-      consensus_available_on: "2026-05-15",
-      latest_reporting_filing_date: "2026-05-15",
-    },
-    coverage: {
-      configured_manager_count: 4,
-      active_manager_count: 3,
-      closed_manager_count: 1,
-      reporting_manager_count: 3,
-      missing_manager_count: 0,
-      comparison_reporting_manager_count: 3,
-      comparison_missing_manager_count: 0,
-      resolved_position_count: 3,
-      unresolved_position_count: 0,
-    },
-    positions: [
-      {
-        manager: "alpha", manager_name: "Alpha Capital", manager_style: "quality_growth", manager_grade: "A",
-        action: "add", is_current_holder: true, value_usd: 12_000_000, book_weight_pct: 2.4, shares: 40_000,
-        shares_change_pct: 25, period_end: "2026-03-31", filing_date: "2026-05-14",
-        snapshot: { path: "data/smart_money/alpha/2026-03-31.parquet", sha256: "1".repeat(64), bytes: 2400 },
-      },
-      {
-        manager: "gamma", manager_name: "Gamma Investments", manager_style: "compounder", manager_grade: "A-",
-        action: "hold", is_current_holder: true, value_usd: 8_000_000, book_weight_pct: 1.8, shares: 26_000,
-        shares_change_pct: 2, period_end: "2026-03-31", filing_date: "2026-05-15",
-        snapshot: { path: "data/smart_money/gamma/2026-03-31.parquet", sha256: "2".repeat(64), bytes: 2100 },
-      },
-      {
-        manager: "beta", manager_name: "Beta Partners", manager_style: "value", manager_grade: "B+",
-        action: "trim", is_current_holder: true, value_usd: 8_000_000, book_weight_pct: 1.2, shares: 20_000,
-        shares_change_pct: -15, period_end: "2026-03-31", filing_date: "2026-05-15",
-        snapshot: { path: "data/smart_money/beta/2026-03-31.parquet", sha256: "3".repeat(64), bytes: 2200 },
-      },
-    ],
-    consensus: {
-      current_holder_count: 3, buyer_count: 1, trimmer_count: 1, exit_count: 0, unknown_move_count: 0,
-      total_value_usd: 28_000_000, ownership_hhi: 0.346939, max_book_weight_pct: 2.4, avg_book_weight_pct: 1.8,
-    },
-    trend: {
-      status: "available", direction: "accumulating", eligible_period_count: 3,
-      periods: [
-        { period_end: "2025-09-30", available_on: "2025-11-14", reporting_manager_count: 3, missing_manager_count: 0, holder_count: 1, total_value_usd: 9_000_000, eligible: true },
-        { period_end: "2025-12-31", available_on: "2026-02-17", reporting_manager_count: 3, missing_manager_count: 0, holder_count: 2, total_value_usd: 18_000_000, eligible: true },
-        { period_end: "2026-03-31", available_on: "2026-05-15", reporting_manager_count: 3, missing_manager_count: 0, holder_count: 3, total_value_usd: 28_000_000, eligible: true },
-      ],
-    },
-    warnings: [],
-  };
-}
 
 async function routeThemeContext(page: Page) {
   await page.route("**/api/company-theme-context/NVDA**", async (route) => {
@@ -298,6 +82,77 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+for (const language of ["en", "zh"] as const) {
+  test(`Theme empty-state packet renewal retains observed dark and light specimens (${language})`, async ({ page }, info) => {
+    test.setTimeout(120_000);
+    test.skip(!info.project.name.endsWith("desktop") && !info.project.name.endsWith("mobile"), "The incumbent B4 packet has desktop and mobile cells");
+    const layoutPaths = ["components/fin/CompanyThemeContextCard.tsx", "app/company-intelligence.css"];
+    const hash = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
+    const sourceHashes = (files: string[]) => Object.fromEntries(files.map(file => ["terminal/" + file, hash(readFileSync(path.join(__dirname, "..", file)))]));
+    const layoutFiles = sourceHashes(layoutPaths);
+    const controls = sourceHashes(["e2e/company-intelligence.spec.ts", "e2e/fixtures/companyIntelligenceContext.ts", "playwright.config.ts", "lib/i18n.tsx"]);
+    const languageSource = readFileSync(path.join(__dirname, "../lib/i18n.tsx"), "utf8");
+    const languageKey = languageSource.match(/localStorage\.setItem\("([^"]+)",\s*l\)/)?.[1];
+    if (!languageKey) throw new Error("Cannot identify the incumbent language preference");
+    await page.addInitScript(({ key, language }) => {
+      localStorage.setItem(key, language);
+      localStorage.setItem("theme", "dark"); localStorage.setItem("theme_auto", "0");
+    }, { key: languageKey, language });
+    await page.route(/^(?!http:\/\/127\.0\.0\.1).*/, route => route.abort());
+    await page.route("**/api/company-intelligence/NVDA**", route => route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } }));
+    await page.route("**/api/company-theme-context/NVDA**", route => route.fulfill({ status: 404,
+      json: { ok: false, state: "error", error: { code: "not_found", message: "No theme context", retryable: false } } }));
+    await page.route("**/api/company-institutional-context/NVDA**", route => route.fulfill({ status: 404,
+      json: { ok: false, state: "error", error: { code: "not_found", message: "No institutional context", retryable: false } } }));
+    await page.goto("/analysis?symbol=NVDA&page=intelligence");
+    const card = page.locator("section.ci-theme-card.ci-theme-empty");
+    await expect(card).toBeVisible();
+    await expect(card.locator("p")).toHaveText(language === "zh"
+      ? "该公司暂无主题背景；纳入跟踪主题后会显示在这里。"
+      : "No theme context for this company yet. It appears here once the company is mapped to a tracked theme.");
+    await page.evaluate(() => document.fonts.ready);
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeInViewport({ ratio: 0.99 });
+    const viewport = page.viewportSize()!;
+    const viewportKey = `${viewport.width}x${viewport.height}`;
+    const afterMount = await page.locator("html").getAttribute("data-theme");
+    const captures = [];
+    for (const theme of ["dark", "light"] as const) {
+      await page.evaluate(value => document.documentElement.setAttribute("data-theme", value), theme);
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      const observed = await card.evaluate(node => {
+        const box = node.getBoundingClientRect(), style = getComputedStyle(node), paragraph = node.querySelector("p");
+        return { dataTheme: document.documentElement.getAttribute("data-theme"),
+          documentLang: document.documentElement.lang, dataLang: document.documentElement.getAttribute("data-lang"),
+          bodyBackgroundColor: getComputedStyle(document.body).backgroundColor, cardBackgroundColor: style.backgroundColor,
+          borderTopStyle: style.borderTopStyle, borderTopColor: style.borderTopColor,
+          pColor: paragraph ? getComputedStyle(paragraph).color : null, innerText: (node as HTMLElement).innerText,
+          box: { x: box.x, y: box.y, width: box.width, height: box.height }, scrollX: scrollX, scrollY: scrollY };
+      });
+      const x = Math.max(0, Math.round(observed.box.x - 24)), y = Math.max(0, Math.round(observed.box.y - 24));
+      const clip = { x, y, width: Math.min(Math.ceil(observed.box.width) + 48, viewport.width - x),
+        height: Math.min(Math.ceil(observed.box.height) + 48, viewport.height - y) };
+      const file = `${viewportKey}-${language}-${theme}-theme-empty.png`;
+      const bytes = await page.screenshot({ path: info.outputPath(file), clip, animations: "disabled" });
+      captures.push({ ...observed, dataThemeAfterMount: afterMount, clip, file, lang: language, theme,
+        viewport: viewportKey, sha256: hash(bytes), bytes: bytes.length });
+    }
+    expect(sourceHashes(layoutPaths)).toEqual(layoutFiles);
+    const receipt = { schema: "terminal.theme-empty-browser-capture.v1", proof: "CI_FIXTURE_BROWSER_NOT_PRODUCTION",
+      capturedAt: new Date().toISOString(), capturedAtHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
+      capturedTree: execFileSync("git", ["rev-parse", "HEAD^{tree}"], { encoding: "utf8" }).trim(),
+      runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null,
+      project: info.project.name, langStorageKey: languageKey, url: "/analysis?symbol=NVDA&page=intelligence",
+      state: "theme-context-not-found-empty", layoutFiles, controls, captures,
+      darkLightIdentical: { [viewportKey + "-" + language]: { identical: captures[0].sha256 === captures[1].sha256,
+        darkSha: captures[0].sha256, lightSha: captures[1].sha256 } } };
+    writeFileSync(info.outputPath(`theme-empty-capture-${viewportKey}-${language}.json`), JSON.stringify(receipt, null, 2) + "\n");
+    // Preserve the standalone dark-only packet's existing limitation. Both
+    // specimens above are actual browser bytes, even if this comparison fails.
+    expect(captures[1].sha256).toBe(captures[0].sha256);
+  });
+}
+
 async function closeEvidenceOverlay(page: Page) {
   if (await page.locator(".ci-evidence-scrim.open").isVisible()) {
     await page.locator(".ci-evidence-close").click();
@@ -316,7 +171,7 @@ async function expectNoDocumentOverflow(page: Page) {
 async function researchScrollState(page: Page) {
   return page.evaluate(() => {
     const body = document.querySelector<HTMLElement>(".fin-body");
-    const context = document.querySelector<HTMLElement>(".analysis-context-bar");
+    const context = document.querySelector<HTMLElement>(".fin-company-control");
     const researchNav = document.querySelector<HTMLElement>(".fin-research-nav");
     return {
       finBody: body?.scrollTop ?? -1,
@@ -348,23 +203,26 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   // the current-event workspace instead of reviving the old stacked layout.
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
-  await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expect(paperBrief).toContainText("Event brief");
   await expect(paperBrief.locator(".ci-paper-brief-hero h3")).toContainText("Data-center demand remained broad");
+  await expect(paperBrief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ ratio: 0.25 });
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
-  await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
+  await expect(whyItMatters).toHaveCount(0); // Missing implications do not create an empty panel.
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
   await expect(paperResults).toBeVisible();
-  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("18.4%");
   await expect(paperResults).toContainText("16.3% prior");
-  await expect(paperResults).toContainText("+2.1% vs prior");
-  await expect(paperResults).toContainText("v1 fallback has no structured guidance object");
-  await expect(paperResults).toContainText("Not asserted · no licensed pre-event consensus");
-  await expect(paperResults).toContainText("Not asserted · context only");
+  await expect(paperResults).toContainText("+2.1 pp vs prior");
+  await expect(paperResults).toContainText("Structured guidance is not available in this research record.");
+  const fallbackLimits = paperResults.locator(".ci-paper-results-boundary");
+  await fallbackLimits.locator("summary").click();
+  await expect(fallbackLimits.getByText("Unavailable · no licensed pre-event estimates", { exact: true })).toBeVisible();
+  await expect(fallbackLimits.getByText("Research context · no trade ranking or position sizing", { exact: true })).toBeVisible();
+  await fallbackLimits.locator("summary").click();
   await expectNoDocumentOverflow(page);
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
@@ -372,11 +230,12 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(fallbackSources).toBeVisible();
   await expect(fallbackSources).toHaveAttribute("data-ci-sources-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(fallbackSources).toHaveAttribute("data-ci-sources-generation-id", "aaaaaaaaaaaaaaaaaaaaaaaa");
-  await expect(fallbackSources).toContainText("SOURCES & METHOD");
-  await expect(fallbackSources).toContainText("Structured event");
+  await expect(fallbackSources).toContainText("Evidence & coverage");
+  await expect(fallbackSources).toContainText("Event record");
   await expect(fallbackSources).toContainText("Ready");
   await expect(fallbackSources).toContainText("Consensus");
-  await expect(fallbackSources).toContainText("Not carried");
+  await expect(fallbackSources).toContainText("Unavailable");
+  await expect(fallbackSources).toContainText("No licensed pre-event estimates");
   await expect(fallbackSources).toContainText("Exact source span");
   await expect(fallbackSources).toContainText("Pending");
   await expect(fallbackSources).toContainText("Transport lineage");
@@ -444,9 +303,9 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   const paperCall = page.locator("[data-ci-paper-call]");
   await expect(paperCall).toBeVisible();
   await expect(paperCall).toContainText("CALL + Q&A");
-  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(paperCall).toContainText("0 exchanges");
-  await expect(paperCall).toContainText("v1 fallback does not carry canonical normalized Q&A exchanges");
+  await expect(paperCall).toContainText("Structured Q&A and topic navigation are not available for this event.");
+  await expect(paperCall.getByRole("button", { name: "Read full transcript" })).toBeVisible();
+  await expect(paperCall.locator(".ci-paper-call-map")).toHaveCount(0);
   await expect(paperCall).toHaveAttribute("data-ci-call-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(page.locator(".ci-ts-explorer")).toBeVisible();
   await page.locator(".ci-ts-explorer").evaluate((element) => {
@@ -506,7 +365,7 @@ test("Company Intelligence lens switching does not move the research shell", asy
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
 
   await expect.poll(() => researchScrollState(page)).toEqual(before);
-  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-company-control")).toBeVisible();
   await expect(page.locator(".fin-research-nav")).toBeVisible();
 });
 
@@ -530,6 +389,15 @@ test("literal transcript search and compare use the local revision-verified BFF"
   await expect(page.locator(".ci-ts-results .ci-ts-span")).toHaveCount(2);
   await expect(page.locator(".ci-ts-results mark").first()).toHaveText("Data center");
   await expect(page.locator(".ci-ts-hero")).toContainText("Find exact words across calls");
+  if (testInfo.project.name.endsWith("mobile")) {
+    const firstResult = page.locator(".ci-ts-results .ci-ts-span").first();
+    const excerpt = await firstResult.locator(":scope > p").boundingBox();
+    const actions = firstResult.locator(".ci-ts-span-actions");
+    const actionBox = await actions.boundingBox();
+    expect(actionBox!.y).toBeGreaterThanOrEqual(excerpt!.y + excerpt!.height);
+    expect(actionBox!.height).toBeLessThanOrEqual(92);
+    for (const button of await actions.getByRole("button").all()) await expectTapTarget(button, { height: 44, width: 44 });
+  }
 
   const settings = page.locator('button[aria-label="Settings"]');
   const sourceButton = page.locator(".ci-ts-results .ci-ts-span-actions button").first();
@@ -600,6 +468,12 @@ test("literal transcript search and compare use the local revision-verified BFF"
     windowY: window.scrollY,
   }))).toEqual(scrollBeforeReceipt);
 
+  if (testInfo.project.name.endsWith("mobile")) {
+    for (const field of await page.locator(".ci-ts-compare-controls select").all()) {
+      await expectSelectLabelFits(field);
+      await expectTapTarget(field, { height: 44, width: 44 });
+    }
+  }
   await page.locator(".ci-ts-compare-controls > .btn").click();
   await expect(page.locator(".ci-ts-compare-grid")).toBeVisible();
   await expect(page.locator(".ci-ts-compare-col")).toHaveCount(2);
@@ -799,9 +673,10 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparison is available for this event.");
-  await expect(changed.getByRole("button")).toHaveCount(0);
-  await expect(changed).not.toContainText("Constructive");
+  await expect(page.locator("[data-ci-paper-brief]")).toBeVisible();
+  await expect(changed).toHaveCount(0);
+  await expect(page.locator("[data-ci-paper-brief]")).not.toContainText("Constructive");
+  await expect(page.locator(".ci-paper-brief-hero h3")).toContainText(fixture.latest_event.highlights[0]);
 });
 
 test("Ask Mastermind hands off the current analysis ticker before opening a mounted Brain or routes to its Terminal host", async ({ page }, testInfo) => {
@@ -842,7 +717,7 @@ test("Company Intelligence preserves its mobile workflow in Chinese", async ({ p
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   await expect(page.locator('[data-fin-family="intelligence"]')).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('[data-fin-family="intelligence"]')).toHaveText("公司情报");
-  await expect(page.locator(".ci-hero").getByRole("button", { name: "查看凭证" })).toBeVisible();
+  await expect(page.locator(".ci-hero").getByRole("button", { name: "来源", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "询问 Mastermind" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "策展篮子背景" })).toBeVisible();
   await expect(page.locator(".ci-theme-card")).toContainText("代理映射");
@@ -981,7 +856,7 @@ test("verified event workspace lens switching does not move the research shell",
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
 
   await expect.poll(() => researchScrollState(page)).toEqual(before);
-  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-company-control")).toBeVisible();
   await expect(page.locator(".fin-research-nav")).toBeVisible();
 });
 
@@ -998,13 +873,15 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator("[data-ci-glance-title]")).toContainText("Jul");
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
-  await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expect(paperBrief).toContainText("Event brief");
   await expect(paperBrief).toContainText("Q3 FY2026");
   await expect(page.locator(".ci-evidence")).toHaveAttribute("aria-hidden", "true");
   await expect(page.locator(".ci-brief")).toContainText("$109.4B");
   await expect(page.locator(".ci-brief")).toContainText("+16%");
   await expect(page.locator(".ci-brief")).toContainText("9–11%");
   await expect(page.locator(".ci-brief")).toContainText("100-year flood");
+  await expect(page.locator(".ci-brief")).toContainText("Commentary & context");
+  await expect(page.locator(".ci-brief")).toContainText("Company guidance");
   await expect(page.locator(".ci-page")).not.toContainText(/\bbeats?\b/i);
   await expect(page.locator(".ci-page")).not.toContainText(/\bmisses?\b/i);
   await expect(page.locator(".ci-honest")).toContainText("Unavailable / unstructured");
@@ -1015,8 +892,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-theme-card")).toHaveCount(0);
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
-  await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
+  await expect(whyItMatters).toHaveCount(0); // Missing implications do not create an empty panel.
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 
@@ -1037,14 +913,17 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
   await expect(paperResults).toBeVisible();
-  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("$109.4B");
   await expect(paperResults).toContainText("9–11%");
-  await expect(paperResults).toContainText("No comparable prior-event fields are bound");
-  await expect(paperResults).toContainText("Not asserted · No beat/miss · consensus unlicensed");
-  await expect(paperResults).toContainText("Not asserted · reaction not joined");
-  await expect(paperResults).toContainText("Not asserted · context only");
-  await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
+  await expect(paperResults).toContainText("Comparable prior-event metrics are not available");
+  const currentLimits = paperResults.locator(".ci-paper-results-boundary");
+  await currentLimits.locator("summary").click();
+  await expect(currentLimits.getByText("Unavailable · pre-event estimates are unlicensed", { exact: true })).toBeVisible();
+  await expect(currentLimits.getByText("Unavailable · event and price data are not linked", { exact: true })).toBeVisible();
+  await expect(currentLimits.getByText("Research context · no trade ranking or position sizing", { exact: true })).toBeVisible();
+  await currentLimits.locator("summary").click();
+  await expect(page.locator("[data-ci-repricing-evidence]")).toContainText("no beat/miss claim");
   const repricing = page.locator("[data-ci-repricing-evidence]");
   await expect(repricing).toBeVisible();
   await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
@@ -1060,15 +939,15 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await closeEvidenceOverlay(page);
   const typedAbsences = page.locator('[data-ci-results-region="typed-absences"]');
   const coverageStates = page.locator('[data-ci-results-region="coverage-states"]');
-  await expect(typedAbsences).toContainText("TYPED ABSENCES");
+  await expect(typedAbsences).toContainText("MISSING INFORMATION");
   await expect(typedAbsences).toContainText("Analyst questions");
   await expect(typedAbsences).toContainText("Consensus");
   await expect(typedAbsences).toContainText("Slides");
   await expect(typedAbsences).not.toContainText("0000320193-26-000018");
   await expect(typedAbsences).not.toContainText("not joined");
-  await expect(coverageStates).toContainText("COVERAGE STATES");
+  await expect(coverageStates).toContainText("SOURCE COVERAGE");
   await expect(coverageStates).toContainText("not joined");
-  await expect(coverageStates).not.toContainText("TYPED ABSENCES");
+  await expect(coverageStates).not.toContainText("MISSING INFORMATION");
   await expect(coverageStates).not.toContainText("0000320193-26-000018");
   await closeEvidenceOverlay(page);
   await expect(page.locator('[data-ci-results-region="analyst-qa"]')).toHaveCount(0);
@@ -1081,20 +960,20 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperSources).toBeVisible();
   await expect(paperSources).toHaveAttribute("data-ci-sources-event-id", AAPL_EVENT_ID);
   await expect(paperSources).toHaveAttribute("data-ci-sources-generation-id", AAPL_GENERATION);
-  await expect(paperSources).toContainText("SOURCES & METHOD");
-  await expect(paperSources).toContainText("COVERAGE MATRIX");
-  await expect(paperSources).toContainText("Structured event");
+  await expect(paperSources).toContainText("Evidence & coverage");
+  await expect(paperSources).toContainText("AVAILABLE MATERIAL");
+  await expect(paperSources).toContainText("Event record");
   await expect(paperSources).toContainText("Present");
   await expect(paperSources).toContainText("Consensus");
   await expect(paperSources).toContainText("Unlicensed");
   await expect(paperSources).toContainText("Market reaction");
-  await expect(paperSources).toContainText("Not joined");
+  await expect(paperSources).toContainText("Not linked");
   await expect(paperSources).toContainText("Presentation / slides");
   await expect(paperSources).toContainText("Absent");
-  await expect(paperSources).toContainText("Pinned immutable context");
+  await expect(paperSources).toContainText("Fixed research version");
   await expect(paperSources).toContainText("Consensus surprise");
-  await expect(paperSources).toContainText("Not asserted");
-  await expect(paperSources).toContainText("Trade authority");
+  await expect(paperSources).toContainText("Not assessed");
+  await expect(paperSources).toContainText("does not rank trades, authorize execution or determine position size");
   await expect(paperSources).toContainText("Context only");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
@@ -1111,8 +990,8 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperCall).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
   await expect(paperCall).toHaveAttribute("data-ci-call-event-alias", "AAPL/2026Q3");
   await expect(paperCall).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");
-  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(paperCall).toContainText("Structured Q&A unavailable");
+  await expect(paperCall).toContainText("Structured Q&A and topic navigation are not available for this event.");
+  await expect(paperCall.getByRole("button", { name: "Read full transcript" })).toBeVisible();
   await expectNoDocumentOverflow(page);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-event-workspace.png`), fullPage: false });
@@ -1179,7 +1058,7 @@ test("AAPL workspace remains usable in Chinese without overflow", async ({ page 
   await expect(page.locator(".ci-honest")).toContainText("暂无结构化计数");
   await expect(page.locator(".ci-honest")).not.toContainText("14");
   const close = page.locator(".ci-evidence-close");
-  await page.getByRole("button", { name: "查看凭证" }).click();
+  await page.locator(".ci-hero").getByRole("button", { name: "来源", exact: true }).click();
   await expect(page.locator(".ci-evidence")).toHaveAttribute("aria-hidden", "false");
   await expectTapTarget(close, { height: 44 });
   await closeEvidenceOverlay(page);
@@ -1191,8 +1070,8 @@ test("AAPL workspace remains usable in Chinese without overflow", async ({ page 
   await page.locator(".ci-lenses").getByRole("tab", { name: "来源" }).click();
   const sources = page.locator("[data-ci-paper-sources]");
   await expect(sources).toBeVisible();
-  await expect(sources).toContainText("来源与方法");
-  await expect(sources).toContainText("覆盖矩阵");
+  await expect(sources).toContainText("证据与覆盖范围");
+  await expect(sources).toContainText("可用材料");
   await expect(sources).toContainText("未授权");
   await expect(sources).toContainText("未关联");
   await expect(sources).toContainText("仅供背景参考");
@@ -1263,13 +1142,14 @@ test("Ownership Institutional page uses the verified 13F owner without claiming 
   await expect(ownership).toHaveAttribute("data-ownership-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(ownership).toContainText("OWNERSHIP · INSTITUTIONAL");
   await expect(ownership).toContainText("Tracked institutional positioning");
-  await expect(ownership).toContainText("This is not total ownership, not a company rank, and not a trading signal.");
-  await expect(ownership).toContainText("does not estimate total ownership, rank the company, or issue a signal.");
+  await expect(ownership).toContainText("These delayed disclosures describe reported positions, not total company ownership or a trading signal.");
+  await expect(ownership.locator(".fin-ownership-intro-meta")).toContainText("Company event");
+  await expect(ownership.locator(".ci-inst-period")).toContainText("Holdings as of");
 
   const compact = page.viewportSize()!.width <= 860;
   if (compact) {
     await expect(page.locator(".fin-family-mobile-trigger")).toContainText("Ownership");
-    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Institutional");
+    await expect(page.locator(".fin-local-tab.on")).toHaveText("Institutional");
   } else {
     await expect(page.locator('[data-fin-family="ownership"]')).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-fin-local="ownership"]')).toHaveAttribute("aria-selected", "true");
@@ -1308,10 +1188,12 @@ test("Ownership Institutional page remains truthful and usable in Chinese on mob
   const ownership = page.locator("[data-ownership-page]");
   await expect(ownership).toBeVisible({ timeout: 15_000 });
   await expect(page.locator(".fin-family-mobile-trigger")).toContainText("持仓");
-  await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("机构");
+  await expect(page.locator(".fin-local-tab.on")).toHaveText("机构");
   await expect(ownership).toContainText("持仓 · 机构");
   await expect(ownership).toContainText("追踪机构持仓");
-  await expect(ownership).toContainText("并非总持股");
+  await expect(ownership).toContainText("并非公司总持股或交易信号");
+  await expect(ownership.locator(".fin-ownership-intro-meta")).toContainText("公司事件");
+  await expect(ownership.locator(".ci-inst-period")).toContainText("持仓截至");
   await expect(ownership).toContainText("仅限该名册的 HHI");
   await expect(ownership).toContainText("对齐历史");
   await expect(ownership).toContainText("持续积累");
@@ -1416,9 +1298,8 @@ test("AAPL Call + Q&A preserves verified exchanges without inventing a topic map
   await expect(call).toContainText("CALL + Q&A");
   await expect(call).toContainText("7 exchanges");
   await expect(call).toContainText("Amit Daryanani · Evercore");
-  await expect(call.locator(".ci-paper-call-map")).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(call.locator(".ci-paper-call-map")).toContainText("No governed Q&A topic taxonomy is published");
-  await expect(call.locator(".ci-paper-call-map")).not.toContainText("Agentic AI / inference");
+  await expect(call.locator(".ci-paper-call-map")).toHaveCount(0);
+  await expect(call).not.toContainText("Agentic AI / inference");
   await expect(call.locator(".ci-paper-call-exchanges > button")).toHaveCount(7);
   await expect(call).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
   await expect(call).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");

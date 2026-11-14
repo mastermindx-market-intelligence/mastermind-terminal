@@ -215,14 +215,22 @@ test("Earnings vNext separates matched EPS from statement-backed revenue", async
   await expect(earnings).toContainText("Derived from reported financial statements.");
 
   const coverage = earnings.locator("[data-earnings-vnext-coverage]");
-  await expect(coverage).toContainText("COVERAGE & BASIS");
+  await expect(coverage.locator("summary")).toHaveText("Coverage & reporting basis");
+  await expect(coverage).not.toHaveAttribute("open", "");
+  await coverage.locator("summary").click();
+  await expect(coverage.locator("dl")).toBeVisible();
   await expect(coverage).toContainText("EPS actual / estimate");
   await expect(coverage).toContainText("Matched actual and estimate");
   await expect(coverage).toContainText("Revenue actual");
   await expect(coverage).toContainText("Statement-backed");
   await expect(coverage).toContainText("Revenue estimate");
   await expect(coverage).toContainText("Not published");
-  await expect(coverage).toContainText("No inferred beat/miss without a matched basis");
+  const revenueModule = earnings.locator(".fin-earn-module").filter({
+    has: page.getByText("Revenue · reported basis", { exact: true }),
+  });
+  await expect(revenueModule).toHaveCount(1);
+  await expect(revenueModule.getByRole("rowheader", { name: "Surprise", exact: true })).toHaveCount(0);
+  await expect(revenueModule.getByRole("rowheader", { name: "Estimate", exact: true })).toHaveCount(0);
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
@@ -241,7 +249,10 @@ test("Earnings vNext remains truthful and usable in Chinese on mobile", async ({
   await expect(earnings).toContainText("每股盈利结果");
   await expect(earnings).toContainText("营收实际值");
   await expect(earnings).toContainText("财务报表支持");
-  await expect(earnings).toContainText("覆盖与口径");
+  const coverage = earnings.locator("[data-earnings-vnext-coverage]");
+  await expect(coverage.locator("summary")).toHaveText("数据覆盖与报告口径");
+  await coverage.locator("summary").click();
+  await expect(coverage.locator("dl")).toBeVisible();
   await expect(earnings).toContainText("实际值与预期口径匹配");
   await expect(earnings).toContainText("未发布");
 

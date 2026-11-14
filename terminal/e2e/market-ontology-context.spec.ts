@@ -140,7 +140,8 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
   expectContextParams(new URL(page.url()));
   await expect(strip).toBeVisible();
 
-  await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
+  await page.locator(".analysis-context-actions > summary").click();
+  await page.locator(".analysis-context-actions-menu").getByRole("link", { name: /Your theses on NVDA/ }).click();
   await expect(page.getByTestId("thesis-workspace")).toBeVisible();
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
   expectContextParams(new URL(page.url()));
@@ -182,12 +183,8 @@ test("J1 saves A, inspects B, and reopens A with its exact source return", async
   });
   const otherId = await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000ab01", "MSFT", "J1 inspect B");
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
-  if ((page.viewportSize()?.width ?? 1440) <= 640) {
-    await page.locator(".analysis-context-actions > summary").click();
-    await page.locator(".analysis-context-actions-menu").getByRole("link", { name: /Your theses on NVDA/ }).click();
-  } else {
-    await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
-  }
+  await page.locator(".analysis-context-actions > summary").click();
+  await page.locator(".analysis-context-actions-menu").getByRole("link", { name: /Your theses on NVDA/ }).click();
   await expect(page.getByTestId("thesis-workspace")).toBeVisible();
   // The first visible Company link must preserve origin before any save/history
   // effect. Do not wait for the context strip before clicking that link.
@@ -328,7 +325,8 @@ test("starting a new thesis on another company clears the MarketOntology context
   await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Analysis" }).click();
   await expect(page.locator(".analysis-shell")).toBeVisible();
   await pickSymbol(page, "MSFT");
-  await page.getByRole("link", { name: "Your theses on MSFT" }).click();
+  await page.locator(".analysis-context-actions > summary").click();
+  await page.locator(".analysis-context-actions-menu").getByRole("link", { name: "Your theses on MSFT" }).click();
   await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
   await page.reload();
   await expect(page.getByLabel("Title")).toHaveValue("");
@@ -431,7 +429,7 @@ for (const [name, query] of [
     test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
     await prepare(page, testInfo, baseURL);
     await openAnalysis(page, query);
-    await expect(page.locator(".analysis-context-bar")).toBeVisible();
+    await expect(page.locator(".fin-company-control")).toBeVisible();
     await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
   });
 }
@@ -467,7 +465,7 @@ test("leaving Analysis and returning without context shows no persisted strip", 
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 
-  await page.getByRole("button", { name: "Back to chart" }).click();
+  await page.locator(".fin-workspace-actions").getByRole("button", { name: "Chart", exact: true }).click();
   await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
   await page.goto("/analysis?symbol=NVDA");
   await expect(page.locator(".analysis-shell")).toBeVisible();

@@ -9,15 +9,12 @@
  * - quote: { last: number | null } | null — provides the 'Current' column price
  * - zh: boolean — language selector
  */
-import { useState } from "react"
-import styles from "./StatisticsBasisControls.module.css"
 import type { Fund, RatiosCurrent } from "../../lib/fund"
 import { fmtDate, fmtNum, fmtPct, pick, statementCurrencyLabel } from "../../lib/finFormat"
 import {
   incomeView,
   incomeViewFamilyMode,
   isIndustrialIncomeView,
-  resolveStatementBasis,
   statementBasisAvailable,
   statementCadenceLabel,
 } from "../../lib/finStatementMath"
@@ -35,7 +32,6 @@ export interface StatisticsPageProps {
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-type Mode = "annual" | "quarterly"
 
 function n2(v: number | null | undefined): string {
   return v != null && isFinite(v) ? v.toFixed(2) : "—"
@@ -54,10 +50,8 @@ interface StatRow {
 // ── main component ──────────────────────────────────────────────────────────
 
 export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageProps) {
-  const [requestedMode, setMode] = useState<Mode>("annual")
   const annualAvailable = statementBasisAvailable(fund?.statements?.annual)
   const interimAvailable = statementBasisAvailable(fund?.statements?.quarterly)
-  const mode: Mode = resolveStatementBasis(requestedMode, annualAvailable, interimAvailable)
 
   if (!fund) {
     return (
@@ -74,8 +68,6 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
   }
 
   const cur = fund.ratios?.current ?? ({} as RatiosCurrent)
-  const isAnnual = mode === "annual"
-  const interimLabel = statementCadenceLabel(fund.statements?.quarterly, "quarterly", !!zh)
   const familyReceipt = annualAvailable
     ? fund.statements?.annual
     : interimAvailable
@@ -104,38 +96,25 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
       : []),
   ]
 
-  // fund.json v1 carries ANNUAL ratio series only — there is no per-quarter ratio data. The toggle
-  // still switches the P/E·P/S chart's period axis to the quarterly earnings periods (with empty ratio
-  // series underneath) and swaps the valuation table below for an honest "not available" note.
-  const qPeriods = fund.statements?.quarterly?.periods ?? []
-  const chartPeriods = isAnnual ? rPeriods : qPeriods.slice(-8)
-  const chartSeries: Series[] = isAnnual
-    ? peSeries
-    : [
-        { name: pick(!!zh, "Price to earnings ratio", "市盈率"), values: [], color: "var(--brand)" },
-        ...(industrialMetricsApply
-          ? [{ name: pick(!!zh, "Price to sales ratio", "市销率"), values: [], color: "var(--brand-2)" }]
-          : []),
-      ]
+  // This feed publishes annual ratio history. Current scalar ratios do not
+  // depend on statement cadence, including companies with interim-only statements.
+  const chartPeriods = rPeriods
+  const chartSeries = peSeries
 
-  // Whether ALL historical ratio series are null (common for CN / newly covered names).
-  // In that case: collapse the top chart, hide historical year columns (show only Current).
-  const hasHistoricalRatios = isAnnual && (
-    (fund.ratios?.pe ?? []).some((v) => v != null && isFinite(v as number)) ||
-    (industrialMetricsApply && (fund.ratios?.ps ?? []).some((v) => v != null && isFinite(v as number))) ||
-    (fund.ratios?.pb ?? []).some((v) => v != null && isFinite(v as number))
+  const hasChartHistory = chartPeriods.some((_, index) =>
+    chartSeries.some(series => Number.isFinite(series.values[index]))
   )
 
   // ── Key stats rows ──
   // These come from fund.stats (not period-indexed by annual/quarterly in v1)
   // We show them as single current-value rows (no period array per §1.1 — stats.shares_out is a scalar)
   const sharesFmtM = (v: number | null | undefined) =>
-    v != null && isFinite(v) ? (Math.abs(v) / 1e6).toFixed(2) + "M" : "—"
+    v != null && isFinite(v) ? fmtNum(v) : "—"
   const empFmt = (v: number | null | undefined) =>
     v != null && isFinite(v) ? v.toLocaleString("en-US") : "—"
 
   // ── Valuation rows aligned to annual ratios.periods (v1 has annual ratios only) ──
-  // In quarterly mode the ratios table is replaced with fin-empty, so only rPeriods matters here.
+  // History follows its own published period labels, independent of current metrics.
   const annualPeriods = rPeriods
 
   // Build a "Current" column value from live ratios
@@ -159,6 +138,14 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
       : []),
   ]
 
+  // A table can carry P/B, cash-flow or EV/EBITDA history even when the
+  // P/E + P/S chart has no drawable values. Keep every value on its source index.
+  const hasHistoricalRatios = annualPeriods.some((_, index) =>
+    valRows.some(row => Number.isFinite(row.values[index]))
+  )
+  const historyStart = Math.max(0, annualPeriods.length - 6)
+  const historyPeriods = annualPeriods.slice(historyStart)
+
   // ── Profitability rows from ratios.current (no period series in v1) ──
   const profRows: { label: string; value: string }[] = [
     ...(industrialMetricsApply
@@ -173,15 +160,13 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
     { label: pick(!!zh, "Current ratio", "流动比率"), value: cur.current_ratio != null ? n2(cur.current_ratio) : "—" },
   ]
 
-  // Currency label
-  const ccy = fund.stmt_currency
   // Provenance: every table on this page dates itself off the one snapshot date.
   const asofD = fund.asof ? fmtDate(fund.asof) : ""
   const asofTxt = asofD ? pick(!!zh, `as of ${asofD}`, `截至 ${asofD}`) : ""
 
   return (
-    <div className="fin-body">
-      {/* ── Header + toggle ── */}
+    <div className={`fin-body ${currentTables.page}`}>
+      {/* Current metrics and annual ratio history share one compact heading. */}
       {/* `rule` rides the ROW (not the title) so the hairline spans the header
           width instead of stopping under the word — same shape the Earnings
           module header uses for a title+control row. */}
@@ -189,34 +174,11 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
         <div className="fin-sec-h fin-rail" style={{ "--rail": "var(--brand)" } as React.CSSProperties}>
           {pick(!!zh, "Statistics", "统计数据")}
         </div>
-        <div
-          className={`fin-toggle ${styles.basis}`}
-          role="group"
-          aria-label={pick(!!zh, "Statistics basis", "统计数据口径")}
-        >
-          <button
-            type="button"
-            aria-pressed={mode === "annual"}
-            className={mode === "annual" ? "on" : ""}
-            onClick={() => setMode("annual")}
-            disabled={!annualAvailable}
-          >
-            {pick(!!zh, "Annual", "年度")}
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === "quarterly"}
-            className={mode === "quarterly" ? "on" : ""}
-            onClick={() => setMode("quarterly")}
-            disabled={!interimAvailable}
-          >
-            {interimLabel}
-          </button>
-        </div>
+        <span className="fin-asof">{pick(!!zh, "Current snapshot · annual ratio history", "当前快照 · 年度估值历史")}</span>
       </div>
 
       {/* ── Top bar chart: P/E + P/S — hidden when all historical series null ── */}
-      {hasHistoricalRatios && (
+      {hasChartHistory && (
         <div className="fin-sec">
           <Bars
             labels={chartPeriods}
@@ -227,10 +189,15 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           />
         </div>
       )}
-      {!hasHistoricalRatios && isAnnual && (
+      {!hasChartHistory && (
         <div className="fin-sec">
           <div className="fin-chart-note" style={{ marginTop: 0 }}>
-            {industrialMetricsApply
+            {hasHistoricalRatios
+              ? pick(!!zh,
+                  "Available historical ratios are shown in the table.",
+                  "已发布的历史估值比率见下表。"
+                )
+              : industrialMetricsApply
               ? pick(!!zh,
                   "Historical ratio series (P/E, P/S, P/B) are not yet available for this security.",
                   "该证券历史估值比率（市盈率、市销率、市净率）数据暂不可用。"
@@ -243,64 +210,10 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
         </div>
       )}
 
-      {/* ── Key stats ── */}
-      <div className="fin-sec">
-        <div className="fin-table-scroll">
-          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
-            <thead>
-              <tr>
-                <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
-                  {pick(!!zh, "Metrics", "指标")}
-                </th>
-                <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
-                  {pick(!!zh, "Current", "当前")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="fin-row fin-stats-grp-hdr">
-                <th colSpan={2} className="fin-cell fin-cell-grp" scope="rowgroup">
-                  {pick(!!zh, "Key stats", "关键指标")}
-                </th>
-              </tr>
-              <tr className="fin-row">
-                <th className="fin-cell fin-cell-sticky" scope="row">
-                  {pick(!!zh, "Total shares outstanding", "总股本")}
-                </th>
-                <td className="fin-cell fin-cell-num">{sharesFmtM(fund.stats?.shares_out)}</td>
-              </tr>
-              <tr className="fin-row">
-                <th className="fin-cell fin-cell-sticky" scope="row">
-                  {pick(!!zh, "Free float", "自由流通股本")}
-                </th>
-                <td className="fin-cell fin-cell-num">{sharesFmtM(fund.stats?.float_shares)}</td>
-              </tr>
-              <tr className="fin-row">
-                <th className="fin-cell fin-cell-sticky" scope="row">
-                  {pick(!!zh, "Number of employees", "员工人数")}
-                </th>
-                <td className="fin-cell fin-cell-num">{empFmt(fund.profile?.employees)}</td>
-              </tr>
-              <tr className="fin-row">
-                <th className="fin-cell fin-cell-sticky" scope="row">
-                  {pick(!!zh, "Number of shareholders", "股东人数")}
-                </th>
-                <td className="fin-cell fin-cell-num">{empFmt(fund.stats?.num_holders)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        {/* the old header meta line reads as provenance — it now sits below the
-            data it describes, as the standard as-of row */}
-        <div className="fin-stats-meta fin-asof">
-          <span className="fin-stats-ccy">{statementCurrencyLabel(ccy, !!zh)}</span>
-          {asofTxt && <span>{asofTxt}</span>}
-        </div>
-      </div>
-
+      <div className={currentTables.groups} data-has-history={hasHistoricalRatios}>
       {/* ── Valuation ratios (annual series + live Current column) ── */}
-      <div className="fin-sec">
-        {isAnnual && !industrialMetricsApply && (
+      <div className={`fin-sec ${currentTables.group}`} data-statistics-group="valuation">
+        {!industrialMetricsApply && (
           <div className="fin-chart-note" style={{ marginTop: 0, marginBottom: 8 }}>
             {!familyReceipt
               ? pick(!!zh,
@@ -318,34 +231,15 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
                 )}
           </div>
         )}
-        {/* v1 has no quarterly ratio series — show honest empty state in quarterly mode */}
-        {!isAnnual ? (
-          <div className="fin-empty fin-empty-lg" role="status">
-            <span className="fin-empty-title">
-              {zh ? `暂无${interimLabel}估值比率` : `No ${interimLabel.toLowerCase()} valuation ratios`}
-            </span>
-            <span className="fin-empty-why">
-              {annualAvailable
-                ? pick(!!zh,
-                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only — switch to Annual to see the series.",
-                    "基本面数据源仅按年度报告期发布估值比率——切换到年度视图即可查看该序列。"
-                  )
-                : pick(!!zh,
-                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.",
-                    "基本面数据源仅按年度报告期发布估值比率。该快照暂无年度报表历史。"
-                  )}
-            </span>
-          </div>
-        ) : (
           <div className="fin-table-scroll">
-            <table className="fin-table fin-stats-tbl">
+            <table className={`fin-table fin-stats-tbl ${!hasHistoricalRatios ? currentTables.currentTable : ""}`}>
               <thead>
                 <tr>
                   <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
                     {pick(!!zh, "Metrics", "指标")}
                   </th>
                   {/* Hide historical period columns when all ratio series are null */}
-                  {hasHistoricalRatios && annualPeriods.slice(-6).map((p, i) => (
+                  {hasHistoricalRatios && historyPeriods.map((p, i) => (
                     <th key={i} className="fin-cell fin-cell-num fin-cell-head" scope="col">{p}</th>
                   ))}
                   <th className="fin-cell fin-cell-num fin-cell-head fin-cell-current" scope="col">
@@ -355,21 +249,16 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
               </thead>
               <tbody>
                 <tr className="fin-row fin-stats-grp-hdr">
-                  <th colSpan={(hasHistoricalRatios ? annualPeriods.slice(-6).length : 0) + 2} className="fin-cell fin-cell-grp" scope="rowgroup">
+                  <th colSpan={(hasHistoricalRatios ? historyPeriods.length : 0) + 2} className="fin-cell fin-cell-grp" scope="rowgroup">
                     {pick(!!zh, "Valuation ratios", "估值比率")}
-                    {!hasHistoricalRatios && (
-                      <span style={{ fontWeight: 500, fontSize: "var(--fs-micro)", color: "var(--muted)", marginLeft: "8px" }}>
-                        {pick(!!zh, "— historical series not yet available", "— 历史数据暂不可用")}
-                      </span>
-                    )}
                   </th>
                 </tr>
                 {valRows.map((row, ri) => {
-                  const periodSlice = row.values.slice(-6) // annual series only
+                  const periodSlice = row.values.slice(historyStart, annualPeriods.length)
                   return (
                     <tr key={ri} className="fin-row">
                       <th className="fin-cell fin-cell-sticky" scope="row">{row.label}</th>
-                      {hasHistoricalRatios && annualPeriods.slice(-6).map((_, ci) => (
+                      {hasHistoricalRatios && historyPeriods.map((_, ci) => (
                         <td key={ci} className="fin-cell fin-cell-num">
                           {periodSlice[ci] != null && isFinite(periodSlice[ci] as number)
                             ? (periodSlice[ci] as number).toFixed(2)
@@ -385,17 +274,18 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
               </tbody>
             </table>
           </div>
-        )}
-        {isAnnual && asofTxt && (
+        {asofTxt && (
           <div className="fin-stats-meta fin-asof">
-            <span>{pick(!!zh, "Annual fiscal periods", "年度财季")}</span>
+            <span>{hasHistoricalRatios
+              ? pick(!!zh, "Annual fiscal periods", "年度财季")
+              : pick(!!zh, "Current valuation ratios", "当前估值比率")}</span>
             <span>{asofTxt}</span>
           </div>
         )}
       </div>
 
       {/* ── Profitability ratios ── */}
-      <div className="fin-sec">
+      <div className={`fin-sec ${currentTables.group}`} data-statistics-group="profitability">
         {!industrialMetricsApply && (
           <div className="fin-chart-note" style={{ marginTop: 0, marginBottom: 8 }}>
             {!familyReceipt
@@ -448,6 +338,70 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           </div>
         )}
       </div>
+      {/* ── Key stats ── */}
+      <div className={`fin-sec ${currentTables.group}`} data-statistics-group="company">
+        <div className="fin-table-scroll">
+          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
+            <thead>
+              <tr>
+                <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
+                  {pick(!!zh, "Metrics", "指标")}
+                </th>
+                <th className="fin-cell fin-cell-num fin-cell-head" scope="col">
+                  {pick(!!zh, "Current", "当前")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="fin-row fin-stats-grp-hdr">
+                <th colSpan={2} className="fin-cell fin-cell-grp" scope="rowgroup">
+                  {pick(!!zh, "Key stats", "关键指标")}
+                </th>
+              </tr>
+              <tr className="fin-row">
+                <th className="fin-cell fin-cell-sticky" scope="row">
+                  {pick(!!zh, "Total shares outstanding", "总股本")}
+                </th>
+                <td className="fin-cell fin-cell-num">{sharesFmtM(fund.stats?.shares_out)}</td>
+              </tr>
+              <tr className="fin-row">
+                <th className="fin-cell fin-cell-sticky" scope="row">
+                  {pick(!!zh, "Free float", "自由流通股本")}
+                </th>
+                <td className="fin-cell fin-cell-num">{sharesFmtM(fund.stats?.float_shares)}</td>
+              </tr>
+              <tr className="fin-row">
+                <th className="fin-cell fin-cell-sticky" scope="row">
+                  {pick(!!zh, "Number of employees", "员工人数")}
+                </th>
+                <td className="fin-cell fin-cell-num">{empFmt(fund.profile?.employees)}</td>
+              </tr>
+              <tr className="fin-row">
+                <th className="fin-cell fin-cell-sticky" scope="row">
+                  {pick(!!zh, "Number of shareholders", "股东人数")}
+                </th>
+                <td className="fin-cell fin-cell-num">{empFmt(fund.stats?.num_holders)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {/* the old header meta line reads as provenance — it now sits below the
+            data it describes, as the standard as-of row */}
+        <div className="fin-stats-meta fin-asof">
+          {asofTxt && <span>{asofTxt}</span>}
+        </div>
+      </div>
+
+      </div>
+      <details className="fin-details" data-statistics-statement-source="">
+        <summary>{pick(!!zh, "Statement source", "报表来源")}</summary>
+        <div className="fin-stats-meta fin-asof">
+          <span>{familyReceipt
+            ? `${pick(!!zh, "Source cadence", "来源频率")}: ${statementCadenceLabel(familyReceipt, annualAvailable ? "annual" : "quarterly", !!zh)}`
+            : pick(!!zh, "Statement source unavailable", "报表来源不可用")}</span>
+          <span>{statementCurrencyLabel(fund.stmt_currency, !!zh)}</span>
+        </div>
+      </details>
     </div>
   )
 }

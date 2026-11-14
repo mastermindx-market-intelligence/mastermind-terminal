@@ -40,11 +40,9 @@ import {
   type Series,
   type MiniRow,
 } from "./FinCharts";
-import { ArcGauge } from "../ui/ArcGauge";
-import { arcStateLabel } from "../../lib/plainLabels";
 import type { FundEarnings } from "../../lib/fund";
 import { incomeViewTopLineLabel, incomeView, isIndustrialIncomeView } from "../../lib/finStatementMath";
-import { analystReading, ratingVerdict, readingToArc } from "../../lib/analystRating";
+import { analystReading, ratingVerdict } from "../../lib/analystRating";
 export { analystReading, ratingVerdict, readingToArc } from "../../lib/analystRating";
 
 interface ForecastPageProps {
@@ -503,22 +501,10 @@ function AnalystRating({ analyst, est, zh }: { analyst: NonNullable<Fund["analys
           `基于过去3个月 ${total} 位分析师的评级。`,
         )}
       </div>
-      {(() => {
-        const arc = readingToArc(reading);
-        const arcState = arc.state;
-        return (
-          <div className="fin-arc-wrap">
-            <ArcGauge
-              value={arc.value}
-              state={arcState}
-              size={168}
-              label={pick(zh, "Analyst rating", "分析师评级")}
-              sublabel={ratingVerdict(analyst.rating_label, reading, zh)}
-              stateTitle={arcStateLabel(arcState, zh ? "zh" : "en") as string}
-            />
-          </div>
-        );
-      })()}
+      <div className="fin-analyst-verdict">
+        <strong>{ratingVerdict(analyst.rating_label, reading, zh)}</strong>
+        <span>{pick(zh, "Analyst consensus", "分析师共识")}</span>
+      </div>
       <GrowthStrip est={est} zh={zh} />
       <div className="fin-fc-dist">
         {rows.map((r) => (

@@ -1,0 +1,96 @@
+{
+  "schema": "terminal.theme-empty-browser-capture.v1",
+  "proof": "CI_FIXTURE_BROWSER_NOT_PRODUCTION",
+  "capturedAt": "2026-11-14T05:25:11.158Z",
+  "capturedAtHead": "c6a9b3d41b89396b15e234c386edd67074dc7299",
+  "capturedTree": "a56adefab0a0c60461bfab6c784bdc4b8e666c9b",
+  "runId": "43561176210",
+  "runAttempt": "1",
+  "project": "company-intelligence-desktop",
+  "langStorageKey": "mm.lang",
+  "url": "/analysis?symbol=NVDA&page=intelligence",
+  "state": "theme-context-not-found-empty",
+  "layoutFiles": {
+    "terminal/components/fin/CompanyThemeContextCard.tsx": "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555",
+    "terminal/app/company-intelligence.css": "23dd3547f88806875891417352baca9cd6c2af4f84b6118ac5156c5966e837ea"
+  },
+  "controls": {
+    "terminal/e2e/company-intelligence.spec.ts": "7b737d352fb4013b663f863e7c798def3622009357ba0f10a51eff9756527229",
+    "terminal/e2e/fixtures/companyIntelligenceContext.ts": "b11e36f38967c1c25f10b0489a9bfd68f5b9a9535ce2bf24bbe3295fcc76f0af",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "captures": [
+    {
+      "dataTheme": "dark",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 71
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 119
+      },
+      "file": "1440x900-zh-dark-theme-empty.png",
+      "lang": "zh",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "sha256": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "bytes": 11381
+    },
+    {
+      "dataTheme": "light",
+      "documentLang": "zh-CN",
+      "dataLang": "zh",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 88,
+        "y": 751.375,
+        "width": 658,
+        "height": 71
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 64,
+        "y": 727,
+        "width": 706,
+        "height": 119
+      },
+      "file": "1440x900-zh-light-theme-empty.png",
+      "lang": "zh",
+      "theme": "light",
+      "viewport": "1440x900",
+      "sha256": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "bytes": 11381
+    }
+  ],
+  "darkLightIdentical": {
+    "1440x900-zh": {
+      "identical": true,
+      "darkSha": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07",
+      "lightSha": "aa855b4aef6a8098ce027e9fba1afd640377e085b1203efed2c21fbd576e0a07"
+    }
+  }
+}

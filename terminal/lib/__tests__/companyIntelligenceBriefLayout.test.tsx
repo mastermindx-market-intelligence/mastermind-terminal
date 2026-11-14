@@ -53,25 +53,36 @@ describe("Intelligence brief evidence access", () => {
     expect(value.onSelect).toHaveBeenLastCalledWith(revenue);
   });
 
-  it("retains a distinct takeaway when there are no facts and states missing implications honestly in Chinese", async () => {
+  it("retains a distinct takeaway without reserving empty implication panels in Chinese", async () => {
     const el = await mount({ ...props(), zh: true, metrics: [], takeaways: [unique], risks: [] });
     expect(el.querySelector(".ci-paper-metrics")).toBeNull();
     expect(el.textContent).toContain(unique.value);
-    expect(el.textContent).toContain("本事件尚未提供业务含义分析");
-    expect(el.textContent).toContain("本次事件暂无有来源支持的关注事项。");
+    expect(el.querySelector(".ci-paper-insight")).toBeNull();
+    expect(el.querySelector(".ci-paper-watch")).toBeNull();
   });
 
   it.each([
     { zh: false, missing: "No comparison is available for this event." },
     { zh: true, missing: "本事件暂无可用的对比信息。" },
-  ])("marks honest unavailable cards as compact without losing copy or source footer (zh=$zh)", async ({ zh, missing }) => {
+  ])("omits empty insight panels while preserving populated evidence and the source footer (zh=$zh)", async ({ zh, missing }) => {
     const el = await mount({ ...props(), zh, footer: <p data-source-footer="true">Source receipts retained</p> });
-    expect(el.querySelectorAll(".ci-paper-insight[data-empty='true']")).toHaveLength(2);
+    expect(el.querySelectorAll(".ci-paper-insight[data-empty='true']")).toHaveLength(0);
     expect(el.querySelectorAll(".ci-paper-insight[data-empty='false']")).toHaveLength(1);
-    expect(el.querySelectorAll(".ci-paper-watch[data-empty='true']")).toHaveLength(1);
-    expect(el.textContent).toContain(missing);
+    expect(el.querySelectorAll(".ci-paper-watch")).toHaveLength(0);
+    expect(el.textContent).not.toContain(missing);
     expect(el.querySelector("[data-source-footer]")?.textContent).toContain("Source receipts retained");
     expect(el.querySelector(".ci-paper-metrics button")).not.toBeNull();
+  });
+
+  it("keeps the meaning of a numeric supporting takeaway in its visible and accessible text", async () => {
+    const item = { id: "guidance", label: "Next-quarter revenue guidance", value: "$45B–$47B" };
+    const value = { ...props(), takeaways: [item] };
+    const el = await mount(value);
+    const button = el.querySelector<HTMLButtonElement>(".ci-paper-takeaways button")!;
+    expect(button.textContent).toContain(item.label);
+    expect(button.textContent).toContain(item.value);
+    await act(async () => button.click());
+    expect(value.onSelect).toHaveBeenCalledWith(item);
   });
 
   it("does not compact populated panels or remove their original evidence actions", async () => {
@@ -85,7 +96,7 @@ describe("Intelligence brief evidence access", () => {
     const el = await mount(value);
     expect(el.querySelectorAll(".ci-paper-insight[data-empty='false']")).toHaveLength(3);
     expect(el.querySelectorAll(".ci-paper-insight[data-empty='true']")).toHaveLength(0);
-    expect(el.querySelector(".ci-paper-watch[data-empty='false']")).not.toBeNull();
+    expect(el.querySelector(".ci-paper-watch")).not.toBeNull();
     const changeButton = el.querySelector<HTMLButtonElement>(".ci-paper-insight button")!;
     await act(async () => changeButton.click());
     expect(value.onSelect).toHaveBeenCalledWith(change);

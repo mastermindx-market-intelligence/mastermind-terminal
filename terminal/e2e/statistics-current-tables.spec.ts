@@ -140,12 +140,12 @@ for (const surface of ["analysis", "terminal"] as const) for (const lang of ["en
       }).toBe(true);
     }
 
-    const basis = statistics.locator(".fin-stats-hdr .fin-toggle");
-    await basis.getByRole("button", { name: lang === "zh" ? "季度" : "Quarterly", exact: true }).click();
-    await expect(valuation).toHaveCount(0);
+    // Ratios carry their own annual history; current values remain available
+    // without a statement-cadence control or a second fundamentals request.
+    await expect(statistics.locator(".fin-stats-hdr button")).toHaveCount(0);
+    await expect(valuation).toHaveCount(1);
     await visibleValue(shares, keyWrap, "200.00M");
     await visibleValue(ratio, profitWrap, "123456.78");
-    await basis.getByRole("button", { name: lang === "zh" ? "年度" : "Annual", exact: true }).click();
     await expect(valuation).toContainText("FY2025");
     await expect(valuation).toContainText("30.00");
     expect(fundReads()).toBe(reads);

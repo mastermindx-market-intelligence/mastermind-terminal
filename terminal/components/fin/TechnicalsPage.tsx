@@ -19,13 +19,10 @@ import { memo, useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { Bar } from "../../lib/fund";
 import { computeRatings, type Ratings, type Vote, type PivotLevels } from "../../lib/techRating";
 import { fmtDate, fmtNum, fmtPct, pick } from "../../lib/finFormat";
-import { ArcGauge } from "../ui/ArcGauge";
 import { buildYears, monthlyStats, MONTHS_EN, MONTHS_ZH } from "../../lib/seasonal";
-import { arcStateLabel } from "../../lib/plainLabels";
 import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
 import { Disclaimer } from "./ForecastPage";
-import { readingToArc } from "../../lib/analystRating";
 import { calendarBarKey, isCalendarSessionDate } from "../../lib/sessionBars";
 
 interface TechnicalsPageProps {
@@ -227,7 +224,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
         <header>
           <div>
             <span>{pick(zh, "MARKET TECHNICALS", "市场技术面")}</span>
-            <h2>{pick(zh, "Deterministic indicator state", "确定性指标状态")}</h2>
+            <h2>{pick(zh, "Technical overview", "技术概览")}</h2>
             <p>
               {lastBar
                 ? pick(zh, `${tfLabel} bars · through ${lastBar} · ${active.length} observations`, `${tfLabel} K线 · 截至 ${lastBar} · ${active.length} 个观测`)
@@ -390,45 +387,26 @@ function Gauge({
   const total = rows?.length ?? 0;
   const unavailable = rows?.filter((row) => row.value == null).length ?? 0;
   const withholdSummary = group != null && total > 0 && unavailable > 0;
-  const arc = readingToArc(group && !withholdSummary ? group.score : null);
   return (
     <div className="fin-tech-gauge" role="group" aria-label={title}>
       <div className="fin-tech-gauge-t">{title}</div>
-      <div className="fin-arc-wrap">
-        {withholdSummary ? (
-          <div className="fin-market-rating-availability" role="status">
-            <strong>{pick(zh, "Summary not shown", "暂不显示汇总")}</strong>
-            <span>{pick(
-              zh,
-              `${total - unavailable} of ${total} numeric readings available · ${unavailable} unavailable`,
-              `${total} 项数值读数中 ${total - unavailable} 项可用 · ${unavailable} 项不可用`,
-            )}</span>
-          </div>
-        ) : group ? (() => {
-          const arcState = arc.state;
-          return (
-          <>
-            <ArcGauge
-              value={arc.value}
-              state={arcState}
-              size={88}
-              sublabel={verdictWord(group.verdict, zh)}
-              stateTitle={arcStateLabel(arcState, zh ? "zh" : "en")}
-            />
-            {/* vote tally demoted beneath the arc (was the old gauge's counts row) */}
-            <div className="fin-gauge-counts">
-              <span className="down">{pick(zh, "Sell", "卖")} {group.sell}</span>
-              <span className="mut">{pick(zh, "Neutral", "中性")} {group.neutral}</span>
-              <span className="up">{pick(zh, "Buy", "买")} {group.buy}</span>
-            </div>
-          </>
-          );
-        })() : (
-          // No bars yet → grey mid arc, numeral suppressed so an empty gauge can't
-          // read as a real "50" score.
-          <ArcGauge value={50} state="neutral" size={88} showValue={false} sublabel={pick(zh, "No signal", "无信号")} />
-        )}
-      </div>
+      {withholdSummary ? (
+        <div className="fin-market-rating-availability" role="status">
+          <strong>{pick(zh, "Summary not shown", "暂不显示汇总")}</strong>
+          <span>{pick(zh, `${total - unavailable} of ${total} numeric readings available · ${unavailable} unavailable`, `${total} 项数值读数中 ${total - unavailable} 项可用 · ${unavailable} 项不可用`)}</span>
+        </div>
+      ) : group ? <div className="fin-rating-summary">
+        <strong>{verdictWord(group.verdict, zh)}</strong>
+        <div className="fin-rating-distribution" aria-hidden="true">
+          <i className="sell" style={{ flex: group.sell }} /><i className="neutral" style={{ flex: group.neutral }} /><i className="buy" style={{ flex: group.buy }} />
+        </div>
+        <div className="fin-gauge-counts">
+          <span className="down">{pick(zh, "Sell", "卖")} {group.sell}</span>
+          <span className="mut">{pick(zh, "Neutral", "中性")} {group.neutral}</span>
+          <span className="up">{pick(zh, "Buy", "买")} {group.buy}</span>
+        </div>
+      </div> : <p className="fin-chart-note">{pick(zh, "No signal", "无信号")}</p>}
+
     </div>
   );
 }

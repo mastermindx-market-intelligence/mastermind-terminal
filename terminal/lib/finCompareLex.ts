@@ -11,6 +11,9 @@ import { fmtDate } from "./finFormat";
 export const FIN_COMPARE_LEX = {
   fcEyebrow: ["FINANCIALS", "财务数据"],
   fcTitle: ["Compare metrics", "指标对比"],
+  fcOptions: ["Comparison settings", "对比设置"],
+  fcSelectedMetric: ["1 metric", "1 项指标"],
+  fcSelectedMetrics: ["{n} metrics", "{n} 项指标"],
   fcIntro: [
     "Pin up to four statement metrics across {anchor} and up to five peers. A number is shown only when its statement format, currency, period kind and flow basis match the frame; every other cell says why it is left out.",
     "在 {anchor} 与最多五家同业之间固定最多四项报表指标。仅当报表格式、货币、期间类型与流量口径均与基准一致时才显示数值；其余单元格会说明原因。",

@@ -119,13 +119,13 @@ test("desktop keeps the in-flow research pane without the touch exit", async ({ 
 test("/analysis keeps its own chrome without the chart's touch exit", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "the touch exit only renders at ≤860px");
   // AnalysisWorkspace hosts the same workspace-mode MegaPane but is not chart-hosted: its context
-  // bar and the mobile nav stay reachable, so a second "Back to chart" header would be a duplicate.
+  // bar and the mobile nav stay reachable, so a second "Chart" header would be a duplicate.
   await page.goto("/analysis?symbol=NVDA&page=overview");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
   await expect(page.locator(".fin-pane")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator(".fin-pane .fin-head")).toHaveCount(0);
   // Exactly one exit on the page, and it is the context bar's own.
-  const backs = page.getByRole("button", { name: "Back to chart", exact: true });
+  const backs = page.getByRole("button", { name: "Chart", exact: true });
   await expect(backs).toHaveCount(1);
-  await expect(page.locator(".analysis-context-bar").getByRole("button", { name: "Back to chart", exact: true })).toBeVisible();
+  await expect(page.locator(".fin-workspace-actions").getByRole("button", { name: "Chart", exact: true })).toBeVisible();
 });
