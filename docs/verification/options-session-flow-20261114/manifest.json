@@ -1,0 +1,111 @@
+{
+  "operation": "options-session-flow-sign-20261114-c3",
+  "base_sha": "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+  "source_sha256": {
+    "terminal/components/surface/SessionFlowPane.tsx": "9851ea249bd6479d394c5e58dfd7aee39f80213b16e29b5be22ebb2a7297392c",
+    "terminal/lib/__tests__/sessionFlowPane.test.tsx": "185dde6373f452989463262f2bd180ab90b751eb942690b5a1b5dffd2264b237",
+    "terminal/e2e/options-session-flow-signed.spec.ts": "b467014032fc68c76c08a8db7d755e259edcc0ca449d3a7211f1c6276647f217",
+    "terminal/lib/surfaceContract.ts": "e7a746bf699db5923525cdf812ad56e9148c4b73c8e889c2c6ddcba54e9cfe86",
+    "terminal/components/surface/replayBus.ts": "b018e4647811ec2ba0050591ba32decb00728f60310bdc5754309459756aa951",
+    "terminal/components/surface/surfaceStrings.ts": "5f5e827061afcd305cf193c8367919c9ce8a1392de216072475b7332292d2bab",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "terminal/package.json": "57f4e8f34a066bb4fe1f8a3c4776d2015ac3fcf7c3f729ec07c3b0890c3a03bf",
+    "terminal/package-lock.json": "be6d44bc152fdb84590bb647c939e333c268123f07ac3c7c09ecd14555c9567e"
+  },
+  "captures": [
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/desktop-tide-session-en.png",
+      "source": "terminal/test-results/session-flow-sign-desktop-20261114/options-session-flow-signe-25a87-through-display-toggles-en--desktop/tide-session-en.png",
+      "sha256": "96ab655522c7331207a536f067f31a356038a61903fb9db8a0e02707696cbb73"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/desktop-tide-session-zh.png",
+      "source": "terminal/test-results/session-flow-sign-desktop-20261114/options-session-flow-signe-81711-through-display-toggles-zh--desktop/tide-session-zh.png",
+      "sha256": "34e9543e845ff17adee36f5b4df7711a087f4056451afc29778b65c1b3864be6"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/desktop-surface-session-archived.png",
+      "source": "terminal/test-results/session-flow-sign-desktop-surface-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-desktop/surface-session-archived.png",
+      "sha256": "34877b9d401b94419637b87867a790f806b6c2d7f2691284957db7da63f41999"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/desktop-surface-session-live-return.png",
+      "source": "terminal/test-results/session-flow-sign-desktop-surface-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-desktop/surface-session-live-return.png",
+      "sha256": "7cd6653b77bcb5af0ae4ce94ab19471f5c24b926abbec3d4b9549251dde868c9"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/desktop-surface-session-replayed.png",
+      "source": "terminal/test-results/session-flow-sign-desktop-surface-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-desktop/surface-session-replayed.png",
+      "sha256": "0c37cd7fc858328bd86f22ad7627a40c42756f7a377e439c72a87c2fbb76d8c8"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/tablet-surface-session-archived.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-tablet/surface-session-archived.png",
+      "sha256": "61671e9668e37d2fcf84a707fb3ce0fb52e8fc027ef166a8b7eb5f532e4610eb"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/tablet-surface-session-live-return.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-tablet/surface-session-live-return.png",
+      "sha256": "cd9718d1855848f9a2544f298e5e582e88f6654af68cf370df837b03d77b9eab"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/tablet-surface-session-replayed.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-tablet/surface-session-replayed.png",
+      "sha256": "86ba8074fc333206854758c3a3b0c7fd693779071509734dce33be09fd1eea63"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/tablet-tide-session-en.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-25a87-through-display-toggles-en--tablet/tide-session-en.png",
+      "sha256": "0a2e73e444b0760bdfe999309f46ce59676b2577d3345e9773e195a37074e9dc"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/tablet-tide-session-zh.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-81711-through-display-toggles-zh--tablet/tide-session-zh.png",
+      "sha256": "ccf3dda8d38de4e8eeef7e0d8338dccffd9cc2218f2ad0c2ba42497290c85fc5"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/mobile-surface-session-archived.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-mobile/surface-session-archived.png",
+      "sha256": "664b4a2b5a488b9351decad361d15fa6db2a7c6ec8d3085d517d526217224efe"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/mobile-surface-session-live-return.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-mobile/surface-session-live-return.png",
+      "sha256": "92b85451e40ddd1f978a46ad72b5bdcb00b39bb3671ea9a54324a3c0da2773ee"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/mobile-surface-session-replayed.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-121bc-draws-archived-premium-data-mobile/surface-session-replayed.png",
+      "sha256": "9be02d587b4e2a3d66f5673c3e3021071bdc2817f71e096b5928654535f525a8"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/mobile-tide-session-en.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-25a87-through-display-toggles-en--mobile/tide-session-en.png",
+      "sha256": "49031f0884c7de51a10f6ba5e2f860655ecb82ef9542f58d9da1392dae8e5ecb"
+    },
+    {
+      "path": "docs/verification/options-session-flow-20261114/captures/mobile-tide-session-zh.png",
+      "source": "terminal/test-results/session-flow-sign-responsive-20261114/options-session-flow-signe-81711-through-display-toggles-zh--mobile/tide-session-zh.png",
+      "sha256": "d333183e71531f17ad5e92e2c0e11dec03a2ee242ba1b66c45610e29eb6c5bd0"
+    }
+  ],
+  "proof_scope": "Local real-route fixture consumers; not production acceptance",
+  "units": {
+    "passed": 98,
+    "failed": 0,
+    "skipped": 0,
+    "source_test_files": 2
+  },
+  "browser_distinct_cases": {
+    "passed": 9,
+    "failed_final": 0,
+    "skipped": 0
+  },
+  "visually_inspected": [
+    "desktop-tide-session-en.png",
+    "mobile-tide-session-zh.png",
+    "mobile-surface-session-replayed.png",
+    "mobile-surface-session-archived.png",
+    "mobile-surface-session-live-return.png"
+  ]
+}

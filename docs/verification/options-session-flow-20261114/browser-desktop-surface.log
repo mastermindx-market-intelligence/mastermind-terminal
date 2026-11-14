@@ -1,0 +1,21 @@
+[warmup] /terminal?symbol=NVDA → 200 in 95ms
+[warmup] /options → 200 in 1356ms
+[warmup] /portfolio → 200 in 535ms
+[warmup] /alerts → 200 in 492ms
+[warmup] /analysis → 200 in 774ms
+[warmup] /discover → 200 in 1053ms
+[warmup] /admin → 200 in 317ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 203ms
+[warmup] /login → 200 in 91ms
+[warmup] /reset-password → 200 in 316ms
+[warmup] /api/me → 200 in 306ms
+[warmup] /api/watchlist → 200 in 127ms
+[warmup] /api/layouts → 200 in 134ms
+[warmup] /api/watchlist/annotations → 409 in 102ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 299ms
+
+Running 1 test using 1 worker
+
+[1/1] [desktop] › e2e/options-session-flow-signed.spec.ts:85:5 › Surface Session keeps signed replay totals and withdraws archived premium data
+  1 passed (16.7s)
