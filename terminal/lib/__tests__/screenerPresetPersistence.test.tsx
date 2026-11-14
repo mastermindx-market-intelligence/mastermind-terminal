@@ -74,7 +74,7 @@ const seed = (items: ReturnType<typeof preset>[]) => nativeSet.call(localStorage
 const names = () => Array.from(host.querySelectorAll(".scr2-preset-wrap .fin-tab")).map(el => el.textContent);
 const alert = () => host.querySelector('[role="alert"]');
 const button = (text: string) => {
-  const el = Array.from(host.querySelectorAll("details button")).find(el => el.textContent === text);
+  const el = Array.from(host.querySelectorAll<HTMLButtonElement>("details button")).find(el => el.textContent === text);
   expect(el, `button ${text}`).toBeTruthy();
   return el!;
 };
