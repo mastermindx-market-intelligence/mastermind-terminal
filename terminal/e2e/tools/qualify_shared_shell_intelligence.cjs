@@ -195,6 +195,14 @@ async function setFixtureAppearance(page, nextTheme, nextLocale = 'en') {
     window.dispatchEvent(new CustomEvent('mm:lang'));
   }, {theme, locale});
 }
+async function openMarketOverviewFromSector(page) {
+  await page.locator('.appnav').getByRole('button', { name: 'Browse tools', exact: true }).click();
+  const menu = page.getByRole('navigation', { name: 'Browse tools', exact: true });
+  const overview = menu.getByRole('link', { name: /^Market overview\b/ });
+  await expect(overview).toHaveAttribute('href', '/intelligence?workspaceMarket=us');
+  await overview.click();
+}
+
 // These member-only assertions use the existing authenticated qualifier. The
 // anonymous Shared Shell lane must continue to show its real account gate.
 async function qualifySectorCoherence(page, cell) {
@@ -450,7 +458,7 @@ async function qualifyLiquidity(page,cell) {
   report.sectorCompanyHandoff=companyHref;
   report.sectorReturnJourney={selectedHref};
   await page.screenshot({path:path.join(OUT,'sectors-native-desktop.png')});
-  await page.locator('.appnav').getByRole('link',{name:'Overview',exact:true}).click();
+  await openMarketOverviewFromSector(page);
   // Prove that the requested destination committed before exercising Back.
   // An immediate goBack can race the asynchronous route commit and tests no journey.
   await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');
@@ -465,7 +473,7 @@ async function qualifyLiquidity(page,cell) {
   await expect(page).toHaveURL(selectedHref);
   await expect(page.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();
   report.sectorReturnJourney.reloadPreserved=true;
-  await page.locator('.appnav').getByRole('link',{name:'Overview',exact:true}).click();
+  await openMarketOverviewFromSector(page);
   await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');
   await page.setViewportSize({width:320,height:844});const stress=await overflow(page);if(stress.document>321)throw Error('320px document overflow');report.stress320=stress;
   await page.route('**/api/flow?f=prophet_idx&view=intelligence',r=>r.fulfill({status:403,json:{error:'pro_required'}}));
