@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { pickLang } from "@/lib/portfolioBrief";
-import { SHARED_SHELL_MARKETS } from "@/lib/sharedShellNavigation";
-import { SHARED_SHELL_COPY } from "@/lib/sharedShellCopy";
 import today from "./TodayWorkspace.module.css";
 
 /** Entrances to existing owners, not another opportunity feed or route registry.
  * Keep prefetch off: opening Today must not load every full research workspace.
  * Admission and access remain with the existing shared-shell route projection. */
 const DESTINATIONS = [
-  { href: "/us_stocks.html", en: "Prophet candidates", zh: "先知候选", detail: "US stock board", detailZh: "美国股票看板", icon: "discover" },
-  { href: "/sector_central.html", en: "Sectors & themes", zh: "行业与主题", detail: "Leadership and rotation", detailZh: "市场领导者与轮动", icon: "sectors" },
+  { href: "/prophet?tab=candidates&workspaceMarket=us", en: "Prophet candidates", zh: "先知候选", detail: "Complete published pool", detailZh: "完整的已发布候选池", icon: "discover" },
+  { href: "/sectors?sectorJob=explore&workspaceMarket=us", en: "Sectors & themes", zh: "行业与主题", detail: "Leadership and rotation", detailZh: "市场领导者与轮动", icon: "sectors" },
   { href: "/macro_context.html", en: "Risk backdrop", zh: "风险背景", detail: "Macro conditions", detailZh: "宏观环境", icon: "risk" },
   { href: "/discover?tab=catalysts", en: "Company catalysts", zh: "公司催化剂", detail: "Events and disclosures", detailZh: "事件与披露", icon: "events" },
 ] as const;
@@ -39,12 +37,8 @@ export default function TodayDeskDestinations() {
         <span className={today.destinationArrow} aria-hidden="true">→</span>
       </Link>)}
     </nav>
-    <div className={today.marketDestinations}>
-      <h3>{pick("Other markets", "其他市场")}</h3>
-      <nav aria-label={pick("Other market overviews", "其他市场概览")}>
-        {SHARED_SHELL_MARKETS.filter(market => market.code !== "US").map(market =>
-          <Link key={market.code} href={market.href} prefetch={false}>{SHARED_SHELL_COPY[market.k]?.(lang) ?? market.label}</Link>)}
-      </nav>
-    </div>
+    <Link className={today.fullWorkspaceLink} href="/us_stocks.html" prefetch={false}>
+      {pick("Full US stock workspace", "完整的美股工作区")}<span aria-hidden="true">→</span>
+    </Link>
   </section>;
 }

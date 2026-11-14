@@ -13,14 +13,14 @@ import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
 import TodayDeskDestinations from "./TodayDeskDestinations";
-import TodayIntelligenceEntry from "@/components/intelligence/TodayIntelligenceEntry";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 
 const COPY = {
  en: {
   title: "Today", intro: "Your markets, saved changes and research.", owner: "United States · Macro",
-  snapshot: "Market snapshot", oldest: "Oldest dated reading", sourceSummary: "Macro reading & source dates",
+  snapshot: "Market snapshot", oldest: "Oldest dated reading", sourceSummary: "Source readings & dates",
+  summaryUnavailable: "A market summary was not published.", desk: "Your desk",
   loading: "Checking published source coverage…", unavailable: "The Macro Command reading is unavailable. This does not mean markets are quiet.",
   unavailableTitle: "Market reading unavailable", auth: "Your account changed or your session ended. Private readings have been cleared.",
   accountUnavailable: "The account service is unavailable. Private readings are hidden.",
@@ -43,7 +43,8 @@ const COPY = {
  },
  zh: {
   title: "今日", intro: "市场概况、已保存读数的变化与研究。", owner: "美国 · 宏观",
-  snapshot: "市场概况", oldest: "最早已标日期的读数", sourceSummary: "宏观解读与来源日期",
+  snapshot: "市场概况", oldest: "最早已标日期的读数", sourceSummary: "来源读数与日期",
+  summaryUnavailable: "市场摘要未发布。", desk: "你的工作台",
   loading: "正在核验已发布来源覆盖…", unavailable: "宏观指挥台读数暂不可用。这并不代表市场平静。",
   unavailableTitle: "市场读数暂不可用", auth: "账户已更改或会话已结束。私人读数已清除。",
   accountUnavailable: "账户服务暂不可用。私人读数已隐藏。",
@@ -153,7 +154,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const sectionHref = (id: string) => data?.sections.find(section => section.id === id)?.href ?? "/macro_monetary.html";
  const summary = data?.read.clauses.map(clause =>
   `${localText(clause.topic, lang)}${lang === "zh" ? "" : " "}${localText(clause.predicate, lang)}${localText(clause.punct, lang)}`
- ).join("") ?? "";
+ ).join(lang === "zh" ? "" : " ") ?? "";
  // One stable breadth holder sits above <main>: it fetches only after Today's own data exists
  // (`enabled`), and hands the pure cell down to whichever placement the width calls for.
  // Resizing moves the cell between placements without a refetch, because `enabled` stays true
@@ -181,7 +182,6 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   <header className={`${styles.heading} ${today.pageHeading}`}>
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
   </header>
-  <TodayIntelligenceEntry />
   {ended || phase === "auth" ? <div role="status" className={styles.notice}>
    <p>{c.auth}</p><div className={styles.actions}><button onClick={() => onboarding.open("signin")}>{c.signIn}</button>
    <button onClick={retryIdentity}>{lang === "zh" ? "重新验证所选内容" : "Recheck selected context"}</button></div>
@@ -194,8 +194,8 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    {phase === "loading" ? <div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton} /></div> : !data ? <section role="status" className={`${styles.notice} ${today.unavailable}`}>
     <div className={styles.eyebrow}>{c.owner}</div><h2>{c.unavailableTitle}</h2><p>{c.unavailable}</p>
     <div className={styles.actions}><button onClick={() => void load()}>{c.retry}</button>
-    <Link href="/macro.html">{c.overview} →</Link>
-    <Link href="/macro_monetary.html">{c.command} →</Link></div>
+    <Link href="/intelligence?workspaceMarket=us" prefetch={false}>{c.overview} →</Link>
+    <Link href="/macro_monetary.html" prefetch={false}>{c.command} →</Link></div>
    </section> : <section className={today.brief} data-today-market-snapshot aria-labelledby="today-command">
     <div className={today.snapshotHeader}>
      <div><span className={styles.eyebrow}>{c.owner}</span><h2 id="today-command">{c.snapshot}</h2></div>
@@ -207,17 +207,19 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
       </span>}
      </div>
     </div>
+    <p className={today.snapshotSummary} data-today-market-summary data-summary-state={summary ? "published" : "unavailable"}>
+     {summary || c.summaryUnavailable}
+    </p>
     <div className={`${today.readings} ${today.snapshotReadings}`} aria-label={c.sourceReadings}>
      {featured.map(chip => renderReading(chip, false))}
      {breadthCell}
     </div>
     <div className={`${styles.actions} ${today.briefActions}`}>
-     <Link className={`${styles.action} ${styles.primary}`} href="/macro.html">{c.overview}<Arrow /></Link>
-     <Link className={today.commandLink} href="/macro_monetary.html">{c.command}<Arrow /></Link>
+     <Link className={`${styles.action} ${styles.primary}`} href="/intelligence?workspaceMarket=us" prefetch={false}>{c.overview}<Arrow /></Link>
+     <Link className={today.commandLink} href="/macro_monetary.html" prefetch={false}>{c.command}<Arrow /></Link>
     </div>
     <details className={today.sourceDisclosure} data-today-source-details>
      <summary>{c.sourceSummary}</summary>
-     <p className={today.marketRead}>{summary || c.unavailable}</p>
      {data.read.as_of && <p className={today.readingDate}>{c.asof}: <strong>{localText(data.read.as_of_display, lang) || data.read.as_of}</strong>
       {readAge.kind !== "undated" && <em className={today.readingAge} data-kind={readAge.kind}>{[ageLabel(readAge, lang), freshnessLabel(readAge, lang)].filter(Boolean).join(" · ")}</em>}
       <span>{localText(data.read.as_of_meaning, lang)}</span>
@@ -232,6 +234,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     </details>
    </section>}
 
+   <div className={today.deskHeading}><span>{c.desk}</span></div>
    {/* The since-last-visit holder composes the desk's jobs: its paid read holds the opening
        slot in every state; its teaser alone moves below watch attention, continuation, and
        briefing. The holder renders the jobs itself, so no phase change remounts anything. */}
