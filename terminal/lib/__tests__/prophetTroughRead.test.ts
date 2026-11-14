@@ -43,7 +43,7 @@ describe("trough publication", () => {
     const row = getRow();
     for (const variant of ["count", "named"] as const) {
       expect(troughHeadline(row, lang, variant)).not.toMatch(/\{|\}/);
-      expect(TROUGH_STRINGS[lang].variants[variant].record).toBe(lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。");
+      expect(TROUGH_STRINGS[lang].variants[variant].record).toBe(lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史转折测算。平均而言，其表现并未优于大盘。");
       expect(TROUGH_STRINGS[lang].variants[variant].method).toBeTruthy();
     }
   });

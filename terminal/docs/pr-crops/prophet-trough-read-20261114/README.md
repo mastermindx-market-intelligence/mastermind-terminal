@@ -8,7 +8,13 @@ Amendment 2 aligns named copy with read-only Paper boards `2A6G-0` (390) and `2A
 
 Amendment 3 removes the former study record from both languages and variants; only empty `record: ""` placeholders remain with the record flag false. English timeframe names use U+2011 and nowrap spans; relevant Chinese names are nowrap in headlines, rows and definitions. The EN/ZH turn definition now describes the producer's completed 3-day-only reading. All 157 affected/neighboring tests and all 24 responsive cases pass; browser assertions verify one-line timeframe names, no overflow and unchanged dash-only non-3D turn cells. Refreshed 32 affected crops, preserving unavailable and no-washout collapsed crops. Source scan found no removed record copy in shipped Trough code.
 
-## Amendment 4 — current candidate HOLD
+## Amendment 5 — current verified candidate
+
+Starting head verified exactly as `3a1349a7a01dea8d6df9ddb2b91f61d4d113e2fe`, clean original branch. At 320/390 only, the collapsed populated card combines method and full record in one muted 12.5px/16px paragraph, uses 12px vertical padding and preserves 16px horizontal padding and 44px footer. No type was shrunk. Desktop/tablet presentation is unchanged. Full record fits; no short fallback is used. Chinese record uses “历史转折” throughout; no market-backdrop line was added.
+
+Measured English 390 card bottoms (px): **A 837.671875, B 837.671875, C 815.671875, D 730.671875, E 837.671875**, all <=844. Original hard fold assertion unchanged. **157 Vitest tests pass; 40 browser cases pass**, EN/ZH A–E at 320/390/820/1440, no retries. Typecheck, focused lint and diff check pass. 80 current PNGs cover every collapsed/expanded state. Full record remains in every method pane and wherever it fits. Old-copy and nonbreaking-label checks remain. This supersedes the amendment-4 phone-fit failure below, which is retained as history.
+
+## Amendment 4 — historical candidate HOLD (resolved by amendment 5)
 
 CEO-ruled EN/ZH record is enabled in both copy variants, the collapsed card and method pane for A–E. D now has an accessible disclosure so its record is available in both locations too. The old record remains absent. No type size or financial copy beyond the ruling was changed.
 

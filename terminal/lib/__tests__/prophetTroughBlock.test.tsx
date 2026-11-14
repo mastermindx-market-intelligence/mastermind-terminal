@@ -22,7 +22,7 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
     expect(container.textContent).not.toMatch(TROUGH_BANNED_WORDS);
     expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
     expect(container.querySelectorAll("a,[role=alert]")).toHaveLength(0);
-    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。";
+    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史转折测算。平均而言，其表现并未优于大盘。";
     expect(container.querySelector("small")!.textContent).toBe(record);
     if (state === "D") {
       const open = container.querySelector("button")!; act(() => open.click());
@@ -46,7 +46,7 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
       expect(container.textContent).toContain("Only completed bars count.");
       expect(container.textContent).toContain("Which timeframe matters for which kind of stock is still being measured; this headline only lists them.");
       expect(container.textContent).not.toContain("this headline only counts.");
-      expect(container.querySelector('[data-testid="trough-headline"]')!.nextElementSibling!.textContent).toBe("More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.");
+      expect(container.querySelector('[data-testid="trough-headline"]')!.nextElementSibling!.textContent).toBe(`More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold. ${record}`);
       expect(container.querySelector('[role="meter"]')).toBeNull();
       expect(container.textContent).not.toContain("Turned up on");
       const rows = container.querySelectorAll('[data-testid="trough-frame"]');

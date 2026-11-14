@@ -77,10 +77,10 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
     <div className={styles.summary}>
       <h2>{s.title}</h2>
       <p className={styles.headline} data-testid="trough-headline">{timeframeText(troughHeadline(row, lang))}</p>
-      <p className={styles.headlineMethod}>{copy.method}</p>
+      <p className={styles.headlineMethod}>{copy.method}{TROUGH_RECORD_ENABLED ? <span className={styles.mobileRecord}> {copy.record}</span> : null}</p>
       <p>{row.kind ? setupFill(s.kind, { kind: s.kinds[row.kind.label] }) : s.kindPending}</p>
       <p>{groupLine}</p>
-      {TROUGH_RECORD_ENABLED ? <small>{copy.record}</small> : null}
+      {TROUGH_RECORD_ENABLED ? <small className={styles.separateRecord}>{copy.record}</small> : null}
       <button ref={openRef} className={styles.control} type="button" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(v => !v)}>{s.open}</button>
     </div>
     <div id={id} hidden={!expanded} className={styles.disclosure} data-testid="trough-disclosure">

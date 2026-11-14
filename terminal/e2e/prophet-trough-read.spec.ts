@@ -9,8 +9,7 @@ const crops = process.env.PROPHET_TROUGH_CROPS;
 test.beforeEach(async ({}, testInfo) => {
   test.skip(testInfo.project.metadata.troughEnabled !== true, "Requires the default-off rollout fixture configuration");
 });
-for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) for (const state of ["A", "B", "C", "D", "E"] as TroughSpecimenState[]) {
-  if (width === 320 && state !== "A" && state !== "D") continue;
+for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 820, 1440]) for (const state of ["A", "B", "C", "D", "E"] as TroughSpecimenState[]) {
   test(`${state} ${lang} at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
     await page.addInitScript(code => localStorage.setItem("mm.lang", code), lang);
@@ -25,8 +24,9 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     await expect(block).not.toContainText(TROUGH_BANNED_WORDS);
     await expect(block.locator("a,[role=alert]")).toHaveCount(0);
     await expect(block).not.toContainText(/Studied on three stocks|仅研究过三只股票/);
+    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史转折测算。平均而言，其表现并未优于大盘。";
     if (state !== "D") {
-      await expect(block.getByTestId("trough-headline").locator("+ p")).toHaveText(lang === "en" ? "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold." : "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。");
+      await expect(block.getByTestId("trough-headline").locator("+ p")).toHaveText(`${lang === "en" ? "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold." : "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。"} ${record}`);
       await expect(block).toContainText(lang === "en" ? "Kind: not yet available" : "类型：尚未提供");
     }
     const rotation = await page.getByTestId("rotation-read").boundingBox();
@@ -35,9 +35,9 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     // Card plus existing page header fits a phone without moving or hiding the
     // preceding RotationRead. Larger served rotation payloads remain untouched.
+    if (width === 390 && lang === "en") console.log(`FOLD ${state}: ${box.y + box.height}`);
     if (width === 390) expect(box.y + box.height).toBeLessThanOrEqual(844);
     if (crops) await page.screenshot({ path: path.join(crops, `${state}-${lang}-${width}-collapsed.png`) });
-    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。";
     await expect(block.locator("small").first()).toHaveText(record);
     if (state === "D") {
       await block.getByRole("button", { name: lang === "en" ? "How this read works ▸" : "解读方法 ▸", exact: true }).click();

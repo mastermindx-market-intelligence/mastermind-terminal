@@ -53,8 +53,8 @@ export const TROUGH_STRINGS = {
   zh: {
     title: "低谷解读", unavailable: "暂不可用", unavailableBody: "该股票暂未提供此项解读。",
     variants: {
-      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
-      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只列出这些周期。" },
+      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史转折测算。平均而言，其表现并未优于大盘。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
+      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史转折测算。平均而言，其表现并未优于大盘。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只列出这些周期。" },
     },
     namedNone: "所有周期均未处于低位", notPart: "；{rest}未处于低位", notYet: "尚未提供", kindPending: "类型：尚未提供",
     notWashed: "未处于低位", turning: "正在回升", notTurned: "尚未回升", none: "无",
