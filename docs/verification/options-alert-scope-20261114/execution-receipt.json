@@ -1,0 +1,67 @@
+{
+  "schema": "options-alert-scope-qualification.v1",
+  "recordedAt": "2026-11-14T14:26:55.635494+00:00",
+  "operation": "options-alert-aggregate-scope-20261114-c3",
+  "base": "fe49f3b5765dd4e10721928716a6a730e78c7ae1",
+  "source": {
+    "terminal/components/alerts/AlertDetail.tsx": {
+      "bytes": 9546,
+      "sha256": "3b99898131ddc09b3e7fcbbb6ae8b83a75a81dba49d29e67ee8e97db6f7f4ad0"
+    },
+    "terminal/lib/__tests__/alertDetailOptionsScope.test.tsx": {
+      "bytes": 5127,
+      "sha256": "c8d7e2303fd6af0dafde10db031a89a0fcf213def2d6810f2d4acfdf02695cff"
+    },
+    "terminal/e2e/alert-detail-options-scope.spec.ts": {
+      "bytes": 6598,
+      "sha256": "375eb9ce2d7f5101ef9a84c348d2562f8fbca11a4530a7479649610e5732d0ca"
+    },
+    "docs/OPTIONS_SUITE_COMPLETION_2026-11-14.md": {
+      "bytes": 17909,
+      "sha256": "c9aa900291175d0c96bfe474a41480ddb6a3eedc7141c13f7ba97f32b55da0ab"
+    }
+  },
+  "unit": {
+    "passed": 115,
+    "distinct": true,
+    "reports": [
+      "unit-after.json",
+      "batch3-reader.json"
+    ]
+  },
+  "browser": {
+    "passed": 31,
+    "skipped": 2,
+    "failed": 0,
+    "flaky": 0,
+    "distinct": true,
+    "original": "browser-shared.json",
+    "supersededPremiumCases": 12,
+    "qualifiedPremiumReport": "browser-premium-qualified.json",
+    "requalificationAddedDistinctCases": 0
+  },
+  "capture": {
+    "id": "options-alert-aggregate-scope-20261114-c3-batch3",
+    "qualifiedFrames": 20,
+    "preservedHistoricalFrames": 18,
+    "sourceCount": 16,
+    "verification": "batch3-runtime/verification.json"
+  },
+  "visualReview": {
+    "reviewer": "assigned principal",
+    "images": [
+      "captures/desktop-en-dark-opt_premium_burst.png",
+      "captures/mobile-zh-light-opt_premium_burst.png",
+      "captures/desktop-zh-light-opt_0dte_spike.png"
+    ],
+    "result": "readable scope, fact hierarchy and reachable focus/close controls"
+  },
+  "checks": "final-checks.json",
+  "release": {
+    "sourceQualified": true,
+    "ciAcceptance": "pending exact published head",
+    "protectedRelease": "not yet requested for this new operation",
+    "productionBrowserAcceptance": "not proven"
+  },
+  "unresolvedOtherOperation": "flow-receipt-pl6-control-20261114-c3 remains unqualified and was not retried"
+}

@@ -1,0 +1,773 @@
+{
+  "config": {
+    "argv": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/alert-detail-options-scope.spec.ts",
+      "--grep",
+      "opt_premium_burst",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=line,json",
+      "--output=test-results/options-alert-scope-premium-qualified"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 52657",
+      "url": "http://127.0.0.1:52657/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "alert-detail-options-scope.spec.ts",
+      "file": "alert-detail-options-scope.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2767,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:33.464Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-a5d90--opt-premium-burst-en-dark--desktop/attachments/aggregate-alert-scope-3c1e116b18b964b6e16a4030d79cd1b0dd777c36.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-bc79481562dfc9978bb7",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3991,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:37.390Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-3128a-opt-premium-burst-en-light--desktop/attachments/aggregate-alert-scope-61d580d33cc94dbee576a138658da13cef8c9245.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZXZpZGVuY2VVcmwiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9ldmlkZW5jZS9zY29wZS1wcmVtaXVtIiwKICAic2NvcGUiOiAiY292ZXJlZC1vcHRpb25zLXRhcGUiLAogICJ3cml0ZXMiOiBbXSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-4bef902db4146f0faead",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1642,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:41.414Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-5d77d--opt-premium-burst-zh-dark--desktop/attachments/aggregate-alert-scope-de5ead5b945c38f379f12a79a9ac09814f19a573.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMTQ0MCwKICAgICJoZWlnaHQiOiA5MDAKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-7cede32ba6d9f2c4e324",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2998,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:43.070Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-7c798-opt-premium-burst-zh-light--desktop/attachments/aggregate-alert-scope-60b905fb2702721c9a1a77571a67a79ea413987b.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZXZpZGVuY2VVcmwiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9ldmlkZW5jZS9zY29wZS1wcmVtaXVtIiwKICAic2NvcGUiOiAiY292ZXJlZC1vcHRpb25zLXRhcGUiLAogICJ3cml0ZXMiOiBbXSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-19a6b54794fd743a5d11",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1913,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:47.576Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-a5d90--opt-premium-burst-en-dark--tablet/attachments/aggregate-alert-scope-a8830673de2da800b7a2a903b2d5f2f246cf911c.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-92ba2fd75f887f920ab3",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1254,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:50.531Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-3128a-opt-premium-burst-en-light--tablet/attachments/aggregate-alert-scope-6df90f5360e559e32d861a919909e85f3373adc2.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZXZpZGVuY2VVcmwiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9ldmlkZW5jZS9zY29wZS1wcmVtaXVtIiwKICAic2NvcGUiOiAiY292ZXJlZC1vcHRpb25zLXRhcGUiLAogICJ3cml0ZXMiOiBbXSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-910779946547793e7e00",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2526,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:51.793Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-5d77d--opt-premium-burst-zh-dark--tablet/attachments/aggregate-alert-scope-4a6de5b3008817dbe8af088e80456d58813cd4e2.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogODIwLAogICAgImhlaWdodCI6IDExODAKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-46b180a3758532fadefe",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:54.367Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-7c798-opt-premium-burst-zh-light--tablet/attachments/aggregate-alert-scope-5b9f8f63c5cc2cde47ba5dd96635f6146532f171.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZXZpZGVuY2VVcmwiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9ldmlkZW5jZS9zY29wZS1wcmVtaXVtIiwKICAic2NvcGUiOiAiY292ZXJlZC1vcHRpb25zLXRhcGUiLAogICJ3cml0ZXMiOiBbXSwKICAicGFnZUVycm9ycyI6IFtdCn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-e0374c2bf8d41ece9690",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1872,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:56.718Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-a5d90--opt-premium-burst-en-dark--mobile/attachments/aggregate-alert-scope-96717c7063d533a0b38a77c1a3c72a50f758cb88.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImV2aWRlbmNlVXJsIjogImh0dHBzOi8vZXhhbXBsZS5jb20vZXZpZGVuY2Uvc2NvcGUtcHJlbWl1bSIsCiAgInNjb3BlIjogImNvdmVyZWQtb3B0aW9ucy10YXBlIiwKICAid3JpdGVzIjogW10sCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-14a17e3a73149418d07b",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, en, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1680,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:13:58.965Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-3128a-opt-premium-burst-en-light--mobile/attachments/aggregate-alert-scope-97d6c9b975260bbbbc8b71c6329ed90218d1bebe.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJlbiIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-7de1b34152f64a88f9c8",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1313,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:14:00.658Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-5d77d--opt-premium-burst-zh-dark--mobile/attachments/aggregate-alert-scope-1da3c0fd87e46691523ba5cab630c67e63b2c931.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImRhcmsiLAogICJzaGFyZWRTaGVsbCI6IHRydWUsCiAgInZpZXdwb3J0IjogewogICAgIndpZHRoIjogMzkwLAogICAgImhlaWdodCI6IDg0NAogIH0sCiAgImV2aWRlbmNlVXJsIjogImh0dHBzOi8vZXhhbXBsZS5jb20vZXZpZGVuY2Uvc2NvcGUtcHJlbWl1bSIsCiAgInNjb3BlIjogImNvdmVyZWQtb3B0aW9ucy10YXBlIiwKICAid3JpdGVzIjogW10sCiAgInBhZ2VFcnJvcnMiOiBbXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-76dedddf71feabb4aa98",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        },
+        {
+          "title": "aggregate alert detail retains exact evidence and covered scope (opt_premium_burst, zh, light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 75000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1421,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-14T14:14:01.990Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "aggregate-alert-scope",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-7c798-opt-premium-burst-zh-light--mobile/attachments/aggregate-alert-scope-a97d003dec6e868461514abc9e87410e182af6be.png"
+                    },
+                    {
+                      "name": "scope-consumer-proof",
+                      "contentType": "application/json",
+                      "body": "ewogICJraW5kIjogIm9wdF9wcmVtaXVtX2J1cnN0IiwKICAibGFuZyI6ICJ6aCIsCiAgInRoZW1lIjogImxpZ2h0IiwKICAic2hhcmVkU2hlbGwiOiB0cnVlLAogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJldmlkZW5jZVVybCI6ICJodHRwczovL2V4YW1wbGUuY29tL2V2aWRlbmNlL3Njb3BlLXByZW1pdW0iLAogICJzY29wZSI6ICJjb3ZlcmVkLW9wdGlvbnMtdGFwZSIsCiAgIndyaXRlcyI6IFtdLAogICJwYWdlRXJyb3JzIjogW10KfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59e283cf472e6bb47205-151f43c157d7dbcffb18",
+          "file": "alert-detail-options-scope.spec.ts",
+          "line": 42,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-14T14:13:08.817Z",
+    "duration": 54763.66499999999,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

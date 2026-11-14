@@ -1,0 +1,58 @@
+{
+  "schema": "options-alert-scope-final-checks.v1",
+  "completedAt": "2026-11-14T14:24:20.703754+00:00",
+  "checks": [
+    {
+      "name": "batch3-reader",
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/docs/verification/options-alert-scope-20261114/batch3-reader.json"
+      ],
+      "exit": 0,
+      "runtimeSeconds": 0.7,
+      "log": "batch3-reader.log"
+    },
+    {
+      "name": "focused-lint",
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/node_modules/eslint/bin/eslint.js",
+        "components/alerts/AlertDetail.tsx",
+        "lib/__tests__/alertDetailOptionsScope.test.tsx",
+        "e2e/alert-detail-options-scope.spec.ts"
+      ],
+      "exit": 0,
+      "runtimeSeconds": 3.59,
+      "log": "focused-lint.log"
+    },
+    {
+      "name": "typescript",
+      "argv": [
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-alert-aggregate-scope-20261114-c3/terminal/node_modules/typescript/lib/tsc.js",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "exit": 0,
+      "runtimeSeconds": 78.89,
+      "log": "typescript.log"
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "runtimeSeconds": 0.24,
+      "log": "diff-check.log"
+    }
+  ],
+  "sourceUnchanged": true
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "source": "terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-a5d90--opt-premium-burst-en-dark--desktop/attachments/aggregate-alert-scope-3c1e116b18b964b6e16a4030d79cd1b0dd777c36.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/desktop-en-dark-opt_premium_burst.png",
+    "report": "browser-premium-qualified.json",
+    "kind": "opt_premium_burst",
+    "lang": "en",
+    "theme": "dark",
+    "project": "desktop",
+    "sha256": "d084d56f1ec51725fca840dad53d60116630b67ae3da101717c354fa0cff2452",
+    "bytes": 134770
+  },
+  {
+    "source": "terminal/test-results/options-alert-scope-shared/alert-detail-options-scope-3642a-pe-opt-0dte-spike-zh-light--desktop/attachments/aggregate-alert-scope-4edb6c255d5f77c4580e200cf568412680ef9e1e.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/desktop-zh-light-opt_0dte_spike.png",
+    "report": "browser-shared.json",
+    "kind": "opt_0dte_spike",
+    "lang": "zh",
+    "theme": "light",
+    "project": "desktop",
+    "sha256": "f5f83a88d9a3123f76d5303f3225d3dd0d1ecb49e0a91e7d83654265a6b6f4a6",
+    "bytes": 126281
+  },
+  {
+    "source": "terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-3128a-opt-premium-burst-en-light--tablet/attachments/aggregate-alert-scope-6df90f5360e559e32d861a919909e85f3373adc2.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/tablet-en-light-opt_premium_burst.png",
+    "report": "browser-premium-qualified.json",
+    "kind": "opt_premium_burst",
+    "lang": "en",
+    "theme": "light",
+    "project": "tablet",
+    "sha256": "db804ccde6c60ec1f2c853110f14b22a2551ca7eb9130f81d0bf019f35d274e0",
+    "bytes": 97701
+  },
+  {
+    "source": "terminal/test-results/options-alert-scope-shared/alert-detail-options-scope-59f52-ope-opt-0dte-spike-zh-dark--tablet/attachments/aggregate-alert-scope-ce66e5d775b27347d34658723b4cf9c622622f16.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/tablet-zh-dark-opt_0dte_spike.png",
+    "report": "browser-shared.json",
+    "kind": "opt_0dte_spike",
+    "lang": "zh",
+    "theme": "dark",
+    "project": "tablet",
+    "sha256": "e347b0b709dc40913ef84000748214ba094a28801a4a79320c9217812ca02782",
+    "bytes": 91354
+  },
+  {
+    "source": "terminal/test-results/options-alert-scope-shared/alert-detail-options-scope-bad44-ope-opt-0dte-spike-en-dark--mobile/attachments/aggregate-alert-scope-c452d30328f8123ecc0e3118ab1abdc0a0a0b64f.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/mobile-en-dark-opt_0dte_spike.png",
+    "report": "browser-shared.json",
+    "kind": "opt_0dte_spike",
+    "lang": "en",
+    "theme": "dark",
+    "project": "mobile",
+    "sha256": "02d27310c9dd9488b72fcf1a2092a2944e5fa37e5e3289df157a10350b63e2f9",
+    "bytes": 56278
+  },
+  {
+    "source": "terminal/test-results/options-alert-scope-premium-qualified/alert-detail-options-scope-7c798-opt-premium-burst-zh-light--mobile/attachments/aggregate-alert-scope-a97d003dec6e868461514abc9e87410e182af6be.png",
+    "file": "docs/verification/options-alert-scope-20261114/captures/mobile-zh-light-opt_premium_burst.png",
+    "report": "browser-premium-qualified.json",
+    "kind": "opt_premium_burst",
+    "lang": "zh",
+    "theme": "light",
+    "project": "mobile",
+    "sha256": "00e60205cb728c97e5ca768cff6257a3bdc48db055c98e3e8af0f824c3b211e0",
+    "bytes": 62865
+  }
+]
