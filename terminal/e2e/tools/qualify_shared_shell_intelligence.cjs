@@ -21,7 +21,8 @@ require.extensions['.ts'] = (module, filename) => {
   const candidateFixture = path.join(ROOT,'lib/__tests__/fixtures/prophetCandidatePool.ts');
   const todayFixture = path.join(ROOT,'lib/__tests__/fixtures/todayDailyDesk.ts');
   const monitorFixture = path.join(ROOT,'lib/__tests__/fixtures/monitorDesk.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture && resolved !== todayFixture && resolved !== monitorFixture) throw Error('fixture loader scope');
+  const researchFixture = path.join(ROOT,'lib/__tests__/fixtures/researchReader.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture && resolved !== todayFixture && resolved !== monitorFixture && resolved !== researchFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
@@ -35,6 +36,7 @@ const {todayMarketFixture,todayPersonalBriefFixture,todayChangesFixture,todayDig
 const catalystFixture = require('../../lib/__tests__/fixtures/catalystOpportunity.json');
 const defenseFixture = require('../../lib/__tests__/fixtures/catalystDefenseOwner.json');
 const {monitorWatchlistsFixture,monitorAlertsFixture,monitorRetainedEventFixture} = require('../../lib/__tests__/fixtures/monitorDesk.ts');
+const {researchSelection,researchBody,researchCatalogFixture,researchFilterFixture,researchOutlineFixture} = require('../../lib/__tests__/fixtures/researchReader.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -86,6 +88,11 @@ report.sourceFiles=Object.fromEntries([
  'lib/sharedShellMonitor.ts', 'lib/companyRetainedContext.ts', 'lib/eventWorkspace.ts',
  'lib/sharedShellMarket.ts', 'lib/sharedShellNavigation.ts',
  'lib/__tests__/fixtures/monitorDesk.ts', 'lib/__tests__/fixtures/aapl-event-workspace.json',
+ 'components/workspaces/ResearchWorkspace.tsx', 'components/workspaces/ResearchWorkspace.module.css',
+ 'lib/shared-shell/readingContracts.ts', 'lib/shared-shell/readingProgress.ts',
+ 'lib/shared-shell/readingPayloads.ts', 'lib/shared-shell/readingRequests.ts',
+ 'lib/shared-shell/researchOutline.ts', 'lib/shared-shell/researchLibrary.ts',
+ 'lib/__tests__/fixtures/researchReader.ts', 'app/(shell)/research/page.tsx',
  'components/catalyst-opportunity/CatalystOpportunityView.tsx',
  'components/catalyst-opportunity/CatalystOpportunity.module.css', 'lib/catalystOpportunityLex.ts',
  'components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx',
@@ -573,8 +580,8 @@ async function qualifyDiscover(page,cell) {
     await presentation(lang,mode);
     await expect(chooser.getByRole('heading',{level:1,name:lang==='zh'?'发现':'Discover',exact:true})).toBeVisible();
     for(const action of await chooser.locator('button,a').all()){
-      // Search belongs to the existing command-palette readiness boundary.
-      // Focusing a disabled button is a no-op before client hydration completes.
+      // Tool buttons intentionally wait for their existing hydration owner.
+      // Focusing a disabled button is a no-op, even if it becomes ready later.
       await expect(action).toBeEnabled();
       await action.scrollIntoViewIfNeeded();
       const box=await action.boundingBox();expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
@@ -853,6 +860,123 @@ async function qualifyMonitor(page,cell) {
     destinationProof:'IMMUTABLE_LINK_FIELDS_ONLY; downstream Analysis consumer remains its existing owner',passed:true});
 }
 
+async function qualifyResearch(page,cell) {
+  const writesBefore=report.fixtureWrites.length,reads={catalog:0,search:0,body:0},bodyQueries=[];
+  let holdRead=true,releaseRead=null,readStatus=200;
+  const readOnly=route=>{
+    if(route.request().method()==='GET')return false;
+    report.fixtureWrites.push({method:route.request().method(),path:new URL(route.request().url()).pathname});return true;
+  };
+  await page.route('**/api/shared-shell/research/catalog',route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.catalog++;return route.fulfill({json:researchCatalogFixture()});
+  });
+  await page.route('**/api/shared-shell/research/search?**',route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.search++;const query=new URL(route.request().url()).searchParams;
+    if(query.get('q')!=='credit'||query.get('limit')!=='50')return route.fulfill({status:400,json:{error:'invalid fixture search'}});
+    return route.fulfill({json:{items:researchFilterFixture().map(item=>({...item,institution:'Credit desk',tags:['Credit']})),preview:false}});
+  });
+  await page.route('**/api/shared-shell/research/read/*?**',async route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.body++;const url=new URL(route.request().url()),query=url.searchParams;
+    bodyQueries.push(Object.fromEntries(query));
+    const expected=reads.body===1?{segment_start:'0',max_segments:'2'}:{
+      source_pdf_sha256:researchSelection.sourcePdfSha256,extracted_text_sha256:researchSelection.extractedTextSha256,
+      segment_start:query.get('segment_start'),max_segments:'2'};
+    const valid=url.pathname.endsWith('/'+researchSelection.docId)
+      && [...query.keys()].length===Object.keys(expected).length
+      && Object.entries(expected).every(([key,value])=>query.getAll(key).length===1&&query.get(key)===value)
+      && ['0','1','2'].includes(expected.segment_start);
+    if(!valid)return route.fulfill({status:400,json:{error:'invalid synthetic revision request'}});
+    if(holdRead){holdRead=false;await new Promise(resolve=>{releaseRead=resolve;});}
+    if(readStatus!==200)return route.fulfill({status:readStatus,json:{error:readStatus===401?'unauthorized':'selected_revision_unavailable'}});
+    const start=Number(query.get('segment_start')||0),docId=url.pathname.split('/').at(-1);
+    const value=researchBody(start===2?'EXACT THIRD SOURCE PASSAGE':'PRIVATE SELECTED SOURCE',start,3,docId);
+    value.segments[0].page_start=start+1;value.segments[0].page_end=start+1;
+    return route.fulfill({json:{...value,outline:researchOutlineFixture}});
+  });
+  const presentation=async(lang,mode)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(mode==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',mode);
+  };
+  const progress=()=>page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([key])=>key.startsWith('reading-progress|')||key.startsWith('mm.research.last.v1:'))));
+  await page.goto(BASE+'/research?workspaceMarket=cn');
+  const root=page.locator('main#shared-shell-content'),library=root.locator('section[aria-labelledby="research-library"]');
+  await expect(library).toContainText('First source report',{timeout:30000});
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);await expect(root.locator('iframe')).toHaveCount(0);
+  const open=library.getByRole('button',{name:/^Open current revision/}).first();await expect(open).toBeEnabled();await open.click();
+  await expect.poll(()=>releaseRead!==null).toBe(true);
+  try {
+    await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('ca');await expect(page).toHaveURL(/workspaceMarket=ca/);
+  } finally {releaseRead();}
+  const passage=root.locator('#research-segment-0');await expect(passage).toContainText('PRIVATE SELECTED SOURCE');
+  await expect(page).toHaveURL(/doc_id=report-one/);expect(new URL(page.url()).searchParams.get('workspaceMarket')).toBe('ca');
+  expect(reads.body).toBe(1);expect(bodyQueries[0].source_pdf_sha256).toBeUndefined();
+  const mobilePages=root.getByRole('button',{name:'Source pages',exact:false});
+  if(await mobilePages.isVisible()){
+    await mobilePages.click();await page.getByRole('dialog').getByRole('button',{name:'Source page 3 Window 3',exact:true}).click();
+    await expect(root.locator('#research-segment-2')).toBeFocused();
+  }else await root.getByRole('navigation',{name:'Source pages',exact:true}).getByRole('button',{name:'Source page 3 Window 3',exact:true}).click();
+  const third=root.locator('#research-segment-2');await expect(third).toContainText('EXACT THIRD SOURCE PASSAGE');
+  expect(bodyQueries.at(-1).segment_start).toBe('2');expect(bodyQueries.at(-1).source_pdf_sha256).toBe(researchSelection.sourcePdfSha256);
+  expect(bodyQueries.at(-1).extracted_text_sha256).toBe(researchSelection.extractedTextSha256);
+  await third.getByRole('button',{name:'Inspect source passage',exact:true}).click();
+  const evidence=root.getByRole('region',{name:'Selected passage evidence',exact:true});await expect(evidence).toBeFocused();
+  await third.evaluate(el=>{window.__researchAcceptedPassage=el;});
+  const acceptedReads={...reads},saved=await progress(),pins=Object.fromEntries(new URL(page.url()).searchParams);
+  const savedKey=['reading-progress',OWNER,researchSelection.docId,researchSelection.sourcePdfSha256,researchSelection.extractedTextSha256,researchSelection.extractorVersion,researchSelection.segmenterVersion].join('|');
+  expect(Object.keys(saved)).toHaveLength(2);
+  expect(JSON.parse(saved['mm.research.last.v1:'+OWNER])).toEqual({selection:researchSelection});
+  expect(JSON.parse(saved[savedKey])).toEqual({segmentStart:2});
+  expect(JSON.stringify(saved)).not.toContain('EXACT THIRD SOURCE PASSAGE');
+  await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('cn');await expect(page).toHaveURL(/workspaceMarket=cn/);
+  const assertReading=async market=>{
+    const params=new URL(page.url()).searchParams;expect(params.get('workspaceMarket')).toBe(market);
+    for(const key of ['doc_id','source_pdf_sha256','extracted_text_sha256','extractor_version','segmenter_version','segment_start'])expect(params.get(key)).toBe(pins[key]);
+    expect(await third.evaluate(el=>el===window.__researchAcceptedPassage)).toBe(true);expect(reads).toEqual(acceptedReads);expect(await progress()).toEqual(saved);
+  };
+  await assertReading('cn');await page.goBack();await expect(page).toHaveURL(/workspaceMarket=ca/);await assertReading('ca');
+  await page.goForward();await expect(page).toHaveURL(/workspaceMarket=cn/);await assertReading('cn');
+  for(const [lang,mode] of [['en','dark'],['zh','light']]){
+    await presentation(lang,mode);await assertReading('cn');
+    const selected=root.locator('section[id="research-segment-2"]');
+    await selected.getByRole('button',{name:lang==='zh'?'查看来源片段':'Inspect source passage',exact:true}).click();
+    const source=root.getByRole('region',{name:lang==='zh'?'所选片段证据':'Selected passage evidence',exact:true});await expect(source).toBeFocused();
+    await source.getByRole('button',{name:lang==='zh'?'返回片段':'Return to passage',exact:true}).click();await expect(selected).toBeFocused();
+    const pdf=root.locator('a[href^="/api/shared-shell/research/pdf/"]');expect(await pdf.getAttribute('href')).toBe('/api/shared-shell/research/pdf/report-one');
+    for(const link of await root.locator('a[href^="/analysis?"],a[href^="/today?"]').all())expect(new URL(await link.getAttribute('href'),BASE).searchParams.get('workspaceMarket')).toBe('cn');
+    await noOverflow(page);await root.locator('#research-reader-title').evaluate(el=>el.scrollIntoView({block:'start'}));
+    await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-reader-'+lang+'.png')});
+  }
+  await presentation('en','dark');
+  await root.getByRole('link',{name:'Browse the research library',exact:true}).click();
+  await library.getByRole('searchbox',{name:'Search reports',exact:true}).fill('credit');await library.getByRole('button',{name:'Search',exact:true}).click();
+  await expect(library).toContainText('10 matching in 10 loaded reports');
+  await library.getByRole('combobox',{name:'Topic',exact:true}).selectOption('Credit');await library.getByRole('combobox',{name:'Institution',exact:true}).selectOption('Credit desk');
+  await library.getByRole('combobox',{name:'Order',exact:true}).selectOption('date-oldest');
+  await library.getByRole('button',{name:'Show more reports',exact:true}).click();await expect(library).toContainText('10 shown');
+  const beforeClear={...reads};await library.getByRole('button',{name:'Clear filters',exact:true}).click();await expect(root.locator('#research-library')).toBeFocused();
+  await expect(library.getByRole('searchbox',{name:'Search reports',exact:true})).toHaveValue('credit');
+  await expect(library.getByRole('combobox',{name:'Order',exact:true})).toHaveValue('date-oldest');
+  await expect(library).toContainText('8 shown · 10 matching in 10 loaded reports');await expect(library.getByRole('button',{name:'Clear filters',exact:true})).toHaveCount(0);
+  expect(reads).toEqual(beforeClear);expect(await progress()).toEqual(saved);expect(await third.evaluate(el=>el===window.__researchAcceptedPassage)).toBe(true);
+  await noOverflow(page);await root.locator('#research-library').evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-filtered-library.png')});
+  const validUrl=page.url();await page.evaluate(()=>{const url=new URL(location.href);url.searchParams.append('doc_id',url.searchParams.get('doc_id'));history.pushState({},'',url);});
+  await expect(root).toContainText('This reading link is incomplete or invalid');await expect(third).toHaveCount(0);expect(reads).toEqual(beforeClear);
+  await page.goBack();await expect(page).toHaveURL(validUrl);await expect(third).toContainText('EXACT THIRD SOURCE PASSAGE');expect(reads.body).toBe(beforeClear.body+1);
+  readStatus=401;await root.getByRole('button',{name:'Previous text window',exact:true}).click();
+  await expect(root).toContainText('Private research has been cleared');await expect(root.locator('[id^="research-segment-"]')).toHaveCount(0);await expect(library).toHaveCount(0);
+  expect(report.fixtureWrites.length).toBe(writesBefore);
+  report.cells.push({w:page.viewportSize().width,journey:'research-revision-market-continuity',
+    sourceProof:'SYNTHETIC_REVISION_AND_ACCOUNT_FIXTURE_NOT_LIVE_RESEARCH_OR_PRODUCTION',reads,bodyQueries,
+    marketDidNotRead:true,historyPreservedRevision:true,filtersDidNotRead:true,accountWithdrawalCleared:true,
+    pdfProof:'QUERY_FREE_LINK_ONLY; no PDF fetched and no revision equality inferred',passed:true});
+}
+
 async function qualifyToday(page,cell) {
   let marketRead=todayMarketFixture(),marketStatus=200,changesStatus=200;
   const counts={market:0,brief:0,comparison:0,catalog:0,watchlists:0,breadth:0,reportBodies:0},comparisonInputs=[];
@@ -979,7 +1103,7 @@ async function qualifyToday(page,cell) {
   if(!ready)throw Error('local Next readiness not established');
   browser=await chromium.launch({headless:true});
   // Warm only the qualified real routes, with the same synthetic authority.
-  for(const dest of ['/intelligence','/prophet','/sectors','/today','/discover','/monitor']){
+  for(const dest of ['/intelligence','/prophet','/sectors','/today','/discover','/monitor','/research']){
    const r=await fetch(BASE+dest,{headers:{cookie:`sb-127-auth-token=base64-${Buffer.from(JSON.stringify(session())).toString('base64url')}`},signal:AbortSignal.timeout(120000)});
    if(!r.ok)throw Error(`${dest} warm HTTP ${r.status}`);await r.text();
   }
@@ -1079,6 +1203,9 @@ async function qualifyToday(page,cell) {
    const monitorContext=await context(),monitorPage=await monitorContext.newPage();
    await monitorPage.setViewportSize({width,height});monitorPage.on('pageerror',error=>report.errors.push({cell:`monitor-${width}`,error:error.message}));
    await qualifyMonitor(monitorPage,`monitor-${width}`);await monitorContext.close();
+   const researchContext=await context(),researchPage=await researchContext.newPage();
+   await researchPage.setViewportSize({width,height});researchPage.on('pageerror',error=>report.errors.push({cell:`research-${width}`,error:error.message}));
+   await qualifyResearch(researchPage,`research-${width}`);await researchContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

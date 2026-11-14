@@ -13,6 +13,7 @@ import { loadBrowserReadingProgress, readingHref, saveBrowserReadingProgress, ty
 import { readingJson, useReadingScope } from "@/lib/shared-shell/useReadingScope";
 import { sourcePageDestinations, type ResearchOutlineEntry } from "@/lib/shared-shell/researchOutline";
 import { isResearchPublicationDate, researchLibrary, type ResearchLibrarySort } from "@/lib/shared-shell/researchLibrary";
+import { marketNavigationHref, workspaceMarket } from "@/lib/sharedShellMarket";
 import MobileSheet from "@/components/ui/MobileSheet";
 import styles from "./ResearchWorkspace.module.css";
 
@@ -29,10 +30,26 @@ type Phase = "idle"|"loading"|"ready"|"changed"|"restricted"|"auth"|"rate"|"inva
 type Reader = { owner: string; docId: string; selection: ReadingSelection | null; body: ReadingBody | null; start: number; phase: Phase };
 const emptyReader = (owner: string): Reader => ({ owner, docId:"", selection:null, body:null, start:0, phase:"idle" });
 
+type ReadingLocation = {kind:"library";key:string} | {kind:"invalid";key:string;docId:string}
+ | {kind:"reading";key:string;selection:ReadingSelection;start:number};
+/** Project this reader's existing URL contract, not the shell's presentation
+ * context. Validate raw fields before using the canonical revision identity. */
+function readingLocation(params: URLSearchParams): ReadingLocation {
+ const selection=parseReadingUrl(params);
+ if(!selection)return {kind:"library",key:"library"};
+ const keys=["doc_id","source_pdf_sha256","extracted_text_sha256","extractor_version","segmenter_version","segment_start"];
+ const raw=params.get("segment_start")??"0",start=/^\d+$/.test(raw)?Number(raw):-1;
+ const ambiguous=keys.some(key=>params.getAll(key).length>1);
+ if("invalid" in selection || ambiguous || !Number.isSafeInteger(start) || start<0)
+  return {kind:"invalid",key:"invalid:"+JSON.stringify(keys.map(key=>params.getAll(key))),docId:selection.docId};
+ return {kind:"reading",key:readingHref(selection,start),selection,start};
+}
+
 function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const { lang } = useLang(), c = COPY[lang], e = EDITORIAL_COPY[lang], onboarding=useOnboarding();
  const routeQuery = useSearchParams()?.toString() ?? "";
- const observedQuery = useRef<string | null>(null);
+ const contextMarket = workspaceMarket("/research",routeQuery);
+ const observedReading = useRef<string | null>(null);
  const { scope, ready, ended, unavailable: identityUnavailable, retryIdentity, invalidateIdentity } = useReadingScope(ownerKey);
  const [library, setLibrary] = useState<{ owner:string; items:CatalogItem[]; preview:boolean; stale:boolean; generated:string|null }|null>(null);
  const [libraryError, setLibraryError] = useState(false), [libraryLoading, setLibraryLoading] = useState(true);
@@ -46,6 +63,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const [pageSheetOpen, setPageSheetOpen] = useState(false);
  const destinationFocus = useRef<number|null>(null);
  const evidenceRef = useRef<HTMLElement>(null);
+ const libraryTitleRef = useRef<HTMLHeadingElement>(null);
  const readSequence = useRef(0), catalogSequence = useRef(0), titleRef = useRef<HTMLHeadingElement>(null);
  const shown = ready && reader.owner === ownerKey ? reader : emptyReader(ownerKey);
  const items = ready && library?.owner === ownerKey ? library.items : EMPTY_ITEMS;
@@ -64,9 +82,9 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    const frame = requestAnimationFrame(() => (titleRef.current ?? document.getElementById("shared-shell-content"))?.focus());
    return () => cancelAnimationFrame(frame);
   }
-  // Native history writes are observed by Next. Wait for that exact query commit so
-  // its route-focus lifecycle cannot reclaim the source-page destination.
-  if (shown.selection && routeQuery !== new URL(readingHref(shown.selection, shown.start), window.location.href).searchParams.toString()) return;
+  // Native history writes are observed by Next. Wait for the exact reading
+  // commit; market context does not change the selected source-page destination.
+  if (shown.selection && readingLocation(new URLSearchParams(routeQuery)).key !== readingHref(shown.selection, shown.start)) return;
   const destination = destinationFocus.current;
   const frame = requestAnimationFrame(() => {
    destinationFocus.current = null;
@@ -95,6 +113,14 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   } catch { if(!scope.current?.signal.aborted && ticket===catalogSequence.current){setLibraryError(true);setLibrary(null);} }
   finally {if(!scope.current?.signal.aborted && ticket===catalogSequence.current)setLibraryLoading(false);}
  }
+ function publishReading(selected:ReadingSelection,start:number,history:"push"|"replace") {
+  const reading=readingHref(selected,start);
+  // Use the current shell context at acceptance, including a market selected
+  // while the read was pending. The persisted revision remains market-neutral.
+  const href=marketNavigationHref(reading,workspaceMarket(window.location.pathname,window.location.search));
+  observedReading.current=reading;
+  window.history[history==="push"?"pushState":"replaceState"]({},"",href);
+ }
  async function open(docId:string, selected:ReadingSelection|null, start=0, history:"push"|"replace"|"none"="push") {
   if(!isDocId(docId) || !Number.isSafeInteger(start) || start<0 || (!selected && start>0))return;
   setLibraryOpen(false);
@@ -117,29 +143,20 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    setReader({owner:ownerKey,docId,selection:body.selection,body,start,phase:"ready"});
    const nextProgress={selection:body.selection,segmentStart:start};setProgress(nextProgress);
    setStorageFailed(!saveBrowserReadingProgress(ownerKey,nextProgress));
-   if(history!=="none") {
-    const href=readingHref(body.selection,start);
-    // Next observes native history writes. Mark our accepted tuple before publishing
-    // it so that the URL observer does not charge a second identical text-window read.
-    observedQuery.current=new URL(href,window.location.href).search;
-    window.history[history==="push"?"pushState":"replaceState"]({},"",href);
-   }
+   if(history!=="none")publishReading(body.selection,start,history);
    if (focusDestination === null) requestAnimationFrame(()=>titleRef.current?.focus());
   } catch {if(!scope.current?.signal.aborted && ticket===readSequence.current)setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase:"unavailable"});}
  }
  function fromUrl() {
-  const queryString=window.location.search;
-  if(observedQuery.current===queryString)return;
-  observedQuery.current=queryString;
-  const params = new URLSearchParams(queryString), selection = parseReadingUrl(params);
-  if(!selection){++readSequence.current;setReader(emptyReader(ownerKey));return;}
-  const raw=params.get("segment_start")??"0",start=/^\d+$/.test(raw)?Number(raw):-1;
-  const ambiguous=["doc_id","source_pdf_sha256","extracted_text_sha256","extractor_version","segmenter_version","segment_start"].some(key=>params.getAll(key).length>1);
-  if("invalid" in selection || ambiguous || !Number.isSafeInteger(start) || start<0){++readSequence.current;setReader({...emptyReader(ownerKey),docId:selection.docId,phase:"invalid"});return;}
-  void open(selection.docId,selection,start,"none");
+  const location=readingLocation(new URLSearchParams(window.location.search));
+  if(observedReading.current===location.key)return;
+  observedReading.current=location.key;
+  if(location.kind==="library"){++readSequence.current;setReader(emptyReader(ownerKey));return;}
+  if(location.kind==="invalid"){++readSequence.current;setReader({...emptyReader(ownerKey),docId:location.docId,phase:"invalid"});return;}
+  void open(location.selection.docId,location.selection,location.start,"none");
  }
  useEffect(()=>{
-  if(!ready){observedQuery.current=null;++readSequence.current;++catalogSequence.current;queueMicrotask(()=>{setReader(emptyReader(ownerKey));setLibrary(null);setProgress(null);});return;}
+  if(!ready){observedReading.current=null;++readSequence.current;++catalogSequence.current;queueMicrotask(()=>{setReader(emptyReader(ownerKey));setLibrary(null);setProgress(null);});return;}
   const controller=scope.current;
   queueMicrotask(()=>{if(controller?.signal.aborted)return;setProgress(loadBrowserReadingProgress(ownerKey));void inventory(appliedQuery);fromUrl();});
   window.addEventListener("popstate",fromUrl);
@@ -206,6 +223,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
      <option value="date-newest">{e.newest}</option><option value="date-oldest">{e.oldest}</option><option value="title">{e.titleOrder}</option>
     </select></label>
    </div>
+   {(topic || institution) && <div className={styles.actions}><button type="button" onClick={() => {setTopic("");setInstitution("");setVisibleCount(8);libraryTitleRef.current?.focus();}}>{pick(lang === "zh", "Clear filters", "清除筛选")}</button></div>}
   </div>
   {library?.preview && <p className={styles.notice}>{c.preview}</p>}
   {library?.stale && <p className={styles.warning}>{c.stale}</p>}
@@ -308,7 +326,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  </section>;
  return <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
   <header className={styles.heading}><div><h1>{c.title}</h1>{!hasSelection && <p>{c.intro}</p>}</div>
-   <div className={styles.actions}>{hasSelection && <a href="#research-library" onClick={() => setLibraryOpen(true)}>{e.browseLibrary}</a>}<Link href="/analysis?view=investigations">{c.saved}</Link><Link href="/research_screener.html">{pick(lang === "zh", "Research screener", "研究筛选器")}</Link><Link href="/today">{c.return}</Link></div>
+   <div className={styles.actions}>{hasSelection && <a href="#research-library" onClick={() => setLibraryOpen(true)}>{e.browseLibrary}</a>}<Link prefetch={false} href={marketNavigationHref("/analysis?view=investigations",contextMarket)}>{c.saved}</Link><Link prefetch={false} href="/research_screener.html">{pick(lang === "zh", "Research screener", "研究筛选器")}</Link><Link prefetch={false} href={marketNavigationHref("/today",contextMarket)}>{c.return}</Link></div>
   </header>
   {ended ? <div role="status" className={styles.notice}>{c.auth} <button onClick={() => onboarding.open("signin")}>{c.signIn}</button><button onClick={retryIdentity}>{pick(lang === "zh", "Recheck selected context", "重新验证所选内容")}</button></div>
    : identityUnavailable ? <div role="status" className={styles.notice}><p>{pick(lang === "zh", "The account service is unavailable. Private research is hidden.", "账户服务暂不可用。私人研究已隐藏。")}</p><button onClick={retryIdentity}>{c.retry}</button></div>
@@ -317,7 +335,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     {reading}
     <section key="library" className={`${styles.library} ${!hasSelection ? styles.libraryFirst : ""}`} aria-labelledby="research-library">
      <details className={styles.libraryDisclosure} open={!hasSelection || libraryOpen} onToggle={event => setLibraryOpen(event.currentTarget.open)}>
-      <summary><h2 id="research-library">{hasSelection ? e.browseLibrary : c.library}</h2></summary>
+      <summary><h2 id="research-library" ref={libraryTitleRef} tabIndex={-1} className={styles.libraryTitle}>{hasSelection ? e.browseLibrary : c.library}</h2></summary>
       {!hasSelection && <p className={styles.coverage}>{c.choose}</p>}
       {!hasSelection && progress && <section className={styles.contextPanel} aria-label={c.continue}>
        <div className={styles.eyebrow}>{c.local}</div><h3>{items.find(item => item.id === progress.selection.docId)?.title || e.selectedReport}</h3>
