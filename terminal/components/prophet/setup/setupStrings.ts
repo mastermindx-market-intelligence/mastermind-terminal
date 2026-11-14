@@ -20,6 +20,54 @@
 
 import type { Lang } from "@/lib/i18n";
 
+export type TroughHeadlineVariant = "count" | "named";
+/** Held copy choice: this constant is the sole switch for headline/method/record. */
+export const TROUGH_HEADLINE_VARIANT: TroughHeadlineVariant = "count";
+export const TROUGH_STRINGS = {
+  en: {
+    title: "Trough read", unavailable: "Not available", unavailableBody: "This read is not available for this stock yet.",
+    variants: {
+      count: { headline: "Washed out on {n} of 4 timeframes · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "Which timeframe matters for which kind of stock is still being measured; this headline only counts." },
+      named: { headline: "Washed out on {list} · not {rest} · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold." },
+    },
+    notWashed: "not washed out", turning: "turning up", notTurned: "not yet turned", none: "none",
+    frames: { "1D": "Daily", "3D": "3-day", "1W": "Weekly", "2W": "2-week" },
+    kinds: { steady: "steady compounder", leans_steady: "leans steady compounder", middle: "between steady and cyclical", leans_cyclical: "leans cyclical, high-beta", cyclical: "cyclical, high-beta" },
+    states: { FALLING: "Falling", WASHED_OUT: "Washed out", BASING: "Basing", TURNING: "Turning", NOT_WASHED_OUT: "Not washed out" },
+    kind: "Kind: {kind}", group: "Group ({name}): {state}", open: "How this read works ▸", how: "How this read works", hide: "Hide ▴",
+    washed: "● Washed out", notWashedRow: "○ Not washed out", turned: "↗ Turned up", falling: "↘ Still falling",
+    turnedCount: "Turned up on {k} of {n} washed-out timeframes",
+    definitions: ["Washed out means momentum is unusually low for that timeframe. A mark appears only after its timeframe's bar has closed. Only completed bars count.", "Turned up means momentum has risen for two completed bars in a row.", "Kind and own history describe the stock. They are not a judgement of it.", "Nothing here predicts a turn."],
+    history: "AGAINST ITS OWN HISTORY", comparisons: { about_usual: "This washout is about as deep as its usual ones.", shallower: "This washout is shallower than its usual ones.", deeper: "This washout is deeper than its usual ones." },
+    noDecline: "No decline right now, so there is nothing to compare with its group.", shallower: "← Shallower", thisOne: "◯ This one", deeper: "Deeper →",
+    historyLegend: "Ring: this washout · grey dots: past ones", noHistoryLegend: "Grey dots: past washouts · none now", date: "Date", depth: "Depth (%)",
+    kindTitle: "WHAT KIND OF STOCK", steady: "Steady compounder", cyclical: "Cyclical, high-beta", kindBody: "A washout reads differently for a steady compounder than for a cyclical, high-beta stock.",
+    groupTitle: "ITS GROUP · {name}", source: "From Sector Intelligence", groupFields: "Group figures: not yet available",
+    provenance: { shared_with_group: "Most of this decline was shared with its group", own: "Most of this decline was its own" },
+    groupStates: "GROUP STATES", stateList: "Falling · Washed out · Basing · Turning · Not washed out", groupMeaning: "Turning describes the group's momentum, not this stock's momentum.",
+    boxed: "Group figures describe the group; they do not change how this stock's read should be taken.",
+  },
+  zh: {
+    title: "低谷解读", unavailable: "暂不可用", unavailableBody: "该股票暂未提供此项解读。",
+    variants: {
+      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
+      named: { headline: "处于低位：{list} · 未处于低位：{rest} · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。" },
+    },
+    notWashed: "未处于低位", turning: "正在回升", notTurned: "尚未回升", none: "无",
+    frames: { "1D": "日线", "3D": "3日线", "1W": "周线", "2W": "2周线" },
+    kinds: { steady: "稳健复利型", leans_steady: "偏稳健复利型", middle: "介于稳健与周期型之间", leans_cyclical: "偏周期型、高贝塔", cyclical: "周期型、高贝塔" },
+    states: { FALLING: "下行", WASHED_OUT: "低位", BASING: "筑底", TURNING: "回升", NOT_WASHED_OUT: "未处于低位" },
+    kind: "类型：{kind}", group: "所属组（{name}）：{state}", open: "解读方法 ▸", how: "解读方法", hide: "收起 ▴",
+    washed: "● 低位", notWashedRow: "○ 未处于低位", turned: "↗ 已回升", falling: "↘ 仍下行", turnedCount: "{n}个低位周期中有{k}个已回升",
+    definitions: ["低位指该周期的动量异常低。标记仅在该周期柱结束后出现。只计算已完成的周期柱。", "回升指动量连续两个已完成的周期柱上升。", "类型和自身历史描述股票本身，并非对其作出评价。", "这里的内容不预测转折。"],
+    history: "与自身历史相比", comparisons: { about_usual: "此次低位深度与以往通常情况相近。", shallower: "此次低位比以往通常情况更浅。", deeper: "此次低位比以往通常情况更深。" },
+    noDecline: "目前没有下跌，因此没有可与所属组比较的跌幅。", shallower: "← 更浅", thisOne: "◯ 本次", deeper: "更深 →", historyLegend: "圆环：本次低位 · 灰点：历史低位", noHistoryLegend: "灰点：历史低位 · 目前无低位", date: "日期", depth: "深度（%）",
+    kindTitle: "股票类型", steady: "稳健复利型", cyclical: "周期型、高贝塔", kindBody: "稳健复利型股票与周期型、高贝塔股票的低位含义不同。",
+    groupTitle: "所属组 · {name}", source: "来自行业情报", groupFields: "组内数据：尚未提供", provenance: { shared_with_group: "此次跌幅大部分与所属组共同发生", own: "此次跌幅大部分来自个股自身" },
+    groupStates: "组内状态", stateList: "下行 · 低位 · 筑底 · 回升 · 未处于低位", groupMeaning: "回升描述所属组的动量，而非这只股票的动量。", boxed: "组内数据描述所属组，不改变对该股票解读的理解方式。",
+  },
+} as const;
+
 export const SETUP_LEX = {
   // ── Arrival / return (P1-7) ──────────────────────────────────────────────
   crumbsMembers:      ["members", "成分"],
