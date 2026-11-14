@@ -108,7 +108,7 @@ export function switchWorkspaceMarket(href: string, market: WorkspaceMarket): st
   const url = new URL(href, "https://shell.invalid");
   const previous = workspaceMarket(url.pathname, url.search);
   if (previous !== market && (routeBinding(url.pathname) || NATIVE_MARKET_WORKSPACES.has(url.pathname))) {
-    const compatible = new Set(["tab", "view", "sectorJob", "window", "timeframe", "period",
+    const compatible = new Set(["tab", "view", "sectorJob", "window", "timeframe", "period", "macroWorkspace",
       "sectorWorkspace", "sectorView", "sectorDiscoveryMode", "sectorMatrixTimeframe", "sectorBreadthWindow"]);
     url.search = retainQuery(url.search, key => compatible.has(key));
     url.hash = "";

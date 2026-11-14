@@ -374,12 +374,15 @@ for (const [lang, theme] of cases) {
     await panel.getByRole("button", { name: L.table, exact: true }).click();
     const dataTable = panel.locator("table").first();
     await expect(dataTable).toBeVisible();
-    await expect(dataTable.locator("tbody tr")).toHaveCount(64); // 3-month window: 63-day span, inclusive endpoints
+    // Range controls count supplied observations, not elapsed calendar days.
+    await expect(dataTable.locator("tbody tr")).toHaveCount(63);
+    await expect(dataTable.locator("tbody tr").first().locator("th")).toHaveText("2026-05-02");
+    await expect(dataTable.locator("tbody tr").last().locator("th")).toHaveText("2026-03-01");
     const row = dataTable.locator(`tbody tr:has(> th:text-is("${date}"))`);
     await expect(row).toHaveCount(1);
     await expect(row.locator("td").first()).toHaveText(chartValue);
 
-    /* ── Range select: All and 1-month windows (exact row counts) ── */
+    /* ── Range select: All and 21-session windows (exact boundaries) ── */
     await panel.getByLabel(L.range).selectOption("0");
     await expect(dataTable.locator("tbody tr")).toHaveCount(252);
 
@@ -400,7 +403,9 @@ for (const [lang, theme] of cases) {
     await expect(fs).toBeHidden();
 
     await panel.getByLabel(L.range).selectOption("21");
-    await expect(dataTable.locator("tbody tr")).toHaveCount(22); // 21-day span, inclusive
+    await expect(dataTable.locator("tbody tr")).toHaveCount(21);
+    await expect(dataTable.locator("tbody tr").first().locator("th")).toHaveText("2026-05-02");
+    await expect(dataTable.locator("tbody tr").last().locator("th")).toHaveText("2026-04-12");
 
     /* ── Scale: the fixture RS crosses zero, so log is an honest refusal ── */
     await expect(panel.getByRole("option", { name: L.log, exact: true })).toHaveAttribute("disabled", "");

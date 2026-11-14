@@ -17,13 +17,15 @@ require.extensions['.ts'] = (module, filename) => {
   // sector-company-v3 reuses this one shared synthetic fixture dependency.
   const generationFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorNativeGeneration.ts');
   const historyFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorCycleHistory.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture) throw Error('fixture loader scope');
+  const liquidityFixture = path.join(ROOT,'lib/__tests__/fixtures/macroLiquidity.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
 const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
 const sectorGeneration = require('../../lib/__tests__/fixtures/sector_generation.captured.preview.v1.json');
 const {syntheticCycleHistory:cycleHistory,syntheticCycleHistorySha:cycleHistorySha} = require('../../lib/__tests__/fixtures/sectorCycleHistory.ts');
+const {liquidityFixture} = require('../../lib/__tests__/fixtures/macroLiquidity.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -50,6 +52,10 @@ report.sourceFiles=Object.fromEntries([
  'components/intelligence/SharedShellPrimaryNav.tsx',
  'lib/shared-shell/intelligenceNavigation.ts',
  'components/intelligence/IntelligenceWorkspace.tsx',
+ 'components/intelligence/MacroLiquidityDetail.tsx',
+ 'components/intelligence/MacroLiquidity.module.css',
+ 'lib/shared-shell/macroWorkspacePayload.ts',
+ 'lib/__tests__/fixtures/macroLiquidity.ts',
  'components/intelligence/IntelligenceToolWorkspace.tsx',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
  'components/sector-intelligence/SectorCycleHistory.tsx',
@@ -159,7 +165,7 @@ async function context(auth=true){
   const u=new URL(route.request().url());
   if(!['127.0.0.1','localhost'].includes(u.hostname)){report.externalRequests.push(u.origin+u.pathname);return route.abort();}
   if(u.origin===BASE){
-   if(u.pathname==='/api/shared-shell/today')return route.fulfill({json:macro});
+   if(u.pathname==='/api/shared-shell/today')return route.fulfill({json:u.searchParams.get('workspace')==='liquidity_regime'?liquidityFixture():macro});
    if(u.pathname==='/api/sector-intelligence')return u.searchParams.get('view')==='intelligence'?route.fulfill({json:proof.cycles.summary}):sectorFixture(route);
    if(u.pathname==='/api/flow'&&u.searchParams.get('view')==='intelligence')return route.fulfill({json:proof.prophet.summary});
    if(u.pathname==='/api/prefs')return route.fulfill({json:{}});
@@ -316,6 +322,59 @@ async function qualifyCycleHistory(page, cell) {
   await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "cycle-history-light-zh.png") });
 }
 
+async function qualifyLiquidity(page,cell) {
+  let fixtureRead=liquidityFixture(),selectedReads=0;
+  await page.route('**/api/shared-shell/today?workspace=liquidity_regime',route=>{selectedReads++;return route.fulfill({json:fixtureRead});});
+  await page.goto(BASE+'/intelligence?workspaceMarket=us');
+  const entry=page.getByRole('link',{name:'Liquidity regime →',exact:true});
+  await expect(entry).toBeVisible({timeout:30000});await entry.click();
+  await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us&macroWorkspace=liquidity_regime');
+  const detail=page.locator('[data-macro-liquidity]');
+  await expect(detail).toHaveAttribute('data-read-state','ready',{timeout:30000});
+  await expect(detail.getByRole('heading',{level:1,name:'Liquidity Regime',exact:true})).toBeFocused();
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);await expect(detail.locator('iframe')).toHaveCount(0);
+  await expect(detail).toContainText('Tight funding / Weak support');await expect(detail).toContainText('48.00');
+  await expect(detail.getByRole('table')).toContainText('Unchanged');await expect(detail.getByRole('table')).toContainText('0.00');
+  await expect(detail).toContainText('2026-11-10 → 2026-11-12');await expect(detail).toContainText('Points on a 0–100 scale');await expect(detail).toContainText('2026-11-06');
+  await noOverflow(page);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-liquidity-dark-en.png')});
+  await detail.getByRole('button',{name:'Sources & method',exact:true}).click();
+  await expect(detail.locator('summary')).toBeFocused();await expect(detail.locator('details')).toHaveAttribute('open','');
+  await expect(detail.locator('details')).toContainText('8'.repeat(64));await expect(detail.locator('details')).toContainText('not a hash of the raw file bytes');await noOverflow(page);
+  await detail.getByRole('link',{name:'← Market overview',exact:true}).click();
+  await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');await expect(entry).toBeFocused();
+  await page.keyboard.press('Enter');await expect(detail).toHaveAttribute('data-read-state','ready');
+  await page.goBack();await expect(entry).toBeFocused();await page.goForward();await expect(detail).toHaveAttribute('data-read-state','ready');
+  await expect(detail.getByRole('link',{name:'Open full liquidity workspace ↗',exact:true})).toHaveAttribute('href','/macro_liquidity_regime.html');
+  // The market owner keeps the selected task while the coverage boundary
+  // unmounts its US consumer. Returning to US must reopen the same detail.
+  const beforeMarketSwitch=selectedReads;
+  await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('cn');
+  await expect(page).toHaveURL(BASE+'/intelligence?macroWorkspace=liquidity_regime&workspaceMarket=cn');
+  await expect(page.getByRole('heading',{name:'This workspace is not available for this market yet',exact:true})).toBeVisible();
+  await expect(detail).toHaveCount(0);expect(selectedReads).toBe(beforeMarketSwitch);
+  await page.getByRole('link',{name:'View US workspace →',exact:true}).click();
+  await expect(page).toHaveURL(BASE+'/intelligence?macroWorkspace=liquidity_regime&workspaceMarket=us');
+  await expect(detail).toHaveAttribute('data-read-state','ready');
+  await expect(detail.getByRole('heading',{level:1,name:'Liquidity Regime',exact:true})).toBeFocused();
+  // One missing prior affects one row; it cannot erase the published state or
+  // manufacture a zero change. Values below remain synthetic specimens.
+  const missing=fixtureRead.selected_workspace.view.changes.deltas[1];
+  Object.assign(missing,{prior:null,prior_raw:null,prior_present:false,delta:null,delta_raw:null,delta_present:false,comparable:false,is_movement:false,absence:{label:{en:'Previous value unavailable',zh:'上次值不可用'}}});
+  await detail.getByRole('button',{name:'Refresh',exact:true}).click();await expect(detail).toHaveAttribute('data-read-state','ready');
+  await expect(detail.getByRole('table')).toContainText('Previous value unavailable');await expect(detail.getByRole('table')).toContainText('Unchanged');await noOverflow(page);
+  await page.getByRole('button',{name:'Light theme',exact:true}).click();await page.getByRole('button',{name:'Chinese language',exact:true}).click();
+  await expect(detail.getByRole('heading',{level:1,name:'流动性状态',exact:true})).toBeVisible();await noOverflow(page);
+  await page.locator('main').evaluate(el=>el.scrollTo(0,0));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-liquidity-partial-light-zh.png')});
+  fixtureRead=liquidityFixture();const view=fixtureRead.selected_workspace.view;
+  view.changes={comparable:false,comparability:'NO_PRIOR',comparability_label:{en:'No prior publication',zh:'无上次发布'},prior_is_earlier:false,prior_effective_date:null,deltas:[],absence:{label:{en:'No prior publication',zh:'无上次发布'}}};view.headline.prior={state_id:null,effective_date:null};view.headline.hysteresis={held_prior:false,note:null};
+  await detail.getByRole('button',{name:'刷新',exact:true}).click();await expect(detail).toHaveAttribute('data-read-state','ready');
+  await expect(detail.getByRole('table')).toHaveCount(0);await expect(detail).toContainText('无上次发布');await expect(detail).toContainText('48.00');await noOverflow(page);
+  await page.locator('main').evaluate(el=>el.scrollTo(0,0));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-liquidity-no-prior-light-zh.png')});
+  const beforeInvalid=selectedReads;await page.goto(BASE+'/intelligence?workspaceMarket=us&macroWorkspace=unknown');
+  await expect(page.locator('[data-macro-liquidity]')).toHaveAttribute('data-read-state','invalid');await expect(page.locator('button[aria-controls="liquidity-sources"]')).toHaveCount(0);expect(selectedReads).toBe(beforeInvalid);
+  report.cells.push({w:page.viewportSize().width,journey:'native-liquidity',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_DATA',fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(liquidityFixture())).digest('hex'),selectedReads,passed:true});
+}
+
 (async()=>{
  try{
   const authBase=await startFixture();
@@ -412,6 +471,9 @@ async function qualifyCycleHistory(page, cell) {
    report.cells.push({w:width,h:height,journey:'native-sector-and-cycle-history',source:cycleHistorySha,
     sourceProof:'SYNTHETIC_CONTRACT_FIXTURE_NOT_MARKET_DATA',passed:true});
    await memberContext.close();
+   const liquidityContext=await context(),liquidityPage=await liquidityContext.newPage();
+   await liquidityPage.setViewportSize({width,height});liquidityPage.on('pageerror',error=>report.errors.push({cell:`liquidity-${width}`,error:error.message}));
+   await qualifyLiquidity(liquidityPage,`liquidity-${width}`);await liquidityContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

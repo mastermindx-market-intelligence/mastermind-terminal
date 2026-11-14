@@ -96,7 +96,12 @@ const READ_PARAMS: Readonly<Record<string, (value: string) => boolean>> = {
 
 /** Allowlist-only query validation; null for anything unknown, duplicated or malformed. */
 function validateQuery(resource: ReadingResource, incoming: URLSearchParams): URLSearchParams | null {
-  if (resource === 'catalog' || resource === 'today') {
+  if (resource === 'today') {
+    if (incoming.keys().next().done) return new URLSearchParams();
+    if ([...incoming.keys()].length !== 1 || incoming.getAll('workspace').length !== 1 || incoming.get('workspace') !== 'liquidity_regime') return null;
+    return new URLSearchParams({ workspace: 'liquidity_regime' });
+  }
+  if (resource === 'catalog') {
     return incoming.keys().next().done ? new URLSearchParams() : null;
   }
   const allowed = resource === 'search' ? SEARCH_PARAMS : READ_PARAMS;

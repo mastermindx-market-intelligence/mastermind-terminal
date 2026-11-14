@@ -54,6 +54,12 @@ describe("URL-owned workspace market", () => {
     }
     expect(hasWorkspaceMarketCoverage("/unqualified.html", "workspaceMarket=cn")).toBe(false);
   });
+  it("returns to the selected Macro task after unsupported market coverage", () => {
+    const away = switchWorkspaceMarket("/intelligence?workspaceMarket=us&macroWorkspace=liquidity_regime", "cn");
+    expect(away).toBe("/intelligence?macroWorkspace=liquidity_regime&workspaceMarket=cn");
+    expect(hasWorkspaceMarketCoverage("/intelligence", new URL(away, "https://shell.invalid").search)).toBe(false);
+    expect(switchWorkspaceMarket(away, "us")).toBe("/intelligence?macroWorkspace=liquidity_regime&workspaceMarket=us");
+  });
   it("decorates local navigation without rewriting external destinations", () => {
     expect(marketNavigationHref("/sectors?sectorJob=explore", "hk")).toBe("/sectors?sectorJob=explore&workspaceMarket=hk");
     expect(marketNavigationHref("/us_stocks.html", "cn")).toBe("/china_stocks.html");
