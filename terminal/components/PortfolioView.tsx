@@ -32,6 +32,7 @@ import { isPortfolioTargetsSummary } from "@/lib/portfolioTargets";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import EventImpactPanel from "@/components/EventImpactPanel";
+import { PortfolioHistoryAccess } from "./PortfolioHistoryAccess";
 import PortfolioBrokerage from "./PortfolioBrokerage";
 import PositionModal, { type PositionDraft } from "@/components/PositionModal";
 import {
@@ -671,7 +672,7 @@ export default function PortfolioView(
   // Retire the whole rendered workspace when its immutable owner changes, including the
   // independently loaded brief/events and local record-selection state. Same-owner refreshes
   // keep this instance and its live requests; A to B to A cannot revive an earlier instance.
-  return <>
+  return <PortfolioHistoryAccess.Provider value={historyEnabled}>
     <PortfolioWorkspace brokerage={brokerageEnabled && userId ? <PortfolioBrokerage key={ownerKey} owner={userId} onRefresh={()=>void retryRead()} /> : null} key={ownerKey} positions={positions} quotes={quotes} manifest={man} totals={totals} risk={risk}
       unreadable={unread} stale={bookStale} retrying={retrying} lastChecked={lastChecked}
       failure={failure} busyId={busyId} confirmDelete={confirmDelete}
@@ -685,9 +686,9 @@ export default function PortfolioView(
       briefContent={<PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
       eventContent={<EventImpactPanel positions={open} holdingsUnreadable={unread} />}
     />
-    {editing && <PositionModal historyEnabled={historyEnabled} key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}
+    {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}
       onCancel={() => setEditing(null)} onSubmit={submit} />}
-  </>;
+  </PortfolioHistoryAccess.Provider>;
 }
 
 // Existing exposure, history and target consumers retain their computation and write authority.

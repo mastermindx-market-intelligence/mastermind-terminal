@@ -14,6 +14,7 @@ import {
   type PortfolioSection, type RecordFilter, type RecordIssue, type WorkspaceQuote, type WorkspaceManifest,
 } from "@/lib/portfolioWorkspace";
 import { parseSectorPortfolioContext } from "@/lib/sectorPortfolioContext";
+import BrokerHoldingDetails from "./BrokerHoldingDetails";
 import PortfolioSectorContext from "@/components/PortfolioSectorContext";
 import s from "./PortfolioWorkspace.module.css";
 
@@ -108,7 +109,8 @@ export default function PortfolioWorkspace(p: Props) {
   const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / PAGE_SIZE) - 1));
   const visibleRows = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const selected = p.positions.find(row => row.id === selectedId);
-  const nameFor = (ticker: string) => (lang === "zh" ? p.manifest[ticker]?.zh : null) || p.manifest[ticker]?.name || ticker;
+  const importedNames = new Map(p.positions.filter(row=>row.brokerage).map(row=>[row.ticker,row.brokerage!.name]));
+  const nameFor = (ticker: string) => importedNames.get(ticker) || (lang === "zh" ? p.manifest[ticker]?.zh : null) || p.manifest[ticker]?.name || ticker;
   const switchSection = (next: PortfolioSection) => { setSectionChoice({ key: navigationKey, value: next }); onSectionChange(next); };
   const showHoldings = (nextFilter: RecordFilter = "all") => {
     setFilter(nextFilter); setQuery(""); setStatus("open"); setPage(0); switchSection("holdings");
@@ -143,12 +145,17 @@ export default function PortfolioWorkspace(p: Props) {
         const value = marketValue(position, quote?.last ?? null, quote?.currency);
         const change = sinceEntryPct(position, quote?.last ?? null, quote?.currency);
         const monetaryChange = sinceEntryValue(position, quote?.last ?? null, quote?.currency);
+        if(position.brokerage && !position.brokerage.symbol) return <tr key={position.id} data-position-id={position.id} data-status="open">
+          <td className={s.securityCell}><div className={s.securityText}><b>{position.brokerage.name}</b><span>{position.brokerage.account}</span></div></td>
+          <td>{number(position.shares,4)}</td>{!preview && <><td>—</td><td>{amount(position.brokerage.price,position.brokerage.currency)}</td></>}
+          <td>{amount(position.brokerage.value,position.brokerage.currency)}</td><td>—</td><td><button className={s.reviewButton} type="button" onClick={()=>setSelectedId(position.id)}>{c("inspect")}</button></td>
+        </tr>;
         return <tr key={position.id} data-position-id={position.id} data-ticker={position.ticker} data-status={position.status}
           className={`pf-row ${p.busyId === position.id ? s.busy : ""}`}>
           <td className={s.securityCell}>
             <span className={s.monogram} aria-hidden="true">{position.ticker.slice(0, 2)}</span>
-            <div className={s.securityText}>{position.brokerage && !position.brokerage.symbol ? <b>{position.brokerage.name}</b> : <Link className="pf-tk" href={terminalHref(shellPresentation, currentHref, position.ticker)}>{position.ticker}</Link>}
-              <span title={position.brokerage?.account ?? nameFor(position.ticker)}>{position.brokerage?.account ?? nameFor(position.ticker)}</span></div>
+            <div className={s.securityText}><Link className="pf-tk" href={terminalHref(shellPresentation, currentHref, position.ticker)}>{position.ticker}</Link>
+              <span title={nameFor(position.ticker)}>{nameFor(position.ticker)}</span></div>
           </td>
           <td data-label={c("quantity")}>{number(position.shares, position.shares != null && position.shares % 1 !== 0 ? 4 : 0)}
             {position.shares === null && <small>{t("unsized")}</small>}</td>
@@ -315,7 +322,8 @@ export default function PortfolioWorkspace(p: Props) {
         </>}
       </div>
     </div>
-    {selected && !p.unreadable && <RecordDialog key={selected.id} position={selected} name={nameFor(selected.ticker)}
+    {selected?.brokerage && !selected.brokerage.symbol && !p.unreadable && <BrokerHoldingDetails key={selected.id} position={selected} onClose={()=>setSelectedId(null)} />}
+    {selected && (!selected.brokerage || selected.brokerage.symbol) && !p.unreadable && <RecordDialog key={selected.id} position={selected} name={nameFor(selected.ticker)}
       quote={p.quotes[selected.ticker]} fallback={p.manifest[selected.ticker]} busy={p.busyId === selected.id} failure={p.failure}
       confirming={p.confirmDelete === selected.id}
       onClose={() => { setSelectedId(null); p.onDeleteCancel(); }}
@@ -354,10 +362,10 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
           <div><dt>{c("entryDate")}</dt><dd>{position.entryAt ? new Date(position.entryAt).toLocaleString(lang==="zh"?"zh-CN":"en-US",{timeZoneName:"short"}) : position.entryDate || "—"}</dd></div>
           {position.exitDate && <div><dt>{lang==="zh"?"平仓":"Exit"}</dt><dd>{position.exitAt ? new Date(position.exitAt).toLocaleString(lang==="zh"?"zh-CN":"en-US",{timeZoneName:"short"}) : position.exitDate}</dd></div>}
           <div><dt>{c("last")}</dt><dd>{price ? `${number(price.last, price.last < 10 ? 4 : 2)} · ${price.currency || c("currencyUnknown")}` : "—"}</dd></div></dl>
-        <p className={s.quoteSource}>{position.brokerage && !finite(quote?.last) ? (lang==="zh"?"券商估值":"Institution valuation") : !price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
+        <p className={s.quoteSource}>{!price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
-        {(!position.brokerage || position.brokerage.symbol) && <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>}
+        <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
       </div>
       <footer className={s.dialogFooter}>
         {position.brokerage ? <p>{lang === "zh" ? "通过投资账户同步" : "Synced from investment account"} · {position.brokerage.account} · {position.brokerage.asOf ?? position.brokerage.syncedAt}</p> : <>

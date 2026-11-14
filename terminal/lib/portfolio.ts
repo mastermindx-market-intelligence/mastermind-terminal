@@ -557,7 +557,7 @@ export function resolveLast(
   return pick(quotes[ticker]?.last) ?? pick(manifest[ticker]?.last);
 }
 
-export function positionPrice(position:Position,quote:PriceObservation,fallback:PriceObservation){
+export function positionPrice(position:Pick<Position,"shares"|"brokerage">,quote:PriceObservation,fallback:PriceObservation){
   const broker=position.brokerage;
   if(!broker)return nativePrice(quote,fallback);
   // Institution prices can represent options contracts or fixed-income instruments with a multiplier.
@@ -566,10 +566,16 @@ export function positionPrice(position:Position,quote:PriceObservation,fallback:
   const quoted=broker.symbol && ["equity","etf","mutual fund"].includes(broker.type??"") && unit && finite(broker.value) && finite(broker.price) && finite(position.shares) &&
     Math.abs(position.shares*broker.price-broker.value)<0.011 ? nativePrice(quote,null) : null;
   if(quoted?.currency===unit && quoted)return quoted;
-  return unit && finite(broker.value) && finite(position.shares) && position.shares!==0 ?
-    {last:broker.value/position.shares,currency:unit,chg:null} : null;
+  return unit && finite(broker.price) ? {last:broker.price,currency:unit,chg:null} : null;
 }
-export function marketValue(position: Position, last: number | null, quoteCurrency?: unknown): number | null {
+export function marketValue(position: Pick<Position,"shares"|"brokerage">, last: number | null, quoteCurrency?: unknown): number | null {
+  const broker=position.brokerage;
+  if(broker && priceCurrency(broker.currency) && finite(broker.value)){
+    // Fixed income, options, cash and other non-unit holdings use the source's absolute value.
+    if(!broker.symbol || !["equity","etf","mutual fund"].includes(broker.type??"") ||
+       !finite(broker.price) || !finite(position.shares) || Math.abs(position.shares*broker.price-broker.value)>=0.011 ||
+       !finite(last) || quoteCurrency!==broker.currency)return broker.value;
+  }
   return priceCurrency(quoteCurrency) ? finiteProduct(position.shares, last) : null;
 }
 
@@ -623,7 +629,11 @@ export function bookTotals(
       if (!entryUnit || historicalCost === null) gap(monetaryGaps, position.ticker);
     }
     const quote = positionPrice(position,quotes[position.ticker],manifest[position.ticker]);
-    const value = quote ? finiteProduct(position.shares, quote.last) : null;
+    const value = position.brokerage ? marketValue(position,quote?.last??null,quote?.currency) : quote ? finiteProduct(position.shares, quote.last) : null;
+    if(!quote && position.brokerage && finite(value) && priceCurrency(position.brokerage.currency)){
+      values.push({amount:value,currency:position.brokerage.currency});days.push({amount:NaN,currency:position.brokerage.currency});
+      gap(noBasis,position.ticker);continue;
+    }
     if (!quote || !finite(position.shares)) { if (!quote) gap(unpriced, position.ticker); continue; }
     values.push({ amount: value ?? NaN, currency: quote.currency });
     if (!quote.currency || value === null) gap(monetaryGaps, position.ticker);

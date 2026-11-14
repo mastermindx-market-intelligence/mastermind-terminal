@@ -21,6 +21,7 @@ import type { Position } from "@/lib/portfolio";
 import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
 import styles from "./PortfolioWorkspace.module.css";
+import { usePortfolioHistoryAccess } from "./PortfolioHistoryAccess";
 
 export type PositionDraft = {
   clientPositionId?: string;
@@ -59,20 +60,19 @@ export default function PositionModal({
   mode,
   position,
   initialTicker,
-  historyEnabled = false,
   onCancel,
   onSubmit,
 }: {
   mode: "add" | "edit";
   position: Position | null;
   initialTicker?: string;
-  historyEnabled?: boolean;
   onCancel: () => void;
   onSubmit: (draft: PositionDraft) => Promise<PositionMutationResult>;
 }) {
   const t = useT();
   const { lang } = useLang();
   const titleId = useId();
+  const historyEnabled=usePortfolioHistoryAccess();
   const copy = portfolioCopy(lang);
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);

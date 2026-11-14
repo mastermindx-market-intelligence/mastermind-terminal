@@ -1,7 +1,7 @@
 import {describe,expect,it,vi,afterEach} from "vitest";
 import {brokerageSnapshot} from "../brokerage/snapshot";
 import {seal,unseal,type BrokerageConfig} from "../brokerage/plaid.server";
-import {createPosition,updatePosition,readPositions,normalizeExecutionTime,positionPrice,type Position} from "../portfolio";
+import {createPosition,updatePosition,readPositions,normalizeExecutionTime,positionPrice,marketValue,type Position} from "../portfolio";
 import {createFixtureDb,fixtureUserId} from "../watchlistsFixtureDb";
 
 const config:BrokerageConfig={key:Buffer.alloc(32,1),origin:"https://test.invalid",host:"https://sandbox.plaid.com",clientId:"fixture",secret:"fixture"};
@@ -15,7 +15,7 @@ describe("brokerage and manual history",()=>{
  it("retains individual accounts and non-ticker assets",()=>{const data=brokerageSnapshot(snapshot,"item");expect(data.map(x=>[x.accountId,x.symbol,x.value])).toEqual([["one","AAPL",20],["two","AAPL",30],["two",null,40]]);});
  it("rejects partial snapshots, unknown items and duplicated identities before replacing a book",()=>{for(const body of [{...snapshot,securities:[]},{...snapshot,item:{item_id:"different"}},{...snapshot,holdings:[...snapshot.holdings,snapshot.holdings[0]]}])expect(()=>brokerageSnapshot(body,"item")).toThrow();});
  it("binds a credential to its owner and connection purpose",()=>{const token=seal(config,"fictional-token","owner-one/link");expect(unseal(config,token,"owner-one/link")).toBe("fictional-token");expect(()=>unseal(config,token,"other/item")).toThrow();});
- it("preserves dated broker values for non-unit instruments",()=>{const p={ticker:"OPT",shares:1,brokerage:{symbol:"OPT",currency:"USD",value:2000,price:20}} as Position;expect(positionPrice(p,{last:22,currency:"USD"},{})).toEqual({last:2000,currency:"USD",chg:null});});
+ it("preserves dated broker values for non-unit instruments",()=>{const p={ticker:"OPT",shares:1,brokerage:{symbol:"OPT",currency:"USD",value:2000,price:20}} as Position;expect(positionPrice(p,{last:22,currency:"USD"},{})).toEqual({last:20,currency:"USD",chg:null});expect(marketValue(p,20,"USD")).toBe(2000);});
  it("keeps date-only history when time fields are disabled",()=>{expect(normalizeExecutionTime(undefined)).toEqual({kind:"absent"});expect(normalizeExecutionTime("2026-01-01T12:00")).toEqual({kind:"invalid"});});
  it("round trips a dated closed lot, owner-scopes the read and refuses a reversed exit",async()=>{
    vi.stubEnv("PORTFOLIO_EXECUTION_TIMES","1");const db=createFixtureDb("history"),owner=fixtureUserId("history");
