@@ -1,0 +1,13 @@
+[Reading 10 new lines (total: 10 lines)]
+
+{"start": "browser-shared-final.log", "shared_shell": "1"}
+{"done": "browser-shared-final.log", "exit": 0, "seconds": 64.65}
+{"start": "browser-classic-final.log", "shared_shell": "0"}
+{"done": "browser-classic-final.log", "exit": 0, "seconds": 42.89}
+{"start": "lint-final.log", "shared_shell": "0"}
+{"done": "lint-final.log", "exit": 0, "seconds": 3.34}
+{"start": "typecheck-final.log", "shared_shell": "0"}
+{"done": "typecheck-final.log", "exit": 0, "seconds": 83.63}
+{"diff_check_exit": 0, "output": ""}
+
+✅ Process completed with exit code 0 (runtime: 194.83s)

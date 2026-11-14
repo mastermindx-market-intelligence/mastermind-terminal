@@ -1,0 +1,169 @@
+{
+  "operation_id": "options-flow-interval-summary-20261114-c3",
+  "base_sha": "e109b0e07af4d6c400c99ff9ed98f17306c570d2",
+  "node_sha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "source_inputs": [
+    {
+      "path": "terminal/components/flowdesk/FlowProjectionStrip.tsx",
+      "sha256": "12f236ac7d5ece9f23e3349b340f0b344af39c422b01ab1440f3e183d7ceba21",
+      "bytes": 7700
+    },
+    {
+      "path": "terminal/components/flowdesk/FlowProjectionStrip.module.css",
+      "sha256": "95087813b9f6a51eb5ce7ffc0bc3b4e1d1d075e76d1a7c51d0d0ceee85beac23",
+      "bytes": 2349
+    },
+    {
+      "path": "terminal/lib/__tests__/flowProjectionControls.test.tsx",
+      "sha256": "a27137125d494c139177a8b8eabd191dcd762fd9cddf571815dcb3517a3e706d",
+      "bytes": 11748
+    },
+    {
+      "path": "terminal/e2e/flow-projection.spec.ts",
+      "sha256": "ffc99ebf864aa33e1d2efdc6a07dd6e08f3c783689985f0ff541f1f57b454498",
+      "bytes": 13725
+    },
+    {
+      "path": "terminal/lib/flowProjection.ts",
+      "sha256": "f1fb153466bbf7da5ca84f11e844497c2baf97aa0aa817cb4bae02d6168d3249",
+      "bytes": 6405
+    },
+    {
+      "path": "terminal/components/flowdesk/FeedPane.tsx",
+      "sha256": "f674933b4217ed12c9b05abd33086f5f89b924d10ffb7516d5e06bce44104ad9",
+      "bytes": 39994
+    },
+    {
+      "path": "terminal/e2e/fixtures/options-r1-w3a-flow.json",
+      "sha256": "bc1f5d0ebfaa2f39fe4b542f25e5b2df84c37738b6da124c380e014d565b9f1f",
+      "bytes": 6563
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellPresentation.tsx",
+      "sha256": "a57b68b36686f83a7a7095aa498b3fcc310982853e8008d48abee35213d9071c",
+      "bytes": 6192
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "sha256": "2b3417366f58b0d25588b6d6bf6a2346f47ad84403885066946c5a2f18b1c116",
+      "bytes": 23462
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "bytes": 7995
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/verification/options-flow-interval-20261114/README.md",
+      "sha256": "92842020739613bac79bd64b08fb4dbbf78ae410f35c4d401e46c843ebf33a72",
+      "bytes": 8627
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/browser-classic-final.log",
+      "sha256": "264f605150a1e7a6d087a8e0dd8af6d2b5132c05e89384a0cd38cdd25f99a4ad",
+      "bytes": 2286
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/browser-desktop-repair.log",
+      "sha256": "f451a429fc9c7b832a010031a1ad389e11a9cac0980fa070d7060949339e230c",
+      "bytes": 1499
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/browser-desktop.log",
+      "sha256": "08db9f96dc85c93b834b3ed213f98bfb8aefb0a5e6513a2906331daaa113b817",
+      "bytes": 15162
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/browser-responsive.log",
+      "sha256": "4794ef68459eacfa5a8638eb4ee4a55a7f7bd3660e2c0c0de2318edbf8f88b88",
+      "bytes": 2415
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/browser-shared-final.log",
+      "sha256": "ec7845f96a1a7ee4779c0ae0654323af1f73d72c628ecb1597952b47cd7882ff",
+      "bytes": 3240
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/classic-en-desktop-compact.png",
+      "sha256": "36f589f296183800baea99ee5390bee50ce6913b21062b3b2099fe79ef95c013",
+      "bytes": 291490
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/classic-zh-mobile-compact.png",
+      "sha256": "ffca9eeee711c1c0456d6ab4988a3dda042c79ef2584003dae2ac626a5ae94cc",
+      "bytes": 114067
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-dark-mobile-breakdown.png",
+      "sha256": "5f192360ab9af0c101fb2fc5ba0ffc62a538a3f68c6ea0954a08dd30ab4cc7be",
+      "bytes": 43531
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-light-desktop-compact.png",
+      "sha256": "9ae107e55652c9f03621cffe53b84561dd855382769b8bd6166aed8e2fb28354",
+      "bytes": 289056
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-light-tablet-compact.png",
+      "sha256": "214bcaf6f7e2e8211c5beca84ed0cf83cdc1a589a79500118dd3efdecaab669c",
+      "bytes": 207624
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-dark-desktop-compact.png",
+      "sha256": "ba08898cdd601d17019dc9a275d2c02fc9a687296d72d2542910baae9eed7514",
+      "bytes": 295343
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-desktop-breakdown.png",
+      "sha256": "14f50eb06dcbd7c5b316a9cd5242aced7c27bd822a3612c7f46b0c7ef5b4baa4",
+      "bytes": 42283
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-mobile-compact.png",
+      "sha256": "e31ff40d7182c3be8df8f49c5a8ed152d38a9b0b28d784e686afe2f36137e992",
+      "bytes": 111769
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-mobile-inspector.png",
+      "sha256": "86da723ce5e36f4258a0bd69ce246f09c3b0b4398166314da2168605d32fdb53",
+      "bytes": 119584
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/captures-manifest.json",
+      "sha256": "b763ba19ae9596d42f0efe1484a8a748f6d3b056598f0cd71d1bc651405cc3d2",
+      "bytes": 3460
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/execution-receipt.txt",
+      "sha256": "8fd05f883164b2968b71573d44d2ef7615ecb0b1421158d90358268d0d02fd49",
+      "bytes": 609
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/unit-after.json",
+      "sha256": "631b27091fe89127413cf171d2d8b14bd2a4d61a19d6ff4c8a4d78ff58ec0a41",
+      "bytes": 23563
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/unit-before.json",
+      "sha256": "620626f937c7082fa3a74e54aec9b28ffb7440b6cbfac6b74e71e804aa8c163e",
+      "bytes": 10387
+    },
+    {
+      "path": "docs/verification/options-flow-interval-20261114/unit-environment-error.json",
+      "sha256": "705889e87a0a726b0031e841d757645cf3a58396f16150669c81bdfdc75f2f9f",
+      "bytes": 47251
+    }
+  ]
+}

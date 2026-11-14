@@ -86,6 +86,7 @@ describe("real FeedPane selection preserves coverage and expansion ownership", (
     expect(cards()[0].textContent).toContain("MSFT");
     await activate(bucketButtons()[0]);
     expect(cards()).toHaveLength(2);
+    expect(host.querySelector('[data-testid="flow-bucket-summary"] [data-metric="premium"] dd')?.textContent).toBe("$1,230,000");
     expect(cards()[0].textContent).toContain("NVDA");
     expect(cards()[1].textContent).toContain("AAPL");
     expect(host.querySelector(".obs-fd-count")?.textContent).toContain("2");
@@ -112,10 +113,100 @@ describe("real FeedPane selection preserves coverage and expansion ownership", (
   it("clears missing bucket state and expansion when a new feed removes that bucket", async () => {
     await mount(); await activate(bucketButtons()[0]); await expand(cards()[0]);
     await mount([rows[2]]);
+    expect(host.querySelector('[data-testid="flow-bucket-summary"]')).toBeNull();
     expect(cards()).toHaveLength(1);
     expect(bucketButtons().some(b => b.textContent === "Clear bucket")).toBe(false);
     await mount(rows);
     expect(cards()).toHaveLength(3);
     expect(host.querySelectorAll('[data-fc-open="1"]')).toHaveLength(0);
+  });
+});
+
+describe("selected Flow interval explains its observed activity", () => {
+  const summary = () => host.querySelector<HTMLElement>('[data-testid="flow-bucket-summary"]');
+  const metric = (key: string) => summary()?.querySelector('[data-metric="' + key + '"] dd')?.textContent;
+  async function renderSelection(events: FlowEvent[], lang: "en" | "zh" = "en", selected: number | null = 0) {
+    const projection = buildFlowProjection(events, 15);
+    await act(async () => root.render(
+      <FlowProjectionStrip projection={projection} selectedKey={selected === null ? null : projection.buckets[selected]?.key ?? "removed"}
+        interval={15} lang={lang} onSelect={() => {}} onInterval={() => {}} />,
+    ));
+    return projection;
+  }
+
+  it.each(["en", "zh"] as const)("separates premium, event aggregates, reported prints and contract volume (%s)", async lang => {
+    await renderSelection([
+      event(),
+      event({ id: "put", ts: "2026-11-10T15:02:00Z", right: "P", side: "~sell", premium: 75.5, size: 5, n_prints: 1 }),
+      event({ id: "unknown", ts: "2026-11-10T15:03:00Z", right: "?" as FlowEvent["right"], side: "?" as FlowEvent["side"], premium: 25, size: 3, n_prints: 4 }),
+      event({ id: "excluded", ts: "2026-11-10T15:04:00Z", premium: -1 }),
+    ], lang);
+    expect(summary()).not.toBeNull();
+    expect(summary()?.textContent).toContain("2026-11-10 · 10:00–10:15 EST");
+    expect(metric("premium")).toBe("$610,100.50");
+    expect(metric("events")).toBe("3");
+    expect(metric("prints")).toBe("7");
+    expect(metric("contracts")).toBe("109");
+    expect(summary()?.textContent).toContain(lang === "zh" ? "事件聚合" : "Event aggregates");
+    expect(summary()?.textContent).toContain(lang === "zh" ? "报告成交笔数" : "Reported prints");
+    expect(summary()?.textContent).toContain(lang === "zh" ? "合约成交量" : "Contract volume");
+    expect(metric("calls")).toBe("$610,000");
+    expect(metric("puts")).toBe("$75.50");
+    expect(metric("unknown-right")).toBe("$25");
+    expect(metric("estimated-buy")).toBe("$610,000");
+    expect(metric("estimated-sell")).toBe("$75.50");
+    expect(metric("mixed")).toBe("$0");
+    expect(metric("unknown-side")).toBe("$25");
+    expect(summary()?.textContent).toContain(lang === "zh" ? "根据当前筛选" : "Current filters");
+    expect(summary()?.textContent).toContain(lang === "zh" ? "估算成交方向" : "Estimated trade side");
+    expect(summary()?.querySelector("details")?.open).toBe(false);
+    expect(host.textContent).toContain(lang === "zh" ? "数值无效" : "invalid value");
+  });
+
+  it("keeps genuine zero quantities visible and withdraws an unselected or missing interval", async () => {
+    await renderSelection([event({ premium: 0, size: 0, n_prints: 0 })]);
+    expect(metric("premium")).toBe("$0");
+    expect(metric("events")).toBe("1");
+    expect(metric("prints")).toBe("0");
+    expect(metric("contracts")).toBe("0");
+    await renderSelection(rows, "en", null);
+    expect(summary()).toBeNull();
+    await renderSelection(rows, "en", 99);
+    expect(summary()).toBeNull();
+  });
+
+  it("distinguishes the same local time on different dates and across EST/EDT", async () => {
+    const events = [
+      event({ id: "summer", ts: "2026-07-10T14:01:00Z" }),
+      event({ id: "winter", ts: "2026-11-10T15:01:00Z" }),
+    ];
+    const projection = await renderSelection(events);
+    const names = bucketButtons().slice(0, 2).map(b => b.getAttribute("aria-label"));
+    expect(names[0]).toContain("2026-07-10 · 10:00–10:15 EDT");
+    expect(names[1]).toContain("2026-11-10 · 10:00–10:15 EST");
+    expect(bucketButtons()[0].textContent).toContain("2026-07-10");
+    expect(bucketButtons()[1].textContent).toContain("2026-11-10");
+    expect(projection.buckets.map(b => b.key)).toEqual(["2026-07-10T14:00:00.000Z", "2026-11-10T15:00:00.000Z"]);
+  });
+
+  it("distinguishes repeated daylight-saving clock times on one local date", async () => {
+    await renderSelection([
+      event({ id: "first-one", ts: "2026-11-01T05:01:00Z" }),
+      event({ id: "second-one", ts: "2026-11-01T06:01:00Z" }),
+    ]);
+    const buttons = bucketButtons().slice(0, 2);
+    expect(buttons[0].getAttribute("aria-label")).toContain("2026-11-01 · 01:00–01:15 EDT");
+    expect(buttons[1].getAttribute("aria-label")).toContain("2026-11-01 · 01:00–01:15 EST");
+    expect(buttons[0].textContent).toContain("EDT");
+    expect(buttons[1].textContent).toContain("EST");
+  });
+
+  it("shows both dates when an interval ends on the next New York day", async () => {
+    const projection = buildFlowProjection([event({ ts: "2026-11-10T04:01:00Z" })], 60);
+    await act(async () => root.render(
+      <FlowProjectionStrip projection={projection} selectedKey={projection.buckets[0].key}
+        interval={60} lang="en" onSelect={() => {}} onInterval={() => {}} />,
+    ));
+    expect(summary()?.textContent).toContain("2026-11-09 23:00 EST – 2026-11-10 00:00 EST");
   });
 });
