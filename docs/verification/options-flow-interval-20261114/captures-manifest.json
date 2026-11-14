@@ -1,0 +1,56 @@
+[
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/classic-en-desktop-compact.png",
+    "origin": "terminal/test-results/flow-interval-classic-final-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/interval-compact.png",
+    "sha256": "36f589f296183800baea99ee5390bee50ce6913b21062b3b2099fe79ef95c013",
+    "bytes": 291490
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/classic-zh-mobile-compact.png",
+    "origin": "terminal/test-results/flow-interval-classic-final-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-mobile/interval-compact.png",
+    "sha256": "ffca9eeee711c1c0456d6ab4988a3dda042c79ef2584003dae2ac626a5ae94cc",
+    "bytes": 114067
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-light-desktop-compact.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/interval-compact.png",
+    "sha256": "9ae107e55652c9f03621cffe53b84561dd855382769b8bd6166aed8e2fb28354",
+    "bytes": 289056
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-dark-desktop-compact.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/interval-compact.png",
+    "sha256": "ba08898cdd601d17019dc9a275d2c02fc9a687296d72d2542910baae9eed7514",
+    "bytes": 295343
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-light-tablet-compact.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-tablet/interval-compact.png",
+    "sha256": "214bcaf6f7e2e8211c5beca84ed0cf83cdc1a589a79500118dd3efdecaab669c",
+    "bytes": 207624
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-mobile-compact.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-mobile/interval-compact.png",
+    "sha256": "e31ff40d7182c3be8df8f49c5a8ed152d38a9b0b28d784e686afe2f36137e992",
+    "bytes": 111769
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-en-dark-mobile-breakdown.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-mobile/interval-summary.png",
+    "sha256": "5f192360ab9af0c101fb2fc5ba0ffc62a538a3f68c6ea0954a08dd30ab4cc7be",
+    "bytes": 43531
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-desktop-breakdown.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/interval-summary.png",
+    "sha256": "14f50eb06dcbd7c5b316a9cd5242aced7c27bd822a3612c7f46b0c7ef5b4baa4",
+    "bytes": 42283
+  },
+  {
+    "path": "docs/verification/options-flow-interval-20261114/captures/shared-zh-light-mobile-inspector.png",
+    "origin": "terminal/test-results/flow-interval-shared-final-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-mobile/selected-print-inspector.png",
+    "sha256": "86da723ce5e36f4258a0bd69ce246f09c3b0b4398166314da2168605d32fdb53",
+    "bytes": 119584
+  }
+]

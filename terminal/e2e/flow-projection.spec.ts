@@ -5,6 +5,8 @@ import { makeFlowT } from "@/lib/flowdeskStrings";
 // Existing synthetic W3A feed over the real Desk/EventSource/poll consumers.
 // This is a projection journey, not live-provider or production acceptance.
 const feed = fixture.feed;
+const sharedShell = process.env.MMX_SHARED_SHELL === "1";
+const themes = sharedShell ? ["dark", "light"] as const : ["dark"] as const;
 const cards = (page: Page) => page.locator('[data-tut="flow-card"]');
 const expanded = (page: Page) => page.locator('[data-tut="flow-card"][data-fc-open="1"]');
 const projection = (page: Page) => page.locator('[data-flow-projection="r8-v1"]');
@@ -13,11 +15,12 @@ const intervalRow = (page: Page, lang: "en" | "zh") =>
 const bucketRow = (page: Page, lang: "en" | "zh") =>
   projection(page).locator('[aria-label="' + (lang === "zh" ? "时间桶" : "Flow buckets") + '"]');
 
-async function setup(page: Page, lang: "en" | "zh", mode: "data" | "absent") {
-  await page.addInitScript(locale => {
+async function setup(page: Page, lang: "en" | "zh", mode: "data" | "absent", theme: "dark" | "light" = "dark") {
+  await page.addInitScript(({ locale, theme }) => {
     localStorage.setItem("mm.lang", locale);
+    localStorage.setItem("mmx.shell.theme", theme);
     localStorage.setItem("flowdesk.tutorial.seen", "1");
-  }, lang);
+  }, { locale: lang, theme });
   const reads = { stream: 0, poll: 0 };
   await page.route(/\/api\/flow(?:\/stream)?\?/, route => {
     const url = new URL(route.request().url());
@@ -68,15 +71,23 @@ async function capture(page: Page, testInfo: TestInfo, name: string) {
 }
 
 for (const lang of ["en", "zh"] as const) {
-  test("[" + lang + "] time buckets preserve canonical cards, filters, coverage and inspector", async ({ page }, testInfo) => {
+  for (const theme of themes) {
+  test("[" + lang + "][" + theme + "] time buckets preserve canonical cards, filters, coverage and inspector", async ({ page }, testInfo) => {
+    test.setTimeout(90_000);
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
     const viewport = page.viewportSize();
-    const reads = await setup(page, lang, "data");
+    const reads = await setup(page, lang, "data", theme);
     await page.goto("/options?tab=desk");
     const coverage = page.getByTestId("flow-coverage");
     await expect(coverage).toBeVisible({ timeout: 45_000 });
     await expect(cards(page)).toHaveCount(9);
+    // Use the incumbent appearance owner. Classic Options remains dark-only;
+    // light proof requires the existing Shared Shell fixture deployment.
+    if (sharedShell) {
+      await expect(page.locator("html")).toHaveAttribute("data-mmx-shared-shell", "1");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    }
     await expect(coverage).toContainText(lang === "zh" ? "88 % 合格权利金已分类 · 12 % 未知" : "88 % of eligible premium classified · 12 % unknown");
     const allLoadedCoverage = await coverage.textContent();
     const intervals = intervalRow(page, lang);
@@ -91,8 +102,12 @@ for (const lang of ["en", "zh"] as const) {
     const newest = cards(page).filter({ hasText: "$216.0K" });
     await keyboard(newest.locator(".obs-fc-expand-btn"));
     await expect(expanded(page)).toHaveCount(1);
-    await keyboard(buckets.getByRole("button", { name: "10:35 · 6", exact: true }));
+    await keyboard(buckets.getByRole("button", { name: /2026-10-21 · 10:35–10:40 EDT/ }));
     await expect(cards(page)).toHaveCount(6);
+    const summary = page.getByTestId("flow-bucket-summary");
+    await expect(summary).toContainText("2026-10-21 · 10:35–10:40 EDT");
+    await expect(summary).toHaveCSS("background-color", sharedShell ? (theme === "light" ? "rgb(255, 255, 255)" : "rgb(24, 27, 33)") : "rgb(13, 15, 19)");
+    await expect(summary.locator('[data-metric="premium"] dd')).toHaveText("$1,671,000");
     await expect(expanded(page)).toHaveCount(0);
     const expectedPremiums = ["$355.0K", "$259.2K", "$395.0K", "$266.8K", "$80.0K", "$315.0K"];
     for (const [index, premium] of expectedPremiums.entries()) {
@@ -104,6 +119,7 @@ for (const lang of ["en", "zh"] as const) {
 
     const clearLabel = lang === "zh" ? "清除时间桶" : "Clear bucket";
     await keyboard(buckets.getByRole("button", { name: clearLabel, exact: true }));
+    await expect(summary).toHaveCount(0);
     await expect(cards(page)).toHaveCount(9);
     await expect(expanded(page)).toHaveCount(0);
     const search = page.locator(".obs-fd-center").getByPlaceholder(lang === "zh" ? "搜索标的…" : "Search ticker…");
@@ -111,8 +127,34 @@ for (const lang of ["en", "zh"] as const) {
     await expect(cards(page)).toHaveCount(8);
     await expect(buckets.getByRole("button")).toHaveText(["10:35 · 6", "10:40 · 2"]);
     await expect(coverage).toHaveText(allLoadedCoverage ?? "");
-    await pointer(buckets.getByRole("button", { name: "10:40 · 2", exact: true }), page);
+    await pointer(buckets.getByRole("button", { name: /2026-10-21 · 10:40–10:45 EDT/ }), page);
     await expect(cards(page)).toHaveCount(2);
+    await expect(summary).toContainText("2026-10-21 · 10:40–10:45 EDT");
+    for (const [metric, value] of [["premium", "$720,000"], ["events", "2"], ["prints", "7"], ["contracts", "12,000"]]) {
+      await expect(summary.locator('[data-metric="' + metric + '"] dd')).toHaveText(value);
+    }
+    await expect(summary).toContainText(lang === "zh" ? "事件聚合" : "Event aggregates");
+    await expect(summary).toContainText(lang === "zh" ? "报告成交笔数" : "Reported prints");
+    await expect(summary).toContainText(lang === "zh" ? "合约成交量" : "Contract volume");
+    await expect(summary.locator("details")).not.toHaveAttribute("open", "");
+    await summary.scrollIntoViewIfNeeded();
+    await capture(page, testInfo, "interval-compact");
+    await keyboard(summary.locator("summary"));
+    await expect(summary.locator("details")).toHaveAttribute("open", "");
+    await expect(summary.locator('[data-metric="calls"] dd')).toHaveText("$720,000");
+    await expect(summary.locator('[data-metric="puts"] dd')).toHaveText("$0");
+    await expect(summary.locator('[data-metric="unknown-right"] dd')).toHaveText("$0");
+    await expect(summary.locator('[data-metric="estimated-buy"] dd')).toHaveText("$720,000");
+    await expect(summary).toContainText(lang === "zh" ? "估算成交方向" : "Estimated trade side");
+    // A long breakdown scrolls within the interval area; it must not consume the feed.
+    for (const metric of ["calls", "puts", "unknown-right", "estimated-buy", "estimated-sell", "mixed", "unknown-side"]) {
+      const value = summary.locator('[data-metric="' + metric + '"] dd');
+      await value.scrollIntoViewIfNeeded();
+      await expect(value).toBeInViewport();
+    }
+    await summary.locator("details p").scrollIntoViewIfNeeded();
+    await expect(summary.locator("details p")).toBeInViewport();
+    await summary.screenshot({ path: testInfo.outputPath("interval-summary.png") });
     await expect(cards(page).nth(0)).toContainText("$216.0K");
     await expect(cards(page).nth(1)).toContainText("$504.0K");
     const e1 = cards(page).filter({ hasText: "$504.0K" });
@@ -136,6 +178,7 @@ for (const lang of ["en", "zh"] as const) {
     await capture(page, testInfo, "selected-print-inspector");
 
     await keyboard(intervals.getByRole("button", { name: "15m", exact: true }));
+    await expect(summary).toHaveCount(0);
     await expect(cards(page)).toHaveCount(8);
     await expect(search).toHaveValue("AAPL");
     await expect(buckets.getByRole("button")).toHaveText(["10:30 · 8"]);
@@ -152,10 +195,11 @@ for (const lang of ["en", "zh"] as const) {
     expect(errors).toEqual([]);
     expect(reads.stream).toBeGreaterThan(0);
     await testInfo.attach("journey", {
-      body: Buffer.from(JSON.stringify({ lang, viewport, fixture: "options-r1-w3a-flow.json", reads, allLoadedCoverage, expectedPremiums, pageErrors: errors }, null, 2)),
+      body: Buffer.from(JSON.stringify({ lang, theme, viewport, fixture: "options-r1-w3a-flow.json", reads, allLoadedCoverage, expectedPremiums, pageErrors: errors }, null, 2)),
       contentType: "application/json",
     });
   });
+  }
 
   test("[" + lang + "] a held feed keeps its reason and projection over the last read", async ({ page }, testInfo) => {
     const errors: string[] = [];
@@ -174,12 +218,16 @@ for (const lang of ["en", "zh"] as const) {
     const coverage = page.getByTestId("flow-coverage");
     const before = await coverage.textContent();
     await keyboard(intervalRow(page, lang).getByRole("button", { name: "5m", exact: true }));
-    await pointer(bucketRow(page, lang).getByRole("button", { name: "10:35 · 6", exact: true }), page);
+    await pointer(bucketRow(page, lang).getByRole("button", { name: /2026-10-21 · 10:35–10:40 EDT/ }), page);
     await expect(cards(page)).toHaveCount(6);
+    const summary = page.getByTestId("flow-bucket-summary");
+    await expect(summary).toContainText("2026-10-21 · 10:35–10:40 EDT");
+    await expect(summary.locator('[data-metric="premium"] dd')).toHaveText("$1,671,000");
     await expect(coverage).toHaveText(before ?? "");
     await expect(note).toHaveText(makeFlowT(lang)("feedRefreshAbsent"));
     await projection(page).scrollIntoViewIfNeeded();
     await capture(page, testInfo, "held-projection");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect(page.viewportSize()).toEqual(viewport);
     expect(errors).toEqual([]);
     expect(reads.stream).toBeGreaterThan(0);
