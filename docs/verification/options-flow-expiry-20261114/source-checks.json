@@ -1,0 +1,28 @@
+[
+  {
+    "name": "plain-labels",
+    "exit": 0,
+    "runtimeSeconds": 1.05,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/plainLabelsCallSites.test.ts",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/docs/verification/options-flow-expiry-20261114/plain-labels.json"
+    ]
+  },
+  {
+    "name": "focused-lint",
+    "exit": 0,
+    "runtimeSeconds": 31.91,
+    "command": [
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+      "node_modules/eslint/bin/eslint.js",
+      "components/flowdesk/FiltersPanel.tsx",
+      "lib/__tests__/flowExpirySelection.test.tsx",
+      "e2e/options-flow-expiry-selection.spec.ts",
+      "e2e/options-r1-w3a-flow-inspector.spec.ts"
+    ]
+  }
+]

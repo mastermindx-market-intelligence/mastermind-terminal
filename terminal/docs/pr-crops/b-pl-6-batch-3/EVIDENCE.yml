@@ -1,12 +1,13 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bbca43c03dd2748de73b47a1b16b6623236cef89
-# capturedAt: 2026-11-12T06:58:11.906Z
+# capturedAtHead: 62315b351dbadd85db29ff77809af823d7251b1c
+# capturedAt: 2026-11-14T14:54:11.524Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b"
-  terminal/components/flowdesk/FiltersPanel.tsx: "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479"
+  terminal/components/flowdesk/FiltersPanel.tsx: "2f68855c34a3628675af317a43a6a68e8a314d9cb0e20adb56d282409a900913"
+  terminal/components/flowdesk/FiltersPanel.module.css: "bbc99648bb51fbb702be09f65d3fc78e9ee781824ec0d68cf06c1a9b1645cfa2"
   terminal/components/flowdesk/FlowCard.tsx: "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37"
   terminal/components/alerts/AlertDetail.tsx: "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd"
   terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
@@ -18,7 +19,7 @@ layoutFiles:
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   terminal/components/PineEditor.tsx: "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0"
   terminal/e2e/tools/capture_ci_evidence.cjs: "a0c24294d0334b30f99e2dc446c1b5f933b193c9508dcfb1e1008a69ff443d77"
-  terminal/e2e/tools/capture_pl6_batch3.cjs: "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c"
+  terminal/e2e/tools/capture_pl6_batch3.cjs: "7af47581e3edb31cda6f11b621c8d2f427a7878a7897970d2834f5aa5ee0f998"
   terminal/next.config.ts: "4be17e1d12e351ddda23ce004c1f26f687a20a0fd3b601755cc7d4ae9ca0f56a"
   terminal/e2e/fixtures/heatmap-price-only-tile.json: "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
 theme: dark

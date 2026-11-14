@@ -31,6 +31,7 @@ const HEATMAP_PRICE_ONLY_FIXTURE = join(ROOT, "e2e", "fixtures", "heatmap-price-
 const LAYOUT_FILES = [
   "terminal/components/options/OptionsFlowBoardView.tsx",
   "terminal/components/flowdesk/FiltersPanel.tsx",
+  "terminal/components/flowdesk/FiltersPanel.module.css",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/alerts/AlertDetail.tsx",
   "terminal/components/alerts/alerts.module.css",

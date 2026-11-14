@@ -1,0 +1,30 @@
+[warmup] /terminal?symbol=NVDA → 200 in 76ms
+[warmup] /options → 200 in 1459ms
+[warmup] /portfolio → 200 in 610ms
+[warmup] /alerts → 200 in 520ms
+[warmup] /analysis → 200 in 1066ms
+[warmup] /discover → 200 in 1638ms
+[warmup] /admin → 200 in 493ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 303ms
+[warmup] /login → 200 in 133ms
+[warmup] /reset-password → 200 in 365ms
+[warmup] /api/me → 200 in 513ms
+[warmup] /api/watchlist → 200 in 267ms
+[warmup] /api/layouts → 200 in 253ms
+[warmup] /api/watchlist/annotations → 409 in 170ms
+[warmup] 14 routes compiled in 8s
+[fixture-ready] prophet_idx fixture 200 in 516ms
+
+Running 8 tests using 1 worker
+
+[1/8] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/8] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light)
+[3/8] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark)
+[4/8] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light)
+[5/8] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark)
+[6/8] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light)
+[7/8] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark)
+[8/8] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light)
+  8 passed (1.1m)

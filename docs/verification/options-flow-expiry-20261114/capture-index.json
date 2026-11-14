@@ -1,0 +1,62 @@
+[
+  {
+    "file": "captures/desktop-en-dark-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--desktop/attachments/retained-expiry-1cae6cae45c200405d540d30352ca5ae2683fdb0.png",
+    "report": "browser-shared.json",
+    "project": "desktop",
+    "lang": "en",
+    "theme": "dark",
+    "bytes": 297170,
+    "sha256": "6dbb058fbca46d2d8ea38b8a72944b2afff457863a5f1b6068c93921f73af318"
+  },
+  {
+    "file": "captures/desktop-zh-light-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--desktop/attachments/retained-expiry-10044bde973b814e4efd7ac8e616bc0aa84eae62.png",
+    "report": "browser-shared.json",
+    "project": "desktop",
+    "lang": "zh",
+    "theme": "light",
+    "bytes": 280350,
+    "sha256": "edb759aa40dc875737870267ebffaee165a6a3837bedcf9f724955005264c716"
+  },
+  {
+    "file": "captures/tablet-en-light-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-touch-qualified/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/attachments/retained-expiry-68670298c16bcc1a21173b8f4e8b441b9c045973.png",
+    "report": "browser-touch-qualified.json",
+    "project": "tablet",
+    "lang": "en",
+    "theme": "light",
+    "bytes": 200529,
+    "sha256": "be1d81e48099a08a29a41ec5f8da3c8ff0003959ff97847dd4b441d5e14ba976"
+  },
+  {
+    "file": "captures/tablet-zh-dark-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-touch-qualified/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/attachments/retained-expiry-3d01cde0c1019c2c9525babd0c27adfc1479dd9f.png",
+    "report": "browser-touch-qualified.json",
+    "project": "tablet",
+    "lang": "zh",
+    "theme": "dark",
+    "bytes": 209302,
+    "sha256": "69e3dd7e8d3ecb8b3d3b2958ce7168d1d1a70acd33a791d7139821c3800dcb87"
+  },
+  {
+    "file": "captures/mobile-en-dark-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-touch-qualified/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/attachments/retained-expiry-22500639033231f7bc258f960db680e1b97f7a71.png",
+    "report": "browser-touch-qualified.json",
+    "project": "mobile",
+    "lang": "en",
+    "theme": "dark",
+    "bytes": 100813,
+    "sha256": "03b4d8361bfc9114f447e0f70b9666761346ecf827f08a67390fb7d674fe2676"
+  },
+  {
+    "file": "captures/mobile-zh-light-retained-expiry.png",
+    "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/test-results/options-flow-expiry-touch-qualified/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/attachments/retained-expiry-a929d6965525d43ccc29bb00261394a2e046fd48.png",
+    "report": "browser-touch-qualified.json",
+    "project": "mobile",
+    "lang": "zh",
+    "theme": "light",
+    "bytes": 111372,
+    "sha256": "fbb840782753fe309abe2537e1beed81703f00e380d2b13a8b9d35741c6bd058"
+  }
+]

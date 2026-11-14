@@ -1,0 +1,108 @@
+{
+  "schema": "options-flow-expiry-qualification.v1",
+  "recordedAt": "2026-11-14T14:59:35.459450+00:00",
+  "operation": "options-flow-expiry-identity-20261114-c3",
+  "base": "62315b351dbadd85db29ff77809af823d7251b1c",
+  "source": {
+    "terminal/components/flowdesk/FiltersPanel.tsx": {
+      "bytes": 16007,
+      "sha256": "2f68855c34a3628675af317a43a6a68e8a314d9cb0e20adb56d282409a900913"
+    },
+    "terminal/components/flowdesk/FiltersPanel.module.css": {
+      "bytes": 124,
+      "sha256": "bbc99648bb51fbb702be09f65d3fc78e9ee781824ec0d68cf06c1a9b1645cfa2"
+    },
+    "terminal/lib/__tests__/flowExpirySelection.test.tsx": {
+      "bytes": 5447,
+      "sha256": "4b06edd9d357538217eeed313880f70eaaa6431ec4a68a0b4a6b65a7efef4aaa"
+    },
+    "terminal/e2e/options-flow-expiry-selection.spec.ts": {
+      "bytes": 6899,
+      "sha256": "ae6b5bd62b057fa2616619d54df00eefc77ad803d2e56d4b7e97d3c459828138"
+    },
+    "terminal/e2e/options-r1-w3a-flow-inspector.spec.ts": {
+      "bytes": 7937,
+      "sha256": "5c5e7b732702993568a3a23c3541b09103af0798d04a274d72e0f07dd249c60a"
+    },
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": {
+      "bytes": 17004,
+      "sha256": "7af47581e3edb31cda6f11b621c8d2f427a7878a7897970d2834f5aa5ee0f998"
+    },
+    "terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts": {
+      "bytes": 5302,
+      "sha256": "4079217a6cb0bf30b846de8e801decb1924acab8c34cb898073b2571682d694f"
+    }
+  },
+  "unit": {
+    "distinctPassed": 76,
+    "reports": [
+      "unit-after-touch.json",
+      "plain-labels.json",
+      "batch3-reader.json"
+    ],
+    "newCases": 12
+  },
+  "browser": {
+    "distinctPassed": 18,
+    "retainedPassed": [
+      "desktop|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, dark)",
+      "desktop|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, light)",
+      "desktop|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, dark)",
+      "desktop|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, light)",
+      "desktop|options-r1-w3a-flow-inspector.spec.ts|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+      "desktop|options-r1-w3a-flow-inspector.spec.ts|the expiry filter survives a reload through flowdesk.filters.v1",
+      "mobile|options-r1-w3a-flow-inspector.spec.ts|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+      "mobile|options-r1-w3a-flow-inspector.spec.ts|the expiry filter survives a reload through flowdesk.filters.v1",
+      "tablet|options-r1-w3a-flow-inspector.spec.ts|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+      "tablet|options-r1-w3a-flow-inspector.spec.ts|the expiry filter survives a reload through flowdesk.filters.v1"
+    ],
+    "requalifiedPassed": [
+      "mobile|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, dark)",
+      "mobile|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, light)",
+      "mobile|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, dark)",
+      "mobile|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, light)",
+      "tablet|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, dark)",
+      "tablet|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (en, light)",
+      "tablet|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, dark)",
+      "tablet|options-flow-expiry-selection.spec.ts|exact expiry survives source changes and reload, then clears independently (zh, light)"
+    ],
+    "initialReport": "browser-shared.json",
+    "qualifiedTouchReport": "browser-touch-qualified.json",
+    "finalFailed": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "touchCorrection": {
+    "observedOriginalHeight": 26,
+    "qualifiedMinimumHeight": 44,
+    "scope": "expiry row only; coarse pointer or width up to860px",
+    "desktopDeclarationsAdded": false
+  },
+  "capture": {
+    "id": "options-flow-expiry-identity-20261114-c3-batch3",
+    "boundInputs": 17,
+    "frames": 20,
+    "preservedHistoricalFrames": 18,
+    "verification": "batch3-runtime/verification.json",
+    "manifestSha256": "a85488af5edfbbc49da0f75c94dc1448ee853dc56f8b99b5014d6307ea45913e"
+  },
+  "visualReview": {
+    "reviewer": "assigned principal",
+    "images": [
+      "captures/desktop-en-dark-retained-expiry.png",
+      "captures/mobile-zh-light-retained-expiry.png"
+    ],
+    "result": "full year and retained choice readable; narrow row wraps within viewport"
+  },
+  "release": {
+    "sourceQualified": true,
+    "protectedCI": "pending published head",
+    "nativeReleaseRequest": "not yet requested for this new operation",
+    "productionBrowserAcceptance": "not proven"
+  },
+  "parallelOwnedPacket": {
+    "pr": 1527,
+    "productFile": "terminal/components/alerts/AlertDetail.tsx",
+    "composition": "preserve both accepted sources and17-input capture closure; no duplicate publication of the other PR"
+  }
+}

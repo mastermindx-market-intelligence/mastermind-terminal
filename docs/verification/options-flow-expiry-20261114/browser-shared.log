@@ -1,0 +1,297 @@
+[warmup] /terminal?symbol=NVDA → 200 in 53ms
+[warmup] /options → 200 in 1667ms
+[warmup] /portfolio → 200 in 526ms
+[warmup] /alerts → 200 in 497ms
+[warmup] /analysis → 200 in 814ms
+[warmup] /discover → 200 in 1269ms
+[warmup] /admin → 200 in 292ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 227ms
+[warmup] /login → 200 in 119ms
+[warmup] /reset-password → 200 in 221ms
+[warmup] /api/me → 200 in 318ms
+[warmup] /api/watchlist → 200 in 148ms
+[warmup] /api/layouts → 200 in 136ms
+[warmup] /api/watchlist/annotations → 409 in 111ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 332ms
+
+Running 18 tests using 1 worker
+
+[1/18] [desktop] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/18] [desktop] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light)
+[3/18] [desktop] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark)
+[4/18] [desktop] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light)
+[5/18] [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:85:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line
+[6/18] [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:98:5 › the expiry filter survives a reload through flowdesk.filters.v1
+[7/18] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark)
+  1) [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[8/18] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light)
+  2) [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[9/18] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark)
+  3) [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[10/18] [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light)
+  4) [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[11/18] [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:85:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line
+[12/18] [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:98:5 › the expiry filter survives a reload through flowdesk.filters.v1
+[13/18] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark)
+  5) [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-2c5d9-ears-independently-en-dark--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[14/18] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light)
+  6) [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-efb31-ars-independently-en-light--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[15/18] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark)
+  7) [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-e9f15-ears-independently-zh-dark--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[16/18] [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light)
+  8) [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light) 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 44
+    Received:    26
+
+      114 |       expect(bounds!.x).toBeGreaterThanOrEqual(0);
+      115 |       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width + 1);
+    > 116 |       if (info.project.name !== "desktop") expect(bounds!.height).toBeGreaterThanOrEqual(44);
+          |                                                                   ^
+      117 |     }
+      118 |     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width + 1);
+      119 |     const screenshotPath = info.outputPath(`expiry-retained-${lang}-${theme}.png`);
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-expiry-identity-20261114-c3/terminal/e2e/options-flow-expiry-selection.spec.ts:116:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-flow-expiry-shared/options-flow-expiry-select-1c0d5-ars-independently-zh-light--mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[17/18] [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:85:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line
+[18/18] [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:98:5 › the expiry filter survives a reload through flowdesk.filters.v1
+  8 failed
+    [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark) 
+    [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light) 
+    [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark) 
+    [tablet] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light) 
+    [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, dark) 
+    [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (en, light) 
+    [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, dark) 
+    [mobile] › e2e/options-flow-expiry-selection.spec.ts:47:7 › exact expiry survives source changes and reload, then clears independently (zh, light) 
+  10 passed (1.9m)

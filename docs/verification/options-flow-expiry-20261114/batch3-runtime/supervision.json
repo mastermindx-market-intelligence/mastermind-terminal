@@ -1,0 +1,12 @@
+{
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "timedOut": false,
+  "closed": true,
+  "pid": 12550,
+  "serverPid": 12567,
+  "serverReportedStopped": true,
+  "serverRefused": null,
+  "serverSettled": true
+}

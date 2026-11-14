@@ -13,6 +13,7 @@ const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const LAYOUT_FILES = [
   "terminal/components/options/OptionsFlowBoardView.tsx",
   "terminal/components/flowdesk/FiltersPanel.tsx",
+  "terminal/components/flowdesk/FiltersPanel.module.css",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/alerts/AlertDetail.tsx",
   "terminal/components/alerts/alerts.module.css",
