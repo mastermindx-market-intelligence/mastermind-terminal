@@ -134,3 +134,41 @@ for (const [lang, theme] of [["en", "light"], ["zh", "dark"]] as const) {
     await page.screenshot({ path: testInfo.outputPath(`holdings-coverage-${testInfo.project.name}-${lang}-${theme}.png`), fullPage: true });
   });
 }
+
+test("weekly trajectories fade with age and keep gaps while all/hover/off modes remain operable", async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await prepare(page, "en");
+  await page.goto("/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=dark&sectorRotationMethod=relative_trend_ema");
+  const rotation = page.getByTestId("sector-rotation");
+  const trail = rotation.getByTestId("rotation-trend-trail");
+  await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(3, { timeout: 30_000 });
+  await expect(trail).toHaveAttribute("data-trail-mode", "selected");
+  const lines = trail.locator('[data-rotation-trail="xlk"] line[data-trail-from]');
+  await expect(lines.first()).toBeVisible();
+  const first = Number(await lines.first().getAttribute("stroke-opacity"));
+  const last = Number(await lines.last().getAttribute("stroke-opacity"));
+  expect(last).toBeGreaterThan(first);
+  expect(last).toBeLessThanOrEqual(0.9);
+
+  const bar = rotation.getByTestId("rotation-trajectory-toolbar");
+  await bar.locator('[data-trail-display="all"]').click();
+  await expect(trail).toHaveAttribute("data-trail-mode", "all");
+  expect(await trail.locator("[data-rotation-trail]").count()).toBeGreaterThan(1);
+  const xlf = rotation.locator('[data-sector-rotation-point="xlf"]');
+  await xlf.focus();
+  await expect(trail.locator('[data-rotation-trail="xlf"]')).toHaveAttribute("data-trail-emphasis", "selected");
+  const xlfLines = trail.locator('[data-rotation-trail="xlf"] line[data-trail-from]');
+  expect(await xlfLines.count()).toBeGreaterThan(0);
+  await expect(trail.locator('[data-rotation-trail="xlf"] line[data-trail-from="2026-08-21"][data-trail-to="2026-09-04"]')).toHaveCount(0);
+  await noOverflow(page);
+  const image = info.outputPath("rotation-faded-trails-dark-en.png");
+  await rotation.screenshot({ path: image });
+  await info.attach("rotation-faded-trails", { path: image, contentType: "image/png" });
+
+  await bar.locator('[data-trail-display="off"]').click();
+  await expect(trail).toHaveCount(0);
+  await bar.locator('[data-trail-display="selected"]').click();
+  await expect(rotation.getByTestId("rotation-trend-trail")).toBeVisible();
+  expect(errors).toEqual([]);
+});
