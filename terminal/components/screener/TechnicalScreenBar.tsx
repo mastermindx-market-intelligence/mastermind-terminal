@@ -1,4 +1,5 @@
 "use client";
+import DiscoverSelect from "./DiscoverSelect";
 // ── Screener technical screen (E01) ─────────────────────────────────────────────
 // Controls + coverage disclosure for the timeframe-specific technical screen. Presentation only:
 // the predicates come from lib/technicalScreenControls (the one controls → TechnicalScreen map),
@@ -96,7 +97,7 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
 
         {open && (
           <>
-            <select
+            <DiscoverSelect
               className="scr2-select"
               aria-label={tt("tsTimeframe")}
               title={tt("tsTimeframe")}
@@ -110,9 +111,9 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
                   {produced == null || tf in produced ? tf : `${tf} · ${tt("tsNotScanned")}`}
                 </option>
               ))}
-            </select>
+            </DiscoverSelect>
 
-            <select
+            <DiscoverSelect
               className="scr2-select"
               aria-label={tt("tsPosition")}
               title={tt("tsPosition")}
@@ -124,9 +125,9 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
               <option value="any">{`${tt("tsPosition")} · ${tt("tsAny")}`}</option>
               <option value="long">{tt("tsLong")}</option>
               <option value="flat">{tt("tsFlat")}</option>
-            </select>
+            </DiscoverSelect>
 
-            <select
+            <DiscoverSelect
               className="scr2-select"
               aria-label={tt("tsLastSignal")}
               title={tt("tsLastSignal")}
@@ -140,9 +141,9 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
                   {p === "any" ? `${tt("tsLastSignal")} · ${tt("tsAny")}` : p === "buyside" ? tt("tsBuySide") : technicalSignalLabel(p, lang)}
                 </option>
               ))}
-            </select>
+            </DiscoverSelect>
 
-            <select
+            <DiscoverSelect
               className="scr2-select"
               aria-label={tt("tsBarsSince")}
               title={tt("tsBarsSince")}
@@ -153,7 +154,7 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
             >
               <option value="0">{`${tt("tsBarsSince")} · ${tt("tsAny")}`}</option>
               {TECH_BARS_MAX.map((n) => <option key={n} value={String(n)}>{tt("tsBarsMax", { n })}</option>)}
-            </select>
+            </DiscoverSelect>
 
             {TECH_CHIP_IDS.map((id) => {
               const on = controls.chips.includes(id);
@@ -314,3 +315,4 @@ export function TechnicalCell({ c }: { c: TechnicalClassification }) {
     </td>
   );
 }
+

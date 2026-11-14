@@ -1,3 +1,4 @@
+import { openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -44,6 +45,7 @@ async function open(page: Page, opts: { lang?: "en" | "zh"; scan?: () => ScanMod
     }
   });
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(page.locator("tbody tr .sym-cell").first()).toBeVisible({ timeout: 45_000 });
 }
 
@@ -53,8 +55,8 @@ const row = (page: Page, sym: string) =>
     has: page.locator(".tk").filter({ hasText: new RegExp(`^${sym.replace(/[.^$*+?()[\]{}|\\=]/g, "\\$&")}`) }),
   });
 const resultRows = (page: Page) => page.locator("tbody tr .sym-cell");
-const marketSelect = (page: Page) => page.locator('select.scr2-select:has(option[value="hk"])');
-const mcapSelect = (page: Page) => page.locator('select.scr2-select:has(option[value="2000000000"])');
+const marketSelect = (page: Page) => page.locator('[data-cm-control="market"]');
+const mcapSelect = (page: Page) => page.locator('[data-cm-control="mcap"]');
 const control = (page: Page, id: "taxonomy" | "label" | "liq" | "ccy") => page.locator(`[data-cm-control="${id}"]`);
 const search = (page: Page, q: string) => page.locator(".scr2-search").fill(q);
 
@@ -86,9 +88,10 @@ test("two listings of one issuer keep their own id, currency and label (AC-E03-0
   // The money cell carries the listing's own unit — never a USD default.
   await expect(hkd.locator("td[data-ccy]")).toHaveAttribute("data-ccy", "HKD");
   await expect(cny.locator("td[data-ccy]")).toHaveAttribute("data-ccy", "CNY");
-  // Every label names its taxonomy; a listing without one says so instead of borrowing its twin's.
+  // The compact label keeps its taxonomy in accessible provenance; a listing without one says so instead of borrowing its twin's.
   await expect(hkd.locator("td.scr2-sec [data-tax]")).toHaveAttribute("data-tax", "yahoo_sector");
-  await expect(hkd.locator("td.scr2-sec [data-tax]")).toContainText("YF");
+  await expect(hkd.locator("td.scr2-sec [data-tax]")).not.toContainText("YF ");
+  await expect(hkd.locator("td.scr2-sec [data-tax]")).toHaveAttribute("title", /Yahoo/);
   await expect(hkd.locator("td.scr2-sec [data-tax]")).not.toHaveAttribute("data-stale", "1");
   await expect(cny.locator("td.scr2-sec [data-tax]")).toHaveCount(0);
   await expect(cny.locator("td.scr2-sec [data-unclassified]")).toHaveAttribute("data-unclassified", "not_classified");
@@ -103,9 +106,9 @@ test("two listings of one issuer keep their own id, currency and label (AC-E03-0
 
 test("a GICS screen excludes stale labels by name until opted in (AC-E03-02/03)", async ({ page }, testInfo) => {
   await open(page);
-  await marketSelect(page).selectOption("us");
-  await control(page, "taxonomy").selectOption("gics_sector");
-  await control(page, "label").selectOption("Information Technology");
+  await chooseDiscoverOption(marketSelect(page), "us");
+  await chooseDiscoverOption(control(page, "taxonomy"), "gics_sector");
+  await chooseDiscoverOption(control(page, "label"), "Information Technology");
   await expectTapTarget(control(page, "taxonomy"), { height: selectFloor(testInfo) });
   await expectTapTarget(control(page, "label"), { height: selectFloor(testInfo) });
 
@@ -147,7 +150,7 @@ test("a GICS screen excludes stale labels by name until opted in (AC-E03-02/03)"
 
 test("a traded-value floor applies in one currency and counts what it could not compare (AC-E03-04)", async ({ page }, testInfo) => {
   await open(page);
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expectTapTarget(control(page, "liq"), { height: selectFloor(testInfo) });
 
   const money = page.locator('[data-cm="money"]');
@@ -163,16 +166,16 @@ test("a traded-value floor applies in one currency and counts what it could not 
 
   // Hong Kong: a floor set in USD is never re-read as HKD 5M — it is cleared, and named with
   // the currency it was set in and the one this screen is in.
-  await marketSelect(page).selectOption("hk");
+  await chooseDiscoverOption(marketSelect(page), "hk");
   const cleared = page.locator('[data-cm="cleared"]');
   await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("$5M");
   await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("HKD");
-  await expect(control(page, "liq")).toHaveValue("0");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "0");
   await expect(money).toHaveCount(0);
   await expect(resultRows(page)).toHaveCount(3);
 
   // Set again in Hong Kong it is an HKD floor; the CNY counter is counted, not compared.
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(money).toHaveAttribute("data-cm-scope", "HKD");
   await expect(money).toHaveAttribute("data-cm-floor", "applied");
   await expect(money.locator('[data-cm-excluded="otherCurrency"]')).toContainText("1 in other currencies");
@@ -183,15 +186,15 @@ test("a traded-value floor applies in one currency and counts what it could not 
 
   // A currency-scope change moves the floor's unit too, so the HKD floor is cleared by name.
   await expectTapTarget(control(page, "ccy"), { height: selectFloor(testInfo) });
-  await control(page, "ccy").selectOption("CNY");
+  await chooseDiscoverOption(control(page, "ccy"), "CNY");
   await expect(money).toHaveCount(0);
   await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("HKD 5M");
   await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("CNY");
-  await expect(control(page, "liq")).toHaveValue("0");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "0");
 
   // A CNY floor: the counter is below it, so an EMPTY table — and the empty state says how many
   // listings were left out by currency rather than reading as nothing.
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(money).toHaveAttribute("data-cm-scope", "CNY");
   await expect(resultRows(page)).toHaveCount(0);
   await expect(page.locator("[data-cm-empty-excluded]")).toHaveAttribute("data-cm-empty-excluded", "2");
@@ -199,17 +202,17 @@ test("a traded-value floor applies in one currency and counts what it could not 
 
 test("a market change keeps valid filters and clears incompatible ones by name (AC-E03-05)", async ({ page }, testInfo) => {
   await open(page);
-  await mcapSelect(page).selectOption("2000000000");
-  await control(page, "liq").selectOption("5000000");
-  await marketSelect(page).selectOption("hk");
+  await chooseDiscoverOption(mcapSelect(page), "2000000000");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
+  await chooseDiscoverOption(marketSelect(page), "hk");
 
   const cleared = page.locator('[data-cm="cleared"]');
   await expect(cleared).toBeVisible({ timeout: 20_000 });
   await expect(cleared.locator('[data-cm-cleared="mcap"]')).toHaveCount(1);
   // the USD floor has no meaning in HKD: cleared by name, never re-denominated
   await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("$5M");
-  await expect(mcapSelect(page)).toHaveValue("0");
-  await expect(control(page, "liq")).toHaveValue("0");
+  await expect(mcapSelect(page)).toHaveAttribute("data-value", "0");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "0");
   // Not a false empty population: every Hong Kong listing is listed.
   await expect(resultRows(page)).toHaveCount(3);
 
@@ -219,30 +222,30 @@ test("a market change keeps valid filters and clears incompatible ones by name (
   await expect(cleared).toHaveCount(0);
 
   // A taxonomy with no labels in the new market is cleared by name, not left to empty the table.
-  await marketSelect(page).selectOption("all");
-  await control(page, "taxonomy").selectOption("yahoo_sector");
-  await marketSelect(page).selectOption("cn");
+  await chooseDiscoverOption(marketSelect(page), "all");
+  await chooseDiscoverOption(control(page, "taxonomy"), "yahoo_sector");
+  await chooseDiscoverOption(marketSelect(page), "cn");
   await expect(cleared.locator('[data-cm-cleared="taxonomy"]')).toHaveCount(1);
-  await expect(control(page, "taxonomy")).toHaveValue("");
+  await expect(control(page, "taxonomy")).toHaveAttribute("data-value", "");
   await expect(resultRows(page)).toHaveCount(3);
 });
 
 test("a language change keeps every filter and changes only how labels read (AC-E03-05)", async ({ page }) => {
   await open(page);
-  await marketSelect(page).selectOption("hk");
-  await control(page, "taxonomy").selectOption("yahoo_sector");
-  await control(page, "label").selectOption("Communication Services");
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(marketSelect(page), "hk");
+  await chooseDiscoverOption(control(page, "taxonomy"), "yahoo_sector");
+  await chooseDiscoverOption(control(page, "label"), "Communication Services");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(resultRows(page)).toHaveCount(1, { timeout: 20_000 });
   const tencent = row(page, "0700.HK");
   await expect(tencent.locator("td.scr2-sec [data-tax]")).toContainText("Communication Services");
 
   await switchLang(page, "zh");
   await expect(page.locator('[data-cm="taxonomy"]')).toContainText("雅虎财经板块");
-  await expect(marketSelect(page)).toHaveValue("hk");
-  await expect(control(page, "taxonomy")).toHaveValue("yahoo_sector");
-  await expect(control(page, "label")).toHaveValue("Communication Services");
-  await expect(control(page, "liq")).toHaveValue("5000000");
+  await expect(marketSelect(page)).toHaveAttribute("data-value", "hk");
+  await expect(control(page, "taxonomy")).toHaveAttribute("data-value", "yahoo_sector");
+  await expect(control(page, "label")).toHaveAttribute("data-value", "Communication Services");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "5000000");
   await expect(resultRows(page)).toHaveCount(1);
   await expect(tencent.locator("td.scr2-sec [data-tax]")).not.toContainText("Communication Services");
   await expect(page.locator('[data-cm="cleared"]')).toHaveCount(0);
@@ -272,12 +275,14 @@ test("an absent or unreadable scan is a stated state with a working Retry (AC-E0
   // Unclassified choice and its shortcut are withheld, and the unread listings are counted.
   const tax = page.locator('[data-cm="taxonomy"]');
   const assertUnread = async () => {
-    await control(page, "taxonomy").selectOption("yahoo_sector");
-    await expect(control(page, "label").locator('option[value="__unclassified__"]')).toHaveCount(0);
+    await chooseDiscoverOption(control(page, "taxonomy"), "yahoo_sector");
+    await control(page, "label").click();
+    await expect(page.locator('[role="option"][data-value="__unclassified__"]')).toHaveCount(0);
+    await page.keyboard.press("Escape");
     await expect(tax.locator('[data-cm-action="unclassified"]')).toHaveCount(0);
     await expect(tax.locator('[data-cm-count="unclassified"] b')).toHaveText("0");
     await expect(tax.locator('[data-cm-count="unavailable"] b')).toHaveText(String(MANIFEST_N));
-    await control(page, "taxonomy").selectOption("");
+    await chooseDiscoverOption(control(page, "taxonomy"), "");
   };
   await assertUnread();
 
@@ -288,14 +293,14 @@ test("an absent or unreadable scan is a stated state with a working Retry (AC-E0
   const money = page.locator('[data-cm="money"]');
   await expect(money).toHaveAttribute("data-cm-floor", "unread");
   await expect(money).toContainText("HKD 5M not applied");
-  await expect(control(page, "liq")).toHaveValue("5000000");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "5000000");
   await expect(page.locator(".scr2-ftag", { hasText: "not applied" })).toHaveCount(1);
   await expect(resultRows(page)).toHaveCount(3);
   await expect(page.locator('[data-cm="cleared"]')).toHaveCount(0);
   // a market change while unread clears nothing it could not read
-  await marketSelect(page).selectOption("all");
+  await chooseDiscoverOption(marketSelect(page), "all");
   await expect(page.locator('[data-cm-cleared="liq"]')).toHaveCount(0);
-  await expect(control(page, "liq")).toHaveValue("5000000");
+  await expect(control(page, "liq")).toHaveAttribute("data-value", "5000000");
   await expect(money).toHaveAttribute("data-cm-floor", "unread");
   await page.locator(".scr2-ftag", { hasText: "not applied" }).click();
   await expect(money).toHaveCount(0);
@@ -314,8 +319,10 @@ test("an absent or unreadable scan is a stated state with a working Retry (AC-E0
   await expect(apple.locator(".tk [data-ccy]")).toHaveText("USD");
   await search(page, "");
   // once read, the unclassified population is offered again and nothing is unread
-  await control(page, "taxonomy").selectOption("yahoo_sector");
-  await expect(control(page, "label").locator('option[value="__unclassified__"]')).toHaveCount(1);
+  await chooseDiscoverOption(control(page, "taxonomy"), "yahoo_sector");
+  await control(page, "label").click();
+    await expect(page.locator('[role="option"][data-value="__unclassified__"]')).toHaveCount(1);
+    await page.keyboard.press("Escape");
   await expect(tax.locator('[data-cm-count="unavailable"]')).toHaveCount(0);
 });
 
@@ -337,28 +344,29 @@ test("a smart screen is saved only in a sense its grammar holds (E04 hand-over, 
   const current = ss.locator("[data-ss-current]");
 
   // A GICS sector in one US-dollar market is what a smart screen holds: Save is offered.
-  await marketSelect(page).selectOption("us");
-  await control(page, "taxonomy").selectOption("gics_sector");
-  await control(page, "label").selectOption("Information Technology");
+  await chooseDiscoverOption(marketSelect(page), "us");
+  await chooseDiscoverOption(control(page, "taxonomy"), "gics_sector");
+  await chooseDiscoverOption(control(page, "label"), "Information Technology");
   await expect(saveBtn).toBeEnabled({ timeout: 20_000 });
   await expect(current).toBeVisible();
 
   // A native Yahoo label is not a GICS sector: refused, never filed as one.
-  await control(page, "taxonomy").selectOption("yahoo_sector");
-  await control(page, "label").selectOption("Technology");
+  await chooseDiscoverOption(control(page, "taxonomy"), "yahoo_sector");
+  await chooseDiscoverOption(control(page, "label"), "Technology");
   await expect(saveBtn).toBeDisabled();
   await expect(current).toHaveCount(0);
 
   // A USD floor in the US is a USD floor; the same number in Hong Kong is HKD and is refused.
-  await control(page, "taxonomy").selectOption("");
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(control(page, "taxonomy"), "");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
   await expect(saveBtn).toBeEnabled();
-  await marketSelect(page).selectOption("hk");
+  await chooseDiscoverOption(marketSelect(page), "hk");
   await expect(page.locator('[data-cm-cleared="liq"]')).toHaveCount(1);
-  await control(page, "liq").selectOption("5000000");
+  await chooseDiscoverOption(control(page, "liq"), "5000000");
   await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-scope", "HKD");
   await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
   await expect(saveBtn).toBeDisabled();
   await expect(current).toHaveCount(0);
 });
+

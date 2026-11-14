@@ -1,3 +1,4 @@
+import { openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -60,11 +61,13 @@ for (const lang of ["en", "zh"] as const) {
     await serveReal(page, lang);
 
     await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
     await expect(page.locator("tbody tr .sym-cell").first()).toBeVisible({ timeout: 90_000 });
     await page.locator("[data-fund-toggle]").click();
+    await showDiscoverColumn(page, "fund:fund.net_margin_fy");
     await expect(page.locator("[data-fund-scan]")).toHaveAttribute("data-fund-scan", "ready", { timeout: 30_000 });
 
-    await page.locator("[data-fund-field-select]").selectOption("fund.net_margin_fy");
+    await chooseDiscoverOption(page.locator("[data-fund-field-select]"), "fund.net_margin_fy");
     await page.locator("[data-fund-min]").fill("20");
     await page.locator("[data-fund-commit]").click();
     await expect(page.locator("[data-fund-tally]")).toBeVisible();
@@ -92,3 +95,4 @@ for (const lang of ["en", "zh"] as const) {
     await shot(page, "statements", lang, testInfo);
   });
 }
+

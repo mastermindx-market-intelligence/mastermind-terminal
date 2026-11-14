@@ -1,3 +1,4 @@
+import { openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 import { useLang as selectLanguage } from "./layoutStore";
 
@@ -15,6 +16,7 @@ async function open(page: Page, lang: "en" | "zh") {
   await page.addInitScript(() => { localStorage.removeItem("mm.scrPresets"); localStorage.setItem("mm.scrDensity", "c"); });
   await page.route("**/data/manifest.json**", route => route.fulfill({ json: MANIFEST }));
   await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
   await expect(results(page).first()).toBeVisible({ timeout: 45_000 });
 }
 
@@ -44,7 +46,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(results(page).first()).toBeVisible();
 
     const sort = page.locator("thead th").first().getByRole("button");
-    const th = sort.locator("..");
+    const th = sort.locator("xpath=ancestor::th");
     const buttonBox = await sort.boundingBox(); const headerBox = await th.boundingBox();
     expect(buttonBox!.height).toBeGreaterThanOrEqual(info.project.use.hasTouch ? 44 : 32);
     expect(Math.abs(buttonBox!.width - headerBox!.width)).toBeLessThanOrEqual(1);
@@ -108,3 +110,4 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page).toHaveURL(new RegExp(href!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$"));
   });
 }
+

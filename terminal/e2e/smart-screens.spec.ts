@@ -1,3 +1,4 @@
+import { chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test } from "@playwright/test";
 import { MAX_NAME_CHARS } from "../lib/smartScreen/record";
 import { dataRows, moveSelect, openPanel, openScreener, panel, prepare, routeManifest, secondDevice } from "./smartScreensFixture";
@@ -23,7 +24,7 @@ test("a screen saved on one device reopens on another and explains what entered 
 
   // ── device A, generation 1: screen the table, save it, mark it reviewed ──
   await openScreener(page, 5);
-  await moveSelect(page).selectOption("up3");
+  await chooseDiscoverOption(moveSelect(page), "up3");
   await expect(dataRows(page)).toHaveCount(4);
   const a = await openPanel(page);
   await expect(a.locator("[data-ss-toggle]")).toContainText(zh ? "智能筛选" : "Smart screens");
@@ -62,7 +63,7 @@ test("a screen saved on one device reopens on another and explains what entered 
 
     // Open puts the screen's conditions on this device's table.
     await screenB.locator("[data-ss-open]").click();
-    await expect(moveSelect(b.page)).toHaveValue("up3");
+    await expect(moveSelect(b.page)).toHaveAttribute("data-value", "up3");
     await expect(dataRows(b.page)).toHaveCount(3);
     await expect(screenB.locator("[data-ss-matches]")).toHaveAttribute("data-ss-matches", "3");
 
@@ -187,3 +188,4 @@ test("a guest sees how to keep screens, and the account is never asked", async (
   await expect(p.locator("[data-ss-save]")).toHaveCount(0);
   expect(calls).toBe(0);
 });
+

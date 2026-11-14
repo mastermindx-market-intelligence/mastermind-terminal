@@ -1,3 +1,4 @@
+import { chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -52,7 +53,7 @@ for (const lang of ["en", "zh"] as const) {
 
     // ── 1. save a screen on the 10-09 scan and mark it reviewed ──
     await openScreener(page, 5);
-    await moveSelect(page).selectOption("up3");
+    await chooseDiscoverOption(moveSelect(page), "up3");
     await expect(dataRows(page)).toHaveCount(4);
     const p = await openPanel(page);
     await expect(p).toHaveAttribute("data-ss-status", "ready");
@@ -97,3 +98,4 @@ for (const lang of ["en", "zh"] as const) {
     }
   });
 }
+

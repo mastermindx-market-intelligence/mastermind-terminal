@@ -190,7 +190,7 @@ export function CurrencyBadge({ cur }: { cur: MoneyCurrency }) {
 
 /** Sector cell content: a label always carries its taxonomy chip, a stale one its marker and
  *  date; a listing without a label says so instead of borrowing one. */
-export function SectorCellContent({ d, labelText }: { d: SectorDisplay; labelText: (t: TaxonomyId, l: string) => string }) {
+export function SectorCellContent({ d, labelText, compact = false }: { d: SectorDisplay; compact?: boolean; labelText: (t: TaxonomyId, l: string) => string }) {
   const ct = useCrossMarketT();
   const { lang } = useLang();
   const zi = lang === "zh" ? 1 : 0;
@@ -202,12 +202,12 @@ export function SectorCellContent({ d, labelText }: { d: SectorDisplay; labelTex
     const why = d.reason === "classification_aged"
       ? fill(ct("cmAged"), { n: CLASSIFICATION_RECORD_MAX_AGE_DAYS })
       : d.reason === "generation_stale" ? fill(ct("cmGenAged"), { n: CLASSIFICATION_GENERATION_MAX_AGE_DAYS }) : "";
-    const title = [tx.name[zi], d.label, age, d.stale ? `${ct("cmStale")}${why ? ` — ${why}` : ""}` : "", d.source].filter(Boolean).join(" · ");
+    const title = [tx.name[zi], d.label, age, d.stale && d.reason !== "snapshot_undated" && d.reason !== "record_undated" ? `${ct("cmStale")}${why ? ` — ${why}` : ""}` : "", d.source].filter(Boolean).join(" · ");
     return (
       <span title={title} data-tax={d.taxonomy} data-stale={d.stale ? "1" : undefined}>
-        <span className={styles.tax}>{tx.chip[zi]}</span>
+        {!compact && <span className={styles.tax}>{tx.chip[zi]}</span>}
         {labelText(d.taxonomy, d.label)}
-        {d.stale && <span className={styles.stale}>{ct("cmStale")}</span>}
+        {d.stale && (compact ? <span className={styles.stale} aria-label={d.reason === "snapshot_undated" || d.reason === "record_undated" ? (lang === "zh" ? "分类日期不可用" : "Classification date unavailable") : ct("cmStale")} title={title}>ⓘ</span> : <span className={styles.stale}>{ct("cmStale")}</span>)}
       </span>
     );
   }
@@ -225,3 +225,4 @@ export function EmptyExclusionNote({ n }: { n: number }) {
   if (n <= 0) return null;
   return <div className={styles.emptyNote} data-cm-empty-excluded={n}>{fill(ct("cmEmptyExcluded"), { n: n.toLocaleString() })}</div>;
 }
+

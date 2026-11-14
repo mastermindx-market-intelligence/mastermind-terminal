@@ -10,7 +10,10 @@ const symbols = Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`S${St
 }]));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: state.push }) }));
 vi.mock("next/link", () => ({ default: ({ prefetch, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { prefetch?: boolean }) => { void prefetch; return <a {...props} />; } }));
-vi.mock("@/lib/useMarketPrefs", () => ({ useMarketPrefs: () => ({ prefs: { enabled: [] }, ready: false }) }));
+vi.mock("@/lib/useMarketPrefs", () => ({ currentOwnerToken: () => ({owner:"guest",generation:1}), ownerTokenIsCurrent: () => true,
+  useMarketPrefs: () => ({ prefs: {enabled:["us","cn","hk","ca","intl","crypto"]}, ready:true, owner:"guest", base:"loaded", discover:{current:null,views:[],blocked:false},
+    sync:{phase:"local"}, saveDiscover:()=>true, deleteDiscover:()=>true, renameDiscover:()=>true }) }));
+vi.mock("@/components/screener/useDiscoverQuotes", () => ({useDiscoverQuotes: () => ({regular:{},overnight:{},now:Date.now(),status:"ready"})}));
 vi.mock("@/lib/dataCache", () => ({ getJSONResult: async (url: string, options?: { onRevalidate?: (data: unknown) => void }) => {
   if (url === "/data/manifest.json") { state.revalidate = options?.onRevalidate ?? null; return { status: "data", data: { symbols } }; }
   return { status: "absent" };
@@ -93,3 +96,4 @@ describe("Screener result continuity", () => {
     expect(state.push).toHaveBeenCalledWith("/terminal?sym=S299");
   });
 });
+

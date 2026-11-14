@@ -1,3 +1,4 @@
+import { openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 
 // Fault the device boundary, not the component: the same route must recover only on a
@@ -55,6 +56,7 @@ for (const lang of ["en", "zh"] as const) {
   test(`${lang}: failed save retains the draft, keyboard retry is reachable, and remount agrees`, async ({ page }, testInfo) => {
     await installFixture(page, lang);
     await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
     await expect(saved(page)).toHaveText(["A"], { timeout: 45_000 });
     const original = await page.evaluate(() => window.__presetFixture.raw());
     await saveB(page, true);
@@ -85,6 +87,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(saved(page)).toHaveText(["A", "B"]);
     expect(await page.evaluate(() => window.__presetFixture.writes)).toBe(2);
     await page.reload();
+    await openDiscoverFilters(page, true);
     await expect(saved(page)).toHaveText(["A", "B"]);
     expect(await page.evaluate(() => window.__presetFixture.writes)).toBe(0);
   });
@@ -92,6 +95,7 @@ for (const lang of ["en", "zh"] as const) {
   test(`${lang}: unread baseline blocks writes and rejected Delete preserves the active filters`, async ({ page }) => {
     await installFixture(page, lang, true);
     await page.goto("/discover?tab=screener");
+  await openDiscoverFilters(page, true);
     await expect(page.locator(".scr2-presets-tail button")).toBeVisible({ timeout: 45_000 });
     const original = await page.evaluate(() => window.__presetFixture.raw());
     await saveB(page);
@@ -107,13 +111,14 @@ for (const lang of ["en", "zh"] as const) {
     await page.getByRole("button", { name: lang === "zh" ? "删除预设: A" : "Delete preset: A", exact: true }).click();
     await expect(saved(page).filter({ hasText: /^A$/ })).toHaveClass(/\bon\b/);
     const dayMove = page.getByRole("combobox", { name: lang === "zh" ? "当日波动" : "Day move", exact: true });
-    await expect(dayMove).toHaveValue("up3");
+    await expect(dayMove).toHaveAttribute("data-value", "up3");
     await page.getByRole("button", { name: lang === "zh" ? "重试删除: A" : "Retry deleting: A", exact: true }).press("Escape");
     await expect(presetError(page)).toHaveCount(0);
     expect(await page.evaluate(() => window.__presetFixture.writes)).toBe(2);
     expect(await page.evaluate(() => window.__presetFixture.raw())).toBe(acknowledged);
     await expect(saved(page)).toHaveText(["A", "B"]);
     await expect(saved(page).filter({ hasText: /^A$/ })).toHaveClass(/\bon\b/);
-    await expect(dayMove).toHaveValue("up3");
+    await expect(dayMove).toHaveAttribute("data-value", "up3");
   });
 }
+

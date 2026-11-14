@@ -10,6 +10,11 @@ import {
 import { adoptLegacySlotIntoGuest, browserStorage, readOwnerSlot, writeOwnerSlot } from "@/lib/ownerStorage";
 import { LOCAL_STATUS, PreferencePump, type DeliveryStatus } from "@/lib/prefDelivery";
 import {
+  DISCOVER_CURRENT_KEY, DISCOVER_LOCAL_KEY, DISCOVER_VIEW_ID, MAX_DISCOVER_VIEWS, EMPTY_DISCOVER,
+  discoverMetadata, discoverViewKey, normalizeDiscoverName, parseDiscoverView, readDiscoverPreferences,
+  type DiscoverPreferences, type DiscoverView,
+} from "@/lib/discoverWorkspace";
+import {
   readMarketPrefs, serializeMarketPrefs, toggleMarket, setFollowedMarkets,
   ALL_MARKETS, DEFAULT_PREFS, type FollowId, type MarketId, type MarketPrefs,
 } from "@/lib/markets";
@@ -99,6 +104,7 @@ const LS_LEGACY_RECEIPT = "mm.marketPrefs.legacy.v1";
 let state: MarketPrefs = DEFAULT_PREFS;
 let terminal: TerminalPrefs = DEFAULT_TERMINAL_PREFS;
 let metaPrefs: MetaPrefs = {};
+let discover: DiscoverPreferences = EMPTY_DISCOVER;
 // Last-known raw blobs, kept verbatim so a write can spread them. `auth.updateUser` merges
 // TOP-LEVEL keys but REPLACES a nested object wholesale, so writing `{ terminal: { updown } }`
 // would delete `terminal.start_tf`. Every write goes through the spread of these.
@@ -157,6 +163,8 @@ export type AccountPrefsSnapshot = {
   terminal: TerminalPrefs;
   /** The macro `prefs` blob (theme / themeAuto / lang), sanitized. */
   metaPrefs: MetaPrefs;
+  /** Discover layouts/views share this owner and its serialized account delivery. */
+  discover: DiscoverPreferences;
   /** false until the account (or the local fallback) has answered. Callers must not filter the
    *  universe while this is false, or the first paint would hide enabled symbols. */
   ready: boolean;
@@ -188,7 +196,7 @@ function hydrationBase(): AccountPrefsSnapshot["base"] {
 }
 function buildSnapshot(): AccountPrefsSnapshot {
   return {
-    prefs: state, terminal, metaPrefs, ready, owner, sync,
+    prefs: state, terminal, metaPrefs, discover, ready, owner, sync,
     base: hydrationBase(),
     held: pendingTerminal !== null || pendingMetaPrefs !== null,
   };
@@ -205,7 +213,7 @@ function getSnapshot() { return snapshot; }
 // permissive defaults so the first paint never hides a symbol that is in fact enabled, and never
 // disagrees with what the pre-paint script is about to put on the document.
 const SERVER_SNAPSHOT: AccountPrefsSnapshot = {
-  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, ready: false,
+  prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, discover: EMPTY_DISCOVER, ready: false,
   owner: GUEST_OWNER, sync: LOCAL_STATUS, base: "pending", held: false,
 };
 function getServerSnapshot() { return SERVER_SNAPSHOT; }
@@ -243,6 +251,16 @@ function writeLocal(who: string, p: MarketPrefs) {
   writeOwnerSlot(storage, LS_KEY, who, { ...serializeMarketPrefs(p).markets, followed: p.followed });
 }
 
+function readLocalDiscover(who: string): DiscoverPreferences {
+  const storage = browserStorage();
+  return storage ? readDiscoverPreferences(readOwnerSlot(storage, DISCOVER_LOCAL_KEY, who)) : EMPTY_DISCOVER;
+}
+
+function writeLocalDiscover() {
+  const storage = browserStorage();
+  if (storage) writeOwnerSlot(storage, DISCOVER_LOCAL_KEY, owner, discoverMetadata(discover));
+}
+
 /** The chart prefs as they currently stand locally (post pre-paint script, post any account
  *  value we just applied). */
 function localTerminal(): TerminalPrefs {
@@ -271,6 +289,7 @@ function beginOwner(next: string) {
   hydrateFailed = false;
   state = DEFAULT_PREFS;
   metaPrefs = {};
+  discover = EMPTY_DISCOVER;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};
@@ -306,6 +325,7 @@ function load(next: string) {
 
   if (!isAccountOwner(next)) {
     state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
+    discover = readLocalDiscover(next);
     terminal = localTerminal();
     ready = true;
     baseLoaded = true;      // a guest's merge base is the local slot, and it is loaded
@@ -344,6 +364,8 @@ function hydrate(next: string) {
       // A market edit made WHILE this read was in flight is newer than the answer, so the answer
       // must not overwrite it — the read started first; the edit is what the user just did.
       if (!marketsDirty) state = readMarketPrefs(meta as never);
+      discover = readDiscoverPreferences(meta);
+      writeLocalDiscover();
       // An edit the user made while this read was in flight is NEWER than what came back, so it
       // layers on top — and only now, with the account's own keys underneath it, is it safe to
       // push. Nothing was lost by waiting: the local half already applied when they clicked.
@@ -389,6 +411,7 @@ function hydrate(next: string) {
       // Same-owner last good, or the permissive default. NOT another owner's payload: readLocal
       // reads this owner's slot only.
       if (!marketsDirty) state = readLocal(next) ?? { ...DEFAULT_PREFS, enabled: [...ALL_MARKETS] };
+      discover = readLocalDiscover(next);
       terminal = localTerminal();
       rawTerminal = {};
       rawMetaPrefs = {};   // symmetric with rawTerminal above — both merge bases are unknown again
@@ -557,6 +580,9 @@ export type AccountPrefsApi = AccountPrefsSnapshot & {
   setUpDown: (v: UpDown) => void;
   /** Records the account language ONLY — pair it with i18n's setLang to switch the live UI. */
   setLangPref: (l: LangId) => void;
+  saveDiscover: (view: DiscoverView, named?: boolean, token?: OwnerToken) => boolean;
+  deleteDiscover: (id: string, token?: OwnerToken) => boolean;
+  renameDiscover: (id: string, name: string, token?: OwnerToken) => boolean;
   /** Deliver the outstanding desired state now, jumping the retry backoff. Wired to the UI's
    *  "Retry" affordance; a no-op for a guest or when nothing is outstanding. */
   retrySync: () => void;
@@ -573,6 +599,54 @@ export function retryPrefSync() { pump?.retryNow(); }
  */
 export function persistTradeTypes(next: readonly string[]) {
   pump?.queue({ trade_types: [...next] });
+}
+
+/** Explicit interaction only: hydration never calls this writer. The owner token
+ * fences delayed callbacks; unread/newer settings cannot be replaced with defaults.
+ * One-shot atomics prevent an unrelated later preference edit from replaying an
+ * acknowledged old view over another device's more recent edit.
+ */
+export function persistDiscover(view: DiscoverView, named = false, token = currentOwnerToken()): boolean {
+  if (!ownerTokenIsCurrent(token) || !ready || !baseLoaded || discover.blocked) return false;
+  const next = parseDiscoverView(view);
+  if (!next || named && !DISCOVER_VIEW_ID.test(next.id)) return false;
+  if (named && !discover.views.some(v => v.id === next.id) && discover.views.length >= MAX_DISCOVER_VIEWS) return false;
+  const views = named ? [...discover.views.filter(v => v.id !== next.id), next] : discover.views;
+  discover = { ...discover, current: next, views };
+  writeLocalDiscover();
+  const patch: Record<string, unknown> = { [DISCOVER_CURRENT_KEY]: next };
+  if (named) patch[discoverViewKey(next.id)] = next;
+  pump?.queue(patch, { oneShot: Object.keys(patch) });
+  publish();
+  return true;
+}
+
+export function deleteDiscover(id: string, token = currentOwnerToken()): boolean {
+  if (!ownerTokenIsCurrent(token) || !ready || !baseLoaded || discover.blocked || !DISCOVER_VIEW_ID.test(id)) return false;
+  if (!discover.views.some(v => v.id === id)) return false;
+  const wasCurrent = discover.current?.id === id;
+  const current = wasCurrent ? { ...discover.current!, id: "current", name: "Current view" } : discover.current;
+  discover = { ...discover, current, views: discover.views.filter(v => v.id !== id) };
+  writeLocalDiscover();
+  const patch: Record<string, unknown> = { [discoverViewKey(id)]: null };
+  if (wasCurrent) patch[DISCOVER_CURRENT_KEY] = current;
+  pump?.queue(patch, { oneShot: Object.keys(patch) });
+  publish();
+  return true;
+}
+
+/** A rename changes that saved view alone; it cannot replace its layout with
+ * the currently open view or switch another device's current view as a side effect. */
+export function renameDiscover(id: string, name: string, token = currentOwnerToken()): boolean {
+  if (!ownerTokenIsCurrent(token) || !ready || !baseLoaded || discover.blocked) return false;
+  const clean = normalizeDiscoverName(name), stored = discover.views.find(v => v.id === id);
+  if (!clean || !stored) return false;
+  const renamed = { ...stored, name: clean };
+  const patch: Record<string, unknown> = { [discoverViewKey(id)]: renamed };
+  const current = discover.current?.id === id ? { ...discover.current, name: clean } : discover.current;
+  if (discover.current?.id === id) patch[DISCOVER_CURRENT_KEY] = current;
+  discover = { ...discover, current, views: discover.views.map(v => v.id === id ? renamed : v) };
+  writeLocalDiscover(); pump?.queue(patch, { oneShot: Object.keys(patch) }); publish(); return true;
 }
 
 /**
@@ -621,10 +695,11 @@ export function useAccountPrefs(identity?: AccountIdentity | null): AccountPrefs
   }, []);
 
   return {
-    prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, ready: snap.ready,
+    prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, discover: snap.discover, ready: snap.ready,
     owner: snap.owner, sync: snap.sync, base: snap.base, held: snap.held,
     toggle, enableAll, setFollowed,
     setStartTf: persistStartTf, setUpDown: persistUpDown, setLangPref: persistLang,
+    saveDiscover: persistDiscover, deleteDiscover, renameDiscover,
     retrySync: retryPrefSync,
   };
 }
@@ -638,6 +713,7 @@ export function __resetMarketPrefsStore() {
   state = DEFAULT_PREFS;
   terminal = DEFAULT_TERMINAL_PREFS;
   metaPrefs = {};
+  discover = EMPTY_DISCOVER;
   rawTerminal = {};
   pendingTerminal = null;
   rawMetaPrefs = {};
@@ -681,3 +757,4 @@ export function __marketPrefsInternals() {
     marketsDirty, sync, hydrateAttempts, undelivered: pump?.hasUndelivered() ?? false,
   };
 }
+

@@ -35,3 +35,11 @@ Native advisory UX reasoning completed; parent consumed it. Native signal-contra
 
 ## Next action
 Implement account-bound workspace preferences and table controls against the verified existing owners, with contract tests before integrating the ScreenerView. No production outcome claimed.
+
+## Verified implementation checkpoint — 2026-11-14
+
+P1 source audit complete. Local P2–P4 candidate includes compact/advanced filtering, custom listboxes, 28-column registry, pointer/keyboard arrangement, signal/regime defaults, multi-view UI, shared regular/BOATS quote adapters, and dated classification repair. Signal semantics and the exact `yfinance+massive` provenance fault are source-verified. Current local tests: 67 TypeScript/component assertions and 49 Python producer assertions pass; focused typecheck and dependency-closure parse pass. Browser rendering remains NOT_VERIFIED: local Chromium cannot launch under the execution environment; cloud preview cannot access scratch localhost, and inspection of its internal error page was explicitly refused. That refused error-page effect is closed; do not route around it.
+
+This is an INCOMPLETE SOURCE CHECKPOINT, not release-qualified. Review identified that full saved views must use existing `workspace_settings`, not auth metadata/cookies. Next action: replace only the added Discover persistence lane using existing smart-screens API/auth/fixtures and the existing owner/generation plus PreferencePump, with conditional storage and conflict/failure proof. No production migration is needed by the installed table schema (0015). Then qualify adapted/new browser journeys through normal CI and continue the original protected release. No PR or deploy yet.
+
+Advisory review findings accepted and repaired: account retry restoration/deep links, prompt local intent capture, active-view re-selection, hidden technical-filter visibility, request-continuation fences, owner-generation write binding and per-session quote status. New source-date comparison preserves newer dated GICS evidence and independent industry provenance. Do not redo these without contrary evidence.
