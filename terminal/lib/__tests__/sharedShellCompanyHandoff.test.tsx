@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SharedShellToolbar from "@/components/chrome/shared-shell/SharedShellToolbar";
+import SharedShellLaunchLinks from "@/components/chrome/shared-shell/SharedShellLaunchLinks";
 import { ACTIVE_SYMBOL_KEY, readActiveSymbol, resetActiveSymbolCache } from "@/lib/activeSymbol";
 
 const navigation = vi.hoisted(() => ({ path: "/stock.html", params: new URLSearchParams() }));
@@ -10,11 +10,9 @@ vi.mock("next/navigation", () => ({
  usePathname: () => navigation.path, useSearchParams: () => navigation.params, useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock("next/link", () => ({
- default: ({ children, href, className }: React.ComponentProps<"a">) =>
-  <a className={className} href={href}>{children}</a>,
+ default: ({ children, href, ...props }: React.ComponentProps<"a">) =>
+  <a {...props} href={href}>{children}</a>,
 }));
-vi.mock("@/components/chrome/shared-shell/ShellSearch", () => ({ default: () => null }));
-vi.mock("@/components/chrome/shared-shell/SharedShellPresentationControls", () => ({ default: () => null }));
 vi.mock("@/lib/sharedShellCopy", () => ({ useSharedShellT: () => (key: string) => key }));
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -27,9 +25,9 @@ function location(href: string) {
 }
 async function render(href: string) {
  location(href);
- await act(async () => root.render(<SharedShellToolbar symbolOpen={false} onSymbolOpenChange={() => {}} onOpenDirectory={() => {}} />));
+ await act(async () => root.render(<SharedShellLaunchLinks drawer labelled glyph={() => null} />));
 }
-function link() { return host.querySelector<HTMLAnchorElement>(".shared-shell-terminal-link"); }
+function link() { return host.querySelector<HTMLAnchorElement>("[data-shell-terminal]"); }
 function target() { return new URL(link()!.href); }
 
 beforeEach(() => {
@@ -58,6 +56,7 @@ describe("Shared Shell current-company chart handoff", () => {
   expect(target().searchParams.get("symbol")).toBe(symbol);
   expect(target().searchParams.get("ret")).toBe(window.location.href);
   expect(target().searchParams.get("from")).toBe("macro");
+  expect(host.querySelector('a[aria-label="shellMastermindAI"]')?.getAttribute("href")).toBe("/brain?symbol=" + encodeURIComponent(symbol));
   expect(readActiveSymbol()).toBe("NVDA");
   expect(window.localStorage.getItem(ACTIVE_SYMBOL_KEY)).toBe("NVDA");
  });
@@ -67,7 +66,7 @@ describe("Shared Shell current-company chart handoff", () => {
   "/stock.html#BAD%2FIDENTITY", "/stock.html?ticker=NVDA#BAD%2FIDENTITY",
  ])("does not offer an unrelated previous chart for %s", async href => {
   await render(href);
-  expect(link()).toBeNull();
+  expect(link()?.getAttribute("href")).toBe("/terminal");
  });
 
  it.each(["hashchange", "popstate", "mmx:shell-location"])("follows a committed %s without publishing another cursor", async event => {
@@ -81,13 +80,33 @@ describe("Shared Shell current-company chart handoff", () => {
   expect(readActiveSymbol()).toBe("NVDA");
  });
 
+ it("opens a neutral Brain outside of an explicit company and for invalid subjects", async () => {
+  for (const href of ["/discover", "/stock.html#BAD%2FSYMBOL", "/analysis?symbol=BAD%2FSYMBOL"]) {
+   await render(href);
+   expect(host.querySelector('a[aria-label="shellMastermindAI"]')?.getAttribute("href")).toBe("/brain");
+  }
+ });
+
+ it("opens the in-place Analysis reader with its exact selected thesis", async () => {
+  await render("/analysis?view=theses&symbol=MU&thesis=reader-selection");
+  const open = vi.fn();
+  window.addEventListener("mm:copilot", open);
+  try {
+   await act(async () => host.querySelector<HTMLButtonElement>('button[aria-label="shellMastermindAI"]')!.click());
+   expect(open).toHaveBeenCalledTimes(1);
+   expect(window.location.search).toBe("?view=theses&symbol=MU&thesis=reader-selection");
+  } finally {
+   window.removeEventListener("mm:copilot", open);
+  }
+ });
+
  it("retains the cursor on non-company pages and native Analysis selection rules", async () => {
   await render("/macro.html#risk");
   expect(target().searchParams.get("symbol")).toBe("NVDA");
   await render("/analysis?symbol=AAPL");
   expect(target().searchParams.get("symbol")).toBe("AAPL");
   await render("/analysis?symbol=BAD%2FIDENTITY");
-  expect(link()).toBeNull();
+  expect(link()?.getAttribute("href")).toBe("/terminal");
   await render("/analysis");
   expect(target().searchParams.get("symbol")).toBe("NVDA");
  });

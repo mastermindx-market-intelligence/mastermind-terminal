@@ -15,7 +15,7 @@ const FAMILY_ROUTES: Record<Family, Partial<Record<WorkspaceMarket, string>>> = 
 const NATIVE_MARKET_WORKSPACES = new Set(["/today", "/intelligence", "/sectors", "/discover", "/prophet", "/dislocations"]);
 // These surfaces have an explicit instrument, account, or document scope. Changing
 // research context must not filter a portfolio or relabel an already selected issuer.
-const INDEPENDENT_SCOPES = new Set(["/analysis", "/portfolio", "/monitor", "/research", "/alerts", "/scripts", "/options", "/terminal"]);
+const INDEPENDENT_SCOPES = new Set(["/market-reference", "/brain", "/analysis", "/portfolio", "/monitor", "/research", "/alerts", "/scripts", "/options", "/terminal"]);
 function hasIndependentScope(path: string): boolean {
   return INDEPENDENT_SCOPES.has(path) || path.startsWith("/options/")
     || ["/stock.html", "/china_lookup.html", "/hk_lookup.html", "/canada_stock.html", "/intl_stock.html", "/watchlist.html"].includes(path)

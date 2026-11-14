@@ -1,0 +1,46 @@
+.shared-shell-toolbar .shared-shell-presentation { margin-inline-start:auto; }
+.shared-shell .appnav [data-tool-browser-trigger][aria-expanded="true"] { color:var(--text);background:var(--panel-3);border-color:var(--line); }
+.shell-mega {
+  position:fixed;z-index:80;inset-inline-start:var(--shared-rail);bottom:16px;
+  display:grid;grid-template-columns:clamp(165px,16vw,210px) minmax(0,1fr);
+  width:min(880px,calc(100vw - var(--shared-rail) - 16px));max-height:calc(100dvh - 88px);
+  overflow:hidden;border:1px solid var(--line-3);border-radius:12px;background:var(--panel);color:var(--text);
+  box-shadow:var(--pop-shadow-modal);font-family:var(--font-ui);
+}
+.mega-families { min-width:0;overflow:auto;padding:18px 10px;background:var(--panel-2);border-inline-end:1px solid var(--line); }
+.mega-families header { display:flex;align-items:center;justify-content:space-between;min-height:32px;margin:0 6px 12px; }
+.mega-families header strong { font-size:13px;font-weight:600;color:var(--text-2); }
+.mega-families button { display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;min-height:44px;
+  padding:8px 12px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text-2);
+  font:500 13px/1.35 var(--font-ui);text-align:start;cursor:pointer; }
+.mega-families header button { width:32px;min-height:32px;justify-content:center;padding:0;font-size:22px; }
+.mega-families [aria-pressed="true"],.mega-families [aria-expanded="true"],.mega-families button:hover { background:var(--panel-3);color:var(--text);border-color:var(--line); }
+.mega-families [data-family] span { color:var(--muted);font-size:17px; }
+.mega-content { min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:22px 24px 18px; }
+.mega-content h2 { margin:0 0 20px;color:var(--text);font-size:22px;line-height:1.25;letter-spacing:-.035em; }
+.mega-group + .mega-group { margin-top:16px; }
+.mega-group h3 { display:flex;align-items:center;gap:12px;margin:0 0 6px;color:var(--muted);font:600 11px/1.45 var(--font-ui);text-transform:uppercase;letter-spacing:.075em; }
+.mega-group h3::after { content:"";flex:1;height:1px;background:var(--line); }
+.mega-links { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 12px; }
+.mega-links a { display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;min-height:48px;padding:8px;border-radius:6px;color:var(--text);text-decoration:none; }
+.mega-links a:hover,.mega-links a:focus-visible { background:var(--panel-3); }
+.mega-links strong,.mega-links small { display:block;overflow-wrap:anywhere; }
+.mega-links strong { font:600 13px/1.4 var(--font-ui); }
+.mega-links small { margin-top:3px;color:var(--text-2);font:400 12px/1.45 var(--font-ui); }
+.mega-external { flex:none;color:var(--muted);font-size:13px; }
+.mega-more { margin-top:14px;border-top:1px solid var(--line); }
+.mega-more summary { min-height:44px;padding:12px 2px;cursor:pointer;color:var(--text-2);font:500 13px/1.45 var(--font-ui); }
+.shell-mega :is(a,button,summary):focus-visible { outline:2px solid var(--brand-2);outline-offset:-2px; }
+@media (max-width:860px) {
+  .shell-mega-sheet { width:min(500px,100%);max-width:100%;max-height:calc(100dvh - env(safe-area-inset-top));padding:0;
+    margin:auto 0 0;border:1px solid var(--line-3);border-radius:12px 12px 0 0;background:var(--panel);color:var(--text); }
+  .shell-mega-sheet::backdrop { background:var(--scrim); }
+  .shell-mega-sheet .shell-mega { position:static;display:block;width:100%;max-height:inherit;overflow:auto;border:0;border-radius:inherit;box-shadow:none; }
+  .mega-families { overflow:visible;padding:12px 12px max(16px,env(safe-area-inset-bottom));border:0;background:var(--panel); }
+  .mega-families header { position:sticky;top:0;z-index:1;margin:0 0 4px;padding:4px 6px;background:var(--panel); }
+  .mega-families header button { min-height:44px;width:44px; }
+  .mega-content { overflow:visible;padding:12px 4px 18px; }
+  .mega-content h2 { display:none; }
+  .mega-links { grid-template-columns:minmax(0,1fr); }
+  .mega-group h3 { padding:0 8px; }
+}

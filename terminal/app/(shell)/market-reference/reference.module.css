@@ -1,0 +1,31 @@
+.reader { min-width:0; overflow:auto; color:var(--text); background:var(--bg); }
+.column { box-sizing:border-box; max-width:900px; margin:0 auto; padding:clamp(18px,4vw,52px); line-height:1.55; }
+.column header { margin-bottom:22px; }
+.column h1 { font-size:clamp(26px,4vw,38px); line-height:1.15; letter-spacing:-.035em; margin:6px 0 9px; }
+.column p { margin:4px 0 10px; overflow-wrap:anywhere; }
+.column h2 { font-size:21px; margin:26px 0 8px; }
+.column h3, .column h4 { margin:0; }
+.column h4 { margin-top:16px; font-size:14px; }
+.muted { color:var(--text-2); font-size:13px; }
+.column input, .column select, .column button { color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:9px 12px; font:inherit; min-height:44px; }
+.column input { width:min(100%,550px); }
+.filters,.links { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.filters { margin:10px 0; }
+.column select { max-width:100%; }
+.column button,.entry a,.coverage summary { cursor:pointer; }
+.column :is(input,select,button,a,summary):focus-visible { outline:2px solid var(--link); outline-offset:2px; }
+.entry { border-bottom:1px solid var(--line); padding:12px 2px; scroll-margin-block:12px; }
+.entry[data-open=true] { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+.entry h3 a { display:flex; justify-content:space-between; align-items:center; min-height:40px; color:var(--text); text-decoration:none; }
+.entry h3 a span { color:var(--text-2); }
+.entry > p,.detail dd,.detail li { color:var(--text-2); }
+.detail dl { margin:12px 0; }
+.detail dt { font-weight:600; }
+.detail dd { margin:0 0 8px; }
+.detail ul { padding-inline-start:20px; }
+.links a { color:var(--link); text-underline-offset:3px; margin-inline-end:6px; }
+.coverage { margin-top:26px; border-top:1px solid var(--line); padding:16px 0; }
+.coverage section { margin:16px 0; }
+
+.entry .detail { display:none; }
+.entry[data-open=true] .detail, .reader[data-hydrated=false] .entry:target .detail { display:block; }

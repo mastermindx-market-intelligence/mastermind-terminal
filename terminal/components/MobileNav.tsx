@@ -10,7 +10,8 @@ import SettingsButton from "@/components/settings/SettingsButton";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
-import { sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import SharedShellLaunchLinks from "./chrome/shared-shell/SharedShellLaunchLinks";
+import { sharedShellActiveKey } from "@/lib/sharedShellNavigation";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
 import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
@@ -64,8 +65,7 @@ export interface MobileNavProps {
   onOpenCommandPalette?: () => void;
   /** Accessible name for that button, in the current language (the caller owns the copy). */
   commandPaletteLabel?: string;
-  /** Retained for call-site compatibility; the drawer no longer special-cases the
-   *  fundamentals pane (Analyst is gone from the nav). */
+  /** Chart chrome keeps its AI action in the navigation drawer. */
   isTerminal?: boolean;
   /** Disable viewport prefetch; warm sibling workspaces only on explicit intent. */
   intentPrefetch?: boolean;
@@ -82,7 +82,7 @@ export default function MobileNav({
   activeKey: activeKeyProp,
   onOpenCommandPalette,
   commandPaletteLabel,
-  isTerminal: _isTerminal = false,
+  isTerminal = false,
   intentPrefetch = false,
 }: MobileNavProps) {
   const [drawer, setDrawer] = useState(false);
@@ -118,7 +118,7 @@ export default function MobileNav({
     } else if (navPath.startsWith("/analysis")) {
       window.dispatchEvent(new CustomEvent("mm:copilot"));
     } else {
-      window.location.href = sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1";
+      window.location.href = "/terminal?ai=1";
     }
   };
 
@@ -134,6 +134,7 @@ export default function MobileNav({
               className="m-ic"
               onClick={() => setDrawer(true)}
               ref={openerRef}
+              data-shell-menu-opener={sharedShell ? "" : undefined}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
               aria-haspopup="dialog"
               aria-expanded={drawer}
@@ -151,6 +152,7 @@ export default function MobileNav({
               className="m-ic"
               onClick={() => setDrawer(true)}
               ref={openerRef}
+              data-shell-menu-opener={sharedShell ? "" : undefined}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
               aria-haspopup="dialog"
               aria-expanded={drawer}
@@ -168,11 +170,11 @@ export default function MobileNav({
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
             </button>
           )}
-          <button className="m-ic" onClick={handleAI} aria-label="Mastermind AI">
+          {!sharedShell && !isTerminal && <button className="m-ic" onClick={handleAI} aria-label="Mastermind AI">
             <svg viewBox="0 0 24 24" style={{ fill: "var(--brand-2)", stroke: "none" }}>
               <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
             </svg>
-          </button>
+          </button>}
           {/* SettingsButton stays the only account/settings owner; this wrapper
               provides its existing centered 44px hit area on both header paths. */}
           <span className={styles.account}><SettingsButton email={email} /></span>
@@ -198,24 +200,9 @@ export default function MobileNav({
               <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
                 activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
                 renderGlyph={key => <NavGlyph k={key} />} />
-              {/* Callback only — the existing directory stays wherever it is mounted; no second one. */}
-              <button type="button" onClick={() => { closeDrawer(); onOpenDirectory?.(); }}>{t("shellAllTools")}</button>
-              {/* Client-only surface: this JSX renders ONLY while the modal is mounted (drawer
-                  is false on SSR), so window.location.href is never read on the server. No new
-                  auth or storage. The route transition closes the drawer via the modal's
-                  pathname effect → onClose; the capture-phase release runs first. */}
-              <Link
-                href={sharedShellTerminalHref(window.location.href, activeSymbol)}
-                onClick={closeDrawer}
-              >
-                {t("shellOpenTerminal")}
-              </Link>
-              <button onClick={handleAI}>
-                <svg viewBox="0 0 24 24" style={{ fill: "var(--brand-2)", stroke: "none" }}>
-                  <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
-                </svg>
-                {t("ai")}
-              </button>
+              <SharedShellLaunchLinks drawer labelled glyph={key => <NavGlyph k={key} />} onNavigate={closeDrawer} />
+              <button type="button" aria-controls="shared-shell-tools"
+                onClick={() => { closeDrawer(); onOpenDirectory?.(); }}>{t("shellBrowseTools")}</button>
             </nav>
             <div className="m-drawer-ft"><SettingsButton email={email} /></div>
           </MobileNavModal>

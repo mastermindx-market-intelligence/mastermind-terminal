@@ -41,7 +41,7 @@ beforeEach(() => {
   releases = [];
   restoreProperties = [];
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: false, media: query, onchange: null,
+    matches: query === "(max-width: 860px)", media: query, onchange: null,
     addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {},
     dispatchEvent() { return false; },
   }));
@@ -65,7 +65,7 @@ afterEach(async () => {
 });
 async function render(surface: typeof surfaces[number], open: boolean, keepMounted = false) {
   await act(async () => root.render(surface === "directory"
-    ? <ShellDirectory open={open} onClose={noop} onSearchCompanies={noop} />
+    ? (open ? <ShellDirectory mode="browse" onClose={noop} /> : null)
     : surface === "mobile-sheet"
       ? <MobileSheet open={open} keepMounted={keepMounted} title="Test sheet" onClose={noop}><button>Sheet action</button></MobileSheet>
       : surface === "analysis-hub"

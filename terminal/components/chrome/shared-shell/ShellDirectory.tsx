@@ -1,225 +1,170 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
-import { acquireScrollLock } from "@/lib/scrollLock";
 import { useLang } from "@/lib/i18n";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
-import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
-import { directoryEntryTitle, directorySection, normalizeDirectoryQuery, searchDirectoryEntries } from "@/lib/sharedShellDirectorySearch";
+import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
+import { megaMenuSections, type MegaMenuGroup, type MegaMenuItem } from "@/lib/sharedShellMegaMenu";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
-const SECTIONS = ["all", "workspaces", "markets", "research", "learn", "tools", "about"] as const;
-const canReceiveFocus = (element: HTMLElement | null): element is HTMLElement => !!element
-  && element.isConnected && element.getClientRects().length > 0
-  && !element.closest('[hidden], [inert], [aria-hidden="true"], [aria-disabled="true"]')
-  && !element.matches(':disabled, [aria-disabled="true"]')
-  && getComputedStyle(element).visibility !== "hidden"
-  && getComputedStyle(element).visibility !== "collapse";
-export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
-  open: boolean; onClose: () => void; onSearchCompanies: () => void;
-}) {
-  const t = useSharedShellT();
+const phoneQuery = "(max-width: 860px)";
+const onViewportChange = (callback: () => void) => {
+  const view = window.matchMedia(phoneQuery);
+  view.addEventListener("change", callback);
+  return () => view.removeEventListener("change", callback);
+};
+const isPhone = () => window.matchMedia(phoneQuery).matches;
+const trigger = "[data-tool-browser-trigger]";
+
+export default function ShellMegaMenu({ mode, onClose }: { mode: "hover" | "browse"; onClose: () => void }) {
   const { lang } = useLang();
-  const path = usePathname(), params = useSearchParams();
-  const market = workspaceMarket(path ?? "", params?.toString() ?? "");
-  const dialog = useRef<HTMLDialogElement>(null);
-  const input = useRef<HTMLInputElement>(null);
-  const allCategory = useRef<HTMLButtonElement>(null);
-  const results = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string>("all");
-  const [limit, setLimit] = useState(48);
-  const lastFocus = useRef<HTMLElement | null>(null);
-  const selected = useRef(false);
-  const focusOwned = useRef(false);
-  const composing = useRef(false);
-  const escapeRequest = useRef<{ event: KeyboardEvent; protected: boolean; expiry: number } | null>(null);
-  const revealFocus = useRef<{ button: HTMLButtonElement; index: number } | null>(null);
-  const tokens = useMemo(() => normalizeDirectoryQuery(query).split(/\s+/).filter(Boolean), [query]);
-  const { matches, allCount } = useMemo(() => {
-    // Search the same canonical finite projection; preserve current directory
-    // category-specific totals and its independently accepted focus lifecycle.
-    const matches = searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query, category);
-    return { matches, allCount: category === "all" ? matches.length
-      : searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query, "all").length };
-  }, [query, category]);
+  const t = useSharedShellT();
+  const phone = useSyncExternalStore(onViewportChange, isPhone, () => false);
+  const [selected, setSelected] = useState(megaMenuSections[0].id);
+  const [collapsed, setCollapsed] = useState(true);
+  const shell = useRef<HTMLElement>(null);
+  const sheet = useRef<HTMLDialogElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const initialFocus = useRef<HTMLElement | null>(null);
+  const path = usePathname();
+  const query = useSearchParams().toString();
+  const initialLocation = useRef(path + "?" + query);
+  const market = workspaceMarket(path, query);
+  const current = megaMenuSections.find(family => family.id === selected) ?? megaMenuSections[0];
+  const dismiss = useCallback(() => {
+    const opener = initialFocus.current;
+    onClose();
+    requestAnimationFrame(() => {
+      // A trigger in a dismissed drawer may have been unmounted, or hidden by resize.
+      if (opener?.isConnected && opener !== document.body && opener.getClientRects().length) {
+        opener.focus({ preventScroll: true });
+      } else {
+        document.querySelector<HTMLElement>(isPhone() ? "[data-shell-menu-opener]" : trigger)?.focus({ preventScroll: true });
+      }
+    });
+  }, [onClose]);
 
   useLayoutEffect(() => {
-    const pending = revealFocus.current;
-    revealFocus.current = null;
-    if (!pending) return;
-    // Only repair focus lost when the activated final-batch button disappears.
-    // A later user focus movement belongs to that user, not this render.
-    if (document.activeElement !== pending.button
-      && !(document.activeElement === document.body && !pending.button.isConnected)) return;
-    results.current?.querySelectorAll<HTMLAnchorElement>(".shared-directory-link")[pending.index]?.focus({ preventScroll: true });
-  }, [limit]);
+    // Hover does not move focus. A later click takes ownership from the
+    // previously focused control and must return to the rail trigger.
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && !shell.current?.contains(active)) initialFocus.current = active;
+  }, [mode]);
+  useLayoutEffect(() => {
+    if (!phone || !sheet.current) return;
+    const dialog = sheet.current;
+    const release = acquireScrollLock();
+    dialog.showModal();
+    return () => { dialog.close(); release(); };
+  }, [phone]);
+  useLayoutEffect(() => {
+    if (mode === "browse" || phone) (shell.current?.querySelector<HTMLButtonElement>('[data-family][aria-pressed="true"]')
+      ?? shell.current?.querySelector<HTMLButtonElement>('[data-family]'))?.focus();
+  }, [mode, phone]);
   useEffect(() => {
-    const element = dialog.current;
-    if (!open || !element) return;
-    selected.current = false;
-    focusOwned.current = false;
-    composing.current = false;
-    lastFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const shell = element.closest(".shared-shell") ?? document;
-    if (!element.open) element.showModal();
-    input.current?.focus();
-    const releaseScroll = acquireScrollLock();
-    return () => {
-      if (escapeRequest.current) window.clearTimeout(escapeRequest.current.expiry);
-      escapeRequest.current = null;
-      const active = document.activeElement;
-      // Removing a focused DOM subtree can leave BODY without firing blur.
-      // Real focus movement outside the dialog clears focusOwned below.
-      const owned = element.contains(active) || (focusOwned.current && active === document.body);
-      const outside = !owned && active instanceof HTMLElement ? active : null;
-      if (element.open) element.close();
-      releaseScroll();
-      if (!selected.current && owned) {
-        const target = [lastFocus.current,
-          ...shell.querySelectorAll<HTMLElement>('.shared-shell-directory-trigger, .mobilebar button[aria-haspopup="dialog"][aria-controls]'),
-          ...shell.querySelectorAll<HTMLElement>('main h1, [role="main"] h1, .main2 h1'),
-          ...shell.querySelectorAll<HTMLElement>('main, [role="main"], .main2'),
-        ].find(canReceiveFocus);
-        if (target) {
-          if (!target.matches("a[href], button, input, select, textarea, [tabindex]")) target.tabIndex = -1;
-          target.focus({ preventScroll: true });
-        }
-      } else if (canReceiveFocus(outside) && document.activeElement !== outside) {
-        // A native dialog close must not undo a deliberate newer focus owner.
-        outside.focus({ preventScroll: true });
+    if (initialLocation.current !== path + "?" + query) onClose();
+  }, [path, query, onClose]);
+  useEffect(() => {
+    const within = (node: EventTarget | null) => node instanceof Element && (shell.current?.contains(node) || node.closest(trigger));
+    const key = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented && !event.isComposing && !event.repeat) {
+        event.preventDefault(); dismiss();
       }
     };
-  }, [open]);
+    const outside = (event: Event) => {
+      if (!within(event.target) && event.target !== sheet.current) onClose();
+    };
+    let leaveTimer: ReturnType<typeof setTimeout>;
+    const onMove = (event: PointerEvent) => {
+      if (mode !== "hover" || phone || event.pointerType !== "mouse") return;
+      clearTimeout(leaveTimer);
+      if (!within(event.target) && !within(document.activeElement)) leaveTimer = setTimeout(onClose, 260);
+    };
+    const leaveWindow = () => {
+      if (mode === "hover" && !within(document.activeElement)) onClose();
+    };
+    document.addEventListener("keydown", key);
+    document.addEventListener("pointerdown", outside, true);
+    document.addEventListener("focusin", outside);
+    document.addEventListener("pointerover", onMove);
+    document.documentElement.addEventListener("pointerleave", leaveWindow);
+    return () => {
+      clearTimeout(leaveTimer);
+      document.removeEventListener("keydown", key);
+      document.removeEventListener("pointerdown", outside, true);
+      document.removeEventListener("focusin", outside);
+      document.removeEventListener("pointerover", onMove);
+      document.documentElement.removeEventListener("pointerleave", leaveWindow);
+    };
+  }, [dismiss, mode, onClose, phone]);
 
-  if (!open) return null;
-  const formatCount = (value: number) => new Intl.NumberFormat(lang === "zh" ? "zh-CN" : "en-US").format(value);
-  const filtered = category !== "all";
-  const countKey = tokens.length
-    ? (filtered ? "shellCategoryMatchCount" : matches.length === 1 ? "shellOneMatch" : "shellMatchCount")
-    : (filtered ? (matches.length === 1 ? "shellCategoryOneDestination" : "shellCategoryDestinationCount")
-      : matches.length === 1 ? "shellOneDestination" : "shellPageCount");
-  const showAll = filtered && allCount > matches.length;
-  const openCompanies = () => {
-    selected.current = true;
-    // AppShell already replaces directory with company search in one update.
-    // A second requestAnimationFrame opener could outlive the current intent.
-    onSearchCompanies();
-  };
-  return (
-    <dialog ref={dialog} className="shared-shell-directory" aria-labelledby="shared-directory-title"
-      onFocusCapture={() => { focusOwned.current = true; }}
-      onBlurCapture={event => { if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) focusOwned.current = false; }}
-      onCompositionStart={() => { composing.current = true; }}
-      onCompositionEnd={() => { composing.current = false; }}
-      onKeyDownCapture={event => {
-        if (event.key !== "Escape") return;
-        if (escapeRequest.current) window.clearTimeout(escapeRequest.current.expiry);
-        // Observe, but do not preempt, the child/IME. The HTML close-request
-        // algorithm checks this keydown before issuing its native cancel.
-        const request = { event: event.nativeEvent, protected: composing.current
-          || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat, expiry: 0 };
-        escapeRequest.current = request;
-        // End this association after the current close-request task, even if
-        // focus loss means keyup never arrives. This is not a delayed close.
-        request.expiry = window.setTimeout(() => {
-          if (escapeRequest.current === request) escapeRequest.current = null;
-        }, 0);
-      }}
-      onKeyDown={event => {
-        if (event.key !== "Escape" || event.defaultPrevented || composing.current
-          || escapeRequest.current?.protected) return;
-        event.preventDefault();
-        event.stopPropagation();
-        onClose();
-      }}
-      onKeyUp={event => {
-        if (event.key !== "Escape") return;
-        if (escapeRequest.current) window.clearTimeout(escapeRequest.current.expiry);
-        escapeRequest.current = null;
-      }}
-      onCancel={event => {
-        event.preventDefault();
-        const request = escapeRequest.current;
-        if (request) window.clearTimeout(request.expiry);
-        escapeRequest.current = null;
-        if (!composing.current && !request?.protected
-          && !request?.event.defaultPrevented) onClose();
-      }}
-      onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="shared-directory-surface">
-        <header className="shared-directory-header">
-          <div><span className="shared-directory-eyebrow">{t("shellWorkspace")}</span>
-            <h2 id="shared-directory-title">{t("shellAllTools")}</h2>
-            <p>{t("shellDirectoryIntro")}</p>
-          </div>
-          <button type="button" className="shared-shell-icon-button" aria-label={t("shellCloseDirectory")} onClick={onClose}>×</button>
-        </header>
-        <div className="shared-directory-search">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
-          <input ref={input} type="search" value={query} onChange={event => { setQuery(event.target.value); setLimit(48); }}
-            placeholder={t("shellFindPage")} aria-label={t("shellFindPage")} aria-describedby="shared-directory-status" autoComplete="off" />
-          {query && <button type="button" className="shared-directory-query-clear" aria-label={t("shellClearDirectoryQuery")}
-            onClick={() => { setQuery(""); setLimit(48); input.current?.focus({ preventScroll: true }); }}>
-            <span aria-hidden="true">×</span>
-          </button>}
-          <kbd>esc</kbd>
-        </div>
-        <div className="shared-directory-filters" role="group" aria-label={t("shellCategories")}>
-          {SECTIONS.map(item => <button key={item} ref={item === "all" ? allCategory : undefined} type="button" aria-pressed={category === item}
-            onClick={() => { setCategory(item); setLimit(48); }}>{t("shellSection_" + item)}</button>)}
-        </div>
-        <div ref={results} className="shared-directory-results">
-          {showAll && <div className="shared-directory-recovery">
-            <button type="button" onClick={event => {
-              if (document.activeElement === event.currentTarget) allCategory.current?.focus({ preventScroll: true });
-              setCategory("all"); setLimit(48);
-            }}>{t(tokens.length ? (allCount === 1 ? "shellShowOneMatch" : "shellShowAllMatches")
-              : allCount === 1 ? "shellShowOneDestination" : "shellShowAllDestinations").replace("{count}", formatCount(allCount))}</button>
-          </div>}
-          {!matches.length ? (
-            <div className="shared-directory-empty">
-              <h3>{t(showAll ? "shellNoPagesInCategory" : "shellNoPages")}</h3>
-              <p>{t(showAll ? "shellNoPagesInCategoryHint" : "shellNoPagesHint")}</p>
-              <button type="button" onClick={openCompanies}>
-                {t("shellSearchCompanies")}
-              </button>
-            </div>
-          ) : (
-            <div className="shared-directory-grid">
-              {matches.slice(0, limit).map(entry => (
-                <Link key={entry.href} href={inheritWorkspaceMarketHref(entry.href, market)} prefetch={false}
-                  onNavigate={() => { selected.current = true; onClose(); }}
-                  className="shared-directory-link">
-                  <span className="shared-directory-link-icon" aria-hidden="true">
-                    {entry.kind === "native" ? "↗" : "◫"}
-                  </span>
-                  <span><strong>{directoryEntryTitle(entry, lang, t)}</strong><small>{t("shellSection_" + directorySection(entry))}</small></span>
-                  <span className="shared-directory-arrow" aria-hidden="true">→</span>
-                </Link>
-              ))}
-            </div>
-          )}
-          {limit < matches.length && <button className="shared-directory-more" type="button"
-            onClick={event => {
-              if (limit + 48 >= matches.length && document.activeElement === event.currentTarget) {
-                revealFocus.current = { button: event.currentTarget, index: limit };
-              }
-              setLimit(value => value + 48);
-            }}>{t("shellShowMore")}</button>}
-        </div>
-        <footer className="shared-directory-footer">
-          <span id="shared-directory-status" role="status" aria-live="polite" aria-atomic="true">
-            {t(countKey).replace("{count}", formatCount(matches.length))}
-            {limit < matches.length && <span className="shared-directory-progress">{t("shellResultsShown").replace("{shown}", formatCount(limit)).replace("{count}", formatCount(matches.length))}</span>}
-          </span>
-          <button type="button" onClick={openCompanies}>
-            {t("shellSearchCompanies")} <span aria-hidden="true">↗</span>
+  function choose(id: string) {
+    setSelected(id);
+    setCollapsed(false);
+    if (content.current) content.current.scrollTop = 0;
+  }
+  function controlKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const keys = ["ArrowDown", "ArrowUp", "Home", "End", "ArrowRight"];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === "ArrowRight") {
+      choose(megaMenuSections[index].id);
+      requestAnimationFrame(() => content.current?.querySelector<HTMLElement>("a")?.focus());
+      return;
+    }
+    const last = megaMenuSections.length - 1;
+    let next = (index + (event.key === "ArrowDown" ? 1 : -1) + last + 1) % (last + 1);
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = last;
+    shell.current?.querySelectorAll<HTMLButtonElement>("[data-family]")[next]?.focus();
+    if (!phone) choose(megaMenuSections[next].id);
+  }
+  function tool(item: MegaMenuItem) {
+    const body = <>
+      <span><strong>{item.title[lang]}</strong>{item.description && <small>{item.description[lang]}</small>}</span>
+      {!item.native && <span className="mega-external" aria-hidden="true">↗</span>}
+    </>;
+    return item.native
+      ? <Link key={item.href} href={inheritWorkspaceMarketHref(item.href, market)} prefetch={false} onNavigate={onClose}>{body}</Link>
+      : <a key={item.href} href={item.href}>{body}</a>;
+  }
+  function group(group: MegaMenuGroup) {
+    return <section className="mega-group" key={group.title.en}>
+      <h3>{group.title[lang]}</h3><div className="mega-links">{group.items.map(tool)}</div>
+    </section>;
+  }
+  const catalogue = <div id="mega-family-content" className="mega-content" ref={content} key={current.id}>
+    <h2>{current.title[lang]}</h2>
+    {current.groups.map(group)}
+    {!!current.explore?.length && <section className="mega-group"><h3>{t("shellExploreTools")}</h3>
+      <div className="mega-links">{current.explore.map(tool)}</div>
+    </section>}
+    {!!current.moreGroups?.length && <details className="mega-more">
+      <summary>{t("shellMoreFamilyTools").replace("{family}", lang === "zh" ? current.title.zh : current.title.en.toLowerCase())}</summary>
+      {current.moreGroups.map(group)}
+    </details>}
+  </div>;
+  const body = <nav id="shared-shell-tools" className="shell-mega" ref={shell} aria-label={t("shellBrowseTools")}>
+    <div className="mega-families">
+      <header><strong>{t("shellBrowseTools")}</strong><button type="button" onClick={dismiss} aria-label={t("shellCloseMenu")}>×</button></header>
+      {megaMenuSections.map((family, index) => {
+        const active = current.id === family.id;
+        return <div key={family.id}>
+          <button type="button" data-family="" aria-pressed={phone ? undefined : active}
+            aria-expanded={phone ? active && !collapsed : undefined} aria-controls={active && (!phone || !collapsed) ? "mega-family-content" : undefined}
+            onPointerEnter={event => { if (!phone && event.pointerType === "mouse" && !content.current?.contains(document.activeElement)) choose(family.id); }}
+            onKeyDown={event => controlKeys(event, index)}
+            onClick={() => { if (phone && active && !collapsed) setCollapsed(true); else choose(family.id); }}>
+            {family.title[lang]}<span aria-hidden="true">{phone ? active && !collapsed ? "−" : "+" : "›"}</span>
           </button>
-        </footer>
-      </div>
-    </dialog>
-  );
+          {phone && active && !collapsed && catalogue}
+        </div>;
+      })}
+    </div>
+    {!phone && catalogue}
+  </nav>;
+  return phone ? <dialog className="shell-mega-sheet" ref={sheet} aria-label={t("shellBrowseTools")}
+    onCancel={event => { event.preventDefault(); dismiss(); }}
+    onClick={event => { if (event.target === sheet.current) dismiss(); }}>{body}</dialog> : body;
 }
-

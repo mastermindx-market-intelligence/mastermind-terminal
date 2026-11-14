@@ -238,6 +238,7 @@ const nextConfig: NextConfig = {
   // ?v=2 cache-busted heatmap link all survive.
   async redirects() {
     return [
+      { source: "/reference.html", destination: "/market-reference", permanent: false },
       { source: "/screener", destination: "/discover?tab=screener", permanent: true },
       { source: "/heatmap", destination: "/discover?tab=heatmap", permanent: true },
       // ── Wave-3 IA: Research→Options, Fundamentals→Analysis, Automate split ─────
@@ -331,7 +332,7 @@ const nextConfig: NextConfig = {
       {
         // Auth-aware shells must never be shared by EdgeOne. Caching these as
         // public can replay a signed-out redirect or another session's shell.
-        source: "/(terminal|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
+        source: "/(terminal|brain|market-reference|today|research|monitor|discover|analysis|options|scripts|alerts|portfolio|admin|login)",
         headers: [
           {
             key: "Cache-Control",

@@ -8,6 +8,7 @@ import {
 } from "@/lib/supabase/cookies";
 
 const PROTECTED = [
+  "/brain",
   "/terminal",
   "/today",
   "/research",
