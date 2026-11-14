@@ -251,3 +251,76 @@ The original imported-blob proof now has115 unchanged blobs and9 deliberate
 deltas; CUSTODY records the previous identities and added protected source.
 The registry source reference must follow this final reconciled T; no catalogue,
 release or Paper effect is introduced by this source repair.
+
+## Successor session: native Macro design continuation — 2026-11-14
+
+The Chairman assigned this session to resume **“Design Macro Dashboard Pages”**
+after its length limit. The recovered native Macro records, Paper file and
+integration custody identify this as the continuing WS:MARKET-OS / Macro #6819
+work; the exact historical chat URL was not available. This is a source-linked
+takeover of the existing mission, not a new design programme or release carrier.
+The previous session is not required to return. Terminal #1524 was read back
+unchanged at `751fd566cf06d9a616ede61e6efb367197ef26f6`, Draft, with no requested
+reviewers, before this documentation-only continuation. Existing parent branches,
+source holds and protected release responsibilities remain as recorded above.
+
+Current source law is pinned to Mastermind
+`eeaf5eeec3f29b565bcc816db003706f429074fc`; design doctrine and the master product
+design system were read at Macro
+`8dd7689db40d27594161eb1a124553bfc285280f`.
+
+### Original Paper route recovered and observed edits
+
+The original Mastermind Paper connector now returns an explicitly bound,
+write-ready target. No guessed service restart, host change, Studio/RDC carrier
+swap or retry of an uncertain mutation was performed. The optional preparation
+call returned a pre-effect missing-module error (`No module named 'prepare'`);
+fresh explicit-file guards and the documented direct edit path succeeded.
+Every design mutation returned `APPLIED_RESPONSE_OBSERVED`, with screenshot
+inspection separate from the edit receipt.
+
+Target: file `01M6Y1NJ2SKGG89DZ13E4NVAE2`, page `p-7-0`,
+**M1 · Economy · Native product redesign**. Existing overview `3NE-0` and
+older Liquidity page `p-6-0` are preserved. The following editable, additive
+frames have been built and visually inspected:
+
+| Frame | Paper node | Purpose |
+| --- | --- | --- |
+| M02 Growth / History, dark English desktop 1440 | `3UD-0` | Useful historical reading with an explicitly unavailable current assessment; date selection, unit, revised-history limitation and evidence entry |
+| M03 Jobs / Payroll revisions, dark English desktop 1440 | `3XO-0` | Earliest retained vs selected monthly changes, explicit net calculation and paired bars with shared zero |
+| M04 Jobs evidence, light English desktop 1440 | `418-0` | January comparison and contextual calculation, archive source, version dates and qualification limits |
+| M05 就业修订, light Chinese mobile 390 | `443-0` | Native phone navigation, localized retained-version comparison, net change, compact chart and source-calculation action |
+
+These are illustrative designs, not current market readings or deployed
+acceptance. Growth uses the existing producer-derived `INDPRO` fixture and
+retains its unavailable assessment. Jobs uses the existing payroll fixture
+cutoff `2025-04-15`: January 2025 earliest retained change 57 thousand,
+selected change 30 thousand, net revision -27 thousand; the respective retained
+vintage dates are 2025-02-07 and 2025-03-07. The UI never describes the earliest
+retained vintage as a verified first release, or a vintage date as when
+Mastermind knew the value. This is not the official combined prior-two-month
+payroll revision. The desktop contextual evidence layout and copy-link action
+are proposed interaction design; their presence in Paper is not proof of
+implementation.
+
+### Exact-source gap and next consumer proof
+
+Source review found a concrete Rates gap: `MacroEconomicCurve` currently has no
+evidence callback. The existing Rates evidence test mounts the evidence panel
+directly, so it does not prove that a selected maturity reaches its exact source.
+The canonical curve view discards which series supplied each tenor. Preserve
+the current numerical projection and add only a qualified optional provenance
+relation from the actual selected series to an existing published source. Reuse
+the current evidence selection and URL owner; do not infer the source from a
+display label, create a new registry, or mint another evidence identity.
+
+Next work remains: complete the complementary mobile evidence and Rates designs;
+implement and falsify the exact-source relation at its canonical and native
+owners; extend actual native Economy consumer/browser qualification; retain
+back/selection/focus behavior and old-publication compatibility. Source tests
+and synthetic browser fixtures must be labeled as such. Authenticated deployed
+journeys, canonical served bytes, final registry/exporter admission and all
+original masterplan obligations are still open.
+
+Status remains **MORE_WORK_EXISTS**. This material milestone is saved while the
+same session continues. It neither requests release nor changes any hold.
