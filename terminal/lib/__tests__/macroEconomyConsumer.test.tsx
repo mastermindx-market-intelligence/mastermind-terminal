@@ -195,6 +195,70 @@ describe("native charts and evidence", () => {
     expect(host.textContent).not.toContain("is easy to get but thinly supported");
   });
 
+  it("places the qualified state explanation before charts and retains every remaining context entry", async () => {
+    const result = read("liquidity_regime"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    await mount(<MacroEconomyWorkspace workspaceId="liquidity_regime" lang="en" read={{ phase: "ready", data: result }} selection={choice()} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    const context = host.querySelector("[data-economic-reading-context]")!;
+    const history = host.querySelector("[data-history-qualification]")!;
+    expect(context.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const disclosure = context.querySelector("details")!;
+    expect(disclosure.open).toBe(false);
+    for (const entry of result.selected_workspace.view.implications.entries) {
+      expect(context.textContent).toContain(entry.text.en);
+      if (entry.evidence_claim) expect(context.textContent).toContain(entry.evidence_claim.en);
+    }
+    const lead = result.selected_workspace.view.implications.entries.find(entry => entry.implication_id === "state_descriptive")!;
+    expect(context.querySelector("ul")!.textContent).toContain(lead.text.en);
+    expect(disclosure.textContent).not.toContain(lead.text.en);
+    const rates = read("rates_curves"); if (rates.selected_workspace.state !== "ready") throw Error("fixture");
+    await mount(<MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data: rates }} selection={choice()} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    const ratesContext = host.querySelector("[data-economic-reading-context]")!;
+    expect(ratesContext.querySelector("details")!.open).toBe(false);
+    expect(ratesContext.querySelector("details")!.textContent).toContain("added after the original twelve workspaces");
+    expect(host.querySelector("#economic-assessment")!.textContent).toBe(rates.selected_workspace.view.curve_hero!.shape_read.en);
+  });
+
+  it.each(["en", "zh"] as const)("does not fill unavailable inflation rates from populated price-level history (%s)", async lang => {
+    const result = read("inflation_system"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    expect(result.selected_workspace.view.series.entries[0].points!.some(point => point.v !== null)).toBe(true);
+    await mount(<MacroEconomyWorkspace workspaceId="inflation_system" lang={lang} read={{ phase: "ready", data: result }} selection={choice()} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    expect(Array.from(host.querySelectorAll("[data-inflation-rate] strong")).map(node => node.textContent)).toEqual(["—", "—", "—", "—"]);
+    expect(host.querySelector("[data-inflation-rates]")!.textContent).toContain(lang === "zh" ? "当前通胀率暂不可用" : "Current inflation rates are unavailable");
+    expect(host.querySelector("#economic-assessment")!.textContent).toBe(lang === "zh" ? "当前解读不可用" : "Current assessment unavailable");
+    expect(host.textContent).toContain(lang === "zh" ? "价格水平" : "Price levels");
+    const rates = host.querySelector("[data-inflation-rates]")!, history = host.querySelector("[data-history-qualification]")!;
+    expect(rates.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("shows exact published inflation rates including zero and opens the matching metric evidence", async () => {
+    const result = read("inflation_system"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    const metric = result.selected_workspace.view.metrics.find(row => row.metric_id === "headline_cpi_yoy_pct")!;
+    metric.value = { en: "0.00", zh: "0.00" }; metric.value_raw = 0;
+    metric.reference_period = "2026-10"; metric.freshness = { en: "Older input", zh: "较早的数据" };
+    const onSelect = vi.fn();
+    await mount(<MacroEconomyWorkspace workspaceId="inflation_system" lang="en" read={{ phase: "ready", data: result }} selection={choice()} onSelect={onSelect} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    const tile = host.querySelector<HTMLButtonElement>('[data-inflation-rate="headline_cpi_yoy_pct"]')!;
+    expect(tile.querySelector("strong")!.textContent).toBe("0.00%");
+    expect(tile.textContent).toContain("Over the past year"); expect(tile.textContent).toContain("2026-10"); expect(tile.textContent).toContain("Older input");
+    expect(host.querySelector('[data-inflation-rate="core_cpi_yoy_pct"] strong')!.textContent).toBe("—");
+    await act(async () => { tile.focus(); tile.click(); });
+    expect(onSelect).toHaveBeenLastCalledWith({ evidence: "metric:headline_cpi_yoy_pct" });
+  });
+
+  it.each([0.5, 1.6])("selects the actual observation when the history SVG is rendered at %s scale", async scale => {
+    const result = read("inflation_system"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
+    const v = result.selected_workspace.view, series = structuredClone(v.series.entries[0]);
+    series.points = [{ t: "2026-01-01", v: 100 }, { t: "2026-01-02", v: 101 }, { t: "2026-01-03", v: 102 }];
+    const onSelect = vi.fn();
+    await mount(<MacroEconomicHistory entries={[series]} sources={v.evidence.sources} lang="en" selection={choice("window=published")} onSelect={onSelect} onEvidence={vi.fn()}/>);
+    const svg = host.querySelector("svg")!, hit = svg.querySelector('rect[fill="transparent"]')!;
+    const width = Number(svg.getAttribute("width"));
+    const midpoint = Number(hit.getAttribute("x")) + Number(hit.getAttribute("width")) / 2;
+    svg.getBoundingClientRect = () => ({ x: 100, y: 0, left: 100, top: 0, right: 100 + width * scale, bottom: 322, width: width * scale, height: 322, toJSON() {} });
+    await act(async () => hit.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, clientX: 100 + midpoint * scale })));
+    expect(onSelect).toHaveBeenLastCalledWith({ series: series.series_id, observation: "2026-01-02" });
+  });
+
   it("breaks the actual inflation fixture at its null observation and keeps the gap in the table", async () => {
     const result = read("inflation_system"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
     const v = result.selected_workspace.view, series = v.series.entries.find(row => row.points?.some(p => p.v === null))!;
