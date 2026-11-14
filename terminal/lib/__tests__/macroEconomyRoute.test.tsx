@@ -80,7 +80,7 @@ describe("native Economy routes", () => {
 
   it("reads browser navigation afresh and forwards subject and language changes", async () => {
     state.path = ECONOMIC_WORKSPACES.rates_curves.path; state.search = "tenor=2y&comparison=prior_month";
-    await mount("rates_curves"); expect(props().selection.tenor).toBe("2y");
+    await mount("rates_curves"); expect(props().selection).toMatchObject({ tenor: "2y" });
     state.search = "tenor=10y&comparison=prior_close"; state.lang = "zh";
     await mount("rates_curves", "22222222-2222-4222-8222-222222222222");
     expect(props()).toMatchObject({ ownerKey: "22222222-2222-4222-8222-222222222222", lang: "zh", selection: { tenor: "10y", comparison: "prior_close" } });

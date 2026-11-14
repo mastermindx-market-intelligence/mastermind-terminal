@@ -1954,7 +1954,7 @@
     },
     {
       "path": "terminal/lib/__tests__/macroEconomyRoute.test.tsx",
-      "sha": "634f2888809cff47f27eacc8370f9a1a3ec2a1a7"
+      "sha": "dff068b9a3e3408cf94e03079e9805e01cd5461b"
     },
     {
       "path": "terminal/lib/__tests__/macroEconomyPages.test.tsx",
@@ -1986,5 +1986,20 @@
     }
   ],
   "release_request": false,
-  "catalog_changed": false
+  "catalog_changed": false,
+  "post_publication": {
+    "previous_integration": "f52a3f6ecf47edbedeaf7946b25e35d2bf2b9664",
+    "repair": "Nullable route selection assertion preserves required tenor shape; no production contract change",
+    "source_parent_release": {
+      "pr": 1517,
+      "head": "b663cc22445157d032776f9ef8d3225056fcd09d",
+      "state": "MERGED",
+      "merged_at": "2026-11-14T14:15:11Z",
+      "merge_commit": "62315b351dbadd85db29ff77809af823d7251b1c",
+      "carrier": "original native-user gh CLI readback"
+    },
+    "child_pr": 1524,
+    "observed_child_base": "master",
+    "child_draft": true
+  }
 }

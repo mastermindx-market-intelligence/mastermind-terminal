@@ -10,8 +10,10 @@ masterplan's acceptance remain binding. A source tree, green CI or a merge is no
 the consumer outcome.
 
 This is an **independently useful, non-releasing integration qualification**. Its
-Draft PR is stacked on the #1517 feature branch; it must not be merged into that
-armed branch or promoted to a competing master release carrier. The imported
+Draft PR was initially stacked on the #1517 feature branch. After #1517 merged,
+GitHub retargeted it to master. It remains non-releasing until imported parent
+custody and admission holds are reconciled; it must not become a competing release
+carrier for those contributions. The imported
 writers and their holds remain intact. No generated shell catalogue, canonical
 Macro registry, deployment, auto-merge or release opt-in is changed here.
 
@@ -177,3 +179,34 @@ plans retain the detailed programme map.
 
 Status: **MORE_WORK_EXISTS**. This document records a material contribution and
 return path; it is not a programme closeout or a request for a new human reviewer.
+
+
+## Hosted route-test repair and parent release readback — 2026-11-14
+
+The first composite run43603030970 at `f52a3f6ecf47edbedeaf7946b25e35d2bf2b9664`
+reported TS2531 in the new route test's direct nullable-selection dereference.
+The repair asserts the complete expected `{tenor: "2y"}` selection shape, which
+continues to fail for null or a wrong tenor; the production contract is unchanged.
+All33 route tests pass locally. Adding the route test to the sparse strict-type
+qualification resolves that diagnostic, but the local graph lacks four unrelated
+RouteSkeleton imports; full type generation/typecheck remains the new-head hosted
+CI obligation. The earlier hosted snapshot had passed the three unit shards,
+production build, four production-build E2E shards, Quote Hub and ingest/signal
+checks. Other browser shards were still running; no overall pass is claimed.
+
+Original native-user CLI readback now proves #1517 merged at
+2026-11-14T14:15:11Z as protected squash commit
+`62315b351dbadd85db29ff77809af823d7251b1c`. Exact head was still
+`b663cc22445157d032776f9ef8d3225056fcd09d`; no auto-merge or queue entry remains.
+GitHub now reports this DraftPR1524 base as master. This is a source merge, not
+deployment or native browser acceptance. The imported1495/1501/1503 and Macro
+11246/11253 sources remain open at the exact tabled heads;1503 remains Draft,
+and11253 retains merge-blocked. No hold or release state was changed here.
+
+Macro11258's two-module restart-rule repair is saved at
+`a33a59e76a415c012c1072ba5bee2d7c9c3ac35c`; its new-head hosted checks remain open.
+Macro11265's trusted authority check reports unsupported_base_ref for its feature
+base; it must reconcile after11246's protected release rather than change the
+authority allowlist. Registry qualification must use this repaired integration's
+new immutable head as T, not the superseded failing source. Parent DONE_WHEN is
+still open; continue with canonical registry qualification and source/consumer proof.
