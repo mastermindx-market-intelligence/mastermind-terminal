@@ -339,7 +339,7 @@ describe("SectorRotationMap", () => {
     expect(trail.hasAttribute("preserveAspectRatio")).toBe(false);
     expect(trail.getAttribute("viewBox")).toBe("0 0 600 560");
     expect(trail.getAttribute("width")).toBe("600");
-    const strokes = Array.from(trail.querySelectorAll("line[data-trail-from]"));
+    const strokes = Array.from(trail.querySelectorAll('[data-rotation-trail="xlk"] line[data-trail-from]'));
     expect(strokes).toHaveLength(2);
     const coords = strokes.flatMap(stroke => ["x1", "x2", "y1", "y2"].map(attribute => Number(stroke.getAttribute(attribute))));
     expect(coords.every(Number.isFinite)).toBe(true);
@@ -355,6 +355,9 @@ describe("SectorRotationMap", () => {
     const bar = host.querySelector('[data-testid="rotation-trajectory-toolbar"]')!;
     expect(bar.textContent).toContain("Reconstructed sector/SPY price history");
     const trail = () => host.querySelector('[data-testid="rotation-history-trail"]');
+    expect(trail()?.getAttribute("data-trail-mode")).toBe("all");
+    expect(trail()?.querySelectorAll('[data-rotation-trail]').length).toBeGreaterThan(1);
+    await act(async () => (bar.querySelector('[data-trail-display="selected"]') as HTMLButtonElement).click());
     expect(trail()?.querySelectorAll('[data-rotation-trail]')).toHaveLength(1);
     await act(async () => (bar.querySelector('[data-trail-display="all"]') as HTMLButtonElement).click());
     expect(trail()?.getAttribute("data-trail-mode")).toBe("all");
@@ -556,14 +559,14 @@ describe("SectorRotationMap", () => {
     const trail = host.querySelector('[data-testid="rotation-history-trail"]');
     expect(trail).not.toBeNull();
     expect(trail?.getAttribute("data-selected-date")).toBe("2026-09-25");
-    expect(trail?.querySelectorAll("line[data-trail-from]")).toHaveLength(2);
+    expect(trail?.querySelectorAll('[data-rotation-trail="xlk"] line[data-trail-from]')).toHaveLength(2);
     const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
     await act(async () => {
       slider.value = "0";
       slider.dispatchEvent(new Event("input", { bubbles: true }));
     });
     expect(host.querySelector('[data-testid="rotation-history-trail"]')?.getAttribute("data-selected-date")).toBe("2026-09-23");
-    expect(host.querySelectorAll('[data-testid="rotation-history-trail"] line[data-trail-from]')).toHaveLength(0);
+    expect(host.querySelectorAll('[data-testid="rotation-history-trail"] [data-rotation-trail="xlk"] line[data-trail-from]')).toHaveLength(0);
     expect(host.querySelector('[data-testid="rotation-history-trail"] circle[data-trail-end]')?.getAttribute("data-trail-end")).toBe("2026-09-23");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(live);
     await render({ history: null, historyStatus: "unavailable" });
@@ -879,7 +882,7 @@ describe("Options R1 W2A — explicit relative trend method on the rotation map"
     await render(trendProps({ selected: "xlf" }));
     const trail = testId("rotation-trend-trail")!;
     expect(trail.getAttribute("data-runs")).toBe("2"); expect(trail.getAttribute("data-weeks")).toBe("11");
-    expect(trail.querySelectorAll("line[data-trail-from]").length).toBe(9);
+    expect(trail.querySelectorAll('[data-rotation-trail="xlf"] line[data-trail-from]').length).toBe(9);
     expect(trail.querySelector('line[data-trail-from="2026-08-21"][data-trail-to="2026-09-04"]')).toBeNull();
     expect(trail.querySelectorAll("circle").length).toBe(1);
     expect(testId("rotation-history")).toBeNull();
