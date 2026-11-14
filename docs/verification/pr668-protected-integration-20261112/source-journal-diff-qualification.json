@@ -1,0 +1,28 @@
+{
+  "sourcePathCount": 11,
+  "sourceDiffCheck": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "preservedRawEvidenceDiagnostics": [
+    {
+      "path": "docs/verification/pr668-row-count-recovery-20261111/original-source-regressions.log",
+      "bytes": 30009,
+      "sha256": "345ea5ecc91057692ebe64201fde8ae399fbf8e3dbd675576b373a8c8ae9cc65",
+      "byteIdenticalToPublishedOriginal": true
+    },
+    {
+      "path": "docs/verification/pr668-row-count-recovery-20261111/repaired-source-tests.log",
+      "bytes": 3784,
+      "sha256": "a67b6ed5826d2ccbf6376e2c9dd753374cd54e4915c52af540df76dce8e3622d",
+      "byteIdenticalToPublishedOriginal": true
+    },
+    {
+      "path": "docs/verification/pr668-statistic-invariants-recovery-20261111/numeric-controls.json",
+      "bytes": 10292,
+      "sha256": "417dbb6816a2b35956dbc939184e1d111238b68e4ac6ebee43dea012276f392d",
+      "byteIdenticalToPublishedOriginal": true
+    }
+  ]
+}

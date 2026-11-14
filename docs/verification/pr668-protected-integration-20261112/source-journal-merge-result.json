@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-12T02:12:29.162449+00:00",
+  "exitCode": 1,
+  "stdout": "Auto-merging terminal/app/api/flow/stream/route.ts\nAuto-merging terminal/components/prophet/ProphetView.tsx\nCONFLICT (content): Merge conflict in terminal/components/prophet/ProphetView.tsx\nAuto-merging terminal/lib/__tests__/flowStreamRouteBoundary.test.ts\nAuto-merging terminal/lib/flowSource.ts\nCONFLICT (content): Merge conflict in terminal/lib/flowSource.ts\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "stderr": "",
+  "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "unmerged": [
+    "terminal/components/prophet/ProphetView.tsx",
+    "terminal/lib/flowSource.ts"
+  ],
+  "statusLines": 24046
+}

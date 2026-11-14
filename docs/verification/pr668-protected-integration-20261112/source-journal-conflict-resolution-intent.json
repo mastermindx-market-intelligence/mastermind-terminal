@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-12T02:27:23.365838+00:00",
+  "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "changes": [
+    {
+      "path": "terminal/components/prophet/ProphetView.tsx",
+      "before": "dd7fb7e0eaa9b66bdff7f55d90044bbfea405e3b419c74c9458395a70a0f3c21",
+      "after": "f578ff00a527295f5531426d8676680bc502ec4e1919fa70776b7f54debdd6c5"
+    },
+    {
+      "path": "terminal/lib/flowSource.ts",
+      "before": "f3f161be979b1fcb561420227be18243706122ee3003109f7bbe3646b7b19995",
+      "after": "b483f472bafacec29c0c20a5221fb57b6f3a8807844570d42fd52c4ae4057db7"
+    }
+  ],
+  "decision": "Retain protected status subtree under existing Signals guard; retain protected upstream outcome reader with PERF private R2 exclusion."
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "terminal.perf-necessary-statistic-invariants.v1",
+  "base": "12aa2f1ec40ac906c17958d9587aa77c073fa3ff",
+  "sourcePaths": [
+    "terminal/components/prophet/prophetPerfTypes.ts",
+    "terminal/lib/__tests__/prophetPerf.test.ts"
+  ],
+  "existingCasesPreserved": 56,
+  "before": {
+    "passed": 64,
+    "expectedRegressionFailures": 7,
+    "total": 71
+  },
+  "after": {
+    "passed": 71,
+    "failed": 0
+  },
+  "newNegativeCases": 7,
+  "newPositiveCases": 8,
+  "standardLibraryPositiveControlsExactIncludingSignedZero": 8,
+  "strictScopedTypeScriptExit": 0,
+  "scopedESLintExit": 0,
+  "existingAuthoredBrowserLiteralAdmissions": 2,
+  "inputSourceRowsAndStatisticsPreserved": true,
+  "requiredInvariants": [
+    "rounded min <= rounded median <= rounded max",
+    "nonempty all-zero available population has four numerically zero statistics"
+  ],
+  "meanInsideExtremaRequired": false,
+  "meanRecomputed": false,
+  "newInputMagnitudeBound": false,
+  "wireSchemaChanged": false,
+  "fullStatisticEquivalenceEstablished": false,
+  "macroModuleOrProducerRouteExecuted": false,
+  "browserExecuted": false,
+  "fullPacketAAdopted": false,
+  "producerR5R6Accepted": false
+}

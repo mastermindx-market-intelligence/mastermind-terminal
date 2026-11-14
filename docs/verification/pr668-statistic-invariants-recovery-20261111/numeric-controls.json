@@ -1,0 +1,447 @@
+{
+  "schema": "terminal.perf-standard-library-control-qualification.v1",
+  "testPath": "terminal/lib/__tests__/prophetPerf.test.ts",
+  "testSha256": "7730b95c7ac1296d0af8ba14428695263fe7510e5f8e3350ccc9db3aa29d0bb3",
+  "extractorSha256": "4cb4f833d563a4f4d3173c6d65c977b93414e257dad1340ef845ecfd67442e5c",
+  "pythonVersion": "3.12.14",
+  "controlsPassed": 8,
+  "results": [
+    {
+      "label": "signed zero",
+      "returns": [
+        {
+          "value": 0,
+          "negativeZero": true
+        },
+        {
+          "value": 0,
+          "negativeZero": false
+        },
+        {
+          "value": 0,
+          "negativeZero": true
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0,
+          "negativeZero": true
+        },
+        "max_pct": {
+          "value": 0,
+          "negativeZero": true
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -0.0,
+          "negativeZero": true
+        },
+        "max_pct": {
+          "value": -0.0,
+          "negativeZero": true
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "zero returns with partial coverage",
+      "returns": [
+        {
+          "value": 0,
+          "negativeZero": true
+        },
+        {
+          "value": null,
+          "negativeZero": false
+        },
+        {
+          "value": 0,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0,
+          "negativeZero": true
+        },
+        "max_pct": {
+          "value": 0,
+          "negativeZero": true
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -0.0,
+          "negativeZero": true
+        },
+        "max_pct": {
+          "value": -0.0,
+          "negativeZero": true
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "nonzero subnormal returns rounded to zero",
+      "returns": [
+        {
+          "value": 5e-324,
+          "negativeZero": false
+        },
+        {
+          "value": 5e-324,
+          "negativeZero": false
+        },
+        {
+          "value": null,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "even midpoint underflow",
+      "returns": [
+        {
+          "value": 0,
+          "negativeZero": false
+        },
+        {
+          "value": 5e-324,
+          "negativeZero": false
+        },
+        {
+          "value": null,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "equal rounded extrema from distinct nonzero rows",
+      "returns": [
+        {
+          "value": 1e-05,
+          "negativeZero": false
+        },
+        {
+          "value": 2e-05,
+          "negativeZero": false
+        },
+        {
+          "value": 3e-05,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "finite opposite-sign extreme midpoint",
+      "returns": [
+        {
+          "value": -1.7976931348623157e+308,
+          "negativeZero": false
+        },
+        {
+          "value": 1.7976931348623157e+308,
+          "negativeZero": false
+        },
+        {
+          "value": null,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -1.7976931348623157e+308,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 1.7976931348623157e+308,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 0.0,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -1.7976931348623157e+308,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 1.7976931348623157e+308,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "valid native mean above identical large row values",
+      "returns": [
+        {
+          "value": 15000000000000004,
+          "negativeZero": false
+        },
+        {
+          "value": 15000000000000004,
+          "negativeZero": false
+        },
+        {
+          "value": 15000000000000004,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": 15000000000000006,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 15000000000000004,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 15000000000000004,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 15000000000000004,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": 1.5000000000000006e+16,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": 1.5000000000000004e+16,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": 1.5000000000000004e+16,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": 1.5000000000000004e+16,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    },
+    {
+      "label": "valid native mean below identical negative row values",
+      "returns": [
+        {
+          "value": -15000000000000004,
+          "negativeZero": false
+        },
+        {
+          "value": -15000000000000004,
+          "negativeZero": false
+        },
+        {
+          "value": -15000000000000004,
+          "negativeZero": false
+        }
+      ],
+      "statistics": {
+        "mean_pct": {
+          "value": -15000000000000006,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": -15000000000000004,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -15000000000000004,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": -15000000000000004,
+          "negativeZero": false
+        }
+      },
+      "standardLibraryResult": {
+        "mean_pct": {
+          "value": -1.5000000000000006e+16,
+          "negativeZero": false
+        },
+        "median_pct": {
+          "value": -1.5000000000000004e+16,
+          "negativeZero": false
+        },
+        "min_pct": {
+          "value": -1.5000000000000004e+16,
+          "negativeZero": false
+        },
+        "max_pct": {
+          "value": -1.5000000000000004e+16,
+          "negativeZero": false
+        }
+      },
+      "exactIncludingSignedZero": true
+    }
+  ],
+  "basis": "Evaluate only the four published native arithmetic expressions with Python standard-library numbers extracted from the actual Terminal tests.",
+  "macroModuleImportedOrExecuted": false,
+  "producerRouteExecuted": false,
+  "fullStatisticsEquivalenceEstablished": false
+}
+

@@ -1,0 +1,15 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/gmiGate8CohortCardEvidence.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr668-protected-integration-20261112-c3/terminal
+
+ ✓ lib/__tests__/gmiGate8CohortCardEvidence.test.ts (5 tests) 28ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:20:52
+   Duration  1.46s (transform 217ms, setup 0ms, collect 151ms, tests 28ms, environment 0ms, prepare 386ms)
+

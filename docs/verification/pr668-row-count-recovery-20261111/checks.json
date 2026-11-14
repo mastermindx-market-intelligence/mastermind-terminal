@@ -1,0 +1,55 @@
+{
+  "schema": "prophet.perf-row-count-recovery.v1",
+  "parent": "d25e8ee1ea0b06878e479135678e926515e1ab6b",
+  "originalNormalizerBlob": "a55fb70bcf10082a903afadf05c9b267ae21f7c1",
+  "sourceFiles": {
+    "terminal/components/prophet/prophetPerfTypes.ts": "48c956905e7bd1479e380143c3bcd3717409b41cdb6397b097edc977e98e9497",
+    "terminal/lib/__tests__/prophetPerf.test.ts": "19fb0eec617a14fd2843d622b75b7bd13516625214fb82760dbe714861f56b74"
+  },
+  "adoptedReference": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/668#issuecomment-5760132200",
+  "scope": "Row outcome histogram, available/unavailable raw population, raw sign counts and all-null statistics when no raw values exist. Existing v1 payload shape and emitted values are preserved.",
+  "originalSource": {
+    "command": "node node_modules/vitest/vitest.mjs run lib/__tests__/prophetPerf.test.ts --reporter=verbose",
+    "passed": 12,
+    "expectedFailingCounterexamples": 9,
+    "exitCode": 1
+  },
+  "repairedSource": {
+    "sameCommand": true,
+    "passed": 21,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "typecheck": {
+    "strict": true,
+    "files": [
+      "terminal/components/prophet/prophetPerfTypes.ts",
+      "terminal/lib/__tests__/prophetPerf.test.ts"
+    ],
+    "includesImportedTypeClosure": true,
+    "exitCode": 0,
+    "wholeNextApplication": false
+  },
+  "eslint": {
+    "paths": [
+      "terminal/components/prophet/prophetPerfTypes.ts",
+      "terminal/lib/__tests__/prophetPerf.test.ts"
+    ],
+    "exitCode": 0,
+    "diagnostics": 0
+  },
+  "whitespace": {
+    "exitCode": 0
+  },
+  "authoredBrowserFixtureCompatibility": {
+    "literalFixtures": 2,
+    "admitted": 2,
+    "wireValuesPreserved": true,
+    "browserExecuted": false
+  },
+  "newBrowserOrNetworkServiceStarted": false,
+  "schemaChanged": false,
+  "producerChanged": false,
+  "currentProtectedIntegrationClaimed": false,
+  "releaseAcceptance": false
+}

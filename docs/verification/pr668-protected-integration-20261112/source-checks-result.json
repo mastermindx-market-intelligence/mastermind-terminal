@@ -1,0 +1,75 @@
+[
+  {
+    "phase": "affected-unit",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/SelectionCohortCard.test.tsx",
+      "lib/__tests__/flowLeadersLocalSource.test.ts",
+      "lib/__tests__/flowStreamLifetime.test.ts",
+      "lib/__tests__/flowStreamRouteBoundary.test.ts",
+      "lib/__tests__/flowStreamSessionRenewal.test.ts",
+      "lib/__tests__/flowUpstreamAbsence.test.ts",
+      "lib/__tests__/flowUpstreamUrlSegments.test.ts",
+      "lib/__tests__/prophetPerf.test.ts",
+      "lib/__tests__/prophetSourceVintage.test.ts",
+      "lib/__tests__/prophetSourceVintageMounted.qualification.test.tsx",
+      "lib/__tests__/prophetUrlState.test.ts",
+      "lib/__tests__/prophetWorkspaceIntegration.test.tsx",
+      "lib/__tests__/selectionCohort.test.ts"
+    ],
+    "startedAt": "2026-11-12T03:06:11.694318+00:00",
+    "finishedAt": "2026-11-12T03:06:15.439223+00:00",
+    "elapsedSeconds": 3.745,
+    "exitCode": 0,
+    "logSha256": "f46dcaf26f3ae35d9125bd33151be2416c4b916a924d96989bd51bce5b6a693b"
+  },
+  {
+    "phase": "next-typegen",
+    "command": [
+      "node",
+      "node_modules/next/dist/bin/next",
+      "typegen"
+    ],
+    "startedAt": "2026-11-12T03:06:15.439866+00:00",
+    "finishedAt": "2026-11-12T03:06:17.997162+00:00",
+    "elapsedSeconds": 2.557,
+    "exitCode": 0,
+    "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+  },
+  {
+    "phase": "typescript",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "startedAt": "2026-11-12T03:06:17.997717+00:00",
+    "finishedAt": "2026-11-12T03:07:28.789865+00:00",
+    "elapsedSeconds": 70.792,
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "phase": "scoped-eslint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "app/api/flow/stream/route.ts",
+      "components/prophet/ProphetPerfPanel.tsx",
+      "components/prophet/ProphetView.tsx",
+      "components/prophet/prophetPerfStrings.ts",
+      "components/prophet/prophetPerfTypes.ts",
+      "e2e/prophet-perf-responsive.spec.ts",
+      "lib/__tests__/flowStreamRouteBoundary.test.ts",
+      "lib/__tests__/prophetPerf.test.ts",
+      "lib/flowSource.ts"
+    ],
+    "startedAt": "2026-11-12T03:07:28.790475+00:00",
+    "finishedAt": "2026-11-12T03:07:32.294867+00:00",
+    "elapsedSeconds": 3.504,
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

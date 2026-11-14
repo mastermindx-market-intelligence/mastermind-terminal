@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-12T02:11:55.698480+00:00",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr668-protected-integration-20261112-c3",
+  "expectedHead": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "protectedInput": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "operation": "git merge --no-commit --no-ff",
+  "releaseHoldsPreserved": true
+}

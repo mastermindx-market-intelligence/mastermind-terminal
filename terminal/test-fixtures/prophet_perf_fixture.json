@@ -1,0 +1,129 @@
+{
+  "schema": "prophet.perf_projection/v1",
+  "source": {
+    "path": "data/prophet/ledger.jsonl",
+    "schema": "prophet.ledger/v1",
+    "projection": "canonical_effective_ledger",
+    "latest_asof": "2026-09-18",
+    "latest_close_date": "2026-09-18",
+    "freshness_unavailable_reason": null
+  },
+  "summary": {
+    "terminal_plan_count": 4,
+    "closed_plan_count": 3,
+    "no_entry_count": 1,
+    "outcome_counts": {
+      "T1_HIT": 1,
+      "T2_HIT": 0,
+      "INVALIDATED": 1,
+      "EXPIRED": 1,
+      "CLOSED_EARLY": 0,
+      "NO_ENTRY": 1
+    },
+    "raw_stock_return": {
+      "label": "Raw underlying return (unweighted per entered plan)",
+      "available_count": 3,
+      "unavailable_count": 0,
+      "mean_pct": 1.5,
+      "median_pct": 1.25,
+      "min_pct": -3.25,
+      "max_pct": 6.5,
+      "positive_count": 2,
+      "negative_count": 1,
+      "zero_count": 0,
+      "unavailable_reason": null
+    },
+    "benchmarked_performance": {
+      "available": false,
+      "benchmark_return_pct": null,
+      "excess_return_pct": null,
+      "unavailable_reason": "canonical_effective_ledger_has_no_benchmark_return_evidence"
+    }
+  },
+  "integrity": {
+    "canonical_row_count": 5,
+    "effective_row_count": 4,
+    "quarantined_excluded_count": 1,
+    "quarantined_id_count": 1,
+    "corrected_row_count": 1,
+    "correction_application_count": 1
+  },
+  "semantics": {
+    "outcome_count_basis": "Terminal ledger outcome labels only; T1_HIT/T2_HIT are closing outcomes, not ever-reached target frequencies.",
+    "raw_stock_return_basis": "Unweighted per-plan underlying returns for entered plans; not option P&L, portfolio return, benchmarked return, or alpha."
+  },
+  "plans": [
+    {
+      "id": "AAA-BULL-20260901",
+      "ticker": "AAA",
+      "direction": "BULL",
+      "signal_date": "2026-09-01",
+      "signal_date_unavailable_reason": null,
+      "entry_date": "2026-09-02",
+      "entry_date_unavailable_reason": null,
+      "close_date": "2026-09-18",
+      "outcome": "T1_HIT",
+      "days_held": 16,
+      "plan_adherence": "Closed at the canonical T1 outcome.",
+      "stock_result_pct": 6.5,
+      "stock_result_pct_unavailable_reason": null,
+      "option_result_pct": null,
+      "option_result_pct_unavailable_reason": "canonical_ledger_null",
+      "asof": "2026-09-18"
+    },
+    {
+      "id": "BBB-BEAR-20260903",
+      "ticker": "BBB",
+      "direction": "BEAR",
+      "signal_date": "2026-09-03",
+      "signal_date_unavailable_reason": null,
+      "entry_date": "2026-09-04",
+      "entry_date_unavailable_reason": null,
+      "close_date": "2026-09-15",
+      "outcome": "INVALIDATED",
+      "days_held": 11,
+      "plan_adherence": "Closed when the canonical invalidation condition was recorded.",
+      "stock_result_pct": 1.25,
+      "stock_result_pct_unavailable_reason": null,
+      "option_result_pct": null,
+      "option_result_pct_unavailable_reason": "canonical_ledger_null",
+      "asof": "2026-09-15"
+    },
+    {
+      "id": "CCC-BULL-20260820",
+      "ticker": "CCC",
+      "direction": "BULL",
+      "signal_date": "2026-08-20",
+      "signal_date_unavailable_reason": null,
+      "entry_date": "2026-08-21",
+      "entry_date_unavailable_reason": null,
+      "close_date": "2026-09-12",
+      "outcome": "EXPIRED",
+      "days_held": 22,
+      "plan_adherence": "Closed at the declared plan-window expiry.",
+      "stock_result_pct": -3.25,
+      "stock_result_pct_unavailable_reason": null,
+      "option_result_pct": null,
+      "option_result_pct_unavailable_reason": "canonical_ledger_null",
+      "asof": "2026-09-12"
+    },
+    {
+      "id": "DDD-BULL-20260910",
+      "ticker": "DDD",
+      "direction": "BULL",
+      "signal_date": "2026-09-10",
+      "signal_date_unavailable_reason": null,
+      "entry_date": null,
+      "entry_date_unavailable_reason": "canonical_ledger_null",
+      "close_date": "2026-09-11",
+      "outcome": "NO_ENTRY",
+      "days_held": 0,
+      "plan_adherence": "No position was opened.",
+      "stock_result_pct": null,
+      "stock_result_pct_unavailable_reason": "no_entry_no_position",
+      "option_result_pct": null,
+      "option_result_pct_unavailable_reason": "no_entry_no_position",
+      "asof": "2026-09-11"
+    }
+  ]
+}

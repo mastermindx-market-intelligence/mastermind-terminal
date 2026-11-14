@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/c334c7e44c00/terminal-pr668-perf-counts/terminal
+
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF private transport > admits one backend path and a synthetic fixture
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF private transport > fails closed after backend failure instead of probing anonymous R2
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF schema admission > rejects unreviewed schemas and inconsistent terminal counts
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF schema admission > rejects benchmark claims when the producer says benchmark evidence is unavailable
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF schema admission > keeps the user-facing doctrine explicit in both languages
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF cross-field truth invariants > rejects internally inconsistent outcome, raw-return, and integrity totals
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF cross-field truth invariants > requires explicit unavailable reasons and refuses impossible no-entry results
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF cross-field truth invariants > rejects duplicate ids and incomplete positive benchmark claims
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects an outcome substitution that preserves terminal and no-entry totals
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects less declared coverage when all three entered rows still publish returns
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects total-preserving sign substitutions: {"positive_count":1,"negative_count":2,"zero_count":0}
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects total-preserving sign substitutions: {"positive_count":1,"negative_count":1,"zero_count":1}
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects a newly unavailable row when the summary still claims full coverage
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects a published mean_pct when no entered row has a raw return
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects a published median_pct when no entered row has a raw return
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects a published min_pct when no entered row has a raw return
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > rejects a published max_pct when no entered row has a raw return
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > admits consistent partial coverage without changing the producer's values
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > admits a genuine zero and counts a positive BEAR price move as positive
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > admits explicitly unavailable raw returns without including NO_ENTRY in coverage
+ ✓ lib/__tests__/prophetPerf.test.ts > Prophet PERF summary agrees with admitted plan rows > admits an honest empty ledger with no raw statistics
+
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+   Start at  13:10:14
+   Duration  661ms (transform 226ms, setup 0ms, collect 287ms, tests 25ms, environment 0ms, prepare 89ms)
+

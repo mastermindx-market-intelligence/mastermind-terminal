@@ -1,0 +1,50 @@
+{
+  "head": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHead": "2c00073fa0c0449fa626f06d33af0ace478f6f2c",
+  "port": 3592,
+  "portClosedBefore": true,
+  "sourceBefore": {
+    "terminal/lib/selectionCohort.ts": "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795",
+    "terminal/components/prophet/SelectionCohortCard.tsx": "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5",
+    "terminal/components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "terminal/components/prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "terminal/components/prophet/ProphetView.tsx": "f578ff00a527295f5531426d8676680bc502ec4e1919fa70776b7f54debdd6c5",
+    "terminal/e2e/tools/capture_gmi_gate8_cohort_card.cjs": "b87fc2aa9663ae8540ec4b8714186fbca96243be83baef53c859dc0ec86987c4",
+    "terminal/lib/__tests__/fixtures/selection_cohort/ready.json": "bd886a8e90c6498ebbeb7f9ad578fbf842f23d87f6159a9beed2c50e3fb7e9ac",
+    "terminal/lib/__tests__/fixtures/selection_cohort/empty.json": "37150ee98c5b0398db845abfdf09fd7b7173403a3b61b137d30227c916a33704",
+    "terminal/lib/__tests__/fixtures/selection_cohort/unavailable.json": "3bd560ccbad0d7b162f1957c4952ab1c99e2907420f1c38a903521c870c1cc0b"
+  },
+  "phases": [
+    {
+      "phase": "gmi-strict-reader",
+      "startedAt": "2026-11-12T03:20:51.189449+00:00",
+      "finishedAt": "2026-11-12T03:20:54.537416+00:00",
+      "seconds": 3.348,
+      "exitCode": 0,
+      "logSha256": "c400a82a73d1e051c673276ae3ae77009dcebea4dad5f34497b15757a9a73af4"
+    },
+    {
+      "phase": "prophet-seven-browser",
+      "startedAt": "2026-11-12T03:20:54.584058+00:00",
+      "finishedAt": "2026-11-12T03:21:59.162974+00:00",
+      "seconds": 64.579,
+      "exitCode": 0,
+      "logSha256": "045b844d0b57ca2b72cc2f15f1b783cffc86c333f0f502b5af4577e89a21a8d9"
+    }
+  ],
+  "sourceAfter": {
+    "terminal/lib/selectionCohort.ts": "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795",
+    "terminal/components/prophet/SelectionCohortCard.tsx": "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5",
+    "terminal/components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "terminal/components/prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "terminal/components/prophet/ProphetView.tsx": "f578ff00a527295f5531426d8676680bc502ec4e1919fa70776b7f54debdd6c5",
+    "terminal/e2e/tools/capture_gmi_gate8_cohort_card.cjs": "b87fc2aa9663ae8540ec4b8714186fbca96243be83baef53c859dc0ec86987c4",
+    "terminal/lib/__tests__/fixtures/selection_cohort/ready.json": "bd886a8e90c6498ebbeb7f9ad578fbf842f23d87f6159a9beed2c50e3fb7e9ac",
+    "terminal/lib/__tests__/fixtures/selection_cohort/empty.json": "37150ee98c5b0398db845abfdf09fd7b7173403a3b61b137d30227c916a33704",
+    "terminal/lib/__tests__/fixtures/selection_cohort/unavailable.json": "3bd560ccbad0d7b162f1957c4952ab1c99e2907420f1c38a903521c870c1cc0b"
+  },
+  "portClosedAfter": true,
+  "devLockPresentAfter": true,
+  "headAfter": "418f89346df8342e2e6a920922c2856fd2e8cb82",
+  "mergeHeadAfter": "2c00073fa0c0449fa626f06d33af0ace478f6f2c"
+}
