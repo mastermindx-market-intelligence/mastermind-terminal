@@ -1,3 +1,14 @@
+.sessionRead, .entryCost { display: grid; gap: 5px; border: 1px solid var(--line); background: var(--panel-2); padding: 12px 14px; border-radius: 9px; font-variant-numeric: tabular-nums; }
+.sessionRead div, .entryCost { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sessionRead small { color: var(--text-2); font-size: 11px; }
+.sessionRead .night { border-top: 1px solid var(--line); padding-top: 10px; }
+.sessionRead .night span { flex: 1; }
+.sessionRead .night small { display: block; }
+@media (min-width: 760px) {
+  dialog.editDialog { inset: 12px 12px 12px auto; margin: 0; width: min(460px, 45vw); height: calc(100dvh - 24px); max-height: none; }
+  .editDialog :global(.pf-modal-hd) { border-bottom: 1px solid var(--line); }
+  .editDialog :global(.pf-modal-ft) { position: sticky; bottom: 0; background: var(--panel); }
+}
 .workspace { background: var(--bg); color: var(--text); }
 .scroll { padding: 28px 28px 64px; scroll-behavior: smooth; }
 .canvas { width: 100%; max-width: 1320px; margin: 0 auto; min-width: 0; }

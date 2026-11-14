@@ -23,6 +23,7 @@ import { useLang } from "@/lib/i18n";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { pick } from "@/lib/finFormat";
 import styles from "./MemberGate.module.css";
+import PortfolioGuestSample from "@/components/PortfolioGuestSample";
 
 export type GateSurface = "today" | "research" | "monitor" | "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
 
@@ -79,6 +80,16 @@ export default function SignupGate({ surface }: { surface: GateSurface }) {
       </main>
     );
   }
+  if (surface === "portfolio") return <main id="shared-shell-content" tabIndex={-1} className={styles.viewport}>
+    <div style={{ width: "min(740px, 100%)", margin: "auto" }}>
+      <h1 className={styles.title}>{t(titleKey)}</h1>
+      <PortfolioGuestSample />
+      <div className={styles.actions}>
+        <button type="button" className={`btn btn-primary ${styles.action}`} onClick={() => onboarding.open("signup")}>{t("sgCta")}</button>
+        <button type="button" className={`${styles.action} ${styles.secondary}`} onClick={() => onboarding.open("signin")}>{t("sgSignin")}</button>
+      </div>
+    </div>
+  </main>;
   return (
     <main id="shared-shell-content" tabIndex={-1} className={styles.viewport}>
       <div className={styles.card}>

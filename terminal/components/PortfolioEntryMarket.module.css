@@ -1,0 +1,7 @@
+.reference { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); }
+.reference > span { font-size: 12px; color: var(--text-2); }
+.reference strong { display: block; padding-top: 3px; font-size: 16px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.reference button { min-height: 40px; }
+.currencies { display: flex; gap: 6px; flex-wrap: wrap; margin-top: -10px; }
+.currencies button { color: var(--text-2); background: transparent; border: 1px solid var(--line); border-radius: 6px; min-height: 34px; min-width: 44px; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.currencies button[aria-pressed="true"], .currencies button:hover { color: var(--text); border-color: var(--brand-2); }

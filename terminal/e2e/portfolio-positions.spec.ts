@@ -86,6 +86,7 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
     else document.addEventListener("DOMContentLoaded", setDocumentLanguage, { once: true });
   }, !!opts.zh);
   await page.route("**/data/manifest.json", (route) => route.fulfill({ json: MANIFEST }));
+  await page.route("**/api/portfolio/prices?**", route => route.fulfill({ json: { prices: {} } }));
   await page.route("**/api/quote**", (route) => route.fulfill({ json: QUOTES }));
   await page.route("**/api/portfolio-brief", (route) => (opts.brief
     ? route.fulfill({ json: BRIEF })
@@ -131,11 +132,11 @@ test("live values come from the quote hub, and an unresolved symbol dashes inste
   await seedPosition(page, { ticker: "ZZUNKNOWN", shares: "5", entryPrice: "10" });
   await page.goto("/portfolio"); await holdings(page);
   const nvda = row(page, "NVDA").locator("td");
-  await expect(nvda.nth(3)).toHaveText("180.00USD", { timeout: 20_000 });
+  await expect(nvda.nth(3)).toHaveText("180.00USDSession +2.50%", { timeout: 20_000 });
   await expect(nvda.nth(4)).toHaveText("USD 1,800.00");
   await expect(nvda.nth(5).locator("span")).toHaveText("+20.00%");
   await expect(nvda.nth(5).locator("small")).toHaveText("USD +300.00");
-  await expect(row(page, "AAPL").locator("td").nth(3)).toHaveText("228.10USD");
+  await expect(row(page, "AAPL").locator("td").nth(3)).toHaveText("228.10USDSession -0.40%");
   for (const index of [3, 4, 5]) await expect(row(page, "ZZUNKNOWN").locator("td").nth(index)).toHaveText("—");
   const detail = await coverage(page);
   await expect(detail).toContainText("2/3"); await expect(detail).toContainText("ZZUNKNOWN");

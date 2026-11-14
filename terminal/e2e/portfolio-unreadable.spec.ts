@@ -114,7 +114,8 @@ test("a genuinely empty book is still the empty state, not a failure", async ({ 
   await page.goto("/portfolio");
   await expect(book(page)).toHaveAttribute("data-portfolio-state", "empty");
   await expect(unreadable(page)).toHaveCount(0);
-  await expect(page.getByTestId("portfolio-empty").locator("h2")).toHaveText("Start with a holding.");
+  await expect(page.getByTestId("portfolio-sample")).toContainText("Illustrative quantities and prices");
+  await expect(page.getByTestId("portfolio-sample").getByRole("listitem")).toHaveCount(4);
   await expect(book(page)).toHaveAttribute("data-position-count", "0");   // a VERIFIED zero
 });
 
