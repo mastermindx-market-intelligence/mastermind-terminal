@@ -20,6 +20,8 @@ interface Props {
   width: number;
   height: number;
   selectedDate?: string | null;
+  trailRuns?: number;
+  trailWeeks?: number;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  * contextualize the cohort; the selected/hovered track takes visual priority.
  * History belongs to its native/weekly owner, never to the dated legacy fallback.
  */
-export default function SectorRotationTrails({ trails, selected, hovered, display, kind, width, height, selectedDate }: Props) {
+export default function SectorRotationTrails({ trails, selected, hovered, display, kind, width, height, selectedDate, trailRuns, trailWeeks }: Props) {
   if (display === "off" || !trails.length) return null;
   const primary = hovered && trails.some(trail => trail.id === hovered) ? hovered : selected;
   const background = display === "all" ? trails.slice(0, 24) : [];
@@ -38,6 +40,7 @@ export default function SectorRotationTrails({ trails, selected, hovered, displa
 
   return <svg className={styles.historyTrail} data-testid={kind === "daily" ? "rotation-history-trail" : "rotation-trend-trail"}
     data-trail-mode={display} data-selected-date={selectedDate || undefined}
+    data-runs={trailRuns} data-weeks={trailWeeks}
     data-clipped={focus?.clipped ? "true" : "false"}
     viewBox={`0 0 ${width} ${height}`} width={width} height={height} aria-hidden="true">
     {drawn.map(trail => {
