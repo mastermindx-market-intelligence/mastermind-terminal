@@ -23,6 +23,10 @@ interface CompanyIntelligenceBriefLayoutProps {
   implications: CompanyIntelligenceBriefItem[];
   risks: CompanyIntelligenceBriefItem[];
   watch: CompanyIntelligenceBriefItem[];
+  risksHeading?: string;
+  risksDescription?: string;
+  watchHeading?: string;
+  watchDescription?: string;
   selectedId?: string | null;
   onSelect: (item: CompanyIntelligenceBriefItem) => void;
   footer?: ReactNode;
@@ -115,6 +119,10 @@ export default function CompanyIntelligenceBriefLayout({
   implications,
   risks,
   watch,
+  risksHeading,
+  risksDescription,
+  watchHeading,
+  watchDescription,
   selectedId,
   onSelect,
   footer,
@@ -208,8 +216,8 @@ export default function CompanyIntelligenceBriefLayout({
         />
         <InsightPanel
           eyebrow="!"
-          title={label(zh, "Watchpoints", "关注事项")}
-          subtitle={label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}
+          title={risksHeading ?? label(zh, "Watchpoints", "关注事项")}
+          subtitle={risksDescription ?? label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}
           items={risks}
           selectedId={selectedId}
           onSelect={onSelect}
@@ -220,8 +228,8 @@ export default function CompanyIntelligenceBriefLayout({
       {watch.length > 0 && <section className="ci-paper-watch">
         <header>
           <div>
-            <h4>{label(zh, "What to watch next", "接下来关注什么")}</h4>
-            <p>{label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}</p>
+            <h4>{watchHeading ?? label(zh, "What to watch next", "接下来关注什么")}</h4>
+            <p>{watchDescription ?? label(zh, "Guidance and watchpoints from this event", "本次事件的指引与关注事项")}</p>
           </div>
           <span>{label(zh, "context only", "仅供背景参考")}</span>
         </header>

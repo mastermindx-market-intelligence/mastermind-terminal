@@ -10,12 +10,13 @@
  * - zh: boolean — language selector
  */
 import type { Fund, RatiosCurrent } from "../../lib/fund"
-import { fmtDate, fmtNum, fmtPct, pick } from "../../lib/finFormat"
+import { fmtDate, fmtNum, fmtPct, pick, statementCurrencyLabel } from "../../lib/finFormat"
 import {
   incomeView,
   incomeViewFamilyMode,
   isIndustrialIncomeView,
   statementBasisAvailable,
+  statementCadenceLabel,
 } from "../../lib/finStatementMath"
 import { Bars, type Series } from "./FinCharts"
 import currentTables from "./StatisticsCurrentTables.module.css"
@@ -161,7 +162,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
 
   return (
     <div className="fin-body">
-      {/* ── Header + toggle ── */}
+      {/* Current metrics and annual ratio history share one compact heading. */}
       {/* `rule` rides the ROW (not the title) so the hairline spans the header
           width instead of stopping under the word — same shape the Earnings
           module header uses for a title+control row. */}
@@ -384,6 +385,15 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           </div>
         )}
       </div>
+      <details className="fin-details" data-statistics-statement-source="">
+        <summary>{pick(!!zh, "Statement source", "报表来源")}</summary>
+        <div className="fin-stats-meta fin-asof">
+          <span>{familyReceipt
+            ? `${pick(!!zh, "Source cadence", "来源频率")}: ${statementCadenceLabel(familyReceipt, annualAvailable ? "annual" : "quarterly", !!zh)}`
+            : pick(!!zh, "Statement source unavailable", "报表来源不可用")}</span>
+          <span>{statementCurrencyLabel(fund.stmt_currency, !!zh)}</span>
+        </div>
+      </details>
     </div>
   )
 }

@@ -535,7 +535,6 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
               return (
                 <span className="fin-doc-cell" key={i}>
                   <span className="fin-doc-per">{p}</span>
-                  {tx ? (
                     <button
                       className="fin-doc-icon"
                       onClick={() => onOpenTx(tx)}
@@ -547,11 +546,6 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
                         <path d="M14 3v5h5M9 13h6M9 17h6" />
                       </svg>
                     </button>
-                  ) : (
-                    <span className="fin-doc-none" aria-hidden>
-                      ·
-                    </span>
-                  )}
                 </span>
               );
             })}

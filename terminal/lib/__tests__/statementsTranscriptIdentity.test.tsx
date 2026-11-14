@@ -158,13 +158,13 @@ describe.each([100, 0, null])("statement transcript identity; amount=%s", (amoun
     const check = (period: string, tx: string | null, lang: Lang) => {
       const cells = [...host!.querySelectorAll(".fin-doc-cell")]
         .filter((node) => node.querySelector(".fin-doc-per")?.textContent === period);
-      expect(cells).toHaveLength(1);
-      const cell = cells[0]!;
-      const buttons = cell.querySelectorAll<HTMLButtonElement>("button");
       if (tx === null) {
-        expect(buttons).toHaveLength(0);
-        expect(cell.querySelector(".fin-doc-none")?.textContent?.trim()).toBe("·");
+        expect(cells).toHaveLength(0);
+        expect(host!.querySelector(`[aria-label="${lang === "en" ? `Open ${period} transcript` : `打开 ${period} 记录`}"]`)).toBeNull();
       } else {
+        expect(cells).toHaveLength(1);
+        const cell = cells[0]!;
+        const buttons = cell.querySelectorAll<HTMLButtonElement>("button");
         expect(buttons).toHaveLength(1);
         expect(cell.querySelector(".fin-doc-none")).toBeNull();
         expect(buttons[0]!.getAttribute("aria-label")).toBe(

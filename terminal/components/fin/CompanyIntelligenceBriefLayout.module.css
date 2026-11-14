@@ -31,14 +31,15 @@
 .factsHeading { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-2); font: 550 12px/1.4 var(--font-ui); }
 .factsHeading > span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }
 .facts > p { margin: auto 0 0; color: var(--muted); font: 400 12px/1.5 var(--font-ui); }
-.brief .facts :global(.ci-paper-metrics) { grid-template-columns: 1fr; gap: 0; }
+.brief .facts :global(.ci-paper-metrics) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .brief .facts :global(.ci-paper-metrics) > button {
-  min-height: 90px; padding: 16px 0; gap: 8px; border: 0; border-bottom: 1px solid var(--line);
+  min-height: 90px; padding: 0; gap: 8px; border: 0;
   border-radius: 0; background: transparent; box-shadow: none;
 }
 .brief .facts :global(.ci-paper-metrics) > button:first-child { padding-top: 0; }
 .brief .facts :global(.ci-paper-metrics) > button:last-child { border-bottom: 0; }
-.brief .facts :global(.ci-paper-metrics) strong { font: 600 27px/1.15 var(--font-num); letter-spacing: -.025em; white-space: normal; overflow-wrap: anywhere; }
+.brief .facts :global(.ci-paper-metrics) > button:only-child { grid-column: 1 / -1; }
+.brief .facts :global(.ci-paper-metrics) strong { font: 600 25px/1.15 var(--font-num); letter-spacing: -.025em; white-space: normal; overflow-wrap: anywhere; }
 .brief .facts :global(.ci-paper-metrics) small { font-size: 12px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
 .brief .facts .factLabel { display: flex; align-items: start; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 1.4; color: var(--text-2); }
 .brief .facts .factLabel > span { color: var(--muted); }

@@ -5,7 +5,6 @@ import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
 import InsiderPage from '@/components/fin/InsiderPage';
 import {getJSONResult,invalidate} from '@/lib/dataCache';
 vi.mock('@/components/fin/FinCharts',()=>({ComboChart:(p:any)=><div data-chart={JSON.stringify({labels:p.labels,bars:p.bars,line:p.line})}/>}));
-vi.mock('@/components/ui/ArcGauge',()=>({ArcGauge:(p:any)=><div data-gauge={JSON.stringify(p)}/>}));
 vi.mock('@/components/fin/ForecastPage',()=>({Disclaimer:()=><div data-disclaimer/>}));
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;
 let host:HTMLDivElement,root:Root,sym:string;let seq=0;
@@ -17,6 +16,13 @@ const mount=async(zh=false,ticker=sym)=>{await act(async()=>root.render(<Insider
 const button=()=>host.querySelector('button');
 const retry=async()=>{expect(button()).not.toBeNull();await act(async()=>button()!.click());await settle()};
 const unavailable=(zh=false)=>{expect(host.querySelector('[role="alert"]')).not.toBeNull();expect(host.textContent).toContain(zh?'暂时无法加载内部交易数据':'Insider data unavailable');expect(host.textContent).not.toContain('No open-market Form 4 buys or sells have been filed');expect(button()?.textContent).toBe(zh?'重试':'Retry')};
+const ready=(zh:boolean,d:ReturnType<typeof quiet>|ReturnType<typeof populated>=quiet())=>{
+ expect(host.querySelector('.fin-insider-verdict')).not.toBeNull();
+ expect(host.querySelector('.fin-insider-state')?.textContent).toBe(d.routine_only?(zh?'无信号':'No signal'):(zh?'看多 — 内部人买入':'Bullish — insider buying'));
+ expect(host.querySelector('.fin-insider-evcell .v')?.textContent).toBe(String(d.buyers));
+ expect(host.textContent).toContain(d.asof);
+ if(d.buyers===0&&d.sellers===0) expect(host.querySelector('.fin-insider-sentence')?.textContent).toBe(zh?'本窗口内没有已披露的公开市场买入或卖出。':'No open-market buys or sells were reported in this window.');
+};
 beforeEach(()=>{sym='TEST'+(++seq);invalidate();vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-15T12:00:00Z'));host=document.createElement('div');document.body.append(host);root=createRoot(host)});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();invalidate();vi.useRealTimers();vi.unstubAllGlobals()});
 describe.each([false,true])('Insider recovery zh=%s',zh=>{
@@ -24,14 +30,14 @@ describe.each([false,true])('Insider recovery zh=%s',zh=>{
   it('does not describe '+kind+' as a no-filings fact',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>{if(kind==='network')throw Error('offline');if(kind==='malformed')return {ok:true,status:200,json:async()=>{throw Error('bad json')}};return response(null,kind==='null'?200:Number(kind))}));await mount(zh);unavailable(zh)});
  }
  it('retries an unavailable read successfully without reload',async()=>{const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockResolvedValueOnce(response(populated()));vi.stubGlobal('fetch',f);await mount(zh);await retry();expect(f).toHaveBeenCalledTimes(2);expect(host.querySelector('table')).not.toBeNull();expect(host.querySelector('[role="alert"]')).toBeNull()});
- it('offers another retry after repeated failure',async()=>{const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockRejectedValueOnce(Error('offline')).mockResolvedValueOnce(response(quiet()));vi.stubGlobal('fetch',f);await mount(zh);await retry();unavailable(zh);await retry();expect(f).toHaveBeenCalledTimes(3);expect(host.querySelector('[role="alert"]')).toBeNull();expect(host.querySelector('[data-gauge]')).not.toBeNull()});
- it('removes retry while its read is pending',async()=>{let resolve!:(x:any)=>void;const pending=new Promise(r=>resolve=r);const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockReturnValueOnce(pending);vi.stubGlobal('fetch',f);await mount(zh);await retry();expect(button()).toBeNull();expect(host.textContent).toContain(zh?'正在加载':'Loading insider');await act(async()=>resolve(response(quiet())));await settle();expect(f).toHaveBeenCalledTimes(2);expect(host.querySelector('[data-gauge]')).not.toBeNull()});
- it('does not negative-cache a failed read when reopening the tab',async()=>{const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockResolvedValueOnce(response(quiet()));vi.stubGlobal('fetch',f);await mount(zh);await act(async()=>root.render(<div/>));await mount(zh);expect(f).toHaveBeenCalledTimes(2);expect(host.querySelector('[data-gauge]')).not.toBeNull()});
+ it('offers another retry after repeated failure',async()=>{const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockRejectedValueOnce(Error('offline')).mockResolvedValueOnce(response(quiet()));vi.stubGlobal('fetch',f);await mount(zh);await retry();unavailable(zh);await retry();expect(f).toHaveBeenCalledTimes(3);expect(host.querySelector('[role="alert"]')).toBeNull();ready(zh)});
+ it('removes retry while its read is pending',async()=>{let resolve!:(x:any)=>void;const pending=new Promise(r=>resolve=r);const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockReturnValueOnce(pending);vi.stubGlobal('fetch',f);await mount(zh);await retry();expect(button()).toBeNull();expect(host.textContent).toContain(zh?'正在加载':'Loading insider');await act(async()=>resolve(response(quiet())));await settle();expect(f).toHaveBeenCalledTimes(2);ready(zh)});
+ it('does not negative-cache a failed read when reopening the tab',async()=>{const f=vi.fn().mockResolvedValueOnce(response(null,503)).mockResolvedValueOnce(response(quiet()));vi.stubGlobal('fetch',f);await mount(zh);await act(async()=>root.render(<div/>));await mount(zh);expect(f).toHaveBeenCalledTimes(2);ready(zh)});
  for(const status of [404,410]){
   it('preserves confirmed '+status+' absence and cache',async()=>{const f=vi.fn(async()=>response(null,status));vi.stubGlobal('fetch',f);await mount(zh);expect(host.textContent).toContain(zh?'暂无内部交易数据':'No insider data');expect(button()).toBeNull();expect(host.querySelector('[role="alert"]')).toBeNull();await act(async()=>root.render(<div/>));await mount(zh);expect(f).toHaveBeenCalledTimes(1)});
  }
  for(const [name,data] of [['quiet',quiet],['populated',populated]] as const){
-  it('preserves '+name+' content exactly',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>response(data())));await mount(zh);expect(host.querySelector('[data-gauge]')).not.toBeNull();expect(host.querySelector('[role="alert"]')).toBeNull();expect(host.querySelector('table')!==null).toBe(name==='populated')});
+  it('preserves '+name+' content exactly',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>response(data())));await mount(zh);ready(zh,data());expect(host.querySelector('[role="alert"]')).toBeNull();expect(host.querySelector('table')!==null).toBe(name==='populated')});
  }
  it('keeps foreign-listing confirmed-absence copy',async()=>{vi.stubGlobal('fetch',vi.fn(async()=>response(null,404)));await mount(zh,'0700.HK');expect(host.textContent).toContain(zh?'美国以外上市':'listed outside the US');expect(button()).toBeNull()});
  it('does not let old success replace a newer ticker failure',async()=>{let resolve!:(x:any)=>void;vi.stubGlobal('fetch',vi.fn().mockReturnValueOnce(new Promise(r=>resolve=r)).mockResolvedValueOnce(response(null,503)));await mount(zh);await mount(zh,sym+'B');unavailable(zh);await act(async()=>resolve(response(populated())));await settle();unavailable(zh);expect(host.querySelector('table')).toBeNull()});

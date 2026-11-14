@@ -4,10 +4,8 @@
  * Macro pipeline's insider posture, on the Mastermind v6 design system:
  *   1. Verdict header — a plain-word STATE (state chip + one sentence) with an
  *      evidence strip (Buyers · Sellers · Net · Window · Last trade age) in mono.
- *   2. ArcGauge (0..100, 50 = neutral) as SECONDARY evidence — neutral grey when
- *      the tape is routine so "no signal" looks like no signal.
- *   3. Insider buy- vs sell-volume bars overlaid on the price line (per month).
- *   4. Recent open-market Form-4 trades with tinted type pills.
+ *   2. Insider buy- vs sell-volume bars overlaid on the price line (per month).
+ *   3. Recent open-market Form-4 trades with tinted type pills.
  *
  * SCORING IS ENGINE-OWNED. It is NOT re-derived here — the Macro pipeline
  * (engine/insider_power.py) computes score/signal/confidence and exports it per
@@ -40,16 +38,10 @@ interface InsiderPageProps {
 interface Verdict {
   /** State chip word (bilingual, plain). */
   word: string;
-  /** ArcGauge state → picks ONE color (never a red→green gradient). */
-  gauge: "bull" | "bear" | "warn" | "neutral";
   /** Chip color class: up / down / neutral. */
   tone: "up" | "down" | "neu";
   /** One plain-word sentence explaining the state. */
   sentence: string;
-  /** True only on the pre-v2 shim path: the payload's score is the legacy
-   *  saturated value (e.g. 3 for routine sell-only) — park the arc at neutral
-   *  and hide the numeral instead of contradicting the "No signal" chip. */
-  staleScore?: boolean;
   /** Suppress the confidence chip: legacy payload confidence is the discredited
    *  sellers>=3 heuristic — showing "High confidence" would amplify it. */
   hideConf?: boolean;
@@ -73,14 +65,14 @@ function resolveVerdict(d: Insider, zh: boolean): Verdict {
 
   if (routine) {
     return {
-      staleScore: shimNeutral,
       word: pick(zh, "No signal", "无信号"),
-      gauge: "neutral",
       tone: "neu",
       sentence:
         d.posture_reason && (zh ? d.posture_reason_zh : d.posture_reason)
           ? pick(zh, d.posture_reason, d.posture_reason_zh)
-          : pick(
+          : d.buyers === 0 && d.sellers === 0
+            ? pick(zh, "No open-market buys or sells were reported in this window.", "本窗口内没有已披露的公开市场买入或卖出。")
+            : pick(
               zh,
               "Insiders only sold in the window — routine at equity-comp firms. No informative buy/sell tilt.",
               "窗口内内部人仅有卖出 — 在以股权激励为主的公司属常态，无明显买卖倾向。",
@@ -91,7 +83,6 @@ function resolveVerdict(d: Insider, zh: boolean): Verdict {
   if (d.signal === "BUY") {
     return {
       word: pick(zh, "Bullish — insider buying", "看多 — 内部人买入"),
-      gauge: "bull",
       tone: "up",
       sentence: pick(
         zh,
@@ -111,7 +102,6 @@ function resolveVerdict(d: Insider, zh: boolean): Verdict {
       word: hasV2
         ? pick(zh, "Bearish — informative selling", "看空 — 有信息含量的卖出")
         : pick(zh, "Bearish tilt", "看空倾向"),
-      gauge: "bear",
       tone: "down",
       hideConf: !hasV2,
       sentence:
@@ -128,7 +118,6 @@ function resolveVerdict(d: Insider, zh: boolean): Verdict {
   // Engine NEUTRAL (already de-escalated upstream).
   return {
     word: pick(zh, "No signal", "无信号"),
-    gauge: "neutral",
     tone: "neu",
     sentence: pick(
       zh,
@@ -237,10 +226,6 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
 
   const d = data;
   const verdict = resolveVerdict(d, zh);
-  // Section rail: the verdict section IS directional, so its rail carries the
-  // same tone the ArcGauge already resolved (grey when there is no signal).
-  const verdictRail =
-    verdict.tone === "up" ? "var(--up)" : verdict.tone === "down" ? "var(--down)" : "var(--muted)";
 
   // ── asof quarter label — SEC publishes bulk Form-4 data one quarter at a time,
   // roughly 45 days after quarter-end. Show "Q1 2026" rather than just the ISO date
@@ -294,12 +279,11 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
 
   return (
     <div className="fin-body">
-      {/* ── Verdict header: state chip + sentence + ArcGauge + evidence strip ── */}
+      {/* ── Verdict header: state + explanation + reported evidence ── */}
       <div className="fin-sec">
         <div className="fin-eyebrow">{pick(zh, "Form 4 · open market", "Form 4 · 公开市场")}</div>
         <div
-          className="fin-sec-h fin-rail fin-rule"
-          style={{ "--rail": verdictRail } as React.CSSProperties}
+          className="fin-sec-h fin-rule"
         >
           {pick(zh, "Insider activity", "内部交易活动")}
         </div>
@@ -339,8 +323,6 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
 

@@ -431,7 +431,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     const rendered = integer ? numeric(value) : pct(value);
     const renderedDelta = delta == null || !Number.isFinite(delta)
       ? null
-      : `${integer ? numeric(delta, true) : pct(delta, true)} ${pick(zh, "vs prior", "较上期")}`;
+      : `${integer ? numeric(delta, true) : `${numeric(delta, true)} ${pick(zh, "pp", "个百分点")}`} ${pick(zh, "vs prior", "较上期")}`;
     briefMetrics.push(registerBriefItem(
       { id, label, value: rendered, detail: renderedDelta },
       {
@@ -499,7 +499,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     if (current == null || delta == null || !Number.isFinite(current) || !Number.isFinite(delta)) return;
     const prior = current - delta;
     const renderValue = (value: number) => integer ? numeric(value) : pct(value);
-    const renderChange = integer ? numeric(delta, true) : pct(delta, true);
+    const renderChange = integer ? numeric(delta, true) : `${numeric(delta, true)} ${pick(zh, "pp", "个百分点")}`;
     resultsComparisons.push({
       id: `${event.event_id}:${suffix}`,
       label,
@@ -522,17 +522,17 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     {
       id: "boundary:consensus",
       label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
-      value: pick(zh, "Not asserted · no licensed pre-event consensus", "未断言 · 无已授权的事件前共识"),
+      value: pick(zh, "Unavailable · no licensed pre-event estimates", "不可用 · 缺少已授权的事件前预期数据"),
     },
     {
       id: "boundary:reaction",
       label: pick(zh, "Event-price reaction", "事件价格反应"),
-      value: pick(zh, "Not asserted · no qualified price join", "未断言 · 无合格价格关联"),
+      value: pick(zh, "Unavailable · event and price data are not verified together", "不可用 · 事件与价格数据尚未完成匹配验证"),
     },
     {
       id: "boundary:authority",
-      label: pick(zh, "Trade authority", "交易权限"),
-      value: pick(zh, "Not asserted · context only", "未断言 · 仅供背景参考"),
+      label: pick(zh, "Use", "用途"),
+      value: pick(zh, "Research context · no trade ranking or position sizing", "研究背景 · 不提供交易排名或仓位建议"),
     },
   ];
   const chooseResultsItem = (item: CompanyIntelligenceResultsItem) => {
@@ -552,12 +552,12 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
   const sourcesCoverage: CompanyIntelligenceCoverageItem[] = [
     {
       id: "structured-event",
-      label: pick(zh, "Structured event", "结构化事件"),
+      label: pick(zh, "Event record", "事件记录"),
       displayStatus: stateLabel(activeContext.status, zh),
       detail: pick(
         zh,
-        "Generation-pinned v1 company event context. This fallback does not become v2 authority.",
-        "按版本固定的 v1 公司事件背景；此回退路径不会成为 v2 权限。",
+        "Published company research for this event. Availability here does not establish a separately verified event record.",
+        "此事件已发布的公司研究；这里显示的可用状态不代表已另行验证事件记录。",
       ),
       tone: structuredTone,
     },
@@ -566,7 +566,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       label: pick(zh, "Earnings history", "财报历史"),
       displayStatus: sourceStateLabel(historySource?.status, zh),
       detail: historySource
-        ? pick(zh, "Structured event history source state for the selected event.", "当前事件的结构化财报历史来源状态。")
+        ? pick(zh, "The earnings-history record linked to this event.", "此事件关联的财报历史记录。")
         : pick(zh, "No earnings-history source is attached to the selected event.", "当前事件未关联财报历史来源。"),
       tone: sourceTone(historySource),
     },
@@ -575,7 +575,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       label: pick(zh, "Transcript", "电话会记录"),
       displayStatus: sourceStateLabel(transcriptSource?.status, zh),
       detail: transcriptSource
-        ? pick(zh, "Normalized transcript availability for this v1 event.", "此 v1 事件的标准化电话会可用性。")
+        ? pick(zh, "Availability of the call transcript linked to this event.", "此事件关联的电话会正文可用情况。")
         : pick(zh, "No transcript source is attached to the selected event.", "当前事件未关联电话会来源。"),
       tone: sourceTone(transcriptSource),
     },
@@ -584,22 +584,22 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       label: pick(zh, "Event analysis", "事件分析"),
       displayStatus: sourceStateLabel(analysisSource?.status, zh),
       detail: analysisSource
-        ? pick(zh, "Score-overlay context remains a v1 source and is not promoted into v2 truth.", "评分覆盖层仍是 v1 来源，不会提升为 v2 事实。")
-        : pick(zh, "No score-overlay context is attached to the selected event.", "当前事件未关联评分覆盖层背景。"),
+        ? pick(zh, "Published analysis provides context; it does not independently verify the event's claims.", "已发布分析提供背景参考，但不能独立验证事件中的主张。")
+        : pick(zh, "No published analysis is linked to the selected event.", "当前事件未关联已发布分析。"),
       tone: sourceTone(analysisSource),
     },
     {
       id: "consensus",
       label: pick(zh, "Consensus", "共识"),
-      displayStatus: pick(zh, "Not carried", "未携带"),
-      detail: pick(zh, "v1 fallback has no licensed matched pre-event consensus contract.", "v1 回退路径没有已授权且匹配的事件前共识契约。"),
+      displayStatus: pick(zh, "Unavailable", "不可用"),
+      detail: pick(zh, "No licensed pre-event estimates with a matching reporting basis are available for comparison.", "没有已授权且报告口径匹配的事件前预期数据可供比较。"),
       tone: "boundary",
     },
     {
       id: "reaction",
       label: pick(zh, "Market reaction", "市场反应"),
-      displayStatus: pick(zh, "Not carried", "未携带"),
-      detail: pick(zh, "v1 fallback has no qualified event-price join.", "v1 回退路径没有合格的事件价格关联。"),
+      displayStatus: pick(zh, "Unavailable", "不可用"),
+      detail: pick(zh, "The event has no verified price comparison for measuring the market reaction.", "此事件没有经过验证的价格对照，无法衡量市场反应。"),
       tone: "boundary",
     },
   ];
@@ -607,7 +607,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     {
       id: "generation",
       label: pick(zh, "Generation", "版本"),
-      value: pick(zh, "Pinned context generation", "固定上下文版本"),
+      value: pick(zh, "Saved research version", "已保存的研究版本"),
       detail: activeContext.generation_id.length > 12
         ? `${activeContext.generation_id.slice(0, 12)}…`
         : activeContext.generation_id,
@@ -617,14 +617,14 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       id: "as-known-at",
       label: pick(zh, "As known at", "截至"),
       value: activeContext.generated_at.replace("T", " ").replace("Z", " UTC"),
-      detail: pick(zh, "v1 generation timestamp", "v1 版本时间戳"),
+      detail: pick(zh, "When this research version was produced", "此研究版本的生成时间"),
       tone: structuredTone,
     },
     {
       id: "selected-event",
       label: pick(zh, "Selected event", "当前事件"),
       value: eventPeriod(event),
-      detail: pick(zh, "v1 event identity preserved", "保留 v1 事件身份"),
+      detail: event.event_id,
       tone: structuredTone,
     },
   ];
@@ -637,30 +637,30 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
         : pick(zh, "Available", "可用"),
       detail: pick(
         zh,
-        "Source-family attribution is preserved; exact paragraph/span pinning is not upgraded by this fallback.",
-        "保留来源类别归因；此回退路径不会将其升级为精确段落/片段定位。",
+        "A document-level citation does not establish an exact supporting passage. Inspect each claim's source.",
+        "文档级引用不等于精确的原文证据；请查看每条主张的来源。",
       ),
       tone: event.claim_citations_pending ? "partial" : "present",
     },
     {
       id: "consensus-surprise",
       label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
-      value: pick(zh, "Not asserted", "未断言"),
-      detail: pick(zh, "No licensed matched pre-event consensus is carried by v1.", "v1 未携带已授权且匹配的事件前共识。"),
+      value: pick(zh, "Not assessed", "未评估"),
+      detail: pick(zh, "Requires licensed pre-event estimates with a matching reporting basis.", "需要已授权且报告口径匹配的事件前预期数据。"),
       tone: "boundary",
     },
     {
       id: "market-reaction",
       label: pick(zh, "Market reaction", "市场反应"),
-      value: pick(zh, "Not asserted", "未断言"),
-      detail: pick(zh, "No qualified event-price join is carried by v1.", "v1 未携带合格的事件价格关联。"),
+      value: pick(zh, "Not assessed", "未评估"),
+      detail: pick(zh, "Requires a verified link between the event and the relevant price data.", "需要验证事件与相应价格数据之间的关联。"),
       tone: "boundary",
     },
     {
       id: "trade-authority",
-      label: pick(zh, "Trade authority", "交易权限"),
+      label: pick(zh, "Use", "用途"),
       value: pick(zh, "Context only", "仅供背景参考"),
-      detail: pick(zh, "This fallback does not rank, gate or size trades.", "此回退路径不对交易进行排名、门控或仓位配置。"),
+      detail: pick(zh, "This research does not rank trades, authorize execution or determine position size.", "此研究不对交易排名、不授权执行，也不决定仓位大小。"),
       tone: "boundary",
     },
   ];
@@ -833,13 +833,13 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 onOpenCall={txId ? () => selectLens("transcript") : undefined}
                 guidanceNote={pick(
                   zh,
-                  "Guidance is not available in the published research record.",
-                  "已发布的研究记录中暂无业绩指引。",
+                  "Structured guidance is not available in this research record.",
+                  "此研究记录暂不提供结构化业绩指引。",
                 )}
                 callNote={pick(
                   zh,
-                  "Read the full transcript for management commentary and analyst questions.",
-                  "阅读完整电话会，查看管理层讨论与分析师提问。",
+                  txId ? "Read the full transcript for management commentary and analyst questions." : "Structured Q&A is unavailable, and no transcript is linked to this event.",
+                  txId ? "阅读完整电话会，查看管理层讨论与分析师提问。" : "暂无结构化问答，此事件也未关联电话会记录。",
                 )}
               />
             </section>
@@ -897,8 +897,8 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 boundaries={sourceBoundaries}
                 fallbackNote={pick(
                   zh,
-                  "v1 fallback source states remain context-only and do not inherit v2 EventWorkspace completeness semantics.",
-                  "v1 回退路径的来源状态仍仅供背景参考，不会继承 v2 EventWorkspace 的完整性语义。",
+                  "This published research is context only. Its source coverage is separate from the verified event record.",
+                  "此已发布研究仅供背景参考，其来源覆盖与已验证事件记录相互独立。",
                 )}
                 sourceContent={(
                   <>

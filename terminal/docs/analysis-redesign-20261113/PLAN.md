@@ -88,3 +88,32 @@ Self-review: SELF_REVIEWED. A separate reasoning-only source inspection surfaced
 Acceptance remains open: Paper's intended file was unavailable after a no-replay timeout; no canvas edits. The original user Chrome action is blocked by extension UI. Local Chromium socket launch is prohibited by the execution environment. No further replay or alternate browser carrier was attempted. Existing GitHub CI is the independent repository verification path, not live-production proof.
 
 Next proof/action: open one Ready PR from the existing source branch, obtain exact-head native required checks and responsive artifacts, inspect the designs and interactions, then use protected auto-merge if qualified and permitted. Do not claim deployment, production browser acceptance, award-level quality, or 10/10 before the corresponding evidence. Reassess the parent objective after each result.
+
+
+## CI repair and visual refinement — 2026-11-14
+
+Ready PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1494
+Reviewed prior head: c4586881fb42669f4e4c43955eead06b7f25485d
+Existing CI run: https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43557043797
+
+The first CI pass produced real browser captures and identified integration contracts that needed updating. Statistics statement-currency/cadence provenance was the substantive omission; it is restored in a compact Statement source disclosure without substituting quote currency. Old gauge, placeholder-transcript, fixed-line-number, and CSS-geometry unit assertions have been replaced with checks of the current behavior. Retry counts, cache/race recovery, exact transcript identity, source availability, financial family exclusions and basis rules remain tested.
+
+Current local qualification:
+- 274 affected tests passed across 12 suites after repairing the first CI findings.
+- Full Terminal TypeScript check passed.
+- A further focused 40-test pass covers the final flat-card and truthful zero-activity Insider refinements.
+- git diff --check passed.
+- Browser contract changes are pending execution at the next exact head; no local Chromium replay was attempted.
+
+Visual evidence inspected from the existing c458688 CI run:
+- Serial artifact 14098843212: AAPL Brief, Results, Call/Q&A with transcript drawer, and company institutional/theme context screenshots. These are fixture-browser evidence, not production or user comprehension proof.
+- F11 artifact 14098084126: mobile EN and tablet ZH navigation; the route fixture has no fundamentals, so these qualify surrounding chrome only.
+- PL6 artifact 14098069231: reviewed its capture mapping; limited crops are not claimed as populated-page proof.
+- These captures motivated two-column brief facts, accurate Commentary & context versus Company guidance labels, removal of a residual theme-card decorative orbit, and readable secondary theme labels.
+- The artifact checkout records its PR merge ref; evidence must be rebound to the next head after the source refinements.
+
+Additional presentation repair: Sources and Results now describe missing documents, estimates, guidance and event-price comparisons in user language. All IDs, coverage/access distinctions, source rights, exact event/generation pins and trade-authority limits remain explicit. The final semantic review also distinguishes missing structured guidance from guidance discussed in highlights, avoids attributing all remarks to management, and never invites transcript reading when no transcript is linked. Empty Q&A leads to the real transcript. Growth-rate differences are labeled percentage points. Insider 0-buy/0-sell fallback no longer asserts selling.
+
+CI at the reviewed prior head: production build, typecheck, F11 and the three visual-evidence capture lanes, Quote Hub, PostgreSQL invariants, and serial-standalone succeeded. Three unit shards and serial browser failed on the now-repaired contracts; other native browser and Ingest jobs were still running when this checkpoint was written. No workflow gate was disabled, manual rerun dispatched, or protected release requested.
+
+Next action: publish this repair/refinement to the same branch using expected-head CAS, read back the plan and commit, then obtain the existing native CI results and inspect current responsive captures. Repair any proven remaining failures. Qualify the Ready PR under actual protections before one permitted protected release request. Paper and live Chrome constraints remain as recorded above; no production acceptance claim. Parent DONE_WHEN remains open.

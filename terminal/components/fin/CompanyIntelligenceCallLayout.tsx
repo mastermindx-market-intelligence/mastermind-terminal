@@ -79,10 +79,6 @@ export default function CompanyIntelligenceCallLayout({
           <span>{pick(zh, "Verified Q&A", "已验证问答")}</span>
           <strong>{pick(zh, `${exchanges.length} exchanges`, `${exchanges.length} 轮`)}</strong>
         </div>
-        <div>
-          <span>{pick(zh, "Topic map", "主题图")}</span>
-          <strong>{pick(zh, "Unavailable", "不可用")}</strong>
-        </div>
       </div>
 
       <div className="ci-paper-call-grid ci-paper-call-grid--full">
@@ -93,8 +89,8 @@ export default function CompanyIntelligenceCallLayout({
               <h4>{pick(zh, "Analyst Q&A", "分析师问答")}</h4>
               <p>{pick(
                 zh,
-                "Select an exchange to open its exact normalized transcript position.",
-                "选择问答以打开其在规范化电话会中的精确位置。",
+                "Select a question to read the exchange in the transcript.",
+                "选择问题，在电话会正文中阅读完整问答。",
               )}</p>
             </div>
             <span>{pick(zh, `${exchanges.length} verified`, `${exchanges.length} 已验证`)}</span>
@@ -122,7 +118,7 @@ export default function CompanyIntelligenceCallLayout({
                       <i>
                         {exchange.respondents.length
                           ? pick(zh, `Management · ${exchange.respondents.join(" · ")}`, `管理层 · ${exchange.respondents.join(" · ")}`)
-                          : pick(zh, "Management response structure unavailable", "管理层回答结构不可用")}
+                          : pick(zh, "Respondent not identified", "未标明回答者")}
                       </i>
                     </span>
                     <em aria-hidden>›</em>
@@ -147,25 +143,13 @@ export default function CompanyIntelligenceCallLayout({
         <div>
           <span>{pick(zh, "TRANSCRIPT SOURCE", "电话会来源")}</span>
           <strong>{transcriptAvailable
-            ? pick(zh, "Normalized call record available", "规范化电话会记录可用")
+            ? pick(zh, "Full transcript available", "完整电话会正文可用")
             : pick(zh, "Transcript body unavailable", "电话会正文不可用")}</strong>
           <small>{pick(zh, "Open the transcript to read each passage in context.", "打开电话会正文，查看每个片段的上下文。")}</small>
         </div>
-        <div>
-          <span>{pick(zh, "Q&A STRUCTURE", "问答结构")}</span>
-          <strong>{exchanges.length
-            ? pick(zh, "Verified exchange structure preserved", "已保留验证过的问答结构")
-            : pick(zh, "Not available in this path", "此路径不可用")}</strong>
-          <small>{pick(zh, "No topic or importance label is inferred.", "不会推断主题或重要性标签。")}</small>
-        </div>
-        <div>
-          <span>{pick(zh, "CLAIM PINNING", "主张定位")}</span>
-          <strong>{pick(zh, "Exact transcript positions remain explicit", "精确电话会位置保持显式")}</strong>
-          <small>{pick(zh, "Source-family-only claims are not upgraded to exact spans.", "仅来源族的主张不会被升级为精确片段。")}</small>
-        </div>
         <div className="ci-paper-call-actions">
           {onOpenSources ? (
-            <button type="button" onClick={onOpenSources}>{pick(zh, "Source manifest", "来源清单")}</button>
+            <button type="button" onClick={onOpenSources}>{pick(zh, "View sources", "查看来源")}</button>
           ) : null}
           {onOpenFullTranscript ? (
             <button type="button" onClick={onOpenFullTranscript}>{pick(zh, "Read full transcript", "阅读完整电话会")}</button>

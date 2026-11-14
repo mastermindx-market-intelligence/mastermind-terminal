@@ -361,10 +361,10 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("18.4%");
   await expect(paperResults).toContainText("16.3% prior");
-  await expect(paperResults).toContainText("+2.1% vs prior");
+  await expect(paperResults).toContainText("+2.1 pp vs prior");
   await expect(paperResults).toContainText("Guidance is not available in the published research record.");
-  await expect(paperResults).toContainText("Not asserted · no licensed pre-event consensus");
-  await expect(paperResults).toContainText("Not asserted · context only");
+  await expect(paperResults).toContainText("Unavailable · no licensed pre-event estimates");
+  await expect(paperResults).toContainText("Research context · no trade ranking or position sizing");
   await expectNoDocumentOverflow(page);
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Sources" }).click();
@@ -372,11 +372,12 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(fallbackSources).toBeVisible();
   await expect(fallbackSources).toHaveAttribute("data-ci-sources-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(fallbackSources).toHaveAttribute("data-ci-sources-generation-id", "aaaaaaaaaaaaaaaaaaaaaaaa");
-  await expect(fallbackSources).toContainText("SOURCES & METHOD");
-  await expect(fallbackSources).toContainText("Structured event");
+  await expect(fallbackSources).toContainText("Evidence & coverage");
+  await expect(fallbackSources).toContainText("Event record");
   await expect(fallbackSources).toContainText("Ready");
   await expect(fallbackSources).toContainText("Consensus");
-  await expect(fallbackSources).toContainText("Not carried");
+  await expect(fallbackSources).toContainText("Unavailable");
+  await expect(fallbackSources).toContainText("No licensed pre-event estimates");
   await expect(fallbackSources).toContainText("Exact source span");
   await expect(fallbackSources).toContainText("Pending");
   await expect(fallbackSources).toContainText("Transport lineage");
@@ -799,9 +800,10 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparison is available for this event.");
-  await expect(changed.getByRole("button")).toHaveCount(0);
-  await expect(changed).not.toContainText("Constructive");
+  await expect(page.locator("[data-ci-paper-brief]")).toBeVisible();
+  await expect(changed).toHaveCount(0);
+  await expect(page.locator("[data-ci-paper-brief]")).not.toContainText("Constructive");
+  await expect(page.locator(".ci-paper-brief-hero h3")).toContainText(fixture.latest_event.highlights[0]);
 });
 
 test("Ask Mastermind hands off the current analysis ticker before opening a mounted Brain or routes to its Terminal host", async ({ page }, testInfo) => {
@@ -1005,6 +1007,8 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-brief")).toContainText("+16%");
   await expect(page.locator(".ci-brief")).toContainText("9–11%");
   await expect(page.locator(".ci-brief")).toContainText("100-year flood");
+  await expect(page.locator(".ci-brief")).toContainText("Commentary & context");
+  await expect(page.locator(".ci-brief")).toContainText("Company guidance");
   await expect(page.locator(".ci-page")).not.toContainText(/\bbeats?\b/i);
   await expect(page.locator(".ci-page")).not.toContainText(/\bmisses?\b/i);
   await expect(page.locator(".ci-honest")).toContainText("Unavailable / unstructured");
@@ -1039,10 +1043,10 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("$109.4B");
   await expect(paperResults).toContainText("9–11%");
-  await expect(paperResults).toContainText("No comparable prior-event fields are bound");
-  await expect(paperResults).toContainText("Not asserted · No beat/miss · consensus unlicensed");
-  await expect(paperResults).toContainText("Not asserted · reaction not joined");
-  await expect(paperResults).toContainText("Not asserted · context only");
+  await expect(paperResults).toContainText("Comparable prior-event metrics are not available");
+  await expect(paperResults).toContainText("Unavailable · pre-event estimates are unlicensed");
+  await expect(paperResults).toContainText("Unavailable · event and price data are not linked");
+  await expect(paperResults).toContainText("Research context · no trade ranking or position sizing");
   await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
   const repricing = page.locator("[data-ci-repricing-evidence]");
   await expect(repricing).toBeVisible();
@@ -1059,15 +1063,15 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await closeEvidenceOverlay(page);
   const typedAbsences = page.locator('[data-ci-results-region="typed-absences"]');
   const coverageStates = page.locator('[data-ci-results-region="coverage-states"]');
-  await expect(typedAbsences).toContainText("TYPED ABSENCES");
+  await expect(typedAbsences).toContainText("MISSING INFORMATION");
   await expect(typedAbsences).toContainText("Analyst questions");
   await expect(typedAbsences).toContainText("Consensus");
   await expect(typedAbsences).toContainText("Slides");
   await expect(typedAbsences).not.toContainText("0000320193-26-000018");
   await expect(typedAbsences).not.toContainText("not joined");
-  await expect(coverageStates).toContainText("COVERAGE STATES");
+  await expect(coverageStates).toContainText("SOURCE COVERAGE");
   await expect(coverageStates).toContainText("not joined");
-  await expect(coverageStates).not.toContainText("TYPED ABSENCES");
+  await expect(coverageStates).not.toContainText("MISSING INFORMATION");
   await expect(coverageStates).not.toContainText("0000320193-26-000018");
   await closeEvidenceOverlay(page);
   await expect(page.locator('[data-ci-results-region="analyst-qa"]')).toHaveCount(0);
@@ -1080,20 +1084,20 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperSources).toBeVisible();
   await expect(paperSources).toHaveAttribute("data-ci-sources-event-id", AAPL_EVENT_ID);
   await expect(paperSources).toHaveAttribute("data-ci-sources-generation-id", AAPL_GENERATION);
-  await expect(paperSources).toContainText("SOURCES & METHOD");
-  await expect(paperSources).toContainText("COVERAGE MATRIX");
-  await expect(paperSources).toContainText("Structured event");
+  await expect(paperSources).toContainText("Evidence & coverage");
+  await expect(paperSources).toContainText("AVAILABLE MATERIAL");
+  await expect(paperSources).toContainText("Event record");
   await expect(paperSources).toContainText("Present");
   await expect(paperSources).toContainText("Consensus");
   await expect(paperSources).toContainText("Unlicensed");
   await expect(paperSources).toContainText("Market reaction");
-  await expect(paperSources).toContainText("Not joined");
+  await expect(paperSources).toContainText("Not linked");
   await expect(paperSources).toContainText("Presentation / slides");
   await expect(paperSources).toContainText("Absent");
-  await expect(paperSources).toContainText("Pinned immutable context");
+  await expect(paperSources).toContainText("Fixed research version");
   await expect(paperSources).toContainText("Consensus surprise");
-  await expect(paperSources).toContainText("Not asserted");
-  await expect(paperSources).toContainText("Trade authority");
+  await expect(paperSources).toContainText("Not assessed");
+  await expect(paperSources).toContainText("does not rank trades, authorize execution or determine position size");
   await expect(paperSources).toContainText("Context only");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).toContainText("Company 8-K filing, exhibit 99.1");
   await expect(page.locator("[data-ci-source-kind='issuer_release']")).not.toContainText("8-K / Exhibit 99.1");
@@ -1262,8 +1266,9 @@ test("Ownership Institutional page uses the verified 13F owner without claiming 
   await expect(ownership).toHaveAttribute("data-ownership-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(ownership).toContainText("OWNERSHIP · INSTITUTIONAL");
   await expect(ownership).toContainText("Tracked institutional positioning");
-  await expect(ownership).toContainText("This is not total ownership, not a company rank, and not a trading signal.");
-  await expect(ownership).toContainText("does not estimate total ownership, rank the company, or issue a signal.");
+  await expect(ownership).toContainText("These delayed disclosures describe reported positions, not total company ownership or a trading signal.");
+  await expect(ownership.locator(".fin-ownership-intro-meta")).toContainText("Company event");
+  await expect(ownership.locator(".ci-inst-period")).toContainText("Holdings as of");
 
   const compact = page.viewportSize()!.width <= 860;
   if (compact) {
@@ -1310,7 +1315,9 @@ test("Ownership Institutional page remains truthful and usable in Chinese on mob
   await expect(page.locator(".fin-local-tab.on")).toHaveText("机构");
   await expect(ownership).toContainText("持仓 · 机构");
   await expect(ownership).toContainText("追踪机构持仓");
-  await expect(ownership).toContainText("并非总持股");
+  await expect(ownership).toContainText("并非公司总持股或交易信号");
+  await expect(ownership.locator(".fin-ownership-intro-meta")).toContainText("公司事件");
+  await expect(ownership.locator(".ci-inst-period")).toContainText("持仓截至");
   await expect(ownership).toContainText("仅限该名册的 HHI");
   await expect(ownership).toContainText("对齐历史");
   await expect(ownership).toContainText("持续积累");

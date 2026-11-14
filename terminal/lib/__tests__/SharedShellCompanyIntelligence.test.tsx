@@ -57,19 +57,24 @@ describe("retained Company active scope",()=>{
   expect(window.location.href).toBe(original);expect(edges.load).toHaveBeenCalledTimes(1);expect(edges.load.mock.calls[0][0].pin.fingerprint).toBe(receipt.fingerprint);
  });
  it.each([
-  ["http_503", "en", "Standard company intelligence"],
-  ["current_owner_unavailable", "zh", "标准公司情报"],
+  ["http_503", "en", "Published research"],
+  ["current_owner_unavailable", "zh", "已发布研究"],
  ] as const)("shows separately published company context for unpinned %s in %s",async(reason,lang,title)=>{
   edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
   const original=window.location.href;await render("NVDA");
   expect(host.querySelector('[data-standard-company="NVDA"]')).not.toBeNull();
   const banner=host.querySelector<HTMLElement>('[data-ci-context-state="standard_company_view"]');
-  expect(banner?.classList.contains("ci-state-banner")).toBe(true);
-  expect(banner?.classList.contains("ci-state")).toBe(false);
+  expect(banner?.getAttribute("role")).toBe("status");
   expect(banner?.querySelector("strong")?.textContent).toBe(title);
-  expect(host.textContent).toContain(lang==="zh"?"核对来源日期":"check source dates");
+  expect(banner?.textContent).toContain(lang==="zh"?"当前已验证事件不可用":"Current verified event unavailable");
   expect(window.location.href).toBe(original);
   expect(edges.load.mock.calls[0][0].pin).toBeNull();
+  const retry=banner?.querySelector("button");
+  expect(retry?.textContent).toBe(lang==="zh"?"重新验证事件":"Recheck verified event");
+  await act(async()=>retry!.click());
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(edges.load.mock.calls[1][0].pin).toBeNull();
+  expect(window.location.href).toBe(original);
  });
  it.each(["rights_denied","unauthenticated","http_403","invalid_reference","owner_unavailable"] as const)(
   "does not substitute on %s",async(reason)=>{

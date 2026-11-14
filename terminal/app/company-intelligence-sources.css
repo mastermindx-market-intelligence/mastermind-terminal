@@ -6,7 +6,7 @@
 .ci-paper-sources-head h3{max-width:780px;margin:0;color:var(--text);font:660 17px/1.2 var(--font-ui);letter-spacing:-.02em}
 .ci-paper-sources-period{display:grid;justify-items:end;gap:4px;flex:none;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2)}
 .ci-paper-sources-period strong{color:var(--text);font:650 12px/1 var(--font-ui)}
-.ci-paper-sources-period time{color:var(--muted);font:520 9px/1 var(--font-num)}
+.ci-paper-sources-period time{color:var(--muted);font:500 12px/1.4 var(--font-num)}
 .ci-paper-sources-coverage,.ci-paper-sources-receipts,.ci-paper-sources-method>div{min-width:0;border:1px solid var(--hairline);border-radius:8px;background:var(--panel);box-shadow:none;overflow:hidden}
 .ci-paper-sources-coverage>header,.ci-paper-sources-receipts>header,.ci-paper-sources-method>div>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-2)}
 .ci-paper-sources-coverage>header>small,.ci-paper-sources-receipts>header>small{color:var(--muted);font:520 12px/1 var(--font-ui)}

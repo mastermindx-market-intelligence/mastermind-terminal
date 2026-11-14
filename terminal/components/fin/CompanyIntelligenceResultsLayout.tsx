@@ -176,7 +176,7 @@ export default function CompanyIntelligenceResultsLayout({
         <section className="ci-paper-results-compare">
           <header>
             <span>{pick(zh, "COMPARED WITH PRIOR EVENT", "与上期比较")}</span>
-            <small>{pick(zh, "comparable structured fields only", "仅限可比结构化字段")}</small>
+            <small>{pick(zh, "Matching metrics and reporting basis", "指标与报告口径匹配")}</small>
           </header>
           {comparisons.length ? (
             <div className="ci-paper-results-compare-list">
@@ -197,7 +197,7 @@ export default function CompanyIntelligenceResultsLayout({
               ))}
             </div>
           ) : (
-            <p className="ci-paper-results-empty">{pick(zh, "No comparable prior-event fields are bound.", "没有绑定的可比上期字段。")}</p>
+            <p className="ci-paper-results-empty">{pick(zh, "Comparable prior-event metrics are not available.", "暂无可比的上期事件指标。")}</p>
           )}
         </section>
 

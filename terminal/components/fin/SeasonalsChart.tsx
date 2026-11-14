@@ -448,9 +448,6 @@ function YearPopover({
         // is not one of its clipping ancestors.
         if (css.position === "fixed") break;
       }
-      const tabs = wrap.closest(".fin-pane")?.querySelector<HTMLElement>(".fin-local-tabs-mobile");
-      const tabsRect = tabs?.getBoundingClientRect();
-      if (tabsRect && tabsRect.height > 0) bounds.bottom = Math.min(bounds.bottom, tabsRect.top);
       const anchor = trigger.getBoundingClientRect();
       const origin = wrap.getBoundingClientRect();
       const minX = bounds.left + 8;

@@ -455,10 +455,10 @@ export default function CompanyIntelligenceV2Current({
       : pick(zh, "Verified event", "已验证事件");
   const freshness = result.state === "stale" ? "stale" : retained ? "retained" : "live";
   const eventAlias = tickerPeriodAliasFromWorkspace(result.workspace, ticker);
-  const briefMetrics = usableBriefItems(presented.facts, presented.reported, presented.guidance).slice(0, 4);
+  const briefMetrics = usableBriefItems(presented.facts, presented.reported).slice(0, 4);
   const briefChanges = usableBriefItems(presented.deltas).slice(0, 3);
   const briefRisks = usableBriefItems(presented.watch).slice(0, 3);
-  const briefWatch = usableBriefItems(presented.guidance, presented.watch).slice(0, 4);
+  const briefWatch = usableBriefItems(presented.guidance).slice(0, 4);
   const briefTakeaways = usableBriefItems(presented.reported, presented.guidance, presented.watch).slice(0, 3);
   const briefEvidenceItems = [
     ...presented.facts,
@@ -492,21 +492,21 @@ export default function CompanyIntelligenceV2Current({
     {
       id: "boundary:consensus",
       label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
-      value: presented.honest.consensus_unlicensed || presented.honest.no_beat_miss
-        ? pick(zh, "Not asserted · No beat/miss · consensus unlicensed", "未断言 · 不显示超预期/不及预期 · 共识未授权")
-        : pick(zh, "Not asserted · no governed comparison in this view", "未断言 · 本视图无受治理的比较"),
+      value: presented.honest.consensus_unlicensed
+        ? pick(zh, "Unavailable · pre-event estimates are unlicensed", "不可用 · 事件前预期数据未授权")
+        : pick(zh, "No verified beat / miss comparison", "没有经过验证的超预期或不及预期比较"),
     },
     {
       id: "boundary:reaction",
       label: pick(zh, "Event-price reaction", "事件价格反应"),
       value: presented.honest.reaction_not_joined
-        ? pick(zh, "Not asserted · reaction not joined", "未断言 · 市场反应未关联")
-        : pick(zh, "Not asserted · no qualified event-price join in this view", "未断言 · 本视图无合格事件价格关联"),
+        ? pick(zh, "Unavailable · event and price data are not linked", "不可用 · 事件与价格数据尚未关联")
+        : pick(zh, "No verified market-reaction comparison", "没有经过验证的市场反应比较"),
     },
     {
       id: "boundary:authority",
-      label: pick(zh, "Trade authority", "交易权限"),
-      value: pick(zh, "Not asserted · context only", "未断言 · 仅供背景参考"),
+      label: pick(zh, "Use", "用途"),
+      value: pick(zh, "Research context · no trade ranking or position sizing", "研究背景 · 不提供交易排名或仓位建议"),
     },
   ];
   const resultsEvidenceItems = [
@@ -541,12 +541,12 @@ export default function CompanyIntelligenceV2Current({
   const sourcesCoverage: CompanyIntelligenceCoverageItem[] = [
     {
       id: "structured-event",
-      label: pick(zh, "Structured event", "结构化事件"),
+      label: pick(zh, "Event record", "事件记录"),
       displayStatus: pick(zh, "Present", "可用"),
       detail: pick(
         zh,
-        "SHA-verified event workspace with deterministic normalized fields.",
-        "经 SHA 验证的事件工作区，包含确定性的标准化字段。",
+        "The event record passed its integrity check. Each claim retains its own source status.",
+        "事件记录已通过完整性检查；每条主张保留独立的来源状态。",
       ),
       tone: "present",
     },
@@ -555,8 +555,8 @@ export default function CompanyIntelligenceV2Current({
       label: pick(zh, "Transcript", "电话会记录"),
       displayStatus: sourceCoverageStatus(v2TranscriptSource, zh),
       detail: v2TranscriptSource
-        ? pick(zh, "Normalized call source state as carried by the selected event.", "当前事件携带的标准化电话会来源状态。")
-        : pick(zh, "No transcript source is carried by the selected event.", "当前事件未携带电话会来源。"),
+        ? pick(zh, "Availability of the call transcript linked to this event.", "此事件关联的电话会正文可用情况。")
+        : pick(zh, "No transcript source is linked to this event.", "此事件未关联电话会来源。"),
       tone: sourceCoverageTone(v2TranscriptSource),
     },
     {
@@ -564,8 +564,8 @@ export default function CompanyIntelligenceV2Current({
       label: pick(zh, "Issuer disclosure", "发行人披露"),
       displayStatus: sourceCoverageStatus(v2IssuerSource, zh),
       detail: v2IssuerSource
-        ? pick(zh, "Issuer filing or release material tracked by the event workspace.", "事件工作区追踪的发行人披露或发布材料。")
-        : pick(zh, "No issuer disclosure source is carried by the selected event.", "当前事件未携带发行人披露来源。"),
+        ? pick(zh, "Company filings or releases linked to this event.", "此事件关联的公司披露或公告。")
+        : pick(zh, "No company filing or release is linked to this event.", "此事件未关联公司披露或公告。"),
       tone: sourceCoverageTone(v2IssuerSource),
     },
     {
@@ -575,8 +575,8 @@ export default function CompanyIntelligenceV2Current({
         ? pick(zh, "Absent", "缺失")
         : sourceCoverageStatus(v2SlidesSource, zh),
       detail: presented.honest.slides_absent
-        ? pick(zh, "Producer records an explicit absence for presentation material.", "生产者已明确记录演示材料缺失。")
-        : pick(zh, "Presentation coverage is shown only when carried by the producer.", "仅在生产者携带时显示演示材料覆盖。"),
+        ? pick(zh, "Presentation material is recorded as missing from this event.", "此事件记录中明确缺少演示材料。")
+        : pick(zh, "Availability follows the material linked to this event.", "可用情况以此事件关联的材料为准。"),
       tone: presented.honest.slides_absent ? "missing" : sourceCoverageTone(v2SlidesSource),
     },
     {
@@ -584,21 +584,21 @@ export default function CompanyIntelligenceV2Current({
       label: pick(zh, "Consensus", "共识"),
       displayStatus: presented.honest.consensus_unlicensed
         ? pick(zh, "Unlicensed", "未授权")
-        : pick(zh, "Producer state only", "仅生产者状态"),
+        : pick(zh, "No comparison shown", "未显示比较"),
       detail: presented.honest.consensus_unlicensed
-        ? pick(zh, "No licensed matched pre-event consensus is available for surprise claims.", "没有可用于超预期/不及预期主张的已授权匹配事件前共识。")
-        : pick(zh, "No extra consensus interpretation is added by Terminal.", "Terminal 不会额外解释共识状态。"),
+        ? pick(zh, "No licensed pre-event estimates with a matching reporting basis are available for comparison.", "没有已授权且报告口径匹配的事件前预期数据可供比较。")
+        : pick(zh, "This view does not add a beat or miss assessment.", "此视图不另行评估超预期或不及预期。"),
       tone: "boundary",
     },
     {
       id: "reaction",
       label: pick(zh, "Market reaction", "市场反应"),
       displayStatus: presented.honest.reaction_not_joined
-        ? pick(zh, "Not joined", "未关联")
-        : pick(zh, "Producer state only", "仅生产者状态"),
+        ? pick(zh, "Not linked", "未关联")
+        : pick(zh, "No comparison shown", "未显示比较"),
       detail: presented.honest.reaction_not_joined
-        ? pick(zh, "No qualified event-price join is attached to the selected event.", "当前事件未关联合格的事件价格数据。")
-        : pick(zh, "No extra reaction inference is added by Terminal.", "Terminal 不会额外推断市场反应。"),
+        ? pick(zh, "The event has no verified price comparison for measuring the market reaction.", "此事件没有经过验证的价格对照，无法衡量市场反应。")
+        : pick(zh, "This view does not add a market-reaction assessment.", "此视图不另行评估市场反应。"),
       tone: "boundary",
     },
   ];
@@ -606,7 +606,7 @@ export default function CompanyIntelligenceV2Current({
     {
       id: "generation",
       label: pick(zh, "Generation", "版本"),
-      value: pick(zh, "Pinned immutable context", "固定不可变上下文"),
+      value: pick(zh, "Fixed research version", "固定研究版本"),
       detail: presented.generation_id.length > 12
         ? `${presented.generation_id.slice(0, 12)}…`
         : presented.generation_id,
@@ -616,14 +616,14 @@ export default function CompanyIntelligenceV2Current({
       id: "as-known-at",
       label: pick(zh, "As known at", "截至"),
       value: result.workspace.generated_at.replace("T", " ").replace("Z", " UTC"),
-      detail: pick(zh, "Reported by the data producer", "由数据生产方报告"),
+      detail: pick(zh, "When this research version was produced", "此研究版本的生成时间"),
       tone: "present",
     },
     {
       id: "selected-event",
       label: pick(zh, "Selected event", "当前事件"),
       value: presented.period_label,
-      detail: pick(zh, "Canonical event identity preserved", "保留规范事件身份"),
+      detail: presented.event_id,
       tone: "present",
     },
   ];
@@ -634,8 +634,8 @@ export default function CompanyIntelligenceV2Current({
       value: pick(zh, "Per item", "按条目"),
       detail: pick(
         zh,
-        "Byte-replayed receipts stay exact; address-only and typed absence states remain explicit.",
-        "字节回放凭证保持精确；仅地址与类型化缺项状态保持显式。",
+        "Each item distinguishes a verified passage, a source address without verified text, or missing evidence.",
+        "每条记录区分已验证原文、只有地址而未验证正文的来源，以及缺失证据。",
       ),
       tone: "partial",
     },
@@ -643,25 +643,25 @@ export default function CompanyIntelligenceV2Current({
       id: "consensus-surprise",
       label: pick(zh, "Consensus surprise", "共识超预期/不及预期"),
       value: presented.honest.consensus_unlicensed || presented.honest.no_beat_miss
-        ? pick(zh, "Not asserted", "未断言")
-        : pick(zh, "No added inference", "不添加推断"),
-      detail: pick(zh, "Requires a licensed, basis-matched pre-event consensus.", "需要已授权且口径匹配的事件前共识。"),
+        ? pick(zh, "Not assessed", "未评估")
+        : pick(zh, "No added interpretation", "不添加解释"),
+      detail: pick(zh, "Requires licensed pre-event estimates with a matching reporting basis.", "需要已授权且报告口径匹配的事件前预期数据。"),
       tone: "boundary",
     },
     {
       id: "market-reaction",
       label: pick(zh, "Market reaction", "市场反应"),
       value: presented.honest.reaction_not_joined
-        ? pick(zh, "Not asserted", "未断言")
-        : pick(zh, "No added inference", "不添加推断"),
-      detail: pick(zh, "Requires a qualified event-price join.", "需要合格的事件价格关联。"),
+        ? pick(zh, "Not assessed", "未评估")
+        : pick(zh, "No added interpretation", "不添加解释"),
+      detail: pick(zh, "Requires a verified link between the event and the relevant price data.", "需要验证事件与相应价格数据之间的关联。"),
       tone: "boundary",
     },
     {
       id: "trade-authority",
-      label: pick(zh, "Trade authority", "交易权限"),
+      label: pick(zh, "Use", "用途"),
       value: pick(zh, "Context only", "仅供背景参考"),
-      detail: pick(zh, "This research view does not rank, gate or size trades.", "此研究视图不对交易进行排名、门控或仓位配置。"),
+      detail: pick(zh, "This research does not rank trades, authorize execution or determine position size.", "此研究不对交易排名、不授权执行，也不决定仓位大小。"),
       tone: "boundary",
     },
   ];
@@ -795,6 +795,10 @@ export default function CompanyIntelligenceV2Current({
               implications={[]}
               risks={briefRisks.map(toBriefItem)}
               watch={briefWatch.map(toBriefItem)}
+              risksHeading={pick(zh, "Commentary & context", "发言与背景")}
+              risksDescription={pick(zh, "Remarks and context from the selected event", "所选事件中的发言与背景信息")}
+              watchHeading={pick(zh, "Company guidance", "公司指引")}
+              watchDescription={pick(zh, "Reported outlook for future periods", "已报告的未来期间展望")}
               selectedId={evidence?.id}
               onSelect={chooseBriefItem}
               footer={(
@@ -818,7 +822,7 @@ export default function CompanyIntelligenceV2Current({
                   <section className="ci-coverage">
                     <div>
                       <strong>{pick(zh, retained ? "Selected event sources" : "Current sources", retained ? "所选事件来源" : "当期来源")}</strong>
-                      <p>{pick(zh, "Receipt-backed workspace objects. No v1 overlay is promoted into this event’s authority.", "凭证支持的工作区对象。不会将 v1 覆盖层提升为此事件的权限。")}</p>
+                      <p>{pick(zh, "Sources belong to the selected event. Published research history does not verify its claims.", "来源属于当前事件；已发布研究历史不能验证当前事件的主张。")}</p>
                     </div>
                     <CompanySourceManifest event={stubEvent} v2Sources={presented.sources} onOpenTranscript={(id) => onOpenTx({ id, expected_document_sha256: txSha })} compact />
                   </section>
@@ -842,16 +846,12 @@ export default function CompanyIntelligenceV2Current({
                 selectedId={evidence?.id}
                 onSelect={chooseResultsItem}
                 onOpenCall={() => selectLens("transcript")}
-                guidanceNote={pick(
-                  zh,
-                  "Producer-issued guidance only; no range is inferred from commentary.",
-                  "仅显示生产者签发的结构化指引；不会从评论中推断区间。",
-                )}
-                callNote={pick(
-                  zh,
-                  "Verified Q&A structure; topic labels are not inferred.",
-                  "问答结构已验证；不会推断主题标签。",
-                )}
+                guidanceNote={resultsGuidance.length
+                  ? pick(zh, "Reported guidance with supporting sources.", "附有来源支持的已报告指引。")
+                  : pick(zh, "Verified guidance is not available for this event.", "此事件暂无已验证的业绩指引。")}
+                callNote={resultsCallReadthrough.length
+                  ? pick(zh, "Questions linked to their transcript passages.", "问题关联至对应的电话会原文。")
+                  : pick(zh, "Structured Q&A is not available. Open the call to check the available transcript.", "暂无结构化问答。打开电话会以查看可用正文。")}
               />
               <EarningsRepricingEvidence presented={presented} zh={zh} onChooseEvidence={chooseItem} />
               <div className="ci-paper-results-support">
@@ -863,14 +863,14 @@ export default function CompanyIntelligenceV2Current({
                   onOpen={onOpenTx}
                 />
                 <GlanceRow
-                  kicker={pick(zh, "TYPED ABSENCES", "类型化缺项")}
+                  kicker={pick(zh, "MISSING INFORMATION", "缺失信息")}
                   region="typed-absences"
                   items={presented.completeness.filter((item) => item.evidence.receipt_state === "typed_absence")}
                   selectedId={evidence?.id}
                   onChoose={chooseItem}
                 />
                 <GlanceRow
-                  kicker={pick(zh, "COVERAGE STATES", "覆盖状态")}
+                  kicker={pick(zh, "SOURCE COVERAGE", "来源覆盖")}
                   region="coverage-states"
                   items={presented.completeness.filter((item) => (
                     item.evidence.receipt_state === "status_only"
@@ -916,12 +916,12 @@ export default function CompanyIntelligenceV2Current({
             <section className="ci-lens-panel">
               <div className="ci-lens-heading">
                 <div>
-                  <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 CONTEXT", "历史 v1 背景")}</span>
+                  <span className="fin-eyebrow">{pick(zh, "RESEARCH HISTORY", "研究历史")}</span>
                   <h3>{pick(zh, "Does not control the selected event", "不控制所选事件")}</h3>
                 </div>
                 <span>{historicalEvents.length} {pick(zh, "rows", "行")}</span>
               </div>
-              <p className="ci-v1-note">{pick(zh, "These structured-history rows remain context. They cannot replace the selected event, derive its deltas, or stand in as v2 evidence.", "这些结构化历史行仅作背景。它们不能替换所选事件、派生其变动，或充当 v2 证据。")}</p>
+              <p className="ci-v1-note">{pick(zh, "Historical research is shown for context. It is not used to verify the selected event or calculate its changes.", "历史研究仅供背景参考，不用于验证当前事件或计算其变化。")}</p>
               {historicalEvents.length ? (
                 <div className="ci-history-wrap">
                   <table className="fin-table ci-history-table ci-history-readonly">
@@ -929,7 +929,7 @@ export default function CompanyIntelligenceV2Current({
                       <tr>
                         <th>{pick(zh, "Period", "期间")}</th>
                         <th>{pick(zh, "Date", "日期")}</th>
-                        <th>{pick(zh, "v1 event", "v1 事件")}</th>
+                        <th>{pick(zh, "Event", "事件")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -944,7 +944,7 @@ export default function CompanyIntelligenceV2Current({
                   </table>
                 </div>
               ) : (
-                <p className="ci-inline-empty">{pick(zh, "No v1 historical rows are attached for this ticker.", "该标的暂无 v1 历史行。")}</p>
+                <p className="ci-inline-empty">{pick(zh, "No historical research records are linked to this company.", "此公司未关联历史研究记录。")}</p>
               )}
             </section>
           )}

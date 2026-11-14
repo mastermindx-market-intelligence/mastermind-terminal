@@ -40,7 +40,7 @@ function warningLabel(code: string, zh: boolean): string {
   const labels: Record<string, [string, string]> = {
     current_snapshots_missing: ["Not every active tracked manager has filed the selected quarter.", "并非所有活跃追踪管理人都已提交所选季度文件。"],
     comparison_snapshots_missing: ["Prior-quarter coverage is incomplete, so some movement labels are withheld.", "上季度覆盖不完整，因此部分变动标签未显示。"],
-    resolution_partial: ["Some reported positions could not be resolved to a covered ticker.", "部分申报持仓无法解析为已覆盖代码。"],
+    resolution_partial: ["Some reported positions could not be resolved to a covered ticker.", "部分披露持仓无法解析为已覆盖代码。"],
     history_coverage_incomplete: ["The history rail lacks two fully aligned periods, so no direction is asserted.", "历史轨道缺少两个完整对齐时期，因此不会断言方向。"],
   };
   const label = labels[code];
@@ -91,7 +91,7 @@ function EventBoundary({ label, onUseLatest }: { label: string; onUseLatest?: ()
       <p>{pick(
         zh,
         `Point-in-time 13F context is only shown beside the latest company event. ${label} is historical, so today's filing set is not mixed into that older record.`,
-        `时点 13F 背景仅与最新公司事件一同展示。${label} 为历史事件，因此不会将当前申报集混入旧记录。`,
+        `时点 13F 背景仅与最新公司事件一同展示。${label} 为历史事件，因此不会将当前披露集混入旧记录。`,
       )}</p>
       {onUseLatest && <button className="btn btn-ghost ci-inst-latest" onClick={onUseLatest}>{pick(zh, "Use latest event", "切换至最新事件")}</button>}
     </section>
@@ -144,32 +144,32 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
         </div>
         <div className="ci-inst-badges">
           <span className="fin-tag" style={{ "--c": palette } as React.CSSProperties}>{stateLabel(state, zh)}</span>
-          <span className="ci-inst-delay">13F · {pick(zh, "reported with filing lag", "按申报时滞披露")}</span>
+          <span className="ci-inst-delay">13F · {pick(zh, "reported with filing lag", "按披露时滞披露")}</span>
         </div>
       </div>
 
       <p className="ci-inst-rule">{pick(
         zh,
         "Public 13F filings from the tracked manager roster. These delayed disclosures describe reported positions, not total company ownership or a trading signal.",
-        "追踪管理人名册的公开 13F 文件。这些滞后披露仅描述申报持仓，并非公司总持股或交易信号。",
+        "追踪管理人名册的公开 13F 文件。这些滞后披露仅描述披露持仓，并非公司总持股或交易信号。",
       )}</p>
 
-      <div className="ci-inst-stats" aria-label={pick(zh, "Institutional filing coverage", "机构申报覆盖") }>
-        <span><small>{pick(zh, "Reporting set", "申报集合")}</small><b className="num">{context.coverage.reporting_manager_count}/{context.coverage.active_manager_count}</b><i>{pick(zh, "active managers", "活跃管理人")}</i></span>
+      <div className="ci-inst-stats" aria-label={pick(zh, "Institutional filing coverage", "机构披露覆盖") }>
+        <span><small>{pick(zh, "Reporting set", "披露集合")}</small><b className="num">{context.coverage.reporting_manager_count}/{context.coverage.active_manager_count}</b><i>{pick(zh, "active managers", "活跃管理人")}</i></span>
         <span><small>{pick(zh, "Current holders", "当前持有人")}</small><b className="num">{holders}</b><i>{pick(zh, `${context.consensus.buyer_count} buyers · ${context.consensus.trimmer_count} trimmers`, `${context.consensus.buyer_count} 增持 · ${context.consensus.trimmer_count} 减持`)}</i></span>
-        <span><small>{pick(zh, "Tracked value", "追踪价值")}</small><b className="num">{currency(context.consensus.total_value_usd, zh)}</b><i>{pick(zh, "reported market value", "申报市值")}</i></span>
+        <span><small>{pick(zh, "Tracked value", "追踪价值")}</small><b className="num">{currency(context.consensus.total_value_usd, zh)}</b><i>{pick(zh, "reported market value", "披露市值")}</i></span>
         <span><small>{pick(zh, "Tracked concentration", "追踪集中度")}</small><b className="num">{context.consensus.ownership_hhi === null ? "—" : context.consensus.ownership_hhi.toFixed(3)}</b><i>{pick(zh, "HHI within this roster", "仅限该名册的 HHI")}</i></span>
       </div>
 
       <div className="ci-inst-period">
         <span><small>{pick(zh, "Holdings as of", "持仓截至")}</small><b className="num">{context.period.consensus_period}</b></span>
-        <span><small>{pick(zh, "Filing set complete", "申报集合完成")}</small><b className="num">{context.period.consensus_available_on ?? pick(zh, "Not complete", "尚未完成")}</b></span>
+        <span><small>{pick(zh, "Filing set complete", "披露集合完成")}</small><b className="num">{context.period.consensus_available_on ?? pick(zh, "Not complete", "尚未完成")}</b></span>
         <span><small>{pick(zh, "Available information through", "已知信息截至")}</small><b className="num">{context.period.build_as_of}</b></span>
       </div>
 
       {visible.length > 0 ? (
         <div className="ci-inst-tape">
-          <div className="ci-inst-subhead"><div><span>{pick(zh, "Reported positions", "已申报持仓")}</span><small>{pick(zh, "Current holders and reported exits", "当前持有人及已申报退出")}</small></div><b className="num">{context.positions.length}</b></div>
+          <div className="ci-inst-subhead"><div><span>{pick(zh, "Reported positions", "已披露持仓")}</span><small>{pick(zh, "Current holders and reported exits", "当前持有人及已披露退出")}</small></div><b className="num">{context.positions.length}</b></div>
           <div className="ci-inst-table-scroll" role="region" aria-label={pick(zh, "Institutional positions", "机构持仓")} tabIndex={0}>
             <table className="ci-inst-table">
               <thead><tr>
@@ -180,10 +180,10 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
           </div>
           {sortedPositions.length > 6 && <button className="ci-inst-more" onClick={() => setShowAll((open) => !open)}>{pick(zh, showAll ? "Show top managers" : `Show all ${sortedPositions.length}`, showAll ? "仅显示主要管理人" : `显示全部 ${sortedPositions.length} 家`)}</button>}
         </div>
-      ) : <div className="ci-inst-empty">{pick(zh, "The company remains in the covered universe, but no current tracked manager position or reported exit is present for this aligned quarter.", "该公司仍在覆盖范围内，但本对齐季度没有当前追踪管理人持仓或已申报退出。")}</div>}
+      ) : <div className="ci-inst-empty">{pick(zh, "The company remains in the covered universe, but no current tracked manager position or reported exit is present for this aligned quarter.", "该公司仍在覆盖范围内，但本对齐季度没有当前追踪管理人持仓或已披露退出。")}</div>}
 
       <div className="ci-inst-trend">
-        <div className="ci-inst-subhead"><div><span>{pick(zh, "ALIGNED HISTORY", "对齐历史")}</span><small>{pick(zh, "Only fully reported quarters can assert direction", "仅完整申报季度可断言方向")}</small></div><strong className={context.trend.direction ?? "none"}>{directionLabel(context.trend.direction, zh)}</strong></div>
+        <div className="ci-inst-subhead"><div><span>{pick(zh, "ALIGNED HISTORY", "对齐历史")}</span><small>{pick(zh, "Only fully reported quarters can assert direction", "仅完整披露季度可断言方向")}</small></div><strong className={context.trend.direction ?? "none"}>{directionLabel(context.trend.direction, zh)}</strong></div>
         {context.trend.periods.length ? <div className="ci-inst-trend-grid">{context.trend.periods.map((point) => (
           <div key={point.period_end} className={point.eligible ? "eligible" : "excluded"}>
             <span><time className="num" dateTime={point.period_end}>{point.period_end}</time><small>{point.eligible ? pick(zh, "Aligned", "已对齐") : pick(zh, "Excluded", "已排除")}</small></span>
@@ -197,7 +197,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
       {context.warnings.length > 0 && <div className="ci-inst-warning" role="status"><span aria-hidden>!</span><p>{context.warnings.map((item) => warningLabel(item, zh)).join(" ")}</p></div>}
 
       <div className="ci-inst-footer">
-        <span>{pick(zh, "Latest filing", "最新申报")} <b className="num">{context.period.latest_reporting_filing_date ?? "—"}</b></span>
+        <span>{pick(zh, "Latest filing", "最新披露")} <b className="num">{context.period.latest_reporting_filing_date ?? "—"}</b></span>
         <button className="ci-inst-receipts" aria-expanded={receiptsOpen} aria-controls="ci-inst-receipts" onClick={() => setReceiptsOpen((open) => !open)}>{pick(zh, receiptsOpen ? "Hide provenance" : "View provenance", receiptsOpen ? "隐藏来源" : "查看来源")}</button>
       </div>
 
@@ -206,7 +206,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
         <div><dt>{pick(zh, "Company Intelligence pin", "公司情报锚点")}</dt><dd><code>{context.company_intelligence.generation_id}</code></dd></div>
         <div><dt>{pick(zh, "Latest event pin", "最新事件锚点")}</dt><dd><code>{context.company_intelligence.latest_event_id ?? "—"}</code></dd></div>
         <div><dt>{pick(zh, "Company-context receipt", "公司背景凭证")}</dt><dd><code>{context.company_intelligence.context_sha256}</code></dd></div>
-        <div><dt>{pick(zh, "Filing window closed", "申报窗口关闭")}</dt><dd className="num">{context.period.filing_window_closed_on}</dd></div>
+        <div><dt>{pick(zh, "Filing window closed", "披露窗口关闭")}</dt><dd className="num">{context.period.filing_window_closed_on}</dd></div>
         <div><dt>{pick(zh, "Authority", "权限")}</dt><dd>{pick(zh, "Context only", "仅供背景参考")}</dd></div>
       </dl>}
     </section>
@@ -236,11 +236,11 @@ export default function CompanyInstitutionalContextCard({
   if (!result) return <LoadingCard />;
   if (!result.ok) {
     if (result.error.code === "not_found") return null;
-    return <section className="ci-inst-card ci-inst-unavailable" role="status"><div><span className="ci-inst-kicker">{pick(zh, "INSTITUTIONAL POSITIONING", "机构持仓背景")}</span><h3>{pick(zh, "Verified filing context unavailable", "已验证申报背景暂不可用")}</h3><p>{errorCopy(result.error.code, zh)}</p></div>{result.error.retryable && <button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>}</section>;
+    return <section className="ci-inst-card ci-inst-unavailable" role="status"><div><span className="ci-inst-kicker">{pick(zh, "INSTITUTIONAL POSITIONING", "机构持仓背景")}</span><h3>{pick(zh, "Verified filing context unavailable", "已验证披露背景暂不可用")}</h3><p>{errorCopy(result.error.code, zh)}</p></div>{result.error.retryable && <button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>}</section>;
   }
   if (result.context.company_intelligence.generation_id !== companyIntelligenceGenerationId
     || result.context.company_intelligence.latest_event_id !== latestEventId) {
-    return <section className="ci-inst-card ci-inst-unavailable" role="status"><div><span className="ci-inst-kicker">{pick(zh, "INSTITUTIONAL POSITIONING", "机构持仓背景")}</span><h3>{pick(zh, "Filing context is refreshing", "申报背景正在刷新")}</h3><p>{pick(zh, "The 13F sidecar is not pinned to this Company Intelligence generation, so it remains quarantined until publication catches up.", "13F 侧车尚未锚定当前公司情报版本，因此在发布追平前不会展示。")}</p></div><button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button></section>;
+    return <section className="ci-inst-card ci-inst-unavailable" role="status"><div><span className="ci-inst-kicker">{pick(zh, "INSTITUTIONAL POSITIONING", "机构持仓背景")}</span><h3>{pick(zh, "Filing context is refreshing", "披露背景正在刷新")}</h3><p>{pick(zh, "The 13F sidecar is not pinned to this Company Intelligence generation, so it remains quarantined until publication catches up.", "13F 侧车尚未锚定当前公司情报版本，因此在发布追平前不会展示。")}</p></div><button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button></section>;
   }
   const state = result.state === "stale" ? "stale" : result.context.status;
   return <ContextCard context={result.context} state={state} />;
