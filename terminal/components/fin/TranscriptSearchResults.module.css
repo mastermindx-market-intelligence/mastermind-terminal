@@ -1,0 +1,34 @@
+.card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "identity actions"
+    "speaker speaker"
+    "excerpt excerpt"
+    "receipt receipt";
+}
+
+.card > header { grid-area: identity; }
+.card > :global(.ci-ts-speaker) { grid-area: speaker; }
+.card:global(.ci-ts-span) > p { grid-area: excerpt; font-size: 13px; line-height: 1.55; }
+.card > footer { grid-area: receipt; }
+.card > .actions { grid-area: actions; }
+
+@media (max-width: 760px) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "identity" "speaker" "excerpt" "actions" "receipt";
+  }
+
+  .card > .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px 8px;
+  }
+
+  .card > .actions > button { min-height: 44px; min-width: 44px; padding: 0 4px; }
+  .card :global(.ci-ts-speaker) { flex-wrap: wrap; }
+  .card :global(.ci-ts-speaker strong),
+  .card :global(.ci-ts-speaker span) { white-space: normal; overflow-wrap: anywhere; }
+}

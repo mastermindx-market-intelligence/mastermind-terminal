@@ -220,6 +220,9 @@ for(const lang of ["en","zh"] as const) {
   const market=page.locator("[data-market-vnext]");
   await expect(market).toBeVisible();
   await expect(market).toContainText("RSI");
+  const observations=marketBarsFixture().bars.length;
+  await expect(market.locator("[data-market-vnext-state] header p")).toContainText(zh?`${observations} 个观测`:`${observations} observations`);
+  await expect(market.locator('[data-metric="rsi"] strong')).toHaveText(/\d/);
   await compactAnalysisChrome(page);
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-market-${lang}.png`)});
   await chooseAnalysisFamily(page,"ownership","ownership");

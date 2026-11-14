@@ -388,6 +388,15 @@ test("literal transcript search and compare use the local revision-verified BFF"
   await expect(page.locator(".ci-ts-results .ci-ts-span")).toHaveCount(2);
   await expect(page.locator(".ci-ts-results mark").first()).toHaveText("Data center");
   await expect(page.locator(".ci-ts-hero")).toContainText("Find exact words across calls");
+  if (testInfo.project.name.endsWith("mobile")) {
+    const firstResult = page.locator(".ci-ts-results .ci-ts-span").first();
+    const excerpt = await firstResult.locator(":scope > p").boundingBox();
+    const actions = firstResult.locator(".ci-ts-span-actions");
+    const actionBox = await actions.boundingBox();
+    expect(actionBox!.y).toBeGreaterThanOrEqual(excerpt!.y + excerpt!.height);
+    expect(actionBox!.height).toBeLessThanOrEqual(92);
+    for (const button of await actions.getByRole("button").all()) await expectTapTarget(button, { height: 44, width: 44 });
+  }
 
   const settings = page.locator('button[aria-label="Settings"]');
   const sourceButton = page.locator(".ci-ts-results .ci-ts-span-actions button").first();
