@@ -43,5 +43,7 @@
   .block h2 { font-size: 14px; line-height: 18px; margin-bottom: 8px; }
   .block .headline { font-size: 17px; line-height: 22px; margin-bottom: 8px; }
   .block p { margin-block: 6px; }
+  .summary > p:not(.headline) { margin-block: 4px; }
+  .summary > .control { margin-top: 0; }
   .frame { font-size: 12px; gap: 6px; grid-template-columns: .65fr 1.2fr 1fr; }
 }

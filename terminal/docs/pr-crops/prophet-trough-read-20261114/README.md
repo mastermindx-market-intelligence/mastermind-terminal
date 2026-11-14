@@ -4,6 +4,8 @@
 
 Lead amendment 1, 2026-11-14: named headline is the default, with its method directly underneath in the collapsed card. Count copy remains selectable in source. The study record is independently held behind `TROUGH_RECORD_ENABLED = false`. `NEXT_PUBLIC_PROPHET_TROUGH_READ_ENABLED` must equal `1`; it is unset/off by default. Only the dedicated Playwright fixture server enables it. No member release, producer, deployment or Sector Intelligence change is included.
 
+Amendment 2 aligns named copy with read-only Paper boards `2A6G-0` (390) and `2A9B-0` (1440): English lists use a final “and” and “; not on”; Chinese uses “；{rest}未处于低位”. Named disclosure says “this headline only lists them”; count retains “only counts”. Collapsed method is unchanged. A reproducible 390 English B fold failure (856.67px against 844px) was repaired with local summary spacing only; the unchanged fold assertion and 44px controls pass afterward. Refreshed 34 affected crops; unavailable crops and desktop none-collapsed crops are preserved.
+
 ## Source and design pins
 
 - Terminal base: `c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40`.
@@ -26,7 +28,7 @@ Synthetic test fixtures live under the test directory, not the public data tree.
 
 - TypeScript `tsc --noEmit`: pass.
 - Focused ESLint on all amended TypeScript files: pass.
-- Five affected/neighboring Vitest files: **156 passed**, including **91 trough tests** and 65 existing setup/rotation tests.
+- Five affected/neighboring Vitest files: **157 passed**, including **92 trough tests** and 65 existing setup/rotation tests.
 - Dedicated Playwright matrix: **24 passed**, no retries. EN/ZH A–E at 390/1440 and A/D at 320. Preserves initial 390 fold with unavailable RotationRead, zero horizontal overflow, 44px rows/controls, keyboard disclosure/focus return, selection/tab preservation, definitions order, collapsed method, hidden record, null kind and 3D-only turn cells.
 - Existing desktop company-case suite: **7 passed**, no retries, default-off server.
 - Earlier full repository lint attempt failed: **1,995 errors / 351 warnings** in unrelated existing files. No assertions or lint rules were weakened. Focused lint remains green.

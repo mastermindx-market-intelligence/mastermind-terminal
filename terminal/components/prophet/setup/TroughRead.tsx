@@ -12,9 +12,11 @@ export function troughHeadline(row: TroughRow, lang: Lang, variant: TroughHeadli
   // Unknown/unclosed legs are dashes, never asserted to be not washed out.
   const rest = row.timeframes.filter(f => !washed.includes(f)).map(f => f.available && f.bar_end !== null && f.washed_out !== null ? s.frames[f.tf] : "—");
   if (variant === "named" && washed.length === 0) return s.namedNone;
+  const join = (items: string[]) => lang === "en" && variant === "named" && items.length > 1
+    ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}` : items.join(", ");
   return setupFill(s.variants[variant].headline, { n: washed.length, suffix: s[troughSuffix(row)],
-    list: washed.map(f => s.frames[f.tf]).join(", ") || s.none,
-    notPart: rest.length ? setupFill(s.notPart, { rest: rest.join(", ") }) : "", rest: rest.join(", ") || s.none });
+    list: join(washed.map(f => s.frames[f.tf])) || s.none,
+    notPart: rest.length ? setupFill(s.notPart, { rest: join(rest) }) : "", rest: join(rest) || s.none });
 }
 
 function History({ row, lang }: { row: TroughRow; lang: Lang }) {
@@ -71,7 +73,7 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
         <header className={styles.methodHeader}><h3>{s.how}</h3><button className={styles.control} type="button" onClick={close} aria-expanded={expanded} aria-controls={id}>{s.hide}</button></header>
         {s.definitions.map(line => <p key={line}>{line}</p>)}
         <p>{copy.method}</p>
-        {copy.method !== s.variants.count.method ? <p>{s.variants.count.method}</p> : null}
+        {copy.disclosureNote !== copy.method ? <p>{copy.disclosureNote}</p> : null}
         <h3>{s.groupStates}</h3><p>{s.stateList}</p><p>{s.groupMeaning}</p>
         <p className={styles.boxed}>{s.boxed}</p>
       </aside>

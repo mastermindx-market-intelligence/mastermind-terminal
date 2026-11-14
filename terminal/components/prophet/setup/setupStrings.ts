@@ -29,10 +29,10 @@ export const TROUGH_STRINGS = {
   en: {
     title: "Trough read", unavailable: "Not available", unavailableBody: "This read is not available for this stock yet.",
     variants: {
-      count: { headline: "Washed out on {n} of 4 timeframes · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "Which timeframe matters for which kind of stock is still being measured; this headline only counts." },
-      named: { headline: "Washed out on {list}{notPart} · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold." },
+      count: { headline: "Washed out on {n} of 4 timeframes · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "Which timeframe matters for which kind of stock is still being measured; this headline only counts.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only counts." },
+      named: { headline: "Washed out on {list}{notPart} · {suffix}", record: "Studied on three stocks only; not yet tested widely.", method: "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only lists them." },
     },
-    namedNone: "Not washed out on any timeframe", notPart: " · not {rest}", notYet: "Not yet available", kindPending: "Kind: not yet available",
+    namedNone: "Not washed out on any timeframe", notPart: "; not on {rest}", notYet: "Not yet available", kindPending: "Kind: not yet available",
     notWashed: "not washed out", turning: "turning up", notTurned: "not yet turned", none: "none",
     frames: { "1D": "Daily", "3D": "3-day", "1W": "Weekly", "2W": "2-week" },
     kinds: { steady: "steady compounder", leans_steady: "leans steady compounder", middle: "between steady and cyclical", leans_cyclical: "leans cyclical, high-beta", cyclical: "cyclical, high-beta" },
@@ -53,10 +53,10 @@ export const TROUGH_STRINGS = {
   zh: {
     title: "低谷解读", unavailable: "暂不可用", unavailableBody: "该股票暂未提供此项解读。",
     variants: {
-      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
-      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。" },
+      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
+      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "仅研究过三只股票；尚未广泛检验。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只列出这些周期。" },
     },
-    namedNone: "所有周期均未处于低位", notPart: " · 未处于低位：{rest}", notYet: "尚未提供", kindPending: "类型：尚未提供",
+    namedNone: "所有周期均未处于低位", notPart: "；{rest}未处于低位", notYet: "尚未提供", kindPending: "类型：尚未提供",
     notWashed: "未处于低位", turning: "正在回升", notTurned: "尚未回升", none: "无",
     frames: { "1D": "日线", "3D": "3日线", "1W": "周线", "2W": "2周线" },
     kinds: { steady: "稳健复利型", leans_steady: "偏稳健复利型", middle: "介于稳健与周期型之间", leans_cyclical: "偏周期型、高贝塔", cyclical: "周期型、高贝塔" },

@@ -33,6 +33,8 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
     if (lang === "en") {
       expect(container.textContent).toContain("Group figures: not yet available");
       expect(container.textContent).toContain("Only completed bars count.");
+      expect(container.textContent).toContain("Which timeframe matters for which kind of stock is still being measured; this headline only lists them.");
+      expect(container.textContent).not.toContain("this headline only counts.");
       expect(container.querySelector('[data-testid="trough-headline"]')!.nextElementSibling!.textContent).toBe("More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.");
       expect(container.querySelector('[role="meter"]')).toBeNull();
       expect(container.textContent).not.toContain("Turned up on");
