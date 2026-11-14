@@ -47,14 +47,6 @@ async function captureMobileValuation(page: Page, testInfo: TestInfo, language: 
             usable.top = Math.max(usable.top, box.bottom);
           }
         }
-        const bottomTabs = scroller.closest(".fin-pane")?.querySelector<HTMLElement>(".fin-local-tabs-mobile");
-        if (bottomTabs?.getClientRects().length) {
-          const box = bottomTabs.getBoundingClientRect();
-          if (box.left < usable.right && box.right > usable.left &&
-              box.top < usable.bottom && box.bottom > usable.top) {
-            usable.bottom = Math.min(usable.bottom, box.top);
-          }
-        }
         const regions = targets.map((element) => {
           const box = element.getBoundingClientRect();
           return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
@@ -742,11 +734,19 @@ test("compact research navigation keeps focus and content space", async ({ page 
   await page.goto("/analysis?symbol=NVDA&page=statements");
   const trigger = page.locator(".fin-family-mobile-trigger");
   await expect(trigger).toBeVisible();
-  const nav = await page.locator(".fin-research-nav").boundingBox();
-  const local = await page.locator(".fin-view-toolbar").boundingBox();
-  expect(nav!.height).toBeLessThanOrEqual(64);
-  expect(local!.height).toBeLessThanOrEqual(54);
-  expect(local!.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    const nav = await page.locator(".fin-research-nav").boundingBox();
+    const local = await page.locator(".fin-view-toolbar").boundingBox();
+    expect(nav!.height).toBeLessThanOrEqual(64);
+    expect(local!.height).toBeLessThanOrEqual(54);
+    expect(local!.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
+    const ticker = page.locator(".fin-company-control .sym-pick-id strong");
+    await expect(ticker).toHaveText("NVDA");
+    expect(await ticker.evaluate(node => node.scrollWidth - node.clientWidth), "selected company must stay readable").toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+      .toBeLessThanOrEqual(1);
+  }
   await trigger.click();
   const dialog = page.locator("dialog.fin-family-sheet-layer");
   await expect(dialog).toBeVisible();

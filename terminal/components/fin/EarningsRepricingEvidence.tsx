@@ -6,6 +6,7 @@
  */
 import type { EventWorkspacePresentedItem } from "../../lib/eventWorkspacePresent";
 import { pick } from "../../lib/finFormat";
+import styles from "./CompanyIntelligenceResultsLayout.module.css";
 import {
   composeEarningsExpectationEvidence,
   type RepricingEvidenceSource,
@@ -25,7 +26,7 @@ export default function EarningsRepricingEvidence({
 
   return (
     <section
-      className="ci-paper-results-card"
+      className={`ci-paper-results-card ${styles.evidence}`}
       data-ci-repricing-evidence=""
       data-ci-inference={result.repricingInference}
       aria-label={pick(zh, "Earnings expectations and repricing evidence", "业绩预期和重估证据")}

@@ -264,7 +264,7 @@ describe("source-grounded HK semiannual normalization", () => {
     expect(html).toContain("4.17");
     expect(html).not.toContain("Q3");
     expect(html).not.toContain("0.43");
-    expect(html).not.toContain("No reported EPS history");
+    expect(html).not.toContain("No reported EPS in this view");
   });
 
   it("uses the same canonical H1/H2 axis for statement-backed revenue", () => {
@@ -468,6 +468,35 @@ it("preserves the EPS choice while the Revenue child resets across a missing fun
     expect(host.querySelector(".fin-earn-module:last-child .fin-toggle .on")!.textContent).toBe("Quarterly");
     expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(2) strong")!.textContent).toBe("1.25");
     expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3) strong")!.textContent).toBe("90.00");
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  }
+});
+
+it("annual statement fallback never inherits a cumulative interim explanation", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  const fund = mkEarningsFund({});
+  fund.statements = {
+    quarterly: mkCanonicalSemiannual(),
+    annual: { periods: ["FY2025"], source_market: "hk", income: mkIncome({ revenue: [130e9], eps_basic: [2.95] }) } as StatementPeriodSet,
+  };
+  try {
+    await act(async () => root.render(createElement(EarningsPage, { fund, sym: "0001.HK" })));
+    expect(host.textContent).toContain("Hong Kong source rows are cumulative");
+    const epsAnnual = host.querySelector<HTMLButtonElement>("[data-earnings-vnext-pulse] .fin-toggle button")!;
+    const revenueAnnual = host.querySelector<HTMLButtonElement>(".fin-earn-module:last-child .fin-toggle button")!;
+    await act(async () => { epsAnnual.click(); revenueAnnual.click(); });
+    expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(2) strong")!.textContent).toBe("2.95");
+    expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3) strong")!.textContent).toBe("130.00B");
+    expect(host.textContent).not.toContain("Hong Kong source rows are cumulative");
+    expect(host.textContent).toContain("Derived from reported financial statements.");
   } finally {
     await act(async () => root.unmount());
     host.remove();

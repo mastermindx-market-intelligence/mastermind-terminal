@@ -5,3 +5,17 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+/* Current groups share the available width; published history keeps its table. */
+.page { min-width: 0; }
+.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; margin: 16px 0; }
+.groups[data-has-history="false"] { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.groups[data-has-history="true"] > [data-statistics-group="valuation"] { grid-column: 1 / -1; }
+.group { min-width: 0; margin: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow: hidden; }
+.group :global(.fin-cell) { padding: 10px 12px; line-height: 1.5; }
+.group :global(.fin-stats-grp-hdr) :global(.fin-cell) { font-size: 14px; font-weight: 600; color: var(--text); background: transparent; }
+.group :global(.fin-stats-meta) { margin: 0; padding: 12px; border-top: 1px solid var(--line); line-height: 1.5; }
+.group > :global(.fin-chart-note) { padding: 12px 12px 0; font-size: 12px; line-height: 1.5; }
+@media (max-width: 760px) {
+  .groups, .groups[data-has-history="false"] { grid-template-columns: minmax(0, 1fr); }
+}

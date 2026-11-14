@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SharedShellCompanyIntelligence, { COMPANY_CONTEXT_READ_TIMEOUT_MS } from "@/components/fin/SharedShellCompanyIntelligence";
@@ -28,6 +28,28 @@ async function render(symbol="AAPL"){await act(async()=>root.render(<SharedShell
 async function resolve(index:number){await act(async()=>pending[index].resolve(success));}
 
 describe("retained Company active scope",()=>{
+ it("aborts StrictMode's first mount and ignores its late receipt without rereading the accepted pin",async()=>{
+  await act(async()=>root.render(<StrictMode><SharedShellCompanyIntelligence sym="AAPL" onOpenTx={()=>{}}/></StrictMode>));
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(pending[0].signal.aborted).toBe(true);
+  expect(pending[1].signal.aborted).toBe(false);
+  await resolve(0);
+  expect(host.querySelector("[data-retained-company]")).toBeNull();
+  expect(window.location.search).not.toContain("ci_event=");
+  await resolve(1);
+  expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+  const pin=new URLSearchParams(window.location.search);
+  expect(pin.get("ci_event")).toBe(receipt.event_id);
+  expect(pin.get("ci_generation")).toBe(receipt.generation_id);
+  expect(pin.get("ci_company")).toBe(receipt.company_id);
+  expect(pin.get("ci_fingerprint")).toBe(receipt.fingerprint);
+  await act(async()=>{
+   const next=new URL(window.location.href);next.searchParams.set("ci_lens","sources");
+   window.history.replaceState({},"",next);window.dispatchEvent(new Event("mmx:shell-location"));
+  });
+  expect(edges.load).toHaveBeenCalledTimes(2);
+  expect(host.querySelector('[data-retained-company="AAPL"]')).not.toBeNull();
+ });
  it.each([
   ["en","owner_unavailable","Current event unavailable"],
   ["zh","owner_unavailable","当前事件不可用"],

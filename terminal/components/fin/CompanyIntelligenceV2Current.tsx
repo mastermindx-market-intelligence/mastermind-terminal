@@ -33,6 +33,7 @@ import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
 import { EVENT_WORKSPACE_ATTRIBUTION } from "../../lib/companyIntelligenceLabels";
 import CompanyTopicTimeline from "./CompanyTopicTimeline";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import headerStyles from "./CompanyIntelligenceHeader.module.css";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -681,8 +682,7 @@ export default function CompanyIntelligenceV2Current({
           <div className="ci-identity">
             <h2>{displayName}</h2>
           </div>
-          <div className="ci-hero-actions">
-            {headerActions}
+          <div className={`ci-hero-actions ${headerStyles.actions}`}>
             <label className="ci-event-select">
               <span>{pick(zh, "Event", "事件")}</span>
               <select
@@ -745,6 +745,7 @@ export default function CompanyIntelligenceV2Current({
               {pick(zh, "Sources", "来源")}
             </button>
             <button className="btn btn-primary" onClick={askBrain}>{pick(zh, "Ask Mastermind", "询问 Mastermind")}</button>
+            {headerActions && <div className={headerStyles.secondary}>{headerActions}</div>}
           </div>
         </div>
 

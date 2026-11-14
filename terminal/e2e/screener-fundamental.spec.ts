@@ -182,7 +182,18 @@ for (const lang of ["en", "zh"] as const) {
     await expect(link).toHaveAttribute("href", "/terminal?pane=statements&sym=SEPCO");
     await link.click();
     await expect(page).toHaveURL(/\/terminal\?pane=statements&sym=SEPCO/, { timeout: 30_000 });
-    await expect(page.locator(".fin-doc-per").filter({ hasText: "2025" }).first()).toBeVisible({ timeout: 60_000 });
+    const statement = page.locator("[data-financials-vnext]");
+    await expect(statement).toBeVisible({ timeout: 60_000 });
+    const snapshot = statement.locator(".fin-financials-snapshot-table");
+    await expect(snapshot.getByRole("columnheader", { name: "2025", exact: true })).toBeVisible();
+    const revenue = snapshot.getByRole("row").filter({
+      has: page.getByRole("button", { name: lang === "zh" ? "营业收入" : "Revenue", exact: true }),
+    });
+    const netIncome = snapshot.getByRole("row").filter({
+      has: page.getByRole("button", { name: lang === "zh" ? "净利润" : "Net income", exact: true }),
+    });
+    await expect(revenue.locator("td").last()).toHaveText("1.20K");
+    await expect(netIncome.locator("td").last()).toHaveText("180.00");
   });
 }
 

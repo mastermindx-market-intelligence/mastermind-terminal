@@ -126,9 +126,50 @@ for(const lang of ["en","zh"] as const) {
   await chooseAnalysisFamily(page,"earnings","earnings");
   const earnings=page.locator("[data-earnings-vnext]");
   await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText("130.00B");
+  await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText("2.95");
+  await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText("FY2025");
   await expect(earnings.locator("[data-earnings-vnext-pulse]")).toContainText(zh?"财务报表支持":"Statement-backed");
   await compactAnalysisChrome(page);
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-earnings-${lang}.png`)});
+ });
+
+ test(`Statistics uses the Beta canvas for current ratios and published history (${lang})`,async({page,baseURL},info)=>{
+  test.setTimeout(120_000);
+  await installAnalysisFixtures(page,baseURL!,lang);
+  const zh=lang==="zh";
+  for(const history of [false,true]) {
+   const fund=structuredClone(overviewFundFixture);
+   if(!history) fund.ratios={...fund.ratios,periods:[],pe:[],ps:[],pb:[],pcf:[],ev:[],ev_ebitda:[]};
+   let reads=0;
+   await page.route("**/NVDA.fund.json**",route=>{reads++;return route.fulfill({json:fund});});
+   await page.goto("/analysis?symbol=NVDA&page=statistics");
+   const statistics=page.locator(".fin-body:has(> .fin-stats-hdr)");
+   await expect(statistics.locator("[data-has-history]")).toHaveAttribute("data-has-history",String(history));
+   const valuation=statistics.locator('[data-statistics-group="valuation"] table');
+   const pe=valuation.getByRole("row").filter({has:page.getByRole("rowheader",{name:zh?"市盈率":"Price to earnings ratio",exact:true})});
+   await expect(pe.locator("td").last()).toHaveText("42.00");
+   await expect(valuation.getByRole("columnheader")).toHaveCount(history?7:2);
+   await expect(statistics.locator(".fin-stats-hdr button")).toHaveCount(0);
+   await expect(statistics.locator(".fin-bar")).toHaveCount(history?10:0);
+   await compactAnalysisChrome(page);
+   if(!history) {
+    await expect(pe.getByRole("rowheader")).toBeInViewport({ratio:1});
+    if(page.viewportSize()!.width>=1280) {
+     await expect(statistics.getByText(zh?"盈利比率":"Profitability ratios",{exact:true})).toBeInViewport({ratio:1});
+     await expect(statistics.getByText(zh?"关键指标":"Key stats",{exact:true})).toBeInViewport({ratio:1});
+    }
+   } else {
+    await expect(valuation).toContainText("FY2025");
+   }
+   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-statistics-${history?"history":"current"}-${lang}.png`)});
+   const readCount=reads;
+   expect(readCount).toBeGreaterThan(0);
+   const source=statistics.locator("[data-statistics-statement-source]");
+   await source.locator("summary").click();
+   await expect(source).toHaveAttribute("open","");
+   await expect(source).toContainText("USD");
+   expect(reads).toBe(readCount);
+  }
  });
 
  test(`company Intelligence leads with the brief and keeps source limits accessible in Beta (${lang})`,async({page,baseURL},info)=>{
@@ -138,6 +179,9 @@ for(const lang of ["en","zh"] as const) {
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const brief=page.locator("[data-ci-paper-brief]");
   await expect(brief).toBeVisible();
+  if(info.project.name==="mobile") {
+   expect((await page.locator(".ci-event-select select").boundingBox())!.width).toBeGreaterThanOrEqual(196);
+  }
   await compactAnalysisChrome(page);
   await expect(brief.locator(".ci-paper-brief-hero h3")).toContainText("Data-center demand remained broad");
   await expect(brief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ratio:0.5});
@@ -181,9 +225,12 @@ for(const lang of ["en","zh"] as const) {
   await chooseAnalysisFamily(page,"ownership","ownership");
   const positions=page.locator(".analysis-shell").getByRole("table").filter({hasText:"Alpha Capital"});
   await expect(positions).toBeVisible();
-  const positionValue=new Intl.NumberFormat(zh?"zh-CN":"en-US",{style:"currency",currency:"USD",notation:"compact",maximumFractionDigits:1}).format(12_000_000);
+  const positionValue=new Intl.NumberFormat(zh?"zh-CN":"en-US",{style:"currency",currency:"USD",notation:"compact",minimumFractionDigits:0,maximumFractionDigits:1}).format(12_000_000);
   await expect(positions.getByRole("row").filter({hasText:"Alpha Capital"})).toContainText(positionValue);
   await compactAnalysisChrome(page);
+  // The table may scroll horizontally; the manager identity must already be
+  // readable vertically before an action scrolls the research canvas.
+  await expect(positions.getByRole("row").filter({hasText:"Alpha Capital"}).locator("th,td").first()).toBeInViewport({ratio:0.9});
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-ownership-${lang}.png`)});
   await chooseAnalysisFamily(page,"lab","lab");
   const lab=page.getByTestId("lab-workspace");
@@ -216,8 +263,16 @@ for(const lang of ["en","zh"] as const) {
   expect(url.searchParams.get("ci_event")).toBe(fixture.receipt.event_id);
   expect(url.searchParams.get("ci_company")).toBe(fixture.receipt.company_id);
   expect(url.searchParams.get("ci_fingerprint")).toBe(fixture.receipt.fingerprint);
-  expect(requests).toEqual(["?symbol=AAPL"]);
+  // The existing dev server replays mount effects in StrictMode. Its canceled
+  // attempt may reach the route; the accepted receipt must not create another read.
+  expect(requests.length).toBeGreaterThanOrEqual(1);
+  expect(requests.length).toBeLessThanOrEqual(2);
+  expect(requests.every(query=>query==="?symbol=AAPL")).toBe(true);
+  const acceptedReads=requests.length;
   const brief=event.locator("[data-ci-paper-brief]");
+  if(info.project.name==="mobile") {
+   expect((await event.locator(".ci-event-select select").boundingBox())!.width).toBeGreaterThanOrEqual(196);
+  }
   await expect(brief).toContainText("$109.4B");
   await expect(brief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ratio:0.5});
   await expect(brief.locator(".ci-paper-metrics > button").first()).toBeInViewport({ratio:0.5});
@@ -225,10 +280,16 @@ for(const lang of ["en","zh"] as const) {
   expect(await page.locator(".fin-pane > .fin-body").evaluate(node=>node.scrollTop)).toBe(0);
   await analysisChartReturn(page,lang,"AAPL");
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-retained-brief-${lang}.png`)});
+  await event.locator("#ci-tab-sources").click();
+  await expect(event.locator("[data-ci-paper-sources]")).toHaveAttribute("data-ci-sources-event-id",fixture.receipt.event_id);
+  await expect(event.locator("[data-ci-paper-sources]")).toHaveAttribute("data-ci-sources-generation-id",fixture.receipt.generation_id);
+  expect(requests).toHaveLength(acceptedReads);
+  await event.locator("#ci-tab-brief").click();
   await brief.locator(".ci-paper-watch-list > button").filter({hasText:"Q4 revenue growth"}).click();
   const evidence=page.locator(".ci-evidence");
   await expect(evidence).toHaveAttribute("aria-hidden","false");
   await expect(evidence).toContainText("9%-11%");
+  expect(requests).toHaveLength(acceptedReads);
   await noOverflow(page);
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-retained-guidance-${lang}.png`)});
   if(info.project.name==="desktop" && lang==="en") {

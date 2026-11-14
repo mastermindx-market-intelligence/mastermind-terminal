@@ -7,7 +7,7 @@
 }
 .brief :global(.ci-paper-brief-hero[data-has-context="false"]) { grid-template-columns: 1fr; }
 .reading { display: grid; align-content: start; gap: 24px; min-width: 0; }
-.context { display: grid; align-content: start; gap: 16px; min-width: 0; }
+.context { display: grid; align-items: start; align-content: start; gap: 16px; min-width: 0; }
 .brief :global(.ci-paper-brief-copy) { align-content: start; gap: 14px; padding: 4px 0 0; }
 .brief :global(.ci-paper-brief-meta) { gap: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .brief :global(.ci-paper-brief-meta) > span { color: var(--text-2); letter-spacing: 0; font-weight: 500; }
@@ -80,6 +80,7 @@
   .brief :global(.ci-paper-brief-meta) { flex-wrap: wrap; }
   .brief .facts :global(.ci-paper-metrics) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 0; }
   .brief .facts :global(.ci-paper-metrics) > button:nth-child(odd) { padding-inline-start: 0; border-inline-start: 0; }
+  .brief .facts :global(.ci-paper-metrics) > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .brief .facts :global(.ci-paper-metrics) strong { font-size: 26px; }
   .context :global(.ci-paper-insight) > header,
   .brief :global(.ci-paper-watch) > header { padding: 16px; }

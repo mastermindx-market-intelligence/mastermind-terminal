@@ -11,13 +11,18 @@
 .fin-ownership-intro-meta time{color:var(--muted);font:520 9px/1 var(--font-num)}
 .fin-ownership-page>.ci-inst-card{margin:0}
 .fin-ownership-page>.ci-inst-card .ci-inst-header h3{font-size:14px}
+.fin-ownership-page>.ci-inst-card .ci-inst-header .ci-inst-kicker{display:none}
 @media (max-width:760px){
   .fin-ownership-page{gap:10px}
   .fin-ownership-intro{padding:4px 0 12px}
   .fin-ownership-intro h2{font-size:15px}
+  .fin-ownership-page>.ci-inst-card .ci-inst-rule{font-size:12px;line-height:1.5}
 }
 @media (max-width:520px){
   .fin-ownership-intro{grid-template-columns:1fr}
-  .fin-ownership-intro-meta{justify-items:start}
+  .fin-ownership-intro-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px}
+  .fin-ownership-intro-meta time{font-size:11px}
   .fin-ownership-intro>p{grid-column:auto}
+  .fin-ownership-page>.ci-inst-card .ci-inst-period{gap:4px}
+  .fin-ownership-page>.ci-inst-card .ci-inst-period>span{min-height:24px;padding:0}
 }

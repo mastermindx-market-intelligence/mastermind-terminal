@@ -465,7 +465,7 @@ test("leaving Analysis and returning without context shows no persisted strip", 
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 
-  await page.getByRole("button", { name: "Back to chart" }).click();
+  await page.locator(".fin-workspace-actions").getByRole("button", { name: "Chart", exact: true }).click();
   await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
   await page.goto("/analysis?symbol=NVDA");
   await expect(page.locator(".analysis-shell")).toBeVisible();

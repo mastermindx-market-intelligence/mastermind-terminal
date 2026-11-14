@@ -7,6 +7,7 @@
 // single one of its selectors. Imported by the two components that DO, so it rides their
 // chunk. Both import sites are required; dropping either leaves that surface unstyled.
 import "../../app/company-intelligence.css";
+import headerStyles from "./CompanyIntelligenceHeader.module.css";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
@@ -670,7 +671,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       <header className="ci-hero">
         <div className="ci-hero-main">
           <div className="ci-identity"><h2>{displayName}</h2></div>
-          <div className="ci-hero-actions">
+          <div className={`ci-hero-actions ${headerStyles.actions}`}>
             <label className="ci-event-select">
               <span>{pick(zh, "Event", "事件")}</span>
               <select
