@@ -3,6 +3,7 @@ import { chooseDiscoverOption, openDiscoverFilters } from "./discoverWorkspaceFi
 import { dataRows, prepare, routeManifest, secondDevice } from "./smartScreensFixture";
 import { DISCOVER_CURRENT_KEY, DEFAULT_DISCOVER_COLUMNS, discoverViewKey } from "../lib/discoverWorkspace";
 import { installDiscoverResearchWorld } from "./discoverResearchFixture";
+import technicalProducer from "../lib/__tests__/fixtures/screenerScan/technical.producer.json";
 
 // Account writes use the shipped route and fixture DB. Context B receives only
 // the account cookie, never A's localStorage or a mocked save acknowledgement.
@@ -86,7 +87,12 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator('thead [data-column="dv"]')).toHaveAttribute("aria-sort", "descending");
     if (!touch) {
       const grip = last.getByRole("button").first(); await grip.focus();
-      await page.keyboard.press("Space"); await page.keyboard.press("ArrowRight"); await page.keyboard.press("Space");
+      await page.keyboard.press("Space");
+      await expect(last).toHaveAttribute("data-dragging", "true");
+      await page.keyboard.press("ArrowRight");
+      const announcement = zh ? "最新将移至第4列。" : "Last will move to column 4 of 8.";
+      await expect(page.getByRole("status").filter({ hasText: announcement })).toHaveText(announcement);
+      await page.keyboard.press("Space");
       await expect.poll(() => columnOrder(page)).toEqual(DEFAULT_DISCOVER_COLUMNS);
     }
 
@@ -299,7 +305,19 @@ for (const lang of ["en", "zh"] as const) {
 
 test("saved filter screens cannot silently omit search or technical conditions", async ({ page, baseURL }, info) => {
   await prepare(page.context(), baseURL!, `discover-screen-complete-${info.project.name}-${Date.now()}-${info.retry}`, false);
-  await installDiscoverResearchWorld(page); await open(page, 5);
+  await installDiscoverResearchWorld(page);
+  // This case edits a technical predicate; other research journeys retain the
+  // fixture's deliberate unavailable source. Reuse the real producer observations.
+  const technical = structuredClone(technicalProducer);
+  const buy = technical.rows.find(row => row.sym === "NVDA");
+  const sell = technical.rows.find(row => row.sym === "AAPL");
+  expect(buy).toBeTruthy(); expect(sell).toBeTruthy();
+  technical.rows = ["AAA", "BBB", "CCC", "DDD", "EEE"].map((sym, index) => ({
+    ...structuredClone(index === 1 ? sell! : buy!), sym,
+  }));
+  technical.universe.count = technical.rows.length;
+  await page.route("**/data/scan/technical.json**", route => route.fulfill({ json: technical }));
+  await open(page, 5);
   const layout = await columnOrder(page);
   await openDiscoverFilters(page, true);
   const screens = page.locator("[data-smart-screens]");
@@ -309,12 +327,24 @@ test("saved filter screens cannot silently omit search or technical conditions",
   await screens.locator("[data-ss-save-button]").click();
   await expect(screens.locator("[data-ss-on-table]")).toHaveCount(1);
   await page.locator(".scr2-search").fill("$AAA"); await expect(dataRows(page)).toHaveCount(1);
-  await page.locator("[data-tech-toggle]").click();
-  await chooseDiscoverOption(page.locator("[data-tech-signal]"), "buyside");
+  // Search alone must not be silently omitted by a legacy filter screen.
   await expect(screens.locator("[data-ss-extra-conditions]")).toBeVisible();
   await expect(screens.locator("[data-ss-save-button]")).toBeDisabled();
   await expect(screens.locator("[data-ss-replace]")).toBeDisabled();
   await expect(screens.locator("[data-ss-on-table]")).toHaveCount(0);
+  await page.locator("[data-tech-toggle]").click();
+  await expect(page.locator("[data-tech-signal]")).toBeEnabled();
+  await chooseDiscoverOption(page.locator("[data-tech-tf]"), "3D");
+  await chooseDiscoverOption(page.locator("[data-tech-signal]"), "buyside");
+  await expect(dataRows(page)).toHaveCount(1);
+  // Clear search so refusal also proves the technical condition independently.
+  await page.locator(".scr2-search").fill("");
+  await expect(dataRows(page)).toHaveCount(4);
+  await expect(screens.locator("[data-ss-extra-conditions]")).toBeVisible();
+  await expect(screens.locator("[data-ss-save-button]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-replace]")).toBeDisabled();
+  await expect(screens.locator("[data-ss-on-table]")).toHaveCount(0);
+  await page.locator(".scr2-search").fill("$AAA"); await expect(dataRows(page)).toHaveCount(1);
   await screens.locator("[data-ss-open]").click();
   await expect(page.locator(".scr2-search")).toHaveValue("");
   await expect(dataRows(page)).toHaveCount(5);

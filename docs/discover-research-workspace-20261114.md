@@ -52,3 +52,17 @@ Additional review findings were repaired before source publication:
 - The panel reuses the parent's source-audited signal meanings. In particular, REBUY follows bearish momentum; it must not be rewritten as proof that a position was sold.
 
 Parent production/account acceptance and the user's existing authentication handoff remain on their original carriers. No new merge, deployment, data publication or live signed-in success is claimed here. Next proof: exact-head CI, real responsive captures and the account-view path, then the protected release and live route when eligible. A green source gate alone is not acceptance.
+
+## CI continuation — 14 November 2026
+
+The current Terminal-wide assignment resumes this original GitHub-native branch at exact head `a2eea2e5545a4cca5904ef22edf40809a5db23db`. Its canonical packet records source-complete work, stopped advisory agents and no unattended writer. Fresh PR/ref reads found no newer source head or published repair. Existing CI and the single native release request remain their original effects.
+
+Three exact test repairs follow the original job/trace evidence:
+
+1. The inherited column keyboard test dropped within 2.856 ms of ArrowRight, before the current destination announcement advanced. It now observes drag activation and the exact EN/ZH column-four announcement before Space drops, preserving the final exact order assertion.
+2. The cross-market browser test expected a mixed US population to be representable by the legacy USD-number grammar. The same source fixture contains nonmonetary listings; existing focused unit proof requires `floor_unknown_currency`. The browser now preserves the applied-floor assertion and verifies the lossless-save refusal and complete-view alternative. The prior successful GICS case and HKD refusal remain.
+3. The completeness test attempted an interactive technical choice in the research fixture's deliberate HTTP503 state. Only this case now receives the committed producer's observed BUY/SELL states mapped to its five research symbols, matching its manifest and fixed clock. It explicitly chooses produced 3D, checks readiness, and proves both search-only and technical-only legacy-save refusal before reopening the existing screen. Other research journeys keep their original unavailable fixture.
+
+No production behavior or safeguard changed. [The CI repair receipt](evidence/discover-research-ci-repair-20261114.json) preserves exact source preconditions, prior job/artifact references, candidate hashes, syntactic qualification and fixture mapping. TypeScript syntactic transpilation passes; full typecheck and rendered acceptance belong to the next normal hosted CI run on the successor. No local browser, localhost inspection or sign-in action was retried. Original 165 unit passes are retained historical evidence, not new test executions.
+
+The original auto-merge request and label remain. No additional release request, workflow rerun, source publisher or artificial ancestry refresh is introduced. Subsequent hosted proof, screenshot inspection, protected integration, deployment and the outstanding real account/data acceptance remain due.
