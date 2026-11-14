@@ -208,3 +208,23 @@ started. Preserve its separate GMI EPERM qualification hold. This session read
 only the existing PR/receipt; it did not retry, query the original target through
 a new carrier, adopt the prepared source or mutate that lane. Bounded P12
 diagnosis can continue; competing Options composition cannot.
+
+## Original-carrier stack repair
+
+P11 was published and read back as Ready PR1516, head
+`3bb22d3577eacb1b074ac047b3f95728208a833d`, tree
+`951abb2a6a6da88b334b6f50f9ad6007436e5735`, with all seven files verified.
+Subsequent original P9/P10 browser receipts reached Monitor and failed when its
+links retained China after the toolbar selected Canada. The P10 run stopped
+before Research or Portfolio. These are failed receipts, not downstream proof.
+
+This same P11 carrier now composes repaired P10
+`b80e58a2b254ed49eb9e573c1131cf09e13e18af`, tree
+`8bf8905ea89edfb581272a9623c2a693c7e1b2da`, as an additional parent.
+Its original P9 repair is `37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff`, tree
+`dc9f44afe91b85ac016de2ad7aea038fe7c70644`. The precise cause, artifact
+identities and regression evidence are in [P9](P9_MONITOR_EVIDENCE_DESK.md#committed-market-navigation-repair--14-november).
+The five affected P9 suites pass101 cases; the combined mounted Monitor/Research
+suite passes107. Portfolio product source and its accepted fixture contract are
+unchanged. Fresh binding hosted proof is still required; no CI replay, release
+enrollment or held-source adoption is implied by this composition.

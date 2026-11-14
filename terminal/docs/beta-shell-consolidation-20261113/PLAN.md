@@ -627,3 +627,31 @@ TREE_EFFECT_UNKNOWN_NO_REPLAY, expected4140c0b7f69b24d068023e5cc6bbc0ef6975fa85,
 with a separate GMI EPERM hold. No retry, target query through a replacement
 carrier, prepared-source adoption or competing Options rewrite was attempted.
 Keep that lane fenced while diagnosing the next path-disjoint consumer.
+
+## Monitor market-commit repair across the owned stack
+
+P11 is published/read back at Ready PR1516, original head
+`3bb22d3577eacb1b074ac047b3f95728208a833d`. The next finite artifact reads
+found the same genuine Monitor failure in P9 run43589237107/artifact14112546230
+and P10 run43589674862/artifact14111344676:12 completed cells, then expected
+Canada destination context but observed China. Neither report reaches Research
+or Portfolio. Exact candidate-tree, archive/report hashes and the source-bound
+cause are preserved in [P9](P9_MONITOR_EVIDENCE_DESK.md#committed-market-navigation-repair--14-november).
+
+Original P9 PR1512 is repaired at
+`37bf903cd7fbba20dc46b819dcbcc9a91a12d7ff`, tree
+`dc9f44afe91b85ac016de2ad7aea038fe7c70644`; original P10 PR1513 composes it
+at `b80e58a2b254ed49eb9e573c1131cf09e13e18af`, tree
+`8bf8905ea89edfb581272a9623c2a693c7e1b2da`. All changed contents, trees,
+parentage, branch heads and PR bodies were read back. The new regression fails
+on the preimage and passes with committed-layout URL reflection. It retains
+exact return encoding/hash, list/evidence identity and the two inventory reads.
+Affected P9 suites pass101 cases; combined Monitor/Research suites pass107.
+Full P9 TypeScript, scoped lint, syntax, nonempty-diff language and whitespace
+checks pass. The qualifier still requires all immutable pins and unchanged reads;
+it waits for real consumer destinations without a synthetic refresh or sleep.
+
+Compose that same repair through this P11 carrier, preserving the existing
+Portfolio source/read and fixture contracts. Continue P12's bounded IEX/Futures
+navigation work while new binding hosted results are pending. No protected
+release, production acceptance, Paper recovery or parent completion is claimed.

@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, createElement } from 'react';
+import { act, createContext, createElement, useContext, useInsertionEffect } from 'react';
 import type { ReactNode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
@@ -11,6 +11,19 @@ import MonitorWorkspace from '@/components/workspaces/MonitorWorkspace';
 import { monitorWatchlistsFixture, monitorAlertsFixture } from './fixtures/monitorDesk';
 
 type ShellIdentity = { kind: 'guest' } | { kind: 'account'; userId: string; email: string };
+
+const searchContext = createContext(new URLSearchParams());
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/monitor',
+  useSearchParams: () => useContext(searchContext),
+}));
+
+// Next publishes its route context during render, then HistoryUpdater commits
+// the address in an insertion effect. No browser/custom location event fires.
+function HistoryCommit({ href }: { href: string }) {
+  useInsertionEffect(() => { window.history.pushState({ __NA: true }, '', href); }, [href]);
+  return null;
+}
 
 const shellState = vi.hoisted(() => ({
   identity: { kind: 'guest' } as { kind: 'guest' } | { kind: 'account'; userId: string; email: string },
@@ -646,6 +659,38 @@ describe('MonitorWorkspace', () => {
     expect(links()).toContain('/alerts?workspaceMarket=ca'); expect(links()).toContain('/portfolio?workspaceMarket=ca');
     expectCurrentChart('AAPL'); expect(fetchControl.calls).toHaveLength(2);
     expect(text()).toContain('3 distinct symbols'); expect(shellState.attention.at(-1)?.market).toBe('ca');
+  });
+
+  it('reflects Next query commits after history changes without rereading owned evidence', async () => {
+    const initial = '/monitor?workspaceMarket=cn&list=core&pin=a%20b&pin=a+b#saved';
+    window.history.replaceState({}, '', initial);
+    shellState.identity = ACCOUNT_A; fetchControl.impl = okBoth();
+    const stableWorkspace = createElement(MonitorWorkspace);
+    workspaceRoot = createRoot(container);
+    const route = async (href: string) => {
+      const params = new URL(href, window.location.origin).searchParams;
+      await act(async () => {
+        workspaceRoot!.render(createElement(searchContext.Provider, {value: params},
+          createElement(HistoryCommit, {href}), stableWorkspace));
+      });
+    };
+    await route(initial); await settle();
+    container.querySelector('details')!.open = true;
+    await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]')!.click(); });
+    const ownedList = container.querySelector('details');
+    const accepted = shellState.attention.at(-1)!;
+    const attentionNode = container.querySelector('[data-attention-test="AAPL"]');
+    expect(links()).toContain('/analysis?symbol=AAPL&page=overview&workspaceMarket=cn');
+    expectCurrentChart('AAPL'); expect(fetchControl.calls).toHaveLength(2);
+    const next = '/monitor?workspaceMarket=ca&list=core&pin=a%20b&pin=a+b#saved';
+    await route(next);
+    for (const symbol of ['AAPL','MSFT','NVDA']) expect(links()).toContain('/analysis?symbol='+symbol+'&page=overview&workspaceMarket=ca');
+    expect(links()).toContain('/alerts?workspaceMarket=ca'); expect(links()).toContain('/portfolio?workspaceMarket=ca');
+    expectCurrentChart('AAPL', new URL(next, window.location.origin).href);
+    expect(container.querySelector('details')).toBe(ownedList); expect(ownedList!.open).toBe(true);
+    expect(container.querySelector('[data-attention-test="AAPL"]')).toBe(attentionNode);
+    expect(shellState.attention.at(-1)).toMatchObject({selection: accepted.selection, refreshKey: accepted.refreshKey, market:'ca'});
+    expect(fetchControl.calls).toHaveLength(2); expect(text()).toContain('3 distinct symbols');
   });
 
   it('does not describe unavailable alerts as a zero count or a current saved-state reading', async () => {
