@@ -8,6 +8,7 @@ import { decodeCatalystView } from "../catalystOpportunity";
 const session = vi.hoisted(()=>({identity:{id:"test-account-a"}}));
 vi.mock("@/components/chrome/AppShell",()=>({useShellIdentity:()=>session.identity}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
+vi.mock("next/navigation",()=>({useSearchParams:()=>new URLSearchParams(window.location.search)}));
 import { CatalystOpportunityView, type CatalystOpportunityViewProps } from "@/components/catalyst-opportunity/CatalystOpportunityView";
 import CatalystOpportunityWorkspace from "@/components/catalyst-opportunity/CatalystOpportunityWorkspace";
 
@@ -67,7 +68,7 @@ describe("Catalyst investor workflow",()=>{
     const value=host.querySelector("article strong");expect(value?.textContent).toBe("Not available");expect(value?.hasAttribute("data-sign")).toBe(false);
   });
   it("supports the Chinese workflow",()=>{
-    render({lang:"zh"});expect(host.querySelector("h1")?.textContent).toBe("当下值得关注");expect(host.textContent).toContain("能源综合体");expect(host.textContent).toContain("个百分点");
+    render({lang:"zh"});expect(host.querySelector("h1")?.textContent).toBe("催化剂情报");expect(host.textContent).toContain("能源综合体");expect(host.textContent).toContain("个百分点");
   });
   it("renders untrusted names as text, never markup",()=>{
     const view=data();view.cases[0].name="<img src=x onerror=alert(1)>";render({view});
@@ -102,6 +103,55 @@ describe("Catalyst investor workflow",()=>{
     expect(host.textContent).not.toContain("INTERNAL_CAUTION_IDENTIFIER");
     expect(host.textContent).not.toContain(lang==="zh"?"Review today's price":"请核查今日价格");
   });
+  it.each(["en","zh"] as const)("keeps all three missing assessments visible with one source explanation in %s",lang=>{
+    render({lang});
+    const evidence=host.querySelector("[data-catalyst-assessments]")!;
+    expect(evidence.closest("details")).toBeNull();
+    expect(evidence.querySelectorAll('[data-assessment-state="unavailable"]')).toHaveLength(3);
+    const selected=currentView.cases[0];
+    for(const key of ["event","economics","entry"] as const) {
+      expect(evidence.textContent).toContain(lang==="zh"?selected[key].summary_zh:selected[key].summary);
+    }
+    const explanation=lang==="zh"?selected.summary_zh:selected.summary;
+    expect(host.textContent!.split(explanation)).toHaveLength(2);
+    expect(host.querySelector("article")?.textContent).not.toContain(explanation);
+    expect(host.querySelector("[data-catalyst-source-summary]")?.textContent).toContain(lang==="zh"?"2 项初步关注":"2 provisional watches");
+  });
+  it("continues only through source-admitted case actions and the canonical market route",()=>{
+    window.history.replaceState(null,"","/discover?tab=catalysts&workspaceMarket=us&origin=retained#source");
+    render();
+    const links=()=>Array.from(host.querySelectorAll<HTMLAnchorElement>("[data-catalyst-continuations] a"));
+    expect(links().map(a=>a.getAttribute("href"))).toEqual(["/sectors?workspaceMarket=us"]);
+    inspect("Defense & Aerospace");
+    expect(links().map(a=>a.getAttribute("href"))).toEqual(["/sectors?workspaceMarket=us","https://www.mastermind-x.com/government_revenue.html"]);
+    expect(links()[1].getAttribute("rel")).toBe("noopener noreferrer");
+    expect(links()[0].search).not.toContain("case");expect(links()[0].search).not.toContain("defense");
+    const next=data();next.cases[1].links=next.cases[1].links.slice(0,1);render({view:next});
+    expect(links().map(a=>a.getAttribute("href"))).toEqual(["/sectors?workspaceMarket=us"]);
+    next.cases[1].links=[];render({view:{...next}});expect(links()).toHaveLength(0);
+    expect(host.textContent).toContain("Copy case link");
+  });
+  it.each(["en","zh"] as const)("returns to the selected visible watch without changing case, filters or reads in %s",lang=>{
+    const reads=vi.fn();vi.stubGlobal("fetch",reads);
+    window.history.replaceState(null,"","/discover?tab=catalysts&origin=retained#source");
+    render({lang});inspect(lang==="zh"?"国防与航空航天":"Defense & Aerospace",lang==="zh"?"查看证据":"Inspect evidence");
+    const before=window.location.href;
+    const control=host.querySelector<HTMLButtonElement>('[data-catalyst-watch-choice="defense"]')!;
+    const back=[...host.querySelectorAll("button")].find(b=>b.textContent?.includes(lang==="zh"?"返回关注列表":"Back to watches"))!;
+    act(()=>back.click());expect(document.activeElement).toBe(control);
+    expect(window.location.href).toBe(before);expect(host.querySelectorAll("article")).toHaveLength(2);
+    expect(reads).not.toHaveBeenCalled();
+  });
+  it("returns to the list heading when the original watch is filtered out or belongs to a replaced read",()=>{
+    render();inspect("Defense & Aerospace");click("Energy");
+    const before=window.location.href;
+    const back=()=>[...host.querySelectorAll("button")].find(b=>b.textContent?.includes("Back to watches"))!;
+    act(()=>back().click());expect(document.activeElement?.id).toBe("catalyst-watches-title");
+    expect(host.querySelectorAll("article")).toHaveLength(1);expect(window.location.href).toBe(before);
+    click("All themes");inspect("Defense & Aerospace");render({view:data(),readContext:{}});
+    act(()=>back().click());expect(document.activeElement?.id).toBe("catalyst-watches-title");
+    expect(host.querySelector("#catalyst-detail-title")?.textContent).toBe("Defense & Aerospace");
+  });
   it("never replaces a lack of watch with a lack of coverage",()=>{
     const view=data();view.cases=view.cases.filter(c=>c.theme_id!=="defense");view.coverage.watch_count=1;view.inventory.find(t=>t.theme_id==="defense")!.watch=false;
     render({view});click("Defense");expect(host.textContent).toContain("Defense is covered in this snapshot");expect(host.textContent).toContain("Inspect coverage and theme states (3)");
@@ -127,8 +177,8 @@ function search(value:string) {
 function historyCase(id:string) {
   act(()=>{window.history.replaceState(null,"","/discover?tab=catalysts&case="+id);window.dispatchEvent(new PopStateEvent("popstate"));});
 }
-function inspect(name:string) {
-  const button=host.querySelector<HTMLButtonElement>('[aria-label="Inspect evidence: '+name+'"]')!;
+function inspect(name:string, prefix="Inspect evidence") {
+  const button=host.querySelector<HTMLButtonElement>('[aria-label="'+prefix+': '+name+'"]')!;
   expect(button).not.toBeNull();act(()=>button.click());
 }
 
