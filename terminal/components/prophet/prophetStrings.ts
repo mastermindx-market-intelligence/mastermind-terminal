@@ -661,6 +661,8 @@ const PROPHET_LEX = {
   // HONESTY: the board is descriptive market-to-sector context. Nulls use the
   // sector lane's shared not-stated vocabulary; nothing recommends a trade.
   tabToday:          ["Today", "今日"],
+  tabCandidates:     ["Candidates", "候选"],
+  openCandidateWorkspace: ["Open the complete candidate workspace in Prophet", "在 Prophet 工作台查看全部候选"],
   tabScreener:       ["Screener", "筛选"],
   lanePlans:         ["Plans", "计划"],
   // Lane navigation: three primary lanes ride one row at every width; at

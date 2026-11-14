@@ -15,7 +15,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isDocId, isSha256Hex, isUuid } from './readingContracts';
 
-export type ReadingResource = 'catalog' | 'search' | 'read' | 'today';
+export type ReadingResource = 'catalog' | 'search' | 'read' | 'today' | 'prophetCandidates';
 
 const DEFAULT_BASE = 'https://www.mastermind-x.com';
 
@@ -33,6 +33,7 @@ const RESOURCE_PATH: Record<ReadingResource, string> = {
   search: '/api/research/search',
   read: '/api/research/read',
   today: '/api/macro/command',
+  prophetCandidates: '/api/prophet/candidates/v1',
 };
 
 /** Applied to every response, including every error path. */
@@ -101,7 +102,7 @@ function validateQuery(resource: ReadingResource, incoming: URLSearchParams): UR
     if ([...incoming.keys()].length !== 1 || incoming.getAll('workspace').length !== 1 || incoming.get('workspace') !== 'liquidity_regime') return null;
     return new URLSearchParams({ workspace: 'liquidity_regime' });
   }
-  if (resource === 'catalog') {
+  if (resource === 'catalog' || resource === 'prophetCandidates') {
     return incoming.keys().next().done ? new URLSearchParams() : null;
   }
   const allowed = resource === 'search' ? SEARCH_PARAMS : READ_PARAMS;

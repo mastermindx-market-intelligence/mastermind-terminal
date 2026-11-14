@@ -18,7 +18,8 @@ require.extensions['.ts'] = (module, filename) => {
   const generationFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorNativeGeneration.ts');
   const historyFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorCycleHistory.ts');
   const liquidityFixture = path.join(ROOT,'lib/__tests__/fixtures/macroLiquidity.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture) throw Error('fixture loader scope');
+  const candidateFixture = path.join(ROOT,'lib/__tests__/fixtures/prophetCandidatePool.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
@@ -26,6 +27,7 @@ const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
 const sectorGeneration = require('../../lib/__tests__/fixtures/sector_generation.captured.preview.v1.json');
 const {syntheticCycleHistory:cycleHistory,syntheticCycleHistorySha:cycleHistorySha} = require('../../lib/__tests__/fixtures/sectorCycleHistory.ts');
 const {liquidityFixture} = require('../../lib/__tests__/fixtures/macroLiquidity.ts');
+const {candidatePoolFixture} = require('../../lib/__tests__/fixtures/prophetCandidatePool.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -57,6 +59,15 @@ report.sourceFiles=Object.fromEntries([
  'lib/shared-shell/macroWorkspacePayload.ts',
  'lib/__tests__/fixtures/macroLiquidity.ts',
  'components/intelligence/IntelligenceToolWorkspace.tsx',
+ 'components/prophet/ProphetLanesView.tsx',
+ 'components/prophet/useProphetUrlState.ts',
+ 'components/prophet/today/today.module.css',
+ 'components/prophet/candidates/ProphetCandidateView.tsx',
+ 'components/prophet/candidates/candidates.module.css',
+ 'components/prophet/candidates/candidateDecision.ts',
+ 'lib/prophetCandidatePool.ts', 'lib/prophetUrlState.ts',
+ 'lib/shared-shell/useReadingScope.ts', 'lib/shared-shell/readingProxy.ts',
+ 'lib/__tests__/fixtures/prophetCandidatePool.ts',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
  'components/sector-intelligence/SectorCycleHistory.tsx',
  'components/sector-intelligence/SectorCycleLens.tsx',
@@ -375,6 +386,124 @@ async function qualifyLiquidity(page,cell) {
   report.cells.push({w:page.viewportSize().width,journey:'native-liquidity',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_DATA',fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(liquidityFixture())).digest('hex'),selectedReads,passed:true});
 }
 
+async function qualifyCandidates(page,cell) {
+  let candidateRead=candidatePoolFixture(),status=200,candidateReads=0;
+  const sectorQueries=[];
+  await page.route('**/api/shared-shell/prophet-candidates',route=>{candidateReads++;return route.fulfill({status,json:candidateRead});});
+  await page.route('**/api/prophet/sector-members*',route=>{sectorQueries.push(new URL(route.request().url()).searchParams.get('q'));return route.continue();});
+  await page.goto(BASE+'/prophet?tab=candidates&workspaceMarket=us');
+  const view=page.getByTestId('prophet-candidates');
+  const presentation=async(lang,theme)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(theme==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  };
+  const inspect=symbol=>view.getByRole('link',{name:'Inspect '+symbol,exact:true});
+  const search=async text=>{await view.getByLabel('Find ticker, company or sector',{exact:true}).fill(text);await view.getByRole('button',{name:'Search',exact:true}).click();};
+  const refresh=async()=>{await view.getByRole('button',{name:'Refresh',exact:true}).click();};
+  const capture=async name=>{await noOverflow(page);expect(await view.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-'+name+'.png')});};
+  const back=()=>view.getByRole('link',{name:/^← All candidates/}).first();
+  await expect(view).toHaveAttribute('data-read-state','ready',{timeout:30000});
+  await presentation('en',page.viewportSize().width===820?'dark':'light');
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.getByRole('heading',{level:1,name:'Prophet',exact:true})).toBeVisible();
+  await expect(page.locator('main:visible')).toHaveCount(1);await expect(view.locator('iframe')).toHaveCount(0);
+  await expect(view.locator('[data-candidate]')).toHaveCount(4);
+  await expect(view.locator('li:has(a[data-candidate="DEMOB"])')).toContainText('0.0');
+  await expect(view.locator('li:has(a[data-candidate="DEMOC"])')).toContainText('Not scored');
+  const candidatesTab=page.getByTestId('prophet-tab-candidates');
+  await expect(candidatesTab).toHaveAttribute('aria-selected','true');await expect(candidatesTab).toHaveAttribute('tabindex','0');
+  await expect(candidatesTab).toHaveAttribute('aria-controls','prophet-panel-candidates');
+  await capture('list-en');
+
+  if(page.viewportSize().width===320){
+    for(const id of ['today','candidates','screener','plans']){
+      const box=await page.getByTestId('prophet-tab-'+id).boundingBox();expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    await candidatesTab.focus();await page.keyboard.press('ArrowRight');
+    await expect(page.getByTestId('prophet-tab-screener')).toBeFocused();
+    await page.keyboard.press('ArrowLeft');await expect(candidatesTab).toBeFocused();
+    await expect(view).toHaveAttribute('data-read-state','ready');
+    const more=page.getByTestId('prophet-lane-more');
+    await more.click();await page.getByTestId('prophet-tab-options').focus();await page.keyboard.press('Escape');
+    await expect(more).toBeFocused();await expect(more).toHaveAttribute('aria-expanded','false');
+    await more.click();await page.getByTestId('prophet-tab-options').click();
+    await expect(more).toBeFocused();await expect(more).toHaveText('More');await noOverflow(page);
+    await candidatesTab.click();await expect(view).toHaveAttribute('data-read-state','ready');
+  }
+
+  const beforeSearch=candidateReads;
+  await view.getByLabel('Find ticker, company or sector',{exact:true}).fill('Technology');
+  expect(new URL(page.url()).searchParams.has('prophetQ')).toBe(false);await expect(view.locator('[data-candidate]')).toHaveCount(4);
+  await view.getByRole('button',{name:'Search',exact:true}).click();
+  await expect(view.locator('[data-candidate]')).toHaveCount(2);expect(new URL(page.url()).searchParams.get('prophetQ')).toBe('Technology');
+  await inspect('DEMOC').scrollIntoViewIfNeeded();await inspect('DEMOC').focus();
+  const listScroll=await view.evaluate(el=>el.scrollTop);
+  await page.keyboard.press('Enter');await expect(view.getByRole('heading',{level:2,name:'Cedar Networks',exact:true})).toBeFocused();
+  await expect(view).toContainText('Screen position');await expect(view).toContainText('Not scored');
+  await expect(view.getByRole('link',{name:'Open company intelligence',exact:true})).toHaveAttribute('href','/analysis?symbol=DEMOC&page=overview');
+  await expect(view.getByRole('link',{name:'Browse model plans',exact:true})).toHaveAttribute('href',/tab=plans/);
+  await expect(view.getByRole('link',{name:'Full Prophet workspace',exact:true})).toHaveAttribute('href','/us_stocks.html');
+  await capture('detail-en');
+  await back().click();await expect(inspect('DEMOC')).toBeFocused();
+  expect(Math.abs((await view.evaluate(el=>el.scrollTop))-listScroll)).toBeLessThanOrEqual(1);
+  await page.keyboard.press('Enter');await expect(page).toHaveURL(/symbol=DEMOC/);
+  await page.goBack();await expect(inspect('DEMOC')).toBeFocused();await page.goForward();
+  await expect(view.getByRole('heading',{level:2,name:'Cedar Networks',exact:true})).toBeVisible();
+  expect(candidateReads).toBe(beforeSearch);
+  const detailHref=page.url();await page.reload();await expect(page).toHaveURL(detailHref);
+  await expect(view.getByRole('heading',{level:2,name:'Cedar Networks',exact:true})).toBeVisible();
+  await view.getByRole('button',{name:'Sources & method',exact:true}).click();
+  await expect(view.locator('summary')).toBeFocused();await expect(view.locator('details')).toHaveAttribute('open','');await noOverflow(page);
+  await expect(view.locator('details')).toContainText(candidateRead.source.sha256);
+
+  const beforeMarket=candidateReads;
+  await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('cn');
+  await expect(page.getByRole('heading',{name:'This workspace is not available for this market yet',exact:true})).toBeVisible();
+  await expect(view).toHaveCount(0);expect(candidateReads).toBe(beforeMarket);
+  expect(new URL(page.url()).searchParams.get('tab')).toBe('candidates');expect(new URL(page.url()).searchParams.has('symbol')).toBe(false);
+  await noOverflow(page);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-market-coverage.png')});
+  await page.getByRole('link',{name:'View US workspace →',exact:true}).click();
+  await expect(view).toHaveAttribute('data-read-state','ready');await expect(candidatesTab).toHaveAttribute('aria-selected','true');
+  await search('Zephyr');await expect(view).toContainText('No candidates match this search');await expect(view).toContainText('0 / 4');await capture('no-matches-en');
+  await view.getByRole('button',{name:'Clear search',exact:true}).first().click();await expect(view.locator('[data-candidate]')).toHaveCount(4);
+
+  await presentation('zh','dark');
+  await expect(view.getByRole('heading',{level:2,name:'全部候选股票',exact:true})).toBeVisible();
+  await view.getByLabel('查找代码、公司或板块',{exact:true}).fill('晨光');await view.getByRole('button',{name:'搜索',exact:true}).click();
+  await expect(view.locator('[data-candidate]')).toHaveCount(1);await expect(view).toContainText('Dawn Materials 晨光材料');
+  const chineseHref=page.url();await page.reload();await expect(page).toHaveURL(chineseHref);await expect(view.locator('[data-candidate]')).toHaveCount(1);
+  // The fixture account reloads its existing EN metadata. The Unicode URL
+  // survives independently; request the Chinese presentation again explicitly.
+  await presentation('zh','dark');
+  await capture('list-dark-zh');
+  await page.getByTestId('prophet-tab-screener').click();expect(new URL(page.url()).searchParams.has('prophetQ')).toBe(false);
+  await page.goBack();await expect(view.locator('[data-candidate]')).toHaveCount(1);expect(new URL(page.url()).searchParams.get('prophetQ')).toBe('晨光');
+  expect(sectorQueries.some(value=>value&&value.includes('晨光'))).toBe(false);
+  await presentation('en','light');
+  await view.getByRole('button',{name:'Clear search',exact:true}).first().click();await expect(view.locator('[data-candidate]')).toHaveCount(4);
+
+  // State variants are deliberately mutated synthetic contracts, not a claim
+  // that these values or hashes represent another real published generation.
+  candidateRead=candidatePoolFixture();candidateRead.projection.status='empty';candidateRead.projection.rows=[];
+  for(const key of Object.keys(candidateRead.projection.counts))candidateRead.projection.counts[key]=0;
+  await refresh();await expect(view).toHaveAttribute('data-source-status','empty');await expect(view).toContainText('No eligible candidates in this publication');await capture('verified-empty-en');
+  candidateRead=candidatePoolFixture();candidateRead.projection.status='unavailable';candidateRead.projection.reason='candidate_pool_absent';candidateRead.projection.rows=[];candidateRead.projection.as_of=null;candidateRead.projection.source_digest=null;
+  for(const key of Object.keys(candidateRead.projection.counts))candidateRead.projection.counts[key]=null;
+  status=503;await refresh();await expect(view).toHaveAttribute('data-read-state','unavailable');await expect(view).toContainText('Date unavailable');await expect(view).toContainText('Candidate count unavailable');await expect(view.locator('[data-candidate]')).toHaveCount(0);await capture('unavailable-en');
+  candidateRead=candidatePoolFixture();candidateRead.projection.as_of=null;status=200;
+  await refresh();await expect(view).toHaveAttribute('data-read-state','unavailable');await expect(view.locator('details')).toHaveCount(0);
+  candidateRead=candidatePoolFixture();await refresh();await expect(view.locator('[data-candidate]')).toHaveCount(4);
+  status=403;await refresh();await expect(view).toHaveAttribute('data-read-state','access');await expect(view).not.toContainText('Aster Instruments');await expect(view.locator('details')).toHaveCount(0);await expect(view.getByRole('button',{name:'Back to Prophet Today',exact:true})).toBeVisible();await capture('access-en');
+  status=200;await refresh();await expect(view.locator('[data-candidate]')).toHaveCount(4);
+  await search('Technology');await inspect('DEMOC').click();await expect(view.getByRole('heading',{name:'Cedar Networks',exact:true})).toBeVisible();
+  candidateRead.projection.rows=candidateRead.projection.rows.filter(row=>row.ticker!=='DEMOC');candidateRead.projection.counts={eligible:3,in_buy_lane:2,off_buy_lane:1,scored:2,unscored:1};
+  await refresh();await expect(view).toContainText('DEMOC is not in this publication');await expect(view).not.toContainText('Cedar Networks');
+  await back().click();await expect(view.getByRole('heading',{level:2,name:'All eligible candidates',exact:true})).toBeFocused();await expect(view.locator('[data-candidate]')).toHaveCount(1);
+  report.cells.push({w:page.viewportSize().width,journey:'native-prophet-candidates',sourceProof:'ORIGINAL_SYNTHETIC_PRESENTATION_NOT_MARKET_DATA',fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(candidatePoolFixture())).digest('hex'),candidateReads,sectorQueries,passed:true});
+}
+
 (async()=>{
  try{
   const authBase=await startFixture();
@@ -420,10 +549,10 @@ async function qualifyLiquidity(page,cell) {
   await expect(page.locator('[data-intelligence-nav="context"] a[href="/us_stocks.html"]')).toHaveText('Prophet');
   await expect(page.locator('[data-intelligence-source="prophet"] a[href="/us_stocks.html"]')).toContainText('Open opportunity workspace');
   report.prophetWorkspaceHref='/us_stocks.html'; // href proof only; joined Macro document needs its separate real-source journey.
-  await page.locator('[data-intelligence-source="prophet"] a[href="/prophet"]').click();await expect(page).toHaveURL(BASE+'/prophet');await expect(page.getByRole('heading',{name:'Model plans & options',exact:true})).toBeVisible();
+  await page.locator('[data-intelligence-source="prophet"] a[href="/prophet"]').click();await expect(page).toHaveURL(BASE+'/prophet');await expect(page.getByRole('heading',{level:1,name:'Prophet',exact:true})).toBeVisible();
   // /prophet opens on the Today lane; the plans grid lives in the Plans lane, which the reader selects (URL gains tab=plans).
   await page.getByTestId('prophet-tab-plans').click();await expect(page).toHaveURL(BASE+'/prophet?tab=plans');await expect(page.locator('.obs-prophet-grid')).toBeVisible({timeout:45000});await expect(page.getByText('UBER',{exact:true}).first()).toBeVisible();
-  await expect(page.getByRole('link',{name:'Open Prophet workspace →',exact:true})).toHaveAttribute('href','/us_stocks.html');
+  await expect(page.getByRole('link',{name:'Full workspace ↗',exact:true})).toHaveAttribute('href','/us_stocks.html');
   await page.screenshot({path:path.join(OUT,'prophet-native-desktop.png')});await page.goBack();await expect(page).toHaveURL(BASE+'/prophet');await page.goBack();await expect(page).toHaveURL(BASE+'/intelligence');
   await page.locator('[data-intelligence-nav="context"]').getByRole('link',{name:'Sector Intelligence',exact:true}).click();await expect(page.locator('[data-testid="sector-intelligence"]')).toBeVisible({timeout:45000});
   await page.goto(BASE+'/sectors?sector=xlk&group=semiconductors&sectorTheme=light');
@@ -474,6 +603,9 @@ async function qualifyLiquidity(page,cell) {
    const liquidityContext=await context(),liquidityPage=await liquidityContext.newPage();
    await liquidityPage.setViewportSize({width,height});liquidityPage.on('pageerror',error=>report.errors.push({cell:`liquidity-${width}`,error:error.message}));
    await qualifyLiquidity(liquidityPage,`liquidity-${width}`);await liquidityContext.close();
+   const candidateContext=await context(),candidatePage=await candidateContext.newPage();
+   await candidatePage.setViewportSize({width,height});candidatePage.on('pageerror',error=>report.errors.push({cell:`candidates-${width}`,error:error.message}));
+   await qualifyCandidates(candidatePage,`candidates-${width}`);await candidateContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

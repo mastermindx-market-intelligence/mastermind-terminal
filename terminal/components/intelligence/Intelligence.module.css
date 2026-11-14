@@ -53,3 +53,10 @@
 @media(max-width:680px) { .root { padding:20px 14px; } .grid { grid-template-columns:minmax(0,1fr); gap:14px; } .card { padding:18px; } .context .links { gap:2px; } .context .links a { font-size:11px; gap:6px; } .workspaceHeader { padding:14px 12px 0; } .workspaceHeader h1 { font-size:22px; } .entry { align-items:flex-start; } }
 
 .action[aria-disabled="true"] { opacity:.6; cursor:wait; }
+.prophetHeader { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.prophetHeader h1 { margin-bottom:5px; letter-spacing:-.025em; }
+.prophetHeader p { margin:0; color:var(--text-2); font-size:13px; line-height:1.6; }
+.prophetFullLink { display:inline-flex; flex:none; align-items:center; min-height:44px; color:var(--text-2); font-size:12px; text-decoration:none; }
+.prophetFullLink:hover { color:var(--text); }
+.prophetFullLink:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }
+@media(max-width:640px) { .prophetHeader { padding:18px 16px 0; } .prophetHeader p { max-width:24ch; font-size:12px; } }

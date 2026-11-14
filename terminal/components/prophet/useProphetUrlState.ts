@@ -24,7 +24,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  DEFAULT_PROPHET_STATE, parseProphetState, prophetMountForPathname, writeProphetState,
+  DEFAULT_PROPHET_STATE, parseProphetState, prophetMountForPathname, prophetQuery, writeProphetState,
   type ProphetUrlState,
 } from "@/lib/prophetUrlState";
 
@@ -57,6 +57,9 @@ export function useProphetUrlState(): {
 
   const update = useCallback((patch: Partial<ProphetUrlState>) => {
     const next = { ...ref.current, ...patch };
+    // The local candidate search admits both languages. A lane departure must
+    // not send that wider grammar to the incumbent Sector API before a reload.
+    next.q = prophetQuery(next.q, next.lane);
     adopt(next);
     const url = new URL(window.location.href);
     // writeProphetState mutates `url` — capture the pre-write address first,

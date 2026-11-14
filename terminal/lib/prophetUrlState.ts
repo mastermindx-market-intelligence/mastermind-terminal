@@ -9,7 +9,7 @@
  * Canonical `/prophet` — the Lane A contract (2026-11-12), fixed so the
  * Today / Sector / Company lanes could build in parallel:
  *   `tab`     the primary navigation: `today` (default) | `screener` |
- *             `plans` | `options` | `issue` | `sector`
+ *             `candidates` | `plans` | `options` | `issue` | `sector`
  *   `sector`  the selected group id (sector journey / Today focus)
  *   `symbol`  the selected company symbol
  *   `sel`     REPEATABLE: the board's ordered compare-selection symbols
@@ -59,8 +59,16 @@ export const PROPHET_TAB_KEYS = ["tab", "sector", "symbol", "sel"] as const;
 /** Primary navigation. `sector` is the sector journey lane (reached from
  * Today's research links and the Screener tab as well as directly); the
  * retired `macro` value parses as `plans`. */
-export type ProphetLane = "today" | "screener" | "plans" | "options" | "issue" | "sector";
-export const PROPHET_LANES: readonly ProphetLane[] = ["today", "screener", "plans", "options", "issue", "sector"];
+export type ProphetLane = "today" | "candidates" | "screener" | "plans" | "options" | "issue" | "sector";
+export const PROPHET_LANES: readonly ProphetLane[] = ["today", "candidates", "screener", "plans", "options", "issue", "sector"];
+/** Candidates search is local display filtering, not the Sector API query.
+ * Both languages survive URL round-trips; no new query key or server grammar.
+ */
+// True end-of-input: JavaScript's $ alone also accepts a final newline.
+export const PROPHET_CANDIDATE_QUERY = /^[^\u0000-\u001f\u007f-\u009f]{1,64}(?![\s\S])/u;
+export function prophetQuery(raw: string, lane: ProphetLane): string {
+  return raw !== "" && (lane === "candidates" ? PROPHET_CANDIDATE_QUERY : SECTOR_MEMBERS_QUERY).test(raw) ? raw : "";
+}
 /** Links minted before the Today board (≤ 2026-11-12) name the plans desk `macro`. */
 const LEGACY_LANE_ALIASES: Readonly<Record<string, ProphetLane>> = { macro: "plans" };
 
@@ -247,7 +255,7 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
     group: admittedGroup,
     symbol: admittedSymbol,
     plan: plan !== null && PLAN_ID.test(plan) ? plan : null,
-    q: q !== "" && SECTOR_MEMBERS_QUERY.test(q) ? q : "",
+    q: prophetQuery(q, lane),
     state: state !== null && (PROPHET_MEMBER_STATES as readonly string[]).includes(state) ? state as ProphetMemberState : null,
     offset: offset !== null && /^\d{1,7}$/.test(offset) && Number(offset) <= 1_000_000 ? Number(offset) : 0,
     from: params.getAll(PROPHET_FROM_PARAM).length > 1 ? null : parseProphetFrom(params.get(PROPHET_FROM_PARAM)),
