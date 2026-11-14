@@ -56,10 +56,11 @@ function css(n: string): string {
 
 function fmtPrem(n: number): string {
   const a = Math.abs(n);
-  if (a >= 1e9) return `$${(a / 1e9).toFixed(1)}B`;
-  if (a >= 1e6) return `$${(a / 1e6).toFixed(1)}M`;
-  if (a >= 1e3) return `$${(a / 1e3).toFixed(0)}K`;
-  return `$${a.toFixed(0)}`;
+  const amount = a >= 1e9 ? `${(a / 1e9).toFixed(1)}B`
+    : a >= 1e6 ? `${(a / 1e6).toFixed(1)}M`
+    : a >= 1e3 ? `${(a / 1e3).toFixed(0)}K` : a.toFixed(0);
+  // Preserve signed premium, while values that round to zero remain plain $0.
+  return `${n < 0 && amount !== "0" ? "−" : ""}$${amount}`;
 }
 
 export const SessionFlowPane = memo(function SessionFlowPane({
@@ -206,8 +207,10 @@ export const SessionFlowPane = memo(function SessionFlowPane({
       callRef.current = null;
       putRef.current = null;
     };
+    // Archive withdrawal removes the host even when the minute array is unchanged;
+    // returning to live must create a chart for the newly mounted host.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series, side, fill, absolute, sessionDate, height, lang]);
+  }, [series, side, fill, absolute, sessionDate, height, lang, replay.archived]);
 
   const pts = series.length;
   const hasData = pts >= 2;
