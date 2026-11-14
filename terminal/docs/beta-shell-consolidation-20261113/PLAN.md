@@ -358,3 +358,51 @@ with source/custody and Paper inspection. Full engine migration, regional
 coverage, production proofs and retirement remain governed by the original
 P0–P17 DONE_WHEN. Pending CI and release capacity block their affected lanes,
 not this parent construction mission.
+
+## P7A milestone — native Catalyst evidence and repaired-stack receipts
+
+The earlier next-action paragraph has now been acted on. The bounded source,
+Paper, implementation and state packet is [P7_CATALYST_EVIDENCE.md](P7_CATALYST_EVIDENCE.md).
+The native watch list and selected evidence are composed as one desk. Event,
+economics and entry evidence remain honest unavailable states. Continuations
+follow actual case links; the independent Defense reader and active Bio work
+retain their owners. Existing Paper LK-0/QE-0 was inspected and additive
+p-9-0 boards2L9-0/2LQ-0/2M6-0 were created, visually verified and released.
+Local affected qualification is75 passing tests plus targeted lint, nonempty
+language guard and syntax/diff checks. Hosted and real served acceptance remain.
+
+### Stack proof read back at this milestone
+
+- P0–P3 PR1495 remains at `627b87e1f0655cdf60999daa99ddf8c797627449`.
+  Its run43576950807 concluded successfully with43 successful check runs.
+  This does not remove its explicit Macro11246 protected merge/deploy and
+  served selected-resource dependency. Macro11246 was enrolled once and remains
+  with its existing controller; capacity deferral is not a reason to rearm it.
+- Repaired P4 PR1500 at `dc8039571b40a0d0ce3765b92560f4cbf7d195d5`
+  has authenticated artifact14109530457 from run43580992587. The downloaded
+  ZIP SHA-256 is `eca44d0365973ae9c44199144beae7c5104ae996218b4fb72ed1f828ff59ae55`.
+  Report source merge `c7380c5a18809483b11b3c76378040b2387bb8b5` has that
+  exact candidate head as a parent and tree
+  `0cc7db97d12c99e16a6374a0c627f0d58fb0ae0b`, equal to the repaired head.
+  All15 cells pass with no reported errors, external requests, fixture writes
+  or tracked working changes. The320/390px Chinese screenshots were viewed;
+  the390px Inspect label is readable in normal flow, and the320px journey checks
+  its off-screen action's geometry. This is fixture-browser evidence, not whole
+  CI completion, deployment or production CSP acceptance.
+- Repaired P5 PR1504 remains at `6a83fb906b4ee2d449c333657f59775d34129b25`.
+  Original-head18-cell fixture proof and its exact repaired source readback are
+  preserved above; repaired-head hosted acceptance is still tracked separately.
+- P6 PR1508 is published at `2ad0e7fa8bc802b0d0f8322ec88c5dc9c5603d51`,
+  tree `772f675ed00b41b1ea7adf390d50524862b1d899`. The Ready PR, body,
+  branch and all seven changed files were read back exactly. It is the P7 input;
+  its incumbent run43582423756 owns hosted qualification.
+- The latest finite custody inventory has global chrome PR1501 at
+  `75314215839ab3821fcbafcf5a31e3d9efd34acd` and Analysis PR1494 at
+  `664e701121ddfea1c93ce44a82304f4e42531b84`. These update the earlier
+  historical inventory without adopting or overwriting either live carrier.
+
+Next safe independent work is P9 Monitor source/custody and existing Paper
+inspection. P6 dense engines and specialty P7 depth remain open; P8 integration
+waits on its actual owner's compatible proof. Pending PRs block only their
+release lanes. Complete regional engines, full Macro/Prophet parity, real
+production journeys and safe retirement are still required by the parent plan.

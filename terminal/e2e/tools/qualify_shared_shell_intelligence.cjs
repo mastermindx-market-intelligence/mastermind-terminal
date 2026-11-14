@@ -31,6 +31,8 @@ const {liquidityFixture} = require('../../lib/__tests__/fixtures/macroLiquidity.
 const {candidatePoolFixture} = require('../../lib/__tests__/fixtures/prophetCandidatePool.ts');
 const {todayMarketFixture,todayPersonalBriefFixture,todayChangesFixture,todayDigestFixture,
  todayCatalogFixture,todayWatchlistFixture,TODAY_SAVED_SELECTION} = require('../../lib/__tests__/fixtures/todayDailyDesk.ts');
+const catalystFixture = require('../../lib/__tests__/fixtures/catalystOpportunity.json');
+const defenseFixture = require('../../lib/__tests__/fixtures/catalystDefenseOwner.json');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -77,6 +79,13 @@ report.sourceFiles=Object.fromEntries([
  'components/workspaces/TodayBreadthReading.tsx', 'lib/__tests__/fixtures/todayDailyDesk.ts',
  'components/workspaces/DiscoverLanding.tsx', 'components/workspaces/DiscoverLanding.module.css',
  'components/workspaces/DiscoverWorkspace.tsx', 'components/chrome/WorkspaceTabs.tsx',
+ 'components/catalyst-opportunity/CatalystOpportunityView.tsx',
+ 'components/catalyst-opportunity/CatalystOpportunity.module.css', 'lib/catalystOpportunityLex.ts',
+ 'components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx',
+ 'components/catalyst-opportunity/DefenseContextWorkspace.tsx',
+ 'components/catalyst-opportunity/DefenseResearchPanel.tsx',
+ 'lib/catalystOpportunity.ts', 'lib/catalystDefense.ts',
+ 'lib/__tests__/fixtures/catalystOpportunity.json', 'lib/__tests__/fixtures/catalystDefenseOwner.json',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
  'components/sector-intelligence/SectorCycleHistory.tsx',
  'components/sector-intelligence/SectorCycleLens.tsx',
@@ -587,6 +596,114 @@ async function qualifyDiscover(page,cell) {
   report.cells.push({w:page.viewportSize().width,journey:'discover-chooser-handoffs',sourceProof:'CHOOSER_ONLY_WITH_SYNTHETIC_DESTINATION_STATES',candidateReads,catalystReads,passed:true});
 }
 
+async function qualifyCatalyst(page,cell) {
+  let marketRead=structuredClone(catalystFixture),marketStatus=200,defenseStatus=200;
+  const reads={market:0,defense:0};
+  await page.route('**/api/catalyst-opportunities',route=>{
+    reads.market++;
+    return route.fulfill({status:marketStatus,json:marketStatus===200?marketRead:{error:'synthetic source unavailable'}});
+  });
+  await page.route('**/api/catalyst-opportunities/defense',route=>{
+    reads.defense++;
+    return route.fulfill({status:defenseStatus,json:defenseStatus===200?defenseFixture:{error:'ENTITLEMENT_REQUIRED'}});
+  });
+  await page.goto(BASE+'/discover?tab=catalysts&workspaceMarket=us&origin=catalyst-proof#evidence');
+  const root=page.getByTestId('catalyst-opportunities'),panel=root.getByTestId('defense-research');
+  const heading=root.locator('#catalyst-detail-title'),listHeading=root.locator('#catalyst-watches-title');
+  const actions=root.locator('[data-catalyst-continuations]');
+  const detail=root.locator('section[aria-labelledby="catalyst-detail-title"]');
+  const presentation=async(lang,theme)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(theme==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  };
+  await expect(root.locator('article')).toHaveCount(2,{timeout:30000});
+  await expect(panel).toContainText('4,101');await expect(panel).toHaveCount(1);
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);
+  await expect(root.locator('iframe')).toHaveCount(0);
+  expect(await root.locator('[data-catalyst-watch-choice]').evaluateAll(nodes=>nodes.map(el=>el.dataset.catalystWatchChoice))).toEqual(['energy_complex','defense']);
+  await expect(actions.locator('a')).toHaveCount(1);
+  await expect(actions.locator('a')).toHaveAttribute('href','/sectors?workspaceMarket=us');
+  await presentation('en','dark');
+  const initialReads={...reads};
+  const defenseChoice=root.getByRole('button',{name:'Inspect evidence: Defense & Aerospace',exact:true});
+  await defenseChoice.focus();await page.keyboard.press('Enter');await expect(heading).toBeFocused();
+  await expect(actions.locator('a')).toHaveCount(2);
+  await expect(actions.locator('a[href="https://www.mastermind-x.com/government_revenue.html"]')).toHaveCount(1);
+  const selectedUrl=page.url();
+  await root.getByRole('button',{name:'Back to watches',exact:true}).click();await expect(defenseChoice).toBeFocused();
+  expect(page.url()).toBe(selectedUrl);expect(reads).toEqual(initialReads);
+  await page.goBack();await expect(heading).toHaveText('Energy Complex');await expect(actions.locator('a')).toHaveCount(1);
+  expect(new URL(page.url()).searchParams.has('case')).toBe(false);
+  await page.goForward();await expect(heading).toHaveText('Defense & Aerospace');expect(page.url()).toBe(selectedUrl);
+  await defenseChoice.click();await expect(heading).toBeFocused();
+  await root.getByRole('button',{name:'Energy',exact:true}).click();
+  await expect(root.locator('article')).toHaveCount(1);await expect(root).toContainText('Selected case is outside these filters.');
+  await root.getByRole('button',{name:'Back to watches',exact:true}).click();await expect(listHeading).toBeFocused();
+  await expect(heading).toHaveText('Defense & Aerospace');expect(page.url()).toBe(selectedUrl);
+  await root.getByRole('button',{name:'All themes',exact:true}).click();
+  await root.getByLabel('Find a theme',{exact:true}).fill('nothing-in-this-fixture');
+  await expect(root.locator('article')).toHaveCount(0);await expect(heading).toHaveText('Defense & Aerospace');
+  await root.getByRole('button',{name:'Back to watches',exact:true}).click();await expect(listHeading).toBeFocused();
+  await root.getByRole('button',{name:'Clear filters',exact:true}).click();
+  await expect(root.locator('article')).toHaveCount(2);expect(page.url()).toBe(selectedUrl);
+  for(const [lang,mode] of [['en','dark'],['zh','light']]){
+    await presentation(lang,mode);
+    await expect(root.getByRole('heading',{level:1,name:lang==='zh'?'催化剂情报':'Catalyst Intelligence',exact:true})).toBeVisible();
+    const choice=root.getByRole('button',{name:lang==='zh'?'查看证据: 国防与航空航天':'Inspect evidence: Defense & Aerospace',exact:true});
+    await choice.click();await expect(heading).toBeFocused();
+    await expect(root.locator('[data-assessment-state="unavailable"]')).toHaveCount(3);
+    await expect(root.locator('[data-catalyst-assessments]')).toBeVisible();
+    await expect(root.locator('[data-catalyst-assessments]')).toContainText(lang==='zh'?'尚未连接已核实事件':'No verified event is attached');
+    await expect(root.locator('[data-catalyst-assessments]')).not.toHaveJSProperty('tagName','DETAILS');
+    for(const action of await detail.locator('button,a').all()){
+      await action.scrollIntoViewIfNeeded();const box=await action.boundingBox();
+      expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(await action.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+      expect(await action.evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);const line=parseFloat(getComputedStyle(el).lineHeight);return range.getBoundingClientRect().height<=line+2;})).toBe(true);
+      await action.focus();await expect(action).toBeFocused();
+    }
+    if(page.viewportSize().width<=390){
+      for(const value of await root.locator('[data-catalyst-detail-metrics] strong').all()){
+        expect(await value.evaluate(el=>el.getBoundingClientRect().height<=parseFloat(getComputedStyle(el).lineHeight)+1&&el.scrollWidth<=el.clientWidth+1)).toBe(true);
+      }
+    }
+    await noOverflow(page);
+    await heading.evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-detail-'+lang+'.png')});
+    await root.getByRole('button',{name:lang==='zh'?'返回关注列表':'Back to watches',exact:true}).click();await expect(choice).toBeFocused();
+    await root.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-list-'+lang+'.png')});
+  }
+  await presentation('en','dark');
+  const refresh=()=>root.getByRole('button',{name:'Refresh sources',exact:true}).first().click();
+  marketStatus=503;await refresh();
+  await expect(root).toContainText('Published observations could not be loaded');
+  await expect(root.locator('article')).toHaveCount(0);await expect(panel).toContainText('4,101');await expect(panel).toHaveCount(1);
+  await root.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-market-unavailable-defense-retained.png')});
+  marketStatus=200;defenseStatus=403;await refresh();
+  await expect(root).toContainText('requires the site-full research entitlement');
+  await expect(root.locator('article')).toHaveCount(0);await expect(panel).not.toContainText('4,101');await expect(root.locator('a[href*="sec.gov"]')).toHaveCount(0);
+  defenseStatus=200;await refresh();await expect(root.locator('article')).toHaveCount(2);await expect(panel).toContainText('4,101');
+  marketRead=structuredClone(catalystFixture);marketRead.status='stale';marketRead.source.freshness='stale';
+  marketRead.assessed_at='2026-10-18T15:00:00Z';marketRead.source.received_at=marketRead.assessed_at;marketRead.source.age_calendar_days=2;
+  marketRead.cases=marketRead.cases.filter(row=>row.theme_id!=='defense');marketRead.coverage.watch_count=1;
+  marketRead.inventory.find(row=>row.theme_id==='defense').watch=false;
+  for(const row of marketRead.cases)row.observation_status='stale';
+  await refresh();await expect(root).toContainText('This snapshot is dated');
+  await expect(root).toContainText('That saved case is not present');await expect(heading).toHaveCount(0);
+  await root.getByRole('button',{name:'Defense',exact:true}).click();
+  await expect(root).toContainText('Defense is covered in this snapshot');await expect(root.locator('article')).toHaveCount(0);
+  await expect(panel).toContainText('4,101');await noOverflow(page);
+  await root.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-dated-missing-case.png')});
+  expect(new URL(page.url()).searchParams.get('origin')).toBe('catalyst-proof');expect(new URL(page.url()).hash).toBe('#evidence');
+  report.cells.push({w:page.viewportSize().width,journey:'native-catalyst-evidence',
+    sourceProof:'SYNTHETIC_THEME_FIXTURE_AND_COMMITTED_DEFENSE_SPECIMEN_NOT_PRODUCTION',
+    fixtureSha256:crypto.createHash('sha256').update(JSON.stringify(catalystFixture)).digest('hex'),
+    defenseFixtureSha256:crypto.createHash('sha256').update(JSON.stringify(defenseFixture)).digest('hex'),
+    reads,selectionReturnDidNotRead:true,passed:true});
+}
+
 async function qualifyToday(page,cell) {
   let marketRead=todayMarketFixture(),marketStatus=200,changesStatus=200;
   const counts={market:0,brief:0,comparison:0,catalog:0,watchlists:0,breadth:0,reportBodies:0},comparisonInputs=[];
@@ -807,6 +924,9 @@ async function qualifyToday(page,cell) {
    const discoverContext=await context(),discoverPage=await discoverContext.newPage();
    await discoverPage.setViewportSize({width,height});discoverPage.on('pageerror',error=>report.errors.push({cell:`discover-${width}`,error:error.message}));
    await qualifyDiscover(discoverPage,`discover-${width}`);await discoverContext.close();
+   const catalystContext=await context(),catalystPage=await catalystContext.newPage();
+   await catalystPage.setViewportSize({width,height});catalystPage.on('pageerror',error=>report.errors.push({cell:`catalyst-${width}`,error:error.message}));
+   await qualifyCatalyst(catalystPage,`catalyst-${width}`);await catalystContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}

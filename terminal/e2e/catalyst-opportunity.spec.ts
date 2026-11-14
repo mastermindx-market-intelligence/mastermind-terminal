@@ -28,7 +28,7 @@ for (const lang of ["en","zh"] as const) {
     const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
     await prepare(page,lang);await page.goto("/discover?tab=catalysts");
     const root=page.getByTestId("catalyst-opportunities");
-    await expect(root.getByRole("heading",{level:1})).toHaveText(lang==="en"?"What matters now":"当下值得关注");
+    await expect(root.getByRole("heading",{level:1})).toHaveText(lang==="en"?"Catalyst Intelligence":"催化剂情报");
     await expect(root.locator("article")).toHaveCount(2);
     // Native Terminal is dark-only; changing an attribute is not light-mode proof.
     await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
@@ -40,7 +40,11 @@ for (const lang of ["en","zh"] as const) {
     await expect(page).toHaveURL(/case=defense/);
     await expect(root.locator("#catalyst-detail-title")).toBeFocused();
     await expect(root.locator("#catalyst-detail-title")).toHaveText(lang==="en"?"Defense & Aerospace":"国防与航空航天");
-    await root.locator("details").filter({has:page.locator("summary",{hasText:lang==="en"?"Catalyst, exposure and timing":"催化剂、敞口与时机"})}).locator("summary").click();
+    await expect(root.locator("[data-catalyst-assessments]")).toBeVisible();
+    await expect(root.locator('[data-assessment-state="unavailable"]')).toHaveCount(3);
+    await root.getByRole("button",{name:lang==="en"?"Back to watches":"返回关注列表",exact:true}).click();
+    await expect(choice).toBeFocused();
+    await expect(page).toHaveURL(/case=defense/);
     await expect(root).toContainText(lang==="en"?"No verified event is attached":"尚未连接已核实事件");
     await page.goBack();await expect(page).not.toHaveURL(/case=defense/);
     await root.getByLabel(lang==="en"?"Find a theme":"搜索主题",{exact:true}).fill("not-in-this-source");
@@ -79,7 +83,7 @@ test("failed sources do not pretend that the market is quiet; native tab is reac
   await prepare(page,"en",503,{error:"CATALYST_UNAVAILABLE"});
   await page.goto("/discover?tab=catalysts");const root=page.getByTestId("catalyst-opportunities");
   await expect(root).toContainText("not a signal that markets are quiet");
-  await expect(root.getByRole("link",{name:"Open Sector Intelligence",exact:true})).toHaveAttribute("href","/discover?tab=sectors");
+  await expect(root.getByRole("link",{name:"Open Sector Intelligence",exact:true})).toHaveAttribute("href","/sectors?workspaceMarket=us");
   await expect(root.locator("article")).toHaveCount(0);
   await noOverflow(page);
 });
