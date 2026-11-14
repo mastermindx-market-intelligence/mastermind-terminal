@@ -4,8 +4,8 @@ import { finite, nativePrice, priceCurrency, type PriceObservation } from "@/lib
 export type PortfolioSection = "overview" | "holdings" | "risk" | "targets";
 export type RecordFilter = "all" | "details" | "prices";
 export type RecordIssue = "shares" | "entryPrice" | "entryCurrency" | "quote" | "quoteCurrency" | "currencyMismatch";
-export type WorkspaceQuote = PriceObservation;
-export type WorkspaceManifest = { name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
+export type WorkspaceQuote = (NonNullable<PriceObservation> & { asOfMs?: number; ts?: number; basis?: string }) | null | undefined;
+export type WorkspaceManifest = { mkt?: string; hi52?: number; gics?: string; verdict?: string; vts?: string; name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const nullableNumber = (v: unknown) => v === null || finite(v);

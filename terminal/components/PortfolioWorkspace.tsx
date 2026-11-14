@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode, type KeyboardEvent } from "react";
 import Link from "next/link";
+import AssetLogo from "./AssetLogo";
+import PortfolioAllocation from "./PortfolioAllocation";
+import PortfolioSessionQuote from "./PortfolioSessionQuote";
+import { distanceFromHigh } from "@/lib/portfolioAllocation";
+import { verdictLabel } from "@/lib/plainLabels";
+import { verdictIsStale } from "@/lib/signalVerdict";
 import { companyHref } from "@/lib/sectorIntelligence";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
@@ -145,7 +151,7 @@ export default function PortfolioWorkspace(p: Props) {
         return <tr key={position.id} data-position-id={position.id} data-ticker={position.ticker} data-status={position.status}
           className={`pf-row ${p.busyId === position.id ? s.busy : ""}`}>
           <td className={s.securityCell}>
-            <span className={s.monogram} aria-hidden="true">{position.ticker.slice(0, 2)}</span>
+            <AssetLogo symbol={position.ticker} name={nameFor(position.ticker)} market={p.manifest[position.ticker]?.mkt} color={p.manifest[position.ticker]?.col} size={32} />
             <div className={s.securityText}><Link className="pf-tk" href={terminalHref(shellPresentation, currentHref, position.ticker)}>{position.ticker}</Link>
               <span title={nameFor(position.ticker)}>{nameFor(position.ticker)}</span></div>
           </td>
@@ -154,7 +160,8 @@ export default function PortfolioWorkspace(p: Props) {
           {!preview && <td data-label={c("entry")}>{number(position.entryPrice, position.entryPrice != null && position.entryPrice < 10 ? 4 : 2)}
             {position.entryPrice !== null && <small>{position.entryCurrency || c("currencyUnknown")}</small>}</td>}
           {!preview && <td data-label={c("last")}>{number(quote?.last, quote && quote.last < 10 ? 4 : 2)}
-            {quote && <small>{quote.currency || c("currencyUnknown")}</small>}</td>}
+            {quote && <small>{quote.currency || c("currencyUnknown")}</small>}
+            {quote?.chg != null && <small>{lang === "zh" ? "常规时段" : "Session"} {percent(quote.chg)}</small>}</td>}
           <td data-label={c("value")}>{amount(value, quote?.currency)}</td>
           <td data-label={c("change")}>
             <span className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</span>
@@ -245,6 +252,7 @@ export default function PortfolioWorkspace(p: Props) {
               </details>
               <div className={s.overviewGrid}>
                 <div className={s.mainColumn}>
+                  <PortfolioAllocation positions={p.positions} quotes={p.quotes} manifest={p.manifest} />
                   <section className={s.card}><header className={s.cardHeader}><div><h2>{c("yourHoldings")}</h2><span>{open.length} {c(open.length === 1 ? "oneRecord" : "records")}</span></div>
                     <button type="button" className={s.textButton} onClick={() => showHoldings()}>{c("viewAll")}<Icon name="arrow" /></button></header>
                     {rowTable(open.slice(0, 5), true)}
@@ -271,7 +279,7 @@ export default function PortfolioWorkspace(p: Props) {
                   </section>
                 </aside>
               </div>
-            </> : <section className={s.empty} data-testid="portfolio-empty"><div className={s.emptyIcon}><Icon name="book" /></div><h2>{c("emptyTitle")}</h2><p>{c("emptyHint")}</p><button type="button" className="pf-btn primary" onClick={p.onAdd}><Icon name="plus" />{t("addPosition")}</button></section>}
+            </> : !p.positions.length && !p.stale ? <div data-testid="portfolio-empty"><PortfolioAllocation positions={[]} quotes={p.quotes} manifest={p.manifest} sample onAdd={p.onAdd} /></div> : <section className={s.empty} data-testid="portfolio-empty"><div className={s.emptyIcon}><Icon name="book" /></div><h2>{c("emptyTitle")}</h2><p>{c("emptyHint")}</p><button type="button" className="pf-btn primary" onClick={p.onAdd}><Icon name="plus" />{t("addPosition")}</button></section>}
           </section>
 
           {/* Panels stay mounted. A section change cannot discard a target draft or cancel its pending save. */}
@@ -323,7 +331,7 @@ export default function PortfolioWorkspace(p: Props) {
 }
 
 function RecordDialog({ position, name, quote, fallback, busy, failure, confirming, onClose, onEdit, onToggleStatus, onDeleteRequest, onDeleteCancel, onDeleteConfirm }: {
-  position: Position; name: string; quote: WorkspaceQuote; fallback: WorkspaceQuote; busy: boolean; failure: string | null; confirming: boolean;
+  position: Position; name: string; quote: WorkspaceQuote; fallback: WorkspaceManifest | undefined; busy: boolean; failure: string | null; confirming: boolean;
   onClose: () => void; onEdit: () => void; onToggleStatus: () => void; onDeleteRequest: () => void; onDeleteCancel: () => void; onDeleteConfirm: () => void;
 }) {
   const { lang } = useLang(); const c = portfolioCopy(lang); const t = useT();
@@ -338,6 +346,7 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
   }, []);
   const price = nativePrice(quote, fallback);
   const issues = recordIssues(position, quote, fallback);
+  const belowHigh = distanceFromHigh(fallback?.last, fallback?.hi52);
   return <dialog ref={dialog} className={s.recordDialog} aria-labelledby="portfolio-record-title" onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}
     onClick={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className={s.dialogInner}>
@@ -352,6 +361,12 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
           <div><dt>{c("entryDate")}</dt><dd>{position.entryDate || "—"}</dd></div>
           <div><dt>{c("last")}</dt><dd>{price ? `${number(price.last, price.last < 10 ? 4 : 2)} · ${price.currency || c("currencyUnknown")}` : "—"}</dd></div></dl>
         <p className={s.quoteSource}>{!price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
+        <PortfolioSessionQuote key={position.ticker} symbol={position.ticker} quote={quote} />
+        <dl className={s.recordFields}>
+          <div><dt>{lang === "zh" ? "距52周高点 · 收盘" : "From 52-week high · close"}</dt><dd>{percent(belowHigh)}</dd></div>
+          <div><dt>{lang === "zh" ? "板块" : "Sector"}</dt><dd>{fallback?.gics || "—"}</dd></div>
+          {fallback?.verdict && <div><dt>{lang === "zh" ? "筛选器信号" : "Screener signal"}</dt><dd>{verdictLabel(fallback.verdict, lang)}<small> · {fallback.vts || "—"}{verdictIsStale(fallback.vts) ? (lang === "zh" ? " · 历史" : " · historical") : ""}</small></dd></div>}
+        </dl>
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
         <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>

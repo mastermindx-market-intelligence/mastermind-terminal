@@ -14,9 +14,9 @@
 // it can know locally — an empty ticker — and renders whatever the route says it refused. Two
 // validators drifting apart is how a field starts being rejected for a reason the UI cannot explain.
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useT, useLang } from "@/lib/i18n";
-import { moneyCopy } from "@/lib/portfolioMoney";
+import { moneyCopy, priceCurrency } from "@/lib/portfolioMoney";
 import type { Position } from "@/lib/portfolio";
 import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
@@ -51,12 +51,14 @@ export default function PositionModal({
   mode,
   position,
   initialTicker,
+  instruments,
   onCancel,
   onSubmit,
 }: {
   mode: "add" | "edit";
   position: Position | null;
   initialTicker?: string;
+  instruments?: Record<string, { name?: string; zh?: string }>;
   onCancel: () => void;
   onSubmit: (draft: PositionDraft) => Promise<PositionMutationResult>;
 }) {
@@ -65,6 +67,16 @@ export default function PositionModal({
   const titleId = useId();
   const copy = portfolioCopy(lang);
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
+  const matches = useMemo(() => {
+    const query = draft.ticker.trim().toLocaleLowerCase();
+    if (!instruments || !query) return [];
+    return Object.entries(instruments).filter(([ticker, row]) =>
+      [ticker, row.name, row.zh].some(value => typeof value === "string" && value.toLocaleLowerCase().includes(query))
+    ).sort(([a], [b]) => Number(b.toLowerCase() === query) - Number(a.toLowerCase() === query) ||
+      Number(b.toLowerCase().startsWith(query)) - Number(a.toLowerCase().startsWith(query)) || a.localeCompare(b)).slice(0, 8);
+  }, [draft.ticker, instruments]);
+  const lookupId = useId();
+  const enteredCost = Number(draft.shares) * Number(draft.entryPrice);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorField, setErrorField] = useState<keyof PositionDraft | null>(null);
@@ -166,13 +178,17 @@ export default function PositionModal({
               <span>{t("ticker")}</span>
               <input
                 ref={firstFieldRef}
-                name="ticker" {...fieldError("ticker")}
+                name="ticker" list={instruments ? lookupId : undefined} {...fieldError("ticker")}
                 value={draft.ticker}
                 autoComplete="off"
                 spellCheck={false}
                 onChange={(event) => set("ticker", event.target.value.toUpperCase())}
-                placeholder="NVDA"
+                placeholder={instruments ? (lang === "zh" ? "股票代码或公司名称" : "Ticker or company name") : "NVDA"}
               />
+              {instruments && <datalist id={lookupId}>{matches.map(([ticker, row]) =>
+                <option key={ticker} value={ticker}>{lang === "zh" ? row.zh || row.name : row.name}</option>
+              )}</datalist>}
+              {instruments?.[draft.ticker]?.name && <small>{lang === "zh" ? instruments[draft.ticker].zh || instruments[draft.ticker].name : instruments[draft.ticker].name}</small>}
             </label>
 
             <div className="pf-field-row">
@@ -229,7 +245,9 @@ export default function PositionModal({
               />
             </label>
 
-            <p className="pf-modal-hint">{t("unsizedHint")}</p>
+            {draft.shares.trim() && draft.entryPrice.trim() && priceCurrency(draft.entryCurrency) && Number.isFinite(enteredCost) ?
+              <output className={styles.entryCost}>{lang === "zh" ? "录入成本" : "Entered cost"} <strong>{draft.entryCurrency} {enteredCost.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 2 })}</strong></output> :
+              <p className="pf-modal-hint">{t("unsizedHint")}</p>}
             {error && <p id={errorId} className="pf-modal-err" role="alert">{error}</p>}
           </fieldset>
 

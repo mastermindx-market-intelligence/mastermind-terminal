@@ -24,6 +24,8 @@ import { useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
 import { isAccountOwner, ownerKeyFor, ownerUserId } from "@/lib/accountIdentity";
 import PortfolioRoleEditor from "@/components/PortfolioRoleEditor";
+import { marketOf } from "@/lib/markets";
+import { SAMPLE_LOTS } from "@/lib/portfolioAllocation";
 import PortfolioWorkspace from "@/components/PortfolioWorkspace";
 import { decodePositionRead, portfolioCopy, type PortfolioSection } from "@/lib/portfolioWorkspace";
 import { isPortfolioRisk, isPortfolioRiskHistory } from "@/lib/portfolioAnalysisRead";
@@ -69,8 +71,8 @@ import s from "@/components/PortfolioRisk.module.css";
 import tg from "@/components/PortfolioTargets.module.css";
 import rh from "@/components/PortfolioRiskHistory.module.css";
 
-type Quote = { last?: number; chg?: number; currency?: unknown } | null | undefined;
-type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
+type Quote = { last?: number; chg?: number; currency?: unknown; regularPrice?: number | null; regularChg?: number | null; asOfMs?: number; ts?: number; basis?: string } | null | undefined;
+type ManifestRow = { mkt?: string; sec?: string; name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
 
 async function readTargetsForBook(bookKey: string | null, signal?: AbortSignal): Promise<PortfolioTargetsSummary | null> {
   try {
@@ -550,8 +552,10 @@ export default function PortfolioView(
   // consequential (there is no "active" holding), so the whole book rotates: each poll takes the
   // next window under the cap, one request per tick exactly as before, and every holding refreshes
   // within ceil(book / cap) polls. A book that fits is `complete` and refreshes wholly every poll.
-  const quoteGroups = useMemo(() => groupsFromSymbols(quoteSymbols(positions).sort()), [positions]);
+  const quoteGroups = useMemo(() => groupsFromSymbols(positions.length ? quoteSymbols(positions).sort() : unread || bookStale ? [] : SAMPLE_LOTS.map(lot => lot.ticker)), [positions, unread, bookStale]);
   const symbolKey = useMemo(() => quoteGroups.map((g) => g.key).join(","), [quoteGroups]);
+  const manifestRef = useRef(man);
+  useLayoutEffect(() => { manifestRef.current = man; }, [man]);
   const quoteGroupsRef = useRef(quoteGroups);
   useLayoutEffect(() => { quoteGroupsRef.current = quoteGroups; }, [quoteGroups]);
   useEffect(() => {
@@ -573,13 +577,39 @@ export default function PortfolioView(
     // retired below instead of refilling, evicting or advancing the new view's counters.
     const epoch = ownerGenerationRef.current;
     let alive = true;
+    let pending = false;
+    let usdCursor = 0;
+    const controller = new AbortController();
     const poll = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
+      if (pending || (typeof document !== "undefined" && document.hidden)) return;
       const plan = planQuoteBatch({ rotating: quoteGroupsRef.current, cursor: quoteCursorRef.current });
       quoteCursorRef.current = plan.nextCursor;
       if (!plan.symbols.length) return;
-      fetch(`/api/quote?view=regular&syms=${encodeURIComponent(plan.symbols.join(","))}`)
-        .then((r) => (r.ok ? r.json() : null))
+      pending = true;
+      // The public USD projection is valid for verified US listings only. Explicit
+      // venue or a fixed example instrument; a plausible ticker is insufficient.
+      const us = plan.symbols.filter(symbol => {
+        const row = manifestRef.current[symbol];
+        return /^[A-Z][A-Z0-9.-]{0,10}$/.test(symbol) && (row?.mkt
+          ? marketOf(symbol, row) === "us"
+          : !positions.length && SAMPLE_LOTS.some(lot => lot.ticker === symbol));
+      });
+      const start = us.length ? usdCursor % us.length : 0;
+      const scoped = [...us.slice(start), ...us.slice(0, start)].slice(0, 24);
+      usdCursor += scoped.length;
+      const read = (url: string) => fetch(url, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(5000)]) })
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+      Promise.all([
+        read(`/api/quote?view=regular&syms=${encodeURIComponent(plan.symbols.join(","))}`),
+        scoped.length ? read("/api/portfolio/prices?symbols=" + encodeURIComponent(scoped.join(","))) : null,
+      ]).then(([primary, supplemental]) => {
+        if (!supplemental?.prices) return primary;
+        const rows = { ...primary?.quotes };
+        for (const symbol of scoped) {
+          if (!rows[symbol]?.currency && supplemental.prices[symbol]?.currency === "USD") rows[symbol] = supplemental.prices[symbol];
+        }
+        return { quotes: rows };
+      })
         .then((payload) => {
           // Retired poll: lexical death OR the owner epoch moved on. Checked after the body
           // settles and BEFORE any counter side effect or state update, so a late previous-owner
@@ -608,7 +638,10 @@ export default function PortfolioView(
           setQuotes((prev) => {
             let changed = false;
             const next: Record<string, Quote> = { ...prev };
-            for (const [symbol, quote] of observations) {
+            for (const [symbol, observed] of observations) {
+              const quote = observed && "regularPrice" in observed ? {
+                ...observed, last: observed.regularPrice ?? undefined, chg: observed.regularChg ?? undefined,
+              } : observed;
               if (quote === null) {
                 if (drop.has(symbol) && Object.prototype.hasOwnProperty.call(next, symbol)) {
                   delete next[symbol];
@@ -617,7 +650,8 @@ export default function PortfolioView(
                 continue;
               }
               if (!quote) continue;
-              if (prev[symbol]?.last !== quote.last || prev[symbol]?.chg !== quote.chg || prev[symbol]?.currency !== quote.currency) {
+              if (prev[symbol]?.last !== quote.last || prev[symbol]?.chg !== quote.chg || prev[symbol]?.currency !== quote.currency ||
+                  prev[symbol]?.basis !== quote.basis || prev[symbol]?.asOfMs !== quote.asOfMs || prev[symbol]?.ts !== quote.ts) {
                 next[symbol] = quote;
                 changed = true;
               }
@@ -625,7 +659,7 @@ export default function PortfolioView(
             return changed ? next : prev;
           });
         })
-        .catch(() => {});
+        .catch(() => {}).finally(() => { pending = false; });
     };
     const first = setTimeout(poll, 200);
     const interval = setInterval(poll, 6000);
@@ -633,11 +667,12 @@ export default function PortfolioView(
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
+      controller.abort();
       clearTimeout(first);
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [symbolKey, ownerKey]);
+  }, [symbolKey, ownerKey, positions.length]);
 
   const totals = useMemo(() => bookTotals(positions, quotes, man), [positions, quotes, man]);
 
@@ -684,7 +719,7 @@ export default function PortfolioView(
       briefContent={<PortfolioBriefPanel population={{ kind: "positions", count: open.length }} />}
       eventContent={<EventImpactPanel positions={open} holdingsUnreadable={unread} />}
     />
-    {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position}
+    {editing && <PositionModal key={editing.position?.id ?? "new-position"} mode={editing.mode} position={editing.position} instruments={man}
       onCancel={() => setEditing(null)} onSubmit={submit} />}
   </>;
 }

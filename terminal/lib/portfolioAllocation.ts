@@ -1,0 +1,49 @@
+import { finite, finiteProduct, nativePrice, priceCurrency, type PriceObservation } from "./portfolioMoney";
+import type { Position } from "./portfolio";
+
+export const SAMPLE_LOTS = [
+  { ticker: "AAPL", name: "Apple", sector: ["Information technology", "信息技术"], shares: 20, examplePrice: 200 },
+  { ticker: "JPM", name: "JPMorgan Chase", sector: ["Financials", "金融"], shares: 15, examplePrice: 200 },
+  { ticker: "XOM", name: "Exxon Mobil", sector: ["Energy", "能源"], shares: 20, examplePrice: 100 },
+  { ticker: "JNJ", name: "Johnson & Johnson", sector: ["Health care", "医疗保健"], shares: 5, examplePrice: 200 },
+] as const;
+
+export type Allocation = { ticker: string; value: number; weight: number };
+
+/** Market-value weights require every open lot, one currency, positive gross value and no shorts. */
+export function marketAllocation(positions: readonly Pick<Position, "ticker" | "shares" | "status">[],
+  quotes: Readonly<Record<string, PriceObservation>>, manifest: Readonly<Record<string, PriceObservation>>) {
+  const byTicker = new Map<string, number>();
+  let currency: string | null = null;
+  let total = 0;
+  for (const p of positions) {
+    if (p.status !== "open") continue;
+    if (!finite(p.shares) || p.shares < 0) return null;
+    if (p.shares === 0) continue;
+    const q = nativePrice(quotes[p.ticker], manifest[p.ticker]);
+    if (!q?.currency || q.last <= 0 || (currency && currency !== q.currency)) return null;
+    const value = finiteProduct(q.last, p.shares);
+    if (value === null) return null;
+    currency = q.currency;
+    byTicker.set(p.ticker, (byTicker.get(p.ticker) ?? 0) + value);
+    total += value;
+  }
+  if (!currency || !finite(total) || total <= 0) return null;
+  const rows: Allocation[] = Array.from(byTicker, ([ticker, value]) => ({ ticker, value, weight: value / total * 100 }));
+  rows.sort((a,b) => b.value - a.value || a.ticker.localeCompare(b.ticker));
+  return { currency, total, rows };
+}
+
+/** Use a complete USD observations set or a fully illustrative example; never blend the two. */
+export function exampleAllocation(quotes: Readonly<Record<string, PriceObservation>>) {
+  const observed = SAMPLE_LOTS.every(p => finite(quotes[p.ticker]?.last) && Number(quotes[p.ticker]?.last) > 0 && priceCurrency(quotes[p.ticker]?.currency) === "USD");
+  const source = observed ? quotes : Object.fromEntries(SAMPLE_LOTS.map(p => [p.ticker, { last: p.examplePrice, currency: "USD" }]));
+  const lots = SAMPLE_LOTS.map(p => ({ ...p, status: "open" as const }));
+  return { observed, allocation: marketAllocation(lots, source, {})! };
+}
+
+export function distanceFromHigh(last: unknown, high: unknown): number | null {
+  if (!finite(last) || last <= 0 || !finite(high) || high <= 0) return null;
+  const distance = (last / high - 1) * 100;
+  return finite(distance) ? distance : null;
+}

@@ -192,75 +192,42 @@ async function fetchArtifact(ticker: string, cookieHeader: string | null): Promi
   return getCachedArtifact(ticker, cookieHeader, () => fetchArtifactUncached(ticker, cookieHeader));
 }
 
-async function fetchArtifactsFor(
-  tickers: readonly string[],
-  cookieHeader: string | null,
-): Promise<Record<string, ArtifactState>> {
-  const unique = [...new Set(tickers)];
+// Bound optional enrichment independently of the account book. A slow security
+// cannot erase the weights that are already calculable from canonical records.
+const RISK_BUDGET_MS = 4000;
+async function buildRiskBounded(positions: readonly Position[], cookieHeader: string | null): Promise<PortfolioRisk> {
+  const unique = [...new Set(positions.filter(p => p.status === "open").map(p => p.ticker))];
   const attempted = unique.slice(0, ARTIFACT_FANOUT_CAP);
-  const overflow = unique.slice(ARTIFACT_FANOUT_CAP);
-  const out: Record<string, ArtifactState> = {};
-  for (const t of overflow) out[t] = { kind: "not_attempted" };
-
-  let i = 0;
+  const artifacts: Record<string, ArtifactState> = Object.create(null);
+  for (const ticker of unique) artifacts[ticker] = { kind: "not_attempted" };
+  let cursor = 0;
+  let finished = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   async function worker() {
-    while (i < attempted.length) {
-      const idx = i++;
-      const ticker = attempted[idx];
-      out[ticker] = await fetchArtifact(ticker, cookieHeader);
+    while (!finished && cursor < attempted.length) {
+      const ticker = attempted[cursor++];
+      artifacts[ticker] = { kind: "unreadable" };
+      try {
+        const result = await fetchArtifact(ticker, cookieHeader);
+        if (!finished) artifacts[ticker] = result;
+      } catch { /* Include the unreadable source in the published coverage ledger. */ }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(ARTIFACT_CONCURRENCY, attempted.length || 1) }, worker));
-  return out;
-}
-
-async function buildRisk(positions: readonly Position[], cookieHeader: string | null): Promise<PortfolioRisk> {
-  const open = positions.filter((p) => p.status === "open");
-  const tickers = open.map((p) => p.ticker);
-  let artifacts: Record<string, ArtifactState> = {};
   try {
-    artifacts = await fetchArtifactsFor(tickers, cookieHeader);
-  } catch {
-    artifacts = {};
-  }
-  return computePortfolioRisk(
-    positions.map((p) => ({ ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, entryCurrency: p.entryCurrency, status: p.status })),
-    artifacts,
-    // MAJOR 2: `coverageSource` reports whether the caller's OWN session cookie was present for
-    // this fan-out, never whether any individual read happened to succeed — an anonymous caller
-    // stays "anonymous" even if every ticker is (implausibly) readable, and a signed-in caller
-    // stays "credentialed" even when every artifact locks or times out.
-    !!cookieHeader,
-  );
-}
-
-// MAJOR 5 (review repair): buildRisk can fan out up to ARTIFACT_FANOUT_CAP tickers across
-// several concurrency waves — in the worst case, tens of seconds. That must never become
-// latency (or an outright function-timeout kill) on the primary holdings read: a good,
-// SSR-seeded book must never be able to flip into "we could not read your book" just
-// because the NEW risk readout was slow. So the readout is capped to a hard time budget and
-// degrades to `risk: null` (rendered as the normal per-card "not covered yet" states) rather
-// than ever blocking — or endangering — the `positions` response.
-const RISK_BUDGET_MS = 4000;
-
-async function buildRiskBounded(
-  positions: readonly Position[],
-  cookieHeader: string | null,
-): Promise<PortfolioRisk | null> {
-  // MINOR (review repair): a bare `setTimeout` inside `Promise.race` is never cleared on the
-  // fast path — every GET used to leave a live 4s timer handle behind even when `buildRisk`
-  // resolved in milliseconds. `clearTimeout` in `finally` releases it on every exit.
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      buildRisk(positions, cookieHeader),
-      new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), RISK_BUDGET_MS); }),
+    await Promise.race([
+      Promise.all(Array.from({ length: Math.min(ARTIFACT_CONCURRENCY, attempted.length) }, worker)),
+      new Promise<void>(resolve => { timer = setTimeout(resolve, RISK_BUDGET_MS); }),
     ]);
-  } catch {
-    return null;
   } finally {
+    finished = true;
     if (timer !== undefined) clearTimeout(timer);
   }
+  // Within the admitted size limit an expired read is unreadable, even if the
+  // time budget expired before a worker could reach it. Overflow stays explicit.
+  for (const ticker of attempted) {
+    if (artifacts[ticker].kind === "not_attempted") artifacts[ticker] = { kind: "unreadable" };
+  }
+  return computePortfolioRisk(positions, artifacts, !!cookieHeader);
 }
 
 export async function GET(req?: Request) {
