@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SharedShellToolbar from "@/components/chrome/shared-shell/SharedShellToolbar";
+import SharedShellLaunchLinks from "@/components/chrome/shared-shell/SharedShellLaunchLinks";
 import AnalysisWorkspace from "@/components/workspaces/AnalysisWorkspace";
 import { LangProvider } from "@/lib/i18n";
 
@@ -24,7 +24,7 @@ vi.mock("@/lib/shellBrainSymbol",()=>({announceShellBrainSymbol:vi.fn()}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root,host:HTMLDivElement;
 function location(query:string){state.query=new URLSearchParams(query);window.history.replaceState({},"","/analysis?"+query);}
-async function render(){await act(async()=>root.render(<LangProvider><SharedShellToolbar symbolOpen={false} onSymbolOpenChange={()=>{}} onOpenDirectory={()=>{}}/><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>));}
+async function render(){await act(async()=>root.render(<LangProvider><SharedShellLaunchLinks drawer labelled glyph={()=>null}/><AnalysisWorkspace initialSymbol="NVDA" initialPage="intelligence"/></LangProvider>));}
 beforeEach(()=>{state.push.mockReset();state.fund.mockReset();state.bars.mockResolvedValue([]);vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,json:async()=>({quotes:{}})})));host=document.createElement("div");document.body.append(host);root=createRoot(host);location("symbol=NVDA&page=intelligence");});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 describe("reused Company route identity",()=>{
@@ -55,7 +55,7 @@ describe("reused Company route identity",()=>{
   location("symbol=BAD%2FIDENTITY");await render();
   expect(host.textContent).toContain("not a supported symbol format");
   expect(host.querySelector(".analysis-context-back")).toBeNull();
-  expect(host.querySelector(".shared-shell-terminal-link")).toBeNull();
+  expect(host.querySelector("[data-shell-terminal]")?.getAttribute("href")).toBe("/terminal");
   location("");await render();
   expect(host.textContent).not.toContain("not a supported symbol format");
   expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("NVDA");
@@ -67,7 +67,7 @@ describe("reused Company route identity",()=>{
   location("symbol=AAPL&page=earnings");await render();
   expect(host.querySelector("[data-company]")?.getAttribute("data-company")).toBe("AAPL");
   expect(host.querySelector("[data-local-view]")?.getAttribute("data-local-view")).toBe("earnings");
-  const toolbarChart=new URL(host.querySelector(".shared-shell-terminal-link")!.getAttribute("href")!,window.location.href);
+  const toolbarChart=new URL(host.querySelector("[data-shell-terminal]")!.getAttribute("href")!,window.location.href);
   expect(toolbarChart.searchParams.get("symbol")).toBe("AAPL");
   expect(toolbarChart.searchParams.get("ret")).toBe(window.location.href);
   await act(async()=>oldResolve({ticker:"NVDA"}));

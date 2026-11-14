@@ -5,9 +5,11 @@ import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DiscoverWorkspace from "@/components/workspaces/DiscoverWorkspace";
 
+const navigation = vi.hoisted(() => ({ push: vi.fn(), beta: true }));
+
 vi.mock("next/navigation", async () => {
   const { useSyncExternalStore } = await import("react");
-  return { useSearchParams: () => {
+  return { useRouter: () => ({ push: navigation.push }), useSearchParams: () => {
     const search = useSyncExternalStore(callback => {
       window.addEventListener("mmx:shell-location", callback);
       return () => window.removeEventListener("mmx:shell-location", callback);
@@ -16,10 +18,10 @@ vi.mock("next/navigation", async () => {
   } };
 });
 vi.mock("next/link", () => ({ default: ({ href, children, ...props }: { href: string; children: ReactNode }) => <a href={href} {...props}>{children}</a> }));
-vi.mock("next/dynamic", () => ({ default: () => () => <button>Study action</button> }));
+vi.mock("next/dynamic", () => ({ default: () => () => <main id="shared-shell-content" tabIndex={-1}><h1>Existing sector owner</h1><button>Study action</button></main> }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }), useT: () => (key: string) => key }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => ({}) }));
-vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({ useOptionalSharedShellPresentation: () => ({ context: { locale: "en" } }) }));
+vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({ useOptionalSharedShellPresentation: () => navigation.beta ? ({ context: { locale: "en" } }) : null }));
 vi.mock("@/components/ScreenerView", () => ({ default: () => <button>Screener action</button> }));
 vi.mock("@/components/heatmap/HeatmapPageRoot", () => ({ default: () => <button>Heatmap action</button> }));
 vi.mock("@/components/workspaces/DiscoverFlowMounts", () => ({ DiscoverLeadersMount: () => <button>Leaders action</button>, DiscoverRadarMount: () => <button>Radar action</button> }));
@@ -27,6 +29,7 @@ vi.mock("@/components/workspaces/DiscoverFlowMounts", () => ({ DiscoverLeadersMo
 
 let host: HTMLDivElement, root: Root, external: HTMLButtonElement;
 beforeEach(() => {
+  navigation.push.mockReset(); navigation.beta = true;
   window.history.replaceState(null, "", "/discover");
   external = document.createElement("button"); external.textContent = "Shell action"; document.body.append(external); external.focus();
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
@@ -80,7 +83,38 @@ describe("Discover chooser focus continuity", () => {
   it("preserves ordinary tab-key navigation after a chooser launch", async () => {
     await render(); await activate(button("Open Heatmap"));
     await act(async () => selected().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true })));
-    expect(selected().id).toBe("wtab-sectors"); expect(document.activeElement).toBe(selected());
+    expect(selected().id).toBe("wtab-catalysts"); expect(document.activeElement).toBe(selected());
+    expect(navigation.push).not.toHaveBeenCalled();
+  });
+
+  it("opens the canonical sector workspace with market context from a new chooser action", async () => {
+    window.history.replaceState(null, "", "/discover?workspaceMarket=us");
+    await render(); await activate(button("Open Sectors"));
+    expect(navigation.push).toHaveBeenCalledWith("/sectors?workspaceMarket=us");
+    expect(window.location.search).toBe("?workspaceMarket=us");
+  });
+
+  it("preserves a bookmarked sector investigation and its depth-return state without the Discover tab layer", async () => {
+    const href = "/discover?tab=sectors&sectorWorkspace=detail&sector=xlk&sectorView=drivers&sectorReturn=fixture#source";
+    const state = { mmxSectorDepthReturn: { fixture: "original-opener" }, other: "owned-elsewhere" };
+    window.history.replaceState(state, "", href);
+    await render();
+    expect(window.location.pathname + window.location.search + window.location.hash).toBe(href);
+    expect(window.history.state).toEqual(state);
+    expect(host.querySelectorAll("main")).toHaveLength(1);
+    expect(host.querySelectorAll("h1")).toHaveLength(1);
+    expect(host.querySelector('[role="tablist"]')).toBeNull();
+    expect(navigation.push).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(external);
+  });
+
+  it("retains the incumbent sector tab outside the beta shell", async () => {
+    navigation.beta = false;
+    window.history.replaceState(null, "", "/discover?tab=heatmap");
+    await render();
+    await act(async () => selected().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true })));
+    expect(selected().id).toBe("wtab-sectors");
+    expect(navigation.push).not.toHaveBeenCalled();
   });
 
   it("does not steal focus from a newer interaction before the view commits", async () => {

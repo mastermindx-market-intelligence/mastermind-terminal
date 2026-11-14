@@ -242,7 +242,7 @@ for (const [lang, theme] of cases) {
       const date = (await observation.locator("time").textContent())!.trim();
       const value = (await observation.locator("strong").first().textContent())!.trim();
       const selectFamily = async (label: string) => {
-        if (initialViewport.width >= 641 && initialViewport.width <= 980) {
+        if (initialViewport.width <= 980) {
           await page.getByTestId("sector-cycle-lens").getByRole("button", { name: L.changeSeries, exact: true }).click();
           const sheet = page.getByRole("dialog");
           await expect(sheet).toBeVisible();
@@ -306,9 +306,9 @@ for (const [lang, theme] of cases) {
 
     const rail = page.getByTestId("cycle-phase-rail");
     const panel = page.getByTestId("cycle-chart-panel");
-    // R5-Y04 replaces the rail with the real picker only in the tablet band.
+    // Compact layouts use the real series picker on phones and tablets.
     const width = page.viewportSize()!.width;
-    const usesPicker = width >= 641 && width <= 980;
+    const usesPicker = width <= 980;
     const heroTicker = page.getByTestId("cycle-hero").locator("h3 > b");
     const openPicker = async () => {
       await expect(rail).toBeHidden();
@@ -374,12 +374,15 @@ for (const [lang, theme] of cases) {
     await panel.getByRole("button", { name: L.table, exact: true }).click();
     const dataTable = panel.locator("table").first();
     await expect(dataTable).toBeVisible();
-    await expect(dataTable.locator("tbody tr")).toHaveCount(64); // 3-month window: 63-day span, inclusive endpoints
+    // Range controls count supplied observations, not elapsed calendar days.
+    await expect(dataTable.locator("tbody tr")).toHaveCount(63);
+    await expect(dataTable.locator("tbody tr").first().locator("th")).toHaveText("2026-05-02");
+    await expect(dataTable.locator("tbody tr").last().locator("th")).toHaveText("2026-03-01");
     const row = dataTable.locator(`tbody tr:has(> th:text-is("${date}"))`);
     await expect(row).toHaveCount(1);
     await expect(row.locator("td").first()).toHaveText(chartValue);
 
-    /* ── Range select: All and 1-month windows (exact row counts) ── */
+    /* ── Range select: All and 21-session windows (exact boundaries) ── */
     await panel.getByLabel(L.range).selectOption("0");
     await expect(dataTable.locator("tbody tr")).toHaveCount(252);
 
@@ -400,7 +403,9 @@ for (const [lang, theme] of cases) {
     await expect(fs).toBeHidden();
 
     await panel.getByLabel(L.range).selectOption("21");
-    await expect(dataTable.locator("tbody tr")).toHaveCount(22); // 21-day span, inclusive
+    await expect(dataTable.locator("tbody tr")).toHaveCount(21);
+    await expect(dataTable.locator("tbody tr").first().locator("th")).toHaveText("2026-05-02");
+    await expect(dataTable.locator("tbody tr").last().locator("th")).toHaveText("2026-04-12");
 
     /* ── Scale: the fixture RS crosses zero, so log is an honest refusal ── */
     await expect(panel.getByRole("option", { name: L.log, exact: true })).toHaveAttribute("disabled", "");
@@ -599,13 +604,14 @@ for (const [lang, theme] of cases) {
     await sheet.getByRole("button", { name: L.phaseAll, exact: true }).tap();
     await expect(sheet.locator("li")).toHaveCount(5);
     await expect(sheet).toContainText(L.selectedFoot);
-    // XLF is price-basis vs XLK's total return: refused with the reason.
+    // The price-cycle structures differ, but both retained RS series use TR.
     const xlfRow = sheet.locator("li").filter({ hasText: L.financials });
-    await expect(xlfRow.getByRole("checkbox")).toBeDisabled();
-    await expect(xlfRow).toContainText(lang === "zh" ? "口径" : "basis");
-    // XLE shares the tr basis: selectable, then committed through Apply.
+    await expect(xlfRow.getByRole("radio")).toBeEnabled();
+    await xlfRow.getByRole("radio").check();
+    // One comparison choice is retained; choosing Energy replaces Financials.
     const xleRow = sheet.locator("li").filter({ hasText: L.energy });
-    await xleRow.getByRole("checkbox").tap();
+    await xleRow.getByRole("radio").check();
+    await expect(xlfRow.getByRole("radio")).not.toBeChecked();
     await sheet.getByRole("button", { name: L.apply, exact: true }).tap();
     await expect(sheet).toBeHidden();
     await expect(panel).toContainText(`${L.energy} · ${L.rs63}`);

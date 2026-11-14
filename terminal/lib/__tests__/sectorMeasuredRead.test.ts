@@ -12,6 +12,7 @@ describe("sector measured_read consumer contract", () => {
     expect(read.partial).toBe(true);
     expect(read.sessionEnd).toBe("2026-10-09");
     expect(read.benchmark).toBe("SPY");
+    expect(read.basis).toBe("total_return");
     expect(read.expectedN).toBe(11);
     expect(read.measuredN).toBe(9);
     expect(read.ranked.map(group => group.groupId)).toEqual(["XLE", "XLY", "XLC", "XLF", "XLV", "XLK", "XLI", "XLB", "XLP"]);
@@ -44,8 +45,16 @@ describe("sector measured_read consumer contract", () => {
     expect(read.unmeasured[1].nameEn).toBe("Utilities");
   });
 
+  it("does not infer a total-return basis when the source omits it or supplies another basis", () => {
+    for (const basis of [undefined, "price", "tr_fallback"]) {
+      const read = clone();
+      (read.generation as Record<string, unknown>).price_basis = basis;
+      expect(sectorMeasuredRead({ measured_read: read }).basis).toBeNull();
+    }
+  });
+
   it("reports absent, outage and invalid states with the exact empty result on any input", () => {
-    const empty = (state: string) => ({ state, partial: false, sessionEnd: null, benchmark: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
+    const empty = (state: string) => ({ state, partial: false, sessionEnd: null, benchmark: null, basis: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
     for (const bad of [{}, null, "x", []]) {
       expect(sectorMeasuredRead(bad)).toEqual(empty("absent"));
     }

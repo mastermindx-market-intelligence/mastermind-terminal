@@ -46,7 +46,7 @@ async function noOverflow(page: Page) {
 
 const subject = (page: Page) => page.getByTestId("sector-intelligence");
 const brief = (page: Page) => page.getByTestId("sector-native-brief");
-const exploreRows = (page: Page) => page.getByTestId("sector-native-explore").locator("[role='list'] [data-sector-choice]");
+const exploreRows = (page: Page) => page.getByTestId("sector-native-explore").locator("tbody th[scope='row'] [data-sector-choice]");
 // `next dev` compiles the route on first demand; the suite-level warm-up only
 // covers /terminal. Landing assertions tolerate the cold-route compile, the
 // rest keep the default budget once the app is hydrated.

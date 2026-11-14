@@ -231,10 +231,11 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
         ) : props.view === "table" ? (
           <div className={s.scrollTable}>
             <table>
-              <caption>{chartLabel}</caption>
+              <caption>{props.series.every(series => series.basis === "tr")
+                ? t("scHistoryMeasure", { bench: props.benchmark }) : chartLabel}</caption>
               <thead>
                 <tr>
-                  <th>{t("scObservationDate")}</th>
+                  <th scope="col">{t("scObservationDate")}</th>
                   {shown.map((x) => (
                     <th key={x.subjectId + x.label} scope="col">
                       {x.label}

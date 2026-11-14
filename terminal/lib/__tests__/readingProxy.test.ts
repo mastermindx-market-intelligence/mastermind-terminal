@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { proxyReading } from '@/lib/shared-shell/readingProxy';
+import { ECONOMIC_WORKSPACES } from '@/lib/shared-shell/macroEconomyPayload';
 
 const USER_ID = '11111111-2222-3333-4444-555555555555';
 const SERVER_TOKEN = 'server-side-session-token';
@@ -114,6 +115,19 @@ afterEach(() => {
 });
 
 describe('authentication', () => {
+  it('reads the native Macro resource through the same verified identity and fixed upstream', async () => {
+    const response = await proxyReading(bffRequest(), 'macroDashboard');
+    expect(response.status).toBe(200);
+    await expectSecureHeaders(response);
+    expect(fetchMock.mock.calls[0][0]).toBe(DEFAULT_BASE + '/api/macro/dashboard');
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer ' + SERVER_TOKEN);
+  });
+  it('rejects all caller-selected native Macro paths, markets and sources', async () => {
+    for (const query of ['path=/private', 'market=hk', 'url=https://other.test', 'source=live']) {
+      expect((await proxyReading(bffRequest('https://app.test/bff?' + query), 'macroDashboard')).status).toBe(400);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('returns 401 when there is no authenticated user', async () => {
     supabase.getUser.mockResolvedValue({ data: { user: null }, error: null });
     const res = await proxyReading(bffRequest(), 'catalog');
@@ -192,6 +206,25 @@ describe('authentication', () => {
 });
 
 describe('fixed upstream paths', () => {
+  it.each(Object.keys(ECONOMIC_WORKSPACES))('reads admitted %s through the same authenticated Macro resource', async workspace => {
+    const response = await proxyReading(bffRequest(`https://app.test/bff?workspace=${workspace}`), 'today');
+    expect(response.status).toBe(200);
+    expect(lastCall().url).toBe(`${DEFAULT_BASE}/api/macro/command?workspace=${workspace}`);
+    expect(lastCall().headers.get('authorization')).toBe(`Bearer ${SERVER_TOKEN}`);
+    expect(lastCall().headers.get('cookie')).toBeNull();
+    await expectSecureHeaders(response);
+  });
+  it('forwards only the closed native Liquidity selector to the incumbent Macro route', async () => {
+    const response = await proxyReading(bffRequest('https://app.test/bff?workspace=liquidity_regime'), 'today');
+    expect(response.status).toBe(200);
+    expect(lastCall().url).toBe(`${DEFAULT_BASE}/api/macro/command?workspace=liquidity_regime`);
+    expect(lastCall().headers.get('authorization')).toBe(`Bearer ${SERVER_TOKEN}`);
+    await expectSecureHeaders(response);
+  });
+  it.each(['workspace=', 'workspace=unknown', 'workspace=LIQUIDITY_REGIME', 'workspace=liquidity_regime&workspace=liquidity_regime', 'workspace=liquidity_regime&region=CN', 'path=workspaces/liquidity_regime/US/latest.json'])('rejects non-admitted Macro query %s without upstream reads', async query => {
+    const response = await proxyReading(bffRequest(`https://app.test/bff?${query}`), 'today');
+    expect(response.status).toBe(400);expect(fetchMock).not.toHaveBeenCalled();await expectSecureHeaders(response);
+  });
   it.each([
     ['catalog', '/api/research/catalog'],
     ['search', '/api/research/search'],
@@ -453,3 +486,4 @@ describe('gateway base configuration', () => {
     await expectSecureHeaders(res);
   });
 });
+

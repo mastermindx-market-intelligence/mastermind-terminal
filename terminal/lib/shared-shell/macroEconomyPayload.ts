@@ -96,9 +96,10 @@ export function economicSourceIds(refs: string[], sources: EconomicSource[]): st
     return candidates.length === 1 ? [candidates[0].source_id] : [];
   });
 }
+export type EconomicCurveSourceBinding = { series_id: string; source_ref: string; source_id: string };
 export type EconomicCurve = {
   ok: boolean; shape_read: Pair; as_of_caption: Pair | null; null_panel: Pair;
-  tenors: { tenor: string; label: Pair; as_of_tenor: string | null; today: number | null; prior_close: number | null; prior_month: number | null; delta_close: number | null; delta_month: number | null; prior_close_as_of?: string | null; prior_month_as_of?: string | null }[];
+  tenors: { tenor: string; label: Pair; as_of_tenor: string | null; today: number | null; prior_close: number | null; prior_month: number | null; delta_close: number | null; delta_month: number | null; prior_close_as_of?: string | null; prior_month_as_of?: string | null; source_binding?: EconomicCurveSourceBinding | null }[];
 };
 export const PAYROLL_ROLES = ["earliest_change", "selected_change", "net_revision", "earliest_vintage", "selected_vintage"] as const;
 export type PayrollRevisionRole = typeof PAYROLL_ROLES[number];
@@ -162,6 +163,51 @@ function validPoints(points: unknown): points is EconomicPoint[] {
   return points.every((p, i) => i === 0 || (points[i - 1].t as string) < (p.t as string));
 }
 const clocks = (v: unknown) => list(v, row => pair(row.name) && pair(row.meaning) && nullableText(row.value), 12);
+
+// Frozen nominal CMT identities from the canonical Rates composer and curve
+// alias contract. This validates an asserted relation; it never discovers data
+// or infers a source from a display label.
+const CURVE_SOURCE_SERIES: Record<EconomicTenor, readonly [string, string]> = {
+  "3m": ["us3m", "DGS3MO"], "6m": ["us6m", "DGS6MO"], "1y": ["us1y", "DGS1"],
+  "2y": ["us2y", "DGS2"], "3y": ["us3y", "DGS3"], "5y": ["us5y", "DGS5"],
+  "7y": ["us7y", "DGS7"], "10y": ["us10y", "DGS10"], "20y": ["us20y", "DGS20"], "30y": ["us30y", "DGS30"],
+};
+function curveCoordinateUnits(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  const scaled = value * 10000, units = Math.round(scaled);
+  // CMT points are already published to four decimals. Require that exact
+  // published precision before scaling; never round a new/tie-valued input.
+  return Number.isSafeInteger(units) && Number(value.toFixed(4)) === value ? units : null;
+}
+function validCurveSourceBinding(row: Record<string, unknown>, entries: Record<string, unknown>[], sources: Record<string, unknown>[], method: unknown): boolean {
+  const binding = row.source_binding;
+  if (binding === undefined || binding === null) return true;
+  if (method !== "rates_curves.compose.v1" || !record(binding) || Object.keys(binding).length !== 3 || !identity(binding.series_id) || !identity(binding.source_ref) || !identity(binding.source_id)) return false;
+  const [canonical, fred] = CURVE_SOURCE_SERIES[row.tenor as EconomicTenor];
+  // compose.v1 owns sid.lower(); reserved evidence controls cannot be source IDs.
+  if (binding.source_id !== fred.toLowerCase()) return false;
+  const aliases = [canonical, row.tenor, `${canonical}_level`, fred];
+  const candidates = entries.filter(entry => aliases.includes(entry.series_id));
+  if (candidates.length !== 1) return false;
+  const series = candidates[0];
+  if (binding.series_id !== series.series_id || binding.source_ref !== `FRED:${fred}` || series.source_ref !== binding.source_ref || series.unit_token !== "percent" || series.basis_token !== "constant_maturity_investment_basis" || !Array.isArray(series.points)) return false;
+  const points = series.points as EconomicPoint[];
+  if (points.some(point => point.v !== null && curveCoordinateUnits(point.v) === null)) return false;
+  const measured = points.filter((point): point is EconomicPoint & { v: number } => point.v !== null), latest = measured.at(-1);
+  if (!latest || row.today !== latest.v || row.as_of_tenor !== latest.t) return false;
+  const prior = measured.at(-2), cutoff = Date.parse(latest.t) - 30 * 86400000;
+  const month = measured.filter(point => Date.parse(point.t) <= cutoff).at(-1);
+  for (const [window, delta, point] of [["prior_close", "delta_close", prior], ["prior_month", "delta_month", month]] as const) {
+    if (!point) { if (row[window] !== null || row[`${window}_as_of`] !== null || row[delta] !== null) return false; }
+    else if (row[window] !== point.v || row[`${window}_as_of`] !== point.t || curveCoordinateUnits(row[delta]) !== curveCoordinateUnits(latest.v)! - curveCoordinateUnits(point.v)!) return false;
+  }
+  // Check the exact artifact independently: economicSourceIds intentionally
+  // accepts direct IDs first, which cannot prove a nominal FRED relation.
+  const disclosures = sources.filter(source => source.artifact_ref === `data/fred/${fred}.parquet`);
+  if (disclosures.length !== 1 || disclosures[0].source_id !== binding.source_id || sources.filter(source => source.source_id === binding.source_id).length !== 1) return false;
+  const periods = (disclosures[0].clocks as Record<string, unknown>[]).filter(clock => clock.key === "reference_period");
+  return periods.length === 1 && periods[0].value === latest.t;
+}
 
 function payrollRevisions(value: unknown, metrics: Record<string, unknown>[], sources: Record<string, unknown>[], composedAt: string): value is EconomicPayrollRevisions {
   if (!record(value) || value.schema !== "mastermind.payroll_revision_view.v1" || value.method !== "payroll_retained_vintages.v1" || value.basis !== "retrospective_alfred_recorded_vintages" || value.unit !== "thousands" || !["ready", "partial", "unavailable"].includes(value.status as string) || typeof value.cutoff !== "string" || !date(value.cutoff) || !pair(value.title) || !pair(value.description) || !pair(value.limitation) || !absence(value.absence) || !Array.isArray(value.source_refs)) return false;
@@ -291,6 +337,7 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
           if (window === "prior_month" && Date.parse(row.as_of_tenor) - Date.parse(stamp) < 30 * 86400000) return null;
         }
       }
+      if (!validCurveSourceBinding(qualified, v.series.entries, e.sources, h.method_version)) return null;
       tenors.push(qualified);
     }
     qualifiedCurve = { ...curve, tenors } as unknown as EconomicCurve;
@@ -299,3 +346,4 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
   // their useful evidence, but explicitly mark coordinates unavailable.
   return { ...input, selected_workspace: { ...selected, view: { ...v, ...(qualifiedCurve ? { curve_hero: qualifiedCurve } : {}), series: { ...v.series, entries: v.series.entries.map(row => ({ ...row, points: row.points ?? null })) } } } } as unknown as EconomicWorkspaceRead;
 }
+

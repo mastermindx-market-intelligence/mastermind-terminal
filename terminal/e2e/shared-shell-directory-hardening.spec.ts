@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Runs real AppShell/ShellDirectory/Link and the existing development-only
+// Runs real AppShell/ShellMegaMenu/Link and the existing development-only
 // identity seam. No alternative directory renderer or production auth change.
 test.skip(process.env.MMX_SHARED_SHELL !== "1", "Existing beta opt-in required");
 test.use({ colorScheme: "dark" });
-const directory = (page: Page) => page.locator(".shared-shell-directory[open]");
+const directory = (page: Page) => page.locator("#shared-shell-tools");
 const observations = new WeakMap<Page, { pageErrors: string[]; consoleErrors: string[]; failedRequests: string[]; httpErrors: string[] }>();
 
 test.beforeEach(async ({ context, page, baseURL }) => {
@@ -39,156 +39,117 @@ test.afterEach(async ({ page }, info) => {
 });
 
 async function open(page: Page) {
-  if (page.viewportSize()!.width <= 860) {
+  const phone = page.viewportSize()!.width <= 860;
+  if (phone) {
     await page.getByRole("button", { name: "Open navigation", exact: true }).click();
-    await page.locator(".m-drawer.open").getByRole("button", { name: "All tools", exact: true }).click();
+    const drawer = page.locator(".m-drawer.open");
+    await expect(drawer.getByRole("link", { name: "Terminal", exact: true })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Mastermind AI", exact: true })).toHaveAttribute("href", /^\/brain/);
+    await drawer.getByRole("button", { name: "Browse tools" }).click();
   } else {
-    await page.locator(".topbar .shared-shell-directory-trigger").click();
+    await page.locator("[data-tool-browser-trigger]").click();
   }
   await expect(directory(page)).toBeVisible();
-  await expect(directory(page).getByRole("searchbox")).toBeFocused();
-  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(directory(page).locator("[data-family]")).toHaveCount(6);
+  await expect(directory(page).getByRole("searchbox")).toHaveCount(0);
 }
 
-async function contained(page: Page) {
-  const box = await directory(page).boundingBox();
-  expect(box!.x).toBeGreaterThanOrEqual(0);
-  expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
-  expect(box!.y).toBeGreaterThanOrEqual(0);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-}
-
-test("query-wide recovery is distinct from category scope in the real catalogue", async ({ page }, info) => {
+test("browse each tool family, expand secondary desks and follow native links", async ({ page }, info) => {
   await open(page);
-  const dialog = directory(page);
-  await dialog.getByRole("searchbox").fill("options");
-  await expect(dialog.locator(".shared-directory-link")).toHaveCount(12);
-  const before = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")));
-  expect(before).toEqual(expect.arrayContaining(["/options", "/options.html", "/options_screener.html", "/options/futures"]));
-  await dialog.getByRole("button", { name: "Workspaces", exact: true }).click();
-  await expect(dialog.getByRole("status")).toHaveText("2 in this category");
-  await expect(dialog.locator(".shared-directory-link")).toHaveCount(2);
-  const recovery = dialog.getByRole("button", { name: "Show all 12 matches", exact: true });
-  expect((await recovery.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  await contained(page);
-  await page.screenshot({ animations: "disabled", path: info.outputPath("category-recovery-dark-en.png") });
-  await recovery.focus(); await page.keyboard.press("Enter");
-  await expect(dialog.getByRole("button", { name: "All", exact: true })).toBeFocused();
-  await expect(dialog.getByRole("searchbox")).toHaveValue("options");
-  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")))).toEqual(before);
-  await dialog.getByRole("button", { name: "Research", exact: true }).click();
-  await expect(dialog.getByRole("heading", { name: "No matches in this category", exact: true })).toBeVisible();
-  await expect(dialog.getByRole("status")).toHaveText("0 in this category");
-  await expect(dialog.getByRole("button", { name: "Show all 12 matches", exact: true })).toBeVisible();
-  await page.screenshot({ animations: "disabled", path: info.outputPath("empty-category-dark-en.png") });
+  const nav = directory(page);
+  await nav.getByRole("button", { name: /Options & flows/ }).click();
+  const tape = nav.getByRole("link", { name: /^Options tape/ });
+  await expect(tape).toHaveAttribute("href", /^\/options\?tab=tape/);
+  const more = nav.locator("summary");
+  await more.focus(); await page.keyboard.press("Enter");
+  await expect(nav.getByRole("link", { name: "Market tide", exact: true })).toBeVisible();
+  await expect(nav.locator('a[href^="https://www.mastermind-x.com/"]').first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath("browse-options-dark-en.png"), animations: "disabled" });
+  await nav.getByRole("button", { name: /Markets & macro/ }).click();
+  await nav.getByRole("link", { name: "Market Reference", exact: true }).click();
+  await expect(page).toHaveURL(/\/market-reference(\?|$)/);
+  await expect(directory(page)).toHaveCount(0);
 });
 
-test("clear query, batching and same-instance reopen retain the correct state", async ({ page }) => {
-  await open(page); const dialog = directory(page);
-  await dialog.getByRole("button", { name: "Show more", exact: true }).click();
-  await expect(dialog.locator(".shared-directory-link")).toHaveCount(96);
-  await page.keyboard.press("Escape"); await open(page);
-  await expect(dialog.locator(".shared-directory-link")).toHaveCount(96);
-  await dialog.getByRole("searchbox").fill("no-such-directory-destination-20261104");
-  await expect(dialog.getByRole("heading", { name: "No pages found", exact: true })).toBeVisible();
-  await dialog.getByRole("button", { name: "Tools", exact: true }).click();
-  await dialog.getByRole("button", { name: "Clear search", exact: true }).click();
-  await expect(dialog.getByRole("searchbox")).toHaveValue("");
-  await expect(dialog.getByRole("searchbox")).toBeFocused();
-  await expect(dialog.getByRole("button", { name: "Tools", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(dialog.locator(".shared-directory-results")).not.toHaveAttribute("aria-live", /.+/);
-  await expect(dialog.getByRole("status")).toHaveAttribute("aria-atomic", "true");
-});
-
-test("actual locale/theme controls preserve a filtered directory across reopen", async ({ page }, info) => {
-  await open(page); let dialog = directory(page);
-  await dialog.getByRole("searchbox").fill("options");
-  await dialog.getByRole("button", { name: "Workspaces", exact: true }).click();
-  const identities = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")));
+test("keyboard activation restores focus and releases the touch sheet", async ({ page }) => {
+  await open(page);
+  const nav = directory(page);
+  await nav.locator("[data-family]").first().focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(nav.locator("[data-family]").nth(1)).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(nav.getByRole("link").first()).toBeFocused();
   await page.keyboard.press("Escape");
+  await expect(nav).toHaveCount(0);
+  await expect(page.locator(page.viewportSize()!.width <= 860 ? "[data-shell-menu-opener]:visible" : "[data-tool-browser-trigger]")).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).not.toBe("hidden");
+});
+
+test("pointer crosses from the rail into family rows and dismisses outside", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "Desktop hover interaction");
+  const opener = page.locator("[data-tool-browser-trigger]");
+  await opener.hover();
+  const nav = directory(page);
+  const families = nav.locator("[data-family]");
+  await expect(nav).toBeVisible();
+  const familyBounds = () => families.evaluateAll(rows => rows.map(row => {
+    const { x, y, width, height } = row.getBoundingClientRect();
+    return { x, y, width, height };
+  }));
+  const initial = await familyBounds();
+  expect(initial).toHaveLength(6);
+  for (const [index, box] of initial.entries()) {
+    const row = families.nth(index);
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(point.x, point.y);
+    await expect(row).toHaveAttribute("aria-pressed", "true");
+    // A bottom-anchored, shrink-wrapped flyout could switch families on the
+    // next paint without another pointer movement.
+    const stable = await row.evaluate(async (target, point) => {
+      for (let frame = 0; frame < 6; frame++) {
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        if (!target.contains(document.elementFromPoint(point.x, point.y)) || target.getAttribute("aria-pressed") !== "true") return false;
+      }
+      return true;
+    }, point);
+    expect(stable, "stationary pointer keeps its tool family").toBe(true);
+    expect(await familyBounds()).toEqual(initial);
+  }
+  const more = nav.locator("summary");
+  await more.click();
+  await expect(nav.locator("details")).toHaveAttribute("open", "");
+  expect(await familyBounds()).toEqual(initial);
+  await more.click();
+  expect(await familyBounds()).toEqual(initial);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.locator(".topbar-brand-group").click({ position: { x: 5, y: 5 } });
+  await expect(directory(page)).toHaveCount(0);
+});
+
+test("light Chinese browse and independent search stay reachable at narrow widths", async ({ page }, info) => {
   await page.getByRole("button", { name: "Light theme", exact: true }).click();
   await page.getByRole("button", { name: "Chinese language", exact: true }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  // Keyboard invocation uses the existing shell listener after the old modal closed.
-  await page.locator("main").first().click({ position: { x: 5, y: 5 } });
-  await page.keyboard.press("ControlOrMeta+k"); dialog = directory(page);
-  await expect(dialog).toBeVisible(); await expect(dialog.getByRole("searchbox")).toHaveValue("options");
-  await expect(dialog.getByRole("button", { name: "工作区", exact: true })).toHaveAttribute("aria-pressed", "true");
-  expect(await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")))).toEqual(identities);
-  await expect(dialog.getByRole("button", { name: "查看全部 12 个匹配结果", exact: true })).toBeVisible();
-  await contained(page);
-  await page.screenshot({ animations: "disabled", path: info.outputPath("category-recovery-light-zh.png") });
-  await page.setViewportSize({ width: 320, height: 420 });
-  await contained(page); await expect(dialog.getByRole("button", { name: "关闭", exact: true })).toBeVisible();
-  await expect(dialog.getByRole("searchbox")).toBeVisible();
-  await page.screenshot({ animations: "disabled", path: info.outputPath("short-320-light-zh.png") });
-});
-
-test("drawer-to-directory and resize close return to a visible persistent control", async ({ page }, info) => {
-  await open(page); await directory(page).getByRole("searchbox").fill("options");
-  if (info.project.name === "desktop") await page.setViewportSize({ width: 320, height: 844 });
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Open navigation", exact: true })).toBeFocused();
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-  await page.screenshot({ animations: "disabled", path: info.outputPath("visible-focus-return.png") });
-});
-
-test("directory transfers once to the real company picker and respects composing Escape", async ({ page }) => {
-  await open(page); const input = directory(page).getByRole("searchbox");
-  await input.dispatchEvent("compositionstart", { data: "期" });
-  await input.dispatchEvent("keydown", { key: "Escape", isComposing: true, bubbles: true, cancelable: true });
+  await page.keyboard.press("ControlOrMeta+k");
   await expect(directory(page)).toBeVisible();
-  await input.dispatchEvent("compositionend", { data: "期权" });
-  await directory(page).locator(".shared-directory-footer button").click();
-  await expect(directory(page)).toHaveCount(0); await expect(page.getByRole("dialog")).toHaveCount(1);
-  // The accepted shared search now contains Companies and Tools. Keep the
-  // handoff's Companies scope explicit instead of asserting its retired title.
-  await expect(page.getByRole("dialog")).toHaveAccessibleName("Search companies and tools");
-  await expect(page.getByRole("dialog").getByRole("button", { name: /^Companies/ })).toHaveAttribute("aria-pressed", "true");
+  await page.setViewportSize({ width: 320, height: 560 });
+  await expect(directory(page).getByRole("button", { name: /研究/ })).toBeVisible();
+  await directory(page).getByRole("button", { name: /研究/ }).click();
+  await expect(directory(page).getByRole("link").first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath("browse-research-light-zh.png"), animations: "disabled" });
+  await page.keyboard.press("Escape"); await page.keyboard.press("/");
   await expect(page.getByRole("dialog").getByRole("combobox")).toBeFocused();
-  await page.keyboard.press("Escape"); await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
 });
 
-test("native dialog cancellation respects the captured Escape owner", async ({ page }) => {
-  await open(page); const input = directory(page).getByRole("searchbox");
-  // Native Escape after composition ends in a child listener must still belong
-  // to that composition. This exercises native dialog cancellation in Chromium;
-  // it does not establish an operating-system IME or assistive-technology pass.
-  await input.dispatchEvent("compositionstart", { data: "期" });
-  await input.evaluate(element => element.addEventListener("keydown", () => {
-    element.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "期权" }));
-  }, { once: true }));
-  await page.keyboard.press("Escape");
-  await expect(directory(page)).toBeVisible(); await expect(input).toBeFocused();
-  const guarded = await input.evaluate(element => {
-    const modal = element.closest("dialog")!;
-    for (const signal of [{ isComposing: true }, { keyCode: 229 }, { repeat: true }]) {
-      element.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true, ...signal }));
-      modal.requestClose();
-      if (!modal.open) return false;
-    }
-    // Consumed protection cannot block a second independent request, even
-    // before a keyup or the expiry task has run.
-    modal.requestClose();
-    return true;
-  });
-  expect(guarded).toBe(true);
-  await expect(directory(page)).toHaveCount(0);
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-});
-
-test("real Next Link keeps the current directory on modified activation", async ({ page, context }, info) => {
+test("modified navigation retains the selected tool family for the original tab", async ({ page, context }, info) => {
   test.skip(info.project.name !== "desktop", "Single real new-tab browser case");
-  await open(page); await directory(page).getByRole("searchbox").fill("options");
-  const link = directory(page).locator('a[href="/options"]');
-  const popupPromise = context.waitForEvent("page");
+  await open(page);
+  const link = directory(page).getByRole("link", { name: "Market Reference", exact: true });
+  const spawned = context.waitForEvent("page");
   await link.click({ modifiers: ["ControlOrMeta"] });
-  const popup = await popupPromise; await popup.waitForURL(/\/options$/); await popup.close();
+  const popup = await spawned;
+  await popup.waitForURL(/\/market-reference(\?|$)/);
+  await popup.close();
   await expect(directory(page)).toBeVisible();
-  await expect(directory(page).getByRole("searchbox")).toHaveValue("options");
-  await link.click(); await expect(page).toHaveURL(/\/options$/); await expect(directory(page)).toHaveCount(0);
 });

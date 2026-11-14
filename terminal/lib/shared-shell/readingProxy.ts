@@ -14,8 +14,9 @@ import { NextResponse } from 'next/server';
 
 import { createClient } from '@/lib/supabase/server';
 import { isDocId, isSha256Hex, isUuid } from './readingContracts';
+import { economicWorkspaceId } from './macroEconomyPayload';
 
-export type ReadingResource = 'catalog' | 'search' | 'read' | 'today';
+export type ReadingResource = 'catalog' | 'search' | 'read' | 'today' | 'macroDashboard';
 
 const DEFAULT_BASE = 'https://www.mastermind-x.com';
 
@@ -33,6 +34,7 @@ const RESOURCE_PATH: Record<ReadingResource, string> = {
   search: '/api/research/search',
   read: '/api/research/read',
   today: '/api/macro/command',
+  macroDashboard: '/api/macro/dashboard',
 };
 
 /** Applied to every response, including every error path. */
@@ -96,7 +98,13 @@ const READ_PARAMS: Readonly<Record<string, (value: string) => boolean>> = {
 
 /** Allowlist-only query validation; null for anything unknown, duplicated or malformed. */
 function validateQuery(resource: ReadingResource, incoming: URLSearchParams): URLSearchParams | null {
-  if (resource === 'catalog' || resource === 'today') {
+  if (resource === 'today') {
+    if (incoming.keys().next().done) return new URLSearchParams();
+    const workspace = incoming.get('workspace');
+    if ([...incoming.keys()].length !== 1 || incoming.getAll('workspace').length !== 1 || !economicWorkspaceId(workspace)) return null;
+    return new URLSearchParams({ workspace });
+  }
+  if (resource === 'catalog' || resource === 'macroDashboard') {
     return incoming.keys().next().done ? new URLSearchParams() : null;
   }
   const allowed = resource === 'search' ? SEARCH_PARAMS : READ_PARAMS;
@@ -282,3 +290,4 @@ export async function proxyReading(req: Request, resource: ReadingResource, docI
   } catch { return badGateway(); }
   finally { clearTimeout(timer); req.signal.removeEventListener('abort', stop); controller.abort(); }
 }
+

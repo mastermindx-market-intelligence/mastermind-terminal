@@ -49,12 +49,12 @@ const contextOf = (transport: SectorNativeContext["transport"], accessCause?: "e
   accessCause,
 });
 
-const mount = async (context: SectorNativeContext): Promise<HTMLElement> => {
+const mount = async (context: SectorNativeContext, onOpenExplorer?: () => void): Promise<HTMLElement> => {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
   await act(async () => {
-    root.render(<NativeUnavailable context={context} onRetry={() => {}} onSources={() => {}} />);
+    root.render(<NativeUnavailable context={context} onRetry={() => {}} onSources={() => {}} onOpenExplorer={onOpenExplorer} />);
   });
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
   return host;
@@ -99,6 +99,22 @@ describe("nativeCause — the entitlement denial is its own cause (R2)", () => {
 });
 
 describe("NativeUnavailable — the entitlement state offers no sign-in remedy (R2/R4)", () => {
+  it.each(["access", "invalid", "loading"] as const)("does not offer a different source as a remedy for %s", async transport => {
+    const onOpenExplorer = vi.fn();
+    const host = await mount(contextOf(transport, "entitlement_required"), onOpenExplorer);
+    expect(host.textContent).not.toContain("Open sector explorer");
+    expect(onOpenExplorer).not.toHaveBeenCalled();
+  });
+
+  it("lets a connection failure offer an explicit explorer action without substituting values", async () => {
+    const onOpenExplorer = vi.fn();
+    const host = await mount(contextOf("error"), onOpenExplorer);
+    const action = [...host.querySelectorAll("button")].find(button => button.textContent?.includes("Open sector explorer"));
+    expect(action).toBeTruthy();
+    expect(host.querySelector('[data-testid="sector-native-brief"]')).toBeNull();
+    await act(async () => action!.click());
+    expect(onOpenExplorer).toHaveBeenCalledTimes(1);
+  });
   it("renders the exact EN subscription copy with no /login link", async () => {
     const host = await mount(contextOf("access", "entitlement_required"));
     expect(host.querySelector('[data-testid="sector-native-unavailable"]')).not.toBeNull();

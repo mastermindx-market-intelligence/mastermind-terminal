@@ -10,7 +10,7 @@ import {
 import { sharedShellSource } from "@/lib/sharedShellRoutes";
 
 const navigation = vi.hoisted(() => ({
-  path: "/macro.html",
+  path: "/sector_cycles.html",
   params: new URLSearchParams(),
   renders: [] as Array<{ path: string; browserHref: string }>,
   router: { push: vi.fn(), replace: vi.fn() },
@@ -44,7 +44,7 @@ vi.mock("@/lib/sharedShellCopy", () => ({
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const LEGACY = "https://www.mastermind-x.com";
-const INITIAL = "/macro.html?filter=a%20b&filter=a+b&slash=%2f#risk";
+const INITIAL = "/sector_cycles.html?filter=a%20b&filter=a+b&slash=%2f#risk";
 const context = { theme: "dark" as const, locale: "en" as const, contextRevision: 0 };
 const onTitle = vi.fn();
 const onContextRequest = vi.fn();
@@ -215,6 +215,34 @@ afterEach(async () => {
 });
 
 describe("Shared Shell committed navigation", () => {
+  it("keeps workspace market on the parent while the issuer owns its source canonical URL", async () => {
+    await renderCommittedRoute("/stock.html?workspaceMarket=cn#AAPL", "replace");
+    await resolveGate();
+    const init = await loadFrame();
+    expect(init.canonicalPath).toBe("/stock.html#AAPL");
+    expect(latestFrameNavigation().url.searchParams.has("workspaceMarket")).toBe(false);
+    await childMessage(readyBody("/stock.html#AAPL")); expectVisible(true);
+    const generation = latestFrameNavigation().generation;
+    await childMessage({ type: "NAVIGATE", href: "/stock.html?ticker=NVDA#NVDA", mode: "push", sameDocument: true, requestId: "issuer-context" });
+    expect(browserHref()).toBe("/stock.html?ticker=NVDA&workspaceMarket=cn#NVDA");
+    expect(postToFrame.mock.calls.at(-1)?.[0]).toMatchObject({ type: "LOCATION_ACCEPTED", canonicalPath: "/stock.html?ticker=NVDA#NVDA" });
+    await renderCommittedRoute(browserHref(), "replace");
+    expect(latestFrameNavigation().generation).toBe(generation);
+    expect(requests).toHaveLength(1);
+  });
+  it("retains Intl-owned market and raw pins across READY and same-document navigation", async () => {
+    const source = "/intl.html?view=overview&market=JP&pins=JP,KR&basis=local";
+    await renderCommittedRoute(source + "&workspaceMarket=intl", "replace");
+    await resolveGate();
+    expect((await loadFrame()).canonicalPath).toBe(source);
+    expect(latestFrameNavigation().url.search).toContain("pins=JP,KR");
+    expect(latestFrameNavigation().url.search).not.toContain("workspaceMarket");
+    await childMessage(readyBody(source)); expectVisible(true);
+    const target = "/intl.html?view=history&market=JP&pins=JP,KR&basis=local";
+    await childMessage({ type: "NAVIGATE", href: target, mode: "push", sameDocument: true, requestId: "intl-context" });
+    expect(browserHref()).toBe(target);
+    expect(postToFrame.mock.calls.at(-1)?.[0]).toMatchObject({ type: "LOCATION_ACCEPTED", canonicalPath: target });
+  });
   function diagnostic() {
     const el = container.querySelector("main")!;
     return { phase: el.getAttribute("data-shared-shell-phase"), failure: el.getAttribute("data-shared-shell-failure"),
@@ -321,7 +349,7 @@ describe("Shared Shell committed navigation", () => {
 
   it.each([
     { target: "/about.html?filter=c%20d&filter=c+d&slash=%2f#intro", mode: "push" as const },
-    { target: "/macro.html?filter=c%20d&filter=c+d&slash=%2f#next", mode: "replace" as const },
+    { target: "/sector_cycles.html?filter=c%20d&filter=c+d&slash=%2f#next", mode: "replace" as const },
   ])("pairs $mode navigation with the committed exact URL: $target", async ({ target, mode }) => {
     const owned = await start();
     const oldGeneration = latestFrameNavigation().generation;
@@ -357,7 +385,7 @@ describe("Shared Shell committed navigation", () => {
     const owned = await start();
     const generation = latestFrameNavigation().generation;
     const length = window.history.length;
-    const target = "/macro.html?filter=x%20y&filter=x+y#detail";
+    const target = "/sector_cycles.html?filter=x%20y&filter=x+y#detail";
     await childMessage({ type: "NAVIGATE", href: target, mode: "push", sameDocument: true, requestId: "same-doc" });
     expect(browserHref()).toBe(target);
     expect(window.history.length).toBe(length + 1);
@@ -555,7 +583,7 @@ describe("Shared Shell committed navigation", () => {
     const owned = await start();
     await navigate("/about.html");
     const superseded = requests.at(-1)!;
-    const target = "/macro.html?latest=a%20b&latest=a+b#final";
+    const target = "/sector_cycles.html?latest=a%20b&latest=a+b#final";
     await renderCommittedRoute(target);
     const current = requests.at(-1)!;
     expect(current).not.toBe(superseded);
@@ -563,7 +591,7 @@ describe("Shared Shell committed navigation", () => {
     await resolveGate(current);
     const init = await loadFrame();
     expect(init.canonicalPath).toBe(target);
-    expect(latestFrameNavigation().url.pathname).toBe("/macro.html");
+    expect(latestFrameNavigation().url.pathname).toBe("/sector_cycles.html");
     expect(latestFrameNavigation().url.hash).toBe("#final");
     const count = replaceFrame.mock.calls.length;
     await resolveGate(superseded);
@@ -574,7 +602,7 @@ describe("Shared Shell committed navigation", () => {
     expectPersistent(owned);
   });
 
-  it("refuses a current-generation Macro READY when the committed parent route is About", async () => {
+  it("refuses a current-generation Sector Cycles READY when the committed parent route is About", async () => {
     await start();
     const staleGeneration = latestFrameNavigation().generation;
     await navigate("/about.html");
@@ -752,3 +780,4 @@ describe("Shared Shell status revalidation", () => {
     await childMessage(readyBody(INITIAL)); expectVisible(false);
   });
 });
+

@@ -7,7 +7,7 @@
 import { useMemo } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
-import { formatValue, sectorMeasuredRead } from "@/lib/sectorIntelligence";
+import { formatValue, sectorMeasuredRead, type SectorJob } from "@/lib/sectorIntelligence";
 import type { SectorNativeContext, SectorNativeRankedRow } from "./sectorNativeSlots";
 import { nativeFill } from "./SectorNativeJobShell";
 import styles from "./SectorNative.module.css";
@@ -15,18 +15,22 @@ import styles from "./SectorNative.module.css";
 const sign = (v: number | null) => v === null || v === 0 ? undefined : v < 0 ? "down" as const : "up" as const;
 
 function windowVerdict(t: ReturnType<typeof useSectorT>, row: SectorNativeRankedRow, benchmark: string): string {
-  const ahead21 = (row.rs21d ?? 0) > 0, ahead63 = (row.rs63d ?? 0) > 0;
+  if (row.rs21d === null || row.rs63d === null) return t("siExploreUnmeasured");
+  if (row.rs21d === 0 && row.rs63d === 0) return t("siExploreEvenBoth");
+  if (row.rs21d === 0 || row.rs63d === 0) return t("siExploreEvenWindow");
+  const ahead21 = row.rs21d > 0, ahead63 = row.rs63d > 0;
   if (ahead21 && ahead63) return nativeFill(t("siDossierAheadOf"), { benchmark });
   if (!ahead21 && !ahead63) return nativeFill(t("siDossierBehindOf"), { benchmark });
   return t("siSectorDossierWindowsDisagree");
 }
 
-export default function SectorNativeExplore({ context, rows, onSelect, onOpenDossier, onSources }: {
+export default function SectorNativeExplore({ context, rows, onSelect, onOpenDossier, onSources, onJob }: {
   context: SectorNativeContext;
   rows: SectorNativeRankedRow[];
   onSelect: (sectorId: string) => void;
   onOpenDossier: (sectorId: string, view?: "intelligence" | "signals") => void;
   onSources: () => void;
+  onJob: (job: SectorJob) => void;
 }) {
   const t = useSectorT(), { lang } = useLang();
   const read = useMemo(() => sectorMeasuredRead(context.generation?.core), [context.generation]);
@@ -35,18 +39,29 @@ export default function SectorNativeExplore({ context, rows, onSelect, onOpenDos
   const selected = context.subject;
   const selectedRow = selected ? rows.find(row => row.id === selected.id) || null : null;
   const localName = (row: SectorNativeRankedRow) => lang === "zh" ? row.nameZh || row.name : row.name;
+  if (!rows.length) return <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-explore">
+    <h2 className={styles.stateTitle}>{t("siExploreEmptyTitle")}</h2>
+    <p className={styles.stateCopy}>{t("siExploreEmptyCopy")}</p>
+    <div className={styles.heroActions}>
+      <button type="button" className={styles.primaryButton} onClick={() => onJob("brief")}>{t("siNativeJobBrief")}</button>
+      <button type="button" className={styles.secondaryButton} onClick={onSources}>{t("siNativeSources")}</button>
+    </div>
+  </section>;
   return <div className={styles.exploreColumns} data-testid="sector-native-explore">
     <section className={`${styles.card} ${styles.rankCard}`}>
-      <div className={styles.rankHeaderRow} aria-hidden="true">
-        <span className={styles.rankSector}>{t("siExploreColSector")}</span>
-        <span className="num">{t("siExploreCol63")}</span>
-        <span className="num">{t("siExploreCol21")}</span>
-        <span className="right">{t("siExploreColParticipation")}</span>
-      </div>
-      <div className={styles.rankRows} role="list">
-        {rows.map(row => <div key={row.id} className={styles.rankRow} role="listitem"
+      <div className={styles.rankTableWrap}>
+      <table className={styles.rankTable} aria-label={t("siBriefExplore")}>
+        <caption className={styles.rankCaption}>{read.benchmark && read.basis === "total_return"
+          ? nativeFill(t("siExploreMeasurementBasis"), { benchmark: read.benchmark })
+          : t("siExploreBasisUnavailable")}</caption>
+        <thead><tr>
+          <th scope="col">{t("siExploreColSector")}</th>
+          <th scope="col">{t("siExploreCol63")}</th>
+          <th scope="col">{t("siExploreCol21")}</th>
+        </tr></thead>
+        <tbody>{rows.map(row => <tr key={row.id} className={styles.rankRow}
           data-selected={selected && row.id === selected.id ? "true" : undefined}>
-          <span className={styles.rankSector}>
+          <th scope="row">
             <button type="button" className={styles.rankName} data-sector-choice={row.id}
               aria-pressed={selected ? selected.id === row.id : undefined}
               aria-label={nativeFill(t("siExploreSelectSector"), { sector: localName(row) })}
@@ -54,23 +69,23 @@ export default function SectorNativeExplore({ context, rows, onSelect, onOpenDos
               <span>{localName(row)}</span>
               <span className={styles.rankTicker}>{row.ticker}{selected && row.id === selected.id ? ` · ${t("siExploreSelected")}` : ""}</span>
             </button>
-          </span>
-          <span className={styles.rankValue} data-sign={sign(row.rs63d)}
-            data-label={t("siExploreCol63")}>{row.measured ? formatValue(row.rs63d, 2, "%", true) : "—"}</span>
-          <span className={styles.rankValue} data-sign={sign(row.rs21d)}
-            data-label={t("siExploreCol21")}>{row.measured ? formatValue(row.rs21d, 2, "%", true) : "—"}</span>
-          <span className={`${styles.rankValue} ${styles.rankNone}`}
-            data-label={t("siExploreColParticipation")} title={t("siNativeBreadthMissing")}>—</span>
-        </div>)}
+          </th>
+          <td className={styles.rankValue} data-sign={sign(row.rs63d)}>{row.measured ? formatValue(row.rs63d, 2, "%", true) : "—"}</td>
+          <td className={styles.rankValue} data-sign={sign(row.rs21d)}>{row.measured ? formatValue(row.rs21d, 2, "%", true) : "—"}</td>
+        </tr>)}</tbody>
+      </table>
       </div>
       <div className={styles.rankFoot}>
-        <span>{nativeFill(t("siExploreFoot"), {
-          measured: String(measured), expected: String(read.expectedN ?? rows.length) })}</span>
+        <div>
+          <p>{nativeFill(t("siExploreFoot"), {
+            measured: String(measured), expected: String(read.expectedN ?? rows.length) })}</p>
+          <p>{t("siNativeBreadthMissing")}</p>
+          {!selectedRow && <p>{t("siExploreNoneSelected")}</p>}
+        </div>
         <button type="button" className={styles.linkRow} onClick={onSources}>{t("siNativeSources")} →</button>
       </div>
     </section>
-    <aside className={`${styles.card} ${styles.inspector}`} data-testid="sector-native-inspector">
-      {selected && selectedRow ? <>
+    {selectedRow && <aside className={`${styles.card} ${styles.inspector}`} data-testid="sector-native-inspector">
         <div className={styles.inspectorChipRow}>
           <span className={styles.chip}>{selectedRow.ticker}</span>
           <span className={styles.chip}>{t("siExploreSelected")}</span>
@@ -108,11 +123,6 @@ export default function SectorNativeExplore({ context, rows, onSelect, onOpenDos
             {t("siNativeCycles")} →</button>
         </div>
         <p className={styles.chartNote}>{t("siNativeComparePending")}</p>
-      </> : <>
-        <h2 className={styles.cardTitle}>{t("siExploreInspector")}</h2>
-        <p className={styles.stateCopy}>{t("siExploreNoneSelected")}</p>
-        <p className={styles.chartNote}>{t("siNativeComparePending")}</p>
-      </>}
-    </aside>
+    </aside>}
   </div>;
 }

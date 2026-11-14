@@ -1,5 +1,6 @@
 .root{max-width:1440px;margin:0 auto;padding:32px 44px 64px;color:var(--text);font:14px/1.55 var(--font-ui);min-width:0}
 .root *{box-sizing:border-box}
+.hero,.driverEntry,.explore,.exploreLinks a{scroll-margin-top:96px}
 .root button,.root select{font:inherit;color:inherit}
 .root a{color:inherit;text-decoration:none}
 .root button{cursor:pointer}
@@ -79,6 +80,10 @@
 .observation strong{display:block;font:600 28px/1.3 var(--font-num,var(--font-ui));font-variant-numeric:tabular-nums;letter-spacing:-.025em}
 .observation small{font:400 13px/1.4 var(--font-ui);color:var(--text-2)}
 .observationDate{font-size:13px;color:var(--text-2);padding-bottom:4px}
+.curveObservation{flex-wrap:wrap;align-items:center}
+.curveObservation>.caption{max-width:100%}
+.curveObservation>button{min-height:44px}
+@media(max-width:520px){.curveObservation>button,.curveObservation>.caption{flex-basis:100%}}
 .chartContainer{width:100%;min-width:0;overflow:hidden}
 .chartContainer svg{display:block;max-width:100%}
 .chartEmpty{min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;color:var(--text-2)}
@@ -141,3 +146,4 @@
 @media(max-width:800px){.root{padding:24px}.studyLayout{display:block}.studyNav{display:none}.studyMobile{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--text-2);margin-bottom:24px}.hero{grid-template-columns:1fr}.dailyLink{display:grid;grid-template-columns:1fr auto;gap:8px 24px}.dailyLink .eyebrow{grid-column:1/-1}.dailyLink p{grid-column:1}.dailyLink>a{grid-column:2;grid-row:2/4}.productNav{margin-bottom:32px}.productNav>.caption{display:none}.historyFooter{flex-wrap:wrap}.historyFooter button{min-height:44px}}
 @media(max-width:520px){.root{padding:24px 20px 40px}.root h1{font-size:32px}.hero{margin-bottom:28px}.heroMain{gap:16px}.productLinks{gap:4px}.productLinks>a{padding:8px 10px}.productTitle{font-size:15px}.driverGrid,.metricGrid{grid-template-columns:1fr}.driverEntry>a{min-height:120px;padding:20px 0}.driverEntry strong{font-size:22px}.dailyLink{padding:20px;grid-template-columns:1fr}.dailyLink>a{grid-column:1;grid-row:auto}.explore{padding:20px}.exploreLinks{gap:4px 24px}.history{padding:16px}.historyControls{gap:12px}.historyControls label{width:100%}.history .sectionHeading{flex-wrap:wrap;gap:12px}.historyFooter{gap:8px}.axes{gap:16px}.axes dd{font-size:24px}.workspaceHeader .actions{width:100%}.workspaceHeader .actions button{flex:1}.assessment h2{font-size:24px}.sourcePanel{padding:20px}.sourceDetails>div{grid-template-columns:1fr;gap:6px}.segment>button{min-height:40px}.scrubber{flex-direction:column;align-items:stretch;gap:8px}.scrubber input{width:100%;min-height:32px}.table :is(th,td){padding-right:12px}.observation strong{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.root *{scroll-behavior:auto}}
+

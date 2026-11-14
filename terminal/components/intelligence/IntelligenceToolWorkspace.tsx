@@ -34,9 +34,9 @@ function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
     ? pick(lang, "Account verification is unavailable. Private readings are hidden.", "账户核验暂不可用。私人读数已隐藏。")
     : pick(lang, "Verifying your account…", "正在核验账户…");
  return <div className={`main2 ${s.workspace}`} data-intelligence-tool={kind}>
-  <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav />
+  {(kind !== "sectors" || !ready) && <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav />
    {kind === "prophet" && <Link className={s.action} href="/us_stocks.html" prefetch={false}>{pick(lang, "Open Prophet workspace", "打开 Prophet 工作台")} →</Link>}
-  </header>
+  </header>}
   {!ready ? <main id="shared-shell-content" tabIndex={-1} className={s.root}>
    <div role="status" className={s.notice}><p>{identityMessage}</p>
     {(ended || unavailable) && <div className={s.footer}>

@@ -15,9 +15,26 @@ import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
 const SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 
+// A failed script element must not permanently block retries or duplicate an
+// in-flight widget. The existing ready event is emitted only by the real bundle.
+export function loadBrainWidget() {
+  const host = window as unknown as MastermindBrainHost;
+  if (host.MMBrain || document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
+  const script = document.createElement("script");
+  script.src = SCRIPT_SRC;
+  script.defer = true;
+  const failed = () => {
+    script.remove();
+    window.dispatchEvent(new Event("mm-brain-load-error"));
+  };
+  script.addEventListener("error", failed, { once: true });
+  script.addEventListener("load", () => { if (!host.MMBrain) failed(); }, { once: true });
+  document.body.appendChild(script);
+}
+
 type Props = {
   active: string;
-  onCommand: (j: any) => void;
+  onCommand?: (j: any) => void;
   onAnnotate?: (j: any) => void;
   onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
   onAuthRequired?: () => void;
@@ -56,7 +73,13 @@ export default function BrainWidget({
     // reassigns `MM_BRAIN_CFG.symbol` fresh on every mount (not just the first) via
     // `handoffMastermindBrainSymbol`, so — unlike the three callbacks below — `symbol` needed no
     // further change for the mount->unmount->remount bug.
-    handoffMastermindBrainSymbol(active);
+    if (active) {
+      handoffMastermindBrainSymbol(active);
+    } else {
+      const host = window as unknown as MastermindBrainHost;
+      delete host.__MM_BRAIN_ACTIVE_SYMBOL__;
+      if (host.MM_BRAIN_CFG) host.MM_BRAIN_CFG.symbol = () => "";
+    }
   }, [active]);
   // `onCommand`/`onAnnotate`/`onAuthRequired` used to be bound ONLY inside the mount-once
   // install effect below, closing over THIS instance's refs. On a mount -> unmount -> remount
@@ -74,9 +97,9 @@ export default function BrainWidget({
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
     if (!w.MM_BRAIN_CFG) return; // first mount: the install effect (below) seeds the key
-    const fn = (j: any) => onCommandRef.current?.(j);
+    const fn = onCommand ? (j: any) => onCommandRef.current?.(j) : undefined;
     w.MM_BRAIN_CFG.onCommand = fn;
-    return () => { if (w.MM_BRAIN_CFG?.onCommand === fn) w.MM_BRAIN_CFG.onCommand = undefined; };
+    return () => { if (w.MM_BRAIN_CFG && w.MM_BRAIN_CFG.onCommand === fn) w.MM_BRAIN_CFG.onCommand = undefined; };
   }, [onCommand]);
   useEffect(() => {
     onAnnotateRef.current = onAnnotate;
@@ -136,7 +159,6 @@ export default function BrainWidget({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const w = window as unknown as MastermindBrainHost;
-    const hostAlreadyMounted = Boolean(w.MMBrain);
 
     // Meta-CEO B ruling r6, MINOR-1 (promoted to a required fix): this used to be
     // `if (w.MM_BRAIN_CFG) return;`, which exited the WHOLE effect — including the separate
@@ -167,7 +189,7 @@ export default function BrainWidget({
         anchor: "top", // no built-in launcher; host calls window.MMBrain.open()/.toggle()
         api: "", // same-origin — /api/brain/* with credentials:'include'
         symbol: () => w.__MM_BRAIN_ACTIVE_SYMBOL__ || symRef.current,
-        onCommand: (j: any) => onCommandRef.current?.(j),
+        onCommand: onCommandRef.current ? (j: any) => onCommandRef.current?.(j) : undefined,
         onAnnotate: onAnnotateRef.current ? (j: any) => onAnnotateRef.current?.(j) : undefined,
         onAuthRequired: () => onAuthRequiredRef.current?.(),
         // DeepVue W1-C: built fresh on every call — never captured once at mount — so the
@@ -194,15 +216,7 @@ export default function BrainWidget({
     // real external host re-reads it afterward.
     ensureBrainPrincipalBinding(window as unknown as MastermindBrainHost & EventTarget);
 
-    if (hostAlreadyMounted || document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
-
-    const s = document.createElement("script");
-    s.src = SCRIPT_SRC;
-    s.defer = true;
-    document.body.appendChild(s);
-    // Intentionally NOT removed on unmount: the widget is a document-level singleton mounted
-    // from two sites (TerminalShell on /terminal, AppShell on /analysis) that never render at
-    // the same time; tearing the script down would orphan window.MMBrain.
+    loadBrainWidget();
   }, []);
 
   // Bind AFTER initial CFG installation, so the first mount has the same owned

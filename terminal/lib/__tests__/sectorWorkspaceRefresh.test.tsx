@@ -6,10 +6,15 @@ import SectorIntelligenceWorkspace from "@/components/sector-intelligence/Sector
 import { SECTOR_FEEDS } from "../sectorIntelligence";
 import { SECTOR_GENERATION_PATH, SECTOR_GENERATION_PREVIEW_PATH } from "../sectorNativeGeneration";
 import { nativeGenerationFixture } from "./fixtures/sectorNativeGeneration";
+import { syntheticCycleHistory } from "./fixtures/sectorCycleHistory";
 import capturedGeneration from "./fixtures/sector_generation.captured.preview.v1.json";
 import entitledBlocksJson from "./fixtures/typed_blocks_entitled.json";
 
-const session = vi.hoisted(() => ({ identity: { userId: "owner-a", email: "a@example.test" } }));
+const session = vi.hoisted(() => ({ identity: { kind: "account" as const, userId: "owner-a", email: "a@example.test" } }));
+const appearance = vi.hoisted(() => ({ theme: null as "dark" | "light" | null }));
+vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({
+  useOptionalSharedShellPresentation: () => appearance.theme ? { context: { theme: appearance.theme } } : null,
+}));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => session.identity }));
 // ZH without mounting LangProvider (same approach as sectorNativeRowMount):
 // the depth lexicon resolves its locale through this override.
@@ -19,7 +24,10 @@ vi.mock("@/lib/i18n", async (orig) => {
   const m = (await orig()) as Record<string, unknown>;
   return { ...m, useLang: () => ({ lang: G.__SI_REFRESH_LANG ?? "en" }) };
 });
-vi.mock("@/lib/sectorIntelligenceLex", () => ({ useSectorT: () => (key: string) => key }));
+vi.mock("@/lib/sectorIntelligenceLex", async original => ({
+  ...await original<typeof import("@/lib/sectorIntelligenceLex")>(),
+  useSectorT: () => (key: string) => key,
+}));
 vi.mock("@/components/ui/MobileSheet", () => ({
   default: ({ open, children }: { open: boolean; children: ReactNode }) => open ? <aside>{children}</aside> : null,
 }));
@@ -98,6 +106,9 @@ describe("Sector workspace owner revalidation", () => {
     await act(async () => document.dispatchEvent(new Event("visibilitychange")));
   };
   beforeEach(() => {
+    appearance.theme = null;
+    // All selectors in this harness use codec-admitted simple sector ids.
+    vi.stubGlobal("CSS", { escape: (value: string) => value });
     vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout", "setInterval", "clearInterval"] });
     vi.setSystemTime(new Date("2026-11-05T21:00:00Z"));
     // jsdom has no matchMedia; the calls board's phone-disclosure query needs it.
@@ -116,14 +127,151 @@ describe("Sector workspace owner revalidation", () => {
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     vi.spyOn(window, "requestAnimationFrame").mockReturnValue(0);
     vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
-    session.identity = { userId: "owner-a", email: "a@example.test" };
+    session.identity = { kind: "account" as const, userId: "owner-a", email: "a@example.test" };
     request = vi.spyOn(globalThis, "fetch").mockImplementation(async input => Response.json(envelope(sourceOf(input))));
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   });
   afterEach(async () => {
     await act(async () => root.unmount());
     G.__SI_REFRESH_LANG = "en";
-    host.remove(); vi.restoreAllMocks(); vi.useRealTimers();
+    host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers();
+  });
+
+  const historyEnvelope = (patch: Record<string, unknown> = {}) => ({ data: syntheticCycleHistory, receipt: {
+    source: "history", status: "ready", path: "/sectordata/sector_cycles.json", asOf: "2026-11-12",
+    observedAt: "2026-11-13T00:00:00Z", contentHash: "a".repeat(64), stale: false, ...patch,
+  } });
+  const historyRequests = () => request.mock.calls.filter(([input]) => sourceOf(input) === "history");
+
+  it("opens only the history feeds, keeps host selection and restores Back focus without refetch", async () => {
+    request.mockImplementation(async input => Response.json(sourceOf(input) === "history" ? historyEnvelope() : envelope(sourceOf(input))));
+    vi.mocked(window.requestAnimationFrame).mockImplementation(callback => { callback(0); return 1; });
+    const original = "/sectors?workspaceMarket=us&sectorWorkspace=cycles&sector=xlk&sectorJob=brief&sectorSource=finviz";
+    const metadata = { next: "retained" };
+    window.history.replaceState(metadata, "", original);
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(request.mock.calls.map(([input]) => sourceOf(input)).sort()).toEqual(["events", "history"]);
+    expect(host.querySelector('[data-testid="cycle-chart-panel"]')).not.toBeNull();
+    const choose = host.querySelector<HTMLButtonElement>('[data-sector-choice="xlf"]')!;
+    await act(async () => { choose.focus(); choose.click(); });
+    expect(new URLSearchParams(window.location.search).get("sector")).toBe("xlf");
+    expect(window.history.state.next).toBe("retained");
+    expect(host.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Financials");
+    expect(document.activeElement?.getAttribute("data-sector-choice")).toBe("xlf");
+    expect(historyRequests()).toHaveLength(1);
+    await act(async () => {
+      window.history.replaceState(metadata, "", original);
+      window.dispatchEvent(new PopStateEvent("popstate", { state: metadata }));
+    });
+    expect(host.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Technology");
+    expect(document.activeElement?.getAttribute("data-sector-choice")).toBe("xlk");
+    expect(historyRequests()).toHaveLength(1);
+    await act(async () => vi.advanceTimersByTime(60_000));
+    expect(historyRequests()).toHaveLength(2);
+  });
+
+  it.each(["control", "popstate"])("restores the Cycle dossier opener after history rebind through %s", async way => {
+    const returned = deferred<Response>();
+    let reads = 0;
+    request.mockImplementation(async input => sourceOf(input) === "history"
+      ? ++reads === 3 ? returned.promise : Response.json(historyEnvelope())
+      : Response.json(envelope(sourceOf(input))));
+    vi.mocked(window.requestAnimationFrame).mockImplementation(callback => { callback(0); return 1; });
+    const original = "/sectors?workspaceMarket=us&sectorWorkspace=cycles&sector=xlk";
+    window.history.replaceState(null, "", original);
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    const opener = host.querySelector<HTMLButtonElement>('[data-sector-return-focus="cycle-dossier"]')!;
+    await act(async () => { opener.focus(); opener.click(); });
+    expect(host.querySelector('[data-testid="sector-native-dossier"]')).not.toBeNull();
+    if (way === "control") await act(async () => host.querySelector<HTMLButtonElement>('[data-testid="sector-native-dossier-back"]')!.click());
+    else await act(async () => {
+      window.history.replaceState(null, "", original);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(host.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    await act(async () => returned.resolve(Response.json(historyEnvelope())));
+    expect(host.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Technology");
+    expect(document.activeElement).toBe(host.querySelector('[data-sector-return-focus="cycle-dossier"]'));
+    expect(window.location.search).toContain("sectorWorkspace=cycles");
+    expect(window.location.search).toContain("sector=xlk");
+  });
+
+  it("updates same-byte stale metadata, retires a replacement hash and withdraws denied readings", async () => {
+    let receipt: Record<string, unknown> = {};
+    request.mockImplementation(async input => Response.json(sourceOf(input) === "history" ? historyEnvelope(receipt) : envelope(sourceOf(input))));
+    await render("cycles");
+    const slider = () => host.querySelector<HTMLInputElement>('input[type="range"][aria-valuetext]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(slider(), "2");
+      slider().dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(slider().value).toBe("2");
+    receipt = { stale: true }; await visible();
+    expect(host.textContent).toContain("Historical snapshot");
+    expect(slider().value).toBe("2");
+    receipt = { contentHash: "b".repeat(64) }; await visible();
+    expect(slider().value).not.toBe("2");
+    receipt = { status: "access" }; await visible();
+    expect(host.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    expect(host.querySelector('[data-testid="cycle-history-unavailable"]')?.textContent).toContain("siStatusAccess");
+  });
+
+  it("keeps an unknown URL sector explicit until the reader chooses an admitted identity", async () => {
+    request.mockImplementation(async input => Response.json(sourceOf(input) === "history" ? historyEnvelope() : envelope(sourceOf(input))));
+    window.history.replaceState(null, "", "/sectors?sectorWorkspace=cycles&sector=ghost");
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(host.querySelector('[data-testid="cycle-history-unknown-sector"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    expect(window.location.search).toContain("sector=ghost");
+    const select = host.querySelector<HTMLSelectElement>('[data-testid="cycle-history-unknown-sector"] select')!;
+    await act(async () => { select.value = "xlf"; select.dispatchEvent(new Event("change", { bubbles: true })); });
+    expect(host.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Financials");
+    expect(window.location.search).toContain("sector=xlf");
+  });
+
+  it("never attaches a previous actor's late history to the next account", async () => {
+    const old = deferred<Response>();
+    let reads = 0;
+    request.mockImplementation(async input => sourceOf(input) === "history"
+      ? ++reads === 1 ? old.promise : Response.json(historyEnvelope({ status: "access" }))
+      : Response.json(envelope(sourceOf(input))));
+    await render("cycles");
+    session.identity = { kind: "account", userId: "owner-b", email: "b@example.test" };
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    await act(async () => old.resolve(Response.json(historyEnvelope())));
+    expect(host.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    expect(host.querySelector('[data-testid="cycle-history-unavailable"]')?.textContent).toContain("siStatusAccess");
+    expect(historyRequests()).toHaveLength(2);
+  });
+
+  it.each(["/sectors", "/discover?tab=sectors&sectorWorkspace=discover"])("uses the shell theme at %s without rewriting legacy state or refetching sources", async href => {
+    appearance.theme = "light";
+    const url = href + (href.includes("?") ? "&" : "?") + "sectorTheme=dark";
+    const retained = { mmxSectorDepthReturn: "retained", unrelated: "retained" };
+    window.history.replaceState(retained, "", url);
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(host.querySelectorAll("main")).toHaveLength(1);
+    expect(host.querySelector("main")?.id).toBe("shared-shell-content");
+    expect(host.querySelectorAll("h1")).toHaveLength(1);
+    expect(host.querySelector("h1")?.textContent).toBe("siNativeTitle");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("light");
+    expect(host.textContent).not.toContain("siUseLight"); expect(host.textContent).not.toContain("siUseDark");
+    const reads = request.mock.calls.length;
+    appearance.theme = "dark";
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("dark");
+    expect(request.mock.calls).toHaveLength(reads);
+    expect(window.location.pathname + window.location.search).toBe(url);
+    expect(window.history.state).toEqual(retained);
+  });
+
+  it("preserves the standalone sector theme control", async () => {
+    await render("discover");
+    expect(host.querySelector("h1")?.textContent).toBe("siTitle");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("dark");
+    await click("siUseLight");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("light");
+    expect(new URLSearchParams(window.location.search).get("sectorTheme")).toBe("light");
   });
 
   it("keeps the independent weekly relative-trend method on its legacy source when native evidence is refused", async () => {
@@ -248,7 +396,7 @@ describe("Sector workspace owner revalidation", () => {
       : Response.json(envelope(sourceOf(input))));
     await render();
     const priorSignal = request.mock.calls.find(([input]) => sourceOf(input) === blockedSource)?.[1]?.signal;
-    session.identity = { userId: "owner-b", email: "b@example.test" };
+    session.identity = { kind: "account" as const, userId: "owner-b", email: "b@example.test" };
     request.mockImplementation(async input => Response.json(envelope(sourceOf(input), "Current Owner Technology")));
     await act(async () => root.render(<SectorIntelligenceWorkspace />));
     expect(priorSignal?.aborted).toBe(true);

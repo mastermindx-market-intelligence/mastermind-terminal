@@ -1,0 +1,2050 @@
+{
+  "schema": "mastermind.native_macro_integration_custody.v1",
+  "purpose": "Non-releasing exact-input qualification",
+  "protected_base": "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+  "first_parent": {
+    "pr": 1517,
+    "sha": "b663cc22445157d032776f9ef8d3225056fcd09d",
+    "tree": "4af5ab2e0d241425f30cb82fc7ea1f85aec5c906",
+    "release_effect": {
+      "state": "QUEUED",
+      "head": "b663cc22445157d032776f9ef8d3225056fcd09d",
+      "entry_id": "MQE_lQDOTOzwKM8AAAABPI7xhM4ABTs-zgP-TAc",
+      "pr_state": "OPEN",
+      "merged_commit": null
+    }
+  },
+  "imported_parents": [
+    {
+      "pr": 1501,
+      "sha": "98f6080a65201af635db2dae689e56d6095fcdf7",
+      "contains_exact_1495": "627b87e1f0655cdf60999daa99ddf8c797627449",
+      "ancestry_evidence": "GitHub compare 1495..1501: ahead 7, behind 0, merge-base exact1495"
+    },
+    {
+      "pr": 1503,
+      "sha": "19c5797192a6e894bae82853f94cdea9834efc04",
+      "hold": "Draft; canonical registry/export and publication proof remain required"
+    }
+  ],
+  "collision_paths": [
+    "terminal/e2e/shared-shell-refinement.spec.ts",
+    "terminal/lib/__tests__/readingProxy.test.ts",
+    "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
+    "terminal/lib/shared-shell/readingProxy.ts"
+  ],
+  "imported_blobs": [
+    {
+      "path": "terminal/app/(shell)/brain/loading.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/brain/page.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "a29609de35764dd10858b13e08ba2c94e095082a",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "a29609de35764dd10858b13e08ba2c94e095082a",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/market-reference/MarketReference.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "5159a01e578e24508f8ad545c9600ba108a28389",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "5159a01e578e24508f8ad545c9600ba108a28389",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/market-reference/page.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "35521f4b0cdfbe898b328f053cf5c2021b3750e0",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "35521f4b0cdfbe898b328f053cf5c2021b3750e0",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/market-reference/reference.module.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "4c5cf5a565e49c43b683efd0af7f0cb1510ad399",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4c5cf5a565e49c43b683efd0af7f0cb1510ad399",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/AppNav.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b22a99843a69da6ba36fc7148ddd933b3d3cc39c",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b22a99843a69da6ba36fc7148ddd933b3d3cc39c",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/BrainWidget.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "ba25ac2124c03c89862a32560b035e1025223fae",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ba25ac2124c03c89862a32560b035e1025223fae",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/BrainWorkspace.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "2e346e49949ad62e1331cafe1b2dfb5ffc404102",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "2e346e49949ad62e1331cafe1b2dfb5ffc404102",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/MobileNav.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "9f8b0e63adde450946229f29a58be37cd5a0bc27",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "9f8b0e63adde450946229f29a58be37cd5a0bc27",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/brain-workspace.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "949357146af6161dd3d63621489c2c33e4961a54",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "949357146af6161dd3d63621489c2c33e4961a54",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chart-brain-nav.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "bfe3d451f3cabef7c1d34a596df2e503a164d814",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "bfe3d451f3cabef7c1d34a596df2e503a164d814",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/AppShell.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "74724bbbf9198b35dd6c500ea4425ee1396492ea",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "74724bbbf9198b35dd6c500ea4425ee1396492ea",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/LegacyPageHost.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "7fb99005c514dedd33be727600787afb136199e4",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7fb99005c514dedd33be727600787afb136199e4",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellLaunchLinks.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "32cbed03bcb5177bdf9f6be951dec8803d2cb1d1",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "32cbed03bcb5177bdf9f6be951dec8803d2cb1d1",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellMarketBoundary.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "27bd2526c9c27fdb83d9dd0d9ea4f0a0214e9804",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "27bd2526c9c27fdb83d9dd0d9ea4f0a0214e9804",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellMarketSelect.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "455f30dae4ca806396e9024a2c4df9675918e850",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "455f30dae4ca806396e9024a2c4df9675918e850",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellRuntime.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "65aaefd94e03a245a5e49e1987123e747bb61ff1",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "65aaefd94e03a245a5e49e1987123e747bb61ff1",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/SharedShellToolbar.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "138aaf6613ad121c64da15864c3da5112edceb31",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "138aaf6613ad121c64da15864c3da5112edceb31",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "fc898d67e8a995569f1f3634bd994328987b3f8e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "fc898d67e8a995569f1f3634bd994328987b3f8e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/ShellSearch.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "febc7d5acb0a35d5da8f56786ede561a0a138823",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "febc7d5acb0a35d5da8f56786ede561a0a138823",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/mega-menu.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "ff115b9157e86ba07b2bce9191e7490f2f60110b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ff115b9157e86ba07b2bce9191e7490f2f60110b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "09d3ea21bce5e690382b1e28b45dc936d8ba4b10",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "09d3ea21bce5e690382b1e28b45dc936d8ba4b10",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/IntelligenceNav.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "7ebc371180e54bfae12ad408e2c7a35f0931b216",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7ebc371180e54bfae12ad408e2c7a35f0931b216",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/IntelligenceToolWorkspace.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "4660568f7e0dd2050b59bac4298f9ee6c2ef7484",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4660568f7e0dd2050b59bac4298f9ee6c2ef7484",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/IntelligenceWorkspace.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "d51db593e63ae1fa5272eb6145439e68fe640640",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d51db593e63ae1fa5272eb6145439e68fe640640",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/MacroLiquidity.module.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "717b0b3b0094efecd5b0aceecbacc89d9a1d2c5f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "717b0b3b0094efecd5b0aceecbacc89d9a1d2c5f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/MacroLiquidityDetail.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "8c762c7d52e2ffa6c1c224eb433e8d483b3e7210",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "8c762c7d52e2ffa6c1c224eb433e8d483b3e7210",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/intelligence/SharedShellPrimaryNav.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e5f5bf9be7fe9f49d58128431af7fe2be6a7357b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e5f5bf9be7fe9f49d58128431af7fe2be6a7357b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCycleHistory.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "392b54ea6e70203f3ddbda9f39b8aef4c0f5eb1a",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "392b54ea6e70203f3ddbda9f39b8aef4c0f5eb1a",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCycleLens.module.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "8a6c879897cbd4b2cfd1dcdfb0bea1adac8a41b9",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "8a6c879897cbd4b2cfd1dcdfb0bea1adac8a41b9",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorCycleLens.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "35fc4d57aa5b0c2ef4aff3243434808696536ffc",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "35fc4d57aa5b0c2ef4aff3243434808696536ffc",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "c1b4d0849ca7c8b264d86b48778961cbf8f1e39d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "c1b4d0849ca7c8b264d86b48778961cbf8f1e39d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "be520bd2d86a6a3b1a7d0813df5d7ee1c97869b6",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "be520bd2d86a6a3b1a7d0813df5d7ee1c97869b6",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorNative.module.css",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "9532d1d6993e0eb231c9d4bcd81aa8bee83ee9de",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "9532d1d6993e0eb231c9d4bcd81aa8bee83ee9de",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorNativeBrief.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b5c4972e32ea9d9ef6c20bcc702e720413a2027d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b5c4972e32ea9d9ef6c20bcc702e720413a2027d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorNativeDossier.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "d07f290c795d595609529d43f796baca89b3a37e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d07f290c795d595609529d43f796baca89b3a37e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorNativeExplore.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b89f8c8c0c864f640d39457ee8dd4de6859ea3fc",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b89f8c8c0c864f640d39457ee8dd4de6859ea3fc",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/SectorNativeJobShell.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "2b5bc6a402d2f1e7a6d2f6b5b1d4922c6904d4cd",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "2b5bc6a402d2f1e7a6d2f6b5b1d4922c6904d4cd",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/cycles/CycleChartFullscreen.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "ab0812799707dc4edc48b393ceacbdac3134165e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ab0812799707dc4edc48b393ceacbdac3134165e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/cycles/CycleChartPanel.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "c38624ba25b6d0e26e4d73fee07ce40cddd6d2bc",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "c38624ba25b6d0e26e4d73fee07ce40cddd6d2bc",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/cycles/CyclePhaseRail.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "f59fa50b22097601e55a18533bbb3544e34cf550",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f59fa50b22097601e55a18533bbb3544e34cf550",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/sector-intelligence/cycles/CycleSheets.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "66bf30ac6cfb45daf228382fd6e754ba474d6e45",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "66bf30ac6cfb45daf228382fd6e754ba474d6e45",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverWorkspace.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "a4102d1df336180c2462b75d0cf71b70900874d0",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "a4102d1df336180c2462b75d0cf71b70900874d0",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/docs/beta-shell-consolidation-20261113/PLAN.md",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "39fa5ed8d29b37f59b289d8bc0121b8cc4fb1f31",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "39fa5ed8d29b37f59b289d8bc0121b8cc4fb1f31",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/docs/beta-shell-consolidation-20261113/ROUTE_WORKLIST.md",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "daf80abcc8363f72b17287b91275030f749f5c62",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "daf80abcc8363f72b17287b91275030f749f5c62",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/mobile-nav-upgrade.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "21a5c5ded0cf7aa998a04b1f240bd3b9d6a72ea9",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "21a5c5ded0cf7aa998a04b1f240bd3b9d6a72ea9",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/sector-cycle-lens.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "3c65caec65e686adf35478b74ac10f6baf519502",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "3c65caec65e686adf35478b74ac10f6baf519502",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/sector-native-jobs.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "6fa841b83a17036da6e2bfc33e271106ab237588",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "6fa841b83a17036da6e2bfc33e271106ab237588",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/shared-shell-directory-hardening.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "0865e9175df4032fb72f3af50f81fda9ef645936",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "0865e9175df4032fb72f3af50f81fda9ef645936",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/shared-shell-market-reference.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "d21aaf7b3dd2f86147ea5b2da56883e46d07c7da",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d21aaf7b3dd2f86147ea5b2da56883e46d07c7da",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "12d6c8ec55a5dc2617b26abae497402c5b9305a0",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "1503",
+          "sha": "324bc58ee16c49a387a844575cbb766d773c41eb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "protected_48da28456ccbd3527a255684018a123660770125",
+          "sha": "7f8952c6f05d62ab0c8577843fb291d08d9166c0",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e7e044bdc61f2c074435876ac31a244efb62181d",
+      "result_mode": "100644",
+      "intentional_delta": true,
+      "previous_result_sha": "f2865e8e5dc6ee578cc7c75f2c8c3879fd93f6f7"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-scroll-lock.spec.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "81d24d5c25299908b4449a29e3352ed83a534350",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "81d24d5c25299908b4449a29e3352ed83a534350",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/tools/qualify_shared_shell_intelligence.cjs",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "8db17431f19cccf5681651a2502ac1ed71eda76b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "8db17431f19cccf5681651a2502ac1ed71eda76b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/SharedShellMarketBoundary.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "0e75f5822a71936f3433f82119423354c8daa8d2",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "0e75f5822a71936f3433f82119423354c8daa8d2",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/adminPageStatusContract.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b1449d0058156ead65f53e22b0f5ab5deefc3627",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b1449d0058156ead65f53e22b0f5ab5deefc3627",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "cccd13e5d64dd41e771febe6f17a93a74d010f4d",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "protected_48da28456ccbd3527a255684018a123660770125",
+          "sha": "c5d78a740c345aef27dc64fdc124265e20eee62e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "65529a36e01d271051f84d0d859a01f77b12272c",
+      "result_mode": "100644",
+      "intentional_delta": true,
+      "previous_result_sha": "cccd13e5d64dd41e771febe6f17a93a74d010f4d"
+    },
+    {
+      "path": "terminal/lib/__tests__/companySearchReturn.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "6f6568e3bbd139c10511ffe0ba310025e16b4d88",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "6f6568e3bbd139c10511ffe0ba310025e16b4d88",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/discoverChooserFocus.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "7b7ac4fed6f204a22540aecb6153b408e8b48b4f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7b7ac4fed6f204a22540aecb6153b408e8b48b4f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/discoverLanding.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "f36b72d827138e70e81b2d2fc6d00cd26d64534a",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f36b72d827138e70e81b2d2fc6d00cd26d64534a",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/macroLiquidity.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "4058c5e61a6f80d08b48e84e626f89ebccb54628",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4058c5e61a6f80d08b48e84e626f89ebccb54628",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/sectorCycleHistory.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e875ee1fadb2baa10b95e236688e5916877d7596",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e875ee1fadb2baa10b95e236688e5916877d7596",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/intelligenceToolLifetime.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "fac1a9f0ee90654801500693978a8c2b7d52021b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "fac1a9f0ee90654801500693978a8c2b7d52021b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/intelligenceWorkspace.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "2bddccc6cf22493da9927a848ad653b393bb69cd",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "2bddccc6cf22493da9927a848ad653b393bb69cd",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/macroWorkspacePayload.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "c4bf0318959c3d4e5a78948959090d5491948fe9",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "c4bf0318959c3d4e5a78948959090d5491948fe9",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/readingProxy.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "2e92932ee2b071e3d0af1b32dbde9d2be139f330",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "1503",
+          "sha": "6279ead982ec1d8ba3d48a8eb32255711861d442",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4cc3122b08fceffb8a89ea2c86e54ea3a9a03562",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorAmalgamationNavigation.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "baf91f786003c7a34311b03b447cac418437790f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "baf91f786003c7a34311b03b447cac418437790f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorCycleLensController.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e1b34352e1eeb8344cac70781e38982fcbb3a1de",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e1b34352e1eeb8344cac70781e38982fcbb3a1de",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorCycleSnapshot.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "20a8c915cf152072fdd29bdb36b654062cb9124f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "20a8c915cf152072fdd29bdb36b654062cb9124f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorDepthReturn.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "4771eb4ae015283df8042ec736447df72fac032c",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4771eb4ae015283df8042ec736447df72fac032c",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorMeasuredRead.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b158ec136a56ce7ae33fea3f1d49b0d25e8561da",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b158ec136a56ce7ae33fea3f1d49b0d25e8561da",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorNativeJobShell.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "7f4f087a2c6554b782f52257e985912f87cf5a6f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7f4f087a2c6554b782f52257e985912f87cf5a6f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorNativePresentation.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "eaa3d78917a5bd857f0c4ce450324fa6ed278069",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "eaa3d78917a5bd857f0c4ce450324fa6ed278069",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sectorWorkspaceRefresh.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e659463c8a31c7943de25c0caf1d92d4ec4c2a31",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e659463c8a31c7943de25c0caf1d92d4ec4c2a31",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedOverlayScrollLock.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "d1d97d6be65e0807b89445fc3e8b4fcfb83c24fa",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d1d97d6be65e0807b89445fc3e8b4fcfb83c24fa",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellCompanyHandoff.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "3695d7946fdd49caecb17fa89cab6263aeb931ec",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "3695d7946fdd49caecb17fa89cab6263aeb931ec",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "fc4c210fca1e5fc71823ae207d3a602ca81e0be3",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "fc4c210fca1e5fc71823ae207d3a602ca81e0be3",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellInvestigation.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "958c93d44bab4ac36f70b3a005e0ab7aa23d4564",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "958c93d44bab4ac36f70b3a005e0ab7aa23d4564",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellMarket.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "94aad17350f7676c1bb85c4f0dc3dedc2110bc00",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "a9223c3918dc268a3560d7ee9d049de16e1c9ea3",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellMegaMenu.test.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "9e18b21513e40a99d1405d8291dd7060e8be072e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "9e18b21513e40a99d1405d8291dd7060e8be072e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "1c617a5e4c8a9508b089d53fbef96e3f654a5b80",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "1503",
+          "sha": "8824c2ae0f65c5a1875b047830785b020b1f1322",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ac9c26688f21b39e3f76639a302410181ac7013e",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellPrimaryNav.test.tsx",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e656ad4ed2374855c8dfc404c616f27cdae344ce",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e656ad4ed2374855c8dfc404c616f27cdae344ce",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/market-reference/registry.generated.json",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "64eb48cf572d92ddd537a7a57fbe9bad7dbb383e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "64eb48cf572d92ddd537a7a57fbe9bad7dbb383e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sectorCycleLex.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e1d787026ab55e394e2cca27f6c963407156fd90",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e1d787026ab55e394e2cca27f6c963407156fd90",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sectorCycleSnapshot.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "01f3f94e552041bc74d3ba7a8c773e572e572a41",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "01f3f94e552041bc74d3ba7a8c773e572e572a41",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sectorDepthReturn.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "3c1429cb7808bdca7cdc6163bfc35c2f18e6facb",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "3c1429cb7808bdca7cdc6163bfc35c2f18e6facb",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sectorIntelligence.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "757eac68eb1ba8ca3141c075e93c7c622ce84412",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "757eac68eb1ba8ca3141c075e93c7c622ce84412",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sectorIntelligenceLex.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "44e2b0a124725b4bdda45cf18324b2b6b6eca16b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "44e2b0a124725b4bdda45cf18324b2b6b6eca16b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/shared-shell/intelligenceNavigation.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "a0b9753c0b8326a2693e1293ea8369001048b414",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "a0b9753c0b8326a2693e1293ea8369001048b414",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/shared-shell/macroWorkspacePayload.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "b2e9bd25719a92b6dd7130dd0ac2d9bc88660344",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b2e9bd25719a92b6dd7130dd0ac2d9bc88660344",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingProxy.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "3840e71bfbc764d80498ef1d331d5f68ea7dfb2f",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "parent": "1503",
+          "sha": "09a2bbdbf5a32f48141e5008185796ae15eb6a1d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "0a0c5c18fba52ecde8e5170f148119a25e7f3b86",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/sharedShellCopy.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "df31a2f93dd012f2da663b6a85506e8f7bf8ea40",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "df31a2f93dd012f2da663b6a85506e8f7bf8ea40",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sharedShellMarket.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "42109063e58a49c96323c0821b3757a706db8740",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "795974bdaf69d1029fe29d40716e9254ce392f34",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/sharedShellMegaMenu.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "f4587b6fc40b783f53b527c4cdb979f88ea46056",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f4587b6fc40b783f53b527c4cdb979f88ea46056",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sharedShellNavigation.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "7436b49cd571a6d8f6699bead5314a5b83e5d032",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7436b49cd571a6d8f6699bead5314a5b83e5d032",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sharedShellOrigins.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "0f811f28d22bc2e31ea034b36ee3aaca2c03dfb2",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "0f811f28d22bc2e31ea034b36ee3aaca2c03dfb2",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/sharedShellRoutes.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "79db2099c7dbacf9f7a11fd929227b2bbb5f86cb",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "79db2099c7dbacf9f7a11fd929227b2bbb5f86cb",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/supabase/middleware.ts",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "3fc36165e6ba4a281fe226680a57fdd8f6a1af43",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "3fc36165e6ba4a281fe226680a57fdd8f6a1af43",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/scripts/export_market_reference.py",
+      "sources": [
+        {
+          "parent": "1501",
+          "sha": "e3b7e5159a3a068234af258446ad72f88c208281",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "e3b7e5159a3a068234af258446ad72f88c208281",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/macro.html/loading.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/(shell)/macro.html/page.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "c93d106af0127218f0e257303655e79a746d668b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "c93d106af0127218f0e257303655e79a746d668b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/app/api/shared-shell/macro-dashboard/route.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "50971a651c6b5ce5b87dd60783b743041081655e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "50971a651c6b5ce5b87dd60783b743041081655e",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroContextEvidence.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "db62dee4d17c2d02c1272d668625a85243f4e3fe",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "db62dee4d17c2d02c1272d668625a85243f4e3fe",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroDashboard.module.css",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "a386390ebd11ad117c8bfcbbfb87408b438e50eb",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "a386390ebd11ad117c8bfcbbfb87408b438e50eb",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroDashboard.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "c21b03d7962dc65651771439c5a3bee3ba9b2faf",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f8419e76caddd380cf22cb0dd1d2d4600bc6357e",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/components/macro/MacroDialog.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "7c32fece8f8c3b4a39081077836897fcaad627ad",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "7c32fece8f8c3b4a39081077836897fcaad627ad",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroHistory.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "724ce83e99ca58b186e857e238d131bebac49903",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "724ce83e99ca58b186e857e238d131bebac49903",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroReleaseRadar.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "f93ac0c2f183454fef44f2f84ad9a9d3169feb3f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f93ac0c2f183454fef44f2f84ad9a9d3169feb3f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/MacroRiskEvidence.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "53d4cf4e5c8654f96f59140799becd4292dce604",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "53d4cf4e5c8654f96f59140799becd4292dce604",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/macro/macroCopy.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "476dbe72a4cac8049fa3ebd19ec12b77a485002b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "476dbe72a4cac8049fa3ebd19ec12b77a485002b",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/components/mounts/MacroDashboardMount.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "6c97105b4b1843ccfada551cadae7b5f38623f6d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "6c97105b4b1843ccfada551cadae7b5f38623f6d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/docs/native-macro-dashboard-20261114/PLAN.md",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "2a222da8ef4c59abcdc841224a92278f53671eef",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "2a222da8ef4c59abcdc841224a92278f53671eef",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/fixtures/nativeMacro.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "ec1d0e5f3f48592a64883a5d2e26ebddf27ab51f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ec1d0e5f3f48592a64883a5d2e26ebddf27ab51f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/fixtures/nativeMacroMocks.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "542cacdbe1437d804ea97d527180edb804009622",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "542cacdbe1437d804ea97d527180edb804009622",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/e2e/native-macro-dashboard.spec.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "8a72d7c46f037da961fc7c44d48173e5a83f490f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "8a72d7c46f037da961fc7c44d48173e5a83f490f",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/macroDashboard.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "78f55eead525478478d349da0858578496a85a3d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "78f55eead525478478d349da0858578496a85a3d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/macroForecast.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "4e0258c5242c93125280d7eda4c05c2884fab2be",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4e0258c5242c93125280d7eda4c05c2884fab2be",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/macroDashboard.test.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "d6b8efc0ab583226f098ad6b549a246e260cfda1",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d6b8efc0ab583226f098ad6b549a246e260cfda1",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/macroDashboardView.test.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "8655a2f49f5a5b1f47602de585c9758b239d1e30",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "d6247206446327e43836ee68f6ab7e3420347643",
+      "result_mode": "100644",
+      "intentional_delta": true
+    },
+    {
+      "path": "terminal/lib/__tests__/macroForecast.test.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "069b7890c46d61603178fd185af82a14d0760ec0",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "069b7890c46d61603178fd185af82a14d0760ec0",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellPublicPresentation.test.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "ffb3ad028f9afdbbde57b8e9927434bd58258862",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "ffb3ad028f9afdbbde57b8e9927434bd58258862",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellRecovery.test.tsx",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "981672f72d75a3f259a60ed00c957cb9e04089cf",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "981672f72d75a3f259a60ed00c957cb9e04089cf",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellStatusContract.test.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "b9a16ecf7904ddedc328287c8836e9d2558572b7",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "b9a16ecf7904ddedc328287c8836e9d2558572b7",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/shared-shell/macroDashboard.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "f44d879eb4553d27e4a3352aaaedb5b4bfc00cde",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "f44d879eb4553d27e4a3352aaaedb5b4bfc00cde",
+      "result_mode": "100644",
+      "intentional_delta": false
+    },
+    {
+      "path": "terminal/lib/shared-shell/macroForecast.ts",
+      "sources": [
+        {
+          "parent": "1503",
+          "sha": "4b049050f2e22359c70fbb55877ffda69008086d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ],
+      "result_sha": "4b049050f2e22359c70fbb55877ffda69008086d",
+      "result_mode": "100644",
+      "intentional_delta": false
+    }
+  ],
+  "owned_blobs": [
+    {
+      "path": "terminal/app/(shell)/macro_monetary.html/page.tsx",
+      "sha": "ca227932c4eb0fcd2dd989276d1563186ca184d9"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_monetary.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_liquidity_regime.html/page.tsx",
+      "sha": "da5a1f69ef676b50e6e980ba86db23595ff68652"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_liquidity_regime.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_liquidity_central_banks.html/page.tsx",
+      "sha": "d98029639d4e90d80b223016f99b72bc9c3bfd98"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_liquidity_central_banks.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_monetary_policy.html/page.tsx",
+      "sha": "c0c4c6062f70a14627360b32941d4fe56f0bd86a"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_monetary_policy.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_rates_curves.html/page.tsx",
+      "sha": "d99f757cbef505039c5caca14ed84443d5b7769f"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_rates_curves.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_inflation_system.html/page.tsx",
+      "sha": "c15ff0c2757ba3e404883af58840de9b63cf1287"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_inflation_system.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_growth_real_economy.html/page.tsx",
+      "sha": "c96fb50fa361e69b39548c9986a38acca00a000b"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_growth_real_economy.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_business_activity.html/page.tsx",
+      "sha": "eeaf91ca1ce2454f180bc6083dbd1adb905645d7"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_business_activity.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_labor_markets.html/page.tsx",
+      "sha": "3c5e12333689f2c2a28bd7139dda950c1e1b8a78"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_labor_markets.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_housing_real_estate.html/page.tsx",
+      "sha": "3ad6a019a0b8025b3a56077f99bb66fc97037d53"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_housing_real_estate.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_consumer_payments.html/page.tsx",
+      "sha": "c892dbfaa7122669e13d9da83096eb2780bcfea1"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_consumer_payments.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_financial_conditions.html/page.tsx",
+      "sha": "3d9b361491b4d428999d364587b655537655165f"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_financial_conditions.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_capital_structure.html/page.tsx",
+      "sha": "b1a1fbf35c42e9f169205ec195589364ed3ad755"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_capital_structure.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_national_debt_liabilities.html/page.tsx",
+      "sha": "377ba3f8f40c89905666b09362869cf13f0906dd"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_national_debt_liabilities.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_trade_flows.html/page.tsx",
+      "sha": "8abeb710e94ad0b71aee82b1c863789df1540937"
+    },
+    {
+      "path": "terminal/app/(shell)/macro_trade_flows.html/loading.tsx",
+      "sha": "ca745b78a00fa9de6c2e4e211a214ee58876691d"
+    },
+    {
+      "path": "terminal/components/macro-economy/MacroEconomyRoute.tsx",
+      "sha": "8414a11e1a10fa0268369002f88c53a088f8ce2f"
+    },
+    {
+      "path": "terminal/components/macro-economy/MacroEconomyNavigation.tsx",
+      "sha": "78af8644fb56aafb39008885eb68f848171a0f1a"
+    },
+    {
+      "path": "terminal/components/mounts/MacroEconomyMount.tsx",
+      "sha": "8c7bcc24c79d7b4802de315ce1ba9d6a02d4b83c"
+    },
+    {
+      "path": "terminal/components/macro-economy/MacroEconomyOverview.tsx",
+      "sha": "af37ebce323ff84bb392cfc2ac1838dd82ee68ea"
+    },
+    {
+      "path": "terminal/components/macro-economy/MacroEconomyWorkspace.tsx",
+      "sha": "630ebbbf52f7bf985280ecc7c8fc6556a339dc36"
+    },
+    {
+      "path": "terminal/components/macro-economy/MacroEconomy.module.css",
+      "sha": "c5b1f2ae634e31169b8b8449d089f3db3578f428"
+    },
+    {
+      "path": "terminal/components/macro/MacroDashboard.tsx",
+      "sha": "f8419e76caddd380cf22cb0dd1d2d4600bc6357e"
+    },
+    {
+      "path": "terminal/lib/__tests__/macroDashboardView.test.tsx",
+      "sha": "d6247206446327e43836ee68f6ab7e3420347643"
+    },
+    {
+      "path": "terminal/lib/__tests__/macroEconomyConsumer.test.tsx",
+      "sha": "5cd07bb6b3541848106335d60f5e826336181d35"
+    },
+    {
+      "path": "terminal/lib/__tests__/macroEconomyRoute.test.tsx",
+      "sha": "dff068b9a3e3408cf94e03079e9805e01cd5461b"
+    },
+    {
+      "path": "terminal/lib/__tests__/macroEconomyPages.test.tsx",
+      "sha": "324de51cacc2f520570911a9a6f89a1b67eb2234"
+    },
+    {
+      "path": "terminal/lib/shared-shell/readingProxy.ts",
+      "sha": "0a0c5c18fba52ecde8e5170f148119a25e7f3b86"
+    },
+    {
+      "path": "terminal/lib/__tests__/readingProxy.test.ts",
+      "sha": "4cc3122b08fceffb8a89ea2c86e54ea3a9a03562"
+    },
+    {
+      "path": "terminal/lib/sharedShellMarket.ts",
+      "sha": "795974bdaf69d1029fe29d40716e9254ce392f34"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellMarket.test.ts",
+      "sha": "a9223c3918dc268a3560d7ee9d049de16e1c9ea3"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-refinement.spec.ts",
+      "sha": "e7e044bdc61f2c074435876ac31a244efb62181d"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellNavigationCommit.test.tsx",
+      "sha": "ac9c26688f21b39e3f76639a302410181ac7013e"
+    }
+  ],
+  "release_request": false,
+  "catalog_changed": false,
+  "post_publication": {
+    "previous_integration": "f52a3f6ecf47edbedeaf7946b25e35d2bf2b9664",
+    "repair": "Nullable route selection assertion preserves required tenor shape; no production contract change",
+    "source_parent_release": {
+      "pr": 1517,
+      "head": "b663cc22445157d032776f9ef8d3225056fcd09d",
+      "state": "MERGED",
+      "merged_at": "2026-11-14T14:15:11Z",
+      "merge_commit": "62315b351dbadd85db29ff77809af823d7251b1c",
+      "carrier": "original native-user gh CLI readback"
+    },
+    "child_pr": 1524,
+    "observed_child_base": "master",
+    "child_draft": true
+  },
+  "protected_reconciliation": {
+    "candidate_parent": "36f05d10a2e08d1ca60b175ea6a574c9a9d8426b",
+    "protected_parent": "62315b351dbadd85db29ff77809af823d7251b1c",
+    "common_base": "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40",
+    "candidate_changed_paths": 177,
+    "protected_changed_paths": 223,
+    "overlap_paths": 16,
+    "protected_overlap_exact_1517_blobs": 16,
+    "candidate_unchanged_overlap_blobs": 12,
+    "retained_integration_delta_paths": [
+      "terminal/components/macro-economy/MacroEconomy.module.css",
+      "terminal/components/macro-economy/MacroEconomyOverview.tsx",
+      "terminal/components/macro-economy/MacroEconomyWorkspace.tsx",
+      "terminal/lib/__tests__/macroEconomyConsumer.test.tsx"
+    ],
+    "release_request": false
+  },
+  "protected_reconciliation_2": {
+    "candidate_parent": "6c8ba8e46b559f9ba331837c2f3a386530aa63e1",
+    "protected_parent": "48da28456ccbd3527a255684018a123660770125",
+    "protected_pr": 1494,
+    "protected_changed_paths": 96,
+    "overlap_paths": [
+      "terminal/e2e/shared-shell-refinement.spec.ts",
+      "terminal/lib/__tests__/analysisWorkspaceNavigation.test.tsx"
+    ],
+    "resolution": "Complete protected tree; clean refinement union; protected MegaPane mock props plus inherited launch/navigation assertions",
+    "syntax_transpile_errors": 0,
+    "hosted_component_browser_proof": "pending",
+    "release_request": false
+  }
+}
