@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactN
 import Link from "next/link";
 import AssetLogo from "./AssetLogo";
 import PortfolioAllocation from "./PortfolioAllocation";
+import PortfolioMarketRisk from "./PortfolioMarketRisk";
 import PortfolioSessionQuote from "./PortfolioSessionQuote";
 import { RotationRead } from "./prophet/setup/RotationRead";
 import { marketOf } from "@/lib/markets";
@@ -314,6 +315,7 @@ export default function PortfolioWorkspace(p: Props) {
             {sectorContext && <PortfolioSectorContext context={sectorContext} positions={p.positions}
               unreadable={p.unreadable} stale={p.stale} refreshing={p.retrying} />}
             <header className={s.sectionIntro}><h2>{c("riskIntro")}</h2><p>{c("concentrationHint")} {c("commonUnits")}</p></header>
+            <PortfolioMarketRisk positions={p.positions} quotes={p.quotes} manifest={p.manifest} />
             {p.riskContent}
             <section className={s.history}><header className={s.sectionIntro}><h2>{c("historyTitle")}</h2><p>{c("historyHint")}</p></header><p className={s.methodNote}>{c("historyNotPerformance")}</p>{p.historyContent}</section>
           </section>

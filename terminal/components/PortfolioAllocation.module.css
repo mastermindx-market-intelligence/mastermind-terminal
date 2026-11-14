@@ -15,5 +15,10 @@
 .name small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .name a { color: var(--text); text-decoration: none; font-weight: 600; }
 .name a:hover { text-decoration: underline; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(155px,1fr)); gap: 16px; margin: 20px 0; }
+.metrics > div { display: grid; gap: 4px; }
+.metrics small { color: var(--text-2); }
+.metrics strong { font-size: 20px; }
+.rows meter { width: 30%; accent-color: var(--brand-2); }
 .rows strong { min-width: 4.5em; text-align: right; }
 @media (max-width: 520px) { .rows li { gap: 8px; } .rows strong { min-width: 3.5em; } }
