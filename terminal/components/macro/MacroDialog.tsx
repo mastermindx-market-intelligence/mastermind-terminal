@@ -1,16 +1,18 @@
 "use client";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useId, useRef, type ReactNode } from "react";
 import { acquireScrollLock } from "@/lib/scrollLock";
 import { createNewerModalFocusGuard, restoreDialogFocus } from "@/lib/dialogFocusReturn";
+import { pick } from "./macroCopy";
 import s from "./MacroDashboard.module.css";
 
-export default function MacroDialog({ title, subtitle, closeLabel, onClose, children }: {
-  title: string; subtitle: string; closeLabel: string; onClose: () => void; children: ReactNode;
+export default function MacroDialog({ title, subtitle, closeLabel, onClose, children, lang }: {
+  lang: "en" | "zh"; title: string; subtitle: string; closeLabel: string; onClose: () => void; children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null), titleId = useId(), subtitleId = useId(), composing = useRef(false);
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; }, [onClose]);
-  useEffect(() => {
+  // Close while the dialog still owns its DOM/focus; passive teardown runs after removal.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -39,7 +41,7 @@ export default function MacroDialog({ title, subtitle, closeLabel, onClose, chil
     onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
     onCancel={event => { event.preventDefault(); if (!composing.current) close.current(); }}
     onClick={event => { if (event.target !== event.currentTarget) return; const r = event.currentTarget.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) close.current(); }}>
-    <header className={s.dialogHeader}><div><p className={s.eyebrow}>MACRO INTELLIGENCE</p><h2 id={titleId}>{title}</h2><p id={subtitleId}>{subtitle}</p></div><button className={s.iconButton} onClick={() => close.current()} aria-label={closeLabel}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg></button></header>
+    <header className={s.dialogHeader}><div><p className={s.eyebrow}>{pick(lang, "MACRO INTELLIGENCE", "宏观情报")}</p><h2 id={titleId}>{title}</h2><p id={subtitleId}>{subtitle}</p></div><button className={s.iconButton} onClick={() => close.current()} aria-label={closeLabel}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg></button></header>
     <div className={s.dialogBody}>{children}</div>
   </dialog>;
 }

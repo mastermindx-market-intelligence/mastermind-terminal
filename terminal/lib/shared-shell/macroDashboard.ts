@@ -8,6 +8,8 @@ export type MacroDashboard = {
   events: MacroRecord[]; sentiment: MacroRecord; breadth: MacroRecord;
   sectorHeat: MacroRecord; policy: MacroRecord; marketTiles: MacroRecord[];
   alerts: MacroRecord[]; health: MacroRecord[]; brief: MacroRecord; news: MacroRecord[]; newsState: MacroRecord; releaseFeed: MacroRecord;
+  releaseForecast: MacroRecord; releaseForecastSha: string | null;
+  releaseForecastState: "available" | "unavailable" | "unqualified"; releaseForecastRefreshFailed: boolean;
 };
 export const macroRecord = (value: unknown): MacroRecord => value !== null && typeof value === "object" && !Array.isArray(value) ? value as MacroRecord : {};
 export const macroRows = (value: unknown): MacroRecord[] => Array.isArray(value) ? value.filter(v => v !== null && typeof v === "object" && !Array.isArray(v)).slice(0, 200) as MacroRecord[] : [];
@@ -52,6 +54,8 @@ export function decodeMacroDashboard(value: unknown): MacroDashboard | null {
     breadth: macroRecord(source.breadth), sectorHeat: macroRecord(source.sector_heat), policy: macroRecord(source.policy),
     marketTiles: macroRows(source.market_tiles), alerts: macroRows(source.alerts), health: macroRows(source.health),
     brief: macroRecord(source.brief), news: macroRows(source.news), newsState: macroRecord(source.news_state), releaseFeed: macroRecord(source.release_feed),
+    releaseForecast: macroRecord(source.release_forecast), releaseForecastSha: typeof source.release_forecast_sha256 === "string" && /^[a-f0-9]{64}$/.test(source.release_forecast_sha256) ? source.release_forecast_sha256 : null,
+    releaseForecastState: source.release_forecast_state === "available" ? "available" : source.release_forecast_state === "unavailable" || source.release_forecast_state == null ? "unavailable" : "unqualified", releaseForecastRefreshFailed: false,
   };
 }
 
@@ -59,17 +63,22 @@ export const MACRO_DETAILS = ["factors", "risk", "rates", "releases", "sentiment
 export type MacroDetail = typeof MACRO_DETAILS[number];
 /** Canonical URL state plus old bookmarked dialog/section anchors. */
 export function macroDetailFromHash(hash: string): MacroDetail | null {
-  const key = hash.replace(/^#/, "");
+  const key = hash.replace(/^#/, "").split("?")[0];
   const aliases: Record<string, MacroDetail> = {
     "dlg-risk": "risk", "dlg-fed": "rates", "dlg-events": "releases", "dlg-fg": "sentiment",
     "dlg-sectors": "sectors", "dlg-policy": "policy", "dlg-ai": "brief", "data-health": "sources",
-    "mx5PopFactors": "factors", "fired-alerts": "alerts",
+    "mx5PopFactors": "factors", "dlg-evidence": "factors", "dials": "factors", "fired-alerts": "alerts",
     "dlg-sentiment": "sentiment", "dlg-sector": "sectors", "dlg-aibrief": "brief",
     "dlg-news": "brief", "dlg-markets": "markets", "regime-radar": "factors", "health": "sources",
     "risk-state": "risk", "dlg-liquidity": "factors", "dlg-credit": "risk",
     "liquidity": "risk", "credit": "risk", "dlg-alerts": "alerts",
   };
   return MACRO_DETAILS.includes(key as MacroDetail) ? key as MacroDetail : aliases[key] ?? null;
+}
+
+/** Fixed existing bookmark destinations; a fragment never supplies a URL. */
+export function macroBookmarkDestination(hash: string): string | null {
+  return ({ holdings: "/us_stocks.html#holdings", positioning: "/macro_context.html#board", accumulation: "/sector_central.html#accumulation-section" } as Record<string, string>)[hash.replace(/^#/, "")] ?? null;
 }
 
 /** Links remain on the existing destination owners; no source-provided protocol. */

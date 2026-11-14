@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MacroDashboard from "@/components/macro/MacroDashboard";
 import { macroFixture } from "./fixtures/macroDashboard";
+import { macroForecastFixture } from "./fixtures/macroForecast";
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A = "11111111-1111-4111-8111-111111111111", B = "22222222-2222-4222-8222-222222222222";
 const identity = vi.hoisted(() => ({ owner: "11111111-1111-4111-8111-111111111111", lang: "en", failure: false, listener: null as null | ((event: string, session: { user: { id: string } } | null) => void) }));
@@ -26,6 +27,56 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); });
 describe("native Macro lifetime and interactions", () => {
+  it("investigates date-selected forecast evidence without reviving withheld model claims", async () => {
+    window.history.replaceState({}, "", "/macro.html#releases?date=2026-11-16");
+    await mount(); await answer(0, { ...macroFixture(), release_forecast: macroForecastFixture(), release_forecast_sha256: "e".repeat(64) });
+    const dialog = host.querySelector("dialog")!;
+    expect(dialog.textContent).toContain("Older model snapshot");
+    expect(dialog.textContent).toContain("Model + benchmark blend");
+    expect(dialog.textContent).not.toContain("9.99");
+    const click = async (name: string) => act(async () => [...dialog.querySelectorAll("button")].find(button => button.textContent === name)!.click());
+    await click("Models");
+    expect(dialog.textContent).toContain("Claim withdrawn");
+    expect(dialog.textContent).not.toContain("777");
+    await click("History");
+    expect(dialog.textContent).toContain("Excluded / unqualified");
+    expect(dialog.textContent).not.toContain("Mean absolute error");
+    await click("2026-11-19");
+    expect(dialog.textContent).toContain("Benchmarks only · no house forecast");
+    expect(dialog.textContent).toContain("Initial claims level · thousands");
+    expect(window.location.hash).toContain("date=2026-11-19");
+    await click("Models");
+    expect(dialog.textContent).toContain("223.75");
+    expect(dialog.textContent).not.toContain("Experimental model point");
+    await click("Date unconfirmed");
+    expect(dialog.textContent).toContain("The source has not published a retail projection.");
+  });
+  it("pins default release identity and preserves the tab through refresh without switching targets", async () => {
+    window.history.replaceState({}, "", "/macro.html#releases?date=2026-11-16");
+    const source = macroForecastFixture();
+    await mount(); await answer(0, { ...macroFixture(), release_forecast: source, release_forecast_sha256: "e".repeat(64), release_forecast_state: "available" });
+    expect(decodeURIComponent(window.location.hash)).toContain("cpi_headline");
+    const models = [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(button => button.textContent === "Models")!;
+    await act(async () => models.click());
+    expect(window.location.hash).toContain("tab=models");
+    await act(async () => host.querySelector<HTMLButtonElement>('button[aria-label="Refresh readings"]')!.click());
+    await answer(1, { ...macroFixture(), release_forecast: { ...source, upcoming: source.upcoming.slice(1) }, release_forecast_sha256: "f".repeat(64), release_forecast_state: "available" });
+    expect(host.querySelector("dialog")?.textContent).toContain("This exact release is no longer present");
+    expect(decodeURIComponent(window.location.hash)).toContain("cpi_headline");
+  });
+  it("retains the forecast only for a temporary read failure, and clears explicit qualification refusal", async () => {
+    window.history.replaceState({}, "", "/macro.html#releases?date=2026-11-16");
+    await mount(); await answer(0, { ...macroFixture(), release_forecast: macroForecastFixture(), release_forecast_sha256: "e".repeat(64), release_forecast_state: "available" });
+    await act(async () => host.querySelector<HTMLButtonElement>('button[aria-label="Refresh readings"]')!.click());
+    await answer(1, { ...macroFixture(), release_forecast: null, release_forecast_state: "unavailable" });
+    expect(host.querySelector("dialog")?.textContent).toContain("Forecast refresh unavailable");
+    expect(host.querySelector("dialog")?.textContent).toContain("2026-10-16");
+    expect(host.querySelector("dialog")?.textContent).toContain("Model + benchmark blend");
+    await act(async () => host.querySelector<HTMLButtonElement>('button[aria-label="Refresh readings"]')!.click());
+    await answer(2, { ...macroFixture(), release_forecast: null, release_forecast_state: "unqualified" });
+    expect(host.querySelector("dialog")?.textContent).not.toContain("Model + benchmark blend");
+    expect(host.querySelector("dialog")?.textContent).toContain("Forecast publication unavailable");
+  });
   it("renders genuine zero, historical qualification and the actual producer display fields", async () => {
     await mount(); await answer();
     expect(host.textContent).toContain("Current assessment unavailable");

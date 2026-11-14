@@ -2,6 +2,7 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import type { MacroHistoryPoint } from "@/lib/shared-shell/macroDashboard";
+import { pick } from "./macroCopy";
 import s from "./MacroDashboard.module.css";
 
 export default function MacroHistory({ points, lang }: { points: MacroHistoryPoint[]; lang: "en" | "zh" }) {
@@ -24,19 +25,19 @@ export default function MacroHistory({ points, lang }: { points: MacroHistoryPoi
     segment.push(row);
   }
   const ticks = niceTicks(bottom, top, 3), labels = thinLabels(rows, x, 74);
-  const date = (day: string) => new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${day}T12:00:00Z`));
+  const date = (day: string) => new Intl.DateTimeFormat(pick(lang, "en-US", "zh-CN"), { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${day}T12:00:00Z`));
   const choose = (clientX: number) => {
     if (!ref.current || !rows.length) return;
     const at = clientX - ref.current.getBoundingClientRect().left;
     setSelected(rows.reduce((best, row, i) => Math.abs(x(row) - at) < Math.abs(x(rows[best]) - at) ? i : best, 0));
   };
   return <section className={s.history} aria-labelledby="macro-history-heading">
-    <div className={s.sectionHead}><div><p className={s.eyebrow}>{lang === "zh" ? "实测环境" : "MEASURED BACKDROP"}</p><h2 id="macro-history-heading">{lang === "zh" ? "市场的轨迹" : "The market’s trajectory"}</h2></div>
-      <div className={s.segmented} aria-label={lang === "zh" ? "历史范围" : "History range"}>{([20, 60] as const).map(n => <button key={n} aria-pressed={period === n} onClick={() => { setPeriod(n); setSelected(null); }}>{n}{lang === "zh" ? "期" : "S"}</button>)}</div>
+    <div className={s.sectionHead}><div><p className={s.eyebrow}>{pick(lang, "MEASURED BACKDROP", "实测环境")}</p><h2 id="macro-history-heading">{pick(lang, "The market’s trajectory", "市场的轨迹")}</h2></div>
+      <div className={s.segmented} aria-label={pick(lang, "History range", "历史范围")}>{([20, 60] as const).map(n => <button key={n} aria-pressed={period === n} onClick={() => { setPeriod(n); setSelected(null); }}>{n}{pick(lang, "S", "期")}</button>)}</div>
     </div>
-    <div className={s.chartReadout} aria-live="polite"><strong>{active?.score ?? "—"}</strong><span>{active ? date(active.asof) : (lang === "zh" ? "历史不可用" : "History unavailable")}</span><button onClick={() => setTable(v => !v)} aria-pressed={table}>{table ? (lang === "zh" ? "查看图表" : "Chart view") : (lang === "zh" ? "查看数据" : "Table view")}</button></div>
+    <div className={s.chartReadout} aria-live="polite"><strong>{active?.score ?? "—"}</strong><span>{active ? date(active.asof) : (pick(lang, "History unavailable", "历史不可用"))}</span><button onClick={() => setTable(v => !v)} aria-pressed={table}>{table ? (pick(lang, "Chart view", "查看图表")) : (pick(lang, "Table view", "查看数据"))}</button></div>
     <div ref={ref} className={s.chartHost}>
-      {table ? <div className={s.historyTable}><table><caption className={s.srOnly}>{lang === "zh" ? "实测分数历史" : "Measured score history"}</caption><thead><tr><th>{lang === "zh" ? "日期" : "Session"}</th><th>{lang === "zh" ? "实测分数" : "Measured score"}</th></tr></thead><tbody>{rows.map(row => <tr key={row.asof}><td>{row.asof}</td><td>{row.score ?? "—"}</td></tr>)}</tbody></table></div> : values.length < 2 ? <p className={s.empty}>{lang === "zh" ? "尚无足够的已发布观测值。" : "Not enough published observations to draw a history."}</p> : <>
+      {table ? <div className={s.historyTable}><table><caption className={s.srOnly}>{pick(lang, "Measured score history", "实测分数历史")}</caption><thead><tr><th>{pick(lang, "Session", "日期")}</th><th>{pick(lang, "Measured score", "实测分数")}</th></tr></thead><tbody>{rows.map(row => <tr key={row.asof}><td>{row.asof}</td><td>{row.score ?? "—"}</td></tr>)}</tbody></table></div> : values.length < 2 ? <p className={s.empty}>{pick(lang, "Not enough published observations to draw a history.", "尚无足够的已发布观测值。")}</p> : <>
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${gradient}-title`} onPointerDown={e => choose(e.clientX)} onPointerMove={e => choose(e.clientX)} onPointerLeave={() => setSelected(null)}>
           <title id={`${gradient}-title`}>{lang === "zh" ? `${rows.length}期实测分数；数值越高，环境越支持风险资产。` : `${rows.length} published sessions of measured score. Higher is more supportive of risk assets.`}</title>
           <defs><linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--brand-2, #4d82ff)" stopOpacity=".15" /><stop offset="100%" stopColor="var(--brand-2, #4d82ff)" stopOpacity="0" /></linearGradient></defs>
@@ -48,9 +49,9 @@ export default function MacroHistory({ points, lang }: { points: MacroHistoryPoi
           {active?.score != null && <g><line x1={x(active)} x2={x(active)} y1={plotTop} y2={plotBottom} stroke="var(--text-2)" strokeDasharray="3 4" opacity=".45" /><circle cx={x(active)} cy={y(active.score)} r="4" fill="var(--panel)" stroke="var(--brand-2)" strokeWidth="2" /></g>}
           {labels.map((row, i) => <text key={row.asof} x={x(row)} y={208} textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}>{date(row.asof)}</text>)}
         </svg>
-        <input className={s.chartSlider} type="range" min={0} max={Math.max(0, rows.length - 1)} value={selected ?? rows.length - 1} onChange={e => setSelected(Number(e.target.value))} aria-label={lang === "zh" ? "探索历史观测" : "Explore historical observations"} aria-valuetext={active ? `${active.asof}: ${active.score ?? "—"}` : "—"} />
+        <input className={s.chartSlider} type="range" min={0} max={Math.max(0, rows.length - 1)} value={selected ?? rows.length - 1} onChange={e => setSelected(Number(e.target.value))} aria-label={pick(lang, "Explore historical observations", "探索历史观测")} aria-valuetext={active ? `${active.asof}: ${active.score ?? "—"}` : "—"} />
       </>}
     </div>
-    <p className={s.caption}>{lang === "zh" ? "已发布的观测值 · 非预测 · 优先采用实测值，旧记录可能包含风险上限调整" : "Published observations · not a forecast · measured values where available; older records may include risk caps"}</p>
+    <p className={s.caption}>{pick(lang, "Published observations · not a forecast · measured values where available; older records may include risk caps", "已发布的观测值 · 非预测 · 优先采用实测值，旧记录可能包含风险上限调整")}</p>
   </section>;
 }
