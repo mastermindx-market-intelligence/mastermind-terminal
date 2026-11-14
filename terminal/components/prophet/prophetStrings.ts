@@ -72,6 +72,13 @@ const PROPHET_LEX = {
     "该计划未发布合约结构数据。",
   ],
 
+  // Screening receipts describe the published snapshot; they cannot imply today.
+  intakeTitle: ["Not selected in this snapshot", "本次快照未纳入"],
+  intakeCount: ["{declined} of {considered}", "{declined} / {considered} 只"],
+  intakeContext: ["Counts and explanations from the published screening snapshot.", "数量与说明来自已发布的筛选快照。"],
+  intakeNamesShown: ["{shown} of {total} names shown", "显示 {total} 只中的 {shown} 只"],
+  intakeAlreadyOpen: ["{count} more already have a plan running", "另有 {count} 只已有在跑的计划"],
+
   // ── Sub-tabs ───────────────────────────────────────────────────────────────
   tabSignals:       ["Signals", "信号"],
   tabPerf:          ["PERF", "绩效"],

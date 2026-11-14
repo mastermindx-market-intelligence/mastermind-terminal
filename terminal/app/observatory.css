@@ -569,6 +569,82 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
   }
 }
 
+/* Producer screening receipts stay secondary to the existing signal stream. */
+.obs-prophet-intake-receipts {
+  flex: none;
+  min-width: 0;
+  margin: 0 8px 8px;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font: 500 12px/1.5 var(--font-ui);
+}
+.obs-prophet-intake-receipts > summary {
+  min-height: 44px;
+  padding: 10px 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.obs-prophet-intake-receipts > summary:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+.obs-prophet-intake-count {
+  display: inline-block;
+  margin-inline-start: 8px;
+  color: var(--muted);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.obs-prophet-intake-body {
+  max-height: 260px;
+  max-height: min(260px, 32vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 4px 8px;
+  overflow-wrap: anywhere;
+}
+.obs-prophet-intake-context {
+  margin: 6px 0;
+  color: var(--muted);
+}
+.obs-prophet-intake-groups,
+.obs-prophet-intake-names {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.obs-prophet-intake-groups > li + li {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.obs-prophet-intake-reason {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0;
+}
+.obs-prophet-intake-reason > span {
+  flex: 1;
+  min-width: 0;
+}
+.obs-prophet-intake-reason > strong,
+.obs-prophet-intake-names b {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+.obs-prophet-intake-names > li {
+  display: grid;
+  grid-template-columns: minmax(0, 64px) minmax(0, 1fr);
+  gap: 8px;
+  padding: 3px 0;
+}
+.obs-prophet-intake-names > li > span {
+  color: var(--muted);
+}
+
 /* ─── Prophet lane switcher + options-originated shadow desk ─────────────── */
 .obs-prophet-lane-shell {
   display: flex;

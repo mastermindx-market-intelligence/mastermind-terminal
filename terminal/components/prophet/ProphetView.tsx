@@ -55,6 +55,7 @@ interface ProphetIndexPayload {
   source_mixed_vintage?: boolean | null;
   cadence?: string;
   plans: PlanSummary[];
+  intake?: { receipts?: unknown } | null;
 }
 
 interface ProphetMarksPayload {
@@ -64,6 +65,139 @@ interface ProphetMarksPayload {
   /** Fixture-mode flag: treat all marks as fresh regardless of ts_utc */
   _fixture?: boolean;
   marks?: Record<string, LiveMark>;
+}
+
+// ── Producer screening receipts ──────────────────────────────────────────────
+
+type IntakeReceiptName = { ticker: string; name: string; score: number | null };
+type IntakeReceiptGroup = {
+  reason: string;
+  en: string;
+  zh: string;
+  near: boolean;
+  n: number;
+  names: IntakeReceiptName[];
+};
+type IntakeReceiptSummary = {
+  considered: number;
+  declined: number;
+  openNow: number;
+  groups: IntakeReceiptGroup[];
+};
+
+function receiptObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function receiptCount(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+function receiptText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+/** Read the producer's full counts; displayed names may be capped upstream.
+ * No client ranking, reason vocabulary, count repair or selection is introduced.
+ * Unknown reasons use their supplied bilingual copy, while unmapped is already
+ * part of declined and must never be added to it a second time.
+ */
+export function normalizeIntakeReceipts(raw: unknown): IntakeReceiptSummary | null {
+  if (!receiptObject(raw)) return null;
+  const { considered, planned, passed, open_now, declined, unmapped, groups } = raw;
+  if (
+    !receiptCount(considered) || !receiptCount(planned) ||
+    !receiptCount(passed) || !receiptCount(open_now) ||
+    !receiptCount(declined) || !receiptCount(unmapped) ||
+    considered !== planned + passed || passed !== declined + open_now ||
+    !Array.isArray(groups)
+  ) return null;
+
+  const result: IntakeReceiptGroup[] = [];
+  const reasons = new Set<string>();
+  let total = 0;
+  let openTotal = 0;
+  let unmappedTotal = 0;
+  for (const group of groups) {
+    if (
+      !receiptObject(group) || !receiptText(group.reason) ||
+      !receiptText(group.en) || !receiptText(group.zh) ||
+      typeof group.near !== "boolean" ||
+      !receiptCount(group.n) || group.n === 0 ||
+      !Array.isArray(group.names) || group.names.length === 0 ||
+      group.names.length > group.n || reasons.has(group.reason)
+    ) return null;
+
+    const names: IntakeReceiptName[] = [];
+    for (const name of group.names) {
+      if (
+        !receiptObject(name) || !receiptText(name.ticker) ||
+        !receiptText(name.name) ||
+        !(name.score === null || (typeof name.score === "number" && Number.isFinite(name.score)))
+      ) return null;
+      names.push({ ticker: name.ticker, name: name.name, score: name.score });
+    }
+    reasons.add(group.reason);
+    total += group.n;
+    if (!Number.isSafeInteger(total)) return null;
+    if (group.reason === "already_open") openTotal += group.n;
+    if (group.reason === "unknown") unmappedTotal += group.n;
+    result.push({
+      reason: group.reason, en: group.en, zh: group.zh, near: group.near,
+      n: group.n, names,
+    });
+  }
+  if (total !== passed || openTotal !== open_now || unmappedTotal !== unmapped) return null;
+  return { considered, declined, openNow: open_now, groups: result };
+}
+
+export function IntakeReceiptShelf({
+  receipts, lang, t,
+}: {
+  receipts: unknown;
+  lang: "en" | "zh";
+  t: ReturnType<typeof makeProphetT>;
+}) {
+  const summary = normalizeIntakeReceipts(receipts);
+  if (!summary || summary.groups.length === 0) return null;
+  return (
+    <details className="obs-prophet-intake-receipts">
+      <summary>
+        <span>{t("intakeTitle")}</span>
+        <span className="obs-prophet-intake-count">
+          {t("intakeCount").replace("{declined}", String(summary.declined)).replace("{considered}", String(summary.considered))}
+        </span>
+      </summary>
+      <div className="obs-prophet-intake-body obs-scroll">
+        <p className="obs-prophet-intake-context">{t("intakeContext")}</p>
+        <ul className="obs-prophet-intake-groups">
+          {summary.groups.filter((group) => group.reason !== "already_open").map((group) => (
+            <li key={group.reason}>
+              <p className="obs-prophet-intake-reason">
+                <span>{group[lang]}</span>
+                <strong>{group.n}</strong>
+              </p>
+              <ul className="obs-prophet-intake-names">
+                {group.names.map((name, index) => (
+                  <li key={`${name.ticker}:${index}`}>
+                    <b>{name.ticker}</b><span>{name.name}</span>
+                  </li>
+                ))}
+              </ul>
+              {group.names.length < group.n && (
+                <p className="obs-prophet-intake-context">
+                  {t("intakeNamesShown").replace("{shown}", String(group.names.length)).replace("{total}", String(group.n))}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+        {summary.openNow > 0 && (
+          <p className="obs-prophet-intake-context">
+            {t("intakeAlreadyOpen").replace("{count}", String(summary.openNow))}
+          </p>
+        )}
+      </div>
+    </details>
+  );
 }
 
 // ── OCC symbol derivation ─────────────────────────────────────────────────────
@@ -412,6 +546,7 @@ export function ProphetView({ selectedPlanId, onSelectPlan }: {
                 ))
               )}
             </div>
+            <IntakeReceiptShelf receipts={payload?.intake?.receipts} lang={lang} t={t} />
           </>
         )}
 

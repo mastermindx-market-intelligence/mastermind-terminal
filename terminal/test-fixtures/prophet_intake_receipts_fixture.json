@@ -1,0 +1,190 @@
+{
+  "_comment": "Synthetic UI contract fixture, not observed market data. Matches accepted Macro refusal_receipts count identities and the current fourteen-name cap: 17 declined in one group, two in another, three already open. Full counts must never be recounted from visible names. The wire order and bilingual producer copy are retained by the consumer.",
+  "considered": 30,
+  "planned": 8,
+  "passed": 22,
+  "open_now": 3,
+  "declined": 19,
+  "unmapped": 0,
+  "groups": [
+    {
+      "reason": "plan_not_built",
+      "en": "Passed initial screening — no validated entry plan was produced.",
+      "zh": "初筛已通过 — 尚未生成经核验的入场计划。",
+      "near": true,
+      "n": 17,
+      "names": [
+        {
+          "ticker": "PG",
+          "name": "Procter + Gamble",
+          "score": 59.4,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "PCRX",
+          "name": "Pacira BioSciences",
+          "score": 55.4,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "BRK.B",
+          "name": "Synthetic class-share example",
+          "score": 54,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "0700.HK",
+          "name": "Synthetic market-suffix example",
+          "score": 53,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN01",
+          "name": "Synthetic receipt example 1",
+          "score": 52,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN02",
+          "name": "Synthetic receipt example 2",
+          "score": 51,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN03",
+          "name": "Synthetic receipt example 3",
+          "score": 50,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN04",
+          "name": "Synthetic receipt example 4",
+          "score": 49,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN05",
+          "name": "Synthetic receipt example 5",
+          "score": 48,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN06",
+          "name": "Synthetic receipt example 6",
+          "score": 47,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN07",
+          "name": "Synthetic receipt example 7",
+          "score": 46,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN08",
+          "name": "Synthetic receipt example 8",
+          "score": 45,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN09",
+          "name": "Synthetic receipt example 9",
+          "score": 44,
+          "why": [
+            "plan_not_built"
+          ]
+        },
+        {
+          "ticker": "SYN10",
+          "name": "Synthetic receipt example 10",
+          "score": 43,
+          "why": [
+            "plan_not_built"
+          ]
+        }
+      ]
+    },
+    {
+      "reason": "validation_failed",
+      "en": "No entry plan cleared the producer checks for this snapshot.",
+      "zh": "本次快照中没有入场计划通过生产端检查。",
+      "near": false,
+      "n": 2,
+      "names": [
+        {
+          "ticker": "SYNV1",
+          "name": "Synthetic validation example 1",
+          "score": 32,
+          "why": [
+            "validation_failed"
+          ]
+        },
+        {
+          "ticker": "SYNV2",
+          "name": "Synthetic validation example 2",
+          "score": 31,
+          "why": [
+            "validation_failed"
+          ]
+        }
+      ]
+    },
+    {
+      "reason": "already_open",
+      "en": "Already has a plan running",
+      "zh": "已有在跑的计划",
+      "near": true,
+      "n": 3,
+      "names": [
+        {
+          "ticker": "UBER",
+          "name": "Uber Technologies",
+          "score": 70,
+          "why": [
+            "already_open"
+          ]
+        },
+        {
+          "ticker": "SYNO1",
+          "name": "Synthetic open example 1",
+          "score": 65,
+          "why": [
+            "already_open"
+          ]
+        },
+        {
+          "ticker": "SYNO2",
+          "name": "Synthetic open example 2",
+          "score": 60,
+          "why": [
+            "already_open"
+          ]
+        }
+      ]
+    }
+  ]
+}
