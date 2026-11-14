@@ -10,6 +10,16 @@ import { useLang, useT } from "./i18n";
 export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   /* Title / identity */
   scTitle: ["Sector cycles", "板块周期"],
+  scHistoryTitle: ["Cycle history", "周期历史"],
+  scHistoryMeasure: ["Rolling 21- and 63-session relative wealth vs {bench} · Total return", "相对{bench}的滚动21和63个交易日财富变化 · 总回报"],
+  scHistoryTurns: ["Reconstructed cycle turns · {basis} structure. These are separate from the return-series measurements.", "重构周期转折 · {basis}结构。此结构独立于回报序列的测量。"],
+  scPriceStructure: ["Price-cycle structure", "价格周期结构"],
+  scCycleStructure: ["Cycle structure", "周期结构"],
+  scBasisUnknown: ["Unverified basis", "未经验证的口径"],
+  scMethodsCoverage: ["Methods and coverage", "方法与覆盖范围"],
+  scExpandSheet: ["Expand details", "展开详情"],
+  scCollapseSheet: ["Reduce sheet height", "缩小面板高度"],
+  scHistoryCoverage: ["This view supplies dated relative-wealth history and reconstructed cycle structure. A verified deep Cycles publication is not supplied; its forecasts, timing and capture are unavailable here.", "此视图提供有日期的相对财富历史与重构周期结构。尚未提供经验证的深度周期发布，因此此处的预测、时序和视图保存不可用。"],
   scCycleEvidence: ["Cycle evidence", "周期证据"],
   scKindSector: ["sector", "板块"],
   scKindBasket: ["theme", "主题"],
@@ -125,6 +135,9 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   scLegTimeline: ["Leg timeline", "周期段 timeline"],
   scLegOpenSessions: ["Open · {n} sessions", "开放 · {n} 个交易日"],
   scLegOpenNoCount: ["Open leg", "开放周期段"],
+  scLegObservedSessions: ["{n} observed sessions", "{n} 个有观测的交易日"],
+  scLegObservedOpenSessions: ["Open · {n} observed sessions", "开放 · {n} 个有观测的交易日"],
+  scLegCountUnavailable: ["Session count unavailable for this leg", "此周期段的交易日数量不可用"],
   scLegDetails: ["Leg details", "周期段详情"],
   scLegVsBenchmark: ["vs {bench}", "相对 {bench}"],
   scStory: ["Story", "周期段解读"],
@@ -263,6 +276,9 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
 
   /* Basket compare */
   scCompareTitle: ["Compare themes", "比较主题"],
+  scCompareOne: ["Compare one series", "比较一个序列"],
+  scCompareNone: ["No comparison", "不比较"],
+  scSeriesComparison: ["Comparison series", "比较序列"],
   scCompareChoose: ["Choose a theme", "选择主题"],
   scCompareA: ["First basket", "第一个组合"],
   scCompareB: ["Second basket", "第二个组合"],

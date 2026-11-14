@@ -4,10 +4,51 @@ import {
   cycleGenerationKey,
   cycleHistoryForGeneration,
   isSectorCycleGeneration,
+  acceptedCycleHistory,
   type SectorCycleGeneration,
 } from "../sectorCycleSnapshot";
 import { sectorRotationHistory, type SectorRotationHistory } from "../sectorIntelligence";
+import type { FeedPayload } from "../sectorIntelligence";
+import { syntheticCycleHistory, syntheticCycleHistorySha } from "./fixtures/sectorCycleHistory";
 const asOf = "2026-10-30";
+const syntheticFeed = (): FeedPayload => ({ data: syntheticCycleHistory, receipt: {
+  source: "history", path: "/sectordata/sector_cycles.json", status: "ready", asOf: "2026-11-12",
+  observedAt: "2026-11-13T00:00:00Z", stale: false,
+  contentHash: syntheticCycleHistorySha,
+} });
+
+describe("authenticated cycle history binding", () => {
+  it("uses retained observations and an actor/hash epoch without inventing a deep publication", () => {
+    const read = acceptedCycleHistory(syntheticFeed(), "account:owner-a#0")!;
+    expect(read.sectors).toHaveLength(11);
+    expect(read.history.series.xlk.points).toHaveLength(252);
+    const last = syntheticCycleHistory.sectors[0].rs_history.at(-1)!;
+    expect(read.history.series.xlk.points.at(-1)).toMatchObject({ date: last.date, rs21: last.rs_21d, rs63: last.rs_63d });
+    expect(read.sectors.find(row => row.id === "xlk")?.basis).toBe("price");
+    expect(read.history.basis).toBe("tr");
+    expect(read.generation.publicationId).toBeNull();
+    expect(read.generation.accessGeneration).toContain("account:owner-a#0|history:");
+    expect(acceptedCycleHistory(syntheticFeed(), "account:owner-b#0")?.generation.accessGeneration).not.toBe(read.generation.accessGeneration);
+    const refreshed = syntheticFeed(); refreshed.receipt.stale = true;
+    expect(acceptedCycleHistory(refreshed, "account:owner-a#0")).toMatchObject({ stale: true, generation: read.generation });
+    refreshed.receipt.contentHash = "a".repeat(64);
+    expect(acceptedCycleHistory(refreshed, "account:owner-a#0")?.generation.accessGeneration).not.toBe(read.generation.accessGeneration);
+  });
+  it("withholds rejected or cross-bound receipts even when they carry good old data", () => {
+    const patches: Partial<FeedPayload["receipt"]>[] = [
+      { source: "sector" }, { path: "/sectordata/sector_central.json" }, { asOf: "2026-11-11" },
+      { contentHash: null }, { contentHash: "not-a-received-byte-hash" },
+      ...(["loading", "access", "unavailable", "invalid", "error"] as const).map(status => ({ status })),
+    ];
+    for (const patch of patches) {
+      const feed = syntheticFeed(); feed.receipt = { ...feed.receipt, ...patch };
+      expect(acceptedCycleHistory(feed, "account:owner-a#0")).toBeNull();
+    }
+    expect(acceptedCycleHistory(syntheticFeed(), "")).toBeNull();
+    const wrongBasis = structuredClone(syntheticCycleHistory); wrongBasis.meta.rs_history.basis = "price";
+    expect(acceptedCycleHistory({ ...syntheticFeed(), data: wrongBasis }, "account:owner-a#0")).toBeNull();
+  });
+});
 const row = {
   id: "xle",
   ticker: "XLE",

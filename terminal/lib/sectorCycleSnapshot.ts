@@ -2,6 +2,7 @@ import {
   object,
   sectorRotationHistory,
   type SectorRotationHistory,
+  type FeedPayload,
 } from "./sectorIntelligence";
 
 export const CYCLE_PHASES = [
@@ -103,6 +104,25 @@ export interface SectorCycleGeneration {
   /** Verified publication id when the deep evidence feed gates the generation. */
   publicationId: string | null;
 }
+
+/** Bind the existing authenticated history feed to its current request owner.
+ * This is a history reading, not a verified deep Cycles publication. The hash
+ * is the gateway's received-byte identity; do not rehash parsed JSON here. */
+export function acceptedCycleHistory(feed: FeedPayload | undefined, ownerEpoch: string) {
+  if (!feed || !ownerEpoch || feed.receipt.source !== "history"
+    || feed.receipt.path !== "/sectordata/sector_cycles.json"
+    || feed.receipt.status !== "ready"
+    || !/^[a-f0-9]{64}$/.test(feed.receipt.contentHash || "")) return null;
+  const history = sectorRotationHistory(feed.data);
+  const sectors = cycleUniverse(feed.data, feed.receipt.asOf, history);
+  if (!history || !sectors.length || history.asOf !== feed.receipt.asOf) return null;
+  const generation: SectorCycleGeneration = {
+    accessGeneration: `${ownerEpoch}|history:${feed.receipt.contentHash}`,
+    region: "us", asOf: history.asOf, publicationId: null,
+  };
+  return { generation, history, sectors, stale: feed.receipt.stale };
+}
+export type AcceptedCycleHistory = NonNullable<ReturnType<typeof acceptedCycleHistory>>;
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const validDay = (value: unknown): value is string => {

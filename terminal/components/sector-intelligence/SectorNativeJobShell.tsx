@@ -78,7 +78,7 @@ export function NativeUnavailable({ context, onRetry, onSources, onOpenExplorer 
 }
 
 export default function SectorNativeJobShell({ context, job, onJob, onSelect, onOpenDossier,
-  onTheme, onRefresh, onSources, onOpenExplorer }: {
+  onTheme, onRefresh, onSources, onOpenExplorer, onOpenCycles }: {
   context: SectorNativeContext;
   job: SectorJob;
   onJob: (job: SectorJob) => void;
@@ -88,6 +88,7 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
   onRefresh: () => void;
   onSources: () => void;
   onOpenExplorer?: () => void;
+  onOpenCycles?: () => void;
 }) {
   const t = useSectorT();
   const tabs = useRef<HTMLDivElement>(null);
@@ -129,6 +130,8 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
           {t("siNativeRegionUs")}
         </span>
         <button type="button" className={shell.button} onClick={onSources}>{t("siNativeSources")}</button>
+        {onOpenCycles && (context.generation || context.transport === "error" || context.transport === "unavailable") &&
+          <button type="button" className={shell.button} onClick={onOpenCycles}>{t("siCycleHistory")}</button>}
         {onTheme && <button type="button" className={shell.button} onClick={onTheme}
           aria-label={t(context.theme === "dark" ? "siUseLight" : "siUseDark")}>
           {t(context.theme === "dark" ? "siUseLight" : "siUseDark")}

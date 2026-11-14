@@ -15,7 +15,7 @@ describe("sector research depth return", () => {
     expect(parseSectorDepthReturn(encodeSectorDepthReturn(state))).toEqual(state);
   });
 
-  it.each(["rotation", "breadth"] as const)("preserves the %s opener", workspace => {
+  it.each(["rotation", "breadth", "cycles"] as const)("preserves the %s opener", workspace => {
     const state = { ...DEFAULT_SECTOR_STATE, workspace, sector: "xle", rotationMode: "list" as const,
       rotationQuery: "Energy", rotationMethod: "relative_trend_ema" as const };
     expect(parseSectorDepthReturn(encodeSectorDepthReturn(state))).toEqual(state);

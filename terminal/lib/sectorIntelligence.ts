@@ -35,7 +35,7 @@ export type Row = Record<string, unknown>;
 export const SECTOR_VIEWS = ["intelligence", "companies", "signals", "drivers", "history"] as const;
 export type SectorView = typeof SECTOR_VIEWS[number];
 export type MemberSort = "source" | "return" | "relative" | "ticker";
-export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
+export type SectorWorkspace = "rotation" | "discover" | "breadth" | "cycles" | "detail";
 export type SectorBreadthSort = "strong" | "weak" | "expand" | "contract";
 export type SectorBreadthWindow = 1 | 5;
 /** Native Sector Intelligence jobs on the canonical /sectors surface. A null
@@ -424,11 +424,11 @@ export function parseSectorState(params: URLSearchParams, path?: string | null):
   const canonicalBriefEntry = path === "/sectors" && !job
     && SECTOR_STATE_KEYS.every(key => !params.has(key));
   return {
-    sourceFamily: params.get("sectorSource") === "finviz" ? "finviz" : "sectors",
+    sourceFamily: workspace !== "cycles" && params.get("sectorSource") === "finviz" ? "finviz" : "sectors",
     finvizMode: ["heatmap","bubbles","clusters","matrix","table"].includes(params.get("finvizMode") || "") ? params.get("finvizMode") as FinvizMode : "heatmap",
     finvizTheme: (params.get("finvizTheme") || "").slice(0, 180), finvizSubtheme: (params.get("finvizSubtheme") || "").slice(0, 180),
     bubbleX: axis("bubbleX", "1W"), bubbleY: axis("bubbleY", "1M"), bubbleSize: params.get("bubbleSize") === "equal" ? "equal" : "members",
-    workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
+    workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "cycles" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
     breadthSort: breadthSort === "weak" || breadthSort === "expand" || breadthSort === "contract" ? breadthSort : "strong",
     breadthWindow: params.get("sectorBreadthWindow") === "1" ? 1 : 5,
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
@@ -442,7 +442,7 @@ export function parseSectorState(params: URLSearchParams, path?: string | null):
     rotationMode: rotationMode === "list" ? "list" : "map",
     rotationQuery: (params.get("sectorRotationQuery") || "").slice(0, 60),
     rotationMethod: rotationMethod === "relative_trend_ema" ? "relative_trend_ema" : "incumbent",
-    sectorJob: job === "brief" || job === "explore" || job === "research" || job === "watches" ? job
+    sectorJob: workspace === "cycles" ? null : job === "brief" || job === "explore" || job === "research" || job === "watches" ? job
       : canonicalBriefEntry ? "brief" : null,
     // Preserve old study URLs without keeping competing customer destinations.
     view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :

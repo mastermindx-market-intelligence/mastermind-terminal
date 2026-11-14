@@ -599,13 +599,14 @@ for (const [lang, theme] of cases) {
     await sheet.getByRole("button", { name: L.phaseAll, exact: true }).tap();
     await expect(sheet.locator("li")).toHaveCount(5);
     await expect(sheet).toContainText(L.selectedFoot);
-    // XLF is price-basis vs XLK's total return: refused with the reason.
+    // The price-cycle structures differ, but both retained RS series use TR.
     const xlfRow = sheet.locator("li").filter({ hasText: L.financials });
-    await expect(xlfRow.getByRole("checkbox")).toBeDisabled();
-    await expect(xlfRow).toContainText(lang === "zh" ? "口径" : "basis");
-    // XLE shares the tr basis: selectable, then committed through Apply.
+    await expect(xlfRow.getByRole("radio")).toBeEnabled();
+    await xlfRow.getByRole("radio").check();
+    // One comparison choice is retained; choosing Energy replaces Financials.
     const xleRow = sheet.locator("li").filter({ hasText: L.energy });
-    await xleRow.getByRole("checkbox").tap();
+    await xleRow.getByRole("radio").check();
+    await expect(xlfRow.getByRole("radio")).not.toBeChecked();
     await sheet.getByRole("button", { name: L.apply, exact: true }).tap();
     await expect(sheet).toBeHidden();
     await expect(panel).toContainText(`${L.energy} · ${L.rs63}`);

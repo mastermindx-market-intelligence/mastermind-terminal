@@ -16,6 +16,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 
 import SectorCycleLens from "@/components/sector-intelligence/SectorCycleLens";
+import type { SectorCycleGeneration } from "@/lib/sectorCycleSnapshot";
+import type { CycleFamily } from "@/lib/sectorCycleRecord";
+import { syntheticCycleHistory } from "./fixtures/sectorCycleHistory";
 import type {
   SectorCycleCaptureHandle,
   SectorCycleFeed,
@@ -184,7 +187,9 @@ interface LensProps {
   cyclesFeed?: SectorCycleFeed;
   historyFeed?: SectorCycleFeed;
   returnBinding?: "self" | "host";
-  gen?: typeof generation | null;
+  gen?: SectorCycleGeneration | null;
+  historyOnly?: boolean;
+  onSelectSubject?: (subject: { family: CycleFamily; id: string }) => void;
   /** Lane-3 mount context (TERMINAL_SLOTS.md §2): generation through context. */
   context?: {
     generation: unknown;
@@ -212,6 +217,8 @@ function mountLens(initial: LensProps) {
             context={props.context}
             subject={props.subject === undefined ? { family: "sectors", id: "xlk" } : props.subject}
             region="us"
+            historyOnly={props.historyOnly}
+            onSelectSubject={props.onSelectSubject}
             accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
@@ -243,6 +250,8 @@ function mountLens(initial: LensProps) {
             context={props.context}
             subject={props.subject === undefined ? { family: "sectors", id: "xlk" } : props.subject}
             region="us"
+            historyOnly={props.historyOnly}
+            onSelectSubject={props.onSelectSubject}
             accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
@@ -691,18 +700,155 @@ describe("cycles controller: v1.1 per-head forecast capabilities (lane 8 wire)",
     lens.unmount();
   });
 
-  it("renders honest session-count windows, never calendar-month relabelling", () => {
+  it("renders exact session-count windows from retained trading observations", () => {
     const lens = mountLens({
-      cyclesFeed: { state: "ready", data: deepCycles() },
-      historyFeed: { state: "ready", data: historyPayload() },
+      gen: { ...generation, asOf: "2026-11-12", publicationId: null }, historyOnly: true,
+      cyclesFeed: { state: "unavailable" }, historyFeed: { state: "ready", data: syntheticCycleHistory },
     });
-    const select = document.querySelector('[data-testid="cycle-chart-panel"] select');
-    expect(select).not.toBeNull();
-    expect(select!.textContent).toContain("21 sessions");
-    expect(select!.textContent).toContain("63 sessions");
-    expect(select!.textContent).toContain("252 sessions");
-    expect(select!.textContent).not.toContain("1 month");
-    expect(select!.textContent).not.toContain("1 year");
+    const panel = document.querySelector('[data-testid="cycle-chart-panel"]')!;
+    const select = panel.querySelector<HTMLSelectElement>("select")!;
+    const tableButton = [...panel.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "Data table")!;
+    act(() => tableButton.click());
+    for (const count of [21, 63, 252]) {
+      act(() => { select.value = String(count); select.dispatchEvent(new Event("change", { bubbles: true })); });
+      const rows = panel.querySelectorAll("tbody tr");
+      expect(rows).toHaveLength(count);
+      expect(rows[0].querySelector("th")?.textContent).toBe("2026-11-12");
+      expect(rows[count - 1].querySelector("th")?.textContent).toBe(syntheticCycleHistory.sectors[0].rs_history[252 - count].date);
+    }
+    expect(panel.querySelector("caption")?.textContent).toContain("Total return");
+    expect(panel.querySelector("thead th")?.getAttribute("scope")).toBe("col");
+    expect(document.querySelector('[data-testid="cycle-history-measurement"]')?.textContent).toContain("SPY");
+    expect(document.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Price-cycle structure");
+    expect(lens.handle.current!.captureView()).toBeNull();
     lens.unmount();
   });
+
+  it("hands selection to the host without writing history or silently changing the displayed subject", () => {
+    const onSelectSubject = vi.fn();
+    const push = vi.spyOn(window.history, "pushState");
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null },
+      historyOnly: true, onSelectSubject, historyFeed: { state: "ready", data: syntheticCycleHistory } });
+    act(() => (railButton("XLF") as HTMLButtonElement).click());
+    expect(onSelectSubject).toHaveBeenCalledWith({ family: "sectors", id: "xlf" });
+    expect(push).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-testid="cycle-hero"]')?.textContent).toContain("Technology");
+    expect(popstateAdds()).toHaveLength(0);
+    lens.unmount(); push.mockRestore();
+  });
+
+  it("contains picker focus and commits a drafted subject only on Apply", () => {
+    const visible = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockImplementation(function(this: HTMLElement) { return this.parentElement; });
+    const onSelectSubject = vi.fn();
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null }, historyOnly: true,
+      onSelectSubject, historyFeed: { state: "ready", data: syntheticCycleHistory } });
+    const opener = document.querySelector<HTMLButtonElement>('[data-testid="cycle-chart-panel"] button[aria-haspopup="dialog"]')!;
+    const open = () => act(() => { opener.focus(); opener.click(); });
+    open();
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    const buttons = [...dialog.querySelectorAll<HTMLButtonElement>("button")];
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    act(() => { last.focus(); last.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true })); });
+    expect(document.activeElement).toBe(first);
+    act(() => { first.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, cancelable: true })); });
+    expect(document.activeElement).toBe(last);
+    const financials = buttons.find(button => button.textContent?.includes("Financials"))!;
+    const compare = dialog.querySelector<HTMLInputElement>('input[aria-label="Comparison series: Financials"]');
+    // Both RS series use total return even though their price structures differ.
+    expect(compare).not.toBeNull();
+    expect(compare!.disabled).toBe(false);
+    act(() => financials.click());
+    expect(onSelectSubject).not.toHaveBeenCalled();
+    const cancel = buttons.find(button => button.textContent === "Cancel")!;
+    act(() => cancel.click());
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+    expect(onSelectSubject).not.toHaveBeenCalled();
+    open();
+    const current = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')];
+    act(() => current.find(button => button.textContent?.includes("Financials"))!.click());
+    act(() => current.find(button => button.textContent === "Apply")!.click());
+    expect(onSelectSubject).toHaveBeenCalledWith({ family: "sectors", id: "xlf" });
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    lens.unmount(); visible.mockRestore();
+  });
+
+  it("commits one comparison, restores that draft on reopen and explicitly clears it", () => {
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null }, historyOnly: true,
+      historyFeed: { state: "ready", data: syntheticCycleHistory } });
+    const panel = document.querySelector<HTMLElement>('[data-testid="cycle-chart-panel"]')!;
+    const open = () => act(() => [...panel.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent?.startsWith("Series ("))!.click());
+    const comparison = (name: string) => document.querySelector<HTMLInputElement>(`[role="dialog"] input[aria-label="Comparison series: ${name}"]`)!;
+    const apply = () => act(() => [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(button => button.textContent === "Apply")!.click());
+    open();
+    act(() => comparison("Financials").click());
+    act(() => comparison("Energy").click());
+    expect(comparison("Financials").checked).toBe(false);
+    expect(comparison("Energy").checked).toBe(true);
+    expect(document.querySelectorAll('[role="dialog"] input[type="radio"]:checked')).toHaveLength(1);
+    apply();
+    expect(panel.textContent).toContain("Energy · 63 sessions");
+    expect(panel.textContent).not.toContain("Financials · 63 sessions");
+    open();
+    expect(comparison("Energy").checked).toBe(true);
+    const none = [...document.querySelectorAll<HTMLLabelElement>('[role="dialog"] label')].find(label => label.textContent === "No comparison")!.querySelector<HTMLInputElement>("input")!;
+    act(() => none.click());
+    apply();
+    expect(panel.textContent).not.toContain("Energy · 63 sessions");
+    open();
+    expect(comparison("Energy").checked).toBe(false);
+    lens.unmount();
+  });
+
+  it("does not count an open leg when its pivot lies outside the retained window", () => {
+    const limited = structuredClone(syntheticCycleHistory);
+    for (const sector of limited.sectors) sector.rs_history = sector.rs_history.slice(-2);
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null }, historyOnly: true,
+      historyFeed: { state: "ready", data: limited } });
+    const open = [...document.querySelectorAll<HTMLButtonElement>('[data-testid="cycle-leg-timeline"] ol button')].find(button => button.textContent?.includes("Open leg"))!;
+    act(() => open.click());
+    act(() => document.querySelector<HTMLButtonElement>('[data-testid="cycle-leg-detail"] button')!.click());
+    expect(document.querySelector('[role="dialog"]')?.textContent).toContain("Open leg");
+    expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain("observed sessions");
+    lens.unmount();
+  });
+
+  it("counts the selected leg only when its anchors are retained and never calls relative-wealth change a price return", () => {
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null }, historyOnly: true,
+      historyFeed: { state: "ready", data: syntheticCycleHistory } });
+    const buttons = () => [...document.querySelectorAll<HTMLButtonElement>('[data-testid="cycle-leg-timeline"] ol button')];
+    const selectLeg = (text: string) => {
+      act(() => buttons().find(button => button.textContent?.includes(text))!.click());
+      act(() => document.querySelector<HTMLButtonElement>('[data-testid="cycle-leg-detail"] button')!.click());
+    };
+    selectLeg("2026-10-06 → 2026-11-05");
+    let dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    expect(dialog.textContent).toContain("22 observed sessions");
+    expect(dialog.textContent).not.toContain("Open · 5");
+    expect([...dialog.querySelectorAll("dt")].map(node => node.textContent)).not.toContain("Price");
+    act(() => dialog.querySelector<HTMLButtonElement>('button[aria-label="Cancel"]')!.click());
+    const old = buttons().find(button => button.textContent!.includes(" → ") && button.textContent!.slice(0, 10) < syntheticCycleHistory.sectors[0].rs_history[0].date)!;
+    act(() => old.click());
+    act(() => document.querySelector<HTMLButtonElement>('[data-testid="cycle-leg-detail"] button')!.click());
+    dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    expect(dialog.textContent).toContain("Session count unavailable for this leg");
+    expect(dialog.textContent).not.toContain("Open leg");
+    lens.unmount();
+  });
+
+  it("shows stale history while withholding denied feeds that still carry previous data", () => {
+    const lens = mountLens({ gen: { ...generation, asOf: "2026-11-12", publicationId: null },
+      historyOnly: true, historyFeed: { state: "stale", data: syntheticCycleHistory } });
+    expect(lensRoot()?.textContent).toContain("Historical snapshot");
+    expect(document.querySelector('[data-testid="cycle-chart-panel"]')).not.toBeNull();
+    lens.rerender({ historyFeed: { state: "denied", data: syntheticCycleHistory } });
+    expect(document.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    lens.rerender({ gen: generation, cyclesFeed: { state: "denied", data: deepCycles() },
+      historyFeed: { state: "unavailable", data: historyPayload() } });
+    expect(document.querySelector('[data-testid="cycle-chart-panel"]')).toBeNull();
+    expect(lens.handle.current!.captureView()).toBeNull();
+    lens.unmount();
+  });
+
 });

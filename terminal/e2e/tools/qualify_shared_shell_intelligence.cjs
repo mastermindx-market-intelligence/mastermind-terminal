@@ -16,11 +16,14 @@ require.extensions['.ts'] = (module, filename) => {
   const resolved = path.resolve(filename);
   // sector-company-v3 reuses this one shared synthetic fixture dependency.
   const generationFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorNativeGeneration.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture) throw Error('fixture loader scope');
+  const historyFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorCycleHistory.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
 const {sectorFixture} = require('../fixtures/sector-company-v3.ts');
+const sectorGeneration = require('../../lib/__tests__/fixtures/sector_generation.captured.preview.v1.json');
+const {syntheticCycleHistory:cycleHistory,syntheticCycleHistorySha:cycleHistorySha} = require('../../lib/__tests__/fixtures/sectorCycleHistory.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -49,6 +52,10 @@ report.sourceFiles=Object.fromEntries([
  'components/intelligence/IntelligenceWorkspace.tsx',
  'components/intelligence/IntelligenceToolWorkspace.tsx',
  'components/sector-intelligence/SectorIntelligenceWorkspace.tsx',
+ 'components/sector-intelligence/SectorCycleHistory.tsx',
+ 'components/sector-intelligence/SectorCycleLens.tsx',
+ 'components/sector-intelligence/cycles/CycleSheets.tsx',
+ 'lib/__tests__/fixtures/sectorCycleHistory.ts',
  'lib/sectorDepthReturn.ts', 'lib/sharedShellRoutes.generated.json',
  'app/(shell)/intelligence/loading.tsx',
  'app/(shell)/prophet/loading.tsx', 'app/(shell)/sectors/loading.tsx',
@@ -163,6 +170,152 @@ async function context(auth=true){
  return ctx;
 }
 async function overflow(page){return page.evaluate(()=>({document:document.documentElement.scrollWidth,viewport:innerWidth,main:[...document.querySelectorAll('main')].map(el=>({client:el.clientWidth,scroll:el.scrollWidth}))}));}
+
+async function noOverflow(page) {
+ const bounds = await overflow(page);
+ expect(bounds.document).toBeLessThanOrEqual(bounds.viewport + 1);
+ for (const main of bounds.main) expect(main.scroll).toBeLessThanOrEqual(main.client + 1);
+}
+// These member-only assertions use the existing authenticated qualifier. The
+// anonymous Shared Shell lane must continue to show its real account gate.
+async function qualifySectorCoherence(page, cell) {
+  await page.route("**/api/sector-intelligence?**", route => {
+    const source = new URL(route.request().url()).searchParams.get("source");
+    if (source !== "generation") return sectorFixture(route);
+    return route.fulfill({ json: { data: sectorGeneration, receipt: {
+      source, status: "ready", path: "/api/sector-generation?audience=preview",
+      asOf: sectorGeneration.source_session, observedAt: sectorGeneration.published_at,
+      contentHash: "3e275fc69d22e990f81261c8a803576a832be9332484c7a99b2dddd165a5d425", stale: false,
+    } } });
+  });
+  await page.goto(BASE + "/discover");
+  await page.getByRole("button", { name: "Open Sectors", exact: true }).click();
+  await expect(page).toHaveURL(/\/sectors\?workspaceMarket=us$/);
+  const workspace = page.getByTestId("sector-intelligence");
+  await expect(workspace.getByRole("heading", { level: 1, name: "Sector Intelligence", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(page.locator("main:visible")).toHaveCount(1);
+  await expect(workspace).toHaveAttribute("id", "shared-shell-content");
+  await expect(workspace.getByRole("button", { name: /Use (light|dark) view/ })).toHaveCount(0);
+  const primary = workspace.getByTestId("sector-native-brief-explore");
+  await expect(primary).toBeVisible();
+  expect(await primary.evaluate(button => {
+    const css = getComputedStyle(button);
+    return css.backgroundColor !== "rgba(0, 0, 0, 0)" && css.backgroundColor !== css.color;
+  })).toBe(true);
+  await noOverflow(page);
+  await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "sectors-brief-dark-en.png") });
+  await primary.click();
+  const table = workspace.getByRole("table", { name: "Explore sectors", exact: true });
+  await expect(table.getByRole("columnheader")).toHaveCount(3);
+  await expect(table.getByRole("rowheader")).toHaveCount(11);
+  await table.getByRole("button", { name: "Select sector: Financials", exact: true }).click();
+  await expect(workspace.getByTestId("sector-native-inspector")).toContainText("Financials");
+  await noOverflow(page);
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await expect(workspace).toHaveAttribute("data-sector-theme", "light");
+  await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "sectors-explore-light-en.png") });
+  await workspace.getByTestId("sector-native-inspector-open").click();
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(workspace.getByTestId("sector-native-dossier")).toHaveAttribute("data-sector-theme", "light");
+  await workspace.getByTestId("sector-native-dossier-back").click();
+  await expect(table.getByRole("button", { name: "Select sector: Financials", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // Old investigation addresses retain their mode without the Discover tool tabs.
+  await page.goto(BASE + "/discover?tab=sectors&sectorJob=brief&sectorTheme=dark");
+  await expect(workspace.getByTestId("sector-native-brief")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(page.locator("#wtab-sectors")).toHaveCount(0);
+  // Reloaded account metadata remains authoritative. Exercise the shell's
+  // explicit light-view intent even when this legacy URL requests dark.
+  const light = page.getByRole("button", { name: "Light theme", exact: true });
+  if (await light.getAttribute("aria-pressed") !== "true") await light.click();
+  await expect(workspace).toHaveAttribute("data-sector-theme", "light");
+  await noOverflow(page);
+}
+
+async function qualifyCycleHistory(page, cell) {
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  const sources = [];
+  await page.route("**/api/sector-intelligence?**", route => {
+    const source = new URL(route.request().url()).searchParams.get("source");
+    sources.push(source);
+    if (source !== "history") return sectorFixture(route);
+    // Synthetic contract observations and their exact fixture-byte receipt.
+    // This proves UI behavior, not real-source or authenticated production parity.
+    return route.fulfill({ json: { data: cycleHistory, receipt: {
+      source, status: "ready", path: "/sectordata/sector_cycles.json", asOf: "2026-11-12",
+      observedAt: "2026-11-13T00:00:00Z", contentHash: cycleHistorySha, stale: false,
+    } } });
+  });
+  await page.goto(BASE + "/sectors?workspaceMarket=us&sectorWorkspace=cycles&sector=xlk");
+  const workspace = page.getByTestId("sector-intelligence");
+  const hero = workspace.getByTestId("cycle-hero");
+  const panel = workspace.getByTestId("cycle-chart-panel");
+  await expect(hero).toContainText("Technology", { timeout: 30_000 });
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(page.locator("main:visible")).toHaveCount(1);
+  await expect(workspace.locator("iframe")).toHaveCount(0);
+  expect([...new Set(sources)].sort()).toEqual(["events", "history"]);
+  await expect(workspace.getByTestId("cycle-history-measurement")).toContainText("Total return");
+  await noOverflow(page);
+  await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "cycle-history-dark-en.png") });
+  await panel.getByRole("button", { name: "Data table", exact: true }).click();
+  await panel.getByRole("combobox", { name: "Chart range", exact: true }).selectOption("21");
+  await expect(panel.locator("tbody tr")).toHaveCount(21);
+  await expect(panel.locator("caption")).toContainText("SPY");
+  const sourceButton = workspace.getByRole("button", { name: "Sources and method", exact: true });
+  await sourceButton.click();
+  const sourceDialog = page.getByRole("dialog");
+  await expect(sourceDialog).toBeVisible();
+  await expect(sourceDialog).toContainText("2026-11-12");
+  await sourceDialog.getByText("Technical receipt", { exact: true }).first().click();
+  await expect(sourceDialog).toContainText("/sectordata/sector_cycles.json");
+  await page.keyboard.press("Escape");
+  await expect(sourceButton).toBeFocused();
+  // The compact picker is the same owner on phone and tablet. Draft and
+  // Cancel leave the URL unchanged; Apply commits through the host codec.
+  const picker = panel.getByRole("button", { name: /^Series \(\d+\)$/ });
+  await picker.click();
+  let dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: /Financials XLF/ }).click();
+  await dialog.getByText("Cancel", { exact: true }).click();
+  await expect(page).toHaveURL(/sector=xlk/);
+  await expect(picker).toBeFocused();
+  await picker.click();
+  dialog = page.getByRole("dialog");
+  const apply = dialog.getByRole("button", { name: "Apply", exact: true });
+  await apply.focus(); await page.keyboard.press("Tab");
+  expect(await dialog.evaluate(node => node.contains(document.activeElement))).toBe(true);
+  await dialog.getByRole("button", { name: /Financials XLF/ }).click();
+  await apply.click();
+  await expect(page).toHaveURL(/sector=xlf/);
+  await expect(hero).toContainText("Financials");
+  await page.goBack();
+  await expect(page).toHaveURL(/sector=xlk/);
+  await expect(hero).toContainText("Technology");
+  const selectedFocus = page.viewportSize().width <= 980
+    ? workspace.locator("[data-cycle-change-series]") : workspace.locator('[data-sector-choice="xlk"]');
+  await expect(selectedFocus).toBeFocused();
+  await hero.getByRole("button", { name: "Open sector dossier", exact: true }).click();
+  await expect(workspace.getByTestId("sector-native-dossier")).toBeVisible();
+  await workspace.getByTestId("sector-native-dossier-back").click();
+  await expect(page).toHaveURL(/sectorWorkspace=cycles/);
+  await expect(hero).toContainText("Technology");
+  await expect(hero.getByRole("button", { name: "Open sector dossier", exact: true })).toBeFocused();
+  await hero.getByRole("button", { name: "Open sector dossier", exact: true }).click();
+  await expect(workspace.getByTestId("sector-native-dossier")).toBeVisible();
+  await page.goBack();
+  await expect(hero).toContainText("Technology");
+  await expect(hero.getByRole("button", { name: "Open sector dossier", exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await expect(workspace).toHaveAttribute("data-sector-theme", "light");
+  await expect(workspace.getByRole("heading", { name: "周期历史", exact: true })).toBeVisible();
+  await noOverflow(page);
+  await page.screenshot({ animations: "disabled", path: path.join(OUT, cell + "-" + "cycle-history-light-zh.png") });
+}
+
 (async()=>{
  try{
   const authBase=await startFixture();
@@ -213,7 +366,7 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   await page.getByTestId('prophet-tab-plans').click();await expect(page).toHaveURL(BASE+'/prophet?tab=plans');await expect(page.locator('.obs-prophet-grid')).toBeVisible({timeout:45000});await expect(page.getByText('UBER',{exact:true}).first()).toBeVisible();
   await expect(page.getByRole('link',{name:'Open Prophet workspace →',exact:true})).toHaveAttribute('href','/us_stocks.html');
   await page.screenshot({path:path.join(OUT,'prophet-native-desktop.png')});await page.goBack();await expect(page).toHaveURL(BASE+'/prophet');await page.goBack();await expect(page).toHaveURL(BASE+'/intelligence');
-  await page.locator('[data-intelligence-nav="context"] a[href="/sectors"]').click();await expect(page.locator('[data-testid="sector-intelligence"]')).toBeVisible({timeout:45000});
+  await page.locator('[data-intelligence-nav="context"]').getByRole('link',{name:'Sector Intelligence',exact:true}).click();await expect(page.locator('[data-testid="sector-intelligence"]')).toBeVisible({timeout:45000});
   await page.goto(BASE+'/sectors?sector=xlk&group=semiconductors&sectorTheme=light');
   const sector=page.getByTestId('sector-intelligence');
   await expect(sector.locator('[data-company-choice="MU"]')).toBeVisible();
@@ -226,10 +379,10 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   report.sectorCompanyHandoff=companyHref;
   report.sectorReturnJourney={selectedHref};
   await page.screenshot({path:path.join(OUT,'sectors-native-desktop.png')});
-  await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();
+  await page.locator('.appnav').getByRole('link',{name:'Overview',exact:true}).click();
   // Prove that the requested destination committed before exercising Back.
   // An immediate goBack can race the asynchronous route commit and tests no journey.
-  await expect(page).toHaveURL(BASE+'/intelligence');
+  await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');
   await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready');
   report.sectorReturnJourney.overviewArrived=page.url();
   await page.goBack();
@@ -241,13 +394,25 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   await expect(page).toHaveURL(selectedHref);
   await expect(page.getByTestId('sector-company-inspector').getByRole('heading',{name:'MU',exact:true})).toBeVisible();
   report.sectorReturnJourney.reloadPreserved=true;
-  await page.locator('[data-intelligence-nav="context"] a[href="/intelligence"]').click();
-  await expect(page).toHaveURL(BASE+'/intelligence');
+  await page.locator('.appnav').getByRole('link',{name:'Overview',exact:true}).click();
+  await expect(page).toHaveURL(BASE+'/intelligence?workspaceMarket=us');
   await page.setViewportSize({width:320,height:844});const stress=await overflow(page);if(stress.document>321)throw Error('320px document overflow');report.stress320=stress;
   await page.route('**/api/flow?f=prophet_idx&view=intelligence',r=>r.fulfill({status:403,json:{error:'pro_required'}}));
   await page.locator('[data-intelligence-source="prophet"] button').click();await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','access');await expect(page.locator('[data-intelligence-source="macro"]')).toHaveAttribute('data-read-state','ready');
   await ctx.close();
   const guest=await context(false),gp=await guest.newPage();await gp.goto(BASE+'/intelligence');await expect(gp.locator('[data-intelligence-overview]')).toHaveCount(0);report.guestGate=true;await guest.close();
+  for (const [width,height] of [[1440,900],[820,1180],[320,844]]) {
+   theme='dark';locale='en';
+   const memberContext=await context(), memberPage=await memberContext.newPage();
+   await memberPage.setViewportSize({width,height});
+   memberPage.on('pageerror',error=>report.errors.push({cell:`sector-native-${width}`,error:error.message}));
+   const cell=`sector-native-${width}`;
+   await qualifySectorCoherence(memberPage,cell);
+   await qualifyCycleHistory(memberPage,cell);
+   report.cells.push({w:width,h:height,journey:'native-sector-and-cycle-history',source:cycleHistorySha,
+    sourceProof:'SYNTHETIC_CONTRACT_FIXTURE_NOT_MARKET_DATA',passed:true});
+   await memberContext.close();
+  }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}
  finally{
