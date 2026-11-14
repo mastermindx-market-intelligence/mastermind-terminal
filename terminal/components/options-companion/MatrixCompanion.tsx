@@ -510,6 +510,6 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         <p>{grid.exps.length} / {grid.nExpAll} {t("visible")} · {grid.strikes.length} / {grid.nAll} {t("strike")}</p>
       </details>
     </> : data && <p className={styles.empty}>{t(prefs.expiries === "0dte" ? "noExpiry" : "unavailableBody")}</p>}
-    {host === "rail" && <a className={styles.deskLink} href="/options?tab=prism">{t("expand")} ↗</a>}
+    {host === "rail" && <a className={styles.deskLink} href={`/options?tab=gex&view=matrix&symbol=${encodeURIComponent(root)}`}>{t("expand")} ↗</a>}
   </>;
 }

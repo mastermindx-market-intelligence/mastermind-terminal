@@ -123,7 +123,9 @@ Acceptance:
 
 ## Current frontier
 
-C1 is ready for implementation. Verified safe product paths are the companion expansion links and their focused integration coverage; #1248/#1266/#1509 source path sets do not own those companion files.
+The first C1 slice is implementation-complete: Gamma/Matrix and Vanna expansion retain the chart instrument. Focused typecheck/lint and seven distinct browser cases passed across the affected desktop/tablet/mobile journeys; see `docs/verification/options-suite-completion-20261114/C1.md` for tested postimages, exact commands, the corrected test assertion and evidence limits. This does not complete broader C1 or the programme. Exact-head CI, protected release and deployed-user proof remain due.
+
+Next: consume this slice's release evidence while recovering D08B on original operation `d08b-surface-exact-values-20261104-c3`. Its installed publisher reports clean local/remote head `46782b0f767aae8400e320d9c57b85dbf16738e8`, publication APPLIED. Refresh original workspace custody and resolve the real source divergence. Keep #1248's tree mutation and GMI qualification restrictions, #781's refused original evidence publication, and #804's ingress/unknown-operation restrictions fenced. Their affected effects do not block independent implementation.
 
 The initial Studio workspace acquire returned WORKSPACE_ACQUISITION_UNQUALIFIED. Same-carrier `mmx-workspace status` reconciled the operation to the existing clean workspace at the exact baseline; no replacement acquisition or carrier change occurred. The publisher readback confirms the expected branch and clean head.
 

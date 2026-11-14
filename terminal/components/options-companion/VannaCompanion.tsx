@@ -49,6 +49,6 @@ export function VannaCompanion({ root, t, windowPct, ...pin }: PinProps & { root
       <p>{t("unitsVanna")} · {data.session}</p><PinButton {...pin} root={root} strike={selected.strike} session={data.session} label={`${t("strike")} ${selected.strike} · EOD`} t={t} /></div>}
     <div className={styles.notice}>{t("vannaNote")}</div>
     <details className={styles.method}><summary>{t("basis")}</summary><p>{t("model")}</p><p>{t("estimate")}</p>{published.length !== rows.length && <p>{t("partial")}</p>}</details>
-    {host === "rail" && <a className={styles.deskLink} href="/options?tab=gex">{t("expand")} ↗</a>}
+    {host === "rail" && <a className={styles.deskLink} href={`/options?tab=gex&view=strike&symbol=${encodeURIComponent(root)}`}>{t("expand")} ↗</a>}
   </>;
 }
