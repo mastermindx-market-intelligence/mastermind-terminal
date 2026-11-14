@@ -35,6 +35,134 @@ afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi
 const mount = async (element: React.ReactNode) => { await act(async () => { root.render(element); }); };
 const click = async (text: string) => { const button = Array.from(host.querySelectorAll("button")).find(el => el.textContent === text); expect(button).toBeTruthy(); await act(async () => button!.click()); };
 
+describe("curve to exact source and return", () => {
+  it.each(["en", "zh"] as const)("opens the selected maturity through the real workspace and returns by Close or Escape (%s)", async lang => {
+    const data = read("rates_curves"), onRefresh = vi.fn(), onNavigate = vi.fn();
+    let selected = choice("tenor=2y&comparison=prior_month&display=table");
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang={lang} read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={onRefresh} onNavigate={onNavigate} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page());
+      const trigger = host.querySelector<HTMLButtonElement>('[data-curve-source="dgs2"]')!;
+      expect(trigger).not.toBeNull();
+      await act(async () => trigger.click());
+      let evidence = host.querySelector<HTMLElement>("[data-economic-evidence]")!;
+      expect(document.activeElement).toBe(evidence);
+      expect(evidence.textContent).toContain("DGS2");
+      expect(evidence.textContent).not.toContain("DGS10");
+      expect(evidence.textContent).toContain("recomputed each owner cadence");
+      expect(selected).toMatchObject({ evidence: "dgs2", tenor: "2y", comparison: "prior_month", display: "table" });
+      await act(async () => evidence.querySelector<HTMLButtonElement>("button")!.click());
+      expect(host.querySelector("[data-economic-evidence]")).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+      expect(scroll).toHaveBeenCalledWith({ left: 0, top: 0, behavior: "instant" });
+      await act(async () => trigger.click());
+      evidence = host.querySelector<HTMLElement>("[data-economic-evidence]")!;
+      await act(async () => evidence.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+      expect(host.querySelector("[data-economic-evidence]")).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+      expect(selected).toMatchObject({ evidence: null, tenor: "2y", comparison: "prior_month", display: "table" });
+      expect(onRefresh).not.toHaveBeenCalled(); expect(onNavigate).not.toHaveBeenCalled();
+    } finally { scroll.mockRestore(); }
+  });
+
+  it("restores focus when the URL-owned evidence selection disappears independently of Close", async () => {
+    const data = read("rates_curves"); let selected = choice("tenor=10y&comparison=prior_month&display=table");
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page()); const trigger = host.querySelector<HTMLButtonElement>('[data-curve-source="dgs10"]')!;
+      await act(async () => trigger.click());
+      selected = { ...selected, evidence: null }; await mount(page());
+      expect(document.activeElement).toBe(trigger);
+      expect(selected).toMatchObject({ tenor: "10y", comparison: "prior_month", display: "table" });
+    } finally { scroll.mockRestore(); }
+  });
+
+  it("restores the shared shell's scrolling ancestor as well as source focus", async () => {
+    const data = read("rates_curves"); let selected = choice("tenor=2y&comparison=prior_month");
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page()); const trigger = host.querySelector<HTMLButtonElement>('[data-curve-source="dgs2"]')!;
+      host.scrollTop = 180; host.scrollLeft = 24;
+      await act(async () => trigger.click());
+      host.scrollTop = 920; host.scrollLeft = 0;
+      const evidence = host.querySelector<HTMLElement>("[data-economic-evidence]")!;
+      await act(async () => evidence.querySelector<HTMLButtonElement>("button")!.click());
+      expect(host.scrollTop).toBe(180); expect(host.scrollLeft).toBe(24);
+      expect(document.activeElement).toBe(trigger);
+    } finally { scroll.mockRestore(); }
+  });
+
+  it.each(["history", "drivers"] as const)("keeps deliberate %s navigation focused without restoring the old chart", async task => {
+    const data = read("rates_curves"); let selected = choice("tenor=2y");
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page()); host.scrollTop = 180;
+      await act(async () => host.querySelector<HTMLButtonElement>('[data-curve-source="dgs2"]')!.click());
+      host.scrollTop = 920;
+      const tab = Array.from(host.querySelectorAll("button")).find(button => button.textContent === (task === "history" ? "History" : "Drivers"))!;
+      await act(async () => { tab.focus(); tab.click(); });
+      expect(selected).toMatchObject({ task, evidence: null });
+      expect(document.activeElement).toBe(tab);
+      expect(host.scrollTop).toBe(920); expect(scroll).not.toHaveBeenCalled();
+    } finally { scroll.mockRestore(); }
+  });
+
+  it("does not reuse a curve trigger after its maturity identity changes", async () => {
+    const data = read("rates_curves"); let selected = choice("tenor=2y");
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page()); const trigger = host.querySelector<HTMLButtonElement>('[data-curve-source="dgs2"]')!;
+      host.scrollTop = 180; await act(async () => trigger.click());
+      selected = { ...selected, tenor: "10y" }; await mount(page()); host.scrollTop = 920;
+      expect(host.querySelector('[data-curve-source="dgs10"]')).toBe(trigger);
+      await act(async () => host.querySelector<HTMLElement>("[data-economic-evidence]")!.querySelector<HTMLButtonElement>("button")!.click());
+      expect(document.activeElement?.textContent).toBe("Sources & calculation");
+      expect(host.scrollTop).toBe(920); expect(scroll).not.toHaveBeenCalled();
+    } finally { scroll.mockRestore(); }
+  });
+
+  it("uses a visible fallback after refresh removes the original source trigger", async () => {
+    const data = read("rates_curves"); let selected = choice("tenor=2y"), loading = false;
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={loading ? { phase: "loading", data: null } : { phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    try {
+      await mount(page()); const trigger = host.querySelector<HTMLButtonElement>('[data-curve-source="dgs2"]')!;
+      host.scrollTop = 180; await act(async () => trigger.click());
+      loading = true; await mount(page()); expect(trigger.isConnected).toBe(false);
+      loading = false; await mount(page()); host.scrollTop = 920;
+      const fallback = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Sources & calculation")!;
+      const focus = vi.spyOn(fallback, "focus");
+      await act(async () => host.querySelector<HTMLElement>("[data-economic-evidence]")!.querySelector<HTMLButtonElement>("button")!.click());
+      expect(document.activeElement).toBe(fallback); expect(focus).toHaveBeenCalledWith();
+      expect(host.scrollTop).toBe(920); expect(scroll).not.toHaveBeenCalled();
+    } finally { scroll.mockRestore(); }
+  });
+
+  it("focuses direct-link evidence and returns to the local sources control without an origin trigger", async () => {
+    const data = read("rates_curves"); let selected = choice("tenor=10y&evidence=dgs10");
+    const page = () => <MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={selected} onSelect={change => { selected = { ...selected, ...change }; root.render(page()); }} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>;
+    await mount(page()); const evidence = host.querySelector<HTMLElement>("[data-economic-evidence]")!;
+    expect(document.activeElement).toBe(evidence);
+    await act(async () => evidence.querySelector<HTMLButtonElement>("button")!.click());
+    expect(document.activeElement?.textContent).toBe("Sources & calculation");
+    expect(selected.tenor).toBe("10y");
+  });
+
+  it("keeps an older curve readable and explicitly unlinked", async () => {
+    const data = read("rates_curves"); if (data.selected_workspace.state !== "ready") throw Error("fixture");
+    for (const row of data.selected_workspace.view.curve_hero!.tenors) delete row.source_binding;
+    await mount(<MacroEconomyWorkspace workspaceId="rates_curves" lang="en" read={{ phase: "ready", data }} selection={choice()} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    expect(host.querySelector("[data-curve-source]")).toBeNull();
+    expect(host.querySelector("[data-curve-source-unlinked]")).not.toBeNull();
+    expect(host.textContent).toContain("3.743");
+  });
+});
+
 describe("native charts and evidence", () => {
   it("shows the exact driver source and a Chinese calculation while keeping unlinked evidence explicit", async () => {
     const result = read("liquidity_regime");
@@ -219,7 +347,7 @@ describe("native charts and evidence", () => {
     const result = read("rates_curves"); if (result.selected_workspace.state !== "ready") throw Error("fixture");
     const curve = result.selected_workspace.view.curve_hero!, onSelect = vi.fn();
     const selected = choice("tenor=2y&comparison=prior_month&display=table");
-    await mount(<MacroEconomicCurve curve={curve} lang="en" selection={selected} onSelect={onSelect}/>);
+    await mount(<MacroEconomicCurve curve={curve} lang="en" selection={selected} onSelect={onSelect} onEvidence={vi.fn()}/>);
     expect(host.querySelectorAll("select")[0].value).toBe("2y");
     expect(host.querySelectorAll("select")[1].value).toBe("prior_month");
     expect(host.querySelector("tr[data-selected]")!.textContent).toContain("2-year");
@@ -227,7 +355,7 @@ describe("native charts and evidence", () => {
     expect(host.querySelector("tr[data-selected]")!.textContent).toContain(row.prior_month_as_of);
     await click("Chart"); expect(onSelect).toHaveBeenLastCalledWith({ display: "chart" });
     await mount(<div>Another study</div>);
-    await mount(<MacroEconomicCurve curve={curve} lang="en" selection={selected} onSelect={onSelect}/>);
+    await mount(<MacroEconomicCurve curve={curve} lang="en" selection={selected} onSelect={onSelect} onEvidence={vi.fn()}/>);
     expect(host.querySelector("table")).not.toBeNull();
     expect(host.querySelectorAll("select")[0].value).toBe("2y");
   });
@@ -312,3 +440,4 @@ describe("subject-keyed economic reader", () => {
     expect(host.textContent).toContain("Your current access");
   });
 });
+

@@ -22,9 +22,10 @@ export default function MacroEconomicEvidence({ read, selection, lang, onClose, 
   const payroll = metric ? v.payroll_revisions?.rows.find(row => Object.values(row.metric_ids).includes(metric.metric_id)) : null;
   const sourceIds = driver ? driver.source_binding?.source_refs ?? [] : economicSourceIds(metric?.source_refs ?? [selection], v.evidence.sources);
   const sources = v.evidence.sources.filter(row => all || sourceIds.includes(row.source_id));
-  const series = v.series.entries.find(row => row.source_ref === selection);
+  const boundSeries = v.curve_hero?.tenors.filter(row => row.source_binding?.source_id === selection).map(row => row.source_binding!.series_id) ?? [];
+  const series = (boundSeries.length === 1 ? v.series.entries.find(row => row.series_id === boundSeries[0]) : undefined) ?? v.series.entries.find(row => row.source_ref === selection);
   const text = (value: Pair | null | undefined) => localText(value, lang) || c.unavailable;
-  return <section ref={panel} tabIndex={-1} className={s.sourcePanel} aria-labelledby="economic-evidence-title" data-economic-evidence="">
+  return <section ref={panel} tabIndex={-1} className={s.sourcePanel} aria-labelledby="economic-evidence-title" data-economic-evidence="" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onClose(); } }}>
     <div className={s.sectionHeading}><h2 id="economic-evidence-title">{driver ? (c.driverCalculation) : c.title}</h2><button type="button" className={s.button} onClick={onClose}>{c.close} ×</button></div>
     {metric && <section className={s.sectionHeading}><div><h3>{text(metric.label)}</h3><p>{text(metric.value)} {localText(metric.unit, lang)}</p><dl className={s.sourceDetails}>
       <div><dt>{c.period}</dt><dd>{metric.reference_period ?? c.unavailable}</dd></div><div><dt>{c.basis}</dt><dd>{text(metric.basis)}</dd></div><div><dt>{c.method}</dt><dd>{localText(metric.transformation_label, lang) || metric.transformation || c.unavailable}</dd></div><div><dt>{c.version}</dt><dd>{metric.definition_version ?? c.unavailable}</dd></div>
@@ -63,3 +64,4 @@ export default function MacroEconomicEvidence({ read, selection, lang, onClose, 
     </dl><p>{text(v.evidence.authority.statement)}</p></details>
   </section>;
 }
+

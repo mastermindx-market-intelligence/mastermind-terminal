@@ -42963,7 +42963,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us3m",
+                "source_ref": "FRED:DGS3MO",
+                "source_id": "dgs3mo"
+              }
             },
             {
               "tenor": "6m",
@@ -42978,7 +42983,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us6m",
+                "source_ref": "FRED:DGS6MO",
+                "source_id": "dgs6mo"
+              }
             },
             {
               "tenor": "1y",
@@ -42993,7 +43003,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us1y",
+                "source_ref": "FRED:DGS1",
+                "source_id": "dgs1"
+              }
             },
             {
               "tenor": "2y",
@@ -43008,7 +43023,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us2y",
+                "source_ref": "FRED:DGS2",
+                "source_id": "dgs2"
+              }
             },
             {
               "tenor": "3y",
@@ -43023,7 +43043,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us3y",
+                "source_ref": "FRED:DGS3",
+                "source_id": "dgs3"
+              }
             },
             {
               "tenor": "5y",
@@ -43038,7 +43063,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us5y",
+                "source_ref": "FRED:DGS5",
+                "source_id": "dgs5"
+              }
             },
             {
               "tenor": "7y",
@@ -43053,7 +43083,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us7y",
+                "source_ref": "FRED:DGS7",
+                "source_id": "dgs7"
+              }
             },
             {
               "tenor": "10y",
@@ -43068,7 +43103,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us10y",
+                "source_ref": "FRED:DGS10",
+                "source_id": "dgs10"
+              }
             },
             {
               "tenor": "20y",
@@ -43083,7 +43123,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us20y",
+                "source_ref": "FRED:DGS20",
+                "source_id": "dgs20"
+              }
             },
             {
               "tenor": "30y",
@@ -43098,7 +43143,12 @@
               "prior_close_as_of": "2026-11-12",
               "prior_month_as_of": "2026-10-14",
               "delta_close": 0.003,
-              "delta_month": 0.066
+              "delta_month": 0.066,
+              "source_binding": {
+                "series_id": "us30y",
+                "source_ref": "FRED:DGS30",
+                "source_id": "dgs30"
+              }
             }
           ]
         }

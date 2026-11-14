@@ -324,3 +324,110 @@ original masterplan obligations are still open.
 
 Status remains **MORE_WORK_EXISTS**. This material milestone is saved while the
 same session continues. It neither requests release nor changes any hold.
+
+
+## Successor design and exact Treasury evidence qualification — 2026-11-14
+
+This section is the current continuation record. The earlier source and hold
+history above remains evidence of its respective observation, not present
+completion. The existing Terminal #1524 carrier remains Draft and non-releasing.
+
+### Final editable Paper map
+
+All seven new frames are complete and screenshot-inspected in the original
+file `01M6Y1NJ2SKGG89DZ13E4NVAE2`. Separate pages make each desktop or mobile
+view directly reviewable. The original Economy overview and older Liquidity
+page are preserved.
+
+| Page | Node | Screen |
+| --- | --- | --- |
+| p-7-0 | 3NE-0 | M01 Economy overview, original preserved |
+| p-8-0 | 3UD-0 | M02 Growth history, dark English desktop 1440 |
+| p-9-0 | 3XO-0 | M03 Payroll revisions, dark English desktop 1440 |
+| p-A-0 | 418-0 | M04 Revision evidence, light English desktop 1440 |
+| p-B-0 | 443-0 | M05 Payroll revisions, light Chinese mobile 390 |
+| p-C-0 | 46L-0 | M06 Revision evidence, dark Chinese mobile 390 |
+| p-D-0 | 47Y-0 | M07 Treasury curve, light Chinese desktop 1440 |
+| p-E-0 | 4C2-0 | M08 Treasury curve, dark English mobile 390 |
+
+Page URL format:
+`https://app.paper.design/file/01M6Y1NJ2SKGG89DZ13E4NVAE2/<page>`.
+Final page/node readback and node-scoped finish succeeded. One page move first
+named a nonexistent parent: despite its outer APPLIED wrapper, the nested result
+reported that error and readback proved no move. The actual page root was then
+read and the corrected original-carrier move succeeded. No uncertain effect
+was replayed or hidden.
+
+Every market number in these designs remains an illustrative fixture. Payroll
+57/30/-27 thousand means earliest retained versus selected January 2025 monthly
+changes, not a certified first release, official combined prior-two-month
+revision or historical system knowledge. The Treasury example preserves exact
+maturity spacing, dated comparisons and stale-input disclosure. The contextual
+evidence sheet and copy-link control in Paper remain proposed design; the
+current implemented evidence component remains an inline section.
+
+### Implemented source-to-consumer path
+
+Macro #11258 adds optional `curve_hero.tenors[].source_binding` containing the
+existing `series_id`, `source_ref` and `source_id`. The rates_curves.compose.v1
+owner, unique raw input, unit/basis, dates, values, exact published artifact and
+canonical source ID must agree. Four-decimal coordinates and deltas stay within
+the shared safe integer range. Failure withholds attribution without changing
+the producer's existing curve values. No new registry, data owner, calculation
+authority or evidence identity is introduced.
+
+The native decoder independently verifies an asserted binding. Older omitted
+or null bindings remain readable with an explicit unlinked explanation. The
+selected maturity now opens its exact published source, preserving comparison
+and chart/table selection and the published basis/revision caveat.
+
+Evidence Close, Escape and Back restore the connected original trigger and its
+scrolling ancestors only for the same workspace and full view identity. A
+deliberate study/maturity/context change does not replay the old return. Direct
+evidence URLs and refresh-disconnected triggers use visible local fallback
+focus. The incumbent URL, subject-scoped reader and market boundary remain the
+owners of navigation, request lifetime and admission.
+
+### Qualification and exact limits
+
+- All 179 affected native payload, mounted-consumer and route tests pass.
+- Strict TypeScript passes for the actual Economy component/decoder graph, the
+  payload and consumer suites, and the new browser specimen. This is a sparse
+  source qualification, not the repository-wide hosted typecheck.
+- All 95 tests in the existing publisher suite pass in the source companion.
+- The source-derived fixture differs only by ten new curve binding objects;
+  all prior economic values, dates, sources and other workspace data compare
+  equal.
+- The new actual Route → Reader → Workspace → Curve → Evidence browser suite
+  compiles and Playwright discovers 18 cases across desktop, tablet and mobile,
+  with English/Chinese and light/dark coverage. It verifies exact single-source
+  identity, real nested scrolling, Close/Back/Forward/Escape, direct URLs,
+  request counts, missing attribution and unsupported-market non-mounting.
+  Its network and account boundaries are synthetic and explicitly labeled.
+- Local browser execution did not succeed: Chromium socket creation was denied
+  by the workspace kernel. No changed launch flags, alternate host browser,
+  escalation or repeat launch was used. The existing hosted browser CI remains
+  the execution proof; discovery and typechecking are not browser passes.
+
+The updated source was prepared against Terminal
+`166a0c79456cb8edd64f76faec2edf3c8ff982a3` and Macro
+`a33a59e76a415c012c1072ba5bee2d7c9c3ac35c`. Native readback proved both PRs
+open and neither queued nor armed before their bounded source updates. GitHub
+is the sole mutation carrier, with exact-parent tree/commit creation, branch
+compare-and-swap, and changed-blob/head readback.
+
+### Next consumer proof and preserved gates
+
+Consume new-head hosted CI and repair concrete failures through the same
+carriers. Qualify Macro's independent source release under its actual current
+checks and holds. Keep Terminal #1524 Draft until imported owner custody,
+#1503's publication hold, the controller-owned #11253 hold and the canonical
+registry/exporter sequence are resolved through their incumbent owners.
+Registry companion #11267 currently names the earlier Terminal input; a new
+source head is not permission to bypass its protected-baseline requirements.
+
+Continue the source-linked parent mission: actual producer/publication receipts,
+canonical admitted catalogue, deployed authenticated journeys and the original
+scenario, alert, Analyst, official revision and PIT obligations remain open.
+Status: **MORE_WORK_EXISTS**. No production completion or release request is
+made by this design/source milestone.

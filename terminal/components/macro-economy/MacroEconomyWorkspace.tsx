@@ -26,13 +26,53 @@ export default function MacroEconomyWorkspace({ workspaceId, lang, read, selecti
   workspaceHref: (id: EconomicWorkspaceId) => string; accountNotice?: ReactNode;
 }) {
   const c = COPY[lang], title = useRef<HTMLHeadingElement>(null), sourcesButton = useRef<HTMLButtonElement>(null), evidenceTrigger = useRef<HTMLElement | null>(null);
+  const viewIdentity = selection ? JSON.stringify([selection.task, selection.series, selection.observation, selection.window, selection.display, selection.tenor, selection.comparison]) : null;
+  const evidenceOrigin = useRef<{ workspaceId: EconomicWorkspaceId; viewIdentity: string | null; triggerSource: string | null; x: number; y: number; containers: { node: HTMLElement; left: number; top: number }[] } | null>(null);
+  const priorEvidence = useRef({ workspaceId, viewIdentity, selection: selection?.evidence });
+  const focusedWorkspace = useRef<EconomicWorkspaceId | null>(null);
   const selected = read.phase === "ready" && !accountNotice ? read.data?.selected_workspace : null;
   const ready = selected?.state === "ready" && selected.workspace_id === workspaceId ? selected : null, v = ready?.view;
   const text = (pair: Pair | null | undefined, fallback: string = c.unknown) => localText(pair, lang) || fallback;
   const ids = Object.keys(ECONOMIC_WORKSPACES) as EconomicWorkspaceId[];
-  useEffect(() => { title.current?.focus(); }, [workspaceId]);
-  const openEvidence = (id: string) => { evidenceTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : sourcesButton.current; onSelect({ evidence: id }); };
-  const closeEvidence = () => { onSelect({ evidence: null }); evidenceTrigger.current?.focus(); };
+  useEffect(() => {
+    if (focusedWorkspace.current !== workspaceId && !selection?.evidence) title.current?.focus();
+    focusedWorkspace.current = workspaceId;
+  }, [workspaceId, selection?.evidence]);
+  useEffect(() => {
+    const previous = priorEvidence.current;
+    const sameView = previous.workspaceId === workspaceId && previous.viewIdentity === viewIdentity;
+    if (!sameView) { evidenceTrigger.current = null; evidenceOrigin.current = null; }
+    if (sameView && previous.selection && !selection?.evidence) {
+      const origin = evidenceOrigin.current;
+      const trigger = evidenceTrigger.current;
+      if (origin?.workspaceId === workspaceId && origin.viewIdentity === viewIdentity && trigger?.isConnected
+          && trigger.getAttribute("data-curve-source") === origin.triggerSource) {
+        trigger.focus({ preventScroll: true });
+        for (const { node, left, top } of origin.containers) if (node.isConnected) {
+          if (typeof node.scrollTo === "function") node.scrollTo({ left, top, behavior: "instant" });
+          else { node.scrollLeft = left; node.scrollTop = top; }
+        }
+        window.scrollTo({ left: origin.x, top: origin.y, behavior: "instant" });
+      } else {
+        // Direct URLs and refreshed readers have no surviving origin. Normal
+        // focus brings the fallback into view; old scroll coordinates do not.
+        (sourcesButton.current ?? title.current)?.focus();
+        evidenceTrigger.current = null; evidenceOrigin.current = null;
+      }
+    }
+    priorEvidence.current = { workspaceId, viewIdentity, selection: selection?.evidence };
+  }, [workspaceId, viewIdentity, selection?.evidence]);
+  const openEvidence = (id: string, trigger?: HTMLElement) => {
+    evidenceTrigger.current = trigger ?? (document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : sourcesButton.current);
+    const containers: { node: HTMLElement; left: number; top: number }[] = [];
+    for (let node = evidenceTrigger.current?.parentElement; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
+      containers.push({ node, left: node.scrollLeft, top: node.scrollTop });
+    }
+    evidenceOrigin.current = { workspaceId, viewIdentity, triggerSource: evidenceTrigger.current?.getAttribute("data-curve-source") ?? null, x: window.scrollX, y: window.scrollY, containers };
+    onSelect({ evidence: id });
+  };
+  // URL disappearance owns return behavior, including Close, Escape and Back.
+  const closeEvidence = () => { onSelect({ evidence: null }); };
   const reset = () => onSelect({ task: "overview", series: null, observation: null, evidence: null, window: "1y", display: "chart", tenor: "10y", comparison: "prior_close" });
   const changeStudy = (task: EconomicSelection["task"]) => onSelect({ task, evidence: null, ...(task !== selection?.task && (task === "revisions" || selection?.task === "revisions") ? { series: null, observation: null } : {}) });
   const comparable = !!v && v.changes.comparable && v.changes.prior_is_earlier;
@@ -52,7 +92,7 @@ export default function MacroEconomyWorkspace({ workspaceId, lang, read, selecti
           <nav className={s.tabs} aria-label={c.withheld}>{(["overview", "drivers", "history", ...(workspaceId === "labor_markets" ? ["revisions" as const] : [])] as const).map(task => <button type="button" key={task} aria-current={selection.task === task ? "page" : undefined} onClick={() => changeStudy(task)}>{c[task]}</button>)}</nav>
           {selection.task === "overview" && <>
             {!!v.axes.length && <dl className={s.axes} data-economic-axes="">{v.axes.map(axis => <div key={axis.axis_id}><dt>{text(axis.label)}</dt><dd>{axis.value_raw === null ? text(axis.absence?.label) : text(axis.value_with_unit, axis.value ?? c.unknown)}</dd>{axis.low_label && axis.high_label && <p className={s.caption}>{c.lower}: {text(axis.low_label)} · {c.higher}: {text(axis.high_label)}</p>}<p className={s.caption}>{text(axis.freshness)}</p></div>)}</dl>}
-            {v.curve_hero ? <MacroEconomicCurve curve={v.curve_hero} lang={lang} selection={selection} onSelect={onSelect}/> : v.series.entries.length ? <MacroEconomicHistory entries={v.series.entries} sources={v.evidence.sources} selection={selection} onSelect={onSelect} lang={lang} onEvidence={openEvidence}/> : <div className={s.limit}>{c.noHistory}</div>}
+            {v.curve_hero ? <MacroEconomicCurve curve={v.curve_hero} lang={lang} selection={selection} onSelect={onSelect} onEvidence={openEvidence}/> : v.series.entries.length ? <MacroEconomicHistory entries={v.series.entries} sources={v.evidence.sources} selection={selection} onSelect={onSelect} lang={lang} onEvidence={openEvidence}/> : <div className={s.limit}>{c.noHistory}</div>}
             <section className={s.section} aria-labelledby="economic-change-title"><div className={s.sectionHeading}><h2 id="economic-change-title">{c.changed}</h2>{comparable && <span className={s.caption}>{v.changes.prior_effective_date} → {v.headline.effective_date}</span>}</div>
               {!comparable ? <p className={s.muted}>{text(v.changes.absence?.label, c.noPrior)}</p> : <div className={s.tableScroll} tabIndex={0} role="region" aria-label={c.changed}><table className={s.table}><thead><tr><th>{c.measures}</th><th>{c.prior}</th><th>{c.current}</th><th>{c.change}</th></tr></thead><tbody>{v.changes.deltas.map(row => <tr key={row.metric_id}><th scope="row">{text(row.label)}</th><td>{row.prior_present ? row.prior : c.unknown}</td><td>{row.current_present ? row.current : c.unknown}</td><td>{row.comparable && row.is_movement && row.delta_present ? row.delta : text(row.absence?.label, c.noComparison)}</td></tr>)}</tbody></table></div>}
             </section>
@@ -71,3 +111,4 @@ export default function MacroEconomyWorkspace({ workspaceId, lang, read, selecti
     </div>
   </div>;
 }
+
