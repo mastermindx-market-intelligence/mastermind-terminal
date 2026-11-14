@@ -23,14 +23,14 @@ import type { Lang } from "@/lib/i18n";
 export type TroughHeadlineVariant = "count" | "named";
 /** Held copy choice: this constant is the sole switch for headline/method/record. */
 export const TROUGH_HEADLINE_VARIANT: TroughHeadlineVariant = "named";
-/** Record copy remains held independently of the approved headline. */
-export const TROUGH_RECORD_ENABLED = false;
+/** CEO-ruled record copy is enabled independently of the rollout flag. */
+export const TROUGH_RECORD_ENABLED = true;
 export const TROUGH_STRINGS = {
   en: {
     title: "Trough read", unavailable: "Not available", unavailableBody: "This read is not available for this stock yet.",
     variants: {
-      count: { headline: "Washed out on {n} of 4 timeframes · {suffix}", record: "", method: "Which timeframe matters for which kind of stock is still being measured; this headline only counts.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only counts." },
-      named: { headline: "Washed out on {list}{notPart} · {suffix}", record: "", method: "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only lists them." },
+      count: { headline: "Washed out on {n} of 4 timeframes · {suffix}", record: "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market.", method: "Which timeframe matters for which kind of stock is still being measured; this headline only counts.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only counts." },
+      named: { headline: "Washed out on {list}{notPart} · {suffix}", record: "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market.", method: "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold.", disclosureNote: "Which timeframe matters for which kind of stock is still being measured; this headline only lists them." },
     },
     namedNone: "Not washed out on any timeframe", notPart: "; not on {rest}", notYet: "Not yet available", kindPending: "Kind: not yet available",
     notWashed: "not washed out", turning: "turning up", notTurned: "not yet turned", none: "none",
@@ -53,8 +53,8 @@ export const TROUGH_STRINGS = {
   zh: {
     title: "低谷解读", unavailable: "暂不可用", unavailableBody: "该股票暂未提供此项解读。",
     variants: {
-      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
-      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只列出这些周期。" },
+      count: { headline: "4个周期中有{n}个处于低位 · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。", method: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只作计数。" },
+      named: { headline: "处于低位：{list}{notPart} · {suffix}", record: "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。", method: "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。", disclosureNote: "哪种股票应着重看哪个周期仍在研究中；此标题只列出这些周期。" },
     },
     namedNone: "所有周期均未处于低位", notPart: "；{rest}未处于低位", notYet: "尚未提供", kindPending: "类型：尚未提供",
     notWashed: "未处于低位", turning: "正在回升", notTurned: "尚未回升", none: "无",

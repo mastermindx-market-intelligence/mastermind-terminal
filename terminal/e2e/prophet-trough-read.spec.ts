@@ -37,13 +37,23 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     // preceding RotationRead. Larger served rotation payloads remain untouched.
     if (width === 390) expect(box.y + box.height).toBeLessThanOrEqual(844);
     if (crops) await page.screenshot({ path: path.join(crops, `${state}-${lang}-${width}-collapsed.png`) });
-    if (state === "D") { await expect(block.getByRole("button")).toHaveCount(0); return; }
+    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。";
+    await expect(block.locator("small").first()).toHaveText(record);
+    if (state === "D") {
+      await block.getByRole("button", { name: lang === "en" ? "How this read works ▸" : "解读方法 ▸", exact: true }).click();
+      await expect(block.locator("aside small")).toHaveText(record);
+      await expect(block).not.toContainText(TROUGH_BANNED_WORDS);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      if (crops) await block.screenshot({ path: path.join(crops, `${state}-${lang}-${width}-expanded.png`) });
+      return;
+    }
     const open = block.getByRole("button", { name: lang === "en" ? "How this read works ▸" : "解读方法 ▸", exact: true });
     expect((await open.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await open.focus(); await page.keyboard.press("Enter");
     await expect(open).toHaveAttribute("aria-expanded", "true");
     const disclosure = block.getByTestId("trough-disclosure");
     await expect(disclosure).toBeVisible();
+    await expect(disclosure.locator("aside small")).toHaveText(record);
     await expect(block.getByTestId("trough-frame")).toHaveCount(4);
     await expect(block.getByRole("meter")).toHaveCount(0);
     await expect(block).not.toContainText(/Turned up on|K_gt_D|hist_rising/);

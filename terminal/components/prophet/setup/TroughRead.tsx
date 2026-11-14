@@ -59,11 +59,20 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
   const s = TROUGH_STRINGS[lang];
   const copy = s.variants[TROUGH_HEADLINE_VARIANT];
   const row = companyTroughRead(read, symbol);
+  const close = () => { setExpanded(false); openRef.current?.focus(); };
   if (!row) return <section className={styles.block} data-testid="trough-read" aria-label={s.title}>
-    <h2>{s.title} · {s.unavailable}</h2><p>{s.unavailableBody}</p>{TROUGH_RECORD_ENABLED ? <small>{copy.record}</small> : null}
+    <div className={styles.summary}>
+      <h2>{s.title} · {s.unavailable}</h2><p>{s.unavailableBody}</p>{TROUGH_RECORD_ENABLED ? <small>{copy.record}</small> : null}
+      <button ref={openRef} className={styles.control} type="button" aria-expanded={expanded} aria-controls={id} onClick={() => setExpanded(v => !v)}>{s.open}</button>
+    </div>
+    <div id={id} hidden={!expanded} className={styles.disclosure} data-testid="trough-disclosure">
+      <aside className={styles.method}>
+        <header className={styles.methodHeader}><h3>{s.how}</h3><button className={styles.control} type="button" onClick={close} aria-expanded={expanded} aria-controls={id}>{s.hide}</button></header>
+        <p>{s.unavailableBody}</p>{TROUGH_RECORD_ENABLED ? <small>{copy.record}</small> : null}
+      </aside>
+    </div>
   </section>;
   const groupLine = setupFill(s.group, { name: row.group?.name ?? "—", state: row.group?.state ? s.states[row.group.state] : "—" });
-  const close = () => { setExpanded(false); openRef.current?.focus(); };
   return <section className={`${styles.block} ${expanded ? styles.expanded : ""}`} data-testid="trough-read" aria-label={s.title}>
     <div className={styles.summary}>
       <h2>{s.title}</h2>
@@ -82,6 +91,7 @@ export function TroughReadBlock({ read, symbol, lang }: { read: ProphetTroughRea
         {copy.disclosureNote !== copy.method ? <p>{copy.disclosureNote}</p> : null}
         <h3>{s.groupStates}</h3><p>{s.stateList}</p><p>{s.groupMeaning}</p>
         <p className={styles.boxed}>{s.boxed}</p>
+        {TROUGH_RECORD_ENABLED ? <small>{copy.record}</small> : null}
       </aside>
       <div className={styles.measurements}>
         <div>{row.timeframes.map(f => {

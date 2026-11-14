@@ -8,6 +8,14 @@ Amendment 2 aligns named copy with read-only Paper boards `2A6G-0` (390) and `2A
 
 Amendment 3 removes the former study record from both languages and variants; only empty `record: ""` placeholders remain with the record flag false. English timeframe names use U+2011 and nowrap spans; relevant Chinese names are nowrap in headlines, rows and definitions. The EN/ZH turn definition now describes the producer's completed 3-day-only reading. All 157 affected/neighboring tests and all 24 responsive cases pass; browser assertions verify one-line timeframe names, no overflow and unchanged dash-only non-3D turn cells. Refreshed 32 affected crops, preserving unavailable and no-washout collapsed crops. Source scan found no removed record copy in shipped Trough code.
 
+## Amendment 4 — current candidate HOLD
+
+CEO-ruled EN/ZH record is enabled in both copy variants, the collapsed card and method pane for A–E. D now has an accessible disclosure so its record is available in both locations too. The old record remains absent. No type size or financial copy beyond the ruling was changed.
+
+**Phone-fit acceptance fails:** English A/B/E end at 871.67px (27.67px past the 844px viewport); C ends at 849.67px (5.67px past). Chinese 390 cases, unavailable D, desktop and 320 no-horizontal-overflow cases pass. Browser result: **20 pass / 4 fail**, reproducible after one retry. An additional no-retry evidence capture temporarily used a soft fold assertion to finish screenshots without changing the failed verdict; the committed assertion remains hard and unchanged. All other assertions, including record placement, banned copy, nonbreaking labels and 44px controls, passed during capture. No font was shrunk. Requires a lead layout/copy decision before release.
+
+Current verification: **157 Vitest tests pass**, TypeScript and focused ESLint pass. **48 current PNGs** include collapsed and expanded A–E, including D's new pane. Prior amendment green browser results below are historical, not this candidate's result.
+
 ## Source and design pins
 
 - Terminal base: `c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40`.

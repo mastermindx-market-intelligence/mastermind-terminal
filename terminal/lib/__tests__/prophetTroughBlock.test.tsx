@@ -22,12 +22,21 @@ for (const lang of ["en", "zh"] as const) for (const state of ["A", "B", "C", "D
     expect(container.textContent).not.toMatch(TROUGH_BANNED_WORDS);
     expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
     expect(container.querySelectorAll("a,[role=alert]")).toHaveLength(0);
-    if (state === "D") { expect(container.querySelector("button")).toBeNull(); return; }
+    const record = lang === "en" ? "Measured on about 22,000 past turns in large and mid-size US stocks, 2013–2019. On average they did no better than the market." : "基于2013–2019年美国大中型股约22,000次历史回升测算。平均而言，其表现并未优于大盘。";
+    expect(container.querySelector("small")!.textContent).toBe(record);
+    if (state === "D") {
+      const open = container.querySelector("button")!; act(() => open.click());
+      expect(container.querySelector("aside small")!.textContent).toBe(record);
+      expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
+      expect(container.textContent).not.toMatch(TROUGH_BANNED_WORDS);
+      return;
+    }
     const button = container.querySelector("button")!;
     expect(button.getAttribute("aria-expanded")).toBe("false");
     expect(container.querySelector("[hidden]")).not.toBeNull();
     act(() => button.click());
     expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector("aside small")!.textContent).toBe(record);
     expect(container.textContent).not.toMatch(/Studied on three stocks only; not yet tested widely\.|仅研究过三只股票；尚未广泛检验。/);
     expect(container.textContent).toContain(lang === "en" ? "Turned up is read on 3‑day bars only: momentum crossed back up after sitting in its low zone, and a faster momentum gauge was rising too. Only completed bars count." : "回升只在3日K线上判断：动能在低位区停留后重新上穿，且一个更快的动能指标也在上升。只计算已完成的K线。");
     expect(container.querySelectorAll('[data-testid="trough-frame"]')).toHaveLength(4);
