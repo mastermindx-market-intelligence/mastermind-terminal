@@ -40,6 +40,70 @@
   "syntax": {
     "schema": "mastermind.discover.ci_repair.syntax.v1",
     "typescriptVersion": "5.9.3",
+    "source": "Canonical raw GitHub blobs from published f0c5e8c00a998e5c64063c59d68476499be3e695",
+    "files": [
+      {
+        "path": "terminal/e2e/discover-workspace.spec.ts",
+        "bytes": 26580,
+        "gitBlobSha": "8b89f6cb545acbdefeef5a6b685f212c39b0f7b9",
+        "sha256": "ddb213e099c25e6b112a4ee9229d1033832557c63865fae908bb404f4b86ed59",
+        "syntaxErrors": []
+      },
+      {
+        "path": "terminal/e2e/screener-cross-market.spec.ts",
+        "bytes": 22176,
+        "gitBlobSha": "ad7228027de38f963545e75514273ff9fd261bf7",
+        "sha256": "6cf67094421106f1e6e0e3ed6d1ae7d15823b301690e4639d3b4fb061eb58dfb",
+        "syntaxErrors": []
+      }
+    ],
+    "claim": "Syntactic transpilation only; hosted full typecheck and browser qualification remain pending.",
+    "fixture": {
+      "rows": [
+        {
+          "sym": "AAA",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "BBB",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "SELL"
+        },
+        {
+          "sym": "CCC",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "DDD",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        },
+        {
+          "sym": "EEE",
+          "timeframe": "3D",
+          "status": "observed",
+          "signal": "BUY"
+        }
+      ],
+      "count": 5,
+      "generation": 1791684000,
+      "generatedAt": "2026-10-11T02:00:00Z",
+      "clock": "2026-10-11T12:00:00Z"
+    }
+  },
+  "browser": "No new local browser execution. Original denied browser/localhost/authentication effects remain closed. The next original hosted CI run must qualify these exact changed tests and its captures.",
+  "priorQualification": "Original 165 focused unit passes and accepted product source are retained, not counted as newly run.",
+  "release": "Original native auto and merge-on-green label are retained. No reenrollment, old-run replay, direct merge or deployment.",
+  "parentDoneWhenProven": false,
+  "supersededSyntax": {
+    "schema": "mastermind.discover.ci_repair.syntax.v1",
+    "typescriptVersion": "5.9.3",
     "files": [
       {
         "path": "terminal/e2e/discover-workspace.spec.ts",
@@ -96,8 +160,10 @@
     },
     "claim": "Syntactic transpilation and explicit fixture mapping only; hosted typecheck/browser qualification remains pending."
   },
-  "browser": "No new local browser execution. Original denied browser/localhost/authentication effects remain closed. The next original hosted CI run must qualify these exact changed tests and its captures.",
-  "priorQualification": "Original 165 focused unit passes and accepted product source are retained, not counted as newly run.",
-  "release": "Original native auto and merge-on-green label are retained. No reenrollment, old-run replay, direct merge or deployment.",
-  "parentDoneWhenProven": false
+  "qualificationCorrection": {
+    "reason": "A replacement-string substitution expanded the existing $& literal into PAYLOAD in the diagnostic copy of screener-cross-market.spec.ts. The published GitHub source remained correct. Qualification was repeated from the exact raw published blobs.",
+    "publishedProductionOrTestSourceChanged": false,
+    "canonicalSourceCommit": "f0c5e8c00a998e5c64063c59d68476499be3e695",
+    "correctedCrossMarketGitBlob": "ad7228027de38f963545e75514273ff9fd261bf7"
+  }
 }
