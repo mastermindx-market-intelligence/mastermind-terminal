@@ -479,10 +479,11 @@ function WlRootDropZone({ active, label }: { active: boolean; label: string }) {
 // Drag-sortable wrapper for a watchlist row. Whole-row draggable with a distance
 // activation constraint so a plain click still selects (pick) and only a >6px drag
 // starts a reorder. Lifted-row polish (opacity/shadow/scale) via isDragging.
-function SortableWlRow({ sym, section, selected, dragLabel, className, style, onClick, onContextMenu, onKeyDown, onMouseEnter, children }: {
+function SortableWlRow({ sym, section, selected, selectedDescription, dragLabel, className, style, onClick, onContextMenu, onKeyDown, onMouseEnter, children }: {
   sym: string;
   section: string;
   selected: boolean;
+  selectedDescription: string;
   dragLabel: string;
   className: string;
   style: React.CSSProperties;
@@ -528,8 +529,8 @@ function SortableWlRow({ sym, section, selected, dragLabel, className, style, on
         listeners?.onPointerDown?.(event);
       }}
       draggable={false}
-      role="option"
-      aria-selected={selected}
+      role="group"
+      aria-description={selected ? selectedDescription : undefined}
       tabIndex={0}
     >
       <span
@@ -5928,6 +5929,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
   })();
+  // One BOATS-age derivation feeds the visible mobile label and its accessible
+  // description. Keep the public quote timestamp and expiration gate unchanged.
+  const mobileBoatsAgeSeconds = activeExtData?.source === "tiingo_boats"
+    ? Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))
+    : null;
+  const mobileBoatsAge = mobileBoatsAgeSeconds == null ? null
+    : `${mobileBoatsAgeSeconds}${lang === "zh" ? "秒" : "s"}`;
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
@@ -6212,8 +6220,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
         <div className="tdiv" />
         <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
-          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
-          <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
+          onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual" aria-hidden="true"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
+          <svg className="car" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -6283,15 +6291,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           aria-describedby={mobileQuoteId}
           aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
           onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}>
-        <span className="m-sym"><span className="ic" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></span>
-        <span className="m-quote-stack" id={mobileQuoteId}>
+        <span className="m-sym"><span className="ic" aria-hidden="true" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
+        <span id={mobileQuoteId} style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
+          {fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)} {isSuspended ? t("suspended") : chgStr(chgNow)}
+          {activeExtData ? ` · ${activeExtData.source === "tiingo_boats" ? `${boatsLatestTradeLabel(lang)} · ${mobileBoatsAge}${lang === "zh" ? "前" : " ago"}` : extSessionLabel(activeExtData.session)} ${fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}${activeExtData.chg != null ? ` ${chgStr(activeExtData.chg)}` : ""}` : ""}
+        </span>
+        <span className="m-quote-stack" aria-hidden="true">
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
             ? <span className="cg quote-suspended">{t("suspended")}</span>
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
               <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
-                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                ? `BOATS · ${mobileBoatsAge}`
                 : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
@@ -7101,7 +7113,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {dataCols.map(([k, l]) => <span key={k} data-watchlist-column={k} className="wl-col"><span className="wl-col-l">{l}</span><i className="wl-rz" title={t("resizeCol")} onMouseDown={(e) => startResize(k, e)} /></span>)}
                 <span />
               </div>
-              <div className="wl-list" role="listbox" aria-label={t("watchlists")} aria-multiselectable="true">
+              <div className="wl-list" role="region" aria-label={t("watchlists")}>
                 <DndContext sensors={dndSensors} collisionDetection={watchlistCollisionDetection} onDragStart={onWlDragStart} onDragCancel={() => { wlPointerDragRef.current = false; wlPointerRef.current = null; wlPointerLeftInitialRef.current = false; wlPointerInitialRectRef.current = null; wlPendingPointerRef.current = null; wlActivationDeltaRef.current = null; setWlDragId(null); }} onDragEnd={onWlDragEnd} modifiers={[restrictToVerticalAxis]}>
                 <SortableContext items={sectionOrder.map((section) => SEC_DROP_PREFIX + section)} strategy={verticalListSortingStrategy}>
                 <WlRootDropZone active={wlDragId !== null} label={t("wlUnsectionedDrop")} />
@@ -7161,6 +7173,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                           sym={sym}
                           section={sec}
                           selected={wlSelected.has(sym)}
+                          selectedDescription={t("wlSymbolsSelected").replace("{n}", "1").replace("1 tickers", "1 ticker")}
                           dragLabel={t("wlDragSymbol").replace("{symbol}", sym)}
                           className={`wl-row${sym === active ? " on" : ""}${wlSelected.has(sym) ? " selected" : ""}${set.tableView ? " tv" : ""}`}
                           style={{ gridTemplateColumns: wlGrid, minWidth: wlMinW, height: set.tableView ? 32 : 46 }}

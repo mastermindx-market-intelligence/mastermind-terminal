@@ -107,8 +107,8 @@ test("actual locale/theme controls preserve a filtered directory across reopen",
   await dialog.getByRole("button", { name: "Workspaces", exact: true }).click();
   const identities = await dialog.locator(".shared-directory-link").evaluateAll(nodes => nodes.map(n => n.getAttribute("href")));
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
-  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await page.getByRole("button", { name: /^(?:Dark|Light) — Light theme$/ }).click();
+  await page.getByRole("button", { name: /^EN — Chinese language$/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   // Keyboard invocation uses the existing shell listener after the old modal closed.

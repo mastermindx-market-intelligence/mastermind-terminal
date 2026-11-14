@@ -143,7 +143,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
         {labelled && <h2>{t("shellMarkets")}</h2>}
         {SHARED_SHELL_MARKETS.map(item => <Link key={item.k} href={item.href}
           className={`shared-shell-market-link${path === item.href ? " on" : ""}`}
-          aria-label={t(item.k, item.label)} aria-current={path === item.href ? "page" : undefined}>
+          aria-label={`${item.code} — ${t(item.k, item.label)}`} aria-current={path === item.href ? "page" : undefined}>
           <span aria-hidden="true">{item.code}</span>{labelled && <span>{t(item.k, item.label)}</span>}
         </Link>)}
       </div>}

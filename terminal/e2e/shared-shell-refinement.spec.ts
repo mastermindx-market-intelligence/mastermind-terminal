@@ -52,12 +52,12 @@ test("Paper header geometry preserves one mobile owner and a readable company se
 
 test("light and Chinese presentation stay coherent through the tools directory",async({page},info)=>{
  await page.goto("/discover");
- const theme=page.getByRole("button",{name:"Light theme",exact:true});
+ const theme=page.getByRole("button",{name:/^(?:Dark|Light) — Light theme$/});
  await expect(theme).toBeVisible();
  if(await theme.getAttribute("aria-pressed")!=="true")await theme.click();
  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-en.png")});
- await page.getByRole("button",{name:"Chinese language",exact:true}).click();
+ await page.getByRole("button",{name:/^EN — Chinese language$/}).click();
  await expect(page.getByRole("heading",{name:"发现",exact:true})).toBeVisible();
  await noOverflow(page);
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-zh.png")});
@@ -185,7 +185,7 @@ test("phone company search keeps its scope in both languages and dismisses by to
  await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
  const bar=page.locator(".mobilebar");
  for(const chinese of [false,true]){
-  if(chinese){await bar.getByRole("button",{name:"Light theme",exact:true}).click();await bar.getByRole("button",{name:"Chinese language",exact:true}).click();}
+  if(chinese){await bar.getByRole("button",{name:/^(?:Dark|Light) — Light theme$/}).click();await bar.getByRole("button",{name:/^EN — Chinese language$/}).click();}
   const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
   await opener.tap();
   const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
@@ -212,7 +212,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
     const zh = lang === "zh";
     if (zh) {
-      const theme = page.getByRole("button", { name: "浅色主题", exact: true });
+      const theme = page.getByRole("button", { name: /^(?:深色|浅色) — 浅色主题$/ });
       if (await theme.getAttribute("aria-pressed") !== "true") await theme.click();
     }
     await expect(page.locator("html")).toHaveAttribute("data-theme", zh ? "light" : "dark");
@@ -392,8 +392,8 @@ test.describe("legacy workspace recovery",()=>{
  test("light Chinese recovery remains usable on short screens and preserves a newer focus choice",async({page,baseURL},info)=>{
   await page.emulateMedia({reducedMotion:"reduce"});
   const {frame,child,holdNext}=await setup(page,baseURL!);
-  await page.getByRole("button",{name:"Light theme",exact:true}).click();
-  await page.getByRole("button",{name:"Chinese language",exact:true}).click();
+  await page.getByRole("button",{name:/^(?:Dark|Light) — Light theme$/}).click();
+  await page.getByRole("button",{name:/^EN — Chinese language$/}).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme","light");
   await expect(page.locator("html")).toHaveAttribute("data-lang","zh");
   await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.fail();});

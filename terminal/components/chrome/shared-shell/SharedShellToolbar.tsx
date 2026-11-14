@@ -48,7 +48,7 @@ export default function SharedShellToolbar({ symbolOpen, onSymbolOpenChange, onO
   return <div className="shared-shell-toolbar">
     <ShellSearch open={symbolOpen} onOpenChange={onSymbolOpenChange} />
     <button type="button" className="shared-shell-directory-trigger" onClick={onOpenDirectory}
-      aria-haspopup="dialog" aria-label={t("shellAllTools")}>
+      aria-haspopup="dialog" aria-label={`${t("shellAllTools")} ⌘ K`}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
       <span>{t("shellAllTools")}</span><kbd>⌘ K</kbd>
     </button>

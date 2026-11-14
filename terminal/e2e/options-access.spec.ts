@@ -46,8 +46,8 @@ test("Options paywall supports skip navigation and the existing Essential entry"
   const main = page.locator("main#shared-shell-content");
   for (const zh of [false, true]) {
     if (zh) {
-      await page.getByRole("button", { name: "Light theme", exact: true }).click();
-      await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+      await page.getByRole("button", { name: /^(?:Dark|Light) — Light theme$/ }).click();
+      await page.getByRole("button", { name: /^EN — Chinese language$/ }).click();
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     }
     const action = main.getByRole("button", { name: zh ? "开启 7 天免费试用" : "Start 7-day free trial", exact: true });

@@ -1,17 +1,23 @@
-# Current-package ticker-news capture: 14 passed, 7 authored skips, zero failures/flakes/retries.
-# Original GitHub Actions run 43160725037 attempt 1, serial job 130991417439, artifact 13918917251.
-# Actual runner GitHub Actions 1000589090 (ubuntu-24.04). Capture checkout is preserved below.
-# Original receipts, prior 11-file packet, source/runtime bindings and root image review:
-# docs/verification/pr-estate-security-toolchain-20261112/current-hosted-evidence-43160725037/ticker-qualification.json
-# Viewport dimensions differ from element PNG dimensions. No installed/production acceptance.
-capturedAtHead: 35d6b1f9305b445949f1c49512bfe3bce0ac3460
+# Current-package ticker-news capture: 14 passed, 7 authored skips; no failures, flakes or retries.
+# Current GitHub Actions run 43573405152, attempt 1, serial job 132382637782;
+# artifact responsive-qa-43573405152-serial/ticker-news-current/capture.json.
+# Capture checkout is GitHub's synthetic PR merge ref 01b7866cf29fdd7490c8dddc0011cfd40b2fad57;
+# all 18 captured producer files were verified byte-for-byte against PR #1497 head
+# 6a793f514f973e5f1456cf49007e2c895554fd74 before this evidence-only update.
+# The complete qualified hosted receipt is saved at
+# docs/verification/beta-share-pr1497/ticker-news-hosted-capture-43573405152.json.
+# Its browser report SHA256 is ee6dee64f13cfccaa93fdb77d173f59ceea08569aec0f640ecd62120815da402.
+# Prior accepted packet remains in the Git history of protected base c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40;
+# original run 43160725037, attempt 1, serial job 130991417439, artifact 13918917251.
+# Viewport dimensions differ from element PNG dimensions; fixture capture, not beta/production acceptance.
+capturedAtHead: 01b7866cf29fdd7490c8dddc0011cfd40b2fad57
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: d2edc60ddb890c9819ccd0803165705e5d188f90f58fe557635e1de40b04cef2
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 46fb213a192c5bf15dd36eebb3e3c5a36018f9b614432874c606c707d779e358
   - path: terminal/components/TerminalShell.tsx
-    sha256: 623fe487ee5e13ec1010232c65380846034a84da78650fb4b1ad071b100c1fbb
+    sha256: a3319f13da00febe9c419bf0107f24138d987bf313163bc0285ca642f54ae323
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
@@ -47,7 +53,7 @@ crops:
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: fe2ecea4f64dfc28eea8095dd3b07067b64e0a654951a2d10d5102e1b0ed0bae
+    sha256: 414e6a50b8d4738d11f6d193e3b57446069ff266a8ad77f0b058cae7fbc8beb9
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh

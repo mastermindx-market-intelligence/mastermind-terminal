@@ -67,7 +67,7 @@ for (const lang of ["en", "zh"] as const) {
     });
     await page.goto("/alerts");
     if (sharedShell && lang === "zh") {
-      await page.getByRole("button", { name: "浅色主题", exact: true }).click();
+      await page.getByRole("button", { name: /^(?:深色|浅色) — 浅色主题$/ }).click();
     }
     await expect(page.locator("html")).toHaveAttribute("data-theme", sharedShell && lang === "zh" ? "light" : "dark");
     const { row, dialog, close } = await openDetail(page, lang);
