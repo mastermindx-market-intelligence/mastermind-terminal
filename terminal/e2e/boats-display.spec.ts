@@ -106,3 +106,87 @@ test("coalesced trailing null clears BOATS and a later failure cannot revive it"
  await page.clock.runFor(50); // run animation frames while wall-clock timers stay paused
  await expect(surface).toHaveCount(0);
 });
+
+// A previous accessibility pass removed the visible quote stack from the button's
+// accessible name. The replacement description must preserve the same BOATS age
+// as the visible label, not merely its venue and price. Fixture only, not proof of
+// actual market freshness or data vendor coverage.
+for (const lang of ["en", "zh"] as const) {
+  test(`mobile symbol search describes the same BOATS observation age (${lang})`, async ({ page }, info) => {
+    test.skip(info.project.name === "desktop", "Mobile symbol bar is the owner of this description");
+    test.setTimeout(90_000);
+    const fixedMs = new Date("2026-11-14T02:00:00.000Z").getTime();
+    await page.clock.install({ time: new Date(fixedMs) });
+    // The clock starts at one fixed instant, then ticks during real Next.js hydration.
+    // Each intercepted observation is dated relative to that same emulated clock,
+    // avoiding a fixture becoming 30s stale during an unrelated cold compile.
+    const wallAnchorMs = Date.now();
+    await page.addInitScript(language => {
+      localStorage.setItem("mm.lang", language);
+      localStorage.setItem("theme", "dark");
+      localStorage.setItem("theme_auto", "0");
+    }, lang);
+    let observedAgeSeconds = 3;
+    await page.route("**/api/ext-quote?**", route => route.fulfill({
+      json: { quotes: { NVDA: boatsQuote(100, 1,
+        (fixedMs + Date.now() - wallAnchorMs) / 1000 - observedAgeSeconds) } },
+    }));
+    await page.route("**/api/quote?**", route => route.fulfill({
+      json: { quotes: { NVDA: { sym: "NVDA", last: 192.53, prevClose: 195.74,
+        chg: -1.64, regularPrice: 192.53, regularChg: -1.64, basis: "DELAYED_15M" } } },
+    }));
+    await page.goto("/terminal?symbol=NVDA");
+    const opener = page.locator(".m-symbar button[data-symbol-search]");
+    await expect(opener).toHaveAccessibleName(/NVDA/);
+    const id = await opener.getAttribute("aria-describedby");
+    expect(id).toBeTruthy();
+    const description = page.locator(`[id="${id}"]`);
+    const label = page.locator(".m-ext-label");
+    const venue = lang === "zh" ? "BOATS 最新合格成交 · 单一场所" : "Latest qualifying BOATS trade · single venue";
+    const visibleAge = lang === "zh" ? /^BOATS · (\d+)秒$/ : /^BOATS · (\d+)s$/;
+    const descriptionAge = lang === "zh" ? / · (\d+)秒前/ : / · (\d+)s ago/;
+    const observe = async () => {
+      const visible = await label.textContent().catch(() => null);
+      const described = await description.textContent().catch(() => null);
+      const v = visible?.match(visibleAge), d = described?.match(descriptionAge);
+      const seconds = Number(v?.[1]);
+      return { seconds, described,
+        coherent: !!v && !!d && v[1] === d[1] &&
+          !!described?.includes(venue) && !!described?.includes("192.53") &&
+          !!described?.includes("100.00") && !!described?.includes("+1.00%") };
+    };
+    await expect.poll(async () => (await observe()).coherent, { timeout: 20_000 }).toBe(true);
+    const first = await observe();
+    // A newer route response changes only the observation time: the displayed
+    // and described ages must agree despite hydration and the advancing clock.
+    observedAgeSeconds = 20;
+    await page.reload();
+    await expect.poll(async () => {
+      const second = await observe();
+      return second.coherent && second.seconds > first.seconds + 5 && second.seconds >= 20;
+    }, { timeout: 20_000 }).toBe(true);
+    const second = await observe();
+    expect(second.described?.replace(descriptionAge, " · {AGE}")).toBe(
+      first.described?.replace(descriptionAge, " · {AGE}"));
+    await expect(opener).toHaveAccessibleName(/NVDA/);
+  });
+}
+
+test("mobile search does not manufacture an extended quote for an unqualified venue", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile", "Phone quote contract");
+  await page.route("**/api/ext-quote?**", route => route.fulfill({ json: { quotes: {
+    NVDA: { extSource: "other", extSession: "pre", extPrice: 100, extChg: 1 },
+  } } }));
+  await page.route("**/api/quote?**", route => route.fulfill({ json: { quotes: {
+    NVDA: { sym: "NVDA", last: 192.53, chg: -1.64, regularPrice: 192.53, regularChg: -1.64, basis: "DELAYED_15M" },
+  } } }));
+  await page.goto("/terminal?symbol=NVDA");
+  const opener = page.locator(".m-symbar button[data-symbol-search]");
+  await expect(opener).toHaveAccessibleName(/NVDA/);
+  const id = await opener.getAttribute("aria-describedby");
+  expect(id).toBeTruthy();
+  const description = page.locator(`[id="${id}"]`);
+  await expect(description).toContainText("192.53");
+  await expect(description).not.toContainText(/BOATS|100\.00|Pre-market/);
+  await expect(page.locator(".m-symbar [data-quote-lane='extended']")).toHaveCount(0);
+});

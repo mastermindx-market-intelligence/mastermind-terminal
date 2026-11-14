@@ -5929,6 +5929,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
   })();
+  // One BOATS-age derivation feeds the visible mobile label and its accessible
+  // description. Keep the public quote timestamp and expiration gate unchanged.
+  const mobileBoatsAgeSeconds = activeExtData?.source === "tiingo_boats"
+    ? Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))
+    : null;
+  const mobileBoatsAge = mobileBoatsAgeSeconds == null ? null
+    : `${mobileBoatsAgeSeconds}${lang === "zh" ? "秒" : "s"}`;
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
@@ -6287,7 +6294,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <span className="m-sym"><span className="ic" aria-hidden="true" style={{ background: m?.col || "#76b900" }}>{active[0]}</span><b>{active}</b><svg className="car" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></span>
         <span id={mobileQuoteId} style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0, 0, 0, 0)", whiteSpace: "nowrap", border: 0 }}>
           {fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)} {isSuspended ? t("suspended") : chgStr(chgNow)}
-          {activeExtData ? ` · ${activeExtData.source === "tiingo_boats" ? boatsLatestTradeLabel(lang) : extSessionLabel(activeExtData.session)} ${fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}${activeExtData.chg != null ? ` ${chgStr(activeExtData.chg)}` : ""}` : ""}
+          {activeExtData ? ` · ${activeExtData.source === "tiingo_boats" ? `${boatsLatestTradeLabel(lang)} · ${mobileBoatsAge}${lang === "zh" ? "前" : " ago"}` : extSessionLabel(activeExtData.session)} ${fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}${activeExtData.chg != null ? ` ${chgStr(activeExtData.chg)}` : ""}` : ""}
         </span>
         <span className="m-quote-stack" aria-hidden="true">
           <span className="m-px" data-quote-lane="regular"><b className="num">{fmt(lastPx, m && lastPx != null && lastPx < 10 ? 4 : 2)}</b>{isSuspended
@@ -6296,7 +6303,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
               <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
-                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                ? `BOATS · ${mobileBoatsAge}`
                 : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
