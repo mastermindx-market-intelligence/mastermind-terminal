@@ -1,5 +1,5 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
-import { mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsViewMode } from "../lib/newsTypes";
@@ -17,6 +17,7 @@ if (CAPTURE_PACKET !== "" && CAPTURE_PACKET !== "ticker-news") {
 const LEGACY_PACKET = CAPTURE_PACKET === "ticker-news";
 const DEFAULT_CROPS = CROPS && !LEGACY_PACKET;
 const LEGACY_CROPS = CROPS && LEGACY_PACKET;
+const HOSTED_EVIDENCE = process.env.GITHUB_ACTIONS === "true";
 const LEGACY_OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news");
 const UNAVAILABLE_OUT = LEGACY_PACKET ? LEGACY_OUT : OUT;
 const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
@@ -350,6 +351,16 @@ async function openNews(page: Page, expectedState = "live") {
   return panel;
 }
 
+async function captureTickerNewsCrop(panel: Locator, testInfo: TestInfo, name: string, localDir?: string) {
+  if (!HOSTED_EVIDENCE && !localDir) return;
+  // The existing responsive QA upload collects the Playwright output directory for each shard.
+  const pixels = await panel.screenshot(HOSTED_EVIDENCE ? { path: testInfo.outputPath(name) } : {});
+  if (localDir) {
+    mkdirSync(localDir, { recursive: true });
+    writeFileSync(join(localDir, name), pixels);
+  }
+}
+
 async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, searchText: string) {
   const desktop = testInfo.project.name === "desktop";
   if (desktop) await page.locator(".pair").first().click();
@@ -404,10 +415,11 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
         // R2: the content kind moved from the source label into the evidence ladder's first step (spec §3.2).
         await expect(panel).toContainText("GlobeNewswire");
         await expect(panel).toContainText(lang === "zh" ? "公司公告" : "Company announcement");
-        await expect(panel.locator('option[value=""]')).toHaveText(lang === "zh" ? "全部精选来源" : "All curated sources");
-        await panel.locator("select[data-news-source-filter]").selectOption("benzinga");
-        await expect(panel.locator("[data-news-headline]")).toHaveCount(1);
-        await panel.locator("select[data-news-source-filter]").selectOption("");
+        // The compact rail presents both accessible sources directly, without the
+        // retired source selector, activity strip, or bulk review toolbar.
+        await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
+        await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
+        await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
         await expect(panel.locator("[data-news-headline]")).toHaveCount(2);
         await expect(panel.locator("[data-news-headline]").first()).toHaveAttribute(
           "href",
@@ -433,17 +445,16 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
           await expect(panel).toHaveAttribute("data-news-view", mode);
           await expect(panel.locator("[data-news-headline]")).toHaveCount(mode === "all" ? 3 : 2);
           if (mode === "company") {
-            await expect(panel).toContainText(lang === "zh" ? "提及可能并非报道重点" : "Mentions may be incidental");
+            // The company view keeps its server-filtered stories without the retired explainer.
+            await expect(panel).not.toContainText(lang === "zh" ? "提及可能并非报道重点" : "Mentions may be incidental");
           }
           if (mode === "all") await expect(panel).toContainText(lang === "zh" ? "综述" : "Roundup");
           if (viewport.width <= 820) {
             expect((await viewControl.boundingBox())?.height).toBeGreaterThanOrEqual(44);
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-          if (LEGACY_CROPS && theme === "dark" && mode === "news") {
-            await panel.screenshot({
-              path: join(LEGACY_OUT, [viewport.size, lang, "dark.png"].join("-")),
-            });
+          if (theme === "dark" && mode === "news") {
+            await captureTickerNewsCrop(panel, testInfo, `${viewport.size}-${lang}-dark.png`, LEGACY_CROPS ? LEGACY_OUT : undefined);
           }
           if (DEFAULT_CROPS) {
             await panel.screenshot({
@@ -482,9 +493,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     );
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    if (CROPS) {
-      await panel.screenshot({ path: join(UNAVAILABLE_OUT, `unavailable-${size}-${lang}-dark.png`) });
-    }
+    await captureTickerNewsCrop(panel, testInfo, `unavailable-${size}-${lang}-dark.png`, CROPS ? UNAVAILABLE_OUT : undefined);
   }
 });
 

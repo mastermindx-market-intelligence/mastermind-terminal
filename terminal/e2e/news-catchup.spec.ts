@@ -170,39 +170,39 @@ const storyIds = (panel: Locator) =>
   panel.locator("article[data-story-id]").evaluateAll((els) => els.map((el) => el.getAttribute("data-story-id")));
 const storedReview = (page: Page) => page.evaluate((key) => localStorage.getItem(key), REVIEW_KEY);
 
-test("a returning user sees new and updated company stories, private to their account", async ({ page, baseURL }, testInfo) => {
+test("compact News preserves per-story saving and source correction without top-level controls", async ({ page, baseURL }, testInfo) => {
   const feed: Feed = { nvda: FIRST_VISIT, nvdaStatus: 200 };
   const storeKey = await prepare(page, testInfo, baseURL, feed);
   const owner = e2eWatchlistOwner(storeKey);
   await setPresentation(page, "en");
 
-  // ── First visit: everything is new; review it all.
   let panel = await openNews(page);
-  const summary = panel.locator("[data-news-catchup-summary]");
-  await expect(summary).toHaveText("3 new · 0 updated", { timeout: 20_000 });
   await expect(panel.locator('article[data-news-review="new"]')).toHaveCount(3);
+  await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
+  await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
+  await expect(panel.locator("[data-news-mark-shown]")).toHaveCount(0);
   if (testInfo.project.name !== "desktop") {
-    // Tablet (820px) and phone both sit under the 860px touch breakpoint.
-    await expectTapTarget(panel.locator("[data-news-mark-shown]"), { height: 44 });
-    await expectTapTarget(panel.locator('[data-news-filter="new"]'), { height: 44 });
-    await expectTapTarget(panel.locator("[data-news-source-filter]"), { height: 44 });
     await expectTapTarget(reviewOf(panel, "ev2_nvda_launch").locator("[data-news-mark-one]"), { height: 44 });
   }
-  await panel.locator("[data-news-mark-shown]").click();
-  await expect(summary).toHaveText("All shown stories reviewed");
-  await expect(panel.locator("[data-news-review-receipt]")).toContainText("Last full read");
-  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(0);
 
-  // ── Leave for another company; its stories are untouched by the NVDA review.
+  for (const id of ["ev2_nvda_launch", "ev2_nvda_supply", "ev2_nvda_guidance"]) {
+    await reviewOf(panel, id).locator("[data-news-mark-one]").click();
+  }
+  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(0);
+  const saved = JSON.parse((await storedReview(page)) ?? "{}");
+  expect(saved[owner]?.NVDA?.through?.sequence).toBe(11);
+
   await visit(page, "AAPL");
   panel = await openNews(page);
   await expect(reviewOf(panel, "ev2_aapl_lineup")).toHaveAttribute("data-news-review", "new", { timeout: 20_000 });
 
-  // ── Return after the source corrected, regrouped and added stories.
   feed.nvda = RETURN_VISIT;
   await visit(page, "NVDA");
   panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("2 new · 2 updated", { timeout: 20_000 });
+  expect(await storyIds(panel)).toEqual([
+    "ev2_nvda_export", "ev2_nvda_launch", "ev2_nvda_guidance", "ev2_nvda_analyst", "ev2_nvda_supply",
+  ]);
   await expect(reviewOf(panel, "ev2_nvda_export")).toHaveAttribute("data-news-review", "new");
   await expect(reviewOf(panel, "ev2_nvda_analyst")).toHaveAttribute("data-news-review", "new");
   await expect(reviewOf(panel, "ev2_nvda_launch")).toHaveAttribute("data-news-review", "updated");
@@ -211,64 +211,48 @@ test("a returning user sees new and updated company stories, private to their ac
   await expect(reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-change]")).toHaveText("1 more report since your review");
   await expect(reviewOf(panel, "ev2_nvda_supply")).toHaveAttribute("data-news-review", "reviewed");
 
-  // ── Filters: review state, and the source field the feed supplies.
-  await panel.locator('[data-news-filter="updated"]').click();
-  expect(await storyIds(panel)).toEqual(["ev2_nvda_launch", "ev2_nvda_guidance"]);
-  await panel.locator('[data-news-filter="new"]').click();
-  expect(await storyIds(panel)).toEqual(["ev2_nvda_export", "ev2_nvda_analyst"]);
-  await panel.locator('[data-news-filter="all"]').click();
-  await panel.locator("[data-news-source-filter]").selectOption("reuters");
-  expect(await storyIds(panel)).toEqual(["ev2_nvda_guidance"]);
-  await panel.locator("[data-news-source-filter]").selectOption("");
-  expect(await storyIds(panel)).toHaveLength(5);
-
-  // ── Review one correction; the other updates stay unread.
   await reviewOf(panel, "ev2_nvda_launch").locator("[data-news-mark-one]").click();
   await expect(reviewOf(panel, "ev2_nvda_launch")).toHaveAttribute("data-news-review", "reviewed");
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("2 new · 1 updated");
-  // The story itself is exactly as the source sent it.
+  await expect(reviewOf(panel, "ev2_nvda_guidance")).toHaveAttribute("data-news-review", "updated");
   await expect(reviewOf(panel, "ev2_nvda_launch").locator("[data-news-headline]"))
     .toHaveText("Nvidia launches next-generation AI accelerator, shipping in Q1");
 
-  // ── A failed load shows the failure and moves nothing.
   const beforeFailure = await storedReview(page);
   feed.nvdaStatus = 503;
   await page.reload();
   panel = await openNews(page, "unavailable");
+  await expect(panel.locator("article[data-story-id]")).toHaveCount(0);
   await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
-  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(0);
   expect(await storedReview(page)).toBe(beforeFailure);
 
-  // ── Another account on the same browser sees none of this account's review.
   feed.nvdaStatus = 200;
   const otherKey = `${storeKey.slice(0, 100)}-other`;
   await page.context().addCookies([{ name: "mm_e2e_wl", value: otherKey, url: baseURL ?? "http://127.0.0.1:3108" }]);
   await page.reload();
   panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("5 new · 0 updated", { timeout: 20_000 });
+  await expect(panel.locator('article[data-news-review="new"]')).toHaveCount(5, { timeout: 20_000 });
   const envelope = JSON.parse((await storedReview(page)) ?? "{}");
   expect(Object.keys(envelope)).toEqual([owner]);
   expect(JSON.stringify(envelope)).not.toContain("Nvidia");
 
-  // ── And the first account's review is still there when it comes back.
   await page.context().addCookies([{ name: "mm_e2e_wl", value: storeKey, url: baseURL ?? "http://127.0.0.1:3108" }]);
   await page.reload();
   panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("2 new · 1 updated", { timeout: 20_000 });
-
+  await expect(reviewOf(panel, "ev2_nvda_launch")).toHaveAttribute("data-news-review", "reviewed");
+  await expect(reviewOf(panel, "ev2_nvda_guidance")).toHaveAttribute("data-news-review", "updated");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test("news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix", async ({ page, baseURL }, testInfo) => {
+test("compact news uses the reclaimed reading viewport across EN/ZH and desktop/tablet/mobile", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One controlled project owns the 6-cell screenshot matrix.");
   const feed: Feed = { nvda: FIRST_VISIT, nvdaStatus: 200 };
   await prepare(page, testInfo, baseURL, feed);
   await setPresentation(page, "en");
   const first = await openNews(page);
-  await expect(first.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
-  await first.locator("[data-news-mark-shown]").click();
-  await expect(first.locator("[data-news-catchup-summary]")).toHaveText("All shown stories reviewed");
+  for (const id of ["ev2_nvda_launch", "ev2_nvda_supply", "ev2_nvda_guidance"]) {
+    await reviewOf(first, id).locator("[data-news-mark-one]").click();
+  }
   feed.nvda = RETURN_VISIT;
 
   const cells = [
@@ -285,14 +269,43 @@ test("news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix", 
     for (const lang of ["en", "zh"] as const) {
       await setPresentation(page, lang);
       const panel = await openNews(page);
-      await expect(panel.locator("[data-news-catchup-summary]")).toHaveText(
-        lang === "zh" ? "2 条新 · 2 条更新" : "2 new · 2 updated",
-        { timeout: 20_000 },
-      );
+      await expect(panel.locator("article[data-story-id]")).toHaveCount(5, { timeout: 20_000 });
+      await expect(panel.locator("[data-news-catchup]")).toHaveCount(0);
+      await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
+      await expect(panel.locator("[data-news-source-filter]")).toHaveCount(0);
+      await expect(panel.locator("[data-news-filter]")).toHaveCount(0);
+      await expect(panel.locator("select[data-news-view-select]")).toBeVisible();
+      // Reclaimed pixels must become real story-reading area, not an empty gap.
+      // Selecting News hides the mounted company card at every width. On smaller
+      // screens the feed stays in document flow until the reader leaves News.
+      const layout = await panel.evaluate((node) => {
+        const rail = node.closest(".rail-body");
+        const detail = rail?.querySelector(".detail-board");
+        const header = node.firstElementChild;
+        const feed = header?.nextElementSibling;
+        if (!rail || !detail || !header || !feed) return null;
+        return {
+          panelHeight: node.getBoundingClientRect().height,
+          railHeight: rail.getBoundingClientRect().height,
+          headerBottom: header.getBoundingClientRect().bottom,
+          feedTop: feed.getBoundingClientRect().top,
+          detailDisplay: getComputedStyle(detail).display,
+          panelFlex: getComputedStyle(node).flex,
+          panelMaxHeight: getComputedStyle(node).maxHeight,
+        };
+      });
+      expect(layout).not.toBeNull();
+      expect(Math.abs(layout!.feedTop - layout!.headerBottom)).toBeLessThanOrEqual(2);
+      expect(layout!.detailDisplay).toBe("none");
+      if (viewport.width > 860) {
+        expect(layout!.panelHeight).toBeGreaterThan(layout!.railHeight * 0.65);
+      } else {
+        expect(layout!.panelFlex).toBe("0 0 auto");
+        expect(layout!.panelMaxHeight).toBe("none");
+      }
       await expect(reviewOf(panel, "ev2_nvda_launch").locator("[data-news-change]")).toHaveText(
         lang === "zh" ? "阅读后已修订" : "Revised since your review",
       );
-      await expect(panel.locator('[data-news-filter="updated"]')).toContainText(lang === "zh" ? "更新" : "Updated");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow).toBeLessThanOrEqual(1);
       if (CROPS) {
@@ -303,74 +316,31 @@ test("news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix", 
   }
 });
 
-test("keyboard review retains the story, continues through New, and returns to its empty filter", async ({ page, baseURL }, testInfo) => {
+test("keyboard review returns focus to each linked or unlinked headline", async ({ page, baseURL }, testInfo) => {
   const feed: Feed = {
     nvda: { ...FIRST_VISIT, rows: FIRST_VISIT.rows.map((row) => row.story_id === "ev2_nvda_guidance" ? { ...row, url: "" } : row) },
     nvdaStatus: 200,
   };
   const storeKey = await prepare(page, testInfo, baseURL, feed);
   const panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
-
-  // All keeps the same article; the disappearing review control hands off to its headline.
-  const supply = reviewOf(panel, "ev2_nvda_supply");
-  await supply.locator("[data-news-mark-one]").focus();
-  await page.keyboard.press("Enter");
-  await expect(supply.locator("[data-news-headline]")).toBeFocused();
-  await expect(supply.locator("[data-news-mark-one]")).toHaveCount(0);
-
-  // New removes each reviewed article. Tab continues from the next headline to its control.
-  const newFilter = panel.locator('[data-news-filter="new"]');
-  await newFilter.focus();
-  await page.keyboard.press("Enter");
-  expect(await storyIds(panel)).toEqual(["ev2_nvda_launch", "ev2_nvda_guidance"]);
-  await reviewOf(panel, "ev2_nvda_launch").locator("[data-news-mark-one]").focus();
-  await page.keyboard.press("Enter");
-  const nextHeadline = reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-headline]");
-  await expect(nextHeadline).toHaveAttribute("tabindex", "-1");
-  await expect(nextHeadline).toBeFocused();
-  await expect(nextHeadline).toBeInViewport({ ratio: 1 });
-  expect(await nextHeadline.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
-  await panel.screenshot({ path: testInfo.outputPath("news-static-headline-focus.png"), animations: "disabled" });
-  await page.keyboard.press("Tab");
-  await expect(reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-mark-one]")).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(panel.locator("[data-news-filter-empty]")).toBeVisible();
-  await expect(newFilter).toBeFocused();
-  await expect(newFilter).toHaveAttribute("aria-pressed", "true");
-  expect(await storyIds(panel)).toEqual([]);
+  await expect(panel.locator("[data-news-mark-one]")).toHaveCount(3);
+  const initialOrder = await storyIds(panel);
+  for (const id of ["ev2_nvda_supply", "ev2_nvda_guidance"]) {
+    const story = reviewOf(panel, id);
+    await story.locator("[data-news-mark-one]").focus();
+    await page.keyboard.press("Enter");
+    const headline = story.locator("[data-news-headline]");
+    await expect(headline).toBeFocused();
+    await expect(headline).toBeInViewport();
+    await expect(story.locator("[data-news-mark-one]")).toHaveCount(0);
+    await expect(story).toHaveAttribute("data-news-review", "reviewed");
+    if (id === "ev2_nvda_guidance") {
+      await expect(headline).toHaveAttribute("tabindex", "-1");
+      expect(await headline.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+      await panel.screenshot({ path: testInfo.outputPath("news-static-headline-focus.png"), animations: "disabled" });
+    }
+  }
+  expect(await storyIds(panel)).toEqual(initialOrder);
   const marks = JSON.parse((await storedReview(page))!)[e2eWatchlistOwner(storeKey)].NVDA.stories;
-  expect(Object.keys(marks).sort()).toEqual(["ev2_nvda_guidance", "ev2_nvda_launch", "ev2_nvda_supply"]);
-  await panel.screenshot({ path: testInfo.outputPath("news-empty-filter-focus.png"), animations: "disabled" });
-  expect(await newFilter.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
-});
-
-test("bulk keyboard review preserves source and Updated filters while returning from a disabled control", async ({ page, baseURL }, testInfo) => {
-  const feed: Feed = { nvda: FIRST_VISIT, nvdaStatus: 200 };
-  await prepare(page, testInfo, baseURL, feed);
-  let panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
-  const allFilter = panel.locator('[data-news-filter="all"]');
-  await panel.locator("[data-news-mark-shown]").focus();
-  await page.keyboard.press("Enter");
-  await expect(panel.locator("[data-news-mark-shown]")).toBeDisabled();
-  await expect(allFilter).toBeFocused();
-
-  feed.nvda = RETURN_VISIT;
-  await visit(page, "NVDA");
-  panel = await openNews(page);
-  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("2 new · 2 updated", { timeout: 20_000 });
-  const updated = panel.locator('[data-news-filter="updated"]');
-  await updated.focus();
-  await page.keyboard.press("Enter");
-  await panel.locator("[data-news-source-filter]").selectOption("reuters");
-  expect(await storyIds(panel)).toEqual(["ev2_nvda_guidance"]);
-  await panel.locator("[data-news-mark-shown]").focus();
-  await page.keyboard.press("Enter");
-  await expect(panel.locator("[data-news-mark-shown]")).toBeDisabled();
-  await expect(updated).toBeFocused();
-  await expect(updated).toHaveAttribute("aria-pressed", "true");
-  await expect(panel.locator("[data-news-source-filter]")).toHaveValue("reuters");
-  await expect(panel.locator("[data-news-filter-empty]")).toBeVisible();
-  await panel.screenshot({ path: testInfo.outputPath("news-bulk-review-focus.png"), animations: "disabled" });
+  expect(Object.keys(marks).sort()).toEqual(["ev2_nvda_guidance", "ev2_nvda_supply"]);
 });

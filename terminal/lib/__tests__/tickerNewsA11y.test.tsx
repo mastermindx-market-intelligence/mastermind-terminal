@@ -261,15 +261,15 @@ describe("t-rail-a11y — interactive controls are named", () => {
     await render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="user-a" />);
 
     const panel = host.querySelector("[data-testid=ticker-news-panel]")!;
-    // The inventory this walker must have covered: headline links, the "N reports"
-    // disclosure, per-story "Mark reviewed", "Mark shown", the four filter chips and the
-    // source <select> (two sources in the fixture).
+    // The compact rail keeps headline links, the report disclosure, the editorial
+    // view selector and per-story saved-basis actions, not the old toolbar.
     expect(panel.querySelectorAll("a[data-news-headline]").length).toBe(3);
     expect(panel.querySelectorAll("button[aria-expanded]").length).toBe(1);
     expect(panel.querySelectorAll("[data-news-mark-one]").length).toBe(3);
-    expect(panel.querySelectorAll("[data-news-mark-shown]").length).toBe(1);
-    expect(panel.querySelectorAll("[data-news-filter]").length).toBe(4);
-    expect(panel.querySelector("[data-news-source-filter]")).toBeTruthy();
+    expect(panel.querySelectorAll("[data-news-mark-shown]").length).toBe(0);
+    expect(panel.querySelectorAll("[data-news-filter]").length).toBe(0);
+    expect(panel.querySelector("[data-news-source-filter]")).toBeNull();
+    expect(panel.querySelector("[data-flow-state]")).toBeNull();
 
     const controls = panel.querySelectorAll("button, a, select, input");
     expect(controls.length).toBeGreaterThan(0);
@@ -317,18 +317,15 @@ describe("t-rail-a11y — interactive controls are named", () => {
     expect(group?.getAttribute("role")).toBe("group");
   });
 
-  it("each filter chip exposes aria-pressed and exactly one is pressed", async () => {
+  it("does not render legacy bulk filters and preserves all source headlines", async () => {
     feed(() => response(snapshot("NVDA", richRows())));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
 
-    const chips = [...host.querySelectorAll("[data-news-filter]")];
-    expect(chips.length).toBe(4);
-    for (const chip of chips) {
-      expect(["true", "false"]).toContain(chip.getAttribute("aria-pressed"));
-      expect(accessibleName(chip)).not.toBe("");
-    }
-    expect(chips.filter((chip) => chip.getAttribute("aria-pressed") === "true")).toHaveLength(1);
-    expect(chips.find((chip) => chip.getAttribute("aria-pressed") === "true")?.getAttribute("data-news-filter")).toBe("all");
+    expect(host.querySelectorAll("[data-news-filter]")).toHaveLength(0);
+    expect(host.querySelector("[data-news-mark-shown]")).toBeNull();
+    expect(host.querySelector("[data-news-source-filter]")).toBeNull();
+    expect(host.querySelector("[data-flow-state]")).toBeNull();
+    expect(host.querySelectorAll("article[data-story-id]")).toHaveLength(3);
   });
 });
 
@@ -435,7 +432,7 @@ describe("t-rail-a11y — keyboard reachability", () => {
 describe("t-rail-a11y — load states announce themselves", () => {
   // For each load state: the panel's data-news-state matches AND a role="status" or
   // aria-live region with non-empty text is exposed. Ready-with-rows is announced by the
-  // catch-up summary's aria-live="polite" span (NewsCatchup.tsx:57).
+  // screen-reader-only status in the existing compact header (no bulk review bar).
   const cases = [
     {
       name: "loading",
@@ -449,7 +446,7 @@ describe("t-rail-a11y — load states announce themselves", () => {
       state: "live",
       serve: () => response(snapshot("NVDA", richRows())),
       never: false,
-      text: { en: "3 new · 0 updated", zh: "3 条新 · 0 条更新" },
+      text: { en: "3 stories available", zh: "3 条新闻可阅读" },
     },
     {
       name: "quiet empty",

@@ -69,3 +69,9 @@ a.headline:hover{color:var(--brand-2);text-decoration:underline;text-underline-o
   .ladder,.ladderStatic{min-height:40px;font:600 13px/18px var(--font-ui)}
   .moreReports{min-height:44px}
 }
+
+/* News fills the desktop rail and stays in document flow on smaller screens.
+   TerminalShell restores the mounted company card when the reader leaves News. */
+@media (min-width:861px){
+  .board{height:auto;flex:1;min-height:0}
+}

@@ -258,6 +258,17 @@ describe("TickerNewsPanel — the news-flow strip is not mounted", () => {
     await render(<TickerNewsPanel symbol={symbol} lang={lang} userId="user-a" />);
   };
 
+  it.each(["en", "zh"] as const)("shows the story list directly below the header, not a flow strip (%s)", async (lang) => {
+    await renderPanel({ flow: flow(FLOW_OK) }, "NVDA", lang);
+    const panel = host.querySelector("[data-testid=ticker-news-panel]")!;
+    expect(panel.children).toHaveLength(2);
+    expect(panel.children[0].tagName).toBe("DIV"); // compact header
+    expect(panel.children[1].querySelectorAll("article[data-story-id]")).toHaveLength(2);
+    expect(stripEl()).toBeNull();
+    expect(panel.querySelector("[data-news-catchup]")).toBeNull();
+    expect(panel.querySelector("[data-news-source-filter]")).toBeNull();
+  });
+
   it("does not mount the strip for a ready snapshot that carries flow", async () => {
     await renderPanel({ flow: flow(FLOW_OK) });
     expect(stripEl()).toBeNull();

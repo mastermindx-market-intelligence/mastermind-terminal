@@ -677,6 +677,7 @@ async function runCell(page: Page, baseURL: string | undefined, testInfo: TestIn
   // element, and no "how these counts work" control to open it with.
   await expect(panel.locator("[data-flow-state]")).toHaveCount(0);
   await expect(panel.getByRole("button", { name: MORE_LABEL[lang] })).toHaveCount(0);
+  await expect(panel.locator("[data-news-catchup], [data-news-mark-shown], [data-news-source-filter], [data-news-filter]")).toHaveCount(0);
 
   // The News rows themselves are untouched by the removal: every story of the
   // supplied payload still renders, with its headline and its Mark reviewed

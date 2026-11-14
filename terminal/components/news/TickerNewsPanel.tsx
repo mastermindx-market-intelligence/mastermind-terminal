@@ -4,13 +4,12 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
 import {
-  NewsCatchupBar,
-  NewsFilterEmpty,
   NewsMarkReviewed,
   NewsReviewChange,
   NewsReviewTag,
   NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
+import { newsCatchupText } from "@/lib/newsCatchupLex";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
 import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 
@@ -147,29 +146,21 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     trigger: HTMLButtonElement;
     context: string;
     snapshot: typeof snapshot;
-    storyIds: string[];
+    headline: HTMLElement;
   } | null>(null);
   const [reviewFocusTurn, setReviewFocusTurn] = useState(0);
   const reviewFocusContext = JSON.stringify([
     userId ?? null, symbol, view, snapshot?.security_id,
-    snapshot?.editorial_view?.revision, catchup.filter, catchup.source, loadState,
+    snapshot?.editorial_view?.revision, loadState,
   ]);
 
-  const markWithFocus = (trigger: HTMLButtonElement, mark: () => void, storyId?: string) => {
-    const order = catchup.visible.map((row) => row.story_id);
-    const index = storyId === undefined ? -1 : order.indexOf(storyId);
-    reviewFocus.current = trigger.ownerDocument.activeElement === trigger ? {
-      trigger,
-      context: reviewFocusContext,
-      snapshot,
-      // Keep the same story in All, otherwise continue forward, then backward.
-      // The bulk action returns to the selected filter when it becomes disabled.
-      storyIds: index < 0 ? [] : [
-        order[index], ...order.slice(index + 1), ...order.slice(0, index).reverse(),
-      ],
-    } : null;
+  const markWithFocus = (trigger: HTMLButtonElement, storyId: string) => {
+    const headline = trigger.closest("article")?.querySelector<HTMLElement>("[data-news-headline]");
+    reviewFocus.current = headline && trigger.ownerDocument.activeElement === trigger
+      ? { trigger, headline, context: reviewFocusContext, snapshot }
+      : null;
     try {
-      mark();
+      catchup.markStory(storyId);
     } catch (error) {
       reviewFocus.current = null;
       throw error;
@@ -189,18 +180,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
     if (active && active !== request.trigger && active !== doc.body && active !== doc.documentElement) return;
     if (request.trigger.isConnected && !request.trigger.disabled) return;
 
-    const articles = new Map(Array.from(
-      panel.querySelectorAll<HTMLElement>("article[data-story-id]"),
-      (article) => [article.dataset.storyId, article] as const,
-    ));
-    for (const storyId of request.storyIds) {
-      const headline = articles.get(storyId)?.querySelector<HTMLElement>("[data-news-headline]");
-      if (headline) {
-        headline.focus();
-        if (doc.activeElement === headline) return;
-      }
-    }
-    panel.querySelector<HTMLButtonElement>('[data-news-filter][aria-pressed="true"]')?.focus();
+    if (panel.contains(request.headline)) request.headline.focus();
   }, [reviewFocusTurn, reviewFocusContext, snapshot]);
 
   // The snapshot's ticker must be the symbol on screen. A snapshot that describes a
@@ -326,27 +306,15 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         </label>
         {state === "live" && <NewsLiveDot lang={lang} />}
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
+        {presented.length > 0 && (
+          <span className={styles.srOnly} role="status" aria-atomic="true">
+            {lang === "zh" ? `${presented.length} 条新闻可阅读` : `${presented.length} stories available`}
+          </span>
+        )}
       </div>
 
-      {curated && loadState === "ready" && (
-        <div className={styles.sourceNote}>
-          {newsEditorialText(`description.${view}`, lang)}
-          {view === "company" && snapshot?.editorial_view?.name_coverage !== "names_and_symbols" && (
-            <span className={styles.coverageNote}>{newsEditorialText("limitedNames", lang)}</span>
-          )}
-        </div>
-      )}
-
-      {presented.length > 0 && (
-        <NewsCatchupBar
-          catchup={catchup}
-          lang={lang}
-          labelForSource={sourceLabel}
-          curated={curated}
-          onMarkShown={(event) => markWithFocus(event.currentTarget, catchup.markShown)}
-        />
-      )}
-
+      {/* News starts immediately below the compact header: no editorial explainer,
+          activity/quietness strip, review counters, bulk marks or source filters. */}
       <div className={styles.scroll}>
         <EmptyState state={loadState} copy={copy} onRetry={refresh} />
         {loadState === "ready" && state === "degraded" && (
@@ -359,9 +327,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           <div className={styles.empty} role="status">{view === "company" ? newsEditorialText("companyQuiet", lang) : curated ? copy.curatedQuiet : copy.quiet}</div>
         )}
 
-        {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
-
-        {presented.length > 0 && catchup.visible.map((row) => {
+        {presented.map((row) => {
           const cached = details[row.story_id];
           const detail = cached && cached.token === detailTokens.get(row.story_id) ? cached.story : null;
           const timeRaw = row.updated_at || row.published_at || row.received_at;
@@ -479,12 +445,17 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               <NewsMarkReviewed
                 cls={review}
                 lang={lang}
-                onMark={(event) => markWithFocus(event.currentTarget, () => catchup.markStory(row.story_id), row.story_id)}
+                onMark={(event) => markWithFocus(event.currentTarget, row.story_id)}
                 title={headline}
               />
             </article>
           );
         })}
+        {catchup.mode === "session" && (
+          <div className={styles.note} data-news-review-mode="session" role="status">
+            {newsCatchupText("ncSessionOnly", lang)}
+          </div>
+        )}
       </div>
     </section>
   );
