@@ -192,7 +192,7 @@ describe("email cache is bounded and expires", () => {
     for (let i = 0; i < ids.length; i += 2_000) await resolveUserEmails(ids.slice(i, i + 2_000));
     expect(__emailCacheSize()).toBeLessThanOrEqual(5_000);
     expect(__emailCacheSize()).toBeGreaterThan(0);
-  });
+  }, 15_000); // Full-population capacity check; a bounded CI budget, not a latency SLA.
 
   it("coalesces concurrent lookups for the same id into ONE GoTrue call", async () => {
     let inflight = 0;

@@ -85,6 +85,39 @@ P4 parent; no force replacement of an unrelated writer is involved.
 
 ## Release and remaining parent acceptance
 
+### Repaired-head browser proof and bounded CI recovery
+
+The authenticated qualifier for repaired head
+`6a83fb906b4ee2d449c333657f59775d34129b25` passed all **18 cells** in
+run `43582239344`, serial job `132409703014`. Artifact `14109093824`
+was downloaded and verified against SHA-256
+`2a63c837cd12fd79dea2151f6b6acc25067b909230c3b931bc821595649f88e3`.
+Its test merge `ade4d74ad07d37180097be502e490bc4708497c2` has parents
+`dc8039571b40a0d0ce3765b92560f4cbf7d195d5` and the repaired P5 head;
+tree `5bd6697cc25e9503637b0151b1644cb8519f5a4c` equals that head.
+Root inspected its desktop dark and 320px light Today screenshots. The report
+again records stable reader identity, one accepted digest write, the exact saved
+research revision/segment and zero report-body requests. Errors, external
+requests, fixture writes and tracked working changes are empty. This replaces
+the repaired-head fixture-browser proof gap, while production CSP, served source
+and actual account acceptance remain open.
+
+That run's unit shard1 job `132409702696` found one different issue:
+`searchStatsExact.test.ts`'s 50,000-user bounded-cache test timed out at 5,331 ms
+against its 5,000 ms default. All 59 Today reading-workspace tests passed; the
+shard reported 7,789 other tests passed and 40 skipped. The cache test is unchanged
+from protected master (blob `09e87000a24e042cf950552f9dec392b3cee080b`),
+and the same test passed in the existing P6 descendant's unit shard1. No cache
+bound assertion failure was reported; the runner's underlying cause is not
+proven.
+
+The original P5 carrier gives only that full-population capacity test a bounded
+15-second budget. All 50,000 IDs, 2,000-ID batches, the 5,000-entry ceiling and the
+nonempty assertion remain. No production code, test workload, assertion, global
+timeout, workflow or retry controller changes. The full affected 12-test file
+passes locally in 3.48 seconds. The resulting head still requires its own binding
+CI verdict; the earlier browser receipt is not relabelled as new-head evidence.
+
 This owned stack is reviewable source, not a release into its feature base. After dependencies land, retarget and qualify against protected master through the existing permitted release path. Macro11246 supplies the P3 Liquidity reader and Macro11248 supplies P4 Candidates; their served authenticated contracts and Terminal production consumption still require proof. Do not merge this stack into another feature branch as a release shortcut.
 
 No legacy engine is retired. The wider P0–P17 mission still includes full Macro, Prophet and Cycles depth, supported regional adapters, route-by-route production/browser acceptance and eventual removal of superseded sources after parity. Next safe source phase: P6 Discover and its existing tools, starting with the question-to-workspace entrance and preserving actual filters, universes and return context.

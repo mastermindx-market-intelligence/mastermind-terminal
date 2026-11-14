@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
 import { companyRetainedContextParams, loadCompanyRetainedContext } from '@/lib/companyRetainedContext';
 import { normalizeCompanyIntelligenceSymbol } from '@/lib/eventWorkspace';
+import { marketNavigationHref, type WorkspaceMarket } from '@/lib/sharedShellMarket';
 import styles from './MonitorEventAttention.module.css';
 
 type Selection = { listId: string; symbol: string };
-type Props = { subjectId: string; selection: Selection | null; refreshKey?: number; lang: 'en' | 'zh'; onUnauthenticated?: () => void };
+type Props = { subjectId: string; selection: Selection | null; refreshKey?: number; lang: 'en' | 'zh'; market?: WorkspaceMarket | null; onUnauthenticated?: () => void };
 type Evidence = { symbol: string; issuer: string; year: number; quarter: number; sourceDate: string | null; href: string; partial: boolean };
 type Result =
   | { phase: 'loading' }
@@ -74,7 +75,7 @@ export default function MonitorEventAttention(props: Props) {
   return <SelectedEvent key={key} {...props} selection={props.selection} onRetry={() => setRetry(value => value + 1)} />;
 }
 
-function SelectedEvent({ subjectId, selection, lang, onRetry, onUnauthenticated }: Omit<Props, 'selection'> & { selection: Selection; onRetry: () => void }) {
+function SelectedEvent({ subjectId, selection, lang, market, onRetry, onUnauthenticated }: Omit<Props, 'selection'> & { selection: Selection; onRetry: () => void }) {
   const c = COPY[lang];
   const onboarding = useOnboarding();
   const { symbol, listId } = selection;
@@ -137,7 +138,7 @@ function SelectedEvent({ subjectId, selection, lang, onRetry, onUnauthenticated 
       {result.phase === 'quiet' && <p role="status">{c.quiet}</p>}
       {item.partial && <p className={styles.note}>{c.partial}</p>}
       <div className={styles.actions}>
-        <Link href={item.href} className={styles.link}>{result.phase === 'quiet' ? c.coverage : c.open}</Link>
+        <Link prefetch={false} href={marketNavigationHref(item.href, market ?? null)} className={styles.link}>{result.phase === 'quiet' ? c.coverage : c.open}</Link>
         <button type="button" onClick={onRetry}>{c.retry}</button>
       </div>
     </Panel>;

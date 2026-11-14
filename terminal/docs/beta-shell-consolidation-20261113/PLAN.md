@@ -406,3 +406,63 @@ inspection. P6 dense engines and specialty P7 depth remain open; P8 integration
 waits on its actual owner's compatible proof. Pending PRs block only their
 release lanes. Complete regional engines, full Macro/Prophet parity, real
 production journeys and safe retirement are still required by the parent plan.
+
+## P9A milestone — Monitor composition and precise evidence return
+
+The prior P9 next action has been executed. The complete bounded packet is
+[P9_MONITOR_EVIDENCE_DESK.md](P9_MONITOR_EVIDENCE_DESK.md). Owned lists now lead
+one native evidence workflow, followed by the saved-alert inventory. The exact
+list-read/membership return binding, market-aware native destinations and
+single-column phone reading order retain the original private owners. Alert
+enablement is distinguished from evaluation; failures do not display a false
+zero. No updates feed, list editor, evaluator or Company transport was created.
+
+Paper's existing Monitor and account-service states were inspected. Additive
+page p-9-0 in file01M6Y2GT8S3YP4TK052PPESZEC contains verified/released boards
+4EQ-0/4H3-0/4JG-0/4LB-0, covering desktop, 320px EN, 390px ZH partial failure
+and 820px refreshed-membership states. The local 81-test owner/composition
+qualification passed; the 54 tests in the two edited suites passed again after
+their original specimens were extracted for shared browser use. Full typecheck,
+scoped lint, nonempty language guard and qualifier syntax/diff checks passed.
+The incumbent hosted qualifier now includes Monitor at1440/820/320px. Exact-head
+browser and real production/account acceptance remain separate outstanding work.
+
+### Source and proof advances retained in this composition
+
+- P7 PR1510 is published/read back at
+  `57e1abf3ab55887f097da1c6800c1bf3da3fa6db`, tree
+  `6275feeb6ba7e897fb12d42c27a194c6d91aba12`, with all eight changed files,
+  branch and Ready PR body verified. It is the first P9 parent. Its browser
+  results and protected release are not inferred from publication.
+- P5's repaired6a83fb90 head has authenticated artifact14109093824 from
+  run43582239344/serial job132409703014. ZIP SHA-256:
+  `2a63c837cd12fd79dea2151f6b6acc25067b909230c3b931bc821595649f88e3`.
+  Report merge `ade4d74ad07d37180097be502e490bc4708497c2` includes that
+  candidate parent and exact tree `5bd6697cc25e9503637b0151b1644cb8519f5a4c`.
+  All18 cells passed; reported errors, external requests, fixture writes and
+  tracked changes were empty. Root viewed320px light and1440px dark images.
+  Reader identity, one accepted digest and exact saved revision/segment7 were
+  retained without a report-body request. This remains fixture-browser proof.
+- That same P5 run's unit shard1 found only the inherited50,000-user cache test
+  exceeding its5-second budget (5,331ms), with7,789 other tests passing and40
+  skipped. The identical test passed on P6's shard; the runner cause is unproven.
+  The original P5 carrier now has `bb0e95d9d67910fa5c7ee060fad0f2016fe94032`,
+  tree `f9a1c47b6300914811ee3c1691f9e6b5b47f5690`: a single15-second test
+  budget, unchanged50,000-user/5,000-entry assertions, and documented evidence.
+  The full affected12-test file passed. Both files/branch/PR were read back.
+  This is P9's additional parent; new-head binding CI remains owed. P6/P7 were
+  not pushed merely to inherit the repair, and older artifacts are not relabelled.
+- P6 PR1508 remains at `2ad0e7fa8bc802b0d0f8322ec88c5dc9c5603d51`. Its
+  finite CI43582423756 inventory had all unit shards/typecheck/build passing
+  while browser lanes still ran; no completion or artifact was inferred.
+- The P9 custody inventory preserves active News1210, Alerts662, Terminal
+  watchlist639, retained Company1312, chart navigation1509, chrome1501 and
+  Analysis1494. Their observed heads and held effects are recorded in the packet.
+
+Next safe work is P10 Research entry/library composition, beginning with the
+existing source/reader and Paper inventory. Active retained-page selection and
+public editorial archive work must keep their original owners. P6 deep engine
+work, P7 specialty depth, P8 integration, regional engines, full Macro/Prophet
+parity, deployed journeys and safe retirement all remain in the original parent
+DONE_WHEN. Existing release controllers are observed and repaired within their
+own carriers; a pending PR does not stop this construction mission.

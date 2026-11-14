@@ -8,13 +8,14 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import type { Root } from 'react-dom/client';
 import MonitorWorkspace from '@/components/workspaces/MonitorWorkspace';
+import { monitorWatchlistsFixture, monitorAlertsFixture } from './fixtures/monitorDesk';
 
 type ShellIdentity = { kind: 'guest' } | { kind: 'account'; userId: string; email: string };
 
 const shellState = vi.hoisted(() => ({
   identity: { kind: 'guest' } as { kind: 'guest' } | { kind: 'account'; userId: string; email: string },
   lang: 'en' as 'en' | 'zh',
-  attention: [] as Array<{subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}>,
+  attention: [] as Array<{subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number; market?: string | null}>,
   scope: {current: null as AbortController | null},
   retryIdentity: vi.fn(), invalidateIdentity: vi.fn(),
 }));
@@ -30,7 +31,7 @@ vi.mock('@/lib/i18n', () => ({
 }));
 
 vi.mock('@/components/workspaces/MonitorEventAttention', () => ({
-  default: (props: {subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number}) => {
+  default: (props: {subjectId: string; selection: {listId: string; symbol: string} | null; refreshKey: number; market?: string | null}) => {
     shellState.attention.push(props);
     return createElement('section', { 'data-attention-test': props.selection?.symbol ?? 'idle' }, 'Event evidence');
   },
@@ -84,41 +85,8 @@ const originalFetch = globalThis.fetch;
 const ACCOUNT_A: ShellIdentity = { kind: 'account', userId: 'uuid-a', email: 'a@example.com' };
 const ACCOUNT_B: ShellIdentity = { kind: 'account', userId: 'uuid-b', email: 'b@example.com' };
 
-const WATCHLISTS = [
-  {
-    id: '11111111-1111-4111-8111-111111111111',
-    name: 'Core',
-    position: 0,
-    symbols: [
-      { symbol: 'AAPL', section: 'Tech', position: 0 },
-      { symbol: 'MSFT', section: 'Tech', position: 1 },
-    ],
-  },
-  {
-    id: '22222222-2222-4222-8222-222222222222',
-    name: 'Watch',
-    position: 1,
-    symbols: [{ symbol: 'NVDA', section: 'Chips', position: 0 }],
-  },
-];
-
-const ALERTS = [
-  { id: 'alert-1', symbol: 'AAPL', active: true, created_at: '2026-01-05T00:00:00.000Z' },
-  {
-    id: 'alert-2',
-    symbol: 'MSFT',
-    active: false,
-    created_at: '2026-02-01T00:00:00.000Z',
-    condition: { type: 'price', op: 'above', value: 400, triggered: true },
-  },
-  {
-    id: 'alert-3',
-    symbol: 'NVDA',
-    active: false,
-    created_at: '2026-03-01T00:00:00.000Z',
-    condition: { type: 'price', op: 'below', value: 90 },
-  },
-];
+const WATCHLISTS = monitorWatchlistsFixture();
+const ALERTS = monitorAlertsFixture();
 
 let container: HTMLDivElement;
 let workspaceRoot: Root | null = null;
@@ -220,7 +188,7 @@ describe('MonitorWorkspace', () => {
     await settle();
     expect(text()).toContain('Watchlist inventory is unavailable right now.');
     expect(text()).toContain('AAPL');
-    expect(text()).toContain('Active');
+    expect(text()).toContain('Enabled');
     expect(text()).toContain('Triggered (recorded)');
     expect(links()).toContain('/alerts');
   });
@@ -419,7 +387,8 @@ describe('MonitorWorkspace', () => {
     await settle();
     expect(text()).toContain('SYM7');
     expect(text()).not.toContain('SYM8');
-    const all = [...container.querySelectorAll('a')].find(a => a.textContent === 'See all 12 saved alerts');
+    expect(text()).toContain('Showing 8 of 12 saved conditions');
+    const all = [...container.querySelectorAll('a')].find(a => a.textContent?.startsWith('See all 12 saved alerts'));
     expect(all?.getAttribute('href')).toBe('/alerts');
   });
 
@@ -462,10 +431,10 @@ describe('MonitorWorkspace', () => {
       ? 'Watchlist inventory is unavailable right now.'
       : 'Saved alert conditions are unavailable right now.';
     expect(text()).not.toContain(unavailable);
-    expect(text()).toContain(owner === 'watchlist' ? 'Active' : 'Core');
+    expect(text()).toContain(owner === 'watchlist' ? 'Enabled' : 'Core');
     await act(async () => { await vi.advanceTimersByTimeAsync(10_001); });
     expect(text()).toContain(unavailable);
-    expect(text()).toContain(owner === 'watchlist' ? 'Active' : 'Core');
+    expect(text()).toContain(owner === 'watchlist' ? 'Enabled' : 'Core');
     const requestIndex = fetchControl.calls.findIndex(call => gateKey(call) === owner);
     expect(fetchControl.options[requestIndex].signal?.aborted).toBe(true);
     // A body/transport that ignores cancellation must not revive a timed-out read.
@@ -477,7 +446,7 @@ describe('MonitorWorkspace', () => {
     await settle();
     expect(text()).not.toContain(unavailable);
     expect(text()).toContain('Core');
-    expect(text()).toContain('Active');
+    expect(text()).toContain('Enabled');
     expect(fetchControl.calls).toHaveLength(4);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -610,19 +579,96 @@ describe('MonitorWorkspace', () => {
     expect(shellState.attention.at(-1)).toMatchObject({ subjectId: 'uuid-b', selection: null });
   });
 
+  it.each(['en','zh'] as const)('puts the owned lists first and returns to the same visible membership without reads in %s', async lang => {
+    shellState.identity = ACCOUNT_A; shellState.lang = lang; fetchControl.impl = okBoth();
+    await renderWorkspace(); await settle();
+    const lists = container.querySelector('#monitor-lists-title')!;
+    const evidence = container.querySelector('#monitor-event-attention')!;
+    const alerts = container.querySelector('#monitor-alerts-title')!;
+    expect(lists.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(evidence.compareDocumentPosition(alerts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const details = container.querySelector('details')!; details.open = true;
+    const check = details.querySelector<HTMLButtonElement>('button')!;
+    const before = window.location.href;
+    await act(async () => { check.click(); });
+    expect(document.activeElement).toBe(evidence);
+    const accepted = shellState.attention.at(-1);
+    const back = Array.from(container.querySelectorAll('button')).find(button => button.textContent?.endsWith(lang === 'zh' ? '返回关注列表' : 'Back to your lists'))!;
+    await act(async () => { back.click(); });
+    expect(document.activeElement).toBe(check); expect(details.open).toBe(true);
+    expect(window.location.href).toBe(before); expect(fetchControl.calls).toHaveLength(2);
+    expect(shellState.attention.at(-1)).toBe(accepted);
+    details.open = false;
+    await act(async () => { back.click(); });
+    expect(document.activeElement).toBe(lists); expect(details.open).toBe(false);
+    expect(fetchControl.calls).toHaveLength(2);
+  });
+
+  it('returns to the originating list when a symbol belongs to two owned lists', async () => {
+    shellState.identity = ACCOUNT_A;
+    const duplicated = [{...WATCHLISTS[0]}, {...WATCHLISTS[1], symbols:[WATCHLISTS[0].symbols[0]]}];
+    fetchControl.impl = async url => gateKey(url) === 'watchlist' ? jsonResponse({lists:duplicated}) : jsonResponse({alerts:ALERTS});
+    await renderWorkspace(); await settle();
+    const details = container.querySelectorAll('details')[1]; details.open = true;
+    const check = details.querySelector<HTMLButtonElement>('button')!;
+    await act(async () => { check.click(); });
+    expect(shellState.attention.at(-1)?.selection).toEqual({listId:WATCHLISTS[1].id,symbol:'AAPL'});
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.endsWith('Back to your lists'))!.click(); });
+    expect(document.activeElement).toBe(check); expect(fetchControl.calls).toHaveLength(2);
+  });
+
+  it('returns safely to the list heading after the accepted membership read is replaced', async () => {
+    shellState.identity = ACCOUNT_A; fetchControl.impl = okBoth();
+    await renderWorkspace(); await settle();
+    container.querySelector('details')!.open = true;
+    await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="Check event evidence · AAPL"]')!.click(); });
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === 'Refresh')!.click(); });
+    await settle();
+    expect(container.querySelector('[data-event-attention-state="inventory-refreshed"]')).not.toBeNull();
+    const count = fetchControl.calls.length;
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.endsWith('Back to your lists'))!.click(); });
+    expect(document.activeElement).toBe(container.querySelector('#monitor-lists-title'));
+    expect(fetchControl.calls).toHaveLength(count);
+  });
+
+  it('retains market context on admitted handoffs without filtering owned symbols or rereading inventories', async () => {
+    window.history.replaceState({}, '', '/monitor?workspaceMarket=cn&list=core#saved');
+    shellState.identity = ACCOUNT_A; fetchControl.impl = okBoth();
+    await renderWorkspace(); await settle();
+    for (const symbol of ['AAPL','MSFT','NVDA']) expect(links()).toContain('/analysis?symbol='+symbol+'&page=overview&workspaceMarket=cn');
+    expect(links()).toContain('/alerts?workspaceMarket=cn'); expect(links()).toContain('/portfolio?workspaceMarket=cn');
+    expectCurrentChart('AAPL'); expect(shellState.attention.at(-1)?.market).toBe('cn');
+    await act(async () => {
+      window.history.replaceState({}, '', '/monitor?workspaceMarket=ca&list=core#saved');
+      window.dispatchEvent(new Event('mmx:shell-location'));
+    });
+    expect(links()).toContain('/analysis?symbol=AAPL&page=overview&workspaceMarket=ca');
+    expect(links()).toContain('/alerts?workspaceMarket=ca'); expect(links()).toContain('/portfolio?workspaceMarket=ca');
+    expectCurrentChart('AAPL'); expect(fetchControl.calls).toHaveLength(2);
+    expect(text()).toContain('3 distinct symbols'); expect(shellState.attention.at(-1)?.market).toBe('ca');
+  });
+
+  it('does not describe unavailable alerts as a zero count or a current saved-state reading', async () => {
+    shellState.identity = ACCOUNT_A;
+    fetchControl.impl = async url => gateKey(url) === 'watchlist' ? jsonResponse({lists:WATCHLISTS}) : jsonResponse({},503);
+    await renderWorkspace(); await settle();
+    expect(container.querySelector('#monitor-alerts-title')?.textContent).toBe('Saved alerts');
+    expect(text()).not.toContain('latest evaluation time'); expect(text()).toContain('Core');
+  });
+
   it('renders Chinese copy when lang is zh', async () => {
     shellState.identity = ACCOUNT_A;
     shellState.lang = 'zh';
     fetchControl.impl = okBoth();
     await renderWorkspace();
     await settle();
-    expect(text()).toContain('你的关注列表与已保存的预警条件。');
+    expect(text()).toContain('查看已保存代码、预警条件与事件证据。');
     expect(text()).toContain('预警条件');
     expect(text()).toContain('你的列表 (2)');
     expect(text()).toContain('刷新');
     expect(text()).toContain('打开当前图表');
     expect(text()).not.toContain('Open current chart');
-    expect(text()).not.toContain('Your watchlists and saved alert conditions.');
+    expect(text()).not.toContain('Your saved symbols, alert conditions and event evidence.');
     expectCurrentChart('AAPL');
   });
 });
