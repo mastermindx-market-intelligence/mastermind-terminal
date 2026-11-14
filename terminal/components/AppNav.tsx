@@ -3,6 +3,7 @@ import Link from "next/link";
 import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import "./chart-brain-nav.css";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
@@ -158,7 +159,8 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
           </button>
         </Tip>
       </> : <Tip label={t("ai")} side="right" size="mini">
-        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
+        <button className="navbtn" data-chart-brain-trigger={path.startsWith("/terminal") ? "" : undefined}
+          onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
       </Tip>}
     </nav>
   );
