@@ -1,0 +1,130 @@
+# Beta shell consolidation and native workspace delivery
+Date: 2026-11-13 (America/Vancouver). Owner: assigned ChatGPT2 session.
+Status: ACTIVE IMPLEMENTATION PLAN — no production completion claimed.
+
+## Outcome and boundaries
+Deliver one coherent Mastermind investing experience across the beta shell: one market context, one canonical workspace per capability, useful Macro intelligence preserved, deliberately designed native pages, reliable context and return journeys, and safe retirement of redundant presentations. The Chairman's current commission covers planning, Paper design, implementation, verification and authorized release. A plan, PR, CI pass or attractive screenshot is not completion.
+
+The final acceptance is every eligible customer route/family mapped to a verified destination or an explicit justified exception; all core workflows usable across supported markets; production/browser receipts tied to deployed source; preserved entitlements, financial semantics and personal state. Public/editorial routes retain suitable public chrome. Internal/admin/withheld routes do not become customer pages through this project.
+
+This is a task plan under the existing full-site charter and MARKET-OS consumer work. It is not a new runtime, workstream, route registry, admission policy, identity owner or data producer.
+
+## Pinned inputs and lineage
+- Mastermind law: master 8323d7a774a72da20d0e4db21c9080398da185e7; INDEX, ACTIVE_EXECUTION, DELIVERY_WORKFLOW, session review and plan continuity applied.
+- Terminal starting source: master d575152907b581d20257a09ddde3c312e6b4133a.
+- Macro source and design doctrine/system: main 15ba45d4d9d27b2a7966a85b5ac50cc0319ae679.
+- Existing charter: Macro research/MASTER_PRODUCT_SHELL_MAKEOVER_MIGRATION_2026-10-08.md.
+- Existing registry: Macro data/product_experience/page_registry.json; authored judgments config/product_experience/page_registry_overrides.yml; scripts/build_product_page_registry.py and scripts/export_shared_shell_routes.py.
+- Existing consumer projection: terminal/lib/sharedShellRoutes.generated.json. Its source inventory predates this pin; it establishes admitted paths, not contemporary feature parity. Refresh through its owner when changing admission. Never hand-edit the generated catalog.
+- Evidence: Chairman screenshots; live beta read-only inspection; actual Paper boards; cross-repository source analysis. In the live inspection Sector Cycles eventually loaded as an iframe. The reported failure is not asserted permanently reproduced.
+- Independent reasoning: architecture advisor and design critic; no worker implementation or GitHub approval implied.
+- Fabric preflight exposed no eligible adapter/manual route. Principal implements this bounded slice directly; no failed or denied worker effect is replayed.
+
+## Ownership and existing work
+Keep Terminal AppShell as the shell, existing authentication/entitlements and account preference delivery as owners, and Macro producers as intelligence owners. Do not transplant Macro CSS roots or duplicate data calculations.
+Preserve active Terminal PR1494 (Analysis redesign), PR1493 (company logos/search) and Macro PR10780 (native Sector runtime). Recheck their current changed paths before overlap. These are active carriers, not permission to replace their work. Existing accepted MARKET-OS portfolio/watchlist truth and security_state work remain DO_NOT_REDO absent changed evidence.
+Operation branch: sol/web-beta-shell-consolidation-20261113-c2. All mutations in this slice remain on that carrier. Do not self-approve or directly merge. Current repository merge-on-green/required CI/native queue and release holds govern release.
+
+## Product decisions
+
+### One global market context
+Place a compact market selector in the top bar, following existing Shared Shell Paper SS01. Keep it visible on phone as a concise country code with an accessible full label. Remove the separate country rail/drawer group.
+The URL owns workspace market (e.g. /sectors?market=cn). A refresh, copied link and Back/Forward restore it. Reuse MarketId from terminal/lib/markets.ts; do not invent a competing market enum. International is the existing residual market bucket, not all markets. Crypto remains an existing taxonomy value; its selector exposure follows actual workspace support.
+Workspace market does not write followed markets, enabled markets, home, theme, language or portfolio holdings. Company identity remains its exact listing, not a ticker relabelled to a new exchange.
+Switch the market without changing the user's task. Preserve compatible view/window filters, remove incompatible market-specific selections with a visible explanation when necessary, and never retain a foreign market's response under the selected label.
+Use an explicit closed binding from feature and market to qualified engine. Native regional coverage is not inferred from a similar page name. Unsupported pairs have a useful, designed coverage state and a direct existing market destination. Do not call that regional feature completion.
+Requests and caches accepting regional data must bind identity, market/universe, feature/source, query, benchmark/currency when relevant and generation/session. Abort old requests and reject late responses. The first slice gates unsupported native consumers before they mount, so it cannot relabel US data.
+
+### One destination per capability
+Retain six primary workspaces: Today, Discover, Analysis, Monitor, Research, Portfolio. The intelligence shortcuts orient people to Macro, Prophet and Sector Intelligence; Catalysts joins the coherent discovery journey. Avoid adding another generic landing full of launch cards.
+Canonical Sector entry is /sectors. /discover?tab=sectors and legacy links converge on the incumbent SectorIntelligenceWorkspace with their specific job/subject/window retained. A redirect that loses a legacy selection is a regression.
+Current clean /sectors uses native Brief/Explore/Research/Watches; legacy mode exposes Rotation/Discover/Breadth. These are modes of one component, not three independent engines. Recompose that owner. Research/Watches placeholders are unfinished work, not production features.
+Sector Cycles becomes a clearly named rotation/cycle workflow with intact deep-link mapping; do not send every cycle link to a generic Brief.
+Full Macro Prophet lives at /us_stocks.html. Native /prophet is a separate model-plan/options desk, not parity. Preserve both meanings until the full feature inventory is reconciled and a true replacement is proven.
+
+### Visual and interaction grammar
+Use Terminal's current tokens, typography, primitives, theme and locale owners. Flat graphite/structured light surfaces; neutral even borders; strong type hierarchy and meaningful space. No colored container rails, decorative gradients, generic card walls or tiny data labels.
+Reading order: subject and market; dominant observed assessment; useful next action; evidence and exploration. Market observations do not become unvalidated trading instructions.
+One page heading, one task navigation level, one compact filter/display toolbar. Filters, subjects and visualization modes are separate concepts. Open inspectors only after selection; no empty permanent right column.
+Dense tables and charts are work surfaces, not squeezed cards. Prefer a legible ranked view and details to meaningless decorative bubbles. Do not imply correlation from categorical clusters. Preserve complete data access through table/detail modes.
+Freshness appears once at the relevant reading boundary, with material stale/partial conditions visible. Source detail, receipts and method are accessible depth. Missing data is not zero; errors do not erase independent working panels.
+Desktop, reduced shell width, tablet and phone are designed compositions. Preserve keyboard/focus, touch targets, screen-reader structure, reduced motion, both themes and EN/ZH. Never count mere rendering as cold-reader comprehension.
+
+## Existing Paper references
+These are discovered editable candidates/reference sources, not automatic proof of acceptance.
+| Family | Existing file | First target / role |
+|---|---|---|
+| Shell, Today, Monitor, Research, Search | 01M6Y2GT8S3YP4TK052PPESZEC | p-2-0 integration R1; 1K5-0 Today desktop; 2M4-0 presentation/market context; 1ZH-0 mobile; 30C-0 migration acceptance |
+| Sector | 01M6FAXA774QT1VRDMAG7DFQ2W | R4 working design; inspect exact live page/boards before source changes |
+| Prophet | 01M3NT5Y3G5HTJHVR0K5W2MDJM | reconcile complete board/detail lifecycle, not only options plans |
+| Terminal/Analysis | 01M3NSZGE8JWN2EZCSF0DT05RM | preserve active Analysis work; relevant intelligence/company/chart pages |
+| Breadth | 01M6Y3CRMC345RTB3ZDP3XSYRP | breadth command center |
+| Catalysts | 01M6Y2VTQBVC9NA39HNG1DYWFH | catalyst decision desk |
+| Macro | 01M6Y1NJ2SKGG89DZ13E4NVAE2 | macro structure stages |
+| International | 01M3P1TW5Y3XWQC37ADDS8K5AG | region-specific core and responsive states |
+| Research/news | 01M5EXPMQTSBFBAM8KKG83FTZH | News R3 |
+| Market memory | 01M6Y2V2M0J28M2PYAHWZ8SB98 | evidence reading |
+| Personal lists | 01M6Y309YH7PJZMF23R7EDH3CM | watchlists/save |
+| Search | 01M6Y31C449F02KGRNPGK94Q8D | search comparison |
+| Design system | 01M312VSDSZFVT45674GDVJVZN | current grammar/reference integrity |
+
+Paper's default active-document inspection failed pre-effect, but explicit file binding succeeded. Do not infer a global outage. Use fresh exact file/page/snapshot bindings before any edit. Preserve existing boards; create additive missing-state designs with supported tool-scoped writes. No archive/delete or unsupported schema attempts. Every first-of-family packet records exact artboard, source screenshot, module dispositions, responsive/state compositions and resulting implementation comparison. No second design approval ceremony is invented under the attended Web waiver.
+
+## Delivery graph and page-by-page work packages
+Principal owns integration and acceptance. Native reasoning advisers provide bounded design/architecture critique. Implementation may be delegated only through actual eligible runtime grants; direct principal execution remains valid. A phase ends with verify -> save/readback -> reassess -> next ready task.
+
+| Sequence | Pages / family | What users should be able to do | Implementation and migration action | Completion proof |
+|---|---|---|---|---|
+| P0 | Global chrome, desktop rail, phone drawer, All tools | Know their market; change it while staying in the same task | URL market context, header selector, remove country nav, context-aware links, coverage fences; retain existing directory/admission | Back/Forward/reload/share; no cross-market bleed; responsive EN/ZH light/dark; preferences unchanged |
+| P1 | Sector Intelligence, Sector Central aliases | Understand leadership, explore sector/theme/company and return | One incumbent controller and header; reconcile Brief/Explore with legacy Rotation/Discover/Breadth; preserve admin-only Finviz | Canonical and old links reach correct job/subject; complete data/coverage parity; identity isolation |
+| P2 | Sector Cycles US/CN; subsector/rotation details | Read cycle position and historical evidence, inspect constituents | Reuse native runtime/generation from current Macro carrier; port presentation and preserve sectorLegacyMap | No main workflow iframe; 24-anchor compatibility audit; real generation + stale/partial/failure; source family not silently substituted |
+| P3 | Macro Dashboard, Market Intelligence overview, country regime dashboards | Read regime, drivers, what changed and what would change the read | Native composition over existing published sources; merge duplicate overview content; keep regional methodology | Real source-to-render proof; no invented history; timings/benchmarks correct; source/date and deep-link parity |
+| P4 | Full Prophet US and country boards; setup/detail; native model plans | Find candidates, inspect lifecycle/evidence, retain selected view | Inventory full original board, counts, lifecycle/detail and options separation; native board/detail over incumbent engines | Population/count equality; plan vs setup boundaries; filters/share/return; denied/stale/empty states |
+| P5 | Today | Understand today's market and own changes at a glance | Apply existing Paper desk composition; make market summary and personal attention distinct; remove repeated launch panels | Real market reading; honest missing comparison; holdings scope retained; resume reading/watchlist persistence |
+| P6 | Discover, Screener, Heatmap, Leaders, Leader Radar, RS study, Confluence | Narrow a universe and inspect evidence without losing filters | Preserve engines; compact integrated workbench, ranked/table/map modes; link to canonical Sector/Catalysts | Market universes and listing IDs correct; filter equality; zero results vs no coverage; keyboard and responsive dense views |
+| P7 | Catalysts, Defense, Biocatalyst and specialty theme desks | Distinguish an observed development from a confirmed causal event | Shared list/detail evidence flow, preserve domain data, methodology and company provenance | Disclosure/source lineage; no fabricated causal claims; selected case URLs; populated/partial/stale |
+| P8 | Analysis, company dossiers, statements, ownership, earnings, technicals | Understand one company and move between evidence and chart | Integrate incumbent PR1494 and issuer-logo PR1493; unify shell/context/return, not reimplement their bodies | Exact issuer/exchange identity, deep sections, chart return; duplicate heading removal; existing tests + live path |
+| P9 | Monitor, alerts, watchlists, news attention | Track own names and changes with reliable saved state | Apply existing Monitor/list Paper; preserve canonical watchlist/alert owners and mutation receipts | Save authoritative reread; cancel/error/retry; changed identity clears private data; no fake 'since last' data |
+| P10 | Research library, reports, News, Market Memory, evidence/source reader | Find, read, cite and resume exact research | Editorial reading layout, useful facets, exact source revision and resume position; preserve entitlement | Real report body, revision/reading return; search no-result; denied/failure; citations |
+| P11 | Portfolio and personal impact | See actual holdings and understand evidence in their scope | Preserve accepted population/sizing/import owners; compose coherent market context without filtering holdings implicitly | Existing accepted population contracts not redone gratuitously; changed paths only; persisted state/entitlement proof |
+| P12 | Terminal chart, Options, replay, scripts, dislocations | Enter the exact instrument/workspace and return intact | Keep single native engines, reconcile presentation boundaries and handoffs; no duplicated chart or calculations | Exact return URL, symbol/venue, chart size/lifecycle, focus; options/model semantics retained |
+| P13 | Bonds, FX, commodities, crypto, global/country detail | Use shared grammar with appropriate asset-specific intelligence | Existing regime archetype adapted to real source contracts; create missing Paper states first | Correct benchmark/session/currency, real engine response, domain deep links; explicit unsupported capabilities |
+| P14 | Baskets, generated sectors/subsectors/stocks/rotation/report families | Follow every admitted deep link to equivalent useful depth | Migrate by owning template and distinct state, never per-ticker forks; retain alias mapping | Family enumeration/counts, representative dense/empty/error + all-link mapping; no orphan route |
+| P15 | Account, auth, settings, plan-required, unavailable, not-found | Recover without losing task/context | Reuse existing owners and error designs; one coherent utility grammar | Auth return, session expiry, unavailable service; no entitlement bypass; safe contextual return |
+| P16 | Public/editorial/learning/product/help/legal/calculators | Understand and access public content | Shared visual grammar with public chrome; preserve SEO/content and access | Anonymous routes remain public; forms/actions/links work; no investor rail imposed |
+| P17 | Retirement and whole-product qualification | One clear destination for each capability | Switch canonical links only after parity; bounded rollback; archive obsolete presentation after consumer/deep-link proof | No unexplained duplicates/iframes in completed core families; registry disposition + production receipts for every eligible family |
+
+### Market qualification sequence
+US is the first complete native vertical because current sector generation validates SPY and current fixed feeds are US-specific. China follows with its actual macro/stocks/sector/cycle engines. Hong Kong, Canada and International follow through existing regional sources, with no US-label substitution.
+For every feature/market pair record: engine/source owner; taxonomy/universe/benchmark; currency/session; entitlement; source freshness; native presentation status; direct existing fallback; exact consumer proof. This belongs in the existing migration packet/registry judgments, not a second dynamic capability service.
+Regional visual reuse does not imply identical intelligence. Research, Portfolio and instrument identity retain their own scopes. A selected market is not an automatic account preference edit.
+
+## Retirement rules and preservation
+For each module choose RETAIN, IMPROVE, RELOCATE, MERGE-INTO, REMOVE-with-rationale or BLOCKED_DATA. Default to preserving useful analytical depth. Remove repeated presentation only after naming its canonical destination.
+Each retirement requires source/template owner, ingress/deep-link inventory, user actions and data parity, generation/access contracts, production use proof, alias/redirect behavior and bounded rollback. Leave original source history intact. Archive code after proving consumers no longer need it; do not delete engines because a page was ugly.
+Iframe replacement is incremental: inventory capability -> bind existing data seam -> native renderer -> real parity -> canonical entrance -> alias retention -> presentation archive. The current iframe bridge is a temporary compatibility owner, not the finished experience.
+
+## Acceptance gates for each package
+1. Source and custody: exact inputs, active writers, protected source, data contracts, no conflicting effect.
+2. Design packet: before/after, Paper exact target, reading order, module disposition and landing, reduced-width/phone composition, actual state matrix.
+3. Implementation: native owner reused; no parallel auth/state/data/control plane; correct market/request identity.
+4. Focused evidence: meaningful unit/integration tests for changed behavior, types/lint, relevant existing responsive suite; no tests that merely assert CSS spelling.
+5. Real browser: populated journey; empty/partial/stale/error/access states; keyboard and focus, URL/history/return, no page horizontal overflow; 1440/820/390 and 320 stress, both themes/locales for global changes. Identify human comprehension as untested until actually observed.
+6. Release: source-qualified Ready PR, actual protected CI and binding approvals/holds, native permitted auto-merge, merged source and deployment readback.
+7. Production: exact deployed marker and live journey, data/source parity, persistence readback where affected. Green CI does not satisfy this.
+8. Durable continuation: evidence and next action saved/read back; start next safe independent package if release is waiting.
+
+## First slice: bounded implementation packet
+Owned: shared-shell market helper/selector/coverage boundary; AppShell composition; AppNav/MobileNav country group removal; SharedShellPrimaryNav/IntelligenceNav market links; focused tests and this plan.
+No engine mutation, no new route admission, no Analysis/search/logo body edits, no Macro10780 runtime duplication.
+Design source: actual SS01 board 1K5-0 inspected at file snapshot 91b959fac997b241bec8f283ddd67db8fa94e36cf162a992120b6f742ed96031. Its top market selector and flat shell guide this slice; this does not accept the whole file.
+Keep market context derived from URL. Gate unsupported native consumers before mounting. Known legacy country routes may select their matching admitted region and preserve same-feature navigation. Maintain authoritative fixed route-market binding on direct legacy URLs.
+Then simplify sector composition/aliases through the incumbent controller if current source remains disjoint. No blanket clearing of filters; preserve known legacy state and source family. If incompatible, keep the old deep link and record remaining debt.
+
+## Progress and exact next action
+- Completed diagnosis: protected pins, Paper exact-file access, live beta read-only inspection, active-PR collision census, incumbent-sector and market-taxonomy analysis.
+- Durable plan: this file and derived appendix are the initial construction checkpoint.
+- In progress: P0 market context and navigation.
+- Not completed: source implementation/tests, native page migration, PR release, production acceptance.
+- Next: implement P0 against pinned source; run targeted race/history/coverage and responsive checks; save source/proof; continue P1 or other ready disjoint package.
+- No external worker, watcher, daemon or automatic continuation is claimed. No Slack message or production personal-state mutation was sent.
