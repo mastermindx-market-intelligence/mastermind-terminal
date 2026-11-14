@@ -1,6 +1,6 @@
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
 // Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -9,6 +9,7 @@ import { join } from "node:path";
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f12-9-team-ownership-transfer");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
+const CAPTURE_PREPARATION_MS = 60_000;
 const LAYOUT_FILES = [
   "terminal/components/settings/SectionTeam.tsx",
   "terminal/components/settings/SectionTeam.module.css",
@@ -65,21 +66,25 @@ function sha256Buf(buf: Buffer): string {
   return createHash("sha256").update(buf).digest("hex");
 }
 
-function git(args: string[]): { ok: boolean; stdout: Buffer } {
-  const r = spawnSync("git", args, { cwd: REPO, maxBuffer: 20_000_000, timeout: 30_000 });
+function git(args: string[], deadline: number): { ok: boolean; stdout: Buffer } {
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error("Captured layout preparation exceeded its bounded Git budget");
+  const r = spawnSync("git", args, {
+    cwd: REPO, maxBuffer: 20_000_000, timeout: Math.min(30_000, remaining),
+  });
   return { ok: (r.status ?? 1) === 0, stdout: (r.stdout as Buffer) || Buffer.alloc(0) };
 }
 
-function commitExists(sha: string): boolean {
-  return git(["cat-file", "-e", `${sha}^{commit}`]).ok;
+function commitExists(sha: string, deadline: number): boolean {
+  return git(["cat-file", "-e", `${sha}^{commit}`], deadline).ok;
 }
 
-function fetchCommitOnce(sha: string): void {
-  git(["fetch", "--depth=1", "origin", sha]);
+function fetchCommitOnce(sha: string, deadline: number): void {
+  git(["fetch", "--depth=1", "origin", sha], deadline);
 }
 
-function blobAt(sha: string, rel: string): Buffer | null {
-  const r = git(["cat-file", "-p", `${sha}:${rel}`]);
+function blobAt(sha: string, rel: string, deadline: number): Buffer | null {
+  const r = git(["cat-file", "-p", `${sha}:${rel}`], deadline);
   return r.ok ? r.stdout : null;
 }
 
@@ -120,6 +125,27 @@ function measurement(yml: string, file: string): Record<string, string> {
 }
 
 describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
+  let preparedSha = "";
+  let preparedCommitExists = false;
+  const preparedBlobs = new Map<string, Buffer | null>();
+
+  beforeAll(() => {
+    // A shallow CI checkout may need one network fetch. Acquire the exact
+    // captured objects before the five-second assertions, under one shared
+    // deadline. Each Git call shares the remaining preparation budget.
+    const deadline = Date.now() + CAPTURE_PREPARATION_MS;
+    const yml = evidenceText();
+    preparedSha = capturedAtHead(yml);
+    if (!commitExists(preparedSha, deadline)) fetchCommitOnce(preparedSha, deadline);
+    preparedCommitExists = commitExists(preparedSha, deadline);
+    preparedBlobs.clear();
+    if (preparedCommitExists) {
+      for (const rel of Object.keys(layoutFileMap(yml))) {
+        preparedBlobs.set(rel, blobAt(preparedSha, rel, deadline));
+      }
+    }
+  }, CAPTURE_PREPARATION_MS + 5_000);
+
   it("capturedAtHead names the exact layout bytes, including after a squash merge", () => {
     // Seat ruling B1(ii): capturedAtHead is no longer informational. RED on 75916e59
     // because EVIDENCE.yml still names 144fbbd7 while layoutFiles hashes were restamped
@@ -127,18 +153,17 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
     const yml = evidenceText();
     const sha = capturedAtHead(yml);
     expect(sha).toMatch(/^[0-9a-f]{40}$/);
-    if (!commitExists(sha)) {
-      fetchCommitOnce(sha);
-    }
     expect(
-      commitExists(sha),
+      preparedCommitExists,
       `capturedAtHead ${sha} is not a commit reachable from origin — recapture and record the real code commit`,
     ).toBe(true);
     // Squash merges preserve the captured source bytes but replace branch ancestry.
     // Keep B1(ii)'s capture-commit binding: every recorded hash must match that
     // actual commit AND the checked-out source. A new HEAD or a restamped hash
     // cannot substitute for the code that generated the retained crops.
-    const recorded = requireCapturedLayoutBytes(yml, blobAt);
+    const recorded = requireCapturedLayoutBytes(yml, (ref, rel) =>
+      ref === preparedSha ? preparedBlobs.get(rel) ?? null : null,
+    );
     for (const rel of LAYOUT_FILES) {
       expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
     }
