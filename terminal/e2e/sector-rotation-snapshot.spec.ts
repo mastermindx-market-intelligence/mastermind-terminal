@@ -38,7 +38,9 @@ for (const language of ["en", "zh"]) for (const theme of ["dark", "light"]) {
       await expect(rotation.getByTestId(id)).toHaveCount(0);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-    await info.attach(`rotation-snapshot-${language}-${theme}`, { body: await rotation.screenshot(), contentType: "image/png" });
+    const snapshotPath = info.outputPath(`rotation-snapshot-${language}-${theme}.png`);
+    await rotation.screenshot({ path: snapshotPath });
+    await info.attach(`rotation-snapshot-${language}-${theme}`, { path: snapshotPath, contentType: "image/png" });
     await close.press("Space");
     await expect(open).toBeFocused();
     await expect(rotation.getByTestId("rotation-legacy-notice")).toHaveCount(0);
