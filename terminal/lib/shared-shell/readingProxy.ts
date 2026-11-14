@@ -15,7 +15,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isDocId, isSha256Hex, isUuid } from './readingContracts';
 
-export type ReadingResource = 'catalog' | 'search' | 'read' | 'today';
+export type ReadingResource = 'catalog' | 'search' | 'read' | 'today' | 'macroDashboard';
 
 const DEFAULT_BASE = 'https://www.mastermind-x.com';
 
@@ -33,6 +33,7 @@ const RESOURCE_PATH: Record<ReadingResource, string> = {
   search: '/api/research/search',
   read: '/api/research/read',
   today: '/api/macro/command',
+  macroDashboard: '/api/macro/dashboard',
 };
 
 /** Applied to every response, including every error path. */
@@ -96,6 +97,7 @@ const READ_PARAMS: Readonly<Record<string, (value: string) => boolean>> = {
 
 /** Allowlist-only query validation; null for anything unknown, duplicated or malformed. */
 function validateQuery(resource: ReadingResource, incoming: URLSearchParams): URLSearchParams | null {
+  if (resource === 'macroDashboard') return incoming.keys().next().done ? new URLSearchParams() : null;
   if (resource === 'catalog' || resource === 'today') {
     return incoming.keys().next().done ? new URLSearchParams() : null;
   }

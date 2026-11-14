@@ -288,7 +288,7 @@ function recoveryChild(parentOrigin: string, holdReady: boolean) {
  const generation=new URL(location.href).searchParams.get("mmx_generation");
  let init=null;
  const send=(body)=>parent.postMessage({protocol:${JSON.stringify(SHARED_SHELL_PROTOCOL)},frameGeneration:generation,...body},parentOrigin);
- const ready=()=>{if(init)send({type:"READY",href:new URL(init.canonicalPath,location.origin).href,title:"Macro",
+ const ready=()=>{if(init)send({type:"READY",href:new URL(init.canonicalPath,location.origin).href,title:"Sector Cycles",
   contextRevision:init.contextRevision,bridgeVersion:${JSON.stringify(SHARED_SHELL_BRIDGE_VERSION)},documentVersion:${JSON.stringify(SHARED_SHELL_DOCUMENT_VERSION)},responseKind:"content"});};
  window.shellRecoveryFixture={ready,fail:()=>send({type:"ERROR",code:"initialization_failed"}),navigate:(href)=>{
   history.pushState({},"",href);
@@ -303,7 +303,7 @@ function recoveryChild(parentOrigin: string, holdReady: boolean) {
 }
 
 test.describe("legacy workspace recovery",()=>{
- const canonical="/macro.html?filter=a%20b&filter=a+b#risk";
+ const canonical="/sector_cycles.html?filter=a%20b&filter=a+b#risk";
  const legacy="https://www.mastermind-x.com";
  type FixtureWindow=Window & {shellRecoveryFixture:{ready:()=>void;fail:()=>void}};
  async function setup(page:import("@playwright/test").Page,baseURL:string) {
@@ -312,7 +312,7 @@ test.describe("legacy workspace recovery",()=>{
    {name:"mm_e2e_rs30",value:"1",url:baseURL},
    {name:"mm_e2e_guest",value:"1",url:baseURL},
   ]);
-  await page.route(legacy+"/macro.html?**",route=>route.fulfill({
+  await page.route(legacy+"/sector_cycles.html?**",route=>route.fulfill({
    contentType:"text/html; charset=utf-8",body:recoveryChild(new URL(baseURL).origin,hold),
   }));
   // Warm this real admission route before measuring a child response deadline.
@@ -321,7 +321,7 @@ test.describe("legacy workspace recovery",()=>{
   await page.goto(canonical);
   const frame=page.locator("[data-shared-shell-frame]");
   await expect(frame).toBeVisible();
-  const child=()=>page.frames().find(candidate=>candidate.url().startsWith(legacy+"/macro.html?"))!;
+  const child=()=>page.frames().find(candidate=>candidate.url().startsWith(legacy+"/sector_cycles.html?"))!;
   await expect.poll(()=>child()?.url()).toContain("mmx_generation=");
   return {frame,child,holdNext:()=>{hold=true;}};
  }

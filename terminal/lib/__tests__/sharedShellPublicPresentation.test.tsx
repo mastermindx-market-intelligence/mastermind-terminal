@@ -17,7 +17,7 @@ import { sharedShellSource } from "@/lib/sharedShellRoutes";
 // source. AppShell, both toolbars, SettingsButton, Runtime, LegacyPageHost, the
 // language owner and the account preference store all execute for real.
 const navigation = vi.hoisted(() => ({
-  path: "/macro.html", params: new URLSearchParams("filter=a%20b&filter=a+b"),
+  path: "/sector_cycles.html", params: new URLSearchParams("filter=a%20b&filter=a+b"),
   router: { push: vi.fn(), replace: vi.fn() },
 }));
 const edges = vi.hoisted(() => ({
@@ -77,7 +77,7 @@ vi.mock("@/lib/usageStore", () => ({
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const LEGACY = "https://www.mastermind-x.com";
-const INITIAL = "/macro.html?filter=a%20b&filter=a+b#risk";
+const INITIAL = "/sector_cycles.html?filter=a%20b&filter=a+b#risk";
 const A = "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22";
 const B = "0b6d1f57-3c84-4a11-8e29-6d40cc1b7f93";
 const postToFrame = vi.fn<(frame: HTMLIFrameElement, message: ShellParentMessage, origin: string) => void>();
@@ -195,7 +195,7 @@ beforeEach(() => {
   document.documentElement.dataset.lang = "en";
   document.documentElement.lang = "en";
   __resetMarketPrefsStore();
-  navigation.path = "/macro.html";
+  navigation.path = "/sector_cycles.html";
   navigation.params = new URLSearchParams("filter=a%20b&filter=a+b");
   window.history.replaceState({}, "", INITIAL);
   edges.getUser.mockResolvedValue({ data: { user: null }, error: null });

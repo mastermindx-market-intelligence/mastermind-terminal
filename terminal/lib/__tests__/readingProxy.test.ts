@@ -114,6 +114,19 @@ afterEach(() => {
 });
 
 describe('authentication', () => {
+  it('reads the native Macro resource through the same verified identity and fixed upstream', async () => {
+    const response = await proxyReading(bffRequest(), 'macroDashboard');
+    expect(response.status).toBe(200);
+    await expectSecureHeaders(response);
+    expect(fetchMock.mock.calls[0][0]).toBe(DEFAULT_BASE + '/api/macro/dashboard');
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer ' + SERVER_TOKEN);
+  });
+  it('rejects all caller-selected native Macro paths, markets and sources', async () => {
+    for (const query of ['path=/private', 'market=hk', 'url=https://other.test', 'source=live']) {
+      expect((await proxyReading(bffRequest('https://app.test/bff?' + query), 'macroDashboard')).status).toBe(400);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it('returns 401 when there is no authenticated user', async () => {
     supabase.getUser.mockResolvedValue({ data: { user: null }, error: null });
     const res = await proxyReading(bffRequest(), 'catalog');

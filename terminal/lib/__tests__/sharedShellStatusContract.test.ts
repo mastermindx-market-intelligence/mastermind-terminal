@@ -11,8 +11,8 @@ afterEach(() => { vi.unstubAllEnvs(); });
 describe("Shared Shell route admission preserves HTTP status before streaming", () => {
   it.each(["", "0", "true", "01"])("does not admit a legacy path with flag %s", async (flag) => {
     vi.stubEnv("MMX_SHARED_SHELL", flag);
-    await expect(LegacyShellPage(props("/macro.html"))).rejects.toMatchObject(notFound);
-    await expect(generateMetadata(props("/macro.html"))).rejects.toMatchObject(notFound);
+    await expect(LegacyShellPage(props("/sector_cycles.html"))).rejects.toMatchObject(notFound);
+    await expect(generateMetadata(props("/sector_cycles.html"))).rejects.toMatchObject(notFound);
   });
 
   it.each(["/unknown-shared-shell-page.html", "/private/secrets.html", "/api/not-a-page"])(
@@ -23,8 +23,8 @@ describe("Shared Shell route admission preserves HTTP status before streaming", 
   );
 
   it("admits a catalogued page without creating a second frame owner", async () => {
-    expect(await LegacyShellPage(props("/macro.html"))).toBeNull();
-    expect(await generateMetadata(props("/macro.html"))).toMatchObject({
+    expect(await LegacyShellPage(props("/sector_cycles.html"))).toBeNull();
+    expect(await generateMetadata(props("/sector_cycles.html"))).toMatchObject({
       robots: { index: false, follow: false },
     });
   });
