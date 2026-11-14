@@ -466,3 +466,90 @@ work, P7 specialty depth, P8 integration, regional engines, full Macro/Prophet
 parity, deployed journeys and safe retirement all remain in the original parent
 DONE_WHEN. Existing release controllers are observed and repaired within their
 own carriers; a pending PR does not stop this construction mission.
+
+## P10A milestone — exact Research continuity and qualified release receipts
+
+The bounded implementation is [P10_RESEARCH_CONTINUITY.md](P10_RESEARCH_CONTINUITY.md).
+Market-only navigation and equivalent query ordering now retain the selected
+research revision, passage evidence, reader DOM and browser progress. A request
+accepted after a market switch uses the then-current context. Actual revision
+or segment changes still read; duplicate pins remain invalid. Clear filters keeps
+the submitted search/order and restores useful loaded results with heading focus.
+Existing source-page and editorial designs are retained. All76 targeted tests,
+full typecheck, scoped lint, nonempty language guard and syntax/diff checks pass.
+The same hosted qualifier now includes a1440/820/320px Research journey; its
+published-head result and real production acceptance remain outstanding.
+
+The exact Research Paper read was unavailable. One supported same-carrier
+prepare of file01M2WGNCX9475G79JRKJTCM08P returned
+PAPER_DOCUMENT_TRANSITION_UNCONFIRMED with retry_allowed=false. No design
+mutation occurred. Do not replay through another file/tool or claim a new Paper
+composition. This correctness slice uses the accepted historical library/reader
+captures; larger entry/resume composition awaits an available intended document.
+That boundary does not block source diagnosis or other already designed work.
+
+### Exact receipts retained in this composition
+
+- P7 PR1510 head `57e1abf3ab55887f097da1c6800c1bf3da3fa6db` has verified
+  artifact14110053623 from run43584849198. ZIP SHA-256
+  `f2fca93edb19b249fd6551655d681a72a1bf1cfede18832df50c95fae8d1c121`.
+  Report checkout `69b90a40b23e9c8ce157a6a34977c42e4dbeca64` has the
+  candidate parent and exact tree `6275feeb6ba7e897fb12d42c27a194c6d91aba12`.
+  All24 cells passed; errors, external requests, fixture writes and tracked
+  changes were empty. Root viewed Catalyst1440px EN, Catalyst320px ZH and
+  Discover320px EN captures. This is fixture-browser proof, not protected
+  release or live-source acceptance.
+- P6 PR1508's original2ad0e7fa artifact14110290244 failed at the existing
+  Discover hydration boundary. The original carrier was repaired and fully
+  read back at `ce55946034d4060919926c790efe98f4f036569a`, tree
+  `9a6097462b30fe8727e49e40817412acc14c12a4`. Wait for the Search button's
+  actual enabled state before focus; all assertions/time budgets remain.
+  That commit is this composition's additional parent. Its historical failed
+  artifact is not relabelled, and new-head hosted proof remains owed.
+- P9 PR1512 was published/read back at
+  `06f372502e7a81bc916b7bee494456b88a9f823c`, tree
+  `c0d6b43bac057e309f598ce87c2ad48baa93893e`. Artifact14111447502 from
+  run43587343813 has ZIP SHA-256
+  `e2ecf722e51a108afe98426a83d019662f18c04763cd1e0bb5d95f5b353a58f8`.
+  Its report checkout `7774ce968dd0949627fc4d29357735e3514f90ae` has the
+  exact candidate tree, but **failed at Discover1440px before Monitor** after
+  ten completed cells. A distinct serial-standalone job success was not the
+  qualifier's verdict. No Monitor browser pass is claimed.
+  The same diagnosed readiness fix was applied on P9's original carrier and
+  both files/PR head were read back at
+  `8317d537882ad95fc2def4b17e64c2448e2be160`, tree
+  `5c050a4b02a8e5843ab55f2a91def405f20efdd1`. It is this composition's
+  first parent. P9's new hosted Monitor proof remains owed.
+- P5 PR1504 remains `bb0e95d9d67910fa5c7ee060fad0f2016fe94032`. Its
+  cache-test repair passed shard1. In run43585154012, unchanged
+  genFundamentalScan.test.ts:133 exceeded5s at7,270ms in shard2
+  (8,456 passed,4 skipped); there was no reported assertion mismatch.
+  The same20-test file passed in62ms on the prior P5 run with identical
+  test/script/producer/parser/fixture blobs. Real fsync/atomic-publish contracts
+  remain unchanged. Scheduling/IO delay is a hypothesis, not proved cause.
+  The latest finite run read was still in progress at attempt1; no rerun,
+  assertion weakening, timeout change or success substitution occurred.
+  Reconcile the original completed run before considering one failed-job retry.
+- Macro11248 head `ffd95ec212dbffb7144e87df995e9a063cc68d89` passed
+  all scheduled packs, ci-gate, fence and active main authority in
+  run43580506806. The existing controller classifies the inactive pilot
+  authority as nonbinding for main. Compatible exact-head/readiness/hold checks
+  and a concrete refreshed PR body were read back, then **one additive
+  merge-on-green opt-in** was accepted and read back. It remains open/unmerged,
+  with no native auto-merge. Preserve the incumbent controller; opt-in is not
+  deployment or served candidate proof. Macro11246 retains its prior single
+  opt-in and original controller/capacity boundary, with no duplicate enrollment.
+
+### Integration and next action
+
+P10 does not adopt held1312 or public-report1507 source. The packet records the
+precise future1312 join: loaded-window start versus selected-passage position,
+context-preserving history publication before observation, preserved evidence
+and position, and a joined second-passage/market/Back/Forward proof. News,
+Investigation, Market Memory and Options memory remain distinct owners.
+
+Continue P11 Portfolio from accepted holding/population contracts and actual
+active-writer custody. Keep P6 deep discovery engines, specialty Catalyst depth,
+Analysis integration, regional engines, full Macro/Prophet parity, deployed
+journeys and retirement in the parent acceptance. No phase or queued PR closes
+the mission; CI/release boundaries affect only their dependent lanes.

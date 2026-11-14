@@ -18,6 +18,7 @@
 @media(prefers-reduced-motion:reduce){.contextPanel summary svg{transition:none}}
 
 .windowNav+.passage{border-top:0;padding-top:0}
+.libraryTitle:focus-visible{outline:2px solid var(--brand-2);outline-offset:4px}
 
 .mobilePagesTrigger{display:none}.pageSheet{border-radius:var(--sp-5) var(--sp-5) 0 0;color:var(--text);font:400 var(--fs-body)/1.65 var(--font-ui)}.pageSheet :global(.msheet-title){padding:var(--sp-2) calc(var(--sp-5) + 60px) var(--sp-4) var(--sp-5);font-size:var(--fs-title);min-height:44px}.pageSheet button{min-height:44px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line-3);border-radius:var(--r-lg);padding:var(--sp-2) var(--sp-3);cursor:pointer}.pageSheet .sheetClose{position:absolute;top:var(--sp-5);right:var(--sp-5);min-width:44px;font-size:var(--fs-title)}.pageSheet button:focus-visible{outline:2px solid var(--brand-2);outline-offset:3px}.sheetContents{padding:0 var(--sp-5) var(--sp-5);display:grid;gap:var(--sp-4)}.sheetContents p{margin:0;color:var(--text-2)}.sheetContents .outlineList{max-height:none;overflow:visible}.returnReading{width:100%}
 @media(max-width:1099px){.root .mobilePagesTrigger{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);min-height:48px;width:100%}.desktopPages:has(nav){display:none}}

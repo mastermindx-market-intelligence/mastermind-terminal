@@ -7,7 +7,7 @@ import ResearchWorkspace from "@/components/workspaces/ResearchWorkspace";
 import TodayWorkspace from "@/components/workspaces/TodayWorkspace";
 import { businessClockQualification, todayPayload } from "@/lib/shared-shell/readingPayloads";
 import { readingHref } from "@/lib/shared-shell/readingProgress";
-import type { ReadingSelection } from "@/lib/shared-shell/readingContracts";
+import { researchSelection as selection, researchBody as body, researchCatalogFixture, researchFilterFixture, researchOutlineFixture } from "./fixtures/researchReader";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const A="11111111-1111-4111-8111-111111111111", B="22222222-2222-4222-8222-222222222222";
@@ -23,12 +23,6 @@ vi.mock("@/components/workspaces/TodaySinceLastVisit",()=>({default:({render}:{r
 vi.mock("@/components/workspaces/TodayBreadthReading",()=>({default:({render}:{render?:(cell:React.ReactNode)=>React.ReactNode})=>render?.(null)??null}));
 vi.mock("@/lib/useMediaQuery",()=>({useMediaQuery:()=>false}));
 vi.mock("next/link",()=>({default:({children,prefetch,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement> & {prefetch?:boolean})=><a {...props} data-prefetch={String(prefetch)}>{children}</a>}));
-const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
-function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
- schema:"research_vault.browser_read.v1",report_id:docId,selection:{source_pdf_sha256:selection.sourcePdfSha256,extracted_text_sha256:selection.extractedTextSha256,extractor_version:selection.extractorVersion,segmenter_version:selection.segmenterVersion,segment_max_bytes:4000},
- source:{catalog_generated_at:"2026-10-20T10:00:00Z",catalog_health:{}},text_layer_state:"full",segment_count_total:total,
- segments:[{schema:"research_vault.segment.v1",report_id:docId,source_pdf_sha256:selection.sourcePdfSha256,extracted_text_sha256:selection.extractedTextSha256,extractor_version:selection.extractorVersion,segmenter_version:selection.segmenterVersion,segment_max_bytes:4000,segment_index:start,page_start:1,page_end:1,start_byte:0,end_byte:new TextEncoder().encode(text).length,segment_text_sha256:"c".repeat(64),replay_state:"EXACT",text}],
-};}
 type Held={url:string;init?:RequestInit;resolve:(response:Response)=>void};
 let held:Held[],root:Root,container:HTMLDivElement;
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{"Content-Type":"application/json"}});
@@ -38,7 +32,7 @@ async function click(text:string){const button=Array.from(container.querySelecto
 async function mount(component:React.ReactNode){await act(async()=>root.render(component));await flush();}
 beforeEach(()=>{vi.stubGlobal("matchMedia",(query:string)=>({matches:false,media:query,addEventListener:vi.fn(),removeEventListener:vi.fn()}));auth.lang="en";auth.user=A;auth.failure=false;auth.holdUser=false;auth.resolvers=[];auth.open.mockClear();auth.listener=null;held=[];window.history.replaceState({},"","/research");window.localStorage.clear();container=document.createElement("div");document.body.appendChild(container);root=createRoot(container);vi.stubGlobal("requestAnimationFrame",(cb:FrameRequestCallback)=>{cb(0);return 1;});vi.stubGlobal("fetch",vi.fn((input:RequestInfo|URL,init?:RequestInit)=>new Promise<Response>(resolve=>held.push({url:String(input),init,resolve}))));});
 afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.unstubAllGlobals();});
-async function library(){await answer(0,{items:[{id:"report-one",title:"First source report",institution:"Source desk",published_at:"2026-10-19"},{id:"report-two",title:"Second source report"}],preview:false});}
+async function library(){await answer(0,researchCatalogFixture());}
 
 describe("Research selected revision and subject isolation",()=>{
  it("initial catalog401 offers existing signin/recheck and preserves the exact URL",async()=>{
@@ -151,6 +145,69 @@ describe("Today source coverage",()=>{
 });
 
 describe("Research App Router URL continuity",()=>{
+ it("keeps accepted passages, evidence, filters, focus and progress on market-only navigation",async()=>{
+  window.history.replaceState({},"",readingHref(selection)+"&workspaceMarket=cn");
+  await mount(<ResearchWorkspace ownerKey={A}/>);
+  await answer(0,{items:[{id:selection.docId,title:"First source report",institution:"Source desk",tags:["Macro"]}],preview:false});
+  await answer(1,body());await click("Inspect source passage");
+  const passage=container.querySelector("#research-segment-0"),evidence=document.activeElement;
+  const topic=container.querySelector('select[aria-label="Topic"]') as HTMLSelectElement;
+  await act(async()=>{topic.value="Macro";topic.dispatchEvent(new Event("change",{bubbles:true}));});
+  const saved=JSON.stringify(window.localStorage),writes=vi.spyOn(Storage.prototype,"setItem");
+  try {
+   const next=new URL(window.location.href);next.searchParams.set("workspaceMarket","ca");
+   window.history.pushState({},"",next);await act(async()=>window.dispatchEvent(new PopStateEvent("popstate")));
+   await mount(<ResearchWorkspace ownerKey={A}/>);
+   expect(held).toHaveLength(2);expect(container.querySelector("#research-segment-0")).toBe(passage);
+   expect(document.activeElement).toBe(evidence);expect(topic.value).toBe("Macro");
+   expect(JSON.stringify(window.localStorage)).toBe(saved);expect(writes).not.toHaveBeenCalled();
+   expect(container.querySelector('a[href="/analysis?view=investigations&workspaceMarket=ca"]')).toBeTruthy();
+   expect(container.querySelector('a[href="/today?workspaceMarket=ca"]')).toBeTruthy();
+   expect(container.querySelector('a[href="/api/shared-shell/research/pdf/report-one"]')).toBeTruthy();
+   auth.lang="zh";await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(2);
+   expect(document.activeElement).toBe(evidence);expect(writes).not.toHaveBeenCalled();
+  } finally {writes.mockRestore();}
+ });
+ it("accepts an in-flight current read with the market selected while it was pending",async()=>{
+  window.history.replaceState({},"","/research?workspaceMarket=cn");
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+  window.history.replaceState({},"","/research?workspaceMarket=ca");await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(2);await answer(1,body("ACCEPTED AFTER CONTEXT CHANGE"));
+  expect(container.textContent).toContain("ACCEPTED AFTER CONTEXT CHANGE");
+  const params=new URLSearchParams(window.location.search);expect(params.get("workspaceMarket")).toBe("ca");
+  expect(params.get("source_pdf_sha256")).toBe(selection.sourcePdfSha256);expect(params.get("segment_start")).toBe("0");
+  await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(2);
+ });
+ it("ignores reordered equivalent pins and preserves market on paging and explicit resume",async()=>{
+  window.history.replaceState({},"",readingHref(selection)+"&workspaceMarket=cn");
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await answer(1,body());
+  const reordered=new URLSearchParams([...new URLSearchParams(window.location.search)].reverse());reordered.set("origin","context-proof");
+  window.history.replaceState({},"","/research?"+reordered);await mount(<ResearchWorkspace ownerKey={A}/>);expect(held).toHaveLength(2);
+  await click("Next text window");await answer(2,body("SECOND WINDOW",1));
+  expect(new URLSearchParams(window.location.search).get("workspaceMarket")).toBe("cn");
+  window.history.pushState({},"","/research?workspaceMarket=ca");await mount(<ResearchWorkspace ownerKey={A}/>);
+  await click("Continue reading");expect(held).toHaveLength(4);expect(held[3].url).toContain("segment_start=1");
+  await answer(3,body("EXACT RESUMED WINDOW",1));
+  const params=new URLSearchParams(window.location.search);expect(params.get("workspaceMarket")).toBe("ca");
+  for(const [key,value] of new URLSearchParams(readingHref(selection,1).split("?")[1]))expect(params.get(key)).toBe(value);
+ });
+ it.each([
+  ["doc_id","report-two"],["source_pdf_sha256","d".repeat(64)],["extracted_text_sha256","e".repeat(64)],
+  ["extractor_version","different-extractor"],["segmenter_version","different-segmenter"],["segment_start","2"],
+ ])("does not deduplicate a genuine %s change",async(key,value)=>{
+  window.history.replaceState({},"",readingHref(selection)+"&workspaceMarket=cn");
+  await mount(<ResearchWorkspace ownerKey={A}/>);await library();await answer(1,body());
+  const query=new URLSearchParams(window.location.search);query.set(key,value);
+  window.history.pushState({},"","/research?"+query);await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(3);expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");
+  expect(held[2].url).toContain(key==="doc_id"?"/report-two?":"/report-one?");
+ });
+ it.each(["doc_id","source_pdf_sha256","extracted_text_sha256","extractor_version","segmenter_version","segment_start"])("refuses duplicate %s even after an accepted reading",async key=>{
+  window.history.replaceState({},"",readingHref(selection));await mount(<ResearchWorkspace ownerKey={A}/>);await library();await answer(1,body());
+  const query=new URLSearchParams(window.location.search);query.append(key,query.get(key)!);query.set("workspaceMarket","ca");
+  window.history.pushState({},"","/research?"+query);await mount(<ResearchWorkspace ownerKey={A}/>);
+  expect(held).toHaveLength(2);expect(container.textContent).not.toContain("PRIVATE SELECTED SOURCE");expect(container.textContent).toContain("incomplete or invalid");
+ });
  it("clears the selected revision when same-route navigation returns to the library",async()=>{
   await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");await answer(1,body());
   expect(held).toHaveLength(2);expect(container.textContent).toContain("PRIVATE SELECTED SOURCE");
@@ -253,7 +310,7 @@ describe("Today Business period and source presence",()=>{
 
 
 describe("Research editorial source-page composition", () => {
- const outline = [{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ const outline = researchOutlineFixture;
  it("navigates supplied source pages with both pins and inspects the exact passage without another read", async () => {
   await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
   await answer(1,{...body(),outline});
@@ -301,6 +358,25 @@ it("filters and sorts only the loaded catalog selection without a private body r
  expect(container.textContent).toContain("3 shown · 3 matching in 10 loaded reports");
  expect(Array.from(container.querySelectorAll("li h3")).map(node=>node.textContent)).toEqual(["Report 01","Report 03","Report 05"]);
  expect(held).toHaveLength(1);
+});
+
+it.each(["en","zh"] as const)("clears local filters without changing the submitted search or requesting another read (%s)",async lang=>{
+ auth.lang=lang;await mount(<ResearchWorkspace ownerKey={A}/>);
+ const items=researchFilterFixture();
+ await answer(0,{items,preview:false});
+ const selects=Array.from(container.querySelectorAll("label select")) as HTMLSelectElement[];
+ await act(async()=>{selects[0].value="Macro";selects[0].dispatchEvent(new Event("change",{bubbles:true}));selects[1].value="Source desk";selects[1].dispatchEvent(new Event("change",{bubbles:true}));selects[2].value="date-oldest";selects[2].dispatchEvent(new Event("change",{bubbles:true}));});
+ const input=container.querySelector('input[type="search"]')! as HTMLInputElement;
+ await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")!.set!.call(input,"credit");input.dispatchEvent(new Event("input",{bubbles:true}));});
+ await act(async()=>container.querySelector("form")!.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})));await flush();
+ await answer(1,{items:items.map(item=>({...item,institution:"Credit desk",tags:["Credit"]})),preview:false});
+ expect(container.querySelectorAll("li h3")).toHaveLength(0);
+ await click(lang==="zh"?"清除筛选":"Clear filters");
+ expect(selects[0].value).toBe("");expect(selects[1].value).toBe("");expect(selects[2].value).toBe("date-oldest");
+ expect(input.value).toBe("credit");expect(container.querySelectorAll("li h3")).toHaveLength(8);
+ expect(document.activeElement?.id).toBe("research-library");
+ expect(container.textContent).toContain(lang==="zh"?"显示资料库":"Show library");expect(held).toHaveLength(2);
+ expect(held.every(row=>!row.url.includes("/read/"))).toBe(true);
 });
 
 
