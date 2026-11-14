@@ -180,7 +180,12 @@ for(const lang of ["en","zh"] as const) {
   await page.route("**/NVDA.fund.json**",route=>route.fulfill({json:detailFundFixture}));
   const peer=structuredClone(detailFundFixture);
   peer.ticker="AMD";
-  peer.statements.annual.income.revenue=[30e9,40e9,50e9];
+  // Scale the whole synthetic statement, so the source drawer retains
+  // internally consistent income, balance-sheet and cash-flow relationships.
+  const peerScale=[0.5,40/90,50/130];
+  for(const statement of [peer.statements.annual.income,peer.statements.annual.balance,peer.statements.annual.cashflow]) {
+   for(const values of Object.values(statement)) values.forEach((value,index)=>{values[index]=value*peerScale[index];});
+  }
   await page.route("**/AMD.fund.json**",route=>route.fulfill({json:peer}));
   await page.goto("/analysis?symbol=NVDA&page=revenue");
   const revenue=page.locator(".fin-sec").filter({has:page.locator(".fin-eyebrow",{hasText:zh?"营收历史":"REVENUE HISTORY"})});
@@ -223,14 +228,15 @@ for(const lang of ["en","zh"] as const) {
   await expect(seasonal.locator(".fin-seas-chartbox > svg")).toBeVisible();
   await compactAnalysisChrome(page);
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-seasonality-${lang}.png`)});
-  const years=seasonal.locator(".fin-seas-yearpop-trig");
-  await years.click();
-  const year=seasonal.locator(".fin-seas-yearpop button").first();
+  // Seven supplied years use inline controls; the long-history popover has
+  // its own coverage in seasonal-controls.spec.ts.
+  const year=seasonal.locator(".fin-seas-legend-years button").first();
+  await expect(year).toBeVisible();
   const selected=await year.getAttribute("aria-pressed");
-  await year.click();
+  await year.focus();
+  await year.press("Space");
   await expect(year).toHaveAttribute("aria-pressed",selected==="true"?"false":"true");
-  await page.keyboard.press("Escape");
-  await expect(years).toBeFocused();
+  await expect(year).toBeFocused();
   await noOverflow(page);
  });
 
