@@ -494,8 +494,8 @@ const PROPHET_EVALUATION_LEX = {
   offIndexOffRow: ["off-index picks", "指数外选股"],
   offIndexMemberRow: ["S&P 1500 member picks", "标普 1500 成分股选股"],
   offIndexContribution: [
-    "Removing them moves the {h}-session mean from {all} to {member} — a shift of {shift}.",
-    "剔除后，{h} 个交易日的均值从 {all} 变为 {member}——移动 {shift}。",
+    "The {h}-session mean gap versus the sector ETF is {all} across all plans and {member} for S&P 1500 member picks only. The off-index picks' contribution (all plans minus member picks) is {shift}.",
+    "持有 {h} 个交易日后，相对行业 ETF 的平均差值：所有计划为 {all}，仅计标普 1500 成分股选股为 {member}。指数外选股对差值的贡献（前者减去后者）为 {shift}。",
   ],
   offIndexLimitsLabel: ["Membership-file limits (engine text)", "成员表限制（引擎原文）"],
   colMeanGap: ["Mean vs sector ETF", "相对行业 ETF 均值"],
