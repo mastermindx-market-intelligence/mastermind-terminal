@@ -763,12 +763,18 @@ async function qualifyMonitor(page,cell) {
     return Boolean((lists.compareDocumentPosition(event)&Node.DOCUMENT_POSITION_FOLLOWING)&&(event.compareDocumentPosition(alerts)&Node.DOCUMENT_POSITION_FOLLOWING));
   })).toBe(true);
   const initialUrl=page.url();await core.locator('summary').click();expect(reads.event).toBe(0);
-  const assertLinks=async market=>{
+  const assertLinks=async(market,companyCount=3)=>{
+    await expect(root.locator('a[href^="/analysis?"]')).toHaveCount(companyCount);
+    await expect(root.locator('a[href^="/alerts"]')).toHaveCount(1);
+    await expect(root.locator('a[href^="/portfolio"]')).toHaveCount(1);
     for(const link of await root.locator('a[href^="/analysis?"],a[href^="/alerts"],a[href^="/portfolio"]').all()){
-      expect(new URL(await link.getAttribute('href'),BASE).searchParams.get('workspaceMarket')).toBe(market);
+      await expect(link).toHaveAttribute('href',new RegExp('[?&]workspaceMarket='+market+'(?:&|$)'));
     }
-    const chart=new URL(await core.locator('a[href^="/terminal?"]').first().getAttribute('href'),BASE);
-    expect(chart.searchParams.get('symbol')).toBe('AAPL');expect(chart.searchParams.get('ret')).toBe(page.url());
+    const currentHref=page.url();
+    await expect.poll(async()=>{
+      const chart=new URL(await core.locator('a[href^="/terminal?"]').first().getAttribute('href'),BASE);
+      return {symbol:chart.searchParams.get('symbol'),ret:chart.searchParams.get('ret')};
+    }).toEqual({symbol:'AAPL',ret:currentHref});
   };
   await assertLinks('cn');await aapl().focus();await page.keyboard.press('Enter');
   await expect(target).toBeFocused();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
@@ -786,7 +792,7 @@ async function qualifyMonitor(page,cell) {
   await core.locator('summary').click();
   await evidence.evaluate(el=>{window.__monitorAcceptedEvidence=el;});
   await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('ca');
-  await expect(page).toHaveURL(/workspaceMarket=ca/);await assertLinks('ca');
+  await expect(page).toHaveURL(/workspaceMarket=ca/);await assertLinks('ca',4);
   const sourceAfter=new URL(await sourceHref(),BASE);
   for(const key of pinKeys)expect(sourceAfter.searchParams.get(key)).toBe(sourceBefore.searchParams.get(key));
   expect(await evidence.evaluate(el=>el===window.__monitorAcceptedEvidence)).toBe(true);expect(reads).toEqual(acceptedReads);

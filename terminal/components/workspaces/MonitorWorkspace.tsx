@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useShellIdentity } from '@/components/chrome/AppShell';
 import { useLang } from '@/lib/i18n';
 import { composeMonitorSnapshot } from '@/lib/sharedShellMonitor';
@@ -323,21 +324,6 @@ function readInventory<T>(url: string, parentSignal: AbortSignal, parse: (body: 
   });
 }
 
-// The same null snapshot is used by SSR and initial hydration; the browser URL
-// becomes available through the external-store update after hydration.
-const serverLocationSnapshot = (): string | null => null;
-const browserLocationSnapshot = () => window.location.href;
-function subscribeToLocation(onChange: () => void) {
-  window.addEventListener('popstate', onChange);
-  window.addEventListener('hashchange', onChange);
-  window.addEventListener('mmx:shell-location', onChange);
-  return () => {
-    window.removeEventListener('popstate', onChange);
-    window.removeEventListener('hashchange', onChange);
-    window.removeEventListener('mmx:shell-location', onChange);
-  };
-}
-
 function monitorChartHref(symbol: string, currentHref: string | null): string | null {
   const listing = listingHref(symbol);
   if (!listing || !currentHref || !isPresentationHref(currentHref)) return null;
@@ -364,7 +350,23 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   const onboarding = useOnboarding();
   const {scope, ready: ownerReady, ended: sessionEnded, unavailable: identityUnavailable, retryIdentity, invalidateIdentity} = useReadingScope(subjectId ?? '');
   const inventoryController = useRef<AbortController | null>(null);
-  const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
+  const path = usePathname(), params = useSearchParams();
+  const [currentHref, setCurrentHref] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    // Next publishes its search context before HistoryUpdater commits the URL.
+    // Read afterward, preserving the exact query encoding and fragment for return.
+    // The initial null value is shared by SSR and hydration.
+    const update = () => setCurrentHref(window.location.href);
+    update();
+    window.addEventListener('popstate', update);
+    window.addEventListener('hashchange', update);
+    window.addEventListener('mmx:shell-location', update);
+    return () => {
+      window.removeEventListener('popstate', update);
+      window.removeEventListener('hashchange', update);
+      window.removeEventListener('mmx:shell-location', update);
+    };
+  }, [path, params]);
   const contextMarket = currentHref ? workspaceMarket('/monitor', new URL(currentHref).search) : null;
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
   const [alertState, setAlertState] = useState<AlertInventory>({ subjectId: '', state: 'loading' });
