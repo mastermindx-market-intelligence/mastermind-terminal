@@ -8,6 +8,7 @@ import {
 } from "@/lib/supabase/cookies";
 
 const PROTECTED = [
+  "/brain",
   "/terminal",
   "/today",
   "/research",
@@ -91,6 +92,11 @@ function landingUrl(request: NextRequest, fallback: string): URL {
 // Refreshes the auth session on every request and guards the /terminal area.
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  if (path === "/reference.html") {
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/market-reference";
+    return NextResponse.redirect(destination);
+  }
   const landingPath = process.env.MMX_SHARED_SHELL === "1" ? "/today" : "/terminal";
   // Login is disabled — the whole app is public. Set TERMINAL_REQUIRE_AUTH=1 to re-gate everything.
   const requireAuth = process.env.TERMINAL_REQUIRE_AUTH === "1";
@@ -105,7 +111,9 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(landingUrl(request, landingPath));
     }
     if (hasAuthCookie(request)) return await refreshPublicSession(request);
-    return NextResponse.next({ request });
+    const response = NextResponse.next({ request });
+    if (path === "/brain" || path === "/market-reference") applyAuthResponseHeaders(response.headers);
+    return response;
   }
 
   // Auth is on: create the Supabase client and validate the session cookie.

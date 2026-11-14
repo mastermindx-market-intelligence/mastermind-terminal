@@ -6,6 +6,7 @@ import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import "./shared-shell/shared-shell.css";
+import "./shared-shell/mega-menu.css";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -69,6 +70,7 @@ const TITLE_MAP: Array<[string, string, string]> = [
   ["/prophet/evaluation", "shellProphetEvaluation", "Strategy Evaluation"],
   ["/prophet", "shellProphet", "Model plans & options"],
   ["/sectors", "shellSectors", "Sector Intelligence"],
+  ["/brain", "shellMastermindAI", "Mastermind AI"],
   ["/today", "shellToday", "Today"],
   ["/research", "shellResearch", "Research"],
   ["/monitor", "shellMonitor", "Monitor"],
@@ -115,12 +117,15 @@ export default function AppShell({
   const preview = !sharedShell && investorShellPreview && isInvestorShellPreviewPath(path);
   const [compactNavigation, setCompactNavigation] = useState(false);
   const compactControlReady = useSyncExternalStore(subscribeToClientReady, clientReady, serverNotReady);
-  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [directoryMode, setDirectoryMode] = useState<"hover" | "browse" | null>(null);
   const [symbolOpen, setSymbolOpen] = useState(false);
   const [legacyTitle, setLegacyTitle] = useState("");
-  const openDirectory = useCallback(() => { setSymbolOpen(false); setDirectoryOpen(true); }, []);
-  const closeDirectory = useCallback(() => setDirectoryOpen(false), []);
-  const openSymbols = useCallback(() => { setDirectoryOpen(false); setSymbolOpen(true); }, []);
+  const openDirectory = useCallback((mode: "hover" | "browse" = "browse") => {
+    setSymbolOpen(false);
+    setDirectoryMode(previous => previous === "browse" ? previous : mode);
+  }, []);
+  const closeDirectory = useCallback(() => setDirectoryMode(null), []);
+  const openSymbols = useCallback(() => { setDirectoryMode(null); setSymbolOpen(true); }, []);
   const skipToContent = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     const shell = event.currentTarget.closest(".shared-shell");
@@ -242,8 +247,7 @@ export default function AppShell({
             <span className="page-title">{title}</span>
           </>)}
           {!sharedShell && <div className="spacer" />}
-          {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen}
-            onOpenDirectory={openDirectory} />}
+          {sharedShell && <SharedShellToolbar symbolOpen={symbolOpen} onSymbolOpenChange={setSymbolOpen} />}
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
               shell must render its own (review P1: dropped desktop sign-out). */}
@@ -252,9 +256,9 @@ export default function AppShell({
         <AppNav labelled={(preview || sharedShell) && !compactNavigation}
           id={sharedShell ? "shared-primary-navigation" : preview ? "investor-primary-navigation" : undefined}
           overviewBridge={preview && !sharedShell && !fromMacro}
-          sharedShell={sharedShell} onOpenDirectory={openDirectory} />
+          sharedShell={sharedShell} directoryOpen={!!directoryMode} onOpenDirectory={openDirectory} />
         {sharedShell && <SharedShellRuntime legacyOrigin={sharedShellLegacyOrigin}
-          directoryOpen={directoryOpen} onCloseDirectory={closeDirectory} onOpenDirectory={openDirectory}
+          directoryMode={directoryMode} onCloseDirectory={closeDirectory} onOpenDirectory={openDirectory}
           onSearchCompanies={openSymbols} onTitle={setLegacyTitle} />}
         {sharedShell && <span className="shared-shell-page-announcement" role="status" aria-live="polite">{legacyTitle}</span>}
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.

@@ -62,7 +62,7 @@ test("light and Chinese presentation stay coherent through the tools directory",
  await noOverflow(page);
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-zh.png")});
  await page.keyboard.press("ControlOrMeta+k");
- const directory=page.locator(".shared-shell-directory[open]");
+ const directory=page.locator("#shared-shell-tools");
  await expect(directory).toBeVisible();
  const bounds=await directory.boundingBox();
  expect(bounds!.x).toBeGreaterThanOrEqual(0);
@@ -467,7 +467,7 @@ test("the current legacy company opens its chart and returns to the exact resear
  await page.goto(initial);
  const frame=page.locator("[data-shared-shell-frame]");
  await expect(frame).toBeVisible();
- const chart=page.getByRole("link",{name:"Open current chart",exact:true});
+ const chart=page.getByRole("link",{name:"Terminal",exact:true});
  let chartHref=new URL((await chart.getAttribute("href"))!,origin);
  expect(chartHref.searchParams.get("symbol")).toBe("AAPL");
  expect(chartHref.searchParams.get("ret")).toBe(origin+initial);

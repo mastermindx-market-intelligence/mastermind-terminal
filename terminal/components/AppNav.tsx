@@ -3,6 +3,7 @@ import Link from "next/link";
 import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import "./chart-brain-nav.css";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
@@ -10,7 +11,8 @@ import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
-import { sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import SharedShellLaunchLinks from "@/components/chrome/shared-shell/SharedShellLaunchLinks";
+import { sharedShellActiveKey } from "@/lib/sharedShellNavigation";
 
 // Line glyphs — all share the 24-box, 1.7-stroke, fill:none house style (.navbtn svg).
 // Multi-path keys draw each `d` as a stacked <path>; a few workspaces need composite
@@ -69,17 +71,17 @@ export const TOP = [
 // reads params (active key is pure path-prefix), but the Suspense boundary is retained so the
 // nav keeps rendering a stable fallback while the shell hydrates.
 type AppNavPresentation = { labelled?: boolean; id?: string; overviewBridge?: boolean;
-  sharedShell?: boolean; onOpenDirectory?: () => void; intentPrefetch?: boolean };
+  sharedShell?: boolean; directoryOpen?: boolean; onOpenDirectory?: (mode?: "hover" | "browse") => void; intentPrefetch?: boolean };
 
-export function AppNav({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation = {}) {
+export function AppNav({ labelled = false, id, overviewBridge = false, sharedShell = false, directoryOpen = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation = {}) {
   return (
     <Suspense fallback={<nav id={id} className="appnav" aria-label="Primary" />}>
-      <AppNavInner labelled={labelled} id={id} overviewBridge={overviewBridge} sharedShell={sharedShell} onOpenDirectory={onOpenDirectory} intentPrefetch={intentPrefetch} />
+      <AppNavInner labelled={labelled} id={id} overviewBridge={overviewBridge} sharedShell={sharedShell} directoryOpen={directoryOpen} onOpenDirectory={onOpenDirectory} intentPrefetch={intentPrefetch} />
     </Suspense>
   );
 }
 
-function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation) {
+function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell = false, directoryOpen = false, onOpenDirectory, intentPrefetch = false }: AppNavPresentation) {
   const path = usePathname();
   const router = useRouter();
   const t = useSharedShellT();
@@ -95,7 +97,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
     : path.startsWith("/alerts") ? "alerts"
     : path.startsWith("/portfolio") ? "portfolio"
     : "chart";
-  const openAI = () => { if (path.startsWith("/terminal") || path.startsWith("/analysis")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push(sharedShell ? sharedShellTerminalHref(window.location.href, activeSymbol, true) : "/terminal?ai=1"); };
+  const openAI = () => { if (path.startsWith("/terminal") || path.startsWith("/analysis")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push("/terminal?ai=1"); };
   return (
     <nav id={id} className="appnav" aria-label={sharedShell ? t("shellNavigation") : "Primary"}>
       {overviewBridge && (
@@ -140,14 +142,26 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
         );
       })}
       <div className="gap" />
-      {sharedShell && <button type="button" className="navbtn" onClick={onOpenDirectory}
-        aria-label={t("shellAllTools")} aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
-        {labelled && <span className="investor-nav-label">{t("shellAllTools")}</span>}
-      </button>}
-      <Tip label={t("ai")} side="right" size="mini" disabled={sharedShell && labelled}>
-        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
-      </Tip>
+      {sharedShell ? <>
+        <SharedShellLaunchLinks labelled={labelled} glyph={key => <Glyph k={key} />} />
+        <Tip label={t("shellBrowseTools")} side="right" size="mini" disabled={labelled || directoryOpen}>
+          <button type="button" className="navbtn" data-tool-browser-trigger=""
+            aria-label={t("shellBrowseTools")} aria-controls="shared-shell-tools" aria-expanded={directoryOpen}
+            onPointerEnter={event => { if (event.pointerType === "mouse") onOpenDirectory?.("hover"); }}
+            onClick={() => onOpenDirectory?.("browse")}
+            onKeyDown={event => {
+              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                event.preventDefault(); onOpenDirectory?.("browse");
+              }
+            }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+            {labelled && <span className="investor-nav-label">{t("shellBrowseTools")}</span>}
+          </button>
+        </Tip>
+      </> : <Tip label={t("ai")} side="right" size="mini">
+        <button className="navbtn" data-chart-brain-trigger={path.startsWith("/terminal") ? "" : undefined}
+          onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
+      </Tip>}
     </nav>
   );
 }
