@@ -58,7 +58,30 @@ The new settled-reader composition test accepts the real-shaped personal brief a
 
 The existing authenticated `qualify_shared_shell_intelligence.cjs` gains a Today journey at 1440, 820 and 320px; no workflow, browser runner, identity service or polling loop is added. It records source hashes and exercises visible EN/ZH clauses, source disclosure keyboard focus, personal holder identity, digest write count, exact resume URL, independent unavailable states and real navigation to native Overview/Candidates/Explore with browser return. The complete fixture contracts are in `lib/__tests__/fixtures/todayDailyDesk.ts`; no private capture is included.
 
-Hosted execution and screenshot readback are still owed. The local Chromium socket/ptrace refusal is preserved; the browser is not relaunched locally. Existing synthetic browser proof for earlier heads cannot substitute for this changed Today head. Fixture interaction proof is not production, CSP or real account acceptance.
+### Original-head hosted browser receipt
+
+The existing authenticated qualifier passed **18 cells** in run `43579891771`, including the Today journey at 1440, 820 and 320px. Artifact `14109095060` has ZIP SHA256 `1eb44239254431eef69f5e87a3cac037bfa5ae91a102b990f8cb67676fb1b1b8`. Its test merge `9b3f36fcf1cad665ea92f67022e4299b035860e6` has parents `cff2126af4d9bf64e2b5beed49f73ffe33ab33fd` and the original P5 head `c6f115fd3e8651857ed0dd55a787022f517d53d6`; tree `2ad386155b466c8f169cf42f49c79f8cd32b9284` is identical to that P5 head.
+
+The report records `presentationKeptReaderIdentity=true`, one accepted presentation digest write and zero report-body requests. The saved revision keeps its source/text hashes, extractor version and segment 7. Errors, external requests, fixture writes and tracked working changes are all empty. Root inspected the desktop reading, 320px light reading and 320px independent-summary-absence screenshots: authored text, source coverage and dates wrap, the observed readings remain visible when only the summary is absent, and the personal desk is distinct from the market panel.
+
+This is `LOCAL_FIXTURE_BROWSER_NOT_PRODUCTION` evidence. The context uses the existing fixture CSP bypass; production CSP, served sources and real account acceptance remain unproven. This original-head receipt does not substitute for the repaired merge head's hosted qualification. The local Chromium socket/ptrace refusal is preserved; no local relaunch was attempted.
+
+### Originating CI correction and inherited visual repair
+
+Original run `43579891771`, unit shard1 job `132402404817`, found two obsolete
+`/macro.html` link expectations in `readingWorkspaces.test.tsx`. They now assert
+the intended `/intelligence?workspaceMarket=us` destination. All coverage,
+source-date, Business period, account and separate Macro Command assertions
+remain intact. The full affected suite passed **59 tests** locally after this
+two-selector correction. These are additional affected-suite checks, not a
+substitute for hosted qualification of the repaired head.
+
+This stack also incorporates parent P4's `dc8039571b40a0d0ce3765b92560f4cbf7d195d5`
+responsive repair: the candidate Inspect action stays in normal phone grid flow,
+and the existing qualifier checks one-line labels, target geometry and decision
+separation in EN/ZH. P5's Today fixture and journey are retained in the composed
+qualifier. The published merge must name both the original P5 head and repaired
+P4 parent; no force replacement of an unrelated writer is involved.
 
 ## Release and remaining parent acceptance
 

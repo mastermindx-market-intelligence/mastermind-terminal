@@ -139,7 +139,7 @@ describe("Today source coverage",()=>{
  it("uses final owner coverage/source clocks and keeps market overview separate",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,today);
   expect(container.textContent).toContain("2 of 5 sections have verified source coverage");expect(container.textContent).toContain("18 October 2026");expect(container.textContent).not.toContain("2099-01-01");
-  expect(container.textContent).toContain("Source is behind");expect(container.querySelector('a[href="/macro.html"]')).toBeTruthy();expect(container.querySelector('a[href="/macro_monetary.html"]')).toBeTruthy();
+  expect(container.textContent).toContain("Source is behind");expect(container.querySelector('a[href="/intelligence?workspaceMarket=us"]')).toBeTruthy();expect(container.querySelector('a[href="/macro_monetary.html"]')).toBeTruthy();
  });
  it("a503 remains unavailable with retry, never a quiet market or zero coverage",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,{error:"macro command unavailable"},503);
@@ -247,7 +247,7 @@ describe("Today Business period and source presence",()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,businessPayload({failure:{reason:"bad_hash"},clock_qualification:qualification}));expect(businessRows()[0].textContent).toContain("Source verification failed");expect(businessRows()[0].textContent).not.toContain(qualification.label.en);expect(container.querySelector('a[href="/macro_business_activity.html"]')).toBeTruthy();
  });
  it("retains non-Business source state, dates and navigation",async()=>{
-  await mount(<TodayWorkspace ownerKey={A}/>);const payload=businessPayload();payload.workspaces=payload.workspaces.map(row=>row.workspace_id==="liquidity"?{...row,clock_qualification:qualification}:row);await answer(0,payload);const rows=Array.from(container.querySelectorAll("li")).filter(row=>row.querySelector("h3")?.textContent==="Liquidity source");expect(rows.at(-1)?.textContent).toContain("Source is behind");expect(rows.at(-1)?.textContent).toContain("Effective date: 2026-10-18");expect(rows.at(-1)?.textContent).toContain("Calculated as of: 2026-10-19");expect(container.querySelector('a[href="/macro_liquidity.html"]')).toBeTruthy();expect(container.querySelector('a[href="/macro.html"]')).toBeTruthy();
+  await mount(<TodayWorkspace ownerKey={A}/>);const payload=businessPayload();payload.workspaces=payload.workspaces.map(row=>row.workspace_id==="liquidity"?{...row,clock_qualification:qualification}:row);await answer(0,payload);const rows=Array.from(container.querySelectorAll("li")).filter(row=>row.querySelector("h3")?.textContent==="Liquidity source");expect(rows.at(-1)?.textContent).toContain("Source is behind");expect(rows.at(-1)?.textContent).toContain("Effective date: 2026-10-18");expect(rows.at(-1)?.textContent).toContain("Calculated as of: 2026-10-19");expect(container.querySelector('a[href="/macro_liquidity.html"]')).toBeTruthy();expect(container.querySelector('a[href="/intelligence?workspaceMarket=us"]')).toBeTruthy();
  });
 });
 
