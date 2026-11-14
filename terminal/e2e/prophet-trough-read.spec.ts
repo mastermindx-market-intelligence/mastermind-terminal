@@ -15,15 +15,20 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
     await page.addInitScript(code => localStorage.setItem("mm.lang", code), lang);
     await stubObservationsUnavailable(page);
-    await page.route("**/data/prophet/trough_read.json", route => route.fulfill({ status: state === "D" ? 404 : 200, json: troughSpecimen(state) }));
+    await page.route("**/api/prophet/trough-read", route => route.fulfill({ status: state === "D" ? 404 : 200, json: troughSpecimen(state) }));
     await page.route(url => url.pathname === "/api/sector-intelligence" && url.searchParams.get("source") === "rotation_read", route => route.fulfill({ status: 404, json: {} }));
     await page.goto(url);
     const block = page.getByTestId("trough-read");
     await expect(block).toBeVisible({ timeout: 30_000 });
     if (state === "D") await expect(block).toContainText(lang === "en" ? "This read is not available for this stock yet." : "该股票暂未提供此项解读。");
-    else await expect(block.getByTestId("trough-headline")).toContainText(lang === "en" ? state === "C" ? "not washed out" : state === "B" ? "not yet turned" : "turning up" : state === "C" ? "未处于低位" : state === "B" ? "尚未回升" : "正在回升");
+    else await expect(block.getByTestId("trough-headline")).toContainText(lang === "en" ? state === "C" ? "Not washed out on any timeframe" : state === "B" ? "not yet turned" : "turning up" : state === "C" ? "未处于低位" : state === "B" ? "尚未回升" : "正在回升");
     await expect(block).not.toContainText(TROUGH_BANNED_WORDS);
     await expect(block.locator("a,[role=alert]")).toHaveCount(0);
+    await expect(block).not.toContainText(/Studied on three stocks|仅研究过三只股票/);
+    if (state !== "D") {
+      await expect(block.getByTestId("trough-headline").locator("+ p")).toHaveText(lang === "en" ? "More timeframes washed out means a deeper decline. It has not been shown to make the low more likely to hold." : "更多周期处于低位意味着跌幅更深。尚无证据表明这会使低点更可能守住。");
+      await expect(block).toContainText(lang === "en" ? "Kind: not yet available" : "类型：尚未提供");
+    }
     const rotation = await page.getByTestId("rotation-read").boundingBox();
     const box = (await block.boundingBox())!;
     expect(box.y).toBeGreaterThanOrEqual(rotation!.y + rotation!.height);
@@ -40,6 +45,9 @@ for (const lang of ["en", "zh"] as const) for (const width of [320, 390, 1440]) 
     const disclosure = block.getByTestId("trough-disclosure");
     await expect(disclosure).toBeVisible();
     await expect(block.getByTestId("trough-frame")).toHaveCount(4);
+    await expect(block.getByRole("meter")).toHaveCount(0);
+    await expect(block).not.toContainText(/Turned up on|K_gt_D|hist_rising/);
+    for (const index of [0, 2, 3]) await expect(block.getByTestId("trough-frame").nth(index).locator("span").last()).toHaveText("—");
     for (const row of await block.getByTestId("trough-frame").all()) expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await expect(block).toContainText(lang === "en" ? "Group figures: not yet available" : "组内数据：尚未提供");
     await expect(block).not.toContainText(TROUGH_BANNED_WORDS);

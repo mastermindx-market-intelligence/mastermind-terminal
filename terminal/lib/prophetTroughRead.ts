@@ -1,21 +1,21 @@
 /** Read-only consumer. Missing, stale and malformed publications stay quiet. */
 export const PROPHET_TROUGH_READ_ENABLED = process.env.NEXT_PUBLIC_PROPHET_TROUGH_READ_ENABLED === "1";
-export const PROPHET_TROUGH_READ_URL = "/data/prophet/trough_read.json";
+export const PROPHET_TROUGH_READ_URL = "/api/prophet/trough-read";
 export const TROUGH_TIMEFRAMES = ["1D", "3D", "1W", "2W"] as const;
 export type TroughTimeframe = typeof TROUGH_TIMEFRAMES[number];
 export type TroughKind = "steady" | "leans_steady" | "middle" | "leans_cyclical" | "cyclical";
 export type TroughGroupState = "FALLING" | "WASHED_OUT" | "BASING" | "TURNING" | "NOT_WASHED_OUT";
-export type TroughFrame = { tf: TroughTimeframe; bar_end: string | null; washed_out: boolean | null; turned_up: boolean | null; available: boolean };
+export type TroughFrame = { tf: TroughTimeframe; bar_end: string | null; washed_out: boolean | null; turned_up: boolean | null; available: boolean; d: number | null; components: { K_gt_D: boolean | null; K_rising: boolean | null; D_rising: boolean | null; hist_rising: boolean | null } };
 export type TroughRow = {
   as_of: string;
   timeframes: TroughFrame[];
   kind: { label: TroughKind; position: number } | null;
-  own_history: { tf: TroughTimeframe; current_depth_pct: number | null; past: { date: string; depth_pct: number }[]; comparison: "shallower" | "about_usual" | "deeper" | null } | null;
+  own_history: { tf: "3D"; depth_atrc: number; own_history_pct: number; n_prior: number; past: { date: string; depth_atrc: number }[] } | null;
   group: { group_id: string; name: string; state: TroughGroupState | null; fields: null } | null;
   provenance: "shared_with_group" | "own" | null;
 };
 export type ProphetTroughRead = { status: "unavailable" } | { status: "ready"; data: {
-  schema: "prophet.trough_read/v1"; as_of: string; built_at: string; status: "ok"; tickers: Record<string, TroughRow>;
+  schema: "prophet.trough_read/v1"; as_of: string; built_at: string; known_ts: string; engine_ref: string; status: "ok"; tickers: Record<string, TroughRow>;
 } };
 export const TROUGH_READ_UNAVAILABLE: ProphetTroughRead = Object.freeze({ status: "unavailable" });
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -27,34 +27,39 @@ function day(v: unknown): v is string {
   const d = new Date(`${v}T00:00:00Z`);
   return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === v;
 }
-const tf = (v: unknown): v is TroughTimeframe => TROUGH_TIMEFRAMES.includes(v as TroughTimeframe);
+const utc = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(v) && day(v.slice(0, 10)) && Number.isFinite(Date.parse(v));
+const keys = (v: Record<string, unknown>, expected: string[]) => Object.keys(v).sort().join("|") === [...expected].sort().join("|");
 function row(v: unknown, asOf: string): v is TroughRow {
-  if (!object(v) || !day(v.as_of) || v.as_of > asOf || !Array.isArray(v.timeframes) || v.timeframes.length !== 4) return false;
-  if (!v.timeframes.every((f, i) => object(f) && f.tf === TROUGH_TIMEFRAMES[i]
+  if (!object(v) || !keys(v, ["as_of", "timeframes", "kind", "own_history", "group", "provenance"]) || !day(v.as_of) || v.as_of > asOf || !Array.isArray(v.timeframes) || v.timeframes.length !== 4) return false;
+  if (!v.timeframes.every((f, i) => object(f) && keys(f, ["tf", "bar_end", "washed_out", "turned_up", "available", "d", "components"]) && f.tf === TROUGH_TIMEFRAMES[i]
     && (f.bar_end === null || day(f.bar_end) && f.bar_end <= (v.as_of as string))
-    && boolOrNull(f.washed_out) && boolOrNull(f.turned_up) && typeof f.available === "boolean")) return false;
-  if (v.kind !== null && (!object(v.kind) || !["steady", "leans_steady", "middle", "leans_cyclical", "cyclical"].includes(String(v.kind.label))
+    && boolOrNull(f.washed_out) && (f.tf === "3D" ? boolOrNull(f.turned_up) : f.turned_up === null) && typeof f.available === "boolean"
+    && (f.d === null || finite(f.d)) && object(f.components)
+    && keys(f.components, ["K_gt_D", "K_rising", "D_rising", "hist_rising"]) && Object.values(f.components).every(boolOrNull))) return false;
+  if (v.kind !== null && (!object(v.kind) || !keys(v.kind, ["label", "position"]) || !["steady", "leans_steady", "middle", "leans_cyclical", "cyclical"].includes(String(v.kind.label))
     || !finite(v.kind.position) || v.kind.position < 0 || v.kind.position > 1)) return false;
   if (v.own_history !== null) {
     const h = v.own_history;
-    if (!object(h) || !tf(h.tf) || !(h.current_depth_pct === null || finite(h.current_depth_pct))
-      || !(h.comparison === null || ["shallower", "about_usual", "deeper"].includes(String(h.comparison)))
-      || !Array.isArray(h.past) || !h.past.every(p => object(p) && day(p.date) && p.date <= (v.as_of as string) && finite(p.depth_pct))) return false;
+    if (!object(h) || !keys(h, ["tf", "depth_atrc", "own_history_pct", "n_prior", "past"]) || h.tf !== "3D" || !finite(h.depth_atrc) || h.depth_atrc < 0
+      || !finite(h.own_history_pct) || h.own_history_pct < 0 || h.own_history_pct > 1
+      || !Number.isInteger(h.n_prior) || (h.n_prior as number) < 3
+      || !Array.isArray(h.past) || h.past.length !== h.n_prior
+      || !h.past.every(p => object(p) && keys(p, ["date", "depth_atrc"]) && day(p.date) && p.date < (v.as_of as string) && finite(p.depth_atrc) && p.depth_atrc >= 0)) return false;
   }
-  if (v.group !== null && (!object(v.group) || !text(v.group.group_id) || !text(v.group.name) || v.group.fields !== null
+  if (v.group !== null && (!object(v.group) || !keys(v.group, ["group_id", "name", "state", "fields"]) || !text(v.group.group_id) || !text(v.group.name) || v.group.fields !== null
     || !(v.group.state === null || ["FALLING", "WASHED_OUT", "BASING", "TURNING", "NOT_WASHED_OUT"].includes(String(v.group.state))))) return false;
   return v.provenance === null || v.provenance === "shared_with_group" || v.provenance === "own";
 }
 export function parseProphetTroughRead(value: unknown): ProphetTroughRead {
-  if (!object(value) || value.schema !== "prophet.trough_read/v1" || value.status !== "ok" || !day(value.as_of)
-    || typeof value.built_at !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(value.built_at) || !Number.isFinite(Date.parse(value.built_at))
+  if (!object(value) || !keys(value, ["schema", "as_of", "built_at", "known_ts", "engine_ref", "status", "tickers"]) || value.schema !== "prophet.trough_read/v1" || value.status !== "ok" || !day(value.as_of)
+    || !utc(value.built_at) || !utc(value.known_ts) || !text(value.engine_ref)
     || !object(value.tickers)) return TROUGH_READ_UNAVAILABLE;
   const tickers: Record<string, TroughRow> = Object.create(null);
   for (const [ticker, candidate] of Object.entries(value.tickers)) {
     if (!/^[A-Z][A-Z0-9]*(?:[.-][A-Z0-9]+)?$/.test(ticker) || !row(candidate, value.as_of)) return TROUGH_READ_UNAVAILABLE;
     tickers[ticker] = candidate;
   }
-  return { status: "ready", data: { schema: "prophet.trough_read/v1", as_of: value.as_of, built_at: value.built_at, status: "ok", tickers } };
+  return { status: "ready", data: { schema: "prophet.trough_read/v1", as_of: value.as_of, built_at: value.built_at, known_ts: value.known_ts, engine_ref: value.engine_ref, status: "ok", tickers } };
 }
 /** Single fixed same-origin transport seam; never synthesizes a missing publication. */
 export async function fetchProphetTroughRead(signal?: AbortSignal): Promise<ProphetTroughRead> {
@@ -73,6 +78,7 @@ export function troughCounts(row: TroughRow) {
   return { n: washed.length, k: washed.filter(f => f.turned_up === true).length };
 }
 export function troughSuffix(row: TroughRow): "notWashed" | "turning" | "notTurned" {
-  const { n, k } = troughCounts(row);
-  return n === 0 ? "notWashed" : k > 0 ? "turning" : "notTurned";
+  const { n } = troughCounts(row);
+  const threeDay = row.timeframes.find(f => f.tf === "3D");
+  return n === 0 ? "notWashed" : threeDay?.available && threeDay.bar_end !== null && threeDay.turned_up === true ? "turning" : "notTurned";
 }

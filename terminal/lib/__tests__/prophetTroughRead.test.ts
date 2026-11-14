@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { companyTroughRead, fetchProphetTroughRead, parseProphetTroughRead, TROUGH_READ_UNAVAILABLE, troughCounts, troughSuffix } from "../prophetTroughRead";
 import { troughSpecimen, TROUGH_BANNED_WORDS } from "../../e2e/prophetTroughSpecimens";
 import { troughHeadline } from "@/components/prophet/setup/TroughRead";
-import { TROUGH_STRINGS } from "@/components/prophet/setup/setupStrings";
+import { TROUGH_HEADLINE_VARIANT, TROUGH_RECORD_ENABLED, TROUGH_STRINGS } from "@/components/prophet/setup/setupStrings";
 const getRow = () => troughSpecimen().tickers.ADP;
 afterEach(() => vi.unstubAllGlobals());
 describe("trough publication", () => {
@@ -23,8 +23,8 @@ describe("trough publication", () => {
   it.each([
     (r: ReturnType<typeof getRow>) => { r.timeframes.reverse(); },
     (r: ReturnType<typeof getRow>) => { r.timeframes.pop(); },
-    (r: ReturnType<typeof getRow>) => { r.kind!.position = 2; },
-    (r: ReturnType<typeof getRow>) => { r.own_history!.past[0].depth_pct = NaN; },
+    (r: ReturnType<typeof getRow>) => { r.kind = { label: "middle", position: 2 }; },
+    (r: ReturnType<typeof getRow>) => { r.own_history!.past[0].depth_atrc = NaN; },
     (r: ReturnType<typeof getRow>) => { Object.assign(r.group!, { fields: {} }); },
     (r: ReturnType<typeof getRow>) => { r.timeframes[0].bar_end = "2026-11-15"; },
   ])("rejects invalid row %#", mutate => {
@@ -53,6 +53,26 @@ describe("trough publication", () => {
       expect(`${troughHeadline(troughSpecimen(state).tickers.ADP, lang, variant)} ${copy.method} ${copy.record}`).not.toMatch(TROUGH_BANNED_WORDS);
     }
   });
+  it("defaults to named, independently hides the held record and handles all/none", () => {
+    expect(TROUGH_HEADLINE_VARIANT).toBe("named"); expect(TROUGH_RECORD_ENABLED).toBe(false);
+    expect(troughHeadline(getRow(), "en")).toBe(troughHeadline(getRow(), "en", "named"));
+    const row = getRow(); row.timeframes.forEach(f => { f.washed_out = true; });
+    expect(troughHeadline(row, "en")).toBe("Washed out on Daily, 3-day, Weekly, 2-week · turning up");
+    expect(troughHeadline(troughSpecimen("C").tickers.ADP, "en")).toBe("Not washed out on any timeframe");
+  });
+  it("uses the 3D turn even if that leg is no longer washed out", () => {
+    const row = getRow(); row.timeframes[1].washed_out = false; expect(troughSuffix(row)).toBe("turning");
+  });
+  it.each([
+    { known_ts: null }, { known_ts: "2026-11-13T21:00:00+00:00" }, { engine_ref: null },
+  ])("requires revision metadata %#", patch => expect(parseProphetTroughRead({ ...troughSpecimen(), ...patch })).toEqual(TROUGH_READ_UNAVAILABLE));
+  it.each([
+    (r: ReturnType<typeof getRow>) => { r.timeframes[0].turned_up = true; },
+    (r: ReturnType<typeof getRow>) => { r.timeframes[0].d = NaN; },
+    (r: ReturnType<typeof getRow>) => { Object.assign(r.timeframes[0].components, { K_rising: "yes" }); },
+    (r: ReturnType<typeof getRow>) => { r.own_history!.n_prior = 2; },
+    (r: ReturnType<typeof getRow>) => { r.own_history!.own_history_pct = 1.1; },
+  ])("rejects invalid REV 1.1 fields %#", mutate => { const data = troughSpecimen(); mutate(data.tickers.ADP); expect(parseProphetTroughRead(data)).toEqual(TROUGH_READ_UNAVAILABLE); });
   it("selects exact count and named headlines", () => {
     expect(troughHeadline(getRow(), "en", "count")).toBe("Washed out on 3 of 4 timeframes · turning up");
     expect(troughHeadline(getRow(), "en", "named")).toBe("Washed out on Daily, 3-day, Weekly · not 2-week · turning up");
@@ -66,7 +86,7 @@ describe("trough publication", () => {
     const fetch = vi.fn(async () => Response.json(troughSpecimen())); vi.stubGlobal("fetch", fetch);
     const signal = new AbortController().signal;
     expect((await fetchProphetTroughRead(signal)).status).toBe("ready");
-    expect(fetch).toHaveBeenCalledWith("/data/prophet/trough_read.json", { cache: "no-store", signal });
+    expect(fetch).toHaveBeenCalledWith("/api/prophet/trough-read", { cache: "no-store", signal });
   });
   it.each([async () => new Response("invalid"), async () => { throw new Error("offline"); }])("invalid body/transport stays unavailable %#", async fetch => {
     vi.stubGlobal("fetch", fetch); expect(await fetchProphetTroughRead()).toEqual(TROUGH_READ_UNAVAILABLE);
