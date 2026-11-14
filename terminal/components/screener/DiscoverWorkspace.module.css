@@ -128,6 +128,11 @@
   .secondaryActions { gap: 5px; }
   .workspace :global(table.scr2) th, .workspace :global(table.scr2) td { display: table-cell !important; }
 }
+/* The shared mobile shell otherwise grows with its content. Give this workspace
+   a definite viewport so filters shrink before the table or provenance is clipped. */
+@media (max-width: 860px) {
+  :global(.app2):has(.workspace) { height: 100dvh; }
+}
 @media (max-width: 560px) {
   .search { flex-basis: 100%; }
   .toolbar { gap: 6px; }

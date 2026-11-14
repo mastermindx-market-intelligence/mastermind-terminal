@@ -109,7 +109,11 @@ for (const lang of ["en", "zh"] as const) {
     await chooseDiscoverOption(page.locator('[data-cm-control="regime"]'), "any");
     await openDiscoverFilters(page);
     // Expanded controls must leave a useful results viewport, including on touch screens.
-    expect((await page.locator(".scr2-table").boundingBox())!.height).toBeGreaterThanOrEqual(touch ? 180 : 224);
+    const resultsBox = (await page.locator(".scr2-table").boundingBox())!;
+    const provenanceBox = (await page.locator(".scr2-asof").boundingBox())!;
+    expect(resultsBox.height).toBeGreaterThanOrEqual(touch ? 180 : 224);
+    expect(provenanceBox.y).toBeGreaterThanOrEqual(resultsBox.y + resultsBox.height - 1);
+    expect(provenanceBox.y + provenanceBox.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
     await shoot(page, info, `${lang}-advanced`);
     await chooseDiscoverOption(page.locator('[data-cm-control="move"]'), "up3");
     await page.locator('[aria-controls="discover-advanced"]').click(); await expect(dataRows(page)).toHaveCount(4);
