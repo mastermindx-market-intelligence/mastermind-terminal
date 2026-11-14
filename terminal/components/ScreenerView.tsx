@@ -370,7 +370,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [showAllMarkets, setShowAllMarkets] = useState(false);
 
   // ── search state (wrapped in deferred for perf) ────────────────────────
-  const [searchRaw, setSearchRaw] = useState("");
+  const [searchRaw, setSearchRaw] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const symbol = new URLSearchParams(window.location.search).get("symbol");
+    return symbol && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(symbol) ? symbol : "";
+  });
   const search = useDeferredValue(searchRaw);
 
   // ── presets + density (device-local) ───────────────────────────────────

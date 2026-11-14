@@ -5,6 +5,8 @@ import Link from "next/link";
 import AssetLogo from "./AssetLogo";
 import PortfolioAllocation from "./PortfolioAllocation";
 import PortfolioSessionQuote from "./PortfolioSessionQuote";
+import { RotationRead } from "./prophet/setup/RotationRead";
+import { marketOf } from "@/lib/markets";
 import { distanceFromHigh } from "@/lib/portfolioAllocation";
 import { verdictLabel } from "@/lib/plainLabels";
 import { verdictIsStale } from "@/lib/signalVerdict";
@@ -361,7 +363,7 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
           <div><dt>{c("entryDate")}</dt><dd>{position.entryDate || "—"}</dd></div>
           <div><dt>{c("last")}</dt><dd>{price ? `${number(price.last, price.last < 10 ? 4 : 2)} · ${price.currency || c("currencyUnknown")}` : "—"}</dd></div></dl>
         <p className={s.quoteSource}>{!price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
-        <PortfolioSessionQuote key={position.ticker} symbol={position.ticker} quote={quote} />
+        <PortfolioSessionQuote key={position.ticker} symbol={position.ticker} quote={quote} us={!!fallback?.mkt && marketOf(position.ticker, fallback) === "us"} />
         <dl className={s.recordFields}>
           <div><dt>{lang === "zh" ? "距52周高点 · 收盘" : "From 52-week high · close"}</dt><dd>{percent(belowHigh)}</dd></div>
           <div><dt>{lang === "zh" ? "板块" : "Sector"}</dt><dd>{fallback?.gics || "—"}</dd></div>
@@ -369,7 +371,8 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
         </dl>
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
-        <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
+        <RotationRead symbol={position.ticker} lang={lang} />
+        <div className={s.researchLinks}><Link href={"/discover?tab=screener&symbol=" + encodeURIComponent(position.ticker)}>{lang === "zh" ? "筛选器" : "Stock screener"}<Icon name="arrow" /></Link>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
       </div>
       <footer className={s.dialogFooter}>
         {confirming ? <div className={s.deleteConfirm} role="group" aria-label={t("deletePositionConfirm")}><h3>{c("confirmDelete")}</h3><p>{c("deleteHint")}</p>

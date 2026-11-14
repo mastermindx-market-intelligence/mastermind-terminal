@@ -14,10 +14,11 @@ export async function GET(req: Request) {
   if (symbols.length > (extended ? 1 : 24) || symbols.some(s => !/^[A-Z][A-Z0-9.-]{0,10}$/.test(s))) {
     return NextResponse.json({ error: "invalid_symbols" }, { status: 400, headers: HEADERS });
   }
-  const path = extended ? "/api/dossier-quote/" + symbols[0] :
-    "/api/intelligence-hub/market-pulse?symbols=" + encodeURIComponent(symbols.join(","));
+  const url = new URL(extended ? "/api/dossier-quote/" : "/api/intelligence-hub/market-pulse", NW_BASE);
+  if (extended) url.pathname += encodeURIComponent(symbols[0]);
+  else url.searchParams.set("symbols", symbols.join(","));
   try {
-    const response = await fetch(new URL(path, NW_BASE), { cache: "no-store", redirect: "error",
+    const response = await fetch(url, { cache: "no-store", redirect: "error",
       signal: AbortSignal.any([req.signal, AbortSignal.timeout(3500)]) });
     if (response.ok) {
       const body = await response.json();
