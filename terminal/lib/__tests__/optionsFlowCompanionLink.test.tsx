@@ -37,7 +37,7 @@ describe("chart Flow expansion adopts the chart root through the existing Tape o
   it.each(["en", "zh"] as const)("names the symbol and opens a strict root view (%s)", async lang => {
     await render("NVDA", lang);
     const { view, encoded } = destination();
-    expect(action()?.textContent).toContain(lang === "zh" ? "打开 NVDA 交易动态" : "Open NVDA activity tape");
+    expect(action()?.textContent).toContain(lang === "zh" ? "NVDA · 交易动态" : "NVDA · Activity tape");
     expect(view.drillTicker).toBe("NVDA");
     expect(view.tapeTickerSearch).toBe("");
     expect(view.minPrem).toBe(0);
@@ -76,7 +76,7 @@ describe("chart Flow expansion adopts the chart root through the existing Tape o
   it.each(["en", "zh"] as const)("does not widen or truncate a root the Tape codec rejects (%s)", async lang => {
     await render("ABCDEFGHIJK", lang);
     expect(action()).toBeNull();
-    expect(host.textContent).toContain(lang === "zh" ? "无法打开 ABCDEFGHIJK 的交易动态。" : "Tape cannot open this symbol: ABCDEFGHIJK.");
+    expect(host.textContent).toContain(lang === "zh" ? "ABCDEFGHIJK · 交易动态 — 不可用" : "ABCDEFGHIJK · Activity tape — unavailable");
     expect(host.querySelector('[data-options-flow-destination="unavailable"]')?.getAttribute("role")).toBe("status");
   });
 });

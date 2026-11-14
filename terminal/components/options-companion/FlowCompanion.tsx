@@ -40,7 +40,7 @@ export function FlowCompanion({ root, t, lang }: { root: string; t: OptionsT; la
     </div>
     {rows && rows.length > 40 && <p className={styles.viewCaption}>40 / {rows.length}</p>}
     {tapeHref
-      ? <a className={styles.deskLink} href={tapeHref} data-options-flow-destination="tape">{t("openFlow").replace("{symbol}", root)} ↗</a>
-      : <p className={styles.notice} role="status" data-options-flow-destination="unavailable">{t("flowTapeUnavailable").replace("{symbol}", root)}</p>}
+      ? <a className={styles.deskLink} href={tapeHref} data-options-flow-destination="tape">{root} · {t("tape")} ↗</a>
+      : <p className={styles.notice} role="status" data-options-flow-destination="unavailable">{root} · {t("tape")} — {t("receiptUnavailable")}</p>}
   </>;
 }

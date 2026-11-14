@@ -101,7 +101,7 @@ for (const lang of ["en", "zh"] as const) for (const theme of themes) {
     const reads = await prepare(page, lang, "NVDA", theme);
     const panel = await openFlow(page, lang);
     await expect(panel.locator("[data-options-tape] article")).toHaveCount(2);
-    const link = panel.getByRole("link", { name: lang === "zh" ? "打开 NVDA 交易动态 ↗" : "Open NVDA activity tape ↗", exact: true });
+    const link = panel.getByRole("link", { name: lang === "zh" ? "NVDA · 交易动态 ↗" : "NVDA · Activity tape ↗", exact: true });
     await link.scrollIntoViewIfNeeded(); await expect(link).toBeInViewport();
     await capture(page, info, "chart-flow-source");
     const url = await follow(page, panel, "NVDA");

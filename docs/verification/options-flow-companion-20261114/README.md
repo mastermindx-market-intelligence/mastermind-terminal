@@ -12,10 +12,7 @@ This is one bounded continuation of [the full Options programme](https://github.
 
 ## Implementation and consumer contract
 
-Only two product files change:
-
-- `FlowCompanion.tsx` composes the existing default Tape view with `drillTicker: root`, encodes it with the existing codec, and uses the existing `/options?tab=tape&tapeView=…` route.
-- `optionsStrings.ts` supplies the instrument-specific link and a truthful unavailable message.
+Only `FlowCompanion.tsx` changes in the final product diff. It composes the existing default Tape view with `drillTicker: root`, encodes it with the existing codec, and uses the existing `/options?tab=tape&tapeView=…` route. The visible accessible link combines the exact instrument with the existing `tape` destination label (“NVDA · Activity tape” / “NVDA · 交易动态”). An unsupported root uses the existing generic unavailable label and has no link. The shared `optionsStrings.ts` dictionary is byte-identical to the protected base.
 
 The consumer is the existing Tape view decoder and exact `event.root === drillTicker` filter in `OptionsHubView.tsx`. A ticker search is a different, broader operation and is not used for this handoff. No feed, persistence, event selection, scoring, transport, or market-data owner is added.
 
@@ -48,6 +45,16 @@ The first shared desktop run returned 3 pass / 3 fail. Two Chinese cases attempt
 The next shared run returned 16 pass / 2 fail. At tablet/mobile widths, the visible close button belongs to the MobileSheet header outside the companion body. The test's close lookup was corrected to the visible page-level control and now asserts panel closure. Only those two failing responsive cases were rerun: both passed. The untouched 16 passing cases are reused. The full classic set subsequently passed all 12 cases.
 
 Product source did not change during these test-harness repairs. The final qualification process `58016` exited 0 after classic browsers, focused lint, full typecheck and diff check, in 143.26 seconds. Exact outcomes and process boundaries are recorded in `execution-receipt.json`; raw logs retain the failed attempts and the successful corrections. The classic server log includes a screenshot/caret-style hydration diagnostic; all browser `pageerror` assertions remained clear.
+
+### Exact-head CI correction: shared destination vocabulary
+
+The first hosted head `c45c3f42800c471073c5265772099a7bb6f70fc0` failed two unit shards because its shared dictionary change invalidated the retained R5 Exposure browser fingerprint. The seven evidence-owner and two R5 successor failures reported `NO_QUALIFIED_CAPTURE` ([run 43600409738](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43600409738)). The evidence reader and its 72-source boundary remain unchanged.
+
+The final correction reuses the already-owned Activity tape destination vocabulary in the Flow consumer and restores the dictionary's exact protected SHA-256, `91bec03bdb1cdfec2be674da5562cf7e1a16e9154f1d7c4390bd49a474f30b3a`. This also removes the old “Flow desk” destination mismatch: the link actually opens Tape. It introduces no replacement translation dictionary or evidence exemption.
+
+All 107 cases in the Flow component, Tape codec, Exposure evidence-owner and R5 successor suites passed after the correction. Four fresh real shared-shell journeys (EN/ZH × desktop/mobile, light theme) passed with exact-root populations, keyboard activation, accessible destination names, no page errors and no horizontal overflow. These are reruns within the original 30-case matrix, not 34 distinct browser cases. Final focused lint, full typecheck and diff check passed again.
+
+`copy-capture-index.json` binds eight new source/destination captures without modification. The final EN desktop and ZH mobile source captures were visually inspected: the exact-symbol destination link is visible and readable in both. The existing freshness-spacing defect remains separately open. The original nine captures remain historical proof for the first implementation; the new captures show the final destination wording. This correction leaves the separate incomplete PL6 receipt-spacing operation untouched.
 
 ## Visual inspection and capture provenance
 

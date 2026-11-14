@@ -95,5 +95,42 @@
     "cssChanged": false,
     "evidenceLocksChanged": false
   },
-  "scope": "fixture consumer proof; no merge, deployment or entitled production acceptance claim"
+  "scope": "fixture consumer proof; no merge, deployment or entitled production acceptance claim",
+  "copyCorrection": {
+    "priorHead": "c45c3f42800c471073c5265772099a7bb6f70fc0",
+    "cause": "shared destination dictionary changed a retained Exposure browser fingerprint",
+    "productDecision": "reuse existing Tape destination vocabulary in the Flow consumer; shared dictionary restored exactly",
+    "sharedDictionarySha256": "91bec03bdb1cdfec2be674da5562cf7e1a16e9154f1d7c4390bd49a474f30b3a",
+    "unit": {
+      "passed": 107,
+      "failed": 0,
+      "process": 19742,
+      "report": "unit-copy-correction.json"
+    },
+    "browser": {
+      "exit": 0,
+      "runtimeSeconds": 41.85,
+      "port": 58348,
+      "report": "browser-copy-correction.json",
+      "log": "browser-copy-correction.log",
+      "process": 22274,
+      "passed": 4,
+      "failed": 0,
+      "distinctMatrixStill": 30
+    },
+    "finalChecks": {
+      "process": 26316,
+      "exit": 0,
+      "lint": 0,
+      "typecheck": 0,
+      "diffCheck": 0
+    },
+    "captures": "copy-capture-index.json",
+    "evidenceRulesChanged": false,
+    "incompleteOriginalCaptureUnchanged": true,
+    "visualInspection": [
+      "copy-desktop-en-chart-flow-source.png",
+      "copy-mobile-zh-chart-flow-source.png"
+    ]
+  }
 }
