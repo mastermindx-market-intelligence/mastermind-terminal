@@ -11,7 +11,7 @@ import "../../app/company-intelligence.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { fmtDate, pick } from "../../lib/finFormat";
-import { topicStatusLabel } from "../../lib/plainLabels";
+
 import {
   getCompanyIntelligence,
   type CompanyIntelligenceContext,
@@ -39,7 +39,7 @@ import CompanyThemeContextCard from "./CompanyThemeContextCard";
 import CompanyInstitutionalContextCard from "./CompanyInstitutionalContextCard";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
-import { topicTagLabel } from "../../lib/companyIntelligenceLabels";
+import CompanyTopicTimeline from "./CompanyTopicTimeline";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
 
@@ -48,6 +48,7 @@ export interface CompanyIntelligencePageProps {
   name?: string | null;
   onOpenTx: (target: string | TranscriptOpenTarget) => void;
   onEvidenceOpenChange?: (open: boolean) => void;
+  availabilityNotice?: React.ReactNode;
 }
 
 interface LoadState {
@@ -192,7 +193,7 @@ function EmptyState({ title, why, action }: { title: string; why: string; action
 // upstream deadlines alone cannot settle a disconnected client transport.
 const COMPANY_INTELLIGENCE_READ_DEADLINE_MS = 15_000;
 
-export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenceOpenChange }: CompanyIntelligencePageProps) {
+export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenceOpenChange, availabilityNotice }: CompanyIntelligencePageProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
   const ticker = sym.trim().toUpperCase();
@@ -669,17 +670,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
     <div className="ci-page">
       <header className="ci-hero">
         <div className="ci-hero-main">
-          <div className="ci-identity">
-            <span className="ci-company-mark" aria-hidden>{displayName.trim().charAt(0).toUpperCase()}</span>
-            <div>
-              <div className="ci-title-line">
-                <h2>{displayName}</h2>
-                <span className="ci-ticker num">{ticker}</span>
-                <span className="fin-tag" style={{ "--c": statusColor(activeContext.status) } as React.CSSProperties}>{stateLabel(activeContext.status, zh)}</span>
-              </div>
-              <p>{pick(zh, "Company Intelligence", "公司情报")} · {eventPeriod(event)} · <time dateTime={event.call_date}>{fmtDate(event.call_date)}</time></p>
-            </div>
-          </div>
+          <div className="ci-identity"><h2>{displayName}</h2></div>
           <div className="ci-hero-actions">
             <label className="ci-event-select">
               <span>{pick(zh, "Event", "事件")}</span>
@@ -694,6 +685,31 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 {events.map((candidate) => <option key={candidate.event_id} value={candidate.event_id}>{eventPeriod(candidate)} · {candidate.call_date}</option>)}
               </select>
             </label>
+            <details className="ci-source-details" onBlur={event => {
+              if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+            }} onKeyDown={event => {
+              if (event.key === "Escape") {
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector("summary")?.focus();
+                event.stopPropagation();
+              }
+            }}>
+              <summary>
+                <span className={`ci-source-dot${warningText || availabilityNotice ? " partial" : ""}`} aria-hidden="true" />
+                {availabilityNotice ? pick(zh, "Published research", "已发布研究") : warningText ? pick(zh, "Partial sources", "部分来源") : stateLabel(activeContext.status, zh)}
+                <span aria-hidden="true">⌄</span>
+              </summary>
+              <div className="ci-source-popover">
+                <h3>{pick(zh, "Sources & freshness", "来源与时效")}</h3>
+                <div className="ci-provenance-bar">
+          <span><i className="ci-live-dot" />{pick(zh, "As known at", "截至")} <time className="num" dateTime={activeContext.generated_at}>{activeContext.generated_at.replace("T", " ").slice(0, 16)} UTC</time></span>
+          <span>{pick(zh, "Generation", "版本")} <code>{activeContext.generation_id.slice(0, 12)}</code></span>
+          <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
+        </div>
+        {warningText && <div className="ci-state-banner" role="status"><span aria-hidden>!</span><p>{warningText}</p></div>}
+                {availabilityNotice}
+              </div>
+            </details>
             <button
               ref={receiptsButtonRef}
               className="btn btn-ghost ci-receipts-button"
@@ -702,18 +718,13 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 setEvidenceOpen(true);
               }}
             >
-              {pick(zh, "View receipts", "查看凭证")}
+              {pick(zh, "Sources", "来源")}
             </button>
             <button className="btn btn-primary" onClick={askBrain}>{pick(zh, "Ask Mastermind", "询问 Mastermind")}</button>
           </div>
         </div>
 
-        <div className="ci-provenance-bar">
-          <span><i className="ci-live-dot" />{pick(zh, "As known at", "截至")} <time className="num" dateTime={activeContext.generated_at}>{activeContext.generated_at.replace("T", " ").slice(0, 16)} UTC</time></span>
-          <span>{pick(zh, "Generation", "版本")} <code>{activeContext.generation_id.slice(0, 12)}</code></span>
-          <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
-        </div>
-        {warningText && <div className="ci-state-banner" role="status"><span aria-hidden>!</span><p>{warningText}</p></div>}
+
       </header>
 
       <nav className="ci-lenses" role="tablist" aria-label={pick(zh, "Company intelligence lenses", "公司情报视图")}>
@@ -824,13 +835,13 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 onOpenCall={txId ? () => selectLens("transcript") : undefined}
                 guidanceNote={pick(
                   zh,
-                  "v1 fallback has no structured guidance object; none is inferred from scores or highlights.",
-                  "v1 回退路径没有结构化指引对象；不会从评分或摘要中推断。",
+                  "Guidance is not available in the published research record.",
+                  "已发布的研究记录中暂无业绩指引。",
                 )}
                 callNote={pick(
                   zh,
-                  "The canonical transcript remains available separately; v1 carries no normalized Q&A read-through.",
-                  "规范电话会记录仍可单独打开；v1 不携带标准化问答解读。",
+                  "Read the full transcript for management commentary and analyst questions.",
+                  "阅读完整电话会，查看管理层讨论与分析师提问。",
                 )}
               />
             </section>
@@ -869,18 +880,14 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           {lens === "history" && (
             <section className="ci-lens-panel">
               <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "EVENT HISTORY", "事件历史")}</span><h3>{pick(zh, "Quarter-over-quarter narrative", "季度叙事变化")}</h3></div><span>{events.length} {pick(zh, "events", "个事件")}</span></div>
-              <div className="ci-history-wrap"><table className="fin-table ci-history-table"><thead><tr><th>{pick(zh, "Period", "期间")}</th><th>{pick(zh, "Date", "日期")}</th><th>{pick(zh, "Revenue", "营收")}</th><th>{pick(zh, "EPS", "每股盈利")}</th><th>{pick(zh, "Margin", "毛利率")}</th><th>{pick(zh, "Questions", "提问")}</th></tr></thead><tbody>{events.map((candidate) => <tr key={candidate.event_id} className={candidate.event_id === event.event_id ? "selected" : ""} onClick={() => { setEventState({ sym: ticker, id: candidate.event_id }); setEvidence(null); }}><td><button>{eventPeriod(candidate)}</button></td><td className="num">{candidate.call_date}</td><td className="num">{pct(candidate.metrics.revenue_growth_pct)}</td><td className="num">{pct(candidate.metrics.eps_growth_pct)}</td><td className="num">{pct(candidate.metrics.gross_margin_pct)}</td><td className="num">{numeric(candidate.metrics.questions_count)}</td></tr>)}</tbody></table></div>
+              <div className="ci-history-wrap"><table className="fin-table ci-history-table"><thead><tr><th>{pick(zh, "Period", "期间")}</th><th>{pick(zh, "Date", "日期")}</th><th>{pick(zh, "Revenue growth", "营收增长")}</th><th>{pick(zh, "EPS growth", "每股盈利增长")}</th><th>{pick(zh, "Margin", "毛利率")}</th><th>{pick(zh, "Questions", "提问")}</th></tr></thead><tbody>{events.map((candidate) => <tr key={candidate.event_id} className={candidate.event_id === event.event_id ? "selected" : ""} onClick={() => { setEventState({ sym: ticker, id: candidate.event_id }); setEvidence(null); }}><td><button>{eventPeriod(candidate)}</button></td><td className="num">{candidate.call_date}</td><td className="num">{pct(candidate.metrics.revenue_growth_pct)}</td><td className="num">{pct(candidate.metrics.eps_growth_pct)}</td><td className="num">{pct(candidate.metrics.gross_margin_pct)}</td><td className="num">{numeric(candidate.metrics.questions_count)}</td></tr>)}</tbody></table></div>
             </section>
           )}
 
           {lens === "topics" && (
             <section className="ci-lens-panel">
               <div className="ci-lens-heading"><div><span className="fin-eyebrow">{pick(zh, "TOPIC MEMORY", "主题记忆")}</span><h3>{pick(zh, "What entered, persisted, or dropped", "新增、延续与退出的主题")}</h3></div><span>{activeContext.topics.timeline.length} {pick(zh, "tracked", "个追踪主题")}</span></div>
-              {activeContext.topics.timeline.length ? (
-                <ul className="ci-topic-list">{activeContext.topics.timeline.map((topic) => <li key={topic.tag}><span className={`ci-topic-status ${topic.status}`} aria-hidden /><div><strong>{topicTagLabel(topic.tag, zh)}</strong></div><span className="fin-tag" style={{ "--c": topic.status === "added" ? "var(--up)" : topic.status === "dropped" ? "var(--down)" : "var(--brand-2)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span><b className="num">{topic.event_count}</b></li>)}</ul>
-              ) : (
-                <EmptyState title={pick(zh, "No repeated topics yet", "暂无重复主题")} why={pick(zh, "The structured history does not yet contain enough tagged events to establish a topic timeline.", "结构化历史中的标记事件尚不足以形成主题时间线。")} />
-              )}
+              <CompanyTopicTimeline topics={activeContext.topics.timeline} zh={zh} />
             </section>
           )}
 

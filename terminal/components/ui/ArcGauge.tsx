@@ -3,7 +3,7 @@
 /**
  * ArcGauge — v6 primitive. Replaces every speedometer / rainbow / hard-edged
  * conic "retro odometer". A single open 240° SVG arc with a round terminal cap,
- * a faint track, ONE state color, a soft drop-shadow glow, and a mono numeral at
+ * a faint track, ONE state color, a flat stroke, and a mono numeral at
  * the center. The progress arc renders at its final reading immediately so a
  * throttled mobile animation frame can never leave the gauge visually empty.
  *
@@ -199,7 +199,6 @@ export function ArcGauge({
               strokeDasharray={`${arcLen} 9999`}
               strokeDashoffset={offset}
               style={{
-                filter: `drop-shadow(0 0 5px color-mix(in srgb, ${color} 30%, transparent))`,
               }}
             />
           </g>

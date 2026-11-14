@@ -30,8 +30,8 @@ import EvidenceRail, { type CompanyEvidenceSelection } from "./EvidenceRail";
 import TranscriptSearchWorkspace from "./TranscriptSearchWorkspace";
 import { openMastermindBrainForSymbol } from "../../lib/mastermindBrain";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
-import { EVENT_WORKSPACE_ATTRIBUTION, topicTagLabel } from "../../lib/companyIntelligenceLabels";
-import { topicStatusLabel } from "../../lib/plainLabels";
+import { EVENT_WORKSPACE_ATTRIBUTION } from "../../lib/companyIntelligenceLabels";
+import CompanyTopicTimeline from "./CompanyTopicTimeline";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 type Lens = "brief" | "results" | "transcript" | "history" | "topics" | "sources";
@@ -679,20 +679,7 @@ export default function CompanyIntelligenceV2Current({
       <header className="ci-hero">
         <div className="ci-hero-main">
           <div className="ci-identity">
-            <span className="ci-company-mark" aria-hidden>{displayName.trim().charAt(0).toUpperCase()}</span>
-            <div>
-              <div className="ci-title-line">
-                <h2>{displayName}</h2>
-                <span className="ci-ticker num">{ticker}</span>
-                <span className="fin-tag" style={{ "--c": freshness === "stale" ? "var(--warn)" : "var(--rcpt-exact)" } as React.CSSProperties}>{lifecycleLabel}</span>
-              </div>
-              <p className="ci-listing-context" data-ci-listing-context="">
-                <span>{ticker}</span>{" · "}
-                <span>{listing?.mic || pick(zh, "Venue unavailable", "交易场所不可用")}</span>{" · "}
-                <span>{listing?.trading_currency || pick(zh, "Trading currency unavailable", "交易币种不可用")}</span>
-              </p>
-              <p data-ci-glance-title="">{pick(zh, "Company Intelligence", "公司情报")} · {glance}</p>
-            </div>
+            <h2>{displayName}</h2>
           </div>
           <div className="ci-hero-actions">
             {headerActions}
@@ -706,20 +693,28 @@ export default function CompanyIntelligenceV2Current({
                 <option value={presented.event_id}>{presented.period_label} · {presented.event_date}</option>
               </select>
             </label>
-            <button
-              ref={receiptsButtonRef}
-              className="btn btn-ghost ci-receipts-button"
-              onClick={(click) => {
-                evidenceTriggerRef.current = click.currentTarget;
-                setEvidenceOpen(true);
-              }}
-            >
-              {pick(zh, "View receipts", "查看凭证")}
-            </button>
-            <button className="btn btn-primary" onClick={askBrain}>{pick(zh, "Ask Mastermind", "询问 Mastermind")}</button>
-          </div>
-        </div>
-        <div className="ci-provenance-bar">
+            <details className="ci-source-details" onBlur={event => {
+              if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+            }} onKeyDown={event => {
+              if (event.key === "Escape") {
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector("summary")?.focus();
+                event.stopPropagation();
+              }
+            }}>
+              <summary>
+                <span className={`ci-source-dot${freshness === "stale" ? " partial" : ""}`} aria-hidden="true" />
+                {lifecycleLabel}<span aria-hidden="true">⌄</span>
+              </summary>
+              <div className="ci-source-popover">
+                <h3>{pick(zh, "Sources & freshness", "来源与时效")}</h3>
+                <p className="ci-listing-context" data-ci-listing-context="">
+                <span>{ticker}</span>{" · "}
+                <span>{listing?.mic || pick(zh, "Venue unavailable", "交易场所不可用")}</span>{" · "}
+                <span>{listing?.trading_currency || pick(zh, "Trading currency unavailable", "交易币种不可用")}</span>
+              </p>
+                <p data-ci-glance-title="">{glance}</p>
+                <div className="ci-provenance-bar">
           <span>
             <i className={`ci-live-dot${freshness === "stale" ? " stale" : ""}`} />
             {freshness === "stale"
@@ -737,6 +732,22 @@ export default function CompanyIntelligenceV2Current({
             {pick(zh, "Last verified · upstream temporarily unavailable", "最近验证 · 上游暂时不可用")}
           </p>
         )}
+              </div>
+            </details>
+            <button
+              ref={receiptsButtonRef}
+              className="btn btn-ghost ci-receipts-button"
+              onClick={(click) => {
+                evidenceTriggerRef.current = click.currentTarget;
+                setEvidenceOpen(true);
+              }}
+            >
+              {pick(zh, "Sources", "来源")}
+            </button>
+            <button className="btn btn-primary" onClick={askBrain}>{pick(zh, "Ask Mastermind", "询问 Mastermind")}</button>
+          </div>
+        </div>
+
       </header>
 
       {selectionUnavailable && <p className="ci-inline-empty" role="status">{pick(zh, "The selected evidence is unavailable in this event version. Choose a reported metric or claim to inspect its actual source.", "所选证据不在此事件版本中。请选择报告指标或主张，查看实际来源。")}</p>}
@@ -942,26 +953,13 @@ export default function CompanyIntelligenceV2Current({
             <section className="ci-lens-panel">
               <div className="ci-lens-heading">
                 <div>
-                  <span className="fin-eyebrow">{pick(zh, "HISTORICAL V1 TOPICS", "历史 v1 主题")}</span>
+                  <span className="fin-eyebrow">{pick(zh, "TOPIC HISTORY", "主题历史")}</span>
                   <h3>{pick(zh, "Not evidence for this event", "不是此事件的证据")}</h3>
                 </div>
                 <span>{v1?.topics.timeline.length ?? 0} {pick(zh, "tracked", "个追踪主题")}</span>
               </div>
-              <p className="ci-v1-note">{pick(zh, "Topic memory remains v1 historical context. It does not overwrite v2 claims.", "主题记忆仍是 v1 历史背景，不会覆盖 v2 主张。")}</p>
-              {v1?.topics.timeline.length ? (
-                <ul className="ci-topic-list">
-                  {v1.topics.timeline.map((topic) => (
-                    <li key={topic.tag}>
-                      <span className={`ci-topic-status ${topic.status}`} aria-hidden data-plain-status={topicStatusLabel(topic.status, zh ? "zh" : "en")} />
-                      <div><strong>{topicTagLabel(topic.tag, zh)}</strong></div>
-                      <span className="fin-tag" style={{ "--c": "var(--rcpt-exact)" } as React.CSSProperties}>{topicStatusLabel(topic.status, zh ? "zh" : "en")}</span>
-                      <b className="num">{topic.event_count}</b>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="ci-inline-empty">{pick(zh, "No v1 topic timeline is attached.", "暂无 v1 主题时间线。")}</p>
-              )}
+              <p className="ci-v1-note">{pick(zh, "Topics describe the published research history, not verified findings from this selected event.", "主题描述已发布的研究历史，并非当前事件的已验证结论。")}</p>
+              <CompanyTopicTimeline topics={v1?.topics.timeline ?? []} zh={zh} />
             </section>
           )}
 

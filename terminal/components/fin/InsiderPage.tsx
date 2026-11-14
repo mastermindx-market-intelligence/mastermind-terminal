@@ -28,7 +28,6 @@ import { getJSONResult } from "../../lib/dataCache";
 import { marketOf } from "../../lib/markets";
 import { fmtCur, fmtNum, fmtDate, pick } from "../../lib/finFormat";
 import { ComboChart, type Series } from "./FinCharts";
-import { ArcGauge } from "../ui/ArcGauge";
 import { Disclaimer } from "./ForecastPage";
 
 interface InsiderPageProps {
@@ -302,7 +301,7 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
           className="fin-sec-h fin-rail fin-rule"
           style={{ "--rail": verdictRail } as React.CSSProperties}
         >
-          {pick(zh, "Insider Power", "内部人操作力度")}
+          {pick(zh, "Insider activity", "内部交易活动")}
         </div>
         <div className="fin-insider-verdict">
           <div className="fin-insider-verdict-main">
@@ -341,22 +340,7 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
             </div>
           </div>
 
-          {/* ArcGauge — secondary evidence, neutral grey when routine */}
-          <div className="fin-insider-gauge">
-            <ArcGauge
-              value={verdict.staleScore ? 50 : Math.max(0, Math.min(100, d.score))}
-              state={verdict.gauge}
-              size={148}
-              showValue={!verdict.staleScore}
-              centerLabel={
-                verdict.staleScore
-                  ? pick(zh, "No material signal", "无实质信号")
-                  : undefined
-              }
-              label={pick(zh, "Insider Power", "操作力度")}
-              sublabel={pick(zh, "50 = neutral", "50 = 中性")}
-            />
-          </div>
+
         </div>
       </div>
 
@@ -418,7 +402,7 @@ function InsiderPage({ sym, bars = [], zh = false }: InsiderPageProps) {
               <thead>
                 <tr>
                   <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">{pick(zh, "Date", "日期")}</th>
-                  <th className="fin-cell fin-cell-head" scope="col">{pick(zh, "Insider", "内部人")}</th>
+                  <th className="fin-cell fin-cell-head" scope="col">{pick(zh, "Insider role", "内部人职务")}</th>
                   <th className="fin-cell fin-cell-num fin-cell-head" scope="col">{pick(zh, "Type", "类型")}</th>
                   <th className="fin-cell fin-cell-num fin-cell-head" scope="col">{pick(zh, "Shares", "股数")}</th>
                   <th className="fin-cell fin-cell-num fin-cell-head" scope="col">{pick(zh, "Price", "价格")}</th>

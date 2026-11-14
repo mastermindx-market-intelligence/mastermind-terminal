@@ -82,6 +82,7 @@ function InsightPanel({
   onSelect: (item: CompanyIntelligenceBriefItem) => void;
   empty: string;
 }) {
+  if (!items.length) return null;
   return (
     <section className="ci-paper-insight" data-empty={String(items.length === 0)}>
       <header>
@@ -134,23 +135,22 @@ export default function CompanyIntelligenceBriefLayout({
       <section className="ci-paper-brief-hero" data-has-facts={featuredFacts.length > 0}>
         <div className="ci-paper-brief-copy">
           <div className="ci-paper-brief-meta">
-            <span>{label(zh, "30-SECOND BRIEF · SOURCE-BACKED", "30 秒简报 · 来源支持")}</span>
+            <span>{label(zh, "Event brief", "事件简报")}</span>
             <i aria-hidden />
             <time dateTime={eventDate}>{periodLabel} · {eventDate}</time>
-            <b>{label(zh, "context only", "仅供背景参考")}</b>
           </div>
           <h3>{headline}</h3>
           {summary && <p>{summary}</p>}
           {!!supportingTakeaways.length && (
             <div className="ci-paper-takeaways">
-              {supportingTakeaways.map((item) => (
+              {supportingTakeaways.map((item, index) => (
                 <button
                   key={item.id}
                   className={selectedId === item.id ? "selected" : ""}
                   onClick={() => onSelect(item)}
                   aria-pressed={selectedId === item.id}
                 >
-                  <span>{item.label}</span>
+                  <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                   <strong>{item.value}</strong>
                 </button>
               ))}
@@ -217,7 +217,7 @@ export default function CompanyIntelligenceBriefLayout({
         />
       </div>
 
-      <section className="ci-paper-watch" data-empty={String(watch.length === 0)}>
+      {watch.length > 0 && <section className="ci-paper-watch">
         <header>
           <div>
             <h4>{label(zh, "What to watch next", "接下来关注什么")}</h4>
@@ -245,7 +245,7 @@ export default function CompanyIntelligenceBriefLayout({
             {label(zh, "No future watchpoint is asserted for this generation.", "本版本未断言后续关注点。")}
           </p>
         )}
-      </section>
+      </section>}
 
       {footer}
     </div>

@@ -431,7 +431,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
                 zh={zh}
               />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "No ownership split available", "暂无股权拆分数据")}</div>
                 <div className="fin-empty-why">
                   {pick(
@@ -450,7 +450,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
               <small>{stmtCur || pick(zh, "statement currency unavailable", "报表货币不可用")}</small>
             </div>
             {comparisonSuppressed ? (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
                 <div className="fin-empty-why">{currencyComparisonMsg}</div>
               </div>
@@ -478,7 +478,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
           onNavigate={onNavigate}
         />
 
-        <div className="fin-overview-valuation-grid">
+        <div className={`fin-overview-valuation-grid${hasPeHistory ? "" : " fin-overview-valuation-grid--current"}`}>
           <div className="fin-card fin-overview-valuation-current">
             <span className="fin-overview-current-kicker">{pick(zh, "CURRENT", "当前")}</span>
             <div className="fin-overview-current-pe">
@@ -502,7 +502,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             {hasPeHistory ? (
               <LineSeries labels={peLabels} series={peSeries} fmtY={(v) => fmtNum(v)} markers zh={zh} height={145} />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "No historical P/E series", "暂无历史市盈率序列")}</div>
                 <div className="fin-empty-why">
                   {pick(zh, "Historical P/E is unavailable in the current data.", "当前数据中暂无历史市盈率。")}
@@ -514,11 +514,11 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
 
         <div className="fin-card fin-overview-ps-context">
           <div className="fin-card-h">
-            <span>{pick(zh, "Revenue-relative context", "营收相对估值")}</span>
+            <span>{pick(zh, "Current market cap / reported revenue", "当前市值 / 已报告营收")}</span>
             <AQToggle v={valAQ} onChange={setValAQ} zh={zh} annualAvailable={annualAvailable} interimSet={qtr} interimAvailable={interimAvailable} />
           </div>
           {comparisonSuppressed || !valIsIndustrial ? (
-            <div className="fin-empty fin-empty-lg" role="status">
+            <div className="fin-empty fin-empty-compact" role="status">
               <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
               <div className="fin-empty-why">
                 {comparisonSuppressed
@@ -585,7 +585,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             {wfSteps.length > 0 ? (
               <Waterfall steps={wfSteps} fmtY={fmtNum} zh={zh} height={210} />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">
                   {wfFamilyMode === "industrial"
                     ? pick(zh, "No income statement", "暂无利润表")
@@ -645,12 +645,12 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             )}
           </div>
         ) : (
-          <div className="fin-empty fin-empty-lg" role="status">
+          <div className="fin-empty fin-empty-compact" role="status">
             <div className="fin-empty-title">{pick(zh, "No segment breakdown", "暂无分部数据")}</div>
             <div className="fin-empty-why">
               {pick(
                 zh,
-                `The source filing for ${sym} publishes no by-business or by-region revenue split.`,
+                `Business and geographic revenue breakdowns are not available in this dataset for ${sym}.`,
                 `${sym} 的数据源未披露分业务或分地区的收入拆分。`,
               )}
             </div>
@@ -676,7 +676,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             {revDots.some((d) => d.actual != null || d.estimate != null) ? (
               <Dumbbell points={revDots} fmtY={fmtNum} zh={zh} height={200} />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "No revenue estimates", "暂无营收预测")}</div>
                 <div className="fin-empty-why">
                   {pick(
@@ -700,7 +700,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             {epsDots.some((d) => d.actual != null || d.estimate != null) ? (
               <Dumbbell points={epsDots} fmtY={(v) => fmtNum(v, { decimals: 2 })} zh={zh} height={200} />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "No earnings estimates", "暂无盈利预测")}</div>
                 <div className="fin-empty-why">
                   {pick(
@@ -808,7 +808,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             {posBars.length > 0 ? (
               <Bars labels={posLabels} series={posBars} fmtY={fmtNum} zh={zh} height={200} />
             ) : (
-              <div className="fin-empty fin-empty-lg" role="status">
+              <div className="fin-empty fin-empty-compact" role="status">
                 <div className="fin-empty-title">{pick(zh, "No balance sheet", "暂无资产负债表")}</div>
                 <div className="fin-empty-why">
                   {pick(

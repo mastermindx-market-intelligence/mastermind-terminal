@@ -48,7 +48,6 @@ export default function CompanyIntelligenceCallLayout({
   searchContent,
   fallbackNote,
 }: CompanyIntelligenceCallLayoutProps) {
-  const respondents = new Set(exchanges.flatMap((exchange) => exchange.respondents));
   return (
     <section
       className="ci-paper-call"
@@ -62,8 +61,8 @@ export default function CompanyIntelligenceCallLayout({
           <span>{pick(zh, "CALL + Q&A", "电话会 + 问答")}</span>
           <h3>{pick(
             zh,
-            "Read the selected call by verified exchange, speaker and exact source span",
-            "按已验证问答、发言人和精确来源片段阅读当前电话会",
+            "Earnings call & discussion",
+            "财报电话会与讨论",
           )}</h3>
         </div>
         <div className="ci-paper-call-period">
@@ -72,6 +71,7 @@ export default function CompanyIntelligenceCallLayout({
         </div>
       </header>
 
+      {exchanges.length > 0 ? <>
       <div className="ci-paper-call-toolbar">
         <div>
           <span>{pick(zh, "Selected call", "当前电话会")}</span>
@@ -87,41 +87,7 @@ export default function CompanyIntelligenceCallLayout({
         </div>
       </div>
 
-      <div className="ci-paper-call-grid">
-        <aside className="ci-paper-call-map">
-          <header>
-            <h4>{pick(zh, "Call map", "电话会地图")}</h4>
-            <p>{pick(zh, "Structure from the selected event only", "仅显示当前事件的结构")}</p>
-          </header>
-          <div className="ci-paper-call-map-state">
-            <span>{pick(zh, "TOPIC MAP UNAVAILABLE", "主题图不可用")}</span>
-            <strong>{pick(
-              zh,
-              "No governed Q&A topic taxonomy is published for this event workspace.",
-              "此事件工作区尚未发布受治理的问答主题分类。",
-            )}</strong>
-            <p>{pick(
-              zh,
-              "Paper's illustrative topic groups are not promoted into runtime truth. Verified exchange and speaker structure remains available.",
-              "不会将 Paper 中的示意主题分组提升为运行时事实；已验证的问答与发言人结构仍然可用。",
-            )}</p>
-          </div>
-          <dl className="ci-paper-call-structure">
-            <div>
-              <dt>{pick(zh, "Q&A exchanges", "问答轮次")}</dt>
-              <dd>{exchanges.length}</dd>
-            </div>
-            <div>
-              <dt>{pick(zh, "Management identities", "管理层身份")}</dt>
-              <dd>{respondents.size}</dd>
-            </div>
-            <div>
-              <dt>{pick(zh, "Transcript", "电话会")}</dt>
-              <dd>{transcriptAvailable ? pick(zh, "Available", "可用") : pick(zh, "Unavailable", "不可用")}</dd>
-            </div>
-          </dl>
-          {fallbackNote ? <p className="ci-paper-call-fallback">{fallbackNote}</p> : null}
-        </aside>
+      <div className="ci-paper-call-grid ci-paper-call-grid--full">
 
         <section className="ci-paper-call-qa" aria-label={pick(zh, "Analyst Q&A", "分析师问答")}>
           <header>
@@ -209,14 +175,25 @@ export default function CompanyIntelligenceCallLayout({
         </div>
       </footer>
 
+      </> : <div className="ci-call-reader-start">
+        <div>
+          <h4>{transcriptAvailable ? pick(zh, "Read the earnings call", "阅读财报电话会") : pick(zh, "Transcript unavailable", "电话会正文不可用")}</h4>
+          <p>{transcriptAvailable
+            ? pick(zh, "The full transcript is available. Structured Q&A and topic navigation are not available for this event.", "完整电话会正文可用。此事件暂无结构化问答和主题导航。")
+            : pick(zh, "A readable transcript has not been linked to this event. Check Sources for the available records.", "此事件尚未关联可读的电话会正文。请查看来源以了解可用记录。")}</p>
+        </div>
+        {transcriptAvailable && onOpenFullTranscript && <button type="button" className="btn btn-primary" onClick={onOpenFullTranscript}>{pick(zh, "Read full transcript", "阅读完整电话会")} <span aria-hidden="true">↗</span></button>}
+        {onOpenSources && <button type="button" className="btn btn-ghost" onClick={onOpenSources}>{pick(zh, "View sources", "查看来源")}</button>}
+      </div>}
+
       {searchContent ? (
         <section className="ci-paper-call-search">
           <header>
-            <span>{pick(zh, "EXACT TRANSCRIPT SEARCH", "电话会精确搜索")}</span>
+            <span>{pick(zh, "Search the transcript", "搜索电话会")}</span>
             <p>{pick(
               zh,
-              "Revision-bound literal search remains owned by the existing source-search workflow.",
-              "修订绑定的字面搜索仍由现有来源搜索工作流负责。",
+              "Find an exact phrase, then open the matching passage in context.",
+              "搜索原文短语，打开匹配片段并查看上下文。",
             )}</p>
           </header>
           {searchContent}

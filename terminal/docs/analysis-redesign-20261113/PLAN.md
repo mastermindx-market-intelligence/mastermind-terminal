@@ -61,3 +61,12 @@ Respect all native protections, explicit holds, source writers and unresolved ef
 ## Current next action
 
 Implement P1 on the original branch, then P2 in the same healthy session; run focused checks and save exact source/evidence before advancing. Keep production acceptance open until actual live behavior is verified.
+
+
+## Implementation checkpoint — 2026-11-14
+
+Source implementation is in progress; parent acceptance is NOT complete. This branch contains the unified company/family navigation, distinct in-flow local views, secondary research actions disclosure, compact Intelligence toolbar and source disclosure, populated-only brief composition, transcript-first fallback, searchable/sortable topic history, explicit history growth labels, flat research surfaces, statement-specific summary metrics, current-statistics availability repair, and flat analyst/technical readings.
+
+Validation: initial TypeScript run hit the default 2 GB V8 heap limit. A 6 GB run identified two owned type errors (fixed in this checkpoint) and missing files from the sparse checkout; full qualification remains pending. Affected financial basis and unavailable-reading unit tests are running. Local Playwright reached route warmup after dependency recovery, but installed Chromium launch was denied by the environment's socket restriction. Do not retry that effect through alternate launch flags or carriers. The user-connected Chrome surface is blocked by an open extension UI; no alternate control attempt. Paper prepare timeout remains unreplayed, with no canvas mutations.
+
+Next: complete local source qualification and substantive remaining layout refinements; publish a reviewable PR through the same GitHub-native branch carrier; use the existing native CI and responsive evidence workflow subject to actual holds. Browser proof and production acceptance remain owed. No production change has been made.

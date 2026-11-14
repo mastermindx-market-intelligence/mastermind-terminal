@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { FinPage } from "./finPages";
 import { pick } from "../../lib/finFormat";
 import {
@@ -43,16 +43,19 @@ export interface ResearchWorkspaceNavProps {
   page: FinPage;
   zh: boolean;
   onPage: (page: FinPage) => void;
+  context?: ReactNode;
+  actions?: ReactNode;
 }
 
 function pickLabel(labels: [string, string], zh: boolean) {
   return labels[zh ? 1 : 0];
 }
 
-export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorkspaceNavProps) {
+export default function ResearchWorkspaceNav({ page, zh, onPage, context, actions }: ResearchWorkspaceNavProps) {
   const currentFamily = familyForPage(page);
   const localPages = FIN_FAMILY_PAGES[currentFamily];
   const [familySheetOpen, setFamilySheetOpen] = useState(false);
+  const sheetRef = useRef<HTMLDialogElement | null>(null);
   const familyTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const familyLabel = useMemo(
@@ -94,21 +97,18 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
   }, [chooseLocal, localPages]);
 
   useEffect(() => {
-    if (!familySheetOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      setFamilySheetOpen(false);
-      window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
-    };
-    window.addEventListener("keydown", onKey, { capture: true });
-    return () => window.removeEventListener("keydown", onKey, true);
+    if (familySheetOpen) sheetRef.current?.showModal();
   }, [familySheetOpen]);
+
+  const closeSheet = () => {
+    setFamilySheetOpen(false);
+    window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
+  };
 
   return (
     <>
-      <nav className="fin-research-nav" aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
+      <nav className={`fin-research-nav${context ? " fin-research-nav--company" : ""}`} aria-label={pick(zh, "Company research navigation", "公司研究导航")}>
+        {context && <div className="fin-company-control">{context}</div>}
         <div className="fin-family-tabs" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
           {FIN_FAMILY_ORDER.map((family) => {
             const active = family === currentFamily;
@@ -134,11 +134,29 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
           })}
         </div>
 
+
+        <div className="fin-family-mobile-tablist" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
+          <button
+            ref={familyTriggerRef}
+            type="button"
+            className="fin-family-mobile-trigger"
+            role="tab"
+            aria-selected="true"
+            aria-controls="fin-active-panel"
+            aria-haspopup="dialog"
+            aria-expanded={familySheetOpen}
+            onClick={() => setFamilySheetOpen(true)}
+          >
+            <span>{familyLabel}</span>
+            <span aria-hidden>⌄</span>
+          </button>
+        </div>
+        {actions && <div className="fin-workspace-actions">{actions}</div>}
+      </nav>
+
         {localPages.length > 1 && (
-          <>
-            <span className="fin-research-nav-divider" aria-hidden />
-            <span className="fin-local-label">{familyLabel}</span>
-            <div className="fin-local-tabs fin-local-tabs--desktop" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
+          <div className="fin-view-toolbar">
+            <div className="fin-local-tabs" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
               {localPages.map((local) => (
                 <button
                   key={local}
@@ -159,62 +177,28 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
                 </button>
               ))}
             </div>
-          </>
+          </div>
         )}
 
-        <div className="fin-family-mobile-tablist" role="tablist" aria-label={pick(zh, "Company pages", "公司页面")}>
-          <button
-            ref={familyTriggerRef}
-            type="button"
-            className="fin-family-mobile-trigger"
-            role="tab"
-            aria-selected="true"
-            aria-controls="fin-active-panel"
-            aria-haspopup="dialog"
-            aria-expanded={familySheetOpen}
-            onClick={() => setFamilySheetOpen(true)}
-          >
-            <span>{familyLabel}</span>
-            <span aria-hidden>⌄</span>
-          </button>
-        </div>
-      </nav>
-
-      {localPages.length > 1 && (
-        <div className="fin-local-tabs-mobile" role="tablist" aria-label={`${familyLabel} ${pick(zh, "views", "视图")}`}>
-          {localPages.map((local) => (
-            <button
-              key={local}
-              type="button"
-              className={`fin-local-mobile-tab${page === local ? " on" : ""}`}
-              role="tab"
-              aria-selected={page === local}
-              aria-controls="fin-active-panel"
-              onClick={() => chooseLocal(local)}
-            >
-              {pickLabel(LOCAL_LABELS[local], zh)}
-            </button>
-          ))}
-        </div>
-      )}
 
       {familySheetOpen && (
-        <div className="fin-family-sheet-layer" role="presentation">
+        <dialog ref={sheetRef} className="fin-family-sheet-layer" aria-label={pick(zh, "Company pages", "公司页面")} onCancel={(event) => { event.preventDefault(); closeSheet(); }}>
           <button
             type="button"
             className="fin-family-sheet-scrim"
+            tabIndex={-1}
             aria-label={pick(zh, "Close company page menu", "关闭公司页面菜单")}
             onClick={() => {
               setFamilySheetOpen(false);
               window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
             }}
           />
-          <section className="fin-family-sheet" role="dialog" aria-modal="true" aria-label={pick(zh, "Company pages", "公司页面")}>
+          <section className="fin-family-sheet">
             <div className="fin-family-sheet-handle" aria-hidden />
             <header>
               <div>
                 <strong>{pick(zh, "Company pages", "公司页面")}</strong>
-                <span>{pick(zh, "Choose a Research Workspace page", "选择研究工作区页面")}</span>
+                <span>{pick(zh, "Explore this company", "探索这家公司")}</span>
               </div>
               <button
                 type="button"
@@ -243,7 +227,7 @@ export default function ResearchWorkspaceNav({ page, zh, onPage }: ResearchWorks
               ))}
             </div>
           </section>
-        </div>
+        </dialog>
       )}
     </>
   );

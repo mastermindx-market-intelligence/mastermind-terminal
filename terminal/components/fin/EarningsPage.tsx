@@ -701,14 +701,8 @@ function EarningsContent({
       <RevenueModule fund={fund} zh={zh} projection={revenue} setMode={setRevenueMode} />
       </div>
 
-      <section className="fin-earn-vnext-coverage" data-earnings-vnext-coverage="">
-        <header>
-          <div>
-            <span>{pick(!!zh, "COVERAGE & BASIS", "覆盖与口径")}</span>
-            <strong>{pick(!!zh, "What can be compared safely", "哪些数据可以安全比较")}</strong>
-          </div>
-          <small>{pick(!!zh, "No inferred beat/miss without a matched basis", "没有匹配口径时不推断超预期/不及预期")}</small>
-        </header>
+      <details className="fin-earn-vnext-coverage fin-details" data-earnings-vnext-coverage="">
+        <summary>{pick(!!zh, "Coverage & reporting basis", "数据覆盖与报告口径")}</summary>
         <dl>
           <div>
             <dt>{pick(!!zh, "EPS actual / estimate", "每股盈利实际值 / 预期")}</dt>
@@ -727,7 +721,7 @@ function EarningsContent({
             <dd>{selectedReportLabel}</dd>
           </div>
         </dl>
-      </section>
+      </details>
 
       {fund.asof && (
         <div className="fin-asof">

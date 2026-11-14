@@ -246,7 +246,7 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
   const freeCashFlow = atIndex(set?.cashflow?.fcf, latestIndex);
   const grossMargin = ratioPct(grossProfit, revenue);
   const operatingMargin = ratioPct(operatingIncome, revenue);
-  const summaryMetrics = [
+  const incomeSummaryMetrics = [
     {
       id: "revenue",
       label: incomeViewTopLineLabel(view, zh),
@@ -281,6 +281,22 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
         ? pick(zh, "Not available in the financials record", "财务记录中暂无该值")
         : pick(zh, "From the financials record", "来自财务记录"),
     },
+  ];
+  const statementSummary = (id: string, label: string, values: (number | null)[] | undefined, flow = false) => ({
+    id, label, value: atIndex(values, latestIndex),
+    change: flow ? summaryChange(values) : null,
+    detail: `${ccyLabel} · ${latestPeriod || pick(zh, "latest period", "最近报告期")}`,
+  });
+  const summaryMetrics = stmt === "income" ? incomeSummaryMetrics : stmt === "balance" ? [
+    statementSummary("assets", pick(zh, "Total assets", "总资产"), set?.balance?.assets),
+    statementSummary("liabilities", pick(zh, "Total liabilities", "总负债"), set?.balance?.liabilities),
+    statementSummary("equity", pick(zh, "Total equity", "股东权益"), set?.balance?.equity),
+    statementSummary("cash", pick(zh, "Cash & equivalents", "现金及等价物"), set?.balance?.cash),
+  ] : [
+    statementSummary("cfo", pick(zh, "Operating cash flow", "经营现金流"), set?.cashflow?.cfo, true),
+    statementSummary("capex", pick(zh, "Capital expenditure", "资本支出"), set?.cashflow?.capex, true),
+    statementSummary("cfi", pick(zh, "Investing cash flow", "投资现金流"), set?.cashflow?.cfi, true),
+    statementSummary("fcf", pick(zh, "Free cash flow", "自由现金流"), set?.cashflow?.fcf, true),
   ];
   const latestNormalization = latestIndex >= 0 ? set?.normalization_method?.[latestIndex] : undefined;
   const latestCash = atIndex(set?.balance?.cash, latestIndex);
@@ -369,8 +385,7 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
     <div className="fin-stmts" data-financials-vnext="">
       <section className="fin-financials-head" data-financials-vnext-head="">
         <div>
-          <span>{pick(zh, "FINANCIAL STATEMENTS", "财务报表")}</span>
-          <h2>{pick(zh, "Reported fundamentals with source-aware period handling", "保留来源与报告期语义的已披露基本面")}</h2>
+          <h2>{pick(zh, "Financial statements", "财务报表")}</h2>
           <p>{basisLine}</p>
         </div>
         <div className="fin-financials-controls">
@@ -411,7 +426,6 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
         <article className="fin-card fin-financials-trajectory">
           <header className="fin-financials-card-head">
             <div>
-              <span>{pick(zh, "TRAJECTORY", "趋势")}</span>
               <h3>
                 {stmt === "income"
                   ? pick(zh, "Income trajectory", "利润趋势")
@@ -437,10 +451,8 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
         <article className="fin-card fin-financials-statement-snapshot">
           <header className="fin-financials-card-head">
             <div>
-              <span>{pick(zh, "STATEMENT SNAPSHOT", "报表快照")}</span>
               <h3>{stmtTitle}</h3>
             </div>
-            <small>{pick(zh, "Normalized · oldest → latest", "标准化 · 最早 → 最新")}</small>
           </header>
           {snapshotPeriods.length > 0 ? (
             <div className="fin-financials-snapshot-scroll">
@@ -476,7 +488,9 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
         </article>
       </section>
 
-      <section className="fin-financials-integrity" data-financials-vnext-integrity="">
+      <details className="fin-details" data-financials-vnext-integrity="">
+        <summary>{pick(zh, "Supporting metrics & accounting basis", "补充指标与会计口径")}</summary>
+        <div className="fin-financials-integrity">
         <article>
           <header><strong>{pick(zh, "Balance-sheet snapshot", "资产负债表快照")}</strong><span>{pick(zh, "latest selected period", "当前所选最新报告期")}</span></header>
           <div className="fin-financials-integrity-metrics">
@@ -506,16 +520,18 @@ export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: St
             <div><dt>{pick(zh, "Currency", "货币")}</dt><dd>{ccyLabel}</dd></div>
           </dl>
         </article>
-      </section>
+        </div>
+      </details>
 
 
       {/* ── documents row: doc-icon per period that has a transcript ── */}
-      {periods.length > 0 && onOpenTx && (
+      {periods.some((_, index) => txForPeriod(index)) && onOpenTx && (
         <div className="fin-doc-strip" role="group" aria-label={pick(zh, "Earnings call transcripts", "财报电话会记录")}>
           <span className="fin-doc-strip-lbl">{pick(zh, "Transcripts", "记录")}</span>
           <div className="fin-doc-strip-cells" ref={docStripRef}>
             {periods.map((p, i) => {
               const tx = txForPeriod(i);
+              if (!tx) return null;
               return (
                 <span className="fin-doc-cell" key={i}>
                   <span className="fin-doc-per">{p}</span>

@@ -280,29 +280,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     return `/analysis?${params.toString()}`;
   }, [marketOntologyContext, sym]);
 
-  return (
-    // Root IS the (shell) .app2 grid cell (like DiscoverWorkspace). Flex-column so
-    // MegaPane's .fin-pane--workspace (flex:1) fills the remaining height below the context
-    // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
-    // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
-    // nav underneath itself — see the scoped block in app/fin.css.
-    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
-      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
-      <div className="analysis-context-bar">
-        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
-          <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("backToChart")}
-        </button>}
-        {/* The identity block IS the switcher. Two controls that both name the current company —
-            a read-only chip beside a "switch to" field — is one more than the bar needs, and the
-            chart already established that tapping the ticker is how you change it. */}
-        <SymbolPicker
+  const companyControl = (
+    <SymbolPicker
           scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          eyebrow=""
+          
           label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
@@ -311,30 +295,14 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
-        <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
-          <i />
-          <span>{t("wsCompanyResearch")}</span>
-        </div>
-        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
-          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
-        </button>}
-        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
-        {!invalidSymbol && (
-          <Link
-            href={thesesHref}
-            className="analysis-context-theses"
-            aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
-          >
-            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
-            </svg>
-            {t("wsOpenTheses")}
-          </Link>
-        )}
-        {/* On phones, keep both company-scoped destinations without consuming another toolbar row.
-            Native details supplies a keyboard-operable disclosure without a parallel navigation owner. */}
-        {!invalidSymbol && (
-          <details
+  );
+  const researchActions = !invalidSymbol ? (
+    <>
+      {!sharedPresentation && <button type="button" className="analysis-context-back" onClick={onClose}>
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M3 17l6-6 4 4 8-11M15 4h6v6" /></svg>
+        {pick(zh, "Chart", "图表")}
+      </button>}
+      <details
             className="analysis-context-actions"
             onBlur={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
@@ -365,13 +333,20 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
               >
                 {t("wsOpenTheses")}
               </Link>
-              {sharedPresentation && (
-                <button type="button" onClick={onClose}>{pick(zh, "Open current chart", "打开当前图表")}</button>
-              )}
             </nav>
           </details>
-        )}
-      </div>
+    </>
+  ) : null;
+
+  return (
+    // Root IS the (shell) .app2 grid cell (like DiscoverWorkspace). Flex-column so
+    // MegaPane's .fin-pane--workspace (flex:1) fills the remaining height below the context
+    // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
+    // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
+    // nav underneath itself — see the scoped block in app/fin.css.
+    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
+      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
+      {invalidSymbol && <div className="analysis-context-bar">{companyControl}</div>}
 
       {!invalidSymbol && companySearchQuery !== null && (
         <CompanyListingIdentity key={sym} symbol={sym} query={companySearchQuery} fund={fund} loading={fundLoading} />
@@ -402,6 +377,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           // name omitted: MegaPane resolves its own header via fund?.ticker || sym
           // (TerminalShell feeds a manifest name we don't load; the fallback is correct).
           mode="workspace"
+          navigationContext={companyControl}
+          navigationActions={researchActions}
           intel={intel}
         />
       )}

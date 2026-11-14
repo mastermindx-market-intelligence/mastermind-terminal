@@ -9,17 +9,13 @@
  * - quote: { last: number | null } | null — provides the 'Current' column price
  * - zh: boolean — language selector
  */
-import { useState } from "react"
-import styles from "./StatisticsBasisControls.module.css"
 import type { Fund, RatiosCurrent } from "../../lib/fund"
-import { fmtDate, fmtNum, fmtPct, pick, statementCurrencyLabel } from "../../lib/finFormat"
+import { fmtDate, fmtNum, fmtPct, pick } from "../../lib/finFormat"
 import {
   incomeView,
   incomeViewFamilyMode,
   isIndustrialIncomeView,
-  resolveStatementBasis,
   statementBasisAvailable,
-  statementCadenceLabel,
 } from "../../lib/finStatementMath"
 import { Bars, type Series } from "./FinCharts"
 import currentTables from "./StatisticsCurrentTables.module.css"
@@ -35,7 +31,6 @@ export interface StatisticsPageProps {
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-type Mode = "annual" | "quarterly"
 
 function n2(v: number | null | undefined): string {
   return v != null && isFinite(v) ? v.toFixed(2) : "—"
@@ -54,10 +49,8 @@ interface StatRow {
 // ── main component ──────────────────────────────────────────────────────────
 
 export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageProps) {
-  const [requestedMode, setMode] = useState<Mode>("annual")
   const annualAvailable = statementBasisAvailable(fund?.statements?.annual)
   const interimAvailable = statementBasisAvailable(fund?.statements?.quarterly)
-  const mode: Mode = resolveStatementBasis(requestedMode, annualAvailable, interimAvailable)
 
   if (!fund) {
     return (
@@ -74,8 +67,6 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
   }
 
   const cur = fund.ratios?.current ?? ({} as RatiosCurrent)
-  const isAnnual = mode === "annual"
-  const interimLabel = statementCadenceLabel(fund.statements?.quarterly, "quarterly", !!zh)
   const familyReceipt = annualAvailable
     ? fund.statements?.annual
     : interimAvailable
@@ -104,23 +95,14 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
       : []),
   ]
 
-  // fund.json v1 carries ANNUAL ratio series only — there is no per-quarter ratio data. The toggle
-  // still switches the P/E·P/S chart's period axis to the quarterly earnings periods (with empty ratio
-  // series underneath) and swaps the valuation table below for an honest "not available" note.
-  const qPeriods = fund.statements?.quarterly?.periods ?? []
-  const chartPeriods = isAnnual ? rPeriods : qPeriods.slice(-8)
-  const chartSeries: Series[] = isAnnual
-    ? peSeries
-    : [
-        { name: pick(!!zh, "Price to earnings ratio", "市盈率"), values: [], color: "var(--brand)" },
-        ...(industrialMetricsApply
-          ? [{ name: pick(!!zh, "Price to sales ratio", "市销率"), values: [], color: "var(--brand-2)" }]
-          : []),
-      ]
+  // This feed publishes annual ratio history. Current scalar ratios do not
+  // depend on statement cadence, including companies with interim-only statements.
+  const chartPeriods = rPeriods
+  const chartSeries = peSeries
 
   // Whether ALL historical ratio series are null (common for CN / newly covered names).
   // In that case: collapse the top chart, hide historical year columns (show only Current).
-  const hasHistoricalRatios = isAnnual && (
+  const hasHistoricalRatios = (
     (fund.ratios?.pe ?? []).some((v) => v != null && isFinite(v as number)) ||
     (industrialMetricsApply && (fund.ratios?.ps ?? []).some((v) => v != null && isFinite(v as number))) ||
     (fund.ratios?.pb ?? []).some((v) => v != null && isFinite(v as number))
@@ -130,12 +112,12 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
   // These come from fund.stats (not period-indexed by annual/quarterly in v1)
   // We show them as single current-value rows (no period array per §1.1 — stats.shares_out is a scalar)
   const sharesFmtM = (v: number | null | undefined) =>
-    v != null && isFinite(v) ? (Math.abs(v) / 1e6).toFixed(2) + "M" : "—"
+    v != null && isFinite(v) ? fmtNum(v) : "—"
   const empFmt = (v: number | null | undefined) =>
     v != null && isFinite(v) ? v.toLocaleString("en-US") : "—"
 
   // ── Valuation rows aligned to annual ratios.periods (v1 has annual ratios only) ──
-  // In quarterly mode the ratios table is replaced with fin-empty, so only rPeriods matters here.
+  // History follows its own published period labels, independent of current metrics.
   const annualPeriods = rPeriods
 
   // Build a "Current" column value from live ratios
@@ -173,8 +155,6 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
     { label: pick(!!zh, "Current ratio", "流动比率"), value: cur.current_ratio != null ? n2(cur.current_ratio) : "—" },
   ]
 
-  // Currency label
-  const ccy = fund.stmt_currency
   // Provenance: every table on this page dates itself off the one snapshot date.
   const asofD = fund.asof ? fmtDate(fund.asof) : ""
   const asofTxt = asofD ? pick(!!zh, `as of ${asofD}`, `截至 ${asofD}`) : ""
@@ -189,30 +169,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
         <div className="fin-sec-h fin-rail" style={{ "--rail": "var(--brand)" } as React.CSSProperties}>
           {pick(!!zh, "Statistics", "统计数据")}
         </div>
-        <div
-          className={`fin-toggle ${styles.basis}`}
-          role="group"
-          aria-label={pick(!!zh, "Statistics basis", "统计数据口径")}
-        >
-          <button
-            type="button"
-            aria-pressed={mode === "annual"}
-            className={mode === "annual" ? "on" : ""}
-            onClick={() => setMode("annual")}
-            disabled={!annualAvailable}
-          >
-            {pick(!!zh, "Annual", "年度")}
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === "quarterly"}
-            className={mode === "quarterly" ? "on" : ""}
-            onClick={() => setMode("quarterly")}
-            disabled={!interimAvailable}
-          >
-            {interimLabel}
-          </button>
-        </div>
+        <span className="fin-asof">{pick(!!zh, "Current snapshot · annual ratio history", "当前快照 · 年度估值历史")}</span>
       </div>
 
       {/* ── Top bar chart: P/E + P/S — hidden when all historical series null ── */}
@@ -227,7 +184,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           />
         </div>
       )}
-      {!hasHistoricalRatios && isAnnual && (
+      {!hasHistoricalRatios && (
         <div className="fin-sec">
           <div className="fin-chart-note" style={{ marginTop: 0 }}>
             {industrialMetricsApply
@@ -293,14 +250,13 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
         {/* the old header meta line reads as provenance — it now sits below the
             data it describes, as the standard as-of row */}
         <div className="fin-stats-meta fin-asof">
-          <span className="fin-stats-ccy">{statementCurrencyLabel(ccy, !!zh)}</span>
           {asofTxt && <span>{asofTxt}</span>}
         </div>
       </div>
 
       {/* ── Valuation ratios (annual series + live Current column) ── */}
       <div className="fin-sec">
-        {isAnnual && !industrialMetricsApply && (
+        {!industrialMetricsApply && (
           <div className="fin-chart-note" style={{ marginTop: 0, marginBottom: 8 }}>
             {!familyReceipt
               ? pick(!!zh,
@@ -318,27 +274,8 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
                 )}
           </div>
         )}
-        {/* v1 has no quarterly ratio series — show honest empty state in quarterly mode */}
-        {!isAnnual ? (
-          <div className="fin-empty fin-empty-lg" role="status">
-            <span className="fin-empty-title">
-              {zh ? `暂无${interimLabel}估值比率` : `No ${interimLabel.toLowerCase()} valuation ratios`}
-            </span>
-            <span className="fin-empty-why">
-              {annualAvailable
-                ? pick(!!zh,
-                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only — switch to Annual to see the series.",
-                    "基本面数据源仅按年度报告期发布估值比率——切换到年度视图即可查看该序列。"
-                  )
-                : pick(!!zh,
-                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.",
-                    "基本面数据源仅按年度报告期发布估值比率。该快照暂无年度报表历史。"
-                  )}
-            </span>
-          </div>
-        ) : (
           <div className="fin-table-scroll">
-            <table className="fin-table fin-stats-tbl">
+            <table className={`fin-table fin-stats-tbl ${!hasHistoricalRatios ? currentTables.currentTable : ""}`}>
               <thead>
                 <tr>
                   <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
@@ -385,8 +322,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
               </tbody>
             </table>
           </div>
-        )}
-        {isAnnual && asofTxt && (
+        {asofTxt && (
           <div className="fin-stats-meta fin-asof">
             <span>{pick(!!zh, "Annual fiscal periods", "年度财季")}</span>
             <span>{asofTxt}</span>
