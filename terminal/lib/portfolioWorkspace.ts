@@ -1,5 +1,6 @@
 import type { Position } from "@/lib/portfolio";
-import { finite, nativePrice, priceCurrency, type PriceObservation } from "@/lib/portfolioMoney";
+import { positionPrice } from "./portfolioInstitutionValue";
+import { finite, priceCurrency, type PriceObservation } from "@/lib/portfolioMoney";
 
 export type PortfolioSection = "overview" | "holdings" | "risk" | "targets";
 export type RecordFilter = "all" | "details" | "prices";
@@ -31,7 +32,11 @@ export function decodePositionRead(value: unknown): { positions: Position[]; boo
 
 export function recordIssues(position: Position, quote: WorkspaceQuote, fallback: WorkspaceQuote): RecordIssue[] {
   const issues: RecordIssue[] = [];
-  const price = nativePrice(quote, fallback);
+  const price = positionPrice(position, quote, fallback);
+  if (position.brokerage) {
+    const snapshotValue = finite(position.brokerage.value) && priceCurrency(position.brokerage.currency);
+    return price?.currency || snapshotValue ? [] : ["quote"];
+  }
   if (position.shares === null) issues.push("shares");
   if (position.entryPrice === null) issues.push("entryPrice");
   else if (!priceCurrency(position.entryCurrency)) issues.push("entryCurrency");
@@ -56,7 +61,7 @@ export function selectPortfolioRecords(
   return positions.filter(position => {
     if (position.status !== options.status) return false;
     const row = manifest[position.ticker];
-    if (query && ![position.ticker, row?.name, row?.zh, position.notes]
+    if (query && ![position.ticker, row?.name, row?.zh, position.notes, position.brokerage?.name, position.brokerage?.account]
       .some(value => typeof value === "string" && value.toLocaleLowerCase().includes(query))) return false;
     const issues = recordIssues(position, quotes[position.ticker], row);
     return options.filter === "all" || (options.filter === "details" ? needsEntryDetails(issues) : needsPriceCoverage(issues));

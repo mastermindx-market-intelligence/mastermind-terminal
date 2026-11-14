@@ -2,6 +2,8 @@ import {createHash} from "node:crypto";
 import { readPositions as readManual, type PortfolioDb, type PositionsRead, type Position } from "@/lib/portfolio";
 import {brokerageServices,TABLE} from "./service.server";
 import type {ImportedHolding} from "./snapshot";
+import { priceCurrency } from "../portfolioMoney";
+import { averageInstitutionCost } from "../portfolioInstitutionValue";
 
 export async function readPositions(db:PortfolioDb,owner:string):Promise<PositionsRead>{
   const manual=await readManual(db,owner);
@@ -16,8 +18,9 @@ export async function readPositions(db:PortfolioDb,owner:string):Promise<Positio
       if(!connection.synced_at || !Array.isArray(connection.holdings))return {ok:false,error:"Brokerage holdings pending"};
       for(const item of connection.holdings as ImportedHolding[]){
         const identity=createHash("sha256").update(JSON.stringify([owner,connection.id,item.accountId,item.securityId])).digest("hex");
-        imported.push({id:"broker:"+identity,ticker:item.symbol??"UNLISTED-"+identity.slice(0,12).toUpperCase(),shares:item.quantity,entryPrice:null,entryCurrency:null,entryDate:null,
-          notes:null,status:"open",createdAt:null,brokerage:{account:item.accountName,name:item.name,symbol:item.symbol,type:item.type,price:item.price,
+        const average = averageInstitutionCost(item);
+        imported.push({id:"broker:"+identity,ticker:item.symbol??"UNLISTED-"+identity.slice(0,12).toUpperCase(),shares:item.quantity,entryPrice:average,entryCurrency:average === null ? null : priceCurrency(item.currency),entryDate:null,
+          notes:null,status:"open",createdAt:null,brokerage:{account:item.accountName,name:item.name,symbol:item.symbol,type:item.type,price:item.price,costBasis:item.costBasis ?? null,
           value:item.value,currency:item.currency,asOf:item.asOf,syncedAt:connection.synced_at}});
       }
     }

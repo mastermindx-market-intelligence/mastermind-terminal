@@ -1,4 +1,6 @@
 import {describe,expect,it,vi,afterEach} from "vitest";
+import {averageInstitutionCost} from "../portfolioInstitutionValue";
+import {recordIssues,selectPortfolioRecords} from "../portfolioWorkspace";
 import {brokerageSnapshot} from "../brokerage/snapshot";
 import {seal,unseal,type BrokerageConfig} from "../brokerage/plaid.server";
 import {createPosition,updatePosition,readPositions,normalizeExecutionTime,positionPrice,marketValue,type Position} from "../portfolio";
@@ -16,6 +18,23 @@ describe("brokerage and manual history",()=>{
  it("rejects partial snapshots, unknown items and duplicated identities before replacing a book",()=>{for(const body of [{...snapshot,securities:[]},{...snapshot,item:{item_id:"different"}},{...snapshot,holdings:[...snapshot.holdings,snapshot.holdings[0]]}])expect(()=>brokerageSnapshot(body,"item")).toThrow();});
  it("binds a credential to its owner and connection purpose",()=>{const token=seal(config,"fictional-token","owner-one/link");expect(unseal(config,token,"owner-one/link")).toBe("fictional-token");expect(()=>unseal(config,token,"other/item")).toThrow();});
  it("preserves dated broker values for non-unit instruments",()=>{const p={ticker:"OPT",shares:1,brokerage:{symbol:"OPT",currency:"USD",value:2000,price:20}} as Position;expect(positionPrice(p,{last:22,currency:"USD"},{})).toEqual({last:20,currency:"USD",chg:null});expect(marketValue(p,20,"USD")).toBe(2000);});
+ it("uses a reported total cost to recover average unit costs only for supported securities",()=>{
+   const equity={symbol:"AAPL",type:"equity",quantity:4,costBasis:120,currency:"USD"};
+   expect(averageInstitutionCost(equity)).toBe(30);
+   for (const item of [{...equity,type:"derivative"},{...equity,quantity:0},{...equity,currency:null},{...equity,costBasis:null}]) {
+     expect(averageInstitutionCost(item)).toBeNull();
+   }
+   const data=brokerageSnapshot({...snapshot,holdings:[{...snapshot.holdings[0],cost_basis:15}]},"item");
+   expect(data[0].costBasis).toBe(15);
+ });
+ it("shows value-only positions as priced, honors missing derivative values and finds imported account names",()=>{
+   const asset={symbol:"OPT",type:"derivative",name:"Options on Example",account:"Retirement plan",currency:"USD",value:2000,price:null};
+   const lot={ticker:"OPT",shares:1,entryPrice:null,status:"open",brokerage:asset} as Position;
+   expect(marketValue(lot,null)).toBe(2000);
+   expect(marketValue({...lot,brokerage:{...lot.brokerage!,price:20,value:null}},20,"USD")).toBeNull();
+   expect(recordIssues(lot,undefined,undefined)).toEqual([]);
+   expect(selectPortfolioRecords([lot],{},{},{status:"open",query:"retirement",filter:"all"})).toEqual([lot]);
+ });
  it("keeps date-only history when time fields are disabled",()=>{expect(normalizeExecutionTime(undefined)).toEqual({kind:"absent"});expect(normalizeExecutionTime("2026-01-01T12:00")).toEqual({kind:"invalid"});});
  it("round trips a dated closed lot, owner-scopes the read and refuses a reversed exit",async()=>{
    vi.stubEnv("PORTFOLIO_EXECUTION_TIMES","1");const db=createFixtureDb("history"),owner=fixtureUserId("history");

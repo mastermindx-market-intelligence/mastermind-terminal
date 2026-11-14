@@ -163,7 +163,7 @@ export default function PortfolioWorkspace(p: Props) {
             {position.entryPrice !== null && <small>{position.entryCurrency || c("currencyUnknown")}</small>}</td>}
           {!preview && <td data-label={c("last")}>{number(quote?.last, quote && quote.last < 10 ? 4 : 2)}
             {quote && <small>{quote.currency || c("currencyUnknown")}</small>}</td>}
-          <td data-label={c("value")}>{amount(value, quote?.currency)}</td>
+          <td data-label={c("value")}>{amount(value, quote?.currency ?? position.brokerage?.currency)}</td>
           <td data-label={c("change")}>
             <span className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</span>
             {monetaryChange !== null && <small className={monetaryChange >= 0 ? s.positive : s.negative}>{amount(monetaryChange, quote?.currency, true)}</small>}
@@ -356,13 +356,14 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
         <h2 id="portfolio-record-title" tabIndex={-1} autoFocus>{position.brokerage?.symbol ?? position.brokerage?.name ?? position.ticker}</h2><p>{name}</p></header>
       <div className={s.dialogBody}>
         {failure && <p className={s.failure} role="alert">{failure}</p>}
-        <div className={s.recordValue}><span>{c("value")}</span><strong>{amount(marketValue(position, price?.last ?? null, price?.currency), price?.currency)}</strong></div>
+        <div className={s.recordValue}><span>{c("value")}</span><strong>{amount(marketValue(position, price?.last ?? null, price?.currency), price?.currency ?? position.brokerage?.currency)}</strong></div>
         <dl className={s.recordFields}><div><dt>{c("quantity")}</dt><dd>{number(position.shares, position.shares != null && position.shares % 1 !== 0 ? 4 : 0)}</dd></div>
-          <div><dt>{c("entry")}</dt><dd>{position.entryPrice === null ? "—" : `${number(position.entryPrice, position.entryPrice < 10 ? 4 : 2)} · ${position.entryCurrency || c("currencyUnknown")}`}</dd></div>
+          {position.brokerage && <div><dt>{lang === "zh" ? "券商报告成本" : "Institution cost basis"}</dt><dd>{amount(position.brokerage.costBasis, position.brokerage.currency)}</dd></div>}
+          <div><dt>{position.brokerage ? (lang === "zh" ? "平均单位成本" : "Average unit cost") : c("entry")}</dt><dd>{position.entryPrice === null ? "—" : `${number(position.entryPrice, position.entryPrice < 10 ? 4 : 2)} · ${position.entryCurrency || c("currencyUnknown")}`}</dd></div>
           <div><dt>{c("entryDate")}</dt><dd>{position.entryAt ? new Date(position.entryAt).toLocaleString(lang==="zh"?"zh-CN":"en-US",{timeZoneName:"short"}) : position.entryDate || "—"}</dd></div>
           {position.exitDate && <div><dt>{lang==="zh"?"平仓":"Exit"}</dt><dd>{position.exitAt ? new Date(position.exitAt).toLocaleString(lang==="zh"?"zh-CN":"en-US",{timeZoneName:"short"}) : position.exitDate}</dd></div>}
           <div><dt>{c("last")}</dt><dd>{price ? `${number(price.last, price.last < 10 ? 4 : 2)} · ${price.currency || c("currencyUnknown")}` : "—"}</dd></div></dl>
-        <p className={s.quoteSource}>{!price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
+        <p className={s.quoteSource}>{position.brokerage ? (lang === "zh" ? "券商估值日期" : "Institution valuation as of") + " · " + (position.brokerage.asOf ?? "—") : !price ? c("quoteUnavailable") : finite(quote?.last) ? c("sourceQuote") : c("sourceFallback")}</p>
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
         <div className={s.researchLinks}>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>

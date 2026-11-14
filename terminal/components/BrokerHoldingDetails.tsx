@@ -15,6 +15,7 @@ export default function BrokerHoldingDetails({position,onClose}:{position:Positi
       <h2 id="broker-asset-title">{asset.name}</h2><p>{asset.account}</p></header>
       <div className={s.dialogBody}><dl className={s.recordFields}>
         <div><dt>{label}</dt><dd>{asset.value!==null && asset.currency ? asset.currency+" "+asset.value.toLocaleString(zh?"zh-CN":"en-US") : "—"}</dd></div>
+        <div><dt>{zh?"券商报告成本":"Institution cost basis"}</dt><dd>{asset.costBasis != null && asset.currency ? asset.currency+" "+asset.costBasis.toLocaleString(zh?"zh-CN":"en-US") : "—"}</dd></div>
         <div><dt>{zh?"数量":"Quantity"}</dt><dd>{position.shares ?? "—"}</dd></div>
         <div><dt>{zh?"估值日期":"Valuation date"}</dt><dd>{asset.asOf ?? "—"}</dd></div>
         <div><dt>{zh?"最后同步":"Last synced"}</dt><dd>{new Date(asset.syncedAt).toLocaleString(zh?"zh-CN":"en-US")}</dd></div>
