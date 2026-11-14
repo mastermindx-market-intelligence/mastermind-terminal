@@ -15,14 +15,14 @@ import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryN
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { inheritWorkspaceMarketHref, workspaceMarket } from "@/lib/sharedShellMarket";
-import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { chartAnalysisHref, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import styles from "./terminal-workspace.module.css";
 
 const BrowseTools = dynamic(() => import("./ShellDirectory"), { ssr: false });
 
 /** The same three tasks are available on the chart, screener and company page. */
-export function TerminalViews({ symbol, onNavigate }: { symbol?: string | null; onNavigate?: () => void }) {
+export function TerminalViews({ symbol, timeframe, onNavigate }: { symbol?: string | null; timeframe?: string; onNavigate?: () => void }) {
   const path = usePathname();
   const params = useSearchParams();
   const cursor = useActiveSymbol();
@@ -31,13 +31,15 @@ export function TerminalViews({ symbol, onNavigate }: { symbol?: string | null; 
   const subject = path === "/analysis" && params.has("symbol")
     ? normalizeAnalysisSymbol(params.get("symbol") ?? undefined) : canonicalChartSymbol(symbol ?? cursor);
   const analysis = normalizeAnalysisSymbol(subject ?? undefined);
+  const episode = path === "/terminal" && subject === canonicalChartSymbol(params.get("symbol") ?? params.get("sym"))
+    ? params.get("episode") ?? undefined : undefined;
   const market = workspaceMarket(path, params.toString());
   const chart = location ? sharedShellTerminalHref(location, subject)
     : subject ? "/terminal?symbol=" + encodeURIComponent(subject) : "/terminal";
   const views = [
     { path: "/terminal", key: "chart", href: chart },
     { path: "/discover", key: "discover", href: "/discover?tab=screener" },
-    ...(!subject || analysis ? [{ path: "/analysis", key: "analysis", href: analysis ? "/analysis?symbol=" + encodeURIComponent(analysis) : "/analysis" }] : []),
+    ...(!subject || analysis ? [{ path: "/analysis", key: "analysis", href: analysis ? chartAnalysisHref(analysis, timeframe, episode) : "/analysis" }] : []),
   ];
   return <nav className={styles.views} aria-label={t("shellTerminal")}>
     {views.map(view => path === view.path
@@ -47,8 +49,8 @@ export function TerminalViews({ symbol, onNavigate }: { symbol?: string | null; 
   </nav>;
 }
 
-export default function TerminalWorkspaceMenu({ symbol, email, optionsHref, onOpenBrain, onOpenCommands, onReturn }: {
-  symbol: string; email: string; optionsHref?: string; onOpenBrain: () => void;
+export default function TerminalWorkspaceMenu({ symbol, timeframe, email, optionsHref, onOpenBrain, onOpenCommands, onReturn }: {
+  symbol: string; timeframe: string; email: string; optionsHref?: string; onOpenBrain: () => void;
   onOpenCommands: () => void; onReturn?: () => void;
 }) {
   const t = useSharedShellT();
@@ -77,7 +79,7 @@ export default function TerminalWorkspaceMenu({ symbol, email, optionsHref, onOp
           <button type="button" onClick={() => { close(); onOpenBrain(); }}><Glyph k="ai"/>{t("shellMastermindAI")}</button>
         </nav>
         <h2>{t("shellTerminal")}</h2>
-        <TerminalViews symbol={symbol} onNavigate={close} />
+        <TerminalViews symbol={symbol} timeframe={timeframe} onNavigate={close} />
         <h2>{t("shellChartTools")}</h2>
         {optionsHref && <Link href={optionsHref} prefetch={false} onNavigate={close}>
           <Glyph k="options"/>{t("shellOptionsFlow")} · {symbol}
@@ -89,7 +91,7 @@ export default function TerminalWorkspaceMenu({ symbol, email, optionsHref, onOp
         <button type="button" onClick={() => { close(); setBrowse(true); }}>{t("shellBrowseTools")}</button>
         {onReturn && <button type="button" onClick={() => { close(); onReturn(); }}>← {t("shellReturnWorkspace")}</button>}
       </div>
-      <div className="m-drawer-ft" onClickCapture={close}><SettingsButton email={email} /></div>
+      <div className="m-drawer-ft"><SettingsButton email={email} /></div>
     </MobileNavModal>}
     {browse && <div className={styles.browse}><BrowseTools mode="browse" onClose={closeBrowse} /></div>}
   </>;

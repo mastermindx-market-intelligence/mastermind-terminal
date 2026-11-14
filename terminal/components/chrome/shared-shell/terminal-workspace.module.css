@@ -31,18 +31,18 @@
 }
 .drawerBody .views :is(a, span) { min-width: 0; min-height: 44px; flex: 1; }
 @media (min-width: 861px) {
-  :global(.app[data-beta-chart]:not(.fs)) { grid-template-columns: 0 minmax(0, 1fr) var(--rail-w, 360px); }
-  :global(.app[data-beta-chart]) > :global(.topbar) { gap: 4px; }
+  .chart:global(.app):not(:global(.fs)) { grid-template-columns: 0 minmax(0, 1fr) var(--rail-w, 360px); }
+  .chart:global(.app) > :global(.topbar) { gap: 4px; }
 }
 @media (max-width: 1180px) {
-  :global(.app[data-beta-chart]) > :global(.topbar) > .views { display: none; }
+  .chart:global(.app) > :global(.topbar) > .views { display: none; }
 }
 @media (max-width: 860px) {
-  :global(.app[data-beta-chart]) > :global(.m-symbar) { padding: 0 5px; gap: 3px; min-height: 52px; padding-top: env(safe-area-inset-top, 0px); }
+  .chart:global(.app) > :global(.m-symbar) { padding: 0 5px; gap: 3px; min-height: 52px; padding-top: env(safe-area-inset-top, 0px); }
   .opener { min-height: 44px; padding-inline: 4px; gap: 4px; }
   .opener svg:last-child { display: none; }
-  :global(.app[data-beta-chart]) :global(.m-symbar .m-sym) { gap: 3px; }
-  :global(.app[data-beta-chart]) :global(.m-symbar .m-quote-stack) { min-width: 0; }
+  .chart:global(.app) :global(.m-symbar .m-sym) { gap: 3px; }
+  .chart:global(.app) :global(.m-symbar .m-quote-stack) { min-width: 0; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .drawerBody { animation: workspace-enter 150ms ease-out; }
@@ -51,6 +51,6 @@
 
 .browse { --shared-rail: 12px; }
 @media (max-width: 480px) {
-  :global(.app[data-beta-chart]) :global(.m-symbar [data-symbol-search]) { flex-wrap: wrap; flex: 1; gap: 2px 6px; }
-  :global(.app[data-beta-chart]) :global(.m-symbar .m-sym .ic) { display: none; }
+  .chart:global(.app) :global(.m-symbar [data-symbol-search]) { flex-wrap: wrap; flex: 1; gap: 2px 6px; }
+  .chart:global(.app) :global(.m-symbar .m-sym .ic) { display: none; }
 }

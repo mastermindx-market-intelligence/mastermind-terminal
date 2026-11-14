@@ -26,6 +26,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
+import workspaceStyles from "@/components/chrome/shared-shell/terminal-workspace.module.css";
 import TerminalWorkspaceMenu, { TerminalViews } from "@/components/chrome/shared-shell/TerminalWorkspaceNav";
 import { createDefaultTapeView, encodeTapeView } from "@/lib/optionsTapeView";
 import { AppNav } from "@/components/AppNav";
@@ -6221,7 +6222,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const tapeHref = betaWorkspace && tapeRoot ? "/options?" + new URLSearchParams({
     tab: "tape", tapeView: encodeTapeView({ ...createDefaultTapeView(), drillTicker: tapeRoot }),
   }) : undefined;
-  const betaMenu = betaWorkspace && <TerminalWorkspaceMenu symbol={active} email={email} optionsHref={tapeHref}
+  const betaMenu = betaWorkspace && <TerminalWorkspaceMenu symbol={active} timeframe={tf} email={email} optionsHref={tapeHref}
     onOpenBrain={openBrain} onOpenCommands={() => setPaletteOpen(true)} onReturn={fromMacro ? onBack : undefined} />;
 
   return (
@@ -6232,7 +6233,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         below are children of it, which is what matters. */}
     <SharedShellPresentation enabled={!shellMode} identity={identity} appearanceOnly>
     <SettingsProvider identity={identity} defaultSection="terminal">
-    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-beta-chart={betaWorkspace ? "" : undefined} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ "--rail-w": `${railW}px` } as React.CSSProperties}>
+    <div className={`app${betaWorkspace ? " " + workspaceStyles.chart : ""}${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-beta-chart={betaWorkspace ? "" : undefined} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ "--rail-w": `${railW}px` } as React.CSSProperties}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
         loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
         // A historical read is an unnamed local working copy. It must never target the
@@ -6246,7 +6247,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
           onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
           <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
-        {betaWorkspace && <TerminalViews symbol={active} />}
+        {betaWorkspace && <TerminalViews symbol={active} timeframe={tf} />}
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -6288,7 +6289,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
           <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
         </button>
-        <button className="ai" onClick={toggleBrain}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
+        {!betaWorkspace && <button className="ai" onClick={toggleBrain}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>}
         <SettingsButton email={email} />
       </header>
       )}

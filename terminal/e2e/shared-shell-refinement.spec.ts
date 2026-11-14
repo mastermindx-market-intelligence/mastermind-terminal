@@ -579,6 +579,21 @@ test("market control remains reachable at 320px alongside existing header action
   await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
 });
 
+test("Prophet Setup opens the selected company's chart and returns to the same Setup", async ({ page, baseURL }) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.goto("/options?tab=prophet&prophetLane=screener&prophetView=setup&prophetGroup=us_sector_industrials&prophetSymbol=CARR");
+  const setup = page.getByTestId("prophet-sector-setup");
+  await expect(setup).toBeVisible();
+  const chartLink = setup.getByTestId("prophet-sector-chart-link");
+  const origin = page.url();
+  await chartLink.click();
+  await expect(page).toHaveURL(url => url.pathname === "/terminal" && url.searchParams.get("symbol") === "CARR" && url.searchParams.get("ret") === origin);
+  await page.locator("[data-beta-chart] [data-chart-workspaces]:visible").click();
+  await page.getByRole("dialog", { name: "Workspaces" }).getByRole("button", { name: /return to previous workspace/i }).click();
+  await expect(page).toHaveURL(origin);
+  await expect(setup.getByTestId("case-header")).toContainText("CARR");
+});
+
 test("the Beta chart opens labelled workspaces without a second rail", async ({ page, baseURL }, info) => {
   await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
   if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 720 });
@@ -603,7 +618,18 @@ test("the Beta chart opens labelled workspaces without a second rail", async ({ 
   for (const name of ["Macro Dashboard", "Prophet", "Sector Intelligence", "Portfolio", "Options Flow", "Analysis", "Discover"]) {
     await expect(drawer.getByRole("link", {name, exact: true})).toBeVisible();
   }
-  await expect(drawer.getByRole("link", {name: "Analysis", exact: true})).toHaveAttribute("href", "/analysis?symbol=AAPL");
+  const analysis = drawer.getByRole("link", {name: "Analysis", exact: true});
+  await expect(analysis).toHaveAttribute("href", "/analysis?symbol=AAPL&chartSymbol=AAPL&tf=W");
+  await analysis.click();
+  await expect(page).toHaveURL(url => url.pathname === "/analysis" && url.searchParams.get("symbol") === "AAPL");
+  const shell = page.locator('[data-shared-shell="beta"]');
+  const desktop = info.project.name === "desktop";
+  if (!desktop) await shell.getByRole("button", {name: "Open navigation", exact: true}).click();
+  const backToChart = (desktop ? shell.locator(".topbar") : page.getByRole("dialog")).getByRole("link", {name: "Chart", exact: true});
+  await backToChart.click();
+  await expect(menu).toBeVisible();
+  await expect(page).toHaveURL(url => url.pathname === "/terminal" && url.searchParams.get("symbol") === "AAPL" && url.searchParams.get("tf") === "W");
+  await menu.click();
   await expect(drawer.getByRole("button", {name: "Settings", exact: true})).toBeVisible();
   expect((await chart.locator(".workspace").boundingBox())!.width).toBe(width);
   await page.keyboard.press("Escape");

@@ -289,7 +289,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
       {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
+        {!sharedPresentation && !invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -298,8 +298,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
-        <SymbolPicker
-          scope={sharedPresentation ? "companies" : "symbols"}
+        {!sharedPresentation && <SymbolPicker
+          scope="symbols"
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
           eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
@@ -310,14 +310,11 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           onCompanyPick={openSymbol}
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
-        />
+        />}
         <div className="analysis-context-freshness" aria-label={t("wsCompanyResearch")}>
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
-        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
-          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
-        </button>}
         {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
         {!invalidSymbol && (
           <Link
@@ -365,9 +362,6 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
               >
                 {t("wsOpenTheses")}
               </Link>
-              {sharedPresentation && (
-                <button type="button" onClick={onClose}>{pick(zh, "Open current chart", "打开当前图表")}</button>
-              )}
             </nav>
           </details>
         )}
@@ -385,7 +379,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
             <p>{zh
               ? `“${invalidSymbol}” 不是受支持的代码格式。系统未将其替换为 ${DEFAULT_SYMBOL}，也未请求公司数据。`
               : `“${invalidSymbol}” is not a supported symbol format. It was not substituted with ${DEFAULT_SYMBOL}, and no company data was requested.`}</p>
-            <button className="btn btn-primary" onClick={() => setPickerOpen(true)}>
+            <button className="btn btn-primary" onClick={() => sharedPresentation ? window.dispatchEvent(new Event("mmx:shell-company-search")) : setPickerOpen(true)}>
               {t("wsChooseCompany")}
             </button>
           </div>

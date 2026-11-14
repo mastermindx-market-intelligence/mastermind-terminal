@@ -16,7 +16,11 @@ const state = vi.hoisted(() => ({
   props: null as PickerProps | null,
   tool: { href: "/tools/calculators/cagr.html", query: "compound" },
 }));
-vi.mock("next/navigation",()=>({useRouter:()=>({push:state.push})}));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: state.push }),
+  usePathname: () => window.location.pathname,
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}));
 vi.mock("@/lib/activeSymbol",()=>({useActiveSymbol:()=>"BABA",writeActiveSymbol:vi.fn()}));
 vi.mock("@/components/SymbolPicker", () => ({
   default: (props: PickerProps) => {
