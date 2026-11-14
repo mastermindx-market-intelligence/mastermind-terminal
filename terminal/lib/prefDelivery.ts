@@ -83,7 +83,7 @@ export type DeliveryStatus = {
  * this is the Supabase shape a `.catch()` cannot see, and treating it as success is what made
  * the pane claim "Saved" on a write that did not land.
  */
-export type SendResult = { error?: unknown } | void;
+export type SendResult = { error?: unknown; retry?: boolean } | void;
 
 export type PumpOptions = {
   /** Deliver one COMPLETE desired state to the authority. */
@@ -95,6 +95,9 @@ export type PumpOptions = {
   /** Injectable timer, so tests need no real clock. */
   setTimer?: (fn: () => void, ms: number) => unknown;
   clearTimer?: (handle: unknown) => void;
+  /** A feature using the existing delivery pump against another account store
+   * supplies that store's key fence. Auth metadata retains its original fence. */
+  scope?: typeof scopeAccountWrite;
 };
 
 const DEFAULT_BACKOFF = [2_000, 5_000, 15_000, 30_000] as const;
@@ -128,6 +131,7 @@ export class PreferencePump {
   private readonly backoff: readonly number[];
   private readonly setTimer: (fn: () => void, ms: number) => unknown;
   private readonly clearTimer: (handle: unknown) => void;
+  private readonly scope: typeof scopeAccountWrite;
 
   constructor(opts: PumpOptions) {
     this.send = opts.send;
@@ -135,6 +139,7 @@ export class PreferencePump {
     this.backoff = opts.backoffMs?.length ? opts.backoffMs : DEFAULT_BACKOFF;
     this.setTimer = opts.setTimer ?? ((fn, ms) => setTimeout(fn, ms));
     this.clearTimer = opts.clearTimer ?? ((h) => clearTimeout(h as ReturnType<typeof setTimeout>));
+    this.scope = opts.scope ?? scopeAccountWrite;
   }
 
   getStatus(): DeliveryStatus { return this.status; }
@@ -222,12 +227,12 @@ export class PreferencePump {
           return;
         }
         if (result && typeof result === "object" && "error" in result && result.error) {
-          this.fail();
+          this.fail(result.retry !== false);
           return;
         }
         this.attempts = 0;
         if (revision > this.acked) this.acked = revision;
-        for (const key of scopeAccountWrite(payload).dropped) delete this.desired[key];
+        for (const key of this.scope(payload).dropped) delete this.desired[key];
         // A one-shot key needs no merge base — once its queuing revision is acknowledged it is
         // evicted, so it rides along only until it is actually delivered, never forever.
         for (const [key, atRev] of Array.from(this.oneShotKeys)) {
@@ -247,9 +252,10 @@ export class PreferencePump {
     );
   }
 
-  private fail() {
+  private fail(retry = true) {
     this.attempts += 1;
     this.publish("failed");
+    if (!retry || this.dead) return;
     const wait = this.backoff[Math.min(this.attempts - 1, this.backoff.length - 1)];
     this.timer = this.setTimer(() => {
       this.timer = null;
@@ -258,3 +264,4 @@ export class PreferencePump {
     }, wait);
   }
 }
+

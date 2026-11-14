@@ -1,4 +1,6 @@
 "use client";
+
+import { useDiscoverT } from "@/lib/discoverWorkspaceLex";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -347,6 +349,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const router = useRouter();
   const t = useT();
   const { lang } = useLang();
+  const tPlain = useDiscoverT();
   // The market universe this user sees is OWNER state, so it is keyed on the identity's uuid,
   // not on an address the account can change out from under it.
   const account = useMarketPrefs(identity);
@@ -354,6 +357,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const zh = lang === "zh";
   const expectedOwner = identityOwnerKey(identity);
   const liveOwnerToken = currentOwnerToken();
+  useEffect(() => {
+    if (account.owner === expectedOwner) account.openDiscover(liveOwnerToken);
+  }, [account.owner, expectedOwner, liveOwnerToken.owner, liveOwnerToken.generation, account.openDiscover]);
 
   // ── data state ─────────────────────────────────────────────────────────
   const [rows, setRows] = useState<Row[]>([]);
@@ -447,6 +453,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [viewId, setViewId] = useState("current"), [viewName, setViewName] = useState("Market overview");
   const [advancedOpen, setAdvancedOpen] = useState(false), [columnsOpen, setColumnsOpen] = useState(false), [viewsOpen, setViewsOpen] = useState(false);
   const [help, setHelp] = useState<Row | "guide" | null>(null), [activeDrag, setActiveDrag] = useState<DiscoverColumn | null>(null);
+  const [quoteDetail, setQuoteDetail] = useState<Row | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const [workspaceOwner, setWorkspaceOwner] = useState<string | null>(null);
   const [workspaceToken, setWorkspaceToken] = useState<OwnerToken | null>(null);
@@ -744,12 +751,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     search: searchRaw, technical: techControls, fundamental: fundPreds, showAllMarkets })!;
   const workspaceJson = JSON.stringify(workspace);
   useLayoutEffect(() => {
-    if (account.owner !== expectedOwner || !account.ready) {
+    if (account.owner !== expectedOwner || !account.discoverReady) {
       hydration.current = { owner: "", base: "pending" }; setWorkspaceOwner(null); setWorkspaceToken(null); return;
     }
     if (liveOwnerToken.owner !== account.owner) return;
     const first = workspaceOwner !== account.owner || workspaceToken?.generation !== liveOwnerToken.generation || workspaceToken?.owner !== liveOwnerToken.owner;
-    const recovered = hydration.current.owner === account.owner && hydration.current.base !== "loaded" && account.base === "loaded";
+    const recovered = hydration.current.owner === account.owner && hydration.current.base !== "loaded" && account.discoverBase === "loaded";
     if (first || recovered && workspaceJson === lastStored.current) {
       applyWorkspace(account.discover.current, first);
       restoring.current = true;
@@ -757,15 +764,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       setWorkspaceOwner(account.owner);
       setWorkspaceToken(liveOwnerToken); setSaveRejected(false);
     }
-    hydration.current = { owner: account.owner, base: account.base };
-  }, [account.owner, expectedOwner, account.ready, account.base, workspaceOwner, workspaceToken, liveOwnerToken.owner, liveOwnerToken.generation, account.discover.current, applyWorkspace, workspaceJson]);
+    hydration.current = { owner: account.owner, base: account.discoverBase };
+  }, [account.owner, expectedOwner, account.discoverReady, account.discoverBase, workspaceOwner, workspaceToken, liveOwnerToken.owner, liveOwnerToken.generation, account.discover.current, applyWorkspace, workspaceJson]);
   // Commit to the existing preference owner promptly. Its one delivery pump
   // coalesces changes; a second component debounce would lose edits on navigation.
   useEffect(() => {
-    if (workspaceOwner !== expectedOwner || account.owner !== expectedOwner || !account.ready || hydrationRevision !== hydrationSequence.current) return;
+    if (workspaceOwner !== expectedOwner || account.owner !== expectedOwner || !account.discoverReady || hydrationRevision !== hydrationSequence.current) return;
     if (restoring.current) { restoring.current = false; lastStored.current = workspaceJson; return; }
     if (workspaceJson === lastStored.current) return;
-    if (account.base !== "loaded" || account.discover.blocked) { setSaveRejected(true); return; }
+    if (account.discoverBase !== "loaded" || account.discover.blocked) { setSaveRejected(true); return; }
     const token = workspaceToken;
     if (!token || token.owner !== expectedOwner || !ownerTokenIsCurrent(token)) return;
     const value = parseDiscoverView(JSON.parse(workspaceJson));
@@ -773,9 +780,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const named = account.discover.views.some(v => v.id === value.id);
     const ok = account.saveDiscover(value, named, token);
     setSaveRejected(!ok); if (ok) lastStored.current = workspaceJson;
-  }, [workspaceJson, workspaceOwner, workspaceToken, hydrationRevision, expectedOwner, account.owner, account.ready, account.base, account.discover.blocked, account.discover.views, account.saveDiscover]);
+  }, [workspaceJson, workspaceOwner, workspaceToken, hydrationRevision, expectedOwner, account.owner, account.discoverReady, account.discoverBase, account.discover.blocked, account.discover.views, account.saveDiscover]);
   const writeToken = workspaceToken?.owner === expectedOwner && ownerTokenIsCurrent(workspaceToken) ? workspaceToken : null;
-  const canSaveViews = !!writeToken && workspaceOwner === expectedOwner && account.owner === expectedOwner && account.base === "loaded" && !account.discover.blocked;
+  const canSaveViews = !!writeToken && workspaceOwner === expectedOwner && account.owner === expectedOwner && account.discoverBase === "loaded" && !account.discover.blocked && (!account.discoverIssue || account.discoverIssue === "unavailable" || account.discoverIssue === "rejected");
   const flushWorkspace = (): boolean => {
     if (workspaceJson === lastStored.current) return true;
     const ok = canSaveViews && !!writeToken && !!workspace && account.saveDiscover(workspace, account.discover.views.some(v => v.id === viewId), writeToken);
@@ -798,7 +805,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     applyWorkspace(next); lastStored.current = JSON.stringify(next); return true;
   };
   const deleteView = (id: string) => {
-    if (writeToken && ownerTokenIsCurrent(writeToken) && account.deleteDiscover(id, writeToken) && viewId === id) { setViewId("current"); setViewName(zh ? "当前视图" : "Current view"); }
+    if (writeToken && ownerTokenIsCurrent(writeToken) && account.deleteDiscover(id, writeToken) && viewId === id) { setViewId("current"); setViewName(tPlain("current_view")); }
   };
   const useTemplate = (type: "market" | "aligned" | "research" | "overnight") => {
     const template = parseDiscoverView({ ...workspace, id: "current", density,
@@ -809,13 +816,19 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     return template ? chooseWorkspace(template) : false;
   };
   const pendingEdit = workspaceJson !== lastStored.current;
-  const saveStatus = account.discover.blocked ? (zh ? "已保存的视图格式暂不支持" : "Saved views use an unsupported format")
-    : !account.ready || workspaceOwner !== expectedOwner ? (zh ? "正在载入视图…" : "Loading your views…")
-    : account.base !== "loaded" || saveRejected ? (zh ? "账户暂不可用 · 更改未保存" : "Account unavailable · changes not saved")
-    : account.sync.phase === "failed" ? (zh ? "尚未同步 · 重试中" : "Not synced · retrying")
-    : account.owner === "guest" ? (zh ? "访客视图 · 当前设备" : "Guest views · this device")
-    : pendingEdit || account.sync.phase === "syncing" ? (zh ? "正在保存…" : "Saving…")
-    : account.discover.current ? (zh ? "已保存到账户" : "Saved to your account") : (zh ? "更改将自动保存到账户" : "Changes autosave to your account");
+  const viewLabel = viewId !== "current" ? viewName : viewName === "Market overview" ? tPlain("market_overview")
+    : viewName === "Buy signals + uptrend" ? tPlain("buy_signals_uptrend") : viewName === "Historical performance" ? tPlain("historical_performance")
+    : viewName === "Overnight watch" ? tPlain("overnight_watch") : viewName;
+  const saveStatus = account.discoverIssue === "conflict" ? (tPlain("this_view_changed_on_another_device_local"))
+    : account.discoverIssue === "rejected" ? (tPlain("view_not_saved_reduce_saved_views_or"))
+    : account.discoverIssue === "unauthenticated" ? (tPlain("account_connection_changed_edits_not_saved"))
+    : account.discover.blocked || account.discoverIssue === "newer_schema" ? (tPlain("saved_views_use_an_unsupported_format"))
+    : !account.discoverReady || workspaceOwner !== expectedOwner ? (tPlain("loading_your_views"))
+    : account.discoverBase !== "loaded" || saveRejected ? (tPlain("saved_views_unavailable_changes_not_saved"))
+    : account.discoverSync.phase === "failed" ? (tPlain("not_synced_retrying"))
+    : account.owner === "guest" ? account.discoverDevice ? (tPlain("guest_views_this_device")) : (tPlain("device_storage_unavailable_changes_kept_for_this"))
+    : pendingEdit || account.discoverSync.phase === "syncing" ? (tPlain("saving"))
+    : account.discover.current ? (tPlain("saved_to_your_account")) : (tPlain("changes_autosave_to_your_account"));
 
   // ── filtered view (single pass) ────────────────────────────────────────
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
@@ -1181,17 +1194,21 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   const columnLabels: ColumnLabels = {
     sym: t("symbol"), verdict: t("signalCol"), regimeBull: t("regime"), last: t("colLast"), chg: t("colChgPctShort"),
-    overnight: zh ? "夜盘价格" : "Overnight", overnightChg: zh ? "夜盘涨跌%" : "Overnight %", dv: ct("cmTraded"), mcap: t("colMcap"),
+    overnight: tPlain("overnight"), overnightChg: tPlain("overnight_2"), dv: ct("cmTraded"), mcap: t("colMcap"),
     gics: tax === "yahoo_industry" ? ct("cmIndustry") : t("colSector"), vol: t("colVolShort"), offHi: t("colOffHigh"),
-    offLo: zh ? "距52周低点%" : "% above low", hi52: zh ? "52周最高" : "52W high", lo52: zh ? "52周最低" : "52W low", vts: zh ? "信号日期" : "Signal date",
-    wr: zh ? "历史胜率" : "Hist. win rate", pf: zh ? "历史利润因子" : "Hist. profit factor", cagr: zh ? "历史年化收益" : "Hist. CAGR",
+    offLo: tPlain("above_low"), hi52: tPlain("52w_high"), lo52: tPlain("52w_low"), vts: tPlain("signal_date"),
+    wr: tPlain("hist_win_rate"), pf: tPlain("hist_profit_factor"), cagr: tPlain("hist_cagr"),
     mscRank: t("colMscRegime"), mscNetGex: t("colMscNetGex"), mscFlip: t("colMscFlip"), technical: tt("tsColumn", { tf: techControls.tf }),
     "fund:fund.pe_ttm": fieldColumn(ft, "fund.pe_ttm"), "fund:fund.gross_margin_fy": fieldColumn(ft, "fund.gross_margin_fy"),
     "fund:fund.net_margin_fy": fieldColumn(ft, "fund.net_margin_fy"), "fund:fund.roe_fy": fieldColumn(ft, "fund.roe_fy"), "fund:fund.revenue_growth_fy": fieldColumn(ft, "fund.revenue_growth_fy"),
   };
   const cols = columns.map(k => ({ k, label: columnLabels[k], w: k === "sym" ? "150px" : "76px", fund: k.startsWith("fund:") ? k.slice(5) as FundamentalFieldId : undefined }));
   const colN = cols.length;
-  const historicalVisible = columns.some(c => ["wr", "pf", "cagr"].includes(c));
+  const historicalVisible = columns.some(c => ["wr", "pf", "cagr"].includes(c)) || ["wr", "pf", "cagr"].includes(effSort.k);
+  const detailRegular = quoteDetail ? discoverRegularReading(quoteDetail, quotes.regular[quoteDetail.sym], quotes.now) : null;
+  const detailOvernight = quoteDetail ? discoverOvernightReading(quotes.overnight[quoteDetail.sym], quotes.now) : null;
+  const observationTime = (ms: number | null | undefined) => ms ? new Date(ms).toLocaleString(tPlain("en_us")) : (tPlain("date_unavailable"));
+  const quoteStateLabel = (kind: string) => kind === "live" ? (tPlain("live")) : kind === "close" ? (tPlain("regular_session_close")) : kind === "delayed" ? (tPlain("15_minute_delayed")) : kind === "snapshot" ? (tPlain("scan_snapshot")) : (tPlain("latest_available_quote"));
 
   // "{n} results" with the numeral in a <b> so it can carry tabular-nums
   const resultLine = (() => {
@@ -1202,7 +1219,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     return <>{tpl.slice(0, i)}<b>{n}</b>{tpl.slice(i + 3)}</>;
   })();
 
-  if (workspaceOwner !== expectedOwner) return <main className="main2 screener-main scr2"><div className="scr2-status" role="status">{zh ? "正在载入你的视图…" : "Loading your Discover workspace…"}</div></main>;
+  if (workspaceOwner !== expectedOwner) return <main className="main2 screener-main scr2"><div className="scr2-status" role="status">{tPlain("loading_your_discover_workspace")}</div></main>;
 
   return (
     <main className={`main2 screener-main scr2 ${workspaceStyles.workspace}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
@@ -1221,29 +1238,31 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             {ALL_MARKETS.map((m) => <option key={m} value={m}>{t(MARKET_TKEY[m])}</option>)}
           </DiscoverSelect>
           <DiscoverSelect className={workspaceStyles.control} data-cm-control="signal" aria-label={t("signalCol")} value={f.signal} onChange={e => patchF({ signal: e.target.value as Sig })}>
-            <option value="any">{zh ? "所有信号" : "Any signal"}</option><option value="buy">{zh ? "买入类信号" : "Buy signals"}</option><option value="sell">{zh ? "卖出信号" : "Sell signals"}</option><option value="tracked">{zh ? "有信号覆盖" : "Signal coverage"}</option>
+            <option value="any">{tPlain("any_signal")}</option><option value="buy">{tPlain("buy_signals")}</option><option value="sell">{tPlain("sell_signals")}</option><option value="tracked">{tPlain("signal_coverage")}</option>
           </DiscoverSelect>
           <DiscoverSelect className={workspaceStyles.control} data-cm-control="regime" aria-label={t("regime")} value={f.uptrend ? "uptrend" : "any"} onChange={e => patchF({ uptrend: e.target.value === "uptrend" })}>
-            <option value="any">{zh ? "所有趋势" : "Any regime"}</option><option value="uptrend">{t("uptrendRegime")}</option>
+            <option value="any">{tPlain("any_regime")}</option><option value="uptrend">{t("uptrendRegime")}</option>
           </DiscoverSelect>
           <div className={workspaceStyles.toolbarActions}>
-            <button type="button" className={workspaceStyles.control} aria-expanded={advancedOpen} aria-controls="discover-advanced" onClick={() => setAdvancedOpen(o => !o)}><DiscoverIcon name="filter" />{zh ? "筛选" : "Filters"}{tags.length + fundPreds.length + (techGate ? 1 : 0) > 0 && <span>· {tags.length + fundPreds.length + (techGate ? 1 : 0)}</span>}</button>
-            <button type="button" className={workspaceStyles.control} data-discover-columns="" onClick={() => setColumnsOpen(true)}><DiscoverIcon name="columns" />{zh ? "列" : "Columns"}</button>
-            <button type="button" className={workspaceStyles.control} data-discover-views="" onClick={() => setViewsOpen(true)}><DiscoverIcon name="views" />{zh ? "视图" : "Views"}</button>
+            <button type="button" className={workspaceStyles.control} aria-expanded={advancedOpen} aria-controls="discover-advanced" onClick={() => setAdvancedOpen(o => !o)}><DiscoverIcon name="filter" />{tPlain("filters")}{tags.length + fundPreds.length + (techGate ? 1 : 0) > 0 && <span>· {tags.length + fundPreds.length + (techGate ? 1 : 0)}</span>}</button>
+            <button type="button" className={workspaceStyles.control} data-discover-columns="" onClick={() => setColumnsOpen(true)}><DiscoverIcon name="columns" />{tPlain("columns")}</button>
+            <button type="button" className={workspaceStyles.control} data-discover-views="" onClick={() => setViewsOpen(true)}><DiscoverIcon name="views" />{tPlain("views")}</button>
           </div>
         </div>
         <div className={workspaceStyles.secondaryBar}>
-          <button type="button" className={`${workspaceStyles.textButton} ${workspaceStyles.viewName}`} onClick={() => setViewsOpen(true)}>{viewName}<span aria-hidden="true">⌄</span></button>
-          <span className={workspaceStyles.saveStatus} role="status" data-failed={account.sync.phase === "failed" || saveRejected || undefined}>{saveStatus}</span>
-          {account.sync.phase === "failed" && <button type="button" className={workspaceStyles.textButton} onClick={account.retrySync}>{zh ? "重试" : "Retry"}</button>}
+          <button type="button" data-discover-view={viewId} className={`${workspaceStyles.textButton} ${workspaceStyles.viewName}`} onClick={() => setViewsOpen(true)}>{viewLabel}<span aria-hidden="true">⌄</span></button>
+          <span className={workspaceStyles.saveStatus} role="status" data-discover-sync={account.discoverSync.phase} data-discover-issue={account.discoverIssue ?? undefined} data-failed={account.discoverSync.phase === "failed" || saveRejected || undefined}>{saveStatus}</span>
+          {!columns.includes(effSort.k) && <button type="button" data-discover-hidden-sort="" className={workspaceStyles.textButton} onClick={() => setColumns(c => [...c, effSort.k])}>{tPlain("sorted_by")}{columnLabels[effSort.k]} {effSort.dir === -1 ? "↓" : "↑"} · {tPlain("show_column")}</button>}
+          {(account.discoverBase === "retrying" || account.discoverSync.phase === "failed") && (!account.discoverIssue || account.discoverIssue === "unavailable") && <button type="button" className={workspaceStyles.textButton} onClick={() => { if (writeToken) account.retryDiscover(writeToken); }}>{tPlain("retry")}</button>}
+          {account.discoverIssue === "conflict" && <button type="button" className={workspaceStyles.textButton} onClick={() => { if (writeToken) account.reloadDiscover(writeToken); }}>{tPlain("discard_local_edits_use_account_version")}</button>}
           <div className={workspaceStyles.secondaryActions}>
             <div className="fin-toggle" role="group" aria-label={t("scr2Density")}><button type="button" aria-pressed={density === "c"} className={density === "c" ? "on" : ""} onClick={() => pickDensity("c")}>{t("scr2DenComfort")}</button><button type="button" aria-pressed={density === "k"} className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button></div>
-            <button type="button" className={workspaceStyles.iconButton} aria-label={zh ? "信号与数据说明" : "Signals and data guide"} onClick={() => setHelp("guide")}><DiscoverIcon name="help" /></button>
+            <button type="button" className={workspaceStyles.iconButton} aria-label={tPlain("signals_and_data_guide")} onClick={() => setHelp("guide")}><DiscoverIcon name="help" /></button>
           </div>
         </div>
-        <section id="discover-advanced" className={workspaceStyles.advanced} hidden={!advancedOpen} aria-label={zh ? "高级筛选" : "Advanced filters"}>
-          <div className={workspaceStyles.advancedHeading}><h2>{zh ? "精细筛选" : "Refine your results"}</h2><button type="button" className={workspaceStyles.textButton} onClick={clearAll}>{t("scr2ClearAll")}</button></div>
-          <section className={workspaceStyles.advancedSection}><h3>{zh ? "范围与行业" : "Universe & sector"}</h3><div className="scr2-row">          <DiscoverSelect
+        <section id="discover-advanced" className={workspaceStyles.advanced} hidden={!advancedOpen} aria-label={tPlain("advanced_filters")}>
+          <div className={workspaceStyles.advancedHeading}><h2>{tPlain("refine_your_results")}</h2><button type="button" className={workspaceStyles.textButton} onClick={clearAll}>{t("scr2ClearAll")}</button></div>
+          <section className={workspaceStyles.advancedSection}><h3>{tPlain("universe_sector")}</h3><div className="scr2-row">          <DiscoverSelect
             className="scr2-select"
             aria-label={t("scr2Asset")}
             title={t("scr2Asset")}
@@ -1286,7 +1305,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           </DiscoverSelect>
 
 </div></section>
-          <section className={workspaceStyles.advancedSection}><h3>{zh ? "价格与流动性" : "Price & liquidity"}</h3><div className="scr2-row">          {/* E03: a traded-value floor is applied in ONE currency scope — never across currencies */}
+          <section className={workspaceStyles.advancedSection}><h3>{tPlain("price_liquidity")}</h3><div className="scr2-row">          {/* E03: a traded-value floor is applied in ONE currency scope — never across currencies */}
           <DiscoverSelect
             className="scr2-select"
             aria-label={ct("cmMinTraded")}
@@ -1424,7 +1443,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         />
       )}
 
-          <details className={workspaceStyles.legacy}><summary>{zh ? "快捷筛选与设备预设" : "Quick filters & device presets"}</summary>          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
+          <details className={workspaceStyles.legacy}><summary>{tPlain("quick_filters_device_presets")}</summary>          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
             <div className="scr2-presets">
               {BUILTIN_PRESETS.map((p) => (
                 <button
@@ -1525,7 +1544,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 </div>
         </section>
       </div>
-      {historicalVisible && <div className={workspaceStyles.researchNote}><span>{zh ? "历史回测使用不同的退出规则，不能代表当前信号的胜率。" : "Historical backtest · exit rules differ from the current signals. These are research metrics, not expected returns."}</span><button type="button" className={workspaceStyles.textButton} onClick={() => setHelp("guide")}>{zh ? "查看方法" : "Read methodology"}</button></div>}
+      {historicalVisible && <div className={workspaceStyles.researchNote}><span>{tPlain("historical_backtest_exit_rules_differ_from_the")}</span><button type="button" className={workspaceStyles.textButton} onClick={() => setHelp("guide")}>{tPlain("read_methodology")}</button></div>}
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
       <div className="scr2-status">
         {/* no count before the manifest answers — "0 results" under a skeleton is a lie */}
@@ -1551,7 +1570,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => (tg.id === "market" ? changeMarket("all") : tg.id === "ccy" ? changeCcy("auto") : patchF(tg.clear))}
           >{tg.label} ×</button>
         ))}
-        {techGate && <button type="button" className="fin-tag scr2-ftag" aria-label={zh ? "移除技术筛选" : "Remove technical filters"} onClick={() => setTechControls(TECH_DEFAULT_CONTROLS)}>{zh ? "技术筛选" : "Technical filters"} · {techControls.tf} ×</button>}
+        {techGate && <button type="button" className="fin-tag scr2-ftag" aria-label={tPlain("remove_technical_filters")} onClick={() => setTechControls(TECH_DEFAULT_CONTROLS)}>{tPlain("technical_filters")} · {techControls.tf} ×</button>}
         <FundamentalStatusItems
           predicates={fundPreds}
           tally={tableReady ? fundTally : null}
@@ -1581,7 +1600,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
       <div className="scr2-table" ref={tableRef}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveDrag(e.active.id as DiscoverColumn)} onDragCancel={() => setActiveDrag(null)} onDragEnd={e => { setActiveDrag(null); if (e.over) setColumns(c => moveDiscoverColumn(c, String(e.active.id), String(e.over!.id))); }}
-          accessibility={{ screenReaderInstructions: { draggable: zh ? "空格键开始移动，方向键调整列，空格键确认，Escape取消。" : "Press Space to move a column, arrow keys to change its position, Space to drop, or Escape to cancel." } }}>
+          accessibility={{ screenReaderInstructions: { draggable: tPlain("press_space_to_move_a_column_arrow") }, announcements: {
+            onDragStart: ({ active }) => zh ? `已选择${columnLabels[active.id as DiscoverColumn]}列，当前为第${columns.indexOf(active.id as DiscoverColumn) + 1}列。` : `Picked up ${columnLabels[active.id as DiscoverColumn]}, column ${columns.indexOf(active.id as DiscoverColumn) + 1} of ${columns.length}.`,
+            onDragOver: ({ active, over }) => over && over.id !== "sym" ? zh ? `${columnLabels[active.id as DiscoverColumn]}将移至第${columns.indexOf(over.id as DiscoverColumn) + 1}列。` : `${columnLabels[active.id as DiscoverColumn]} will move to column ${columns.indexOf(over.id as DiscoverColumn) + 1} of ${columns.length}.` : undefined,
+            onDragEnd: ({ active, over }) => over && over.id !== "sym" ? zh ? `${columnLabels[active.id as DiscoverColumn]}已移至第${columns.indexOf(over.id as DiscoverColumn) + 1}列。` : `${columnLabels[active.id as DiscoverColumn]} moved to column ${columns.indexOf(over.id as DiscoverColumn) + 1} of ${columns.length}.` : tPlain("column_order_unchanged"),
+            onDragCancel: () => tPlain("move_cancelled_column_order_unchanged"),
+          } }}>
         <table className="scr2">
           <thead>
             <tr>
@@ -1652,7 +1676,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               const quote = discoverRegularReading(r, quotes.regular[r.sym], quotes.now);
               const overnight = discoverOvernightReading(quotes.overnight[r.sym], quotes.now);
               const chgCls = quote.change == null ? "" : quote.change >= 0 ? "up" : "down";
-              const quoteLabel = quote.kind === "snapshot" ? `${zh ? "收盘快照" : "Scan snapshot"} · ${asOf}` : `${quote.kind === "live" ? (zh ? "实时" : "Live") : quote.kind === "close" ? (zh ? "收盘" : "Session close") : quote.kind === "delayed" ? (zh ? "延迟15分钟" : "15-min delayed") : (zh ? "行情" : "Quote")}${quote.observed ? ` · ${new Date(quote.observed).toLocaleString(lang === "zh" ? "zh-CN" : "en-US")}` : ""}`;
+              const quoteLabel = quote.kind === "snapshot" ? `${tPlain("scan_snapshot_2")} · ${asOf}` : `${quote.kind === "live" ? (tPlain("live")) : quote.kind === "close" ? (tPlain("session_close")) : quote.kind === "delayed" ? (tPlain("15_min_delayed")) : (tPlain("quote"))}${quote.observed ? ` · ${new Date(quote.observed).toLocaleString(tPlain("en_us"))}` : ""}`;
               const buy = isBuy(r.verdict);
               const a = annot.get(r.sym);
               const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
@@ -1672,7 +1696,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                     : <div className="sym-cell">{symbolIdentity}</div>}
                 </td>
               );
-              const lastCell = <td data-column="last" title={quoteLabel}><span key={quote.price} className={workspaceStyles.quoteChanged}>{quote.price == null ? "—" : fmt(quote.price, quote.price < 10 ? 4 : 2)}</span>{quote.kind === "live" && <span className={workspaceStyles.quoteLive} aria-label={zh ? "实时" : "Live"} />}</td>;
+              const lastCell = <td data-column="last" title={quoteLabel}><button type="button" data-discover-quote={r.sym} className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}价格详情` : `${r.sym} price details`} onClick={() => setQuoteDetail(r)}><span key={quote.price} className={workspaceStyles.quoteChanged}>{quote.price == null ? "—" : fmt(quote.price, quote.price < 10 ? 4 : 2)}</span>{quote.kind === "live" ? <span className={workspaceStyles.quoteLive} aria-label={tPlain("live")} /> : <span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span>}</button></td>;
               const chgCell = <td data-column="chg" className={chgCls} title={quoteLabel}><span key={quote.change} className={workspaceStyles.quoteChanged}>{quote.change == null ? "—" : `${quote.change >= 0 ? "+" : ""}${fmt(quote.change)}%`}</span></td>;
               // A data attribute for tests and styling, never rendered: the ISO code, or the kind.
               const ccyAttr = cur.kind === "code" ? cur.code : cur.kind;
@@ -1684,15 +1708,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                     : r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
                 >{formatMoney(r.dv, cur)}</td>
               );
-              const signalName = r.verdict === "REBUY" ? (zh ? "快速再入" : "Re-buy") : r.verdict === "RECLAIM" ? (zh ? "重新入场" : "Re-entry") : r.verdict ? verdictLabel(r.verdict, lang) : "";
-              const sigCell = <td data-column="verdict">{r.verdict ? <button type="button" className={`${workspaceStyles.signalButton} ${buy ? "up" : r.verdict === "SELL" ? "down" : ""}`} title={`${signalName} · ${r.vts || (zh ? "日期不可用" : "date unavailable")} · ${zh ? "点击了解" : "Select for explanation"}`} onClick={() => setHelp(r)}>{signalName}{verdictIsStale(r.vts) || !r.vts ? <span aria-label={zh ? "历史记录" : "Historical reading"}> ·</span> : null}</button> : <span className={workspaceStyles.uncovered}>{zh ? "未覆盖" : "Not covered"}</span>}</td>;
+              const signalName = r.verdict === "REBUY" ? (tPlain("re_buy")) : r.verdict === "RECLAIM" ? (tPlain("re_entry")) : r.verdict ? verdictLabel(r.verdict, lang) : "";
+              const sigCell = <td data-column="verdict">{r.verdict ? <button type="button" className={`${workspaceStyles.signalButton} ${buy ? "up" : r.verdict === "SELL" ? "down" : ""}`} title={`${signalName} · ${r.vts || (tPlain("date_unavailable_2"))} · ${tPlain("select_for_explanation")}`} onClick={() => setHelp(r)}>{signalName}{verdictIsStale(r.vts) || !r.vts ? <span aria-label={tPlain("historical_reading")}> ·</span> : null}</button> : <span className={workspaceStyles.uncovered}>{tPlain("not_covered")}</span>}</td>;
               const pct = (n: number | null) => n == null ? "—" : `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
               const cells: Partial<Record<DiscoverColumn, React.ReactNode>> = {
                 sym: symCell, verdict: sigCell, last: lastCell, chg: chgCell, dv: dvCell,
                 regimeBull: <td data-column="regimeBull"><button type="button" className={`${workspaceStyles.regimeButton} ${r.regimeBull === true ? "up" : ""}`} onClick={() => setHelp(r)}>{r.regimeBull === null ? "—" : r.regimeBull ? t("uptrend") : t("mixed")}</button></td>,
                 mcap: <td>{usd(r.mcap)}</td>, gics: <td className="scr2-sec">{a ? <SectorCellContent compact d={a.disp} labelText={labelText} /> : "—"}</td>,
-                overnight: <td title={overnight ? `BOATS · ${new Date(overnight.extTs * 1000).toLocaleString()}` : zh ? "暂无合格夜盘成交" : "No current qualified overnight trade"}>{overnight ? fmt(overnight.extPrice) : "—"}</td>,
-                overnightChg: <td className={overnight?.extChg != null ? overnight.extChg >= 0 ? "up" : "down" : ""} title={zh ? "夜盘成交相对常规收盘价" : "Overnight trade versus the regular-session close"}>{overnight?.extChg != null ? pct(overnight.extChg) : "—"}</td>,
+                overnight: <td data-column="overnight" title={overnight ? `BOATS · ${new Date(overnight.extTs * 1000).toLocaleString()}` : tPlain("no_current_qualified_overnight_trade")}><button type="button" className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}夜盘详情` : `${r.sym} overnight details`} onClick={() => setQuoteDetail(r)}>{overnight ? fmt(overnight.extPrice) : "—"}<span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span></button></td>,
+                overnightChg: <td className={overnight?.extChg != null ? overnight.extChg >= 0 ? "up" : "down" : ""} title={tPlain("overnight_trade_versus_the_regular_session_close")}>{overnight?.extChg != null ? pct(overnight.extChg) : "—"}</td>,
                 vol: <td>{shares(r.vol)}</td>, offHi: <td>{pct(r.offHi)}</td>, offLo: <td>{pct(r.offLo)}</td>, hi52: <td>{fmt(r.hi52)}</td>, lo52: <td>{fmt(r.lo52)}</td>,
                 vts: <td>{r.vts?.slice(0, 10) ?? "—"}</td>,
                 wr: <td>{r.wr != null ? `${(r.wr * 100).toFixed(0)}%` : "—"}</td>, pf: <td>{fmt(r.pf)}</td>, cagr: <td>{r.cagr != null ? `${(r.cagr * 100).toFixed(1)}%` : "—"}</td>,
@@ -1726,28 +1750,39 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           describe a dataset that does not exist yet */}
       {loaded && !err && (
         <div className="fin-asof scr2-asof">
-          <span>{zh ? "筛选与排序快照" : "Filters & sort snapshot"} · {asOf || "—"}</span>
+          <span>{tPlain("filters_sort_snapshot")} · {asOf || "—"}</span>
           <span aria-hidden="true">·</span>
-          <span>{quotes.regularStatus === "unavailable" ? (zh ? "常规行情暂不可用 · 显示快照" : "Regular quote refresh unavailable · showing snapshot") : (zh ? "可见行行情自动刷新 · 价格按交易时段显示" : "Visible quotes refresh automatically · session-aware prices")}{quotes.overnightStatus === "unavailable" ? (zh ? " · 夜盘刷新暂不可用" : " · Overnight refresh unavailable") : ""}</span>
+          <span>{quotes.regularStatus === "unavailable" ? (tPlain("regular_quote_refresh_unavailable_showing_snapshot")) : (tPlain("visible_quotes_refresh_automatically_session_aware_prices"))}{quotes.overnightStatus === "unavailable" ? (tPlain("overnight_refresh_unavailable")) : ""}</span>
         </div>
       )}
 
       {columnsOpen && <DiscoverColumns columns={columns} labels={columnLabels} onChange={setColumns} onClose={() => setColumnsOpen(false)} zh={zh} />}
       {viewsOpen && <DiscoverViews views={account.discover.views} activeId={viewId} onSelect={chooseWorkspace} onSave={saveView} onDelete={deleteView} onTemplate={useTemplate} onClose={() => setViewsOpen(false)} zh={zh} canSave={canSaveViews} />}
-      {help && <DiscoverDialog title={help === "guide" ? (zh ? "信号、趋势与历史数据" : "Signals, regimes & historical data") : `${help.sym} · ${zh ? "信号说明" : "Signal details"}`} onClose={() => setHelp(null)} wide>
+      {quoteDetail && detailRegular && <DiscoverDialog title={`${quoteDetail.sym} · ${tPlain("price_details")}`} onClose={() => setQuoteDetail(null)}>
         <div className={workspaceStyles.helpBody}>
-          {help !== "guide" && <dl><dt>{zh ? "最近记录" : "Last recorded event"}</dt><dd>{help.verdict ?? "—"} · {help.vts ?? (zh ? "日期不可用" : "date unavailable")}</dd><dt>{zh ? "趋势快照" : "Regime snapshot"}</dt><dd>{help.regimeBull === null ? "—" : help.regimeBull ? t("uptrend") : t("mixed")} · {asOf}</dd></dl>}
-          <h3>{zh ? "先看信号与趋势是否一致" : "Find agreement between signal and regime"}</h3>
-          <p>{zh ? "“买入信号与上升趋势”视图同时筛选最近记录的买入类事件，以及价格在200日均线上方、周线动能看涨的趋势状态。按流动性排序。它不是新入场确认；信号日期和趋势快照可能不同。" : "The Buy signals + uptrend view combines the last recorded buy-side event with a trend reading above the 200-day average and bullish weekly momentum. It sorts by traded value. This is a research filter, not a verified new entry; the event and regime can have different dates."}</p>
-          <h3>{zh ? "每个标签的含义" : "What each signal means"}</h3>
-          <dl><dt>Buy</dt><dd>{zh ? "引擎确认的看涨动能事件。" : "A confirmed bullish momentum event in the signal engine."}</dd><dt>Re-buy</dt><dd>{zh ? "在近期退出后的三个3日线K线内出现快速看涨反转。" : "A fast bullish reversal within three 3-session bars of a recent exit."}</dd><dt>Re-entry</dt><dd>{zh ? "退出后的趋势修复，或先前阻止入场的条件消失；当前摘要不区分这两种原因。原标签为Take back。" : "Trend repair after an exit, or a previously blocked entry whose blocker clears. The summary does not distinguish these cases. Previously labeled Take back."}</dd><dt>Sell</dt><dd>{zh ? "当前信号引擎的跟踪结构止损事件。" : "A trailing structure-stop event in the current signal engine."}</dd></dl>
-          <p>{zh ? "未覆盖不是卖出信号。历史标签不保证当前可交易，也不是个人投资建议。" : "Not covered means the scan has no signal reading. Recorded events are not a current entry qualification. Use the signal date and chart context when researching a name."}</p>
-          <h3>{zh ? "历史指标衡量什么" : "What the historical metrics measure"}</h3>
-          <p>{zh ? "胜率是回测中净收益为正的交易占比。利润因子是正净百分比收益总和除以负净百分比收益绝对值总和；无亏损时不显示数值。CAGR是按回测期间长度计算的模拟复合年增长率。" : "Win rate is the share of simulated trades with a positive net return. Profit factor divides summed positive net percentage returns by the absolute sum of nonpositive net percentage returns; no-loss samples have no finite value. CAGR annualizes the simulated compounded equity over the tested calendar period."}</p>
-          <p>{zh ? "当前历史回测使用3日线、下一根收盘成交，每次买卖按3个基点成本加1个基点滑点计算，并可能在样本末尾强制平仓。回测退出条件与当前信号的结构止损不同，因此这些指标不是当前信号的验证结果，不用于默认排序。" : "The historical test uses 3-session bars, next-bar close fills, 3 basis points of cost plus 1 basis point of slippage on each side, and an end-of-sample close. Its exits differ from the current structure-stop signals. These figures do not validate the current signal stream, and they are not used for default ranking."}</p>
-          <h3>{zh ? "价格与行业来源" : "Price sessions & sector provenance"}</h3>
-          <p>{zh ? "Last和CHG采用与Portfolio相同的常规时段行情来源。夜盘是独立的BOATS成交价格，相对常规收盘价计算涨跌；过期或未覆盖时显示—。筛选和排序使用注明日期的全市场快照，行情更新不会突然改变行的位置。" : "Last and CHG use the same regular-session quote service as Portfolio. Overnight is a separate, qualifying BOATS trade and its change against the regular close; expired or unavailable observations show a dash. Filters and sort use the dated universe snapshot so price updates do not move rows under your pointer."}</p>
-          <p>{zh ? "行业标签保留其原始分类。悬停可查看来源与日期；日期不可用与已过期会分别说明。" : "Sector labels retain their native classification. Their details identify the source and date, distinguishing an unavailable observation date from an aged record."}</p>
+          <h3>{tPlain("regular_session")}</h3>
+          <dl><dt>{t("colLast")}</dt><dd>{detailRegular.price == null ? "—" : fmt(detailRegular.price)}</dd><dt>{t("colChgPctShort")}</dt><dd>{detailRegular.change == null ? "—" : `${detailRegular.change > 0 ? "+" : ""}${fmt(detailRegular.change)}%`}</dd><dt>{tPlain("state")}</dt><dd>{quoteStateLabel(detailRegular.kind)}</dd><dt>{tPlain("observed_at")}</dt><dd>{detailRegular.kind === "snapshot" ? asOf || "—" : observationTime(detailRegular.observed)}</dd></dl>
+          {quotes.regularStatus === "unavailable" && <p>{tPlain("regular_quote_refresh_is_unavailable_the_last")}</p>}
+          <h3>{tPlain("overnight_3")}</h3>
+          {detailOvernight ? <dl><dt>{tPlain("trade_price")}</dt><dd>{fmt(detailOvernight.extPrice)}</dd><dt>{tPlain("versus_regular_close")}</dt><dd>{detailOvernight.extChg == null ? "—" : `${detailOvernight.extChg > 0 ? "+" : ""}${fmt(detailOvernight.extChg)}%`}</dd><dt>{tPlain("source_venue")}</dt><dd>Tiingo · BOATS</dd><dt>{tPlain("trade_time")}</dt><dd>{observationTime(detailOvernight.extTs * 1000)}</dd><dt>{tPlain("valid_until")}</dt><dd>{observationTime(detailOvernight.extExpiresTs ? detailOvernight.extExpiresTs * 1000 : null)}</dd></dl> : <p>{tPlain("no_current_qualified_boats_overnight_trade_is")}</p>}
+          {quotes.overnightStatus === "unavailable" && <p>{tPlain("overnight_refresh_is_currently_unavailable")}</p>}
+          <p>{tPlain("quotes_refresh_automatically_filtering_and_sorting_use")}</p>
+        </div>
+      </DiscoverDialog>}
+      {help && <DiscoverDialog title={help === "guide" ? (tPlain("signals_regimes_historical_data")) : `${help.sym} · ${tPlain("signal_details")}`} onClose={() => setHelp(null)} wide>
+        <div className={workspaceStyles.helpBody}>
+          {help !== "guide" && <dl><dt>{tPlain("last_recorded_event")}</dt><dd>{help.verdict ?? "—"} · {help.vts ?? (tPlain("date_unavailable_2"))}</dd><dt>{tPlain("regime_snapshot")}</dt><dd>{help.regimeBull === null ? "—" : help.regimeBull ? t("uptrend") : t("mixed")} · {asOf}</dd></dl>}
+          <h3>{tPlain("find_agreement_between_signal_and_regime")}</h3>
+          <p>{tPlain("the_buy_signals_uptrend_view_combines_the")}</p>
+          <h3>{tPlain("what_each_signal_means")}</h3>
+          <dl><dt>{verdictLabel("BUY", lang)}</dt><dd>{tPlain("a_confirmed_bullish_momentum_event_in_the")}</dd><dt>{tPlain("re_buy")}</dt><dd>{tPlain("a_fast_bullish_reversal_within_three_3")}</dd><dt>{tPlain("re_entry")}</dt><dd>{tPlain("trend_repair_after_an_exit_or_a")}</dd><dt>{verdictLabel("SELL", lang)}</dt><dd>{tPlain("a_trailing_structure_stop_event_in_the")}</dd></dl>
+          <p>{tPlain("not_covered_means_the_scan_has_no")}</p>
+          <h3>{tPlain("what_the_historical_metrics_measure")}</h3>
+          <p>{tPlain("win_rate_is_the_share_of_simulated")}</p>
+          <p>{tPlain("the_historical_test_uses_3_session_bars")}</p>
+          <h3>{tPlain("price_sessions_sector_provenance")}</h3>
+          <p>{tPlain("last_and_chg_use_the_same_regular")}</p>
+          <p>{tPlain("sector_labels_retain_their_native_classification_their")}</p>
         </div>
       </DiscoverDialog>}
       {evidence && (

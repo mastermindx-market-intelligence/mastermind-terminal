@@ -2,9 +2,9 @@ import { parseFundamentalScreen, FUNDAMENTAL_FIELD_IDS, type FundamentalPredicat
 import { TECH_SIGNAL_PICKS, TECH_CHIP_IDS, TECH_BARS_MAX, type TechControls } from "./technicalScreenControls";
 import { DAILY_FUNCTIONAL_TIMEFRAMES } from "./startTf";
 import { TAXONOMY_IDS } from "./classificationScan";
-/** Discover presentation lives in the existing account-preference owner.
- * Each named view is one independently merged metadata key: saving one view never
- * re-sends or replaces its siblings. Filters do not own table layout or sort.
+/** Discover presentation lives in the existing workspace_settings account store.
+ * Named views are independently compared keys in one atomically updated document.
+ * Full view payloads never enter auth metadata/cookies. Filters do not own layout.
  */
 export const DISCOVER_CURRENT_KEY = "discover_current_v1";
 export const DISCOVER_VIEW_PREFIX = "discover_view_v1_";
@@ -69,7 +69,7 @@ const filterValid = (k: string, v: unknown): boolean => {
   return false;
 };
 export function parseDiscoverTechnical(value: unknown): TechControls | null {
-  if (!object(value) || typeof value.tf !== "string" || !DAILY_FUNCTIONAL_TIMEFRAMES.has(value.tf) ||
+  if (!object(value) || Object.keys(value).some(key => !["tf", "position", "signal", "barsMax", "includeUnknown", "chips"].includes(key)) || typeof value.tf !== "string" || !DAILY_FUNCTIONAL_TIMEFRAMES.has(value.tf) ||
       !enumFilter(value.position, ["any", "long", "flat"]) || !enumFilter(value.signal, TECH_SIGNAL_PICKS) ||
       value.barsMax !== 0 && !(TECH_BARS_MAX as readonly unknown[]).includes(value.barsMax) ||
       typeof value.includeUnknown !== "boolean" || !Array.isArray(value.chips) ||
@@ -80,10 +80,12 @@ export function parseDiscoverTechnical(value: unknown): TechControls | null {
 export function parseDiscoverView(value: unknown): DiscoverView | null {
   if (!object(value) || value.schema !== 1 || typeof value.id !== "string" ||
       (value.id !== "current" && !DISCOVER_VIEW_ID.test(value.id))) return null;
+  if (Object.keys(value).some(key => !["schema", "id", "name", "columns", "density", "sort", "filters", "search", "showAllMarkets", "technical", "fundamental"].includes(key)) ||
+      !Array.isArray(value.columns) || value.columns.some(column => !(DISCOVER_COLUMNS as readonly unknown[]).includes(column))) return null;
   const name = normalizeDiscoverName(value.name);
-  if (!name || !object(value.filters) || !object(value.sort)) return null;
+  if (!name || !object(value.filters) || !object(value.sort) || Object.keys(value.sort).some(key => key !== "k" && key !== "dir")) return null;
   const filters: DiscoverView["filters"] = {};
-  for (const [k, v] of Object.entries(value.filters)) {
+  for (const [k, v] of Object.entries(value.filters).sort(([a], [b]) => a.localeCompare(b))) {
     // Reject an unknown predicate, rather than silently widening a saved screen.
     if (!filterValid(k, v)) return null;
     filters[k] = v as string | number | boolean | null;
@@ -93,6 +95,8 @@ export function parseDiscoverView(value: unknown): DiscoverView | null {
       ["overnight", "overnightChg", "technical"].includes(sortKey) || ![1, -1].includes(value.sort.dir as number)) return null;
   const technical = value.technical == null ? null : parseDiscoverTechnical(value.technical);
   if (value.technical != null && !technical) return null;
+  if (Array.isArray(value.fundamental) && value.fundamental.some(predicate => !object(predicate) ||
+      Object.keys(predicate).some(key => !(predicate.op === "unknown" ? ["field", "op"] : ["field", "op", "gte", "lte", "includeUnknown"]).includes(key)))) return null;
   const fundamentalResult = parseFundamentalScreen(value.fundamental ?? []);
   if (!fundamentalResult.ok || fundamentalResult.value.length > FUNDAMENTAL_FIELD_IDS.length) return null;
   const fundamental = fundamentalResult.value;
@@ -117,6 +121,19 @@ export function readDiscoverPreferences(meta: unknown): DiscoverPreferences {
 }
 export function discoverMetadata(value: DiscoverPreferences): Record<string, unknown> {
   return { [DISCOVER_CURRENT_KEY]: value.current, ...Object.fromEntries(value.views.map(v => [discoverViewKey(v.id), v])) };
+}
+export function isDiscoverKey(key: string): boolean {
+  return key === DISCOVER_CURRENT_KEY || key.startsWith(DISCOVER_VIEW_PREFIX) && DISCOVER_VIEW_ID.test(key.slice(DISCOVER_VIEW_PREFIX.length));
+}
+export function scopeDiscoverWrite(patch: unknown): { data: Record<string, unknown>; dropped: string[] } {
+  if (!object(patch)) return { data: {}, dropped: [typeof patch] };
+  return { data: Object.fromEntries(Object.entries(patch).filter(([key]) => isDiscoverKey(key))), dropped: Object.keys(patch).filter(key => !isDiscoverKey(key)) };
+}
+/** Normalize before comparison: JSONB may return object keys in a different order. */
+export function sameDiscoverValue(a: unknown, b: unknown): boolean {
+  if (a == null || b == null) return a == null && b == null;
+  const left = parseDiscoverView(a), right = parseDiscoverView(b);
+  return !!left && !!right && JSON.stringify(left) === JSON.stringify(right);
 }
 export function newDiscoverViewId(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), x => x.toString(16).padStart(2, "0")).join("");

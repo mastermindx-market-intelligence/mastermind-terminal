@@ -1,4 +1,4 @@
-import { openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import path, { join } from "node:path";
@@ -25,6 +25,7 @@ const MANIFEST = JSON.parse(readFileSync(path.join(__dirname, "../../tests/fixtu
 const SCAN = JSON.parse(readFileSync(path.join(__dirname, "../lib/__tests__/fixtures/screenerScan/classification.producer.json"), "utf8"));
 
 async function open(page: Page, lang: "en" | "zh", scan: "ok" | "404" = "ok") {
+  await isolateDiscoverAccount(page);
   await page.clock.setFixedTime(new Date("2026-10-11T12:00:00Z"));
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);

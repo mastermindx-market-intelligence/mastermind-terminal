@@ -230,7 +230,6 @@ export const TERMINAL_WRITE_KEYS = [
   "last_name",
   "theme_pref",
   "onboarded_at",
-  "discover_current_v1",
 ] as const;
 
 export type TerminalWriteKey = (typeof TERMINAL_WRITE_KEYS)[number];
@@ -254,7 +253,7 @@ export function scopeAccountWrite(patch: unknown): {
   if (Array.isArray(patch)) return { data, dropped: ["array"] };
   if (!patch || typeof patch !== "object") return { data, dropped: [typeof patch] };
   for (const key of Object.keys(patch as Record<string, unknown>)) {
-    if (TERMINAL_WRITE_KEY_SET.has(key) || /^discover_view_v1_[a-f0-9]{32}$/.test(key)) data[key] = (patch as Record<string, unknown>)[key];
+    if (TERMINAL_WRITE_KEY_SET.has(key)) data[key] = (patch as Record<string, unknown>)[key];
     else dropped.push(key);
   }
   return { data, dropped };
@@ -305,4 +304,3 @@ export async function sendScopedAccountWrite<R extends { error?: unknown } | voi
   }
   return send(data);
 }
-

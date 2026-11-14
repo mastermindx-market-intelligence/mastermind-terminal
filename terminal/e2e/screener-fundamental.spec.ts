@@ -1,4 +1,4 @@
-import { openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -78,6 +78,7 @@ function scanDoc(): Record<string, unknown> {
 type ScanMode = "ok" | "404" | "500";
 
 async function setup(page: Page, lang: "en" | "zh", scanMode: () => ScanMode = () => "ok") {
+  await isolateDiscoverAccount(page);
   await page.clock.setFixedTime(NOW);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);

@@ -1,4 +1,6 @@
 "use client";
+
+import { useDiscoverT } from "@/lib/discoverWorkspaceLex";
 import type { ReactNode } from "react";
 import styles from "./CrossMarketStrip.module.css";
 import {
@@ -192,6 +194,7 @@ export function CurrencyBadge({ cur }: { cur: MoneyCurrency }) {
  *  date; a listing without a label says so instead of borrowing one. */
 export function SectorCellContent({ d, labelText, compact = false }: { d: SectorDisplay; compact?: boolean; labelText: (t: TaxonomyId, l: string) => string }) {
   const ct = useCrossMarketT();
+  const tPlain = useDiscoverT();
   const { lang } = useLang();
   const zi = lang === "zh" ? 1 : 0;
   if (d.kind === "label") {
@@ -207,7 +210,7 @@ export function SectorCellContent({ d, labelText, compact = false }: { d: Sector
       <span title={title} data-tax={d.taxonomy} data-stale={d.stale ? "1" : undefined}>
         {!compact && <span className={styles.tax}>{tx.chip[zi]}</span>}
         {labelText(d.taxonomy, d.label)}
-        {d.stale && (compact ? <span className={styles.stale} aria-label={d.reason === "snapshot_undated" || d.reason === "record_undated" ? (lang === "zh" ? "分类日期不可用" : "Classification date unavailable") : ct("cmStale")} title={title}>ⓘ</span> : <span className={styles.stale}>{ct("cmStale")}</span>)}
+        {d.stale && (compact ? <span className={styles.stale} aria-label={d.reason === "snapshot_undated" || d.reason === "record_undated" ? (tPlain("classification_date_unavailable")) : ct("cmStale")} title={title}>ⓘ</span> : <span className={styles.stale}>{ct("cmStale")}</span>)}
       </span>
     );
   }

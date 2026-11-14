@@ -16,7 +16,7 @@ vi.mock("@/lib/i18n", () => ({
   } as Record<string, [string, string]>)[key]?.[locale.lang === "zh" ? 1 : 0] ?? key),
 }));
 vi.mock("@/lib/useMarketPrefs", () => ({ currentOwnerToken: () => ({owner:"guest",generation:1}), ownerTokenIsCurrent: () => true,
-  useMarketPrefs: () => ({ prefs: {enabled:["us","cn","hk","ca","intl","crypto"]}, ready:true, owner:"guest", base:"loaded", discover:{current:null,views:[],blocked:false},
+  useMarketPrefs: () => ({ prefs: {enabled:["us","cn","hk","ca","intl","crypto"]}, ready:true, owner:"guest", base:"loaded", discover:{current:null,views:[],blocked:false}, discoverReady:true,discoverBase:"loaded",discoverSync:{phase:"local"},discoverIssue:null,discoverDevice:true,openDiscover:()=>{},retryDiscover:()=>{},reloadDiscover:()=>{},
     sync:{phase:"local"}, saveDiscover:()=>true, deleteDiscover:()=>true, renameDiscover:()=>true }) }));
 vi.mock("@/components/screener/useDiscoverQuotes", () => ({useDiscoverQuotes: () => ({regular:{},overnight:{},now:Date.now(),status:"ready"})}));
 vi.mock("@/lib/dataCache", () => ({ getJSONResult: async () => ({ status: "data", data: { symbols: {} } }), invalidate: vi.fn() }));

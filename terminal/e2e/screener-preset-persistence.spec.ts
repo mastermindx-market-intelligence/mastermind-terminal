@@ -1,4 +1,4 @@
-import { openDiscoverFilters } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 
 // Fault the device boundary, not the component: the same route must recover only on a
@@ -11,6 +11,7 @@ type Fixture = { denyRead: boolean; denyWrite: boolean; writes: number; raw: () 
 declare global { interface Window { __presetFixture: Fixture } }
 
 async function installFixture(page: Page, lang: "en" | "zh", denyRead = false) {
+  await isolateDiscoverAccount(page);
   await page.addInitScript(({ key, f, locale, failRead }) => {
     const get = Storage.prototype.getItem;
     const set = Storage.prototype.setItem;

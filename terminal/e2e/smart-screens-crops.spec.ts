@@ -72,7 +72,7 @@ for (const lang of ["en", "zh"] as const) {
       await routeManifest(pageB, () => "g2");
       await pageB.route("**/api/smart-screens", (route) =>
         failPuts && route.request().method() === "PUT" ? route.abort("failed") : route.fallback());
-      await openScreener(pageB, 5);
+      await openScreener(pageB, 3); // Account workspace restores up3 on the newer manifest.
       const pb = await openPanel(pageB);
       const screen = pb.locator("[data-ss-screen]");
       await screen.locator("[data-ss-open]").click();

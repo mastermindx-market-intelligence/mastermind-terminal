@@ -38,7 +38,7 @@ type StoredRow = { key: string; value: unknown; token: string };
 const rowsOf = (result: DbResult): DbRow[] => (Array.isArray(result?.data) ? result.data : []);
 const toStored = (row: DbRow): StoredRow => ({ key: String(row.key), value: row.value, token: String(row.updated_at ?? "") });
 
-function userRows(db: WatchlistDb, userId: string) {
+export function userRows(db: WatchlistDb, userId: string) {
   return db.from("workspace_settings").select("key,value,updated_at").eq("scope", "user").eq("user_id", userId);
 }
 
@@ -56,7 +56,7 @@ async function readOne(db: WatchlistDb, userId: string, id: string): Promise<{ o
 }
 
 /** A strictly later token than the one read, even when two writes land in the same ms. */
-function nextToken(read: string): string {
+export function nextToken(read: string): string {
   const prior = Date.parse(read);
   return new Date(Math.max(Date.now(), Number.isFinite(prior) ? prior + 1 : 0)).toISOString();
 }

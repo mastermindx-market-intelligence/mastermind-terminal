@@ -1,5 +1,7 @@
 "use client";
 
+import { useDiscoverT } from "@/lib/discoverWorkspaceLex";
+
 import { Children, Fragment, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type SelectHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import styles from "./DiscoverWorkspace.module.css";
@@ -20,6 +22,7 @@ function optionsFrom(children: ReactNode): Option[] {
 
 /** Designed listbox, using the existing option/value contract. No OS popup. */
 export default function DiscoverSelect({ children, value, onChange, disabled, className = "", title, ...rest }: Props) {
+  const tPlain = useDiscoverT();
   const options = optionsFrom(children), selected = options.find(o => o.value === String(value ?? ""));
   const id = useId(), trigger = useRef<HTMLButtonElement>(null), panel = useRef<HTMLDivElement>(null), searchRef = useRef<HTMLInputElement>(null), listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false), [query, setQuery] = useState(""), [active, setActive] = useState(0);
@@ -58,11 +61,12 @@ export default function DiscoverSelect({ children, value, onChange, disabled, cl
     <button {...data} ref={trigger} data-value={String(value ?? "")} type="button" className={`${className} ${styles.select}`} disabled={disabled}
       title={title} role="combobox" aria-label={label} aria-expanded={open} aria-haspopup="listbox" aria-controls={open ? id : undefined}
       onClick={() => { if (open) close(); else { setActive(Math.max(0, options.findIndex(o => o.value === String(value)))); setOpen(true); } }}
-      onKeyDown={e => { if (["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) { e.preventDefault(); setActive(e.key === "End" || e.key === "ArrowUp" ? options.length - 1 : 0); setOpen(true); } }}>
+      onKeyDown={e => { if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return; if (["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) { e.preventDefault(); setActive(e.key === "End" || e.key === "ArrowUp" ? options.length - 1 : 0); setOpen(true); } }}>
       <span>{selected?.label ?? label}</span><svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" /></svg>
     </button>
     {open && createPortal(<div ref={panel} className={styles.selectPopover} style={position} tabIndex={-1}
       onKeyDown={e => {
+        if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
         if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(true); }
         if (e.key === "Tab") close(true);
         if (["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key) && !(e.target === searchRef.current && ["Home", "End"].includes(e.key))) {
@@ -75,14 +79,14 @@ export default function DiscoverSelect({ children, value, onChange, disabled, cl
         if (e.key.length === 1 && options.length <= 8) { const i = filtered.findIndex(o => !o.disabled && o.text.toLowerCase().startsWith(e.key.toLowerCase())); if (i >= 0) setActive(i); }
       }}>
       <div className={styles.menuEyebrow}>{label}</div>
-      {options.length > 8 && <input ref={searchRef} role="combobox" aria-autocomplete="list" aria-expanded={true} aria-controls={id} aria-activedescendant={filtered[active] ? `${id}-${active}` : undefined} type="search" value={query} aria-label={zh ? `搜索${label}` : `Search ${label}`} placeholder={zh ? "搜索选项…" : "Search options…"} onChange={e => { setQuery(e.target.value); setActive(0); }} className={styles.menuSearch} />}
+      {options.length > 8 && <input ref={searchRef} role="combobox" aria-autocomplete="list" aria-expanded={true} aria-controls={id} aria-activedescendant={filtered[active] ? `${id}-${active}` : undefined} type="search" value={query} aria-label={zh ? `搜索${label}` : `Search ${label}`} placeholder={tPlain("search_options")} onChange={e => { setQuery(e.target.value); setActive(0); }} className={styles.menuSearch} />}
       <div ref={listRef} tabIndex={-1} id={id} role="listbox" aria-label={label} aria-activedescendant={filtered[active] ? `${id}-${active}` : undefined} className={styles.optionList}>
         {filtered.map((o, i) => <button key={o.value} id={`${id}-${i}`} type="button" role="option" tabIndex={-1} data-option-index={i} data-value={o.value}
           aria-selected={o.value === String(value)} disabled={o.disabled} data-active={i === active || undefined}
           className={styles.option} onPointerMove={() => setActive(i)} onClick={() => choose(o)}>
           <span>{o.label}</span><span aria-hidden="true">{o.value === String(value) ? "✓" : ""}</span>
         </button>)}
-        {!filtered.length && <div className={styles.menuEmpty}>{zh ? "没有匹配选项" : "No matching options"}</div>}
+        {!filtered.length && <div className={styles.menuEmpty}>{tPlain("no_matching_options")}</div>}
       </div>
     </div>, trigger.current?.closest("dialog") ?? document.body)}
   </>;

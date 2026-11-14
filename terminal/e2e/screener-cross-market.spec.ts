@@ -1,4 +1,4 @@
-import { openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -30,6 +30,7 @@ const MANIFEST_N = Object.keys(MANIFEST.symbols).length;
 type ScanMode = "ok" | "404" | "500";
 
 async function open(page: Page, opts: { lang?: "en" | "zh"; scan?: () => ScanMode } = {}) {
+  await isolateDiscoverAccount(page);
   const scanMode = opts.scan ?? (() => "ok");
   await page.clock.setFixedTime(NOW);
   await page.addInitScript((l) => {
@@ -91,7 +92,7 @@ test("two listings of one issuer keep their own id, currency and label (AC-E03-0
   // The compact label keeps its taxonomy in accessible provenance; a listing without one says so instead of borrowing its twin's.
   await expect(hkd.locator("td.scr2-sec [data-tax]")).toHaveAttribute("data-tax", "yahoo_sector");
   await expect(hkd.locator("td.scr2-sec [data-tax]")).not.toContainText("YF ");
-  await expect(hkd.locator("td.scr2-sec [data-tax]")).toHaveAttribute("title", /Yahoo/);
+  await expect(hkd.locator("td.scr2-sec [data-tax]")).toHaveAttribute("title", zh ? /雅虎财经/ : /Yahoo/);
   await expect(hkd.locator("td.scr2-sec [data-tax]")).not.toHaveAttribute("data-stale", "1");
   await expect(cny.locator("td.scr2-sec [data-tax]")).toHaveCount(0);
   await expect(cny.locator("td.scr2-sec [data-unclassified]")).toHaveAttribute("data-unclassified", "not_classified");

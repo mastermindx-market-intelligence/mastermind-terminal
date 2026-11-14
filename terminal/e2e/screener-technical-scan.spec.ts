@@ -1,4 +1,4 @@
-import { openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -85,6 +85,7 @@ type ReadyDetail = { symbol: string; timeframe: string };
 declare global { interface Window { __e01Ready: ReadyDetail[] } }
 
 async function setup(page: Page, lang: "en" | "zh", doc: Doc) {
+  await isolateDiscoverAccount(page);
   await page.addInitScript((l) => {
     window.__e01Ready = [];
     window.addEventListener("mm:terminal-visual-ready", (e) => {

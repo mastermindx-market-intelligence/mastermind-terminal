@@ -153,7 +153,12 @@
 .saveViewForm .primaryButton { flex-shrink: 0; }
 .select { background-image: none !important; border-radius: 10px; }
 .quoteLive { display: inline-block; width: 4px; height: 4px; margin-left: 6px; vertical-align: middle; border-radius: 50%; background: var(--brand-2); }
+.quoteButton { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; min-height: 30px; border: 0; border-radius: 6px; padding: 4px 2px 4px 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.quoteButton:hover { background: var(--panel-2); }
+.quoteInfo { font-size: 11px; color: var(--text-3); }
+/* Keep controls inside the exact 44/36px virtual row contract. */
+@media (pointer: coarse) { .quoteButton, .signalButton, .regimeButton { min-height: 40px; } .workspace:global(.den-k) .quoteButton, .workspace:global(.den-k) .signalButton, .workspace:global(.den-k) .regimeButton { min-height: 32px; } .moveActions button { width: 44px; min-height: 44px; } }
 .workspace :global(table.scr2) th, .workspace :global(table.scr2) td { width: auto; }
 .workspace :global(table.scr2) .columnHeader { width: auto; }
 .workspace :global(.scr2-status) { min-height: 42px; padding: 8px 20px; }
-@media (pointer: coarse) { .signalButton, .regimeButton { min-height: 36px; padding-block: 6px; } .dragHandle { width: 36px; } }
+@media (pointer: coarse) { .signalButton, .regimeButton { padding-block: 6px; } .dragHandle { width: 44px; height: 44px; } }

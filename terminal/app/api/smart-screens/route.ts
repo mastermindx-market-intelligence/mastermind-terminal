@@ -10,6 +10,7 @@ import {
 } from "@/lib/watchlistsFixtureDb";
 import type { WatchlistDb } from "@/lib/watchlists";
 import { createScreen, deleteScreen, listScreens, updateScreen, type WriteFailure } from "@/lib/smartScreen/store";
+import { readDiscoverWorkspace, writeDiscoverWorkspace } from "@/lib/smartScreen/discoverStore";
 
 /**
  * Smart screens (E04) — the signed-in user's saved screener definitions, one versioned
@@ -46,6 +47,12 @@ const jsonError = (error: string, status: number, extra?: Record<string, unknown
 export async function GET(_request: Request) {
   const session = await resolveDb();
   if (!session) return jsonError("unauthenticated", 401);
+  const resource = new URL(_request.url).searchParams.get("resource");
+  if (resource === "discover_views") {
+    const result = await readDiscoverWorkspace(session.db, session.userId);
+    return result.ok ? json({ owner: `account:${session.userId}`, values: result.values, blocked: result.blocked }) : jsonError(result.error, result.status);
+  }
+  if (resource) return jsonError("unsupported_resource", 400);
   const result = await listScreens(session.db, session.userId);
   if (!result.ok) {
     console.error("smart-screens GET failed:", result.error);
@@ -54,14 +61,14 @@ export async function GET(_request: Request) {
   return json({ screens: result.screens, readOnly: result.readOnly, invalid: result.invalid });
 }
 
-async function readBoundedJson(request: Request): Promise<
+async function readBoundedJson(request: Request, limit = MAX_REQUEST_BYTES): Promise<
   | { ok: true; body: Record<string, unknown> }
   | { ok: false; error: "request_too_large" | "invalid_json" }
 > {
   const stated = Number(request.headers.get("content-length"));
-  if (Number.isFinite(stated) && stated > MAX_REQUEST_BYTES) return { ok: false, error: "request_too_large" };
+  if (Number.isFinite(stated) && stated > limit) return { ok: false, error: "request_too_large" };
   const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > MAX_REQUEST_BYTES) return { ok: false, error: "request_too_large" };
+  if (new TextEncoder().encode(raw).byteLength > limit) return { ok: false, error: "request_too_large" };
   try {
     const value = JSON.parse(raw);
     if (!value || typeof value !== "object" || Array.isArray(value)) return { ok: false, error: "invalid_json" };
@@ -92,12 +99,23 @@ function failure(action: string, result: WriteFailure) {
 export async function PUT(request: Request) {
   const session = await resolveDb();
   if (!session) return jsonError("unauthenticated", 401);
-  const parsed = await readBoundedJson(request);
+  const resource = new URL(request.url).searchParams.get("resource");
+  if (resource !== null && resource !== "discover_views") return jsonError("unsupported_resource", 400);
+  // Discover includes both the bounded document's changes and their preimages.
+  const parsed = await readBoundedJson(request, resource === "discover_views" ? 256 * 1024 : MAX_REQUEST_BYTES);
   if (!parsed.ok) return jsonError(parsed.error, parsed.error === "request_too_large" ? 413 : 400);
   const body = parsed.body;
+  if ((resource ?? undefined) !== body.resource) return jsonError("unsupported_resource", 400);
   // Smart screens are personal: a workspace/team scope is refused, never silently re-scoped.
   if (body.scope !== undefined && body.scope !== "user") return jsonError("invalid_scope", 400);
   if ("team_id" in body || "user_id" in body) return jsonError("invalid_scope", 400);
+
+  if (body.resource === "discover_views") {
+    if (body.expectedOwner !== `account:${session.userId}`) return jsonError("owner_changed", 403);
+    const result = await writeDiscoverWorkspace(session.db, session.userId, body.patch, body.expected);
+    return result.ok ? json({ owner: `account:${session.userId}`, values: result.values, replay: result.replay }) : jsonError(result.error, result.status);
+  }
+  if (body.resource !== undefined) return jsonError("unsupported_resource", 400);
 
   const action = body.action;
   if (action === "create") {

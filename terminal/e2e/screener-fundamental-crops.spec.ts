@@ -1,4 +1,4 @@
-import { openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters, chooseDiscoverOption, showDiscoverColumn } from "./discoverWorkspaceFixture";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -31,6 +31,7 @@ const shot = (page: Page, name: string, lang: string, testInfo: TestInfo) =>
   page.screenshot({ path: join(OUT, `${name}-${lang}-${testInfo.project.name}.png`), fullPage: false, animations: "disabled" });
 
 async function serveReal(page: Page, lang: "en" | "zh") {
+  await isolateDiscoverAccount(page);
   await page.clock.setFixedTime(NOW);
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);

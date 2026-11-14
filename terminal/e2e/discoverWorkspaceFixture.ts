@@ -1,4 +1,13 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+/** Account autosave makes a shared default fixture identity unsafe for parallel
+ * screener tests. Preserve explicitly prepared cross-device identities. */
+export async function isolateDiscoverAccount(page: Page) {
+  const baseURL = String(test.info().project.use.baseURL ?? "http://127.0.0.1:3108");
+  if ((await page.context().cookies(baseURL)).some(cookie => cookie.name === "mm_e2e_wl")) return;
+  const key = `discover-${test.info().project.name}-${test.info().testId}-${test.info().retry}-${Math.random().toString(36).slice(2, 8)}`.replace(/[^a-zA-Z0-9-]/g, "-");
+  await page.context().addCookies([{ name: "mm_e2e_wl", value: key, url: baseURL }]);
+}
 
 /** Drive the public workspace controls; the menu renders options in a portal. */
 export async function openDiscoverFilters(page: Page, legacy = false) {

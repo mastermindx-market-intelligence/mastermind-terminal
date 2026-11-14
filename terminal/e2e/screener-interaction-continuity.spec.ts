@@ -1,4 +1,4 @@
-import { openDiscoverFilters } from "./discoverWorkspaceFixture";
+import { isolateDiscoverAccount, openDiscoverFilters } from "./discoverWorkspaceFixture";
 import { expect, test, type Page } from "@playwright/test";
 import { useLang as selectLanguage } from "./layoutStore";
 
@@ -12,6 +12,7 @@ async function scroll(page: Page, top: number) {
   await table(page).evaluate((el, value) => { el.scrollTop = value; el.dispatchEvent(new Event("scroll")); }, top);
 }
 async function open(page: Page, lang: "en" | "zh") {
+  await isolateDiscoverAccount(page);
   await selectLanguage(page, lang);
   await page.addInitScript(() => { localStorage.removeItem("mm.scrPresets"); localStorage.setItem("mm.scrDensity", "c"); });
   await page.route("**/data/manifest.json**", route => route.fulfill({ json: MANIFEST }));

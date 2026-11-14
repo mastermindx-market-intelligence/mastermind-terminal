@@ -9,12 +9,12 @@ This is a source task tree, not runtime admission or a second organizational reg
 The production Discover Stock Screener has a compact primary filter bar, accessible designed menus and advanced disclosure; Symbol/Signal/Regime default together; filter changes preserve columns/sort; draggable and keyboard-reorderable optional columns; multiple account-saved views and honest autosave/recovery; shared quote-owner regular and qualified overnight observations; corrected sector-freshness behavior; exact signal/strategy definitions accessible at the decision point. Focused tests, responsive browser journeys and actual protected-release/served readbacks must support claims. CI, source publication and design are separate from production acceptance.
 
 ## Useful phases
-- P1 (in_progress): source/semantics and incumbent audit; preserve existing filters, Smart screens, device presets, market/currency/entitlement/null rules.
-- P2 (ready after P1): stable column registry and account preference composition; drag/keyboard controls, visibility, named views and explicit save state.
-- P3 (ready after P1): compact primary toolbar, designed selects, grouped advanced controls, accessible signal/research help and responsive styling.
-- P4 (ready after P1): compose existing quote demand/projection/session contracts; classify sector stale-source root cause and repair through its original owner.
-- P5 (depends P2–P4): scoped behavioral tests, type checks, desktop/tablet/mobile EN/ZH visual/interaction verification and preserved legacy tests.
-- P6 (depends P5): publish qualified Ready PR; preserve actual approvals/holds/protected queue; consume merge and git-gated deploy receipts; verify served product.
+- P1 (complete): source/semantics and incumbent audit; preserve existing filters, Smart screens, device presets, market/currency/entitlement/null rules.
+- P2 (implemented): stable column registry and account preference composition; drag/keyboard controls, visibility, named views and explicit save state.
+- P3 (implemented): compact primary toolbar, designed selects, grouped advanced controls, accessible signal/research help and responsive styling.
+- P4 (implemented): compose existing quote demand/projection/session contracts; classify sector stale-source root cause and repair through its original owner.
+- P5 (in progress): scoped behavioral tests, type checks, desktop/tablet/mobile EN/ZH visual/interaction verification and preserved legacy tests.
+- P6 (next protected release lane): publish qualified Ready PR; preserve actual approvals/holds/protected queue; consume merge and git-gated deploy receipts; verify served product.
 
 ## Decisions and falsifiers
 - Filters never choose a different column set or default sort. Default broad-universe sort remains traded value, with existing currency grouping.
@@ -31,10 +31,10 @@ Portfolio PR #1502 head 0ed9642368263859fbda39816b1e0dc02e55d832 is open. Its Sc
 Scratch source copies are validation artifacts; remote GitHub branch is the source writer. No host worktree, deployment, Paper canvas, live portfolio data or provider credentials modified.
 
 ## Delegation and evidence
-Native advisory UX reasoning completed; parent consumed it. Native signal-contract reasoning is read-only and active. No routine native builder substitution. Paid Fabric capability preflight reported adapter_available=false; no request was dispatched. Principal retains implementation under NO_ELIGIBLE_PRE_EFFECT_WORKER/PRINCIPAL_JUDGMENT and actual source authority. WHY NOT FABLE: no additional strategic principal is needed.
+Native advisory UX reasoning completed; parent consumed it. Native signal-contract and concurrency reasoning completed; parent accepted and repaired the concrete findings. No routine native builder substitution. Paid Fabric capability preflight reported adapter_available=false; no request was dispatched. Principal retains implementation under NO_ELIGIBLE_PRE_EFFECT_WORKER/PRINCIPAL_JUDGMENT and actual source authority. WHY NOT FABLE: no additional strategic principal is needed.
 
 ## Next action
-Implement account-bound workspace preferences and table controls against the verified existing owners, with contract tests before integrating the ScreenerView. No production outcome claimed.
+Publish the source-complete candidate as a Ready PR on the original branch; consume exact-head CI and browser artifacts, repair owned failures, then continue protected release and actual app proof. No production outcome claimed.
 
 ## Verified implementation checkpoint — 2026-11-14
 
@@ -43,3 +43,19 @@ P1 source audit complete. Local P2–P4 candidate includes compact/advanced filt
 This is an INCOMPLETE SOURCE CHECKPOINT, not release-qualified. Review identified that full saved views must use existing `workspace_settings`, not auth metadata/cookies. Next action: replace only the added Discover persistence lane using existing smart-screens API/auth/fixtures and the existing owner/generation plus PreferencePump, with conditional storage and conflict/failure proof. No production migration is needed by the installed table schema (0015). Then qualify adapted/new browser journeys through normal CI and continue the original protected release. No PR or deploy yet.
 
 Advisory review findings accepted and repaired: account retry restoration/deep links, prompt local intent capture, active-view re-selection, hidden technical-filter visibility, request-continuation fences, owner-generation write binding and per-session quote status. New source-date comparison preserves newer dated GICS evidence and independent industry provenance. Do not redo these without contrary evidence.
+
+
+## Source qualification — 2026-11-14 11:29:58 UTC
+
+This supersedes the incomplete checkpoint at b23f5a1b1143e621c6532139bc63058678c83b2e. Full Discover views now use a single user-scoped `workspace_settings` document through the existing Smart Screens route and auth/RLS owner. Auth metadata's original write fence is restored. The feature remains under the existing `useMarketPrefs` owner/generation and reuses PreferencePump; it is lazy outside Discover. One row-token CAS atomically saves current/named changes while independent per-key preimages preserve unrelated views. Pending preimages survive reload, unchanged intent replay is idempotent, unsupported formats are refused, and a failed account-version replacement read preserves the draft. No database migration or new auth/queue service.
+
+Local verification: 215 focused TypeScript/component assertions passed across 11 suites; the 56 affected UI/contract checks passed again after moving copy to the existing EN/ZH translation pattern. Focused UI TypeScript check passed. 49 earlier Python producer/sector/verdict assertions remain applicable to the unchanged producer slice. Forward-only plain-language guard passed against the base-to-candidate diff. Playwright collected 93 tests across 7 relevant specs, including 12 new Discover responsive/account/quote cases; collection is not browser execution. Actual browser rendering is still NOT_VERIFIED and is owed through the repository's normal CI artifacts and eventual live app. No synthetic visual pass or cold-reader comprehension claim.
+
+Accepted advisory repairs include durable pending preimages, same-key vs unrelated ACK handling, no lane replacement while a PUT is unresolved, nonretryable conflict handling, failed-discard read safety, unknown-format preservation, API resource consistency, hidden-sort visibility, touch-accessible price details, IME composition, focused rename/error feedback and localized drag announcements. Reuse exact-head evidence; do not repeat these reviews without a changed risk.
+
+Current protected master remains c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40. Portfolio #1502 remains open at 0ed9642368263859fbda39816b1e0dc02e55d832 with `merge-on-green` and `merge-blocked`; do not clear its hold or import its unmerged work. Discover uses the incumbent regular/BOATS quote boundary and preserves its symbol deep link. #1508 remains a separate path-disjoint chooser source.
+
+Release readback: the authorized branch response reports required Quote Hub tests, Terminal typecheck + tests, and Ingest + signal-layer tests bound to GitHub Actions app 15368. Ruleset 24411653 remains active for the default-branch merge queue. The separate admin branch-protection endpoint returned integration 403; that read is closed, with no alternate-carrier replay. Actual PR reviews/holds/checks still need exact-head readback. The incumbent merge-on-green controller reports queue readiness but cannot enqueue under GITHUB_TOKEN; native user admission with a head lease is still required. No label, auto-merge, merge or deployment effect performed yet.
+
+Parent DONE_WHEN remains open. Next proof: exact-head hosted build/journeys and screenshots, then permitted native queue admission, merged-SHA readback, git-gated rollout, classification generation/readback and authenticated account + price-session user-path proof. Current state: MORE_WORK_EXISTS.
+

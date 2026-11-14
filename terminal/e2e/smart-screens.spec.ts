@@ -53,7 +53,7 @@ test("a screen saved on one device reopens on another and explains what entered 
   const b = await secondDevice(browser, page, !!testInfo.project.use.hasTouch, origin, key, zh);
   try {
     await routeManifest(b.page, () => "g2");
-    await openScreener(b.page, 5);
+    await openScreener(b.page, 3); // The account now restores the saved up3 workspace filter.
     const pb = await openPanel(b.page);
     const screenB = pb.locator("[data-ss-screen]");
     await expect(screenB).toHaveCount(1);

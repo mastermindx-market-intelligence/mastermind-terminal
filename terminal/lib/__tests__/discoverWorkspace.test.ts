@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_DISCOVER_COLUMNS, DISCOVER_CURRENT_KEY, discoverViewKey, moveDiscoverColumn, parseDiscoverView, readDiscoverPreferences } from "@/lib/discoverWorkspace";
+import { DEFAULT_DISCOVER_COLUMNS, DISCOVER_CURRENT_KEY, discoverViewKey, moveDiscoverColumn, parseDiscoverView, readDiscoverPreferences, scopeDiscoverWrite, sameDiscoverValue } from "@/lib/discoverWorkspace";
 import { TECH_DEFAULT_CONTROLS } from "@/lib/technicalScreenControls";
 import { scopeAccountWrite } from "@/lib/accountPrefs";
 import { discoverRegularReading, discoverOvernightReading } from "@/lib/discoverQuotes";
@@ -10,7 +10,8 @@ describe("Discover workspace contract",()=>{
     expect(moveDiscoverColumn(DEFAULT_DISCOVER_COLUMNS,"verdict","last")).toEqual(["sym","regimeBull","last","verdict","chg","dv","mcap","gics"]);
     expect(moveDiscoverColumn(DEFAULT_DISCOVER_COLUMNS,"sym","last")).toEqual(DEFAULT_DISCOVER_COLUMNS);
     expect(moveDiscoverColumn(DEFAULT_DISCOVER_COLUMNS,"last","sym")).toEqual(DEFAULT_DISCOVER_COLUMNS);
-    expect(parseDiscoverView({...view(),columns:["chg","chg","unknown"]})?.columns).toEqual(["sym","chg"]);
+    expect(parseDiscoverView({...view(),columns:["chg","chg"]})?.columns).toEqual(["sym","chg"]);
+    expect(parseDiscoverView({...view(),columns:["sym","future_metric"]})).toBeNull();
   });
   it("round-trips technical thresholds, chips, fundamentals and all-market scope",()=>{
     const source={...view(),showAllMarkets:true,columns:["sym","technical","fund:fund.pe_ttm"],technical:{...TECH_DEFAULT_CONTROLS,barsMax:3,chips:["weeklyBull","above200"]},fundamental:[{field:"fund.pe_ttm",op:"range",gte:0,lte:30}]};
@@ -31,10 +32,19 @@ describe("Discover workspace contract",()=>{
     const before=JSON.stringify(raw);const parsed=readDiscoverPreferences(raw);
     expect(parsed.blocked).toBe(true);expect(parsed.current?.id).toBe(id);expect(JSON.stringify(raw)).toBe(before);
   });
-  it("owns only exact Discover metadata keys and keeps foreign settings fenced",()=>{
-    const result=scopeAccountWrite({[DISCOVER_CURRENT_KEY]:view(),[discoverViewKey(id)]:view(),discover_view_v1_invalid:{},brain_depth:"deep",alert_email_optin:true});
+  it("keeps full Discover views out of auth metadata and fences the workspace adapter",()=>{
+    const patch={[DISCOVER_CURRENT_KEY]:view(),[discoverViewKey(id)]:view(),discover_view_v1_invalid:{},brain_depth:"deep",alert_email_optin:true};
+    expect(scopeAccountWrite(patch).data).toEqual({});
+    const result=scopeDiscoverWrite(patch);
     expect(Object.keys(result.data)).toEqual([DISCOVER_CURRENT_KEY,discoverViewKey(id)]);
     expect(result.dropped).toEqual(["discover_view_v1_invalid","brain_depth","alert_email_optin"]);
+  });
+  it("does not confuse unsupported values with deletions or discard extensions",()=>{
+    expect(sameDiscoverValue({schema:2},null)).toBe(false);
+    expect(sameDiscoverValue({schema:2},{schema:2})).toBe(false);
+    expect(sameDiscoverValue(undefined,null)).toBe(true);
+    expect(parseDiscoverView({...view(),futureSetting:true})).toBeNull();
+    expect(parseDiscoverView({...view(),technical:{...TECH_DEFAULT_CONTROLS,futurePredicate:true}})).toBeNull();
   });
 });
 describe("Discover quote semantics",()=>{
