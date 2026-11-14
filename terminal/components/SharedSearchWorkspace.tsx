@@ -6,6 +6,8 @@ import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { directoryEntryTitle, directorySection, searchDirectoryEntries } from "@/lib/sharedShellDirectorySearch";
 import { loadSharedSearchCatalog, type SharedSearchCatalog } from "@/lib/sharedShellSearchCatalog";
 import { revealListOption } from "@/lib/revealListOption";
+import { companyLogoDevEnabled } from "@/lib/assetLogos";
+import AssetLogo from "@/components/AssetLogo";
 import styles from "./SharedSearchWorkspace.module.css";
 
 type State = "loading" | "ready" | "unavailable";
@@ -108,13 +110,14 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
           {companies.map((row, index) => <button type="button" key={row.symbol} data-company-symbol={row.symbol} id={`${companyList}-${index}`} role="option"
             aria-selected={selectedCompany === row.symbol} className={`${styles.result}${activeCompanyIndex === index ? ` ${styles.active}` : ""}`}
             onClick={() => { if (companyResultsCurrent) onSelectCompany(row.symbol); }}>
-            <span className={styles.monogram} aria-hidden="true">{row.symbol.slice(0, 2)}</span>
+            <AssetLogo brand className={styles.companyLogo} symbol={row.symbol} name={row.name} market={row.venue} color="#18202c" size={44} />
             <span><strong>{row.name}</strong><small>{row.symbol} · {row.venue || pick(zh, "Venue unavailable", "交易场所未知")}</small></span><span aria-hidden="true">↵</span>
           </button>)}
         </div>
         {companyState === "ready" && !companies.length && <p role="status" aria-hidden={!companyResultsCurrent} style={companyResultsCurrent ? undefined : { visibility: "hidden" }}>{query ? pick(zh, "No company listings match this query in your enabled markets.", "所启用市场中没有符合此查询的公司标的。") : pick(zh, "Type a company name or symbol to find a listing.", "输入公司名称或代码以查找上市标的。")}</p>}
         {marketDisclosure}
-        <p className={styles.hint}>{pick(zh, "↑ ↓ Select a result · Enter select, then open · Esc return to your page", "↑ ↓ 选择结果 · 回车选择，再打开 · Esc 返回原页面")}</p>
+        <p className={styles.hint}>{pick(zh, "↑ ↓ Select a result · Enter select, then open · Esc return to your page", "↑ ↓ 选择结果 · 回车选择，再打开 · Esc 返回原页面")}
+          {companyLogoDevEnabled && <a className={styles.brandCredit} href="https://logo.dev" target="_blank" rel="noopener noreferrer">Logos provided by Logo.dev</a>}</p>
       </section>
       <aside className={styles.detail} aria-label={pick(zh, "Selected listing", "所选上市标的")}>
         {selected ? <><span className={styles.eyebrow}>{pick(zh, "Selected company listing", "所选公司标的")}</span><h3>{selected.name}</h3>{listingDetail}<p>{pick(zh, "Previewing keeps your page in place. Open uses this exact listing.", "预览会保留当前页面。打开时使用此确切上市标的。")}</p></> : <><h3>{pick(zh, "Choose a listing", "选择上市标的")}</h3><p>{pick(zh, "Review its venue and trading currency before opening company analysis.", "打开公司分析前，先核对交易场所与交易货币。")}</p></>}
