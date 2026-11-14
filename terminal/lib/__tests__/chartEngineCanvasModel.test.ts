@@ -217,6 +217,24 @@ describe("canvas engine skeleton", () => {
     engine.destroy();
   });
 
+  it("price-scale readback retains display options and returns the actual pane's scale values", () => {
+    const { engine } = mount();
+    engine.addSeries("line");
+    engine.addSeries("line", {}, 1);
+    const scale = engine.priceScale("right");
+    scale.applyOptions({ borderVisible: false, borderColor: "#123456", textColor: "#abcdef" });
+    const second = engine.panes()[1].priceScale("right");
+    second.applyOptions({ mode: 2, scaleMargins: { top: 0.2, bottom: 0.3 } });
+    expect(scale.options()).toMatchObject({ borderVisible: false, borderColor: "#123456", textColor: "#abcdef", mode: "normal" });
+    expect(second.options()).toMatchObject({ borderVisible: false, mode: "percent", scaleMargins: { top: 0.2, bottom: 0.3 } });
+    const copy = second.options();
+    copy.borderVisible = true;
+    (copy.scaleMargins as { top: number }).top = 0.9;
+    expect(second.options()).toMatchObject({ borderVisible: false, scaleMargins: { top: 0.2, bottom: 0.3 } });
+    engine.destroy();
+    expect(scale.options()).toEqual({});
+  });
+
   it("swapPanes exchanges series membership and pane indices", () => {
     const { engine } = mount();
     const a = engine.addSeries("line");
@@ -300,7 +318,7 @@ describe("canvas engine skeleton", () => {
       { time: 2, value: 20 },
       { time: 3, value: 30 },
     ]);
-    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 10 });
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 9 });
     const model = engine.unwrap<ChartModel>();
     expect(model.time.barSpacing).toBeCloseTo(20, 9);
     for (const i of [0, 0.5, 3, 9.25]) {

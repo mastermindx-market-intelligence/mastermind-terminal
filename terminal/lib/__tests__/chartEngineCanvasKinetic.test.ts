@@ -224,7 +224,7 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     });
     const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
     series.setData(ROWS);
-    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 19 });
     scheduler.flush();
     const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
     expect(overlay).toBeTruthy();
@@ -234,7 +234,7 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
   it("(a) a mouse drag pan moves the visible logical range by dx / barSpacing", () => {
     const { engine, overlay } = mount();
     const before = engine.timeScale().getVisibleLogicalRange();
-    expect(before).toEqual({ from: 0, to: 20 });
+    expect(before).toEqual({ from: 0, to: 19 });
     const spacing = engine.timeScale().options().barSpacing as number;
     expect(spacing).toBeCloseTo(10, 8);
     dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 10 });
@@ -244,7 +244,7 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     const dx = 100;
     expect(after!.from).toBeCloseTo(before!.from - dx / spacing, 8);
     expect(after!.to).toBeCloseTo(before!.to - dx / spacing, 8);
-    expect(after!.to - after!.from).toBeCloseTo(20, 8);
+    expect(after!.to - after!.from + 1).toBeCloseTo(20, 8);
     engine.destroy();
   });
 
@@ -260,7 +260,7 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     const afterTs = engine.unwrap<{ time: typeof ts }>().time;
     const afterLogical = logicalOfX(x, afterTs);
     expect(Math.abs(afterLogical - beforeLogical)).toBeLessThanOrEqual(0.5);
-    expect(Math.abs((after.to - after.from) - beforeWidth)).toBeGreaterThan(0.01);
+    expect(Math.abs((after.to - after.from + 1) - beforeWidth)).toBeGreaterThan(0.01);
     engine.destroy();
   });
 
@@ -470,7 +470,7 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     });
     const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
     series.setData(ROWS);
-    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 19 });
     const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
     dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 0 });
     nowMs = 10;

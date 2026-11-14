@@ -137,19 +137,26 @@ export function createDrawingBridge(
     if (!series) return null;
     const size = attempt(() => engine.paneSize(paneIndex), null);
     if (!size || !(size.width > 0) || !(size.height > 0)) return null;
-    const range = attempt(() => engine.timeScale().getVisibleLogicalRange(), null);
+    const timeScale = engine.timeScale();
+    const range = attempt(() => timeScale.getVisibleLogicalRange(), null);
     if (!range || !Number.isFinite(range.from) || !Number.isFinite(range.to)
-      || !(range.to > range.from)) return null;
-    // Mirrors the LWC convention: bar i is centred at (i - from + 0.5) * spacing.
-    const barSpacing = size.width / (range.to - range.from);
-    if (!(barSpacing > 0)) return null;
+      || range.to < range.from) return null;
+    // Probe adjacent integer slots near the visible window. This keeps the
+    // renderer's actual pixel origin and avoids public range endpoint math.
+    // LWC's inverse snaps to bars, so interpolate here to retain raw anchors.
+    const base = Math.floor(range.from);
+    const baseX = attempt(() => timeScale.logicalToCoordinate(base), null);
+    const nextX = attempt(() => timeScale.logicalToCoordinate(base + 1), null);
+    if (baseX == null || nextX == null || !Number.isFinite(baseX) || !Number.isFinite(nextX)) return null;
+    const barSpacing = nextX - baseX;
+    if (!Number.isFinite(barSpacing) || !(barSpacing > 0)) return null;
     return {
       generation,
       dpr: 1, // the contract speaks CSS pixels
       widthPx: size.width,
       heightPx: size.height,
-      xOfLogical: (i: number) => (i - range.from + 0.5) * barSpacing,
-      logicalOfX: (x: number) => x / barSpacing + range.from - 0.5,
+      xOfLogical: (i: number) => baseX + (i - base) * barSpacing,
+      logicalOfX: (x: number) => base + (x - baseX) / barSpacing,
       yOfPrice: (p: number) => {
         const y = attempt(() => series.priceToCoordinate(p), null);
         return y != null && Number.isFinite(y) ? y : Number.NaN;

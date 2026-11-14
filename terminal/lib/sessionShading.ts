@@ -35,6 +35,7 @@ import type {
   SeriesAttachedParameter,
   Time,
 } from "lightweight-charts";
+import type { EnginePrimitive } from "./chart-engine/primitive";
 
 // ── Bar type matching intradayMath.ts (display-epoch numeric seconds) ──────────
 export interface ShadingBar {
@@ -45,13 +46,13 @@ export interface ShadingBar {
 export type Market = "us" | "cn" | "hk" | "crypto" | "ca";
 
 /** minOfDay: minutes elapsed since midnight in market-local wall-clock time (display-epoch). */
-const minOfDay = (t: number): number => Math.floor(t / 60) % 1440;
+export const minOfDay = (t: number): number => Math.floor(t / 60) % 1440;
 
-const RTH_START = 570;  // 09:30 in minutes
-const RTH_END   = 960;  // 16:00 in minutes
+export const RTH_START = 570;  // 09:30 in minutes
+export const RTH_END   = 960;  // 16:00 in minutes
 
-const PREMARKET_COLOR  = "rgba(232,179,57,0.045)";
-const AFTERHOURS_COLOR = "rgba(77,130,255,0.045)";
+export const PREMARKET_COLOR  = "rgba(232,179,57,0.045)";
+export const AFTERHOURS_COLOR = "rgba(77,130,255,0.045)";
 
 // ── Renderer ──────────────────────────────────────────────────────────────────
 
@@ -291,10 +292,11 @@ export function attachSessionShadingToHandle(
   return prim;
 }
 
-/** Detach a previously attached SessionShadingPrimitive through a handle-shaped host. */
+/** Detach a previously attached shading primitive — the LWC one or the engine-neutral
+ *  SessionShadingEnginePrimitive (sessionShadingEngine.ts) — through a handle-shaped host. */
 export function detachSessionShadingFromHandle(
   host: SeriesHostLike,
-  prim: SessionShadingPrimitive,
+  prim: SessionShadingPrimitive | EnginePrimitive,
 ): void {
   host.detachPrimitive(prim as unknown as ISeriesPrimitive<Time>);
 }

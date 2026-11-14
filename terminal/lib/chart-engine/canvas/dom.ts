@@ -86,7 +86,10 @@ function makeSeparator(index: number): SeparatorSurface {
   handle.style.left = "0";
   handle.style.width = "100%";
   handle.style.height = `${SEPARATOR_HANDLE_PX}px`;
-  handle.style.zIndex = "50";
+  // Above the overlay canvas (z 2) so a resize drag reaches the handle, but below the host's
+  // chart-wrap chrome (.chart-overlays z 6, .draw-bar z 7, .ctx-menu z 8): the root creates no
+  // stacking context, so a higher value put the handle over the chart context menu on tablet.
+  handle.style.zIndex = "3";
   // As on LWC: a vertical touch drag resizes, a horizontal one still scrolls the page.
   handle.style.touchAction = "pan-x";
   const line = document.createElement("div");

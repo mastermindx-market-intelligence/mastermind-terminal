@@ -115,6 +115,7 @@ describe("overlay crosshair time label follows the owner pane", () => {
       dpr: 1,
       panes: heights.map((height) => ({ height })),
       chartWidthPx: () => 460,
+      plotLeftPx: () => 0,
       xOfLogical: (i: number) => i * 10 + 5,
       logicalOfX: (x: number) => (x - 5) / 10,
       coordinateToTime: () => time as never,

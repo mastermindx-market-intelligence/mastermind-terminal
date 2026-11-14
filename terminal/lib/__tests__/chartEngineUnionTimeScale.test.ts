@@ -10,6 +10,9 @@ import { createEngine } from "@/lib/chart-engine";
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
 import { ChartModel } from "@/lib/chart-engine/canvas/model";
 import type { ChartEngine, EngineSeriesRow, SeriesHandle } from "@/lib/chart-engine/api";
+import { clampLogicalRange } from "@/lib/timeWindow";
+import { createDrawingBridge } from "@/lib/chart-engine/drawingBridge";
+import { futureCadence } from "@/lib/chart-engine/futureTime";
 
 const DAY = 86400;
 const T0 = 1767225600; // 2026-01-01T00:00:00Z
@@ -43,7 +46,7 @@ type Ctx = {
   engine: ChartEngine;
   series: Record<string, SeriesHandle>;
   log: unknown[];
-  /** Show logical bars [from, to) — mm's house window; LWC's range is right-inclusive. */
+  /** Show logical bars [from, to) through either adapter's inclusive public range. */
   view(from: number, to: number): void;
   /** Run queued animation frames: LWC applies a set range or fitContent on the next frame. */
   frame(): void;
@@ -54,12 +57,12 @@ function observe(ctx: Ctx, label: string, probe: readonly number[]): void {
   ctx.frame();
   const ts = ctx.engine.timeScale();
   const lr = ts.getVisibleLogicalRange();
-  // House convention (modelTime.ts): mm's window is [from, to) and its x sits one pixel
-  // right of LWC's (LWC indexToCoordinate subtracts 1). Map LWC onto it; any other
-  // difference is a real divergence. LWC's plot also loses its measured price-axis width
+  // Both public ranges are inclusive; compare their slot count with the same +1.
+  // Native x sits one pixel right of LWC's (LWC indexToCoordinate subtracts 1).
+  // LWC's plot also loses its measured price-axis width
   // (mm's does not here), so a time is compared by the logical slot its x lands on —
   // x / spacing + from - 0.5 — not by raw pixels.
-  const dTo = ctx.impl === "lwc" ? 1 : 0;
+  const dTo = 1;
   const dX = ctx.impl === "lwc" ? 1 : 0;
   const from = lr ? lr.from : 0;
   const spacing = lr ? ts.width() / (lr.to + dTo - lr.from) : 1;
@@ -162,7 +165,7 @@ describe("mm union time scale (LWC merged time points)", () => {
       series: {},
       log: [],
       view: (from, to) => {
-        engine.timeScale().setVisibleLogicalRange({ from, to: impl === "lwc" ? to - 1 : to });
+        engine.timeScale().setVisibleLogicalRange({ from, to: to - 1 });
         runFrames();
       },
       frame: runFrames,
@@ -182,6 +185,86 @@ describe("mm union time scale (LWC merged time points)", () => {
     expect(mm).toEqual(lwc);
     return lwc;
   }
+
+  it("public date and logical windows share inclusive endpoints on both adapters", () => {
+    const log = parity(ctx => {
+      ctx.engine.addSeries("candles", {}).setData(bars(0, 40));
+      const ts = ctx.engine.timeScale();
+      ts.setVisibleRange({ from: t(0), to: t(9) });
+      ctx.frame();
+      ctx.log.push(ts.getVisibleLogicalRange());
+      ts.setVisibleLogicalRange({ from: 10, to: 19 });
+      ctx.frame();
+      ctx.log.push(ts.getVisibleRange());
+    });
+    expect(log).toEqual([{ from: 0, to: 9 }, { from: t(10), to: t(19) }]);
+  });
+
+  it("accepts the linked-pane consumer's earliest inclusive window without shifting it", () => {
+    const clock = { first: 0, last: 39, step: DAY * 1000, msAt: (i: number) => t(i) * 1000 };
+    const wanted = clampLogicalRange(clock, { from: -9, to: 0 })!;
+    const log = parity(ctx => {
+      ctx.engine.addSeries("candles", {}).setData(bars(0, 40));
+      ctx.engine.timeScale().setVisibleLogicalRange(wanted);
+      ctx.frame();
+      ctx.log.push(ctx.engine.timeScale().getVisibleLogicalRange());
+    });
+    expect(log).toEqual([wanted]);
+  });
+
+  it.each(["lwc", "mm"] as const)("drawing anchors retain the actual %s pixel origin and fractional slots", impl => {
+    runOn(impl, ctx => {
+      const series = ctx.engine.addSeries("candles", {});
+      series.setData(bars(0, 40));
+      ctx.view(5, 15);
+      const ts = ctx.engine.timeScale();
+      const bridge = createDrawingBridge(ctx.engine, {
+        primaryByPane: () => series,
+        cadence: () => futureCadence(Array.from({ length: 40 }, (_, i) => t(i))),
+        lastBarTime: () => t(39),
+      });
+      const x6 = ts.logicalToCoordinate(6)!, x7 = ts.logicalToCoordinate(7)!;
+      const y = series.priceToCoordinate(110)!;
+      expect(x6).not.toBeNull();
+      expect(x7).not.toBeNull();
+      expect(y).not.toBeNull();
+      for (const fraction of [0, 0.25, 0.75]) {
+        const x = x6 + fraction * (x7 - x6);
+        const anchor = bridge.pixelToAnchor(0, x, y, "raw");
+        expect(anchor).not.toBeNull();
+        expect(anchor!.logical).toBeCloseTo(6 + fraction, 10);
+        expect(bridge.anchorToPixel(anchor!)!.x).toBeCloseTo(x, 10);
+      }
+      bridge.dispose();
+    });
+  });
+
+  it.each([{ from: 0.1, to: 1.3 }, { from: -8.8, to: 1.2 }])(
+    "native public range callbacks preserve fractional endpoints and listener identity: %j", wanted => {
+      runOn("mm", ctx => {
+        ctx.engine.addSeries("candles", {}).setData(bars(0, 40));
+        ctx.frame();
+        const ts = ctx.engine.timeScale(), listener = vi.fn();
+        ts.subscribeVisibleLogicalRangeChange(listener);
+        ts.subscribeVisibleLogicalRangeChange(listener);
+        ts.setVisibleLogicalRange(wanted);
+        ctx.frame();
+        expect(ts.getVisibleLogicalRange()).toEqual(wanted);
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenLastCalledWith(wanted);
+        expect(ctx.engine.unwrap<ChartModel>().getVisibleLogicalRange()).toEqual({ from: wanted.from, to: wanted.to + 1 });
+        for (let i = 0; i < 25; i++) ts.setVisibleLogicalRange(ts.getVisibleLogicalRange()!);
+        ctx.frame();
+        expect(ts.getVisibleLogicalRange()).toEqual(wanted);
+        expect(listener).toHaveBeenCalledTimes(1);
+        ts.unsubscribeVisibleLogicalRangeChange(listener);
+        ts.setVisibleRange({ from: t(5), to: t(12) });
+        ctx.frame();
+        expect(ts.getVisibleLogicalRange()).toEqual({ from: 5, to: 12 });
+        expect(listener).toHaveBeenCalledTimes(1);
+      });
+    },
+  );
 
   it("a shorter study sits on its own times, not from the left edge", () => {
     const log = parity((ctx) => {

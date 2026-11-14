@@ -20,6 +20,7 @@ function recorder() {
 
 function model(options: Record<string, unknown> = {}): ChartModel {
   const time = Date.UTC(2026, 0, 6) / 1000;
+  const left = (options.leftPriceScale as { visible?: boolean } | undefined)?.visible === true;
   return {
     options: { timeScale: { visible: true }, ...options },
     time: { widthPx: 400 },
@@ -27,6 +28,7 @@ function model(options: Record<string, unknown> = {}): ChartModel {
     dpr: 1,
     panes: [{ height: 200 }, { height: 100 }],
     chartWidthPx: () => 460,
+    plotLeftPx: () => left ? 60 : 0,
     xOfLogical: (i: number) => i * 10 + 5,
     logicalOfX: (x: number) => (x - 5) / 10,
     coordinateToTime: () => time as never,
@@ -41,6 +43,22 @@ const axis = {
 } as unknown as PaneAxisState;
 
 describe("mm crosshair overlay (LWC parity)", () => {
+  it("offsets the left-axis plot once and keeps its line and labels out of the strip", () => {
+    const left = model({ leftPriceScale: { visible: true }, rightPriceScale: { visible: false } });
+    const { ctx, calls } = recorder();
+    paintOverlayFrame({ ctx, model: left, point: { x: 163, y: 50 }, axes: [axis] });
+    const moves = calls.filter(c => c.method === "moveTo");
+    expect(moves[0].args[0]).toBe(165.5);
+    expect(moves[1].args[0]).toBe(60);
+    expect(calls.find(c => c.method === "lineTo" && c.args[1] === 50.5)?.args[0]).toBe(460);
+    const price = calls.find(c => c.method === "fillText" && String(c.args[0]).startsWith("P"))!;
+    expect(Number(price.args[1])).toBeGreaterThanOrEqual(0);
+    expect(Number(price.args[1])).toBeLessThan(60);
+    const hidden = recorder();
+    paintOverlayFrame({ ctx: hidden.ctx, model: left, point: { x: 30, y: 50 }, axes: [axis] });
+    expect(hidden.calls.filter(c => c.method !== "clearRect")).toHaveLength(0);
+  });
+
   it("draws LargeDashed lines snapped to the bar, a formatted price label and a dd MMM 'yy time label", () => {
     const { ctx, calls } = recorder();
     paintOverlayFrame({ ctx, model: model(), point: { x: 103, y: 50 }, axes: [axis] });

@@ -96,6 +96,17 @@ describe("requestPaneFocus", () => {
     expect(pane.crosshair).toEqual({ price: 140, time: target });
   });
 
+  it("keeps the two-slot maximum zoom when focusing an exact bar", async () => {
+    const times = fiveMinute(300);
+    const pane = new FakePane(0, times);
+    pane.range = { from: 250, to: 251 }; // inclusive two-slot window
+    mount(pane);
+    await expect(requestPaneFocus(0, { tf: "5m", time: times[40] })).resolves.toEqual({ status: "exact", index: 40 });
+    expect(pane.range).toEqual({ from: 39.5, to: 40.5 });
+    expect(pane.range.to - pane.range.from + 1).toBe(2);
+    expect(pane.crosshair).toEqual({ price: 140, time: times[40] });
+  });
+
   it("keeps two same-date intraday bars distinct — 10:00 is not 10:05", async () => {
     const times = fiveMinute(78);
     const pane = new FakePane(0, times);

@@ -187,28 +187,45 @@ describe("PERF-A time scale (T1/T2): LWC clamp on every write", () => {
 
     // 40k-bar request -> spacing below minBarSpacing 0.5 -> clamped, right
     // edge kept (dev:6393), span = widthPx/0.5.
-    tsHandle.setVisibleLogicalRange({ from: 0, to: ROWS });
+    tsHandle.setVisibleLogicalRange({ from: 0, to: ROWS - 1 });
     expect(model.time.barSpacing).toBe(0.5);
     expect(model.time.visibleTo).toBe(ROWS);
     expect(model.time.visibleFrom).toBeCloseTo(ROWS - m.model.time.widthPx / 0.5, 9);
 
-    // Half-bar request -> spacing above the max (width * 0.5, dev:6533-6541)
+    // Inclusive 1.5-slot request -> spacing above the max (width * 0.5, dev:6533-6541)
     // -> clamped to WIDTH_PX/2, right edge kept.
     tsHandle.setVisibleLogicalRange({ from: 100, to: 100.5 });
     expect(model.time.barSpacing).toBeCloseTo(m.model.time.widthPx / 2, 9);
-    expect(model.time.visibleTo).toBe(100.5);
-    expect(model.time.visibleFrom).toBeCloseTo(100.5 - 2, 9); // span 2 = width/(width/2)
+    expect(model.time.visibleTo).toBe(101.5);
+    expect(model.time.visibleFrom).toBeCloseTo(101.5 - 2, 9); // span 2 = width/(width/2)
+    expect(tsHandle.getVisibleLogicalRange()?.to).toBe(100.5);
 
     // A request already inside every bound round-trips unchanged — no
     // re-quantisation, and no duplicate notification.
-    const inBounds = { from: model.time.visibleFrom, to: model.time.visibleTo };
+    const inBounds = tsHandle.getVisibleLogicalRange()!;
+    const internal = { from: model.time.visibleFrom, to: model.time.visibleTo };
     const handler = vi.fn();
     tsHandle.subscribeVisibleLogicalRangeChange(handler);
     tsHandle.setVisibleLogicalRange(inBounds);
-    expect(model.time.visibleFrom).toBe(inBounds.from);
-    expect(model.time.visibleTo).toBe(inBounds.to);
+    expect(tsHandle.getVisibleLogicalRange()).toEqual(inBounds);
+    expect(model.time.visibleFrom).toBe(internal.from);
+    expect(model.time.visibleTo).toBe(internal.to);
     expect(handler).toHaveBeenCalledTimes(0);
     tsHandle.unsubscribeVisibleLogicalRangeChange(handler);
+    m.engine.destroy();
+  });
+
+  it("preserves fractional in-bounds endpoints bitwise across repeated no-op range writes", () => {
+    const m = mountPerf();
+    const range = { from: 0.1, to: 2000.7 };
+    const time = m.engine.timeScale();
+    time.setVisibleLogicalRange(range);
+    expect(time.getVisibleLogicalRange()).toEqual(range);
+    const changed = vi.fn();
+    time.subscribeVisibleLogicalRangeChange(changed);
+    for (let i = 0; i < 50; i++) time.setVisibleLogicalRange(range);
+    expect(time.getVisibleLogicalRange()).toEqual(range);
+    expect(changed).not.toHaveBeenCalled();
     m.engine.destroy();
   });
 

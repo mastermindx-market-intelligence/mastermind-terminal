@@ -118,7 +118,7 @@ function paneProjection(engine: ChartEngine, paneIndex: number) {
   const range = engine.timeScale().getVisibleLogicalRange();
   if (!range || !(range.to > range.from)) throw new Error("no non-degenerate visible logical range");
   const size = engine.paneSize(paneIndex);
-  const barSpacing = size.width / (range.to - range.from);
+  const barSpacing = size.width / (range.to - range.from + 1);
   return {
     barSpacing,
     widthPx: size.width,

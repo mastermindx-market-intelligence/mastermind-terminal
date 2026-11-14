@@ -208,7 +208,7 @@ const H = vi.hoisted(() => {
   interface FakeChart {
     __ts: { getVisibleLogicalRange: Spy; setVisibleLogicalRange: Spy;
             subscribeVisibleLogicalRangeChange: Spy; unsubscribeVisibleLogicalRangeChange: Spy;
-            timeToCoordinate: Spy; coordinateToTime: Spy };
+            timeToCoordinate: Spy; logicalToCoordinate: Spy; coordinateToTime: Spy };
     addSeries: Spy;
     panes: Spy;
     timeScale: Spy;
@@ -218,7 +218,7 @@ const H = vi.hoisted(() => {
     __panes: FakePane[];
   }
   const reg = {
-    geo: { width: HOIST_PANE_W, height: HOIST_PANE_H_PX, from: 0, to: HOIST_TIMES.length } as
+    geo: { width: HOIST_PANE_W, height: HOIST_PANE_H_PX, from: 0, to: HOIST_TIMES.length - 1 } as
       { width: number; height: number; from: number; to: number },
     // The times the stand-in can address. MUST follow setData, or a history-depth
     // or timeframe change cannot reach the LWC leg at all (RESULT.md F2).
@@ -293,11 +293,15 @@ const H = vi.hoisted(() => {
         const key = typeof time === "number" ? time : String(time);
         const idx = reg.times.findIndex((t) => t === key);
         if (idx === -1) return null;
-        const spacing = reg.geo.width / (reg.geo.to - reg.geo.from);
+        const spacing = reg.geo.width / (reg.geo.to - reg.geo.from + 1);
         return (idx - reg.geo.from + 0.5) * spacing;
       }),
+      logicalToCoordinate: vi.fn((logical: number): number => {
+        const spacing = reg.geo.width / (reg.geo.to - reg.geo.from + 1);
+        return (logical - reg.geo.from + 0.5) * spacing;
+      }),
       coordinateToTime: vi.fn((x: number): EngineTime | null => {
-        const spacing = reg.geo.width / (reg.geo.to - reg.geo.from);
+        const spacing = reg.geo.width / (reg.geo.to - reg.geo.from + 1);
         const idx = Math.round(x / spacing + reg.geo.from - 0.5);
         return idx >= 0 && idx < reg.times.length ? reg.times[idx]! : null;
       }),
@@ -376,7 +380,7 @@ function mountCanvas(container: HTMLDivElement): MountHandle {
 
 function mountLwc(container: HTMLDivElement): MountHandle {
   H.reg.reset();
-  H.reg.geo = { width: PANE_W, height: PANE_H_PX, from: 0, to: TIMES.length };
+  H.reg.geo = { width: PANE_W, height: PANE_H_PX, from: 0, to: TIMES.length - 1 };
   H.reg.times = [...TIMES];
   const engine = createLwcEngine(container, { width: PANE_W, height: PANE_H_PX * 2 });
   const s0 = engine.addSeries("candles", {}, 0);

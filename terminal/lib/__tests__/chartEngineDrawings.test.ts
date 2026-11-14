@@ -33,9 +33,9 @@ function makeFakeCtx(): CanvasRenderingContext2D & { __calls: CtxCall[] } {
 }
 
 function linearBridgeEngine(width = 600, height = 300): ChartEngine {
-  let range: EngineLogicalRange = { from: -1, to: TIMES.length + 1 };
+  let range: EngineLogicalRange = { from: -1, to: TIMES.length };
   const handlers = new Set<EngineLogicalRangeHandler>();
-  const barSpacing = () => width / (range.to - range.from);
+  const barSpacing = () => width / (range.to - range.from + 1);
   const series = {
     priceToCoordinate: (price: number) => (200 - price) * (height - 1) / 300,
     coordinateToPrice: (y: number) => 200 - y * 300 / (height - 1),

@@ -118,6 +118,58 @@ afterEach(() => {
   container.remove();
 });
 
+describe("left-axis canvas boundaries", () => {
+  it("paints the strip on the left and exposes plot-local mouse coordinates", () => {
+    const { engine, scheduler } = mount({
+      width: 300, height: 180, leftPriceScale: { visible: true }, rightPriceScale: { visible: false },
+    });
+    const series = engine.addSeries("candles", { priceScaleId: "left", upColor: "#00aa11", downColor: "#aa0011" });
+    series.setData(OHLC);
+    engine.timeScale().setVisibleLogicalRange({ from: -1, to: 4 });
+    scheduler.flush();
+    const strip = engine.priceScale("left").width();
+    const calls = paneCtx(engine).__calls;
+    expect(strip).toBeGreaterThan(0);
+    expect(calls).toContainEqual({ method: "translate", args: [strip, 0] });
+    expect(calls).toContainEqual({ method: "clearRect", args: [0, 0, strip, 180] });
+    // Replay the recorded transforms to assert effective painted coordinates,
+    // rather than accepting a translate call that could surround no painting.
+    let offset = 0, fill: unknown;
+    const saved: number[] = [], candleCenters: number[] = [], clears: number[][] = [];
+    for (const call of calls) {
+      if (call.method === "save") saved.push(offset);
+      if (call.method === "restore") offset = saved.pop() ?? 0;
+      if (call.method === "translate") offset += Number(call.args[0]);
+      if (call.method === "set:fillStyle") fill = call.args[0];
+      if (call.method === "clearRect") clears.push([offset + Number(call.args[0]), Number(call.args[2])]);
+      if (call.method === "rect" && fill === "#00aa11")
+        candleCenters.push(offset + Number(call.args[0]) + Number(call.args[2]) / 2);
+    }
+    expect(clears).toContainEqual([strip, engine.timeScale().width()]);
+    expect(candleCenters.length).toBeGreaterThan(0);
+    expect(Math.abs(candleCenters[0] - strip - engine.timeScale().timeToCoordinate(OHLC[0].time)!)).toBeLessThanOrEqual(1);
+    const listener = vi.fn();
+    engine.subscribeCrosshairMove(listener);
+    engine.chartElement().querySelector("[data-mm-overlay]")!.dispatchEvent(new MouseEvent("mousemove", {
+      clientX: strip + 60, clientY: 40, bubbles: true,
+    }));
+    expect(listener.mock.calls.at(-1)?.[0].point).toEqual({ x: 60, y: 40 });
+    expect(listener.mock.calls.at(-1)?.[0].logical).toBe(engine.timeScale().coordinateToLogical(60));
+    const canvas = engine.chartElement().querySelector<HTMLCanvasElement>("[data-mm-pane-canvas]")!;
+    const painted = JSON.parse(canvas.dataset.mmPaintGeometry!);
+    expect(painted.plot).toEqual({ x: strip, y: 0, width: engine.timeScale().width(), height: 180 });
+    expect(painted.axis).toEqual({ x: 0, y: 0, width: strip, height: 180 });
+    engine.applyOptions({ leftPriceScale: { visible: false }, rightPriceScale: { visible: true } });
+    series.applyOptions({ priceScaleId: "right" });
+    scheduler.flush();
+    const flipped = JSON.parse(canvas.dataset.mmPaintGeometry!);
+    expect(flipped.plot.x).toBe(0);
+    expect(flipped.axis.x).toBe(engine.timeScale().width());
+    expect(flipped.plot.width + flipped.axis.width).toBe(300);
+    engine.destroy();
+  });
+});
+
 // ─── F1 (P1) — painted y equals series.priceToCoordinate for every kind ─────────
 // H2 fix: dab8e54c "one autoscale truth" — `displayScale` delegates to
 // `model.autoscaleScale`. Mutant: restore the hand-rolled extentsOf loop and verify
@@ -442,6 +494,32 @@ describe("F11 (P2) a throwing primitive update() is recorded in primHost.errors(
 // `sourceEvent`. We dispatch a real mousemove on the engine's overlay and inspect
 // the subscriber payload.
 describe("F10 (P2) crosshair mouse payload carries seriesData + hoveredSeries + paneIndex", () => {
+  it("emits the hit pane and pane-relative pointer coordinates after pane reordering", () => {
+    const { engine, scheduler } = mount({ height: 300 });
+    const price = engine.addSeries("candles");
+    price.setData(OHLC);
+    engine.addSeries("line", {}, 1).setData(OHLC.map((row) => ({ time: row.time, value: 50 })));
+    engine.swapPanes(0, 1);
+    scheduler.flush();
+    const model = engine.unwrap<ChartModel>();
+    const overlay = engine.chartElement().querySelector("canvas[data-mm-overlay]") as HTMLCanvasElement;
+    const seen: Record<string, unknown>[] = [];
+    engine.subscribeCrosshairMove((payload) => seen.push(payload));
+    const x = engine.timeScale().timeToCoordinate(OHLC[1].time)!;
+    const priceTop = model.panes[0].height;
+    overlay.dispatchEvent(new MouseEvent("mousemove", { clientX: x, clientY: priceTop + 20, bubbles: true }));
+    expect(seen.at(-1)).toMatchObject({ paneIndex: 1, point: { x, y: 20 } });
+    expect((seen.at(-1)!.seriesData as Map<unknown, unknown>).has(price)).toBe(true);
+    overlay.dispatchEvent(new MouseEvent("mousemove", { clientX: x, clientY: 20, bubbles: true }));
+    expect(seen.at(-1)).toMatchObject({ paneIndex: 0, point: { x, y: 20 } });
+    engine.panes()[0].setHeight(0);
+    scheduler.flush();
+    const collapsedTop = model.panes[0].height;
+    overlay.dispatchEvent(new MouseEvent("mousemove", { clientX: x, clientY: collapsedTop + 20, bubbles: true }));
+    expect(seen.at(-1)).toMatchObject({ paneIndex: 1, point: { x, y: 20 } });
+    engine.destroy();
+  });
+
   it("mousemove on the overlay delivers seriesData + hoveredSeries + paneIndex + sourceEvent to subscribers", () => {
     const { engine, scheduler } = mount();
     const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });

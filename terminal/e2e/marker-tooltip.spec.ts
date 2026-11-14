@@ -1,5 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { settled, settledChartDrag, settledPanSample } from "./helpers/settled";
+import { readNativeChartGeometry } from "./helpers/nativeChartGeometry";
 // The tooltip wording is owned by the copy module and imported, never transcribed — the same
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
@@ -242,7 +243,8 @@ async function markers(page: Page): Promise<Marker[]> {
 async function markerField(page: Page): Promise<{
   subpanes: string; hostHeight: string; declared: number; drawn: number; fills: boolean; list: Marker[];
 }> {
-  return page.locator("[data-sig-layer]").first().evaluate((svg) => {
+  const chart = await page.locator(".chart-wrap").first().evaluate(readNativeChartGeometry);
+  const list = await page.locator("[data-sig-layer]").first().evaluate((svg) => {
     const list: { t: string; title: string; cx: number; cy: number }[] = [];
     for (const g of [...svg.querySelectorAll('[data-price-pane-local="signals"] > g')]) {
       const title = g.querySelector(":scope > title")?.textContent;
@@ -251,18 +253,10 @@ async function markerField(page: Page): Promise<{
       if (!(b.width > 0) || !(b.height > 0)) continue;
       list.push({ t: title.split(" ·")[0], title, cx: b.x + b.width / 2, cy: b.y + b.height / 2 });
     }
-    const wrap = svg.parentElement;                                   // ChartPanel's `wrap`
-    const body = wrap?.closest<HTMLElement>(".chart-body") ?? null;
-    const table = wrap?.querySelector<HTMLElement>(".tv-lightweight-charts table") ?? null;
-    if (!wrap || !body || !table) return { subpanes: "", hostHeight: "", declared: -1, drawn: -2, fills: false, list };
-    const style = getComputedStyle(body);
-    const subpanes = style.getPropertyValue("--subpanes").trim();
-    const hostHeight = style.getPropertyValue("--drawing-host-height").trim();
-    const declared = Number.parseInt(subpanes || "0", 10);
-    const drawn = [...table.querySelectorAll("tr")].filter((tr) => tr.querySelector("canvas")).length - 2;
-    const fills = Math.abs(table.getBoundingClientRect().height - wrap.getBoundingClientRect().height) <= 1;
-    return { subpanes, hostHeight, declared, drawn, fills, list };
+    return list;
   });
+  const { subpanes, hostHeight, declared, drawn, fills } = chart;
+  return { subpanes, hostHeight, declared, drawn, fills, list };
 }
 
 /** The marker field, once the REQUESTED pane topology and its geometry have stopped moving — and

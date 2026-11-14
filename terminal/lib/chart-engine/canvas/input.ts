@@ -70,6 +70,8 @@ export type InputEvent = {
   pointerType: InputPointerType;
   x: number;
   y: number;
+  /** Absolute price anchors use pane-local Y; gesture deltas retain chart Y. */
+  paneY?: number;
   timeStamp: number;
   deltaX?: number;
   deltaY?: number;
@@ -483,7 +485,7 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       originWidthPx: ts.widthPx,
       originPriceFrom: ps?.from ?? 0,
       originPriceTo: ps?.to ?? 0,
-      originPriceAnchor: ps ? priceAtY(ps, e.y) : 0,
+      originPriceAnchor: ps ? priceAtY(ps, e.paneY ?? e.y) : 0,
     };
     pointers.set(e.pointerId, pointer);
     samples.length = 0;
@@ -590,16 +592,19 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       if (!ps) return;
       stopInertia(true);
       const factor = wheelDeltaToZoomFactor(delta, deltaMode, ps.heightPx);
-      deps.setPriceRange(e.paneIndex, zoomPrice(ps, priceAtY(ps, e.y), factor));
+      deps.setPriceRange(e.paneIndex, zoomPrice(ps, priceAtY(ps, e.paneY ?? e.y), factor));
       return;
     }
 
-    const zoom = options.handleScale.mouseWheel && (Boolean(e.ctrlKey) || !options.handleScroll.mouseWheel);
+    // LWC treats the wheel axes independently: vertical input scales time,
+    // horizontal input scrolls it. Enabling scroll must not turn an ordinary
+    // vertical wheel into a pan or make a disabled axis fall back to the other.
+    const zoom = options.handleScale.mouseWheel && (e.deltaY ?? 0) !== 0;
     if (zoom && ts.barSpacing > 0) {
       // LWC stops a running kinetic scroll when a new scale gesture starts
       // (dev:6319-6328); a wheel notch is a scale start (PERF-A C3 / F5).
       stopInertia(true);
-      const factor = wheelDeltaToZoomFactor(delta, deltaMode, ts.widthPx);
+      const factor = wheelDeltaToZoomFactor(e.deltaY!, deltaMode, ts.widthPx);
       const limits = deps.zoomLimits?.();
       // Float-index anchor (PERF-RR2 ruling 3, LWC _internal_zoom dev:6277-6288):
       // the continuous time coordinate under the pointer is the invariant,
@@ -608,12 +613,11 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       // anchored range.
       const anchor: ZoomAnchor = { anchorLogical: logicalOfX(e.x, ts), anchorX: e.x };
       deps.setVisibleLogicalRange(zoomTimeAroundAt(ts, anchor, factor, limits));
-      return;
     }
-    if (options.handleScroll.mouseWheel && ts.barSpacing > 0) {
+    const afterZoom = deps.getTimeScale();
+    if (options.handleScroll.mouseWheel && (e.deltaX ?? 0) !== 0 && afterZoom.barSpacing > 0) {
       stopInertia(true);
-      const panDelta = (e.deltaX ?? 0) !== 0 ? (e.deltaX as number) : delta;
-      shiftTime(panDelta / ts.barSpacing);
+      shiftTime(e.deltaX! / afterZoom.barSpacing);
     }
   };
 

@@ -32,7 +32,7 @@ type Host = {
   ranges: Array<{ from: number; to: number }>;
 };
 
-function makeHost(partial?: Partial<TimeScaleState>): {
+function makeHost(partial?: Partial<TimeScaleState>, options: InputControllerOptions = OPTIONS): {
   host: Host;
   controller: ReturnType<typeof createInputController>;
   step: () => void;
@@ -86,7 +86,7 @@ function makeHost(partial?: Partial<TimeScaleState>): {
         host.queued = host.queued.filter((item) => item !== cb);
       };
     },
-    options: OPTIONS,
+    options,
     onGesture: (g: InputGesture) => {
       host.gestures.push(g.kind);
     },
@@ -144,6 +144,49 @@ describe("createInputController pan", () => {
 });
 
 describe("createInputController wheel zoom (I02 anchor law)", () => {
+  it("zooms on an ordinary vertical wheel while preserving the pointer's logical anchor", () => {
+    const { host, controller } = makeHost();
+    const before = logicalOfX(250, host.ts);
+    controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 0, deltaY: -120 }));
+    expect(host.ts.barSpacing).toBeGreaterThan(10);
+    expect(logicalOfX(250, host.ts)).toBeCloseTo(before, 9);
+  });
+
+  it("pans on a horizontal wheel without changing bar spacing", () => {
+    const { host, controller } = makeHost();
+    controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 80, deltaY: 0 }));
+    expect(host.ts.barSpacing).toBe(10);
+    expect(host.ts.visibleFrom).toBe(8);
+    expect(host.ts.visibleTo).toBe(108);
+  });
+
+  it.each([true, false])("a disabled vertical scale never becomes a pan (scroll=%s)", (scroll) => {
+    const { host, controller } = makeHost(undefined, {
+      ...OPTIONS,
+      handleScroll: { ...OPTIONS.handleScroll, mouseWheel: scroll },
+      handleScale: { ...OPTIONS.handleScale, mouseWheel: false },
+    });
+    controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 0, deltaY: -120 }));
+    expect(host.ranges).toEqual([]);
+  });
+
+  it("a disabled horizontal scroll never becomes a zoom", () => {
+    const { host, controller } = makeHost(undefined, {
+      ...OPTIONS, handleScroll: { ...OPTIONS.handleScroll, mouseWheel: false },
+    });
+    controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 80, deltaY: 0 }));
+    expect(host.ranges).toEqual([]);
+  });
+
+  it("honors both axes of a diagonal wheel through their independent controls", () => {
+    const vertical = makeHost();
+    const diagonal = makeHost();
+    vertical.controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 0, deltaY: -120 }));
+    diagonal.controller.handleEvent(evt("wheel", { x: 250, y: 40, deltaX: 80, deltaY: -120 }));
+    expect(diagonal.host.ts.barSpacing).toBeCloseTo(vertical.host.ts.barSpacing, 9);
+    expect(diagonal.host.ts.visibleFrom).toBeCloseTo(vertical.host.ts.visibleFrom + 80 / vertical.host.ts.barSpacing, 9);
+  });
+
   it("keeps the logical index under the pointer fixed to 1e-9", () => {
     const { host, controller } = makeHost();
     const x = 250;

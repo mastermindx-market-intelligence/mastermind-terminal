@@ -303,7 +303,7 @@ describe("model2 F-3 — scrollToRealtime targets the OPTION rightOffset", () =>
     // option rightOffset = 5; after a pan, live offset is -5
     m.timeScaleHandleFor().applyOptions({ rightOffset: 5 });
     expect(m.timeScaleHandleFor().options().rightOffset).toBe(5);
-    m.timeScaleHandleFor().setVisibleLogicalRange({ from: -5, to: 5 });
+    m.timeScaleHandleFor().setVisibleLogicalRange({ from: -5, to: 4 });
     expect(m.time.rightOffset).toBe(-5);
     // Trigger the realtime scroll (animated, default)
     m.timeScaleHandleFor().scrollToRealtime();
@@ -335,7 +335,7 @@ describe("model2 F-3 — scrollToRealtime targets the OPTION rightOffset", () =>
     ts.applyOptions({ rightOffset: 5 });
     expect(m.time.rightOffset).toBe(5);
     // Pan so the live offset differs from the option slot.
-    ts.setVisibleLogicalRange({ from: -5, to: 5 });
+    ts.setVisibleLogicalRange({ from: -5, to: 4 });
     expect(m.time.rightOffset).toBe(-5);
     // LWC dev:13370-13375: options() reports the option-bag rightOffset;
     // barSpacing is the only field overridden live. The canvas handle must match.
