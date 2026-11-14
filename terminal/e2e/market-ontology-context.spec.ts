@@ -431,7 +431,7 @@ for (const [name, query] of [
     test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
     await prepare(page, testInfo, baseURL);
     await openAnalysis(page, query);
-    await expect(page.locator(".analysis-context-bar")).toBeVisible();
+    await expect(page.locator(".fin-company-control")).toBeVisible();
     await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
   });
 }

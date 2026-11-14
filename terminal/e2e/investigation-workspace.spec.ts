@@ -13,12 +13,11 @@ test("mobile Analysis research actions stay in one row and retain both company-s
  for(const width of [320,390]){
   await page.setViewportSize({width,height:844});
   await page.goto("/analysis?symbol=600519.SS");
-  const bar=page.locator(".analysis-context-bar");
+  const bar=page.locator(".fin-research-nav");
   const summary=bar.locator(".analysis-context-actions > summary");
   await expect(summary).toBeVisible();
-  await expect(bar.locator(".analysis-context-theses")).toHaveCount(2);
-  await expect(bar.locator(".analysis-context-theses").first()).toBeHidden();
-  await expect(bar.locator(".analysis-context-theses").last()).toBeHidden();
+  await expect(bar.locator(".analysis-context-actions-menu a")).toHaveCount(2);
+  await expect(bar.locator(".analysis-context-actions-menu")).toBeHidden();
   const rect=await bar.boundingBox();expect(rect).not.toBeNull();
   expect(rect!.height).toBeLessThanOrEqual(64);
   const tap=await summary.boundingBox();expect(tap).not.toBeNull();
@@ -254,31 +253,24 @@ test("Analysis research entries retain their responsive bilingual source evidenc
    await page.goto(`${testInfo.project.use.baseURL}${url}`);
    const savedLabel=lang==="zh"?"已保存研究":"Saved research";
    const thesisLabel=lang==="zh"?"你的研究论点：NVDA":"Your theses on NVDA";
-   if(project==="mobile"){
-    const summary=page.locator(".analysis-context-actions > summary");
-    await expect(summary).toBeVisible();
-    const bar=page.locator(".analysis-context-bar");
-    const rect=await bar.boundingBox();expect(rect).not.toBeNull();
-    expect(rect!.height).toBeLessThanOrEqual(64);
-    await expect(bar.locator(".analysis-context-theses")).toHaveCount(2);
-  await expect(bar.locator(".analysis-context-theses").first()).toBeHidden();
-  await expect(bar.locator(".analysis-context-theses").last()).toBeHidden();
-    await summary.click();
-    const actions=page.getByRole("navigation",{name:lang==="zh"?"研究操作":"Research actions"});
-    await expect(actions.getByRole("link",{name:savedLabel,exact:true})).toBeVisible();
-    await expect(actions.getByRole("link",{name:thesisLabel})).toBeVisible();
-    await summary.click();
-    await expect(actions).toBeHidden();
-   }else{
-    await expect(page.getByRole("link",{name:savedLabel,exact:true})).toBeVisible();
-    await expect(page.getByRole("link",{name:thesisLabel})).toBeVisible();
-   }
+   const summary=page.locator(".analysis-context-actions > summary");
+   await expect(summary).toBeVisible();
+   const bar=page.locator(".fin-research-nav");
+   const rect=await bar.boundingBox();expect(rect).not.toBeNull();
+   expect(rect!.height).toBeLessThanOrEqual(64);
+   await expect(bar.locator(".analysis-context-actions-menu a")).toHaveCount(2);
+   await summary.click();
+   const actions=page.getByRole("navigation",{name:lang==="zh"?"研究操作":"Research actions"});
+   await expect(actions.getByRole("link",{name:savedLabel,exact:true})).toBeVisible();
+   await expect(actions.getByRole("link",{name:thesisLabel})).toBeVisible();
+   await summary.click();
+   await expect(actions).toBeHidden();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
    const file=`analysis-entry-${project}-${lang}.png`;
    await page.screenshot({path:testInfo.outputPath(file)});captures.push({file,url,state:"context-bar-with-theses-control-and-saved-research"});
    if(project!=="tablet"){
     const spyUrl=`/analysis?symbol=SPY&lang=${lang}`;await page.goto(`${testInfo.project.use.baseURL}${spyUrl}`);
-    const bar=page.locator(".analysis-context-bar");await expect(bar).toBeVisible();
+    const bar=page.locator(".fin-research-nav");await expect(bar).toBeVisible();
     const rect=await bar.boundingBox();expect(rect).not.toBeNull();
     const crop=`AnalysisWorkspace-${viewport.width}${lang==="zh"?"-zh":""}.png`;
     const x=Math.max(0,rect!.x-12),y=Math.max(0,rect!.y-12);

@@ -252,7 +252,7 @@ test("company page families preserve exact FinPage deep links", async ({ page })
   await page.goto("/analysis?symbol=NVDA&page=statements");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
 
-  const compact = page.viewportSize()!.width <= 860;
+  const compact = await page.locator(".fin-family-mobile-trigger").isVisible();
   if (compact) {
     const familyTrigger = page.locator(".fin-family-mobile-trigger");
     await expect(familyTrigger).toContainText("Financials");
@@ -272,7 +272,7 @@ test("family selection lands on the existing family default without a second rou
   await page.goto("/analysis?symbol=NVDA&page=overview");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
 
-  const compact = page.viewportSize()!.width <= 860;
+  const compact = await page.locator(".fin-family-mobile-trigger").isVisible();
   if (compact) {
     await page.locator(".fin-family-mobile-trigger").click();
     const sheet = page.locator(".fin-family-sheet");
@@ -395,7 +395,7 @@ test("Ownership family defaults to Institutional and preserves Insider as its si
   await page.goto("/analysis?symbol=NVDA&page=overview");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
 
-  const compact = page.viewportSize()!.width <= 860;
+  const compact = await page.locator(".fin-family-mobile-trigger").isVisible();
   if (compact) {
     await page.locator(".fin-family-mobile-trigger").click();
     const sheet = page.locator(".fin-family-sheet");
@@ -588,15 +588,15 @@ for (const zh of [false, true]) {
       const checkGroup = async (moving: boolean, total: number, missing: number) => {
         const target = group(moving);
         if (missing > 0) {
-          await expect(target.locator(".arcg")).toHaveCount(0);
+          await expect(target.locator(".fin-rating-summary")).toHaveCount(0);
           await expect(target.locator(".fin-gauge-counts")).toHaveCount(0);
           await expect(target.getByRole("status")).toContainText(zh
             ? `${total} 项数值读数中 ${total - missing} 项可用 · ${missing} 项不可用`
             : `${total - missing} of ${total} numeric readings available · ${missing} unavailable`);
         } else {
           await expect(target.getByRole("status")).toHaveCount(0);
-          await expect(target.locator(".arcg")).toHaveCount(1);
-          await expect(target.locator(".arcg .num")).toHaveCount(total === 0 ? 0 : 1);
+          await expect(target.locator(".fin-rating-summary")).toHaveCount(total === 0 ? 0 : 1);
+          await expect(target.locator(".fin-rating-summary > strong")).toHaveCount(total === 0 ? 0 : 1);
           await expect(target.locator(".fin-gauge-counts")).toHaveCount(total === 0 ? 0 : 1);
         }
       };
@@ -628,7 +628,7 @@ for (const zh of [false, true]) {
         await expect(row(false, "MACD (12, 26, 9)").locator(".fin-tech-act")).toHaveText(zh ? "中性" : "Neutral");
       }
       if (neutral) {
-        await expect(group(true).locator(".arcg .num")).toHaveText("50");
+        await expect(group(true).locator(".fin-rating-summary > strong")).toHaveText(zh ? "中性" : "Neutral");
         await expect(group(true).locator(".fin-gauge-counts")).toContainText(zh ? "中性 15" : "Neutral 15");
         await expect(row(false, "Momentum (10)").locator("td").nth(0)).toHaveText("0.00");
         await expect(row(false, "Momentum (10)").locator(".fin-tech-act")).toHaveText(zh ? "中性" : "Neutral");
@@ -843,4 +843,36 @@ test("Financials snapshot preserves period columns when a metric is incomplete",
   await expect(eps.locator("td")).toHaveText(["—", "—", "—", "—"]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
     .toBeLessThanOrEqual(1);
+});
+
+
+test("compact research navigation keeps focus and content space", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile", "One native dialog keyboard and touch contract.");
+  await installOverviewFixture(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/analysis?symbol=NVDA&page=statements");
+  const trigger = page.locator(".fin-family-mobile-trigger");
+  await expect(trigger).toBeVisible();
+  const nav = await page.locator(".fin-research-nav").boundingBox();
+  const local = await page.locator(".fin-view-toolbar").boundingBox();
+  expect(nav!.height).toBeLessThanOrEqual(64);
+  expect(local!.height).toBeLessThanOrEqual(54);
+  expect(local!.y).toBeGreaterThanOrEqual(nav!.y + nav!.height - 1);
+  await trigger.click();
+  const dialog = page.locator("dialog.fin-family-sheet-layer");
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.locator('[data-fin-family-sheet="earnings"]').click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page).toHaveURL(/[?&]page=earnings\b/);
+  const results = page.locator('[data-fin-local="earnings"]');
+  await results.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator('[data-fin-local="forecast"]')).toBeFocused();
+  await expect(page).toHaveURL(/[?&]page=forecast\b/);
+  await page.screenshot({ path: info.outputPath("analysis-compact-navigation.png") });
 });

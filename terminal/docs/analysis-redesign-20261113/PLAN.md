@@ -60,7 +60,7 @@ Respect all native protections, explicit holds, source writers and unresolved ef
 
 ## Current next action
 
-Implement P1 on the original branch, then P2 in the same healthy session; run focused checks and save exact source/evidence before advancing. Keep production acceptance open until actual live behavior is verified.
+P1–P4 source work is implemented. Qualify the exact delivery head in the existing native CI, review responsive artifacts, repair any proven regressions, then request the permitted protected release. Keep production and cold-reader acceptance open until actually verified.
 
 
 ## Implementation checkpoint — 2026-11-14
@@ -70,3 +70,21 @@ Source implementation is in progress; parent acceptance is NOT complete. This br
 Validation: initial TypeScript run hit the default 2 GB V8 heap limit. A 6 GB run identified two owned type errors (fixed in this checkpoint) and missing files from the sparse checkout; full qualification remains pending. Affected financial basis and unavailable-reading unit tests are running. Local Playwright reached route warmup after dependency recovery, but installed Chromium launch was denied by the environment's socket restriction. Do not retry that effect through alternate launch flags or carriers. The user-connected Chrome surface is blocked by an open extension UI; no alternate control attempt. Paper prepare timeout remains unreplayed, with no canvas mutations.
 
 Next: complete local source qualification and substantive remaining layout refinements; publish a reviewable PR through the same GitHub-native branch carrier; use the existing native CI and responsive evidence workflow subject to actual holds. Browser proof and production acceptance remain owed. No production change has been made.
+
+
+## Reviewable implementation — 2026-11-14
+
+P1–P4 are implemented in source, pending browser and live acceptance. The source now also includes operating-performance-first Overview with three headline metrics and secondary profile context; compact share structure; institutional positions as a real scrollable table with clear holdings-versus-company-event dates; smaller Lab filter controls and rows; current ratios available independently of statement cadence; Results without repeated empty-state explanations; accessible mobile section dialog focus/Escape handling; and preserved meaningful labels on numeric brief takeaways.
+
+Local verification:
+- 149 focused tests passed across 13 suites: navigation/context continuity, section headings, financial snapshot alignment, earnings expectation boundary, technical missing/zero readings, brief evidence, topics and labels, institutional and reported-ownership boundaries.
+- Existing thesis-entry capture helper: 65 tests passed, updated to exercise the real research-actions disclosure at every width while retaining identity and localization checks.
+- Full Terminal TypeScript check completed with exit 0 using a 6 GB V8 heap after restoring exact original sparse-checkout dependencies. Default-heap failure was environmental; no compiler/test gate was removed.
+- git diff --check passed.
+- Browser contracts were updated to the new DOM while retaining route, data, accessibility, scope, and overflow assertions; added compact dialog/focus geometry and first-viewport brief checks. These Playwright changes are not yet claimed executed.
+
+Self-review: SELF_REVIEWED. A separate reasoning-only source inspection surfaced six issues (fallback retry, stale labeling, mobile chart return, dialog Escape/focus, numeric takeaway meaning), all repaired in the same owned source. This is not a GitHub APPROVED review.
+
+Acceptance remains open: Paper's intended file was unavailable after a no-replay timeout; no canvas edits. The original user Chrome action is blocked by extension UI. Local Chromium socket launch is prohibited by the execution environment. No further replay or alternate browser carrier was attempted. Existing GitHub CI is the independent repository verification path, not live-production proof.
+
+Next proof/action: open one Ready PR from the existing source branch, obtain exact-head native required checks and responsive artifacts, inspect the designs and interactions, then use protected auto-merge if qualified and permitted. Do not claim deployment, production browser acceptance, award-level quality, or 10/10 before the corresponding evidence. Reassess the parent objective after each result.

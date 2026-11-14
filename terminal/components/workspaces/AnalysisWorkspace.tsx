@@ -286,7 +286,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
           eyebrow=""
-          
+
           label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}

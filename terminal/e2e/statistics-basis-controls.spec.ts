@@ -73,7 +73,7 @@ for (const surface of ["analysis", "terminal"] as const) for (const lang of ["en
     await expect(valuation).toContainText("FY2025");
     await expect(valuation).toContainText("30.00");
     await expect(valuation).toContainText("25.00");
-    await expect(keyStats).toContainText("200M");
+    await expect(keyStats).toContainText("200.00M");
     await expect(statistics.locator(".fin-stats-hdr")).toContainText(lang === "zh" ? "当前快照 · 年度估值历史" : "Current snapshot · annual ratio history");
     // There is no quarterly ratio series; do not offer a control that hides current values.
     await expect(statistics.locator(".fin-stats-hdr button")).toHaveCount(0);

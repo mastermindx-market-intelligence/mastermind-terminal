@@ -47,9 +47,8 @@ function errorCopy(result: Extract<CompanyIntelligenceResult, { ok: false }>, zh
 /**
  * The verified-13F surface, exactly as it was before provider-reported holdings were added.
  *
- * This body is deliberately untouched: same fetch, same gating, same copy, same `data-ownership`
- * attributes. It was extracted into a private component purely so `OwnershipPage` can decide
- * whether to sit above it — the rendered output for a US listing is byte-for-byte what it was.
+ * Fetch and generation gates remain independent of the provider-reported panel.
+ * The company-event date identifies the research context, never the holdings quarter.
  */
 function VerifiedInstitutionalOwnership({ sym }: { sym: string }) {
   const { lang } = useLang();
@@ -170,14 +169,10 @@ function VerifiedInstitutionalOwnership({ sym }: { sym: string }) {
           <h2>{pick(zh, "Tracked institutional positioning", "追踪机构持仓")}</h2>
         </div>
         <div className="fin-ownership-intro-meta">
+          <span>{pick(zh, "Company event", "公司事件")}</span>
           <strong>{periodLabel(result)}</strong>
           <time dateTime={latestEvent.call_date}>{latestEvent.call_date}</time>
         </div>
-        <p>{pick(
-          zh,
-          "Point-in-time public 13F filings from the tracked manager roster. This is not total ownership, not a company rank, and not a trading signal.",
-          "基于追踪管理人名册公开 13F 文件的时点视图。它并非总持股、公司排名或交易信号。",
-        )}</p>
       </div>
 
       <CompanyInstitutionalContextCard

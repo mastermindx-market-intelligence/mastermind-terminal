@@ -29,7 +29,6 @@ interface CompanyIntelligenceCallLayoutProps {
   onOpenFullTranscript?: () => void;
   onOpenSources?: () => void;
   searchContent?: ReactNode;
-  fallbackNote?: string | null;
 }
 
 export default function CompanyIntelligenceCallLayout({
@@ -46,7 +45,6 @@ export default function CompanyIntelligenceCallLayout({
   onOpenFullTranscript,
   onOpenSources,
   searchContent,
-  fallbackNote,
 }: CompanyIntelligenceCallLayoutProps) {
   return (
     <section
@@ -151,7 +149,7 @@ export default function CompanyIntelligenceCallLayout({
           <strong>{transcriptAvailable
             ? pick(zh, "Normalized call record available", "规范化电话会记录可用")
             : pick(zh, "Transcript body unavailable", "电话会正文不可用")}</strong>
-          <small>{pick(zh, "The existing transcript reader remains the document owner.", "现有电话会阅读器仍是文档所有者。")}</small>
+          <small>{pick(zh, "Open the transcript to read each passage in context.", "打开电话会正文，查看每个片段的上下文。")}</small>
         </div>
         <div>
           <span>{pick(zh, "Q&A STRUCTURE", "问答结构")}</span>

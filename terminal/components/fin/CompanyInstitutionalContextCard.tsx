@@ -104,15 +104,17 @@ function LoadingCard() {
 }
 
 function ManagerRow({ position, zh }: { position: CompanyInstitutionalPosition; zh: boolean }) {
+  const grade = position.manager_grade?.replaceAll("_", " ");
   return (
-    <li className={`ci-inst-manager ${position.action}`}>
-      <span className="ci-inst-action">{actionLabel(position.action, zh)}</span>
-      <div className="ci-inst-manager-name"><strong>{position.manager_name}</strong><small>{managerStyleLabel(position.manager_style, zh)} · {position.manager_grade}</small></div>
-      <span><small>{pick(zh, "Filed", "提交")}</small><time className="num" dateTime={position.filing_date}>{position.filing_date}</time></span>
-      <span><small>{pick(zh, "Position", "持仓价值")}</small><b className="num">{currency(position.value_usd, zh)}</b></span>
-      <span><small>{pick(zh, "Book weight", "组合权重")}</small><b className="num">{pct(position.book_weight_pct)}</b></span>
-      <span className="ci-inst-move"><small>{pick(zh, "Shares / move", "股份 / 变动")}</small><b className="num">{compact(position.shares, zh)} <i>{pct(position.shares_change_pct, true)}</i></b></span>
-    </li>
+    <tr className={`ci-inst-manager ${position.action}`}>
+      <th scope="row"><div className="ci-inst-manager-name"><strong>{position.manager_name}</strong><small>{managerStyleLabel(position.manager_style, zh)}{grade && grade.toLowerCase() !== "not graded" ? ` · ${grade}` : ""}</small></div></th>
+      <td><span className="ci-inst-action">{actionLabel(position.action, zh)}</span></td>
+      <td><time className="num" dateTime={position.filing_date}>{position.filing_date}</time></td>
+      <td className="num">{currency(position.value_usd, zh)}</td>
+      <td className="num">{pct(position.book_weight_pct)}</td>
+      <td className="num">{compact(position.shares, zh)}</td>
+      <td className="ci-inst-move num">{pct(position.shares_change_pct, true)}</td>
+    </tr>
   );
 }
 
@@ -148,8 +150,8 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
 
       <p className="ci-inst-rule">{pick(
         zh,
-        "A point-in-time view of public 13F filings from the tracked manager roster. It describes disclosed positioning; it does not estimate total ownership, rank the company, or issue a signal.",
-        "基于追踪管理人名册公开 13F 文件的时点视图。它仅描述已披露持仓，不估算总持股、不对公司排序，也不产生信号。",
+        "Public 13F filings from the tracked manager roster. These delayed disclosures describe reported positions, not total company ownership or a trading signal.",
+        "追踪管理人名册的公开 13F 文件。这些滞后披露仅描述申报持仓，并非公司总持股或交易信号。",
       )}</p>
 
       <div className="ci-inst-stats" aria-label={pick(zh, "Institutional filing coverage", "机构申报覆盖") }>
@@ -160,15 +162,22 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
       </div>
 
       <div className="ci-inst-period">
-        <span><small>{pick(zh, "Consensus quarter", "共识季度")}</small><b className="num">{context.period.consensus_period}</b></span>
+        <span><small>{pick(zh, "Holdings as of", "持仓截至")}</small><b className="num">{context.period.consensus_period}</b></span>
         <span><small>{pick(zh, "Filing set complete", "申报集合完成")}</small><b className="num">{context.period.consensus_available_on ?? pick(zh, "Not complete", "尚未完成")}</b></span>
-        <span><small>{pick(zh, "Built as known on", "构建认知截止")}</small><b className="num">{context.period.build_as_of}</b></span>
+        <span><small>{pick(zh, "Available information through", "已知信息截至")}</small><b className="num">{context.period.build_as_of}</b></span>
       </div>
 
       {visible.length > 0 ? (
         <div className="ci-inst-tape">
-          <div className="ci-inst-subhead"><div><span>{pick(zh, "MANAGER TAPE", "管理人持仓带")}</span><small>{pick(zh, "Current positions and reported exits", "当前持仓及已申报退出")}</small></div><b className="num">{context.positions.length}</b></div>
-          <ul>{visible.map((position) => <ManagerRow key={position.manager} position={position} zh={zh} />)}</ul>
+          <div className="ci-inst-subhead"><div><span>{pick(zh, "Reported positions", "已申报持仓")}</span><small>{pick(zh, "Current holders and reported exits", "当前持有人及已申报退出")}</small></div><b className="num">{context.positions.length}</b></div>
+          <div className="ci-inst-table-scroll" role="region" aria-label={pick(zh, "Institutional positions", "机构持仓")} tabIndex={0}>
+            <table className="ci-inst-table">
+              <thead><tr>
+                {[pick(zh, "Manager", "管理人"), pick(zh, "Change", "变化"), pick(zh, "Filed", "提交日期"), pick(zh, "Position value", "持仓价值"), pick(zh, "Book weight", "组合权重"), pick(zh, "Shares", "股数"), pick(zh, "Share change", "股数变化")].map(label => <th key={label} scope="col">{label}</th>)}
+              </tr></thead>
+              <tbody>{visible.map((position) => <ManagerRow key={position.manager} position={position} zh={zh} />)}</tbody>
+            </table>
+          </div>
           {sortedPositions.length > 6 && <button className="ci-inst-more" onClick={() => setShowAll((open) => !open)}>{pick(zh, showAll ? "Show top managers" : `Show all ${sortedPositions.length}`, showAll ? "仅显示主要管理人" : `显示全部 ${sortedPositions.length} 家`)}</button>}
         </div>
       ) : <div className="ci-inst-empty">{pick(zh, "The company remains in the covered universe, but no current tracked manager position or reported exit is present for this aligned quarter.", "该公司仍在覆盖范围内，但本对齐季度没有当前追踪管理人持仓或已申报退出。")}</div>}

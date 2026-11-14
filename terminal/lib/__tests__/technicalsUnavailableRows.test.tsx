@@ -414,16 +414,15 @@ function expectGroupAvailability(group: Group, zh: boolean, total: number, unava
     expect(disclosure?.querySelector("span")?.textContent).toBe(zh
       ? `${total} 项数值读数中 ${total - unavailable} 项可用 · ${unavailable} 项不可用`
       : `${total - unavailable} of ${total} numeric readings available · ${unavailable} unavailable`);
-    expect(summary.querySelector(".arcg")).toBeNull();
+    expect(summary.querySelector(".fin-rating-summary")).toBeNull();
     expect(summary.querySelector(".fin-gauge-counts")).toBeNull();
   } else {
     expect(disclosure).toBeNull();
-    expect(summary.querySelector(".arcg")).not.toBeNull();
     if (total === 0) {
-      expect(summary.querySelector(".arcg .num")).toBeNull();
+      expect(summary.querySelector(".fin-rating-summary")).toBeNull();
       expect(summary.querySelector(".fin-gauge-counts")).toBeNull();
     } else {
-      expect(summary.querySelector(".arcg .num")).not.toBeNull();
+      expect(summary.querySelector(".fin-rating-summary > strong")?.textContent).toBeTruthy();
       expect(summary.querySelector(".fin-gauge-counts")).not.toBeNull();
     }
   }
@@ -450,8 +449,9 @@ describe("Technicals group numeric availability", () => {
           for (const [group, index] of [["oscillators", 0], ["mas", 1]] as const) {
             const summary = summaryGroup(group, zh);
             const row = canonical.summary[index];
-            expect(summary.querySelector(".arcg .num")?.textContent)
-              .toBe(String(Math.round((row.score + 1) * 50)));
+            const verdicts: Record<string, string> = { "Strong sell": "强烈卖出", Sell: "卖出", Neutral: "中性", Buy: "买入", "Strong buy": "强烈买入" };
+            expect(summary.querySelector(".fin-rating-summary > strong")?.textContent)
+              .toBe(zh ? verdicts[row.verdict] : row.verdict);
             expect([...summary.querySelectorAll(".fin-gauge-counts > span")]
               .map((el) => el.textContent)).toEqual(zh
               ? [`卖 ${row.sell}`, `中性 ${row.neutral}`, `买 ${row.buy}`]
@@ -483,8 +483,7 @@ describe("Technicals group numeric availability", () => {
       expectRow("mas", "SMA (200)", zh, "128.00", zh ? "中性" : "Neutral", "mut");
       const summary = summaryGroup("mas", zh);
       expectGroupAvailability("mas", zh, 15, 0);
-      expect(summary.querySelector(".arcg .num")?.textContent).toBe("50");
-      expect(summary.querySelector(".arcg")?.textContent).toContain(zh ? "中性" : "Neutral");
+      expect(summary.querySelector(".fin-rating-summary > strong")?.textContent).toBe(zh ? "中性" : "Neutral");
       expect(summary.querySelector(".fin-gauge-counts")?.textContent).toContain(zh ? "中性 15" : "Neutral 15");
       await renderBars(barsOf(30), zh);
       expectNumericAvailability(30, zh);

@@ -2,9 +2,8 @@
 /**
  * OverviewPage — the TradingView "Financials · Overview" tab (BUILD-SPEC §3.4
  * FE2a, spec/overview-page.md). Sections top→bottom:
- *   Key facts · About (Show more) · Ownership donut + Capital structure ·
- *   Valuation (P/S line, A/Q) · Growth & Profitability (Performance combo +
- *   Revenue→profit waterfall, A/Q) · Revenue breakdown (2 donuts, R6 empty) ·
+ *   Key facts · Profile · Growth & Profitability · Valuation ·
+ *   Share structure + Capital structure · Revenue breakdown (2 donuts, R6 empty) ·
  *   Estimates (Revenue + Earnings dot charts) · Dividends strip · Financial
  *   health (Debt bars + Position bars).
  *
@@ -199,44 +198,22 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
       v: latestEps(ann) != null ? fmtNum(latestEps(ann)!) : "—",
       s: pick(zh, "Latest available FY", "最近可用财年"),
     },
-    { k: pick(zh, "Founded", "成立"), v: p?.founded || "—" },
-    {
-      k: pick(zh, "Employees", "员工人数"),
-      v: p?.employees == null ? "—" : Math.round(p.employees).toLocaleString("en-US"),
-    },
-    { k: pick(zh, "Sector", "板块"), v: p?.sector || "—", txt: true },
-    {
-      k: pick(zh, "Website", "网站"),
-      v: p?.website ? domainOf(p.website) : "—",
-      ext: p?.website || undefined,
-      txt: true,
-    },
+
   ];
 
   // ── About ──
   const desc = p?.description || "";
-  const CLAMP = 320;
+  const CLAMP = 200;
   const clamped = desc.length > CLAMP && !showMore ? desc.slice(0, CLAMP).replace(/\s+\S*$/, "") + "…" : desc;
 
   // ── Ownership ──
   const totalShares = s?.shares_out ?? null;
   const freePct = fund.ownership?.free_float_pct ?? null;
   const heldPct = fund.ownership?.closely_held_pct ?? null;
-  const ownSlices: DonutSlice[] =
-    totalShares != null && (freePct != null || heldPct != null)
-      ? [
-          {
-            label: pick(zh, "Free float shares", "自由流通股"),
-            value: freePct != null ? totalShares * freePct : 0,
-            color: "var(--warn)",
-          },
-          {
-            label: pick(zh, "Closely held shares", "内部持股"),
-            value: heldPct != null ? totalShares * heldPct : Math.max(0, totalShares - (freePct ?? 0) * totalShares),
-            color: "var(--muted)",
-          },
-        ].filter((x) => x.value > 0)
-      : [];
+  const shareSplit = [
+    { label: pick(zh, "Free float shares", "自由流通股"), percent: freePct, color: "var(--brand-2)" },
+    { label: pick(zh, "Closely held shares", "内部持股"), percent: heldPct, color: "var(--muted)" },
+  ];
 
   // ── Valuation: P/S per period ──
   // P/S = mktcap (quote_currency) / revenue (stmt_currency). When the two
@@ -397,11 +374,17 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
           ))}
         </div>
 
+        <div className="fin-overview-profile-meta">
+          {p?.sector && <span>{p.sector}</span>}
+          {p?.employees != null && <span>{Math.round(p.employees).toLocaleString(zh ? "zh-CN" : "en-US")} {pick(zh, "employees", "名员工")}</span>}
+          {p?.founded && <span>{pick(zh, "Founded", "成立于")} {p.founded}</span>}
+          {p?.website && <a href={p.website} target="_blank" rel="noopener noreferrer">{domainOf(p.website)} ↗</a>}
+        </div>
         {desc && (
           <div className="fin-overview-about">
             <div className="fin-overview-about-head">
               <SecH title={pick(zh, "About", "公司简介")} />
-              <span>{pick(zh, "Company profile", "公司资料")}</span>
+
             </div>
             <p className="fin-about">
               {clamped}
@@ -413,144 +396,6 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
             </p>
           </div>
         )}
-      </section>
-
-      <section className="fin-sec fin-overview-mid" data-overview-vnext-mid="">
-        <div className="fin-grid2">
-          <div className="fin-card fin-overview-card">
-            <div className="fin-card-h fin-overview-card-h">
-              <span>{pick(zh, "Ownership", "股权结构")}</span>
-              <small>{pick(zh, "fundamentals feed", "基本面数据源")}</small>
-            </div>
-            {ownSlices.length > 0 ? (
-              <Donut
-                slices={ownSlices}
-                centerValue={fmtNum(totalShares)}
-                centerLabel={pick(zh, "Shares out", "总股本")}
-                fmtV={fmtNum}
-                zh={zh}
-              />
-            ) : (
-              <div className="fin-empty fin-empty-compact" role="status">
-                <div className="fin-empty-title">{pick(zh, "No ownership split available", "暂无股权拆分数据")}</div>
-                <div className="fin-empty-why">
-                  {pick(
-                    zh,
-                    `The fundamentals feed carries no free-float or closely-held split for ${sym}.`,
-                    `基本面数据源未提供 ${sym} 的自由流通股或内部持股拆分。`,
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="fin-card fin-overview-card">
-            <div className="fin-card-h fin-overview-card-h">
-              <span>{pick(zh, "Capital structure", "资本结构")}</span>
-              <small>{stmtCur || pick(zh, "statement currency unavailable", "报表货币不可用")}</small>
-            </div>
-            {comparisonSuppressed ? (
-              <div className="fin-empty fin-empty-compact" role="status">
-                <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
-                <div className="fin-empty-why">{currencyComparisonMsg}</div>
-              </div>
-            ) : (
-              <CapitalStructure
-                marketCap={s?.mktcap ?? null}
-                debt={latestFinite(ann?.balance?.debt) ?? latestFinite(qtr?.balance?.debt)}
-                cash={latestFinite(ann?.balance?.cash) ?? latestFinite(qtr?.balance?.cash)}
-                fmtV={fmtNum}
-                zh={zh}
-              />
-            )}
-          </div>
-        </div>
-        {fund.asof && (
-          <div className="fin-asof">{asofLine("Ownership & balance sheet", "股权与资产负债表")}</div>
-        )}
-      </section>
-
-      <section className="fin-sec fin-overview-valuation" data-overview-vnext-valuation="">
-        <SecH
-          title={pick(zh, "Valuation", "估值")}
-          cap={pick(zh, "Fundamental metrics for valuation context", "用于估值背景的基本面指标")}
-          page="statistics"
-          onNavigate={onNavigate}
-        />
-
-        <div className={`fin-overview-valuation-grid${hasPeHistory ? "" : " fin-overview-valuation-grid--current"}`}>
-          <div className="fin-card fin-overview-valuation-current">
-            <span className="fin-overview-current-kicker">{pick(zh, "CURRENT", "当前")}</span>
-            <div className="fin-overview-current-pe">
-              <strong className="num">{currentPe == null ? "—" : fmtNum(currentPe)}</strong>
-              <span>{pick(zh, "P/E TTM", "市盈率 TTM")}</span>
-            </div>
-            <div className="fin-overview-current-eps">
-              <span>{pick(zh, "Basic EPS · latest available FY", "基本每股收益 · 最近可用财年")}</span>
-              <b className="num">{currentBasicEps == null ? "—" : fmtNum(currentBasicEps)}</b>
-            </div>
-            <button className="fin-overview-detail-link" onClick={() => onNavigate("statistics")}>
-              {pick(zh, "Open valuation detail", "打开估值详情")} ›
-            </button>
-          </div>
-
-          <div className="fin-card fin-overview-pe-history">
-            <div className="fin-card-h">
-              <span>{pick(zh, "Historical P/E", "历史市盈率")}</span>
-              <small>{pick(zh, "published ratio history", "已发布比率历史")}</small>
-            </div>
-            {hasPeHistory ? (
-              <LineSeries labels={peLabels} series={peSeries} fmtY={(v) => fmtNum(v)} markers zh={zh} height={145} />
-            ) : (
-              <div className="fin-empty fin-empty-compact" role="status">
-                <div className="fin-empty-title">{pick(zh, "No historical P/E series", "暂无历史市盈率序列")}</div>
-                <div className="fin-empty-why">
-                  {pick(zh, "Historical P/E is unavailable in the current data.", "当前数据中暂无历史市盈率。")}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="fin-card fin-overview-ps-context">
-          <div className="fin-card-h">
-            <span>{pick(zh, "Current market cap / reported revenue", "当前市值 / 已报告营收")}</span>
-            <AQToggle v={valAQ} onChange={setValAQ} zh={zh} annualAvailable={annualAvailable} interimSet={qtr} interimAvailable={interimAvailable} />
-          </div>
-          {comparisonSuppressed || !valIsIndustrial ? (
-            <div className="fin-empty fin-empty-compact" role="status">
-              <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
-              <div className="fin-empty-why">
-                {comparisonSuppressed
-                  ? currencyComparisonMsg
-                  : valFamilyMode === "mixed"
-                    ? pick(
-                        zh,
-                        "P/S is hidden because this history crosses industrial and financial-services statement formats, so its top-line values are not one comparable sales denominator.",
-                        "该历史区间跨越工业企业与金融服务报表格式，各期顶线口径不构成可比的销售额分母，因此不显示市销率。",
-                      )
-                    : pick(
-                        zh,
-                        "P/S is not shown for this financial-statement family because operating income is not an industrial sales denominator.",
-                        "该金融报表类型不显示市销率，因为营业收入并非工业企业销售额口径。",
-                      )}
-              </div>
-            </div>
-          ) : (
-            <>
-              <LineSeries labels={psLabels} series={psSeries} fmtY={(v) => fmtNum(v)} markers zh={zh} height={170} />
-              <div className="fin-chart-note">
-                {pick(
-                  zh,
-                  "Uses today's market cap against each period's revenue — not a historical valuation (past market caps aren't available).",
-                  "以当前市值除以各期营收计算，并非历史估值（无历史市值数据）。",
-                )}
-              </div>
-              {valCumNote && <div className="fin-chart-note">{valCumNote}</div>}
-            </>
-          )}
-        </div>
-        {fund.asof && !comparisonSuppressed && valIsIndustrial && <div className="fin-asof">{stmtAsof(valAQ, valSet)}</div>}
       </section>
 
       {/* ── GROWTH & PROFITABILITY ── */}
@@ -620,6 +465,122 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
         {fund.asof && <div className="fin-asof">{stmtAsof(perfAQ, perfSet)}</div>}
       </section>
 
+      <section className="fin-sec fin-overview-valuation" data-overview-vnext-valuation="">
+        <SecH
+          title={pick(zh, "Valuation", "估值")}
+          cap={pick(zh, "Fundamental metrics for valuation context", "用于估值背景的基本面指标")}
+          page="statistics"
+          onNavigate={onNavigate}
+        />
+
+        <div className={`fin-overview-valuation-grid${hasPeHistory ? "" : " fin-overview-valuation-grid--current"}`}>
+          <div className="fin-card fin-overview-valuation-current">
+            <span className="fin-overview-current-kicker">{pick(zh, "CURRENT", "当前")}</span>
+            <div className="fin-overview-current-pe">
+              <strong className="num">{currentPe == null ? "—" : fmtNum(currentPe)}</strong>
+              <span>{pick(zh, "P/E TTM", "市盈率 TTM")}</span>
+            </div>
+            <div className="fin-overview-current-eps">
+              <span>{pick(zh, "Basic EPS · latest available FY", "基本每股收益 · 最近可用财年")}</span>
+              <b className="num">{currentBasicEps == null ? "—" : fmtNum(currentBasicEps)}</b>
+            </div>
+            <button className="fin-overview-detail-link" onClick={() => onNavigate("statistics")}>
+              {pick(zh, "Open valuation detail", "打开估值详情")} ›
+            </button>
+          </div>
+
+          {hasPeHistory ? <div className="fin-card fin-overview-pe-history">
+            <div className="fin-card-h"><span>{pick(zh, "Historical P/E", "历史市盈率")}</span><small>{pick(zh, "published ratio history", "已发布比率历史")}</small></div>
+            <LineSeries labels={peLabels} series={peSeries} fmtY={(v) => fmtNum(v)} markers zh={zh} height={145} />
+          </div> : <p className="fin-overview-pe-history fin-chart-note" role="status">{pick(zh, "Historical P/E is unavailable in the current data.", "当前数据中暂无历史市盈率。")}</p>}
+        </div>
+
+        <div className="fin-card fin-overview-ps-context">
+          <div className="fin-card-h">
+            <span>{pick(zh, "Current market cap / reported revenue", "当前市值 / 已报告营收")}</span>
+            <AQToggle v={valAQ} onChange={setValAQ} zh={zh} annualAvailable={annualAvailable} interimSet={qtr} interimAvailable={interimAvailable} />
+          </div>
+          {comparisonSuppressed || !valIsIndustrial ? (
+            <div className="fin-empty fin-empty-compact" role="status">
+              <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
+              <div className="fin-empty-why">
+                {comparisonSuppressed
+                  ? currencyComparisonMsg
+                  : valFamilyMode === "mixed"
+                    ? pick(
+                        zh,
+                        "P/S is hidden because this history crosses industrial and financial-services statement formats, so its top-line values are not one comparable sales denominator.",
+                        "该历史区间跨越工业企业与金融服务报表格式，各期顶线口径不构成可比的销售额分母，因此不显示市销率。",
+                      )
+                    : pick(
+                        zh,
+                        "P/S is not shown for this financial-statement family because operating income is not an industrial sales denominator.",
+                        "该金融报表类型不显示市销率，因为营业收入并非工业企业销售额口径。",
+                      )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <LineSeries labels={psLabels} series={psSeries} fmtY={(v) => fmtNum(v)} markers zh={zh} height={170} />
+              <div className="fin-chart-note">
+                {pick(
+                  zh,
+                  "Uses today's market cap against each period's revenue — not a historical valuation (past market caps aren't available).",
+                  "以当前市值除以各期营收计算，并非历史估值（无历史市值数据）。",
+                )}
+              </div>
+              {valCumNote && <div className="fin-chart-note">{valCumNote}</div>}
+            </>
+          )}
+        </div>
+        {fund.asof && !comparisonSuppressed && valIsIndustrial && <div className="fin-asof">{stmtAsof(valAQ, valSet)}</div>}
+      </section>
+
+      <section className="fin-sec fin-overview-mid" data-overview-vnext-mid="">
+        <div className="fin-grid2">
+          <div className="fin-card fin-overview-card">
+            <div className="fin-card-h fin-overview-card-h">
+              <span>{pick(zh, "Ownership", "股权结构")}</span>
+              <small>{pick(zh, "fundamentals feed", "基本面数据源")}</small>
+            </div>
+            <div className="fin-float-total"><strong className="num">{fmtNum(totalShares)}</strong><span>{pick(zh, "Shares outstanding", "流通在外股份")}</span></div>
+            <div className="fin-float-split">
+              {shareSplit.map(item => {
+                const available = item.percent != null && Number.isFinite(item.percent) && item.percent >= 0 && item.percent <= 1;
+                return <div key={item.label} className="fin-float-row">
+                  <div><span>{item.label}</span><strong className="num">{available ? fmtPct(item.percent) : "—"}</strong></div>
+                  {available ? <div className="fin-float-track" aria-hidden="true"><span style={{ width: `${item.percent! * 100}%`, background: item.color }} /></div> : <small>{pick(zh, "Not available", "暂无数据")}</small>}
+                </div>;
+              })}
+            </div>
+          </div>
+
+          <div className="fin-card fin-overview-card">
+            <div className="fin-card-h fin-overview-card-h">
+              <span>{pick(zh, "Capital structure", "资本结构")}</span>
+              <small>{stmtCur || pick(zh, "statement currency unavailable", "报表货币不可用")}</small>
+            </div>
+            {comparisonSuppressed ? (
+              <div className="fin-empty fin-empty-compact" role="status">
+                <div className="fin-empty-title">{pick(zh, "Comparison suppressed", "该对比已隐藏")}</div>
+                <div className="fin-empty-why">{currencyComparisonMsg}</div>
+              </div>
+            ) : (
+              <CapitalStructure
+                marketCap={s?.mktcap ?? null}
+                debt={latestFinite(ann?.balance?.debt) ?? latestFinite(qtr?.balance?.debt)}
+                cash={latestFinite(ann?.balance?.cash) ?? latestFinite(qtr?.balance?.cash)}
+                fmtV={fmtNum}
+                zh={zh}
+              />
+            )}
+          </div>
+        </div>
+        {fund.asof && (
+          <div className="fin-asof">{asofLine("Ownership & balance sheet", "股权与资产负债表")}</div>
+        )}
+      </section>
+
       {/* ── REVENUE BREAKDOWN (R6 empty state) ── */}
       <section className="fin-sec">
         <SecH
@@ -651,7 +612,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
               {pick(
                 zh,
                 `Business and geographic revenue breakdowns are not available in this dataset for ${sym}.`,
-                `${sym} 的数据源未披露分业务或分地区的收入拆分。`,
+                `${sym} 的当前数据集中暂无分业务或分地区的收入拆分。`,
               )}
             </div>
           </div>
@@ -666,7 +627,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
         <SecH
           eyebrow={pick(zh, "CONSENSUS", "一致预期")}
           title={pick(zh, "Estimates", "预测")}
-          cap={pick(zh, "Revenue and Earnings forecasts and estimates accuracy", "营收与盈利预测及预测准确度")}
+          cap={pick(zh, "Revenue and earnings estimates", "营收与盈利预期")}
           page="earnings"
           onNavigate={onNavigate}
         />

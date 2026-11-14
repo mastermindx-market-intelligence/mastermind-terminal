@@ -18,7 +18,7 @@ function presentationModuleForTest() {
 }
 
 function analysisPresentationDouble(width, lang, overrides = {}) {
-  const compact = width <= 640;
+  const compact = true;
   const calls = [];
   const localizedWaits = [];
   let entryLanguage = overrides.initialEnglish ? "en" : lang;
@@ -52,7 +52,7 @@ function analysisPresentationDouble(width, lang, overrides = {}) {
     locator(selector) {
       if (selector === ".analysis-context-actions") return { async getAttribute(name) { assert.equal(name, "open"); return open ? "" : null; } };
       if (selector === ".analysis-context-actions > summary") return trigger;
-      const entrySelector = compact ? ".analysis-context-actions-menu > a[aria-label]" : ".analysis-context-bar > .analysis-context-theses[aria-label]";
+      const entrySelector = ".analysis-context-actions-menu > a[aria-label]";
       if (selector === entrySelector) return entry;
       const isTrigger = selector.startsWith(".analysis-context-actions > summary[aria-label=");
       const scope = isTrigger ? ".analysis-context-actions > summary" : entrySelector;
@@ -81,13 +81,11 @@ for (const width of [1440, 820, 390]) for (const lang of ["en", "zh"]) {
     const double = analysisPresentationDouble(width, lang);
     const result = await presentationModuleForTest().openForTest(double.page, lang, { width, height: 900 });
     assert.equal(result.href, "/analysis?symbol=NVDA&view=theses");
-    assert.equal(result.entryPresentation, width <= 640 ? "compact-research-actions" : "inline");
+    assert.equal(result.entryPresentation, "compact-research-actions");
     assert.equal(double.isOpen(), false);
-    assert.deepEqual(double.calls, width <= 640 ? ["open", "entry-visible", "close", "entry-hidden"] : ["entry-visible"]);
-    if (width <= 640) {
-      assert.equal(result.captureDisclosure, "closed");
-      assert.ok(result.disclosureBounds.width > 0);
-    } else assert.equal(Object.hasOwn(result, "captureDisclosure"), false);
+    assert.deepEqual(double.calls, ["open", "entry-visible", "close", "entry-hidden"]);
+    assert.equal(result.captureDisclosure, "closed");
+    assert.ok(result.disclosureBounds.width > 0);
   });
 }
 
@@ -107,14 +105,14 @@ for (const width of [1440, 390]) test(`visible English SSR at ${width}px waits f
   const double = analysisPresentationDouble(width, "zh", { initialEnglish: true });
   const result = await presentationModuleForTest().openForTest(double.page, "zh", { width, height: 900 });
   assert.equal(result.lang, "zh");
-  assert.equal(double.localizedWaits.length, width <= 640 ? 2 : 1);
+  assert.equal(double.localizedWaits.length, 2);
   assert.ok(double.localizedWaits.every(wait => wait.timeout === 45_000));
   assert.equal(double.isOpen(), false);
 });
 
 test("a visible SSR entry without localized hydration remains ineligible", async () => {
   const double = analysisPresentationDouble(1440, "zh", { initialEnglish: true, neverHydrates: true });
-  await assert.rejects(presentationModuleForTest().openForTest(double.page, "zh", { width: 1440 }), /F11_THESES_ENTRY_LABEL_MISMATCH/);
+  await assert.rejects(presentationModuleForTest().openForTest(double.page, "zh", { width: 1440 }), /F11_RESEARCH_DISCLOSURE_MISMATCH/);
   assert.equal(double.localizedWaits.length, 1);
   assert.deepEqual(double.calls, []);
 });

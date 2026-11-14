@@ -76,7 +76,6 @@
   .fin-company-control .sym-pick-mark{display:none}
   .fin-family-mobile-trigger{min-width:118px;padding:0 9px;font-size:12px}
   .fin-workspace-actions{gap:4px;margin-left:0}
-  .fin-workspace-actions .analysis-context-back{display:none}
   .fin-view-toolbar{padding:4px 12px}
   .fin-local-tabs{width:100%;gap:2px}
   .fin-local-tab{padding:0 10px;font-size:12px}
@@ -1489,7 +1488,7 @@
 .fin-overview-snapshot-head>div{display:grid;gap:5px;min-width:0}
 .fin-overview-snapshot-head .fin-sec-h.fin-rule{margin:0;padding:0;border:0;color:var(--text);font:670 17px/1.2 var(--font-ui);letter-spacing:-.02em}
 .fin-overview-snapshot-clock{flex:none;color:var(--muted);font:520 12px/1.25 var(--font-ui);text-align:right}
-.fin-overview-kpis{grid-template-columns:repeat(7,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r-tile);overflow:hidden}
+.fin-overview-kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r-tile);overflow:hidden}
 .fin-overview-kpis .fin-kpi{min-height:72px;border:0;border-right:1px solid var(--line);border-radius:0;background:var(--panel-2);box-shadow:none}
 .fin-overview-kpis .fin-kpi:last-child{border-right:0}
 .fin-overview-kpis .fin-kpi .v{font-size:17px}
@@ -1500,7 +1499,7 @@
 .fin-overview-about-head span{color:var(--muted);font:500 12px/1.2 var(--font-ui)}
 .fin-overview-about .fin-about{margin:0}
 .fin-overview-mid>.fin-grid2{gap:10px}
-.fin-overview-card{min-height:214px}
+.fin-overview-card{min-height:0}
 .fin-overview-card-h{justify-content:space-between}
 .fin-overview-card-h small{color:var(--muted);font:520 12px/1 var(--font-ui);font-weight:500}
 .fin-overview-valuation-grid{display:grid;grid-template-columns:190px minmax(0,1fr);gap:10px;margin-bottom:10px}
@@ -1517,20 +1516,14 @@
 .fin-overview-pe-history .fin-card-h small{color:var(--muted);font:520 12px/1 var(--font-ui);font-weight:500}
 .fin-overview-ps-context{margin-top:0}
 .fin-overview-ps-context>.fin-card-h{justify-content:space-between}
-@media (max-width:1180px){
-  .fin-overview-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .fin-overview-kpis .fin-kpi:nth-child(4){border-right:0}
-  .fin-overview-kpis .fin-kpi:nth-child(-n+4){border-bottom:1px solid var(--line)}
-  .fin-overview-kpis .fin-kpi:nth-child(7){border-right:0}
-}
+
 @media (max-width:760px){
-  .fin-overview-snapshot{padding:12px;border-radius:var(--r-tile)}
+  .fin-overview-snapshot{padding:0 0 8px;border-radius:0}
   .fin-overview-snapshot-head{display:grid}
   .fin-overview-snapshot-clock{text-align:left}
-  .fin-overview-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .fin-overview-kpis .fin-kpi,.fin-overview-kpis .fin-kpi:nth-child(4),.fin-overview-kpis .fin-kpi:nth-child(7){border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .fin-overview-kpis .fin-kpi:nth-child(2n){border-right:0}
-  .fin-overview-kpis .fin-kpi:last-child{border-bottom:0}
+  .fin-overview-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fin-overview-kpis .fin-kpi{padding:10px;min-width:0}
+  .fin-overview-kpis .fin-kpi:last-child{border-right:0}
   .fin-overview-about{grid-template-columns:1fr;gap:7px}
   .fin-overview-valuation-grid{grid-template-columns:1fr}
   .fin-overview-valuation-current{min-height:0}
@@ -1734,8 +1727,6 @@
 .fin-empty-compact .fin-empty-title{font:550 13px/1.5 var(--font-ui)}
 .fin-empty-compact .fin-empty-why{max-width:75ch;font:400 12px/1.6 var(--font-ui)}
 .fin-body>.fin-body{padding:0;overflow:visible}
-.fin-overview-valuation-grid--current{grid-template-columns:minmax(210px,.6fr) minmax(0,1.4fr);align-items:start}
-.fin-overview-valuation-grid--current .fin-overview-pe-history{padding:16px}
 .fin-details{margin:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .fin-details>summary{padding:14px 0;color:var(--text-2);font:500 13px/1.5 var(--font-ui);cursor:pointer}
 .fin-details>summary:hover{color:var(--text)}
@@ -1754,3 +1745,31 @@
 .fin-market-rating-card .fin-tech-gauge{align-items:stretch;text-align:left;padding:18px;min-width:0}
 .fin-market-rating-card .fin-gauge-counts{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px}
 .fin-insider-verdict-main{width:100%}
+
+/* Overview puts operating performance first and keeps profile facts secondary. */
+.fin-overview-profile-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font:400 12px/1.5 var(--font-ui)}
+.fin-overview-profile-meta a{color:var(--text-2)}
+.fin-overview-about{grid-template-columns:60px minmax(0,1fr)}
+.fin-float-total{display:flex;align-items:baseline;gap:10px;margin:12px 0 18px}
+.fin-float-total strong{font:600 24px/1.2 var(--font-num)}
+.fin-float-total span{color:var(--muted);font-size:12px}
+.fin-float-split{display:grid;gap:14px}
+.fin-float-row>div:first-child{display:flex;justify-content:space-between;gap:12px;margin-bottom:7px;color:var(--text-2);font-size:12px}
+.fin-float-row strong{color:var(--text);font-weight:550}
+.fin-float-row small{color:var(--muted)}
+.fin-float-track{height:5px;background:var(--panel-3);border-radius:2px;overflow:hidden}
+.fin-float-track>span{display:block;height:100%;border-radius:2px}
+.fin-overview-valuation-grid--current{display:flex;align-items:center;gap:20px}
+.fin-overview-valuation-grid--current .fin-overview-valuation-current{flex:1;display:grid;grid-template-columns:auto minmax(130px,1fr) auto;align-items:center;gap:16px}
+.fin-overview-valuation-grid--current .fin-overview-current-kicker{display:none}
+.fin-overview-valuation-grid--current .fin-overview-current-eps{border:0;padding:0;justify-content:flex-start;gap:12px}
+.fin-overview-valuation-grid--current .fin-overview-detail-link{margin:0;white-space:nowrap}
+.fin-overview-valuation-grid--current>p{flex:0 1 220px;margin:0;padding:0}
+@media(max-width:760px){
+  .fin-overview-valuation-grid--current{display:grid;gap:8px}
+  .fin-overview-valuation-grid--current .fin-overview-valuation-current{grid-template-columns:1fr 1fr;gap:12px}
+  .fin-overview-valuation-grid--current .fin-overview-current-eps{display:grid;gap:5px}
+  .fin-overview-valuation-grid--current .fin-overview-detail-link{grid-column:1/-1}
+  .fin-overview-about{grid-template-columns:1fr}
+  .fin-overview-kpis .fin-kpi .k,.fin-overview-kpis .fin-kpi .s{font-size:11px;letter-spacing:0}
+}

@@ -138,22 +138,16 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   // unpinned availability failure can show separately published company data.
   const standardCompanyView = !current.ok && !hasRetainedSelection
     && (current.reason === "http_503" || current.reason === "current_owner_unavailable");
-  if (standardCompanyView) return <CompanyIntelligencePage sym={ticker} name={name} onOpenTx={onOpenTx}
-    onEvidenceOpenChange={onEvidenceOpenChange} availabilityNotice={(
-    <div className="ci-state-banner" role="status"
+  if (standardCompanyView) return <>
+    <div className="ci-availability-note" role="status"
       data-ci-context-state="standard_company_view" data-ci-unavailable-reason={current.reason}>
-      <span aria-hidden>!</span>
-      <p >
-        <strong>{pick(zh, "Standard company intelligence", "标准公司情报")}</strong>{" "}
-        {pick(zh,
-          "The current verified event is unavailable. This view uses published research with the dates shown.",
-          "已验证事件不可用。改为显示已发布的公司研究，请核对来源日期。")}
-      </p>
+      <p><strong>{pick(zh, "Published research", "已发布研究")}</strong><span>{pick(zh, "Current verified event unavailable", "当前已验证事件不可用")}</span></p>
       <button type="button" className="btn btn-ghost" onClick={() => setRetry(value => value + 1)}>
         {pick(zh, "Recheck verified event", "重新验证事件")}
       </button>
     </div>
-    )} />;
+    <CompanyIntelligencePage sym={ticker} name={name} onOpenTx={onOpenTx} onEvidenceOpenChange={onEvidenceOpenChange} />
+  </>;
 
   if (!current.ok) return <section className="ci-page ci-state" role="status" data-ci-context-state="historical_unavailable" data-ci-unavailable-reason={current.reason}>
     <h2>{authRequired

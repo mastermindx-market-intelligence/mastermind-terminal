@@ -316,7 +316,7 @@ async function expectNoDocumentOverflow(page: Page) {
 async function researchScrollState(page: Page) {
   return page.evaluate(() => {
     const body = document.querySelector<HTMLElement>(".fin-body");
-    const context = document.querySelector<HTMLElement>(".analysis-context-bar");
+    const context = document.querySelector<HTMLElement>(".fin-company-control");
     const researchNav = document.querySelector<HTMLElement>(".fin-research-nav");
     return {
       finBody: body?.scrollTop ?? -1,
@@ -348,21 +348,21 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   // the current-event workspace instead of reviving the old stacked layout.
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
-  await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expect(paperBrief).toContainText("Event brief");
   await expect(paperBrief.locator(".ci-paper-brief-hero h3")).toContainText("Data-center demand remained broad");
+  await expect(paperBrief.locator(".ci-paper-brief-hero h3")).toBeInViewport({ ratio: 0.25 });
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
-  await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
+  await expect(whyItMatters).toHaveCount(0); // Missing implications do not create an empty panel.
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
   await expect(paperResults).toBeVisible();
-  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("18.4%");
   await expect(paperResults).toContainText("16.3% prior");
   await expect(paperResults).toContainText("+2.1% vs prior");
-  await expect(paperResults).toContainText("v1 fallback has no structured guidance object");
+  await expect(paperResults).toContainText("Guidance is not available in the published research record.");
   await expect(paperResults).toContainText("Not asserted · no licensed pre-event consensus");
   await expect(paperResults).toContainText("Not asserted · context only");
   await expectNoDocumentOverflow(page);
@@ -444,9 +444,9 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   const paperCall = page.locator("[data-ci-paper-call]");
   await expect(paperCall).toBeVisible();
   await expect(paperCall).toContainText("CALL + Q&A");
-  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(paperCall).toContainText("0 exchanges");
-  await expect(paperCall).toContainText("v1 fallback does not carry canonical normalized Q&A exchanges");
+  await expect(paperCall).toContainText("Structured Q&A and topic navigation are not available for this event.");
+  await expect(paperCall.getByRole("button", { name: "Read full transcript" })).toBeVisible();
+  await expect(paperCall.locator(".ci-paper-call-map")).toHaveCount(0);
   await expect(paperCall).toHaveAttribute("data-ci-call-event-id", "cie_d8488221fd8c710c53d6537d");
   await expect(page.locator(".ci-ts-explorer")).toBeVisible();
   await page.locator(".ci-ts-explorer").evaluate((element) => {
@@ -506,7 +506,7 @@ test("Company Intelligence lens switching does not move the research shell", asy
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
 
   await expect.poll(() => researchScrollState(page)).toEqual(before);
-  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-company-control")).toBeVisible();
   await expect(page.locator(".fin-research-nav")).toBeVisible();
 });
 
@@ -981,7 +981,7 @@ test("verified event workspace lens switching does not move the research shell",
   await expect(page.locator("#ci-panel-transcript")).toBeVisible();
 
   await expect.poll(() => researchScrollState(page)).toEqual(before);
-  await expect(page.locator(".analysis-context-bar")).toBeVisible();
+  await expect(page.locator(".fin-company-control")).toBeVisible();
   await expect(page.locator(".fin-research-nav")).toBeVisible();
 });
 
@@ -998,7 +998,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator("[data-ci-glance-title]")).toContainText("Jul");
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
-  await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expect(paperBrief).toContainText("Event brief");
   await expect(paperBrief).toContainText("Q3 FY2026");
   await expect(page.locator(".ci-evidence")).toHaveAttribute("aria-hidden", "true");
   await expect(page.locator(".ci-brief")).toContainText("$109.4B");
@@ -1015,8 +1015,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-theme-card")).toHaveCount(0);
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
-  await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
+  await expect(whyItMatters).toHaveCount(0); // Missing implications do not create an empty panel.
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 
@@ -1037,7 +1036,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
   await expect(paperResults).toBeVisible();
-  await expect(paperResults).toContainText("RESULTS & OUTLOOK");
+  await expect(paperResults).toContainText("Results & outlook");
   await expect(paperResults).toContainText("$109.4B");
   await expect(paperResults).toContainText("9–11%");
   await expect(paperResults).toContainText("No comparable prior-event fields are bound");
@@ -1111,8 +1110,8 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperCall).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
   await expect(paperCall).toHaveAttribute("data-ci-call-event-alias", "AAPL/2026Q3");
   await expect(paperCall).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");
-  await expect(paperCall).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(paperCall).toContainText("Structured Q&A unavailable");
+  await expect(paperCall).toContainText("Structured Q&A and topic navigation are not available for this event.");
+  await expect(paperCall.getByRole("button", { name: "Read full transcript" })).toBeVisible();
   await expectNoDocumentOverflow(page);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-event-workspace.png`), fullPage: false });
@@ -1269,7 +1268,7 @@ test("Ownership Institutional page uses the verified 13F owner without claiming 
   const compact = page.viewportSize()!.width <= 860;
   if (compact) {
     await expect(page.locator(".fin-family-mobile-trigger")).toContainText("Ownership");
-    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Institutional");
+    await expect(page.locator(".fin-local-tab.on")).toHaveText("Institutional");
   } else {
     await expect(page.locator('[data-fin-family="ownership"]')).toHaveAttribute("aria-selected", "true");
     await expect(page.locator('[data-fin-local="ownership"]')).toHaveAttribute("aria-selected", "true");
@@ -1308,7 +1307,7 @@ test("Ownership Institutional page remains truthful and usable in Chinese on mob
   const ownership = page.locator("[data-ownership-page]");
   await expect(ownership).toBeVisible({ timeout: 15_000 });
   await expect(page.locator(".fin-family-mobile-trigger")).toContainText("持仓");
-  await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("机构");
+  await expect(page.locator(".fin-local-tab.on")).toHaveText("机构");
   await expect(ownership).toContainText("持仓 · 机构");
   await expect(ownership).toContainText("追踪机构持仓");
   await expect(ownership).toContainText("并非总持股");
@@ -1416,9 +1415,8 @@ test("AAPL Call + Q&A preserves verified exchanges without inventing a topic map
   await expect(call).toContainText("CALL + Q&A");
   await expect(call).toContainText("7 exchanges");
   await expect(call).toContainText("Amit Daryanani · Evercore");
-  await expect(call.locator(".ci-paper-call-map")).toContainText("TOPIC MAP UNAVAILABLE");
-  await expect(call.locator(".ci-paper-call-map")).toContainText("No governed Q&A topic taxonomy is published");
-  await expect(call.locator(".ci-paper-call-map")).not.toContainText("Agentic AI / inference");
+  await expect(call.locator(".ci-paper-call-map")).toHaveCount(0);
+  await expect(call).not.toContainText("Agentic AI / inference");
   await expect(call.locator(".ci-paper-call-exchanges > button")).toHaveCount(7);
   await expect(call).toHaveAttribute("data-ci-call-event-id", AAPL_EVENT_ID);
   await expect(call).toHaveAttribute("data-ci-call-transcript-id", "2026Q3");

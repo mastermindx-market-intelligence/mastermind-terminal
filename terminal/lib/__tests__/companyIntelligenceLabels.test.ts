@@ -58,7 +58,7 @@ describe("company intelligence labels", () => {
   it("humanises unknown slug-shaped topic tags and manager styles in both languages", () => {
     const tag = "ai_capex";
     const style = "multi_strat";
-    const humanTag = "Ai capex";
+    const humanTag = "AI capex";
     const humanStyle = "Multi strat";
 
     expect(topicTagLabel(tag, false)).toBe(humanTag);
@@ -77,8 +77,8 @@ describe("company intelligence labels", () => {
   it("lower-cases an ALL-CAPS slug before capitalising the first letter", () => {
     expect(managerStyleLabel("MULTI_STRAT", false)).toBe("Multi strat");
     expect(managerStyleLabel("MULTI_STRAT", true)).toBe("Multi strat");
-    expect(topicTagLabel("AI_CAPEX", false)).toBe("Ai capex");
-    expect(topicTagLabel("AI_CAPEX", true)).toBe("Ai capex");
+    expect(topicTagLabel("AI_CAPEX", false)).toBe("AI capex");
+    expect(topicTagLabel("AI_CAPEX", true)).toBe("AI capex");
   });
 
   it("uses plain finance wording for the mandated EN/ZH labels", () => {

@@ -48,7 +48,6 @@ export interface CompanyIntelligencePageProps {
   name?: string | null;
   onOpenTx: (target: string | TranscriptOpenTarget) => void;
   onEvidenceOpenChange?: (open: boolean) => void;
-  availabilityNotice?: React.ReactNode;
 }
 
 interface LoadState {
@@ -193,7 +192,7 @@ function EmptyState({ title, why, action }: { title: string; why: string; action
 // upstream deadlines alone cannot settle a disconnected client transport.
 const COMPANY_INTELLIGENCE_READ_DEADLINE_MS = 15_000;
 
-export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenceOpenChange, availabilityNotice }: CompanyIntelligencePageProps) {
+export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenceOpenChange }: CompanyIntelligencePageProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
   const ticker = sym.trim().toUpperCase();
@@ -695,8 +694,8 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
               }
             }}>
               <summary>
-                <span className={`ci-source-dot${warningText || availabilityNotice ? " partial" : ""}`} aria-hidden="true" />
-                {availabilityNotice ? pick(zh, "Published research", "已发布研究") : warningText ? pick(zh, "Partial sources", "部分来源") : stateLabel(activeContext.status, zh)}
+                <span className={`ci-source-dot${warningText ? " partial" : ""}`} aria-hidden="true" />
+                {activeContext.status === "stale" ? stateLabel(activeContext.status, zh) : warningText ? pick(zh, "Partial sources", "部分来源") : stateLabel(activeContext.status, zh)}
                 <span aria-hidden="true">⌄</span>
               </summary>
               <div className="ci-source-popover">
@@ -707,7 +706,6 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
           <span>{pick(zh, "Authority", "权限")} <b>{pick(zh, "Context only", "仅供背景参考")}</b></span>
         </div>
         {warningText && <div className="ci-state-banner" role="status"><span aria-hidden>!</span><p>{warningText}</p></div>}
-                {availabilityNotice}
               </div>
             </details>
             <button
@@ -756,7 +754,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
       </nav>
 
       <div className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
-        <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
+        <section className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
             <CompanyIntelligenceBriefLayout
               zh={zh}
@@ -860,11 +858,6 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
                 exchanges={[]}
                 onOpenFullTranscript={txId ? () => onOpenTx(txId) : undefined}
                 onOpenSources={() => selectLens("sources")}
-                fallbackNote={pick(
-                  zh,
-                  "v1 fallback does not carry canonical normalized Q&A exchanges. Score-overlay question counts and highlights are not promoted into this research layer.",
-                  "v1 回退路径不携带规范化标准问答轮次；不会将评分覆盖层的提问计数或摘要提升到此研究层。",
-                )}
                 searchContent={(
                   <TranscriptSearchWorkspace
                     ticker={ticker}
@@ -923,7 +916,7 @@ export default function CompanyIntelligencePage({ sym, name, onOpenTx, onEvidenc
               />
             </section>
           )}
-        </main>
+        </section>
 
         <EvidenceRail
           event={event}

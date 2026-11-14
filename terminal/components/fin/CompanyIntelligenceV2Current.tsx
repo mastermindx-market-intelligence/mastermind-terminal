@@ -780,7 +780,7 @@ export default function CompanyIntelligenceV2Current({
       </nav>
 
       <div className={`ci-workspace${evidenceOpen ? " evidence-open" : ""}`}>
-        <main className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
+        <section className="ci-canvas" id={`ci-panel-${lens}`} role="tabpanel" aria-labelledby={`ci-tab-${lens}`}>
           {lens === "brief" && (
             <CompanyIntelligenceBriefLayout
               zh={zh}
@@ -984,7 +984,7 @@ export default function CompanyIntelligenceV2Current({
               />
             </section>
           )}
-        </main>
+        </section>
 
         <EvidenceRail
           event={stubEvent}

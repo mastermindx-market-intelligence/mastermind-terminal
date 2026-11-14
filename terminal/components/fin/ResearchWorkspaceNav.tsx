@@ -66,7 +66,8 @@ export default function ResearchWorkspaceNav({ page, zh, onPage, context, action
   const chooseFamily = useCallback((family: FinFamily) => {
     onPage(defaultPageForFamily(family));
     setFamilySheetOpen(false);
-  }, [onPage]);
+    if (familySheetOpen) window.requestAnimationFrame(() => familyTriggerRef.current?.focus());
+  }, [onPage, familySheetOpen]);
 
   const chooseLocal = useCallback((next: FinPage) => {
     onPage(next);
@@ -182,7 +183,12 @@ export default function ResearchWorkspaceNav({ page, zh, onPage, context, action
 
 
       {familySheetOpen && (
-        <dialog ref={sheetRef} className="fin-family-sheet-layer" aria-label={pick(zh, "Company pages", "公司页面")} onCancel={(event) => { event.preventDefault(); closeSheet(); }}>
+        <dialog ref={sheetRef} onKeyDownCapture={event => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            event.nativeEvent.stopImmediatePropagation();
+          }
+        }} className="fin-family-sheet-layer" aria-label={pick(zh, "Company pages", "公司页面")} onCancel={(event) => { event.preventDefault(); closeSheet(); }}>
           <button
             type="button"
             className="fin-family-sheet-scrim"

@@ -151,7 +151,7 @@ export default function CompanyIntelligenceBriefLayout({
                   aria-pressed={selectedId === item.id}
                 >
                   <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{item.value}</strong>
+                  <div className="ci-takeaway-content"><small>{item.label}</small><strong>{item.value}</strong></div>
                 </button>
               ))}
             </div>

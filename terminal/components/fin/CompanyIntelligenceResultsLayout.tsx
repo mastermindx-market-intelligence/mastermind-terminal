@@ -89,8 +89,7 @@ export default function CompanyIntelligenceResultsLayout({
     <section className="ci-paper-results" data-ci-paper-results="">
       <header className="ci-paper-results-head">
         <div>
-          <span>{pick(zh, "RESULTS & OUTLOOK", "业绩与展望")}</span>
-          <h3>{pick(zh, "Reported performance, guidance and the next decision points", "已报告表现、指引与下一步决策点")}</h3>
+          <h3>{pick(zh, "Results & outlook", "业绩与展望")}</h3>
         </div>
         <div className="ci-paper-results-period">
           <strong>{periodLabel}</strong>
@@ -99,10 +98,6 @@ export default function CompanyIntelligenceResultsLayout({
       </header>
 
       <section className="ci-paper-results-glance" aria-label={pick(zh, "Results at a glance", "业绩概览")}>
-        <div className="ci-paper-results-section-label">
-          <span>{pick(zh, "AT A GLANCE", "概览")}</span>
-          <small>{pick(zh, `Selected event · ${periodLabel}`, `当前事件 · ${periodLabel}`)}</small>
-        </div>
         {metrics.length ? (
           <div className="ci-paper-results-metrics">
             {metrics.slice(0, 4).map((item) => (
@@ -137,15 +132,15 @@ export default function CompanyIntelligenceResultsLayout({
           <header>
             <div>
               <h4>{pick(zh, "Guidance & outlook", "指引与展望")}</h4>
-              <p>{guidanceNote || (pick(zh, "Only structured, traceable guidance from the selected event.", "仅显示当前事件的结构化、可追溯指引。"))}</p>
+              {guidance.length > 0 && guidanceNote && <p>{guidanceNote}</p>}
             </div>
-            <span>{guidance.length ? pick(zh, "Available", "可用") : pick(zh, "Not asserted", "未断言")}</span>
+            <span>{guidance.length ? pick(zh, "Available", "可用") : pick(zh, "Unavailable", "暂无数据")}</span>
           </header>
           <div className="ci-paper-results-list">
             {guidance.length ? guidance.slice(0, 4).map((item) => (
               <ResultRow key={item.id} item={item} selected={selectedId === item.id} onSelect={onSelect} />
             )) : (
-              <p className="ci-paper-results-empty">{pick(zh, "This path has no structured guidance object; none is inferred from summaries or scores.", "此路径没有结构化指引对象；不会从摘要或评分中推断。")}</p>
+              <p className="ci-paper-results-empty">{guidanceNote || pick(zh, "Structured guidance is not available for this event.", "当前事件暂无结构化业绩指引。")}</p>
             )}
           </div>
         </section>
@@ -154,7 +149,7 @@ export default function CompanyIntelligenceResultsLayout({
           <header>
             <div>
               <h4>{pick(zh, "Call read-through", "电话会解读")}</h4>
-              <p>{callNote || (pick(zh, "Canonical Q&A context from the selected event.", "来自所选事件的规范化问答记录。"))}</p>
+              {callReadthrough.length > 0 && callNote && <p>{callNote}</p>}
             </div>
             <span>{callReadthrough.length ? pick(zh, `${callReadthrough.length} items`, `${callReadthrough.length} 项`) : pick(zh, "Unstructured", "未结构化")}</span>
           </header>
@@ -166,7 +161,7 @@ export default function CompanyIntelligenceResultsLayout({
                 {item.detail && <small>{item.detail}</small>}
               </div>
             )) : (
-              <p className="ci-paper-results-empty">{pick(zh, "No normalized Q&A read-through is available for this research layer.", "没有可用于此研究层的规范化问答摘要。")}</p>
+              <p className="ci-paper-results-empty">{callNote || pick(zh, "A structured Q&A summary is not available. Open the call to explore the transcript.", "暂无结构化问答摘要。打开电话会以浏览正文。")}</p>
             )}
           </div>
           {onOpenCall && (
@@ -206,8 +201,8 @@ export default function CompanyIntelligenceResultsLayout({
           )}
         </section>
 
-        <aside className="ci-paper-results-boundary" aria-label={pick(zh, "Not asserted capabilities", "未断言能力")}>
-          <span>{pick(zh, "NOT ASSERTED", "未断言")}</span>
+        <details className="ci-paper-results-boundary">
+          <summary>{pick(zh, "Coverage limits", "数据覆盖限制")}</summary>
           <div>
             {nonAssertions.map((item) => (
               <div key={item.id}>
@@ -216,7 +211,7 @@ export default function CompanyIntelligenceResultsLayout({
               </div>
             ))}
           </div>
-        </aside>
+        </details>
       </div>
     </section>
   );

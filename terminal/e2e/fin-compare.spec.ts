@@ -33,7 +33,7 @@ async function openCompare(page: Page): Promise<void> {
   await page.goto("/analysis?symbol=NVDA&page=compare");
   await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
-    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Compare");
+    await expect(page.locator(".fin-local-tab.on")).toHaveText("Compare");
   } else {
     await expect(page.locator('[data-fin-local="compare"]')).toHaveAttribute("aria-selected", "true");
   }
@@ -128,7 +128,7 @@ test("peers share one explicit frame; other formats, currencies and split period
   await page.goto("/analysis?symbol=NVDA&page=statements");
   await expect(page.getByRole("button", { name: "Change symbol", exact: true }).locator("strong")).toHaveText("NVDA", { timeout: 45_000 });
   if (page.viewportSize()!.width <= 860) {
-    await page.locator(".fin-local-mobile-tab", { hasText: "Compare" }).click();
+    await page.locator(".fin-local-tab", { hasText: "Compare" }).click();
   } else {
     await page.locator('[data-fin-local="compare"]').click();
   }
