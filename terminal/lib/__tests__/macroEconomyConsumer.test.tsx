@@ -87,6 +87,33 @@ describe("native charts and evidence", () => {
     }
   });
 
+  it("restores a delayed legacy section without pulling the user back on refresh", async () => {
+    const scroll = vi.fn(), descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { value: scroll, configurable: true });
+    const data = todayPayload(structuredClone(overviewFixture))!;
+    const common = { lang: "en" as const, dashboardHref: "/macro.html", overviewHref: "/macro_monetary.html", workspaceHref: href, onRefresh: vi.fn() };
+    try {
+      window.history.replaceState({}, "", "/macro_monetary.html#growth");
+      await mount(<MacroEconomyOverview {...common} data={null} phase="loading"/>);
+      expect(scroll).not.toHaveBeenCalled();
+      await mount(<MacroEconomyOverview {...common} data={data} phase="ready"/>);
+      expect(scroll).toHaveBeenCalledOnce(); expect(scroll.mock.instances[0]).toBe(host.querySelector("#growth"));
+      await mount(<MacroEconomyOverview {...common} data={null} phase="loading"/>);
+      await mount(<MacroEconomyOverview {...common} data={data} phase="ready"/>);
+      expect(scroll).toHaveBeenCalledOnce();
+      await act(async () => { window.history.replaceState({}, "", "/macro_monetary.html#trade"); window.dispatchEvent(new HashChangeEvent("hashchange")); });
+      expect(scroll).toHaveBeenCalledTimes(2); expect(scroll.mock.instances[1]).toBe(host.querySelector("#trade"));
+      await act(async () => { window.history.replaceState({}, "", "/macro_monetary.html#growth"); window.dispatchEvent(new PopStateEvent("popstate")); });
+      expect(scroll).toHaveBeenCalledTimes(3); expect(scroll.mock.instances[2]).toBe(host.querySelector("#growth"));
+      await act(async () => { window.history.replaceState({}, "", "/macro_monetary.html#not-a-section"); window.dispatchEvent(new HashChangeEvent("hashchange")); });
+      expect(scroll).toHaveBeenCalledTimes(3);
+    } finally {
+      window.history.replaceState({}, "", "/");
+      if (descriptor) Object.defineProperty(HTMLElement.prototype, "scrollIntoView", descriptor);
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
   it("preserves the full published overview and its mixed-date and coverage meanings in both languages", async () => {
     const data = todayPayload(structuredClone(overviewFixture))!;
     data.read.clauses = Array.from({ length: 5 }, (_, index) => ({ ...data.read.clauses[0], topic: { en: `Topic ${index}`, zh: `主题${index}` }, predicate: { en: `reading ${index}`, zh: `读数${index}` } }));

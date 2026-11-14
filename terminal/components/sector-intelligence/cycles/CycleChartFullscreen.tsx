@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   MIN_CHART_H,
   fmtTick,
@@ -9,6 +9,8 @@ import {
   useChartWidth,
 } from "@/components/charts/svgChart";
 import { formatValue, type SectorRotationHistoryCycleTurn } from "@/lib/sectorIntelligence";
+import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import { acquireScrollLock } from "@/lib/scrollLock";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
 import { type SeriesFirstKnown, firstKnownAt } from "@/lib/sectorCycleTurnKnowledge";
 import type { CycleSeriesData } from "./CycleChartPanel";
@@ -41,11 +43,13 @@ export interface CycleChartFullscreenProps {
 export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
   const t = useSectorCycleT();
   const { open, onClose } = props;
-  const wrapRef = useRef<HTMLDivElement | null>(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- open intentionally creates the shared focus owner's mount boundary.
+  const wrapRef = useMemo(() => ({ current: null as HTMLDivElement | null }), [open]);
+  useDialogFocus(wrapRef, onClose);
+  useEffect(() => open ? acquireScrollLock() : undefined, [open]);
   const w = useChartWidth(wrapRef, 320, open);
   const [h, setH] = useState(300);
   const [fsView, setFsView] = useState<"chart" | "table">("chart");
-  const openerRef = useRef<Element | null>(null);
   const [labelId] = useState(() => "cycle-fs-" + Math.random().toString(36).slice(2, 8));
 
   useLayoutEffect(() => {
@@ -59,27 +63,9 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
     const ro = new ResizeObserver(measure);
     if (el) ro.observe(el);
     return () => ro.disconnect();
-  }, [props.open]);
+  }, [props.open, wrapRef]);
 
-  useEffect(() => {
-    if (!open) return;
-    openerRef.current = document.activeElement;
-    wrapRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // Close only while this dialog holds focus (a dialog opened on top
-        // owns Escape); stopPropagation cannot stop a sibling document listener.
-        if (!wrapRef.current?.contains(document.activeElement)) return;
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => {
-      document.removeEventListener("keydown", onKey, true);
-      (openerRef.current as HTMLElement | null)?.focus?.();
-    };
-  }, [open, onClose]);
+
 
   if (!open) return null;
 
@@ -200,10 +186,11 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
           <div className={s.fsTableWrap}>
             <div className={s.scrollTable}>
               <table>
-                <caption>{chartLabel}</caption>
+                <caption>{props.series.every(series => series.basis === "tr")
+                  ? t("scHistoryMeasure", { bench: props.benchmark }) : chartLabel}</caption>
                 <thead>
                   <tr>
-                    <th>{t("scObservationDate")}</th>
+                    <th scope="col">{t("scObservationDate")}</th>
                     {shown.map((x2) => (
                       <th key={x2.subjectId + x2.label} scope="col">
                         {x2.label}

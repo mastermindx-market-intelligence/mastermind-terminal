@@ -102,3 +102,15 @@ describe("Options R1 W2A — explicit rotation method in the sector URL", () => 
     }
   });
 });
+
+
+describe("Cycle history URL context", () => {
+  it("retains the named sector and gives explicit history mode precedence over incompatible jobs and sources", () => {
+    const state = parseSectorState(new URLSearchParams("sectorWorkspace=cycles&sector=xlf&sectorJob=brief&sectorSource=finviz"), "/sectors");
+    expect(state).toMatchObject({ workspace: "cycles", sector: "xlf", sectorJob: null, sourceFamily: "sectors" });
+    const url = new URL(writeSectorState(new URL("https://example.test/sectors?workspaceMarket=us"), state), "https://example.test");
+    expect(url.searchParams.get("workspaceMarket")).toBe("us");
+    expect(parseSectorState(url.searchParams, url.pathname)).toEqual(state);
+    expect(parseSectorState(new URLSearchParams("sectorWorkspace=cycles&sector=ghost"), "/sectors").sector).toBe("ghost");
+  });
+});

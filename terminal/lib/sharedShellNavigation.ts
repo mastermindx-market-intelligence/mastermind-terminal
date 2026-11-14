@@ -9,11 +9,11 @@ export const SHARED_SHELL_NAV = [
   { k: "portfolio", label: "Portfolio", href: "/portfolio" },
 ];
 export const SHARED_SHELL_MARKETS = [
-  { k: "shellMarketUS", label: "United States", code: "US", href: "/us_stocks.html" },
-  { k: "shellMarketCN", label: "China", code: "CN", href: "/china.html" },
-  { k: "shellMarketHK", label: "Hong Kong", code: "HK", href: "/hk.html" },
-  { k: "shellMarketCA", label: "Canada", code: "CA", href: "/canada.html" },
-  { k: "shellMarketIntl", label: "International", code: "INTL", href: "/intl.html" },
+  { id: "us", k: "shellMarketUS", label: "United States", code: "US", href: "/us_stocks.html" },
+  { id: "cn", k: "shellMarketCN", label: "China", code: "CN", href: "/china.html" },
+  { id: "hk", k: "shellMarketHK", label: "Hong Kong", code: "HK", href: "/hk.html" },
+  { id: "ca", k: "shellMarketCA", label: "Canada", code: "CA", href: "/canada.html" },
+  { id: "intl", k: "shellMarketIntl", label: "International", code: "INTL", href: "/intl.html" },
 ];
 export function sharedShellActiveKey(path: string): string {
   if (path === "/today") return "shellToday";

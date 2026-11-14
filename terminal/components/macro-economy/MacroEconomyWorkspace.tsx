@@ -8,6 +8,7 @@ import MacroEconomicHistory from "./MacroEconomicHistory";
 import MacroEconomicCurve from "./MacroEconomicCurve";
 import MacroEconomicEvidence from "./MacroEconomicEvidence";
 import MacroPayrollRevisions from "./MacroPayrollRevisions";
+import MacroEconomyNavigation from "./MacroEconomyNavigation";
 import s from "./MacroEconomy.module.css";
 
 const COPY = {
@@ -36,7 +37,7 @@ export default function MacroEconomyWorkspace({ workspaceId, lang, read, selecti
   const changeStudy = (task: EconomicSelection["task"]) => onSelect({ task, evidence: null, ...(task !== selection?.task && (task === "revisions" || selection?.task === "revisions") ? { series: null, observation: null } : {}) });
   const comparable = !!v && v.changes.comparable && v.changes.prior_is_earlier;
   return <div className={s.root} data-macro-economy-workspace={workspaceId} data-read-state={accountNotice ? "identity" : !selection ? "invalid" : selected?.state === "unavailable" ? "unavailable" : read.phase}>
-    <nav className={s.productNav} aria-label={c.macro}><div className={s.productLinks}><strong className={s.productTitle}>{c.macro}</strong><Link href={dashboardHref} prefetch={false}>{c.today}</Link><Link href={overviewHref} aria-current="page" prefetch={false}>{c.economy}</Link></div><Link href={overviewHref} className={s.back} prefetch={false}>← {c.return}</Link></nav>
+    <MacroEconomyNavigation active="economy" lang={lang} dashboardHref={dashboardHref} overviewHref={overviewHref}><Link href={overviewHref} className={s.back} prefetch={false}>← {c.return}</Link></MacroEconomyNavigation>
     <div className={s.studyLayout}>
       <nav className={s.studyNav} aria-label={c.detail}>{ids.map(id => <Link key={id} href={workspaceHref(id)} aria-current={id === workspaceId ? "page" : undefined} prefetch={false}>{ECONOMIC_WORKSPACES[id][lang]}</Link>)}</nav>
       <div style={{ minWidth: 0 }}>

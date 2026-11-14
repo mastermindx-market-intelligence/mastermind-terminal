@@ -1,5 +1,6 @@
 .root{max-width:1440px;margin:0 auto;padding:32px 44px 64px;color:var(--text);font:14px/1.55 var(--font-ui);min-width:0}
 .root *{box-sizing:border-box}
+.hero,.driverEntry,.explore,.exploreLinks a{scroll-margin-top:96px}
 .root button,.root select{font:inherit;color:inherit}
 .root a{color:inherit;text-decoration:none}
 .root button{cursor:pointer}

@@ -25,12 +25,12 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
 }) {
   const t = useSectorT(), { lang } = useLang();
   const chartWrap = useRef<HTMLDivElement>(null);
-  const width = useChartWidth(chartWrap, 560);
   const read = useMemo(() => sectorMeasuredRead(context.generation?.core), [context.generation]);
   const dossiers = useMemo(() => sectorDossiers(context.generation?.core), [context.generation]);
   const benchmark = read.benchmark || "SPY";
   const measured = useMemo(() => rows.filter(row => row.measured), [rows]);
   const lead = measured[0] || null;
+  const width = useChartWidth(chartWrap, 560, !!lead);
   const second = measured[1] || null;
   const localName = (row: SectorNativeRankedRow) => lang === "zh" ? row.nameZh || row.name : row.name;
   const ahead63 = measured.filter(row => (row.rs63d ?? 0) > 0).length;
@@ -38,7 +38,7 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
   // ≤11 measured rows — computed inline, no memo to preserve.
   const look = (() => {
     for (const row of measured) {
-      if ((row.rs21d ?? 0) > 0 !== (row.rs63d ?? 0) > 0) return { row, kind: "diverge" as const };
+      if ((row.rs21d ?? 0) * (row.rs63d ?? 0) < 0) return { row, kind: "diverge" as const };
     }
     for (const row of [...measured].reverse()) {
       if ((row.rs21d ?? 0) < 0 && (row.rs63d ?? 0) < 0) return { row, kind: "lagging" as const };
@@ -47,7 +47,10 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
   })();
   if (!lead) return <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-brief-unmeasured">
     <h2 className={styles.stateTitle}>{t("siDossierMeasurementsUnavailable")}</h2>
-    <button type="button" className={styles.linkRow} onClick={onSources}>{t("siNativeSources")} →</button>
+    <div className={styles.heroActions}>
+      <button type="button" className={styles.primaryButton} onClick={() => onJob("explore")}>{t("siBriefExplore")}</button>
+      <button type="button" className={styles.secondaryButton} onClick={onSources}>{t("siNativeSources")}</button>
+    </div>
   </section>;
 
   // Zero-anchored bars: zero is always a domain endpoint, then padDomain spaces it.
@@ -80,6 +83,7 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
               {nativeFill(t("siExploreViewSector"), { sector: localName(lead) })}
             </button>
           </div>
+          <p className={styles.chartNote}>{t("siNativeBreadthMissing")}</p>
         </div>
         <div className={styles.heroStats}>
           <div className={styles.stat}>
@@ -104,17 +108,6 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
         </div>
       </div>
     </section>
-    {/* Breadth change by sector (Paper R4 R7). The breadth input rides the
-     * sector generation payload later (L1-FO1); until it lands the module
-     * mounts with no input and carries the honest line itself. */}
-    <SectorBreadthChange
-      input={undefined}
-      nameOf={(sectorId) => {
-        const row = rows.find(r => r.id === sectorId || r.name === sectorId);
-        return row ? (lang === "zh" ? row.nameZh || row.name : row.name) : undefined;
-      }}
-      onViewDataStatus={onSources}
-    />
     <div className={styles.briefColumns}>
       <div className={styles.briefMain}>
         <section className={styles.card} data-testid="sector-native-brief-leaders">
@@ -155,17 +148,24 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
             <button type="button" className={styles.linkRow} onClick={() => onJob("explore")}>{t("siBriefAllSectors")} →</button>
           </div>
         </section>
-        <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-brief-status">
-          <h2 className={styles.stateTitle}>{t("siBriefDataStatus")}</h2>
+        <details className={styles.coverageDisclosure} data-testid="sector-native-brief-status">
+          <summary>{t("siNativeDataCoverage")}</summary>
+          <div className={styles.coverageContent}>
+          {/* No breadth payload is connected yet. Keep the honest module and
+              its method available without displacing measured observations. */}
+          <SectorBreadthChange input={undefined} nameOf={sectorId => {
+            const row = rows.find(r => r.id === sectorId || r.name === sectorId);
+            return row ? localName(row) : undefined;
+          }} onViewDataStatus={onSources} />
           <div className={styles.statusStrip}>
             {dossiers.state === "ok" && dossiers.dossier && <>
               <p>{t("siDossierUnavailableWindows")}: {t("siDossierUnavailableWindowsCopy")}</p>
             </>}
-            {/* The breadth-missing line moved into the breadth module above. */}
             <p>{t("siNativeComparePending")}</p>
           </div>
           <button type="button" className={styles.linkRow} onClick={onSources}>{t("siNativeSources")} →</button>
-        </section>
+          </div>
+        </details>
       </div>
       <div className={styles.briefSide}>
         <section className={styles.card} data-testid="sector-native-brief-look">
@@ -195,10 +195,6 @@ export default function SectorNativeBrief({ context, rows, onJob, onOpenDossier,
             {investigation(t("siNativeCycles"), t("siBriefInvestigateCyclesCopy"),
               t("siBriefInvestigateCyclesAction"), () => onOpenDossier(lead.id, "signals"),
               "sector-native-brief-next-cycles")}
-            {investigation(t("siBriefInvestigateWatches"), t("siBriefInvestigateWatchesCopy"),
-              t("siBriefInvestigateWatchesAction"), () => onJob("watches"), "sector-native-brief-next-watches")}
-            {investigation(t("siBriefInvestigateResearch"), t("siBriefInvestigateResearchCopy"),
-              t("siBriefInvestigateResearchAction"), () => onJob("research"), "sector-native-brief-next-research")}
           </div>
         </section>
       </div>

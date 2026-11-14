@@ -62,7 +62,7 @@ test("light and Chinese presentation stay coherent through the tools directory",
  await noOverflow(page);
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-zh.png")});
  await page.keyboard.press("ControlOrMeta+k");
- const directory=page.locator(".shared-shell-directory[open]");
+ const directory=page.locator("#shared-shell-tools");
  await expect(directory).toBeVisible();
  const bounds=await directory.boundingBox();
  expect(bounds!.x).toBeGreaterThanOrEqual(0);
@@ -174,7 +174,7 @@ test("company search selects one canonical company from desktop, tablet and phon
  await dialog.getByRole("combobox").press("Enter");
  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
  await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
- await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
+ await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple&workspaceMarket=us$/);
  await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
 });
@@ -288,7 +288,7 @@ function recoveryChild(parentOrigin: string, holdReady: boolean) {
  const generation=new URL(location.href).searchParams.get("mmx_generation");
  let init=null;
  const send=(body)=>parent.postMessage({protocol:${JSON.stringify(SHARED_SHELL_PROTOCOL)},frameGeneration:generation,...body},parentOrigin);
- const ready=()=>{if(init)send({type:"READY",href:new URL(init.canonicalPath,location.origin).href,title:"Macro",
+ const ready=()=>{if(init)send({type:"READY",href:new URL(init.canonicalPath,location.origin).href,title:"Sector Cycles",
   contextRevision:init.contextRevision,bridgeVersion:${JSON.stringify(SHARED_SHELL_BRIDGE_VERSION)},documentVersion:${JSON.stringify(SHARED_SHELL_DOCUMENT_VERSION)},responseKind:"content"});};
  window.shellRecoveryFixture={ready,fail:()=>send({type:"ERROR",code:"initialization_failed"}),navigate:(href)=>{
   history.pushState({},"",href);
@@ -303,7 +303,7 @@ function recoveryChild(parentOrigin: string, holdReady: boolean) {
 }
 
 test.describe("legacy workspace recovery",()=>{
- const canonical="/macro.html?filter=a%20b&filter=a+b#risk";
+ const canonical="/sector_cycles.html?filter=a%20b&filter=a+b#risk";
  const legacy="https://www.mastermind-x.com";
  type FixtureWindow=Window & {shellRecoveryFixture:{ready:()=>void;fail:()=>void}};
  async function setup(page:import("@playwright/test").Page,baseURL:string) {
@@ -312,7 +312,7 @@ test.describe("legacy workspace recovery",()=>{
    {name:"mm_e2e_rs30",value:"1",url:baseURL},
    {name:"mm_e2e_guest",value:"1",url:baseURL},
   ]);
-  await page.route(legacy+"/macro.html?**",route=>route.fulfill({
+  await page.route(legacy+"/sector_cycles.html?**",route=>route.fulfill({
    contentType:"text/html; charset=utf-8",body:recoveryChild(new URL(baseURL).origin,hold),
   }));
   // Warm this real admission route before measuring a child response deadline.
@@ -321,7 +321,7 @@ test.describe("legacy workspace recovery",()=>{
   await page.goto(canonical);
   const frame=page.locator("[data-shared-shell-frame]");
   await expect(frame).toBeVisible();
-  const child=()=>page.frames().find(candidate=>candidate.url().startsWith(legacy+"/macro.html?"))!;
+  const child=()=>page.frames().find(candidate=>candidate.url().startsWith(legacy+"/sector_cycles.html?"))!;
   await expect.poll(()=>child()?.url()).toContain("mmx_generation=");
   return {frame,child,holdNext:()=>{hold=true;}};
  }
@@ -467,7 +467,7 @@ test("the current legacy company opens its chart and returns to the exact resear
  await page.goto(initial);
  const frame=page.locator("[data-shared-shell-frame]");
  await expect(frame).toBeVisible();
- const chart=page.getByRole("link",{name:"Open current chart",exact:true});
+ const chart=page.getByRole("link",{name:"Terminal",exact:true});
  let chartHref=new URL((await chart.getAttribute("href"))!,origin);
  expect(chartHref.searchParams.get("symbol")).toBe("AAPL");
  expect(chartHref.searchParams.get("ret")).toBe(origin+initial);
@@ -490,3 +490,67 @@ test("the current legacy company opens its chart and returns to the exact resear
  await expect(page).toHaveURL(origin+next);
  await expect(page.locator("[data-shared-shell-frame]")).toBeVisible();
 });
+
+// URL-owned market context uses this already-qualified beta responsive lane.
+test("market selection preserves the workspace and history without displaying another market", async ({ page }, info) => {
+  await page.goto("/discover");
+  const selector = page.getByRole("combobox", { name: "Workspace market" }).filter({ visible: true });
+  await expect(selector).toHaveValue("us");
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await selector.focus(); await expect(selector).toBeFocused();
+  await selector.selectOption("cn");
+  await expect(page).toHaveURL(/\/discover\?workspaceMarket=cn$/);
+  await expect(page.getByRole("heading", { name: "This workspace is not available for this market yet" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toHaveCount(0);
+  await expect(page.locator(".shared-shell-market-coverage a").first()).toHaveAttribute("href", "/china.html");
+  await selector.selectOption("hk");
+  await expect(selector).toHaveValue("hk");
+  await expect(page.locator(".shared-shell-market-eyebrow")).toHaveText("Hong Kong");
+  await page.goBack(); await expect(selector).toHaveValue("cn");
+  await page.reload(); await expect(selector).toHaveValue("cn");
+  await page.goBack(); await expect(selector).toHaveValue("us");
+  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await page.goForward(); await expect(selector).toHaveValue("cn");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  if (info.project.name === "desktop") {
+    const nav = page.locator("#shared-primary-navigation");
+    await expect(nav.getByRole("link", { name: "Macro Dashboard", exact: true })).toHaveAttribute("href", "/china.html");
+    await expect(nav.getByRole("link", { name: "Prophet", exact: true })).toHaveAttribute("href", "/china_stocks.html");
+    await expect(nav.getByRole("link", { name: "Sector Intelligence", exact: true })).toHaveAttribute("href", "/sectors?workspaceMarket=cn");
+    await expect(nav.getByRole("link", { name: "China", exact: true })).toHaveCount(0);
+  }
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-coverage-dark-en.png") });
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "此市场暂未提供这个工作区" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "工作区市场" }).filter({ visible: true })).toHaveValue("cn");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-coverage-light-zh.png") });
+});
+
+test("market control remains reachable at 320px alongside existing header actions", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile", "One smallest-width stress test");
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/discover");
+  const selector = page.locator(".mobilebar select");
+  await expect(selector).toBeVisible();
+  const box = await selector.boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+  const reachable = await selector.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
+  });
+  expect(reachable).toBe(true);
+  await selector.selectOption("intl");
+  await expect(selector).toHaveValue("intl");
+  await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+  await expect(page.locator(".m-drawer").getByRole("link", { name: "Macro Dashboard", exact: true })).toHaveAttribute("href", "/intl.html");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open navigation", exact: true })).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
+});
+

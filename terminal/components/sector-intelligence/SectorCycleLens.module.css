@@ -29,6 +29,10 @@
   font-size: 12px;
   line-height: 1.55;
 }
+.measurementNote { margin: 0; padding: 4px 2px; color: var(--text-2); font-size: 13px; line-height: 1.6; }
+.measurementNote span { display: block; font-size: 12px; }
+.coverage { border-top: 1px solid var(--line); padding-top: 16px; }
+.coverage > summary { min-height: 44px; cursor: pointer; font-size: 14px; font-weight: 600; }
 .banner,
 .bannerWarn {
   margin: 0;
@@ -195,7 +199,7 @@
 .changeSeriesTrigger {
   display: none;
 }
-@media (min-width: 641px) and (max-width: 980px) {
+@media (max-width: 980px) {
   .changeSeriesTrigger {
     display: inline-flex;
     align-items: center;
@@ -1301,6 +1305,15 @@
 .sheetSubject[aria-pressed="true"] b {
   color: var(--link);
 }
+.sheetComparisonHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  color: var(--text-2);
+  font-size: 12px;
+}
 .sheetCompare {
   flex: 0 0 auto;
   display: inline-flex;
@@ -1308,6 +1321,8 @@
   gap: 6px;
   color: var(--text-2);
   font-size: 10px;
+  min-height: 44px;
+  min-width: 44px;
 }
 .sheetCompare input {
   width: 18px;

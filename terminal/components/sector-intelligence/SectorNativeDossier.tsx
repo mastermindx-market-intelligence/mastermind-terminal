@@ -46,7 +46,7 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
   onBack: () => void;
   onJob: (job: SectorJob) => void;
   onOpenRotation: () => void;
-  onTheme: () => void;
+  onTheme?: () => void;
   onRefresh: () => void;
   onSources: () => void;
   /** Typed workspace selection (`change({ sector: id })`) — the calls board's
@@ -84,6 +84,7 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
         <button type="button" className={styles.linkRow} data-sector-return-focus="native-dossier"
           data-testid="sector-native-dossier-back" onClick={onBack}>← {t("siSectorDossierBack")}</button>
       </div>
+      <h1 className={styles.title}>{t("siNativeTitle")}</h1>
       <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} />
     </div>;
   }
@@ -106,9 +107,9 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
           { ticker: subject.ticker, benchmark })} · {nativeSessionLabel(session, context.language, t)}</p>
       </div>
       <div className={styles.dossierTools}>
-        <button type="button" className={shell.button} onClick={onTheme}
+        {onTheme && <button type="button" className={shell.button} onClick={onTheme}
           aria-label={t(context.theme === "dark" ? "siUseLight" : "siUseDark")}>
-          {t(context.theme === "dark" ? "siUseLight" : "siUseDark")}</button>
+          {t(context.theme === "dark" ? "siUseLight" : "siUseDark")}</button>}
         <button type="button" className={shell.button} onClick={onRefresh}>{t("siRefresh")}</button>
         <button type="button" className={shell.button} onClick={onSources}>{t("siNativeSources")}</button>
       </div>

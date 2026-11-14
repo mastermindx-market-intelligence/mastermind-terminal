@@ -1,7 +1,8 @@
 import projection from "./sharedShellRoutes.generated.json";
 import { resolveShellTarget, type ShellRouteCatalog, type ShellLocale } from "./sharedShellContracts";
 
-export const SHARED_SHELL_LEGACY_ORIGIN = "https://www.mastermind-x.com";
+import { SHARED_SHELL_LEGACY_ORIGIN } from "./sharedShellOrigins";
+export { SHARED_SHELL_LEGACY_ORIGIN };
 export const SHARED_SHELL_ORIGIN = "https://beta.mastermind-x.com";
 export const sharedShellCatalog: ShellRouteCatalog = {
   legacyPaths: projection.legacyPaths,

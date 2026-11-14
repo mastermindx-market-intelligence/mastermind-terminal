@@ -83,7 +83,6 @@ import s from "./SectorCycleLens.module.css";
  * owning route supplies the generation, the feeds and the navigation host.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-const DAY_MS = 86_400_000;
 const stamp = (d: string) => Date.parse(d + "T00:00:00Z");
 
 const familyLabelKey: Record<CycleFamily, string> = {
@@ -124,6 +123,10 @@ export interface SectorCycleLensProps {
   /** Access epoch token from the owning route (mirrors generation). */
   accessGeneration?: string;
   onNavigate?: (nav: SectorCycleNavigate) => void;
+  /** Host owns the URL selection and remounts this subject's transient view. */
+  onSelectSubject?: (subject: { family: CycleFamily; id: string }) => void;
+  /** Bounded history surface; deep publication capabilities remain in coverage. */
+  historyOnly?: boolean;
   /** Imperative capture/apply surface (#10707). */
   captureRef?: React.Ref<SectorCycleCaptureHandle>;
   /** Deep cycles publication payload (sectors/baskets/nasdaq/russell + evidence). */
@@ -140,7 +143,7 @@ export interface SectorCycleLensProps {
 }
 
 const feedUsable = (feed: SectorCycleFeed | undefined) =>
-  feed !== undefined && feed.data !== undefined && feed.state !== "loading";
+  feed !== undefined && feed.data !== undefined && (feed.state === "ready" || feed.state === "stale");
 
 export default function SectorCycleLens(props: SectorCycleLensProps) {
   const t = useSectorCycleT();
@@ -198,7 +201,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   /* ── Generation + feeds */
   const gen = genInput;
   const returnBinding = props.returnBinding ?? "host";
-  const payload = cyclesFeed?.data;
+  const payload = feedUsable(cyclesFeed) ? cyclesFeed?.data : undefined;
   const evidence = object(object(payload).evidence);
   const gate = publicationGate(evidence, {
     publicationId: gen?.publicationId ?? null,
@@ -217,6 +220,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     : universe.length > 0
       ? "legacy"
       : null;
+  const displayedStale = (mode === "deep" ? cyclesFeed : historyFeed)?.state === "stale";
 
   /* ── Roster / subject */
   const familiesPresent: CycleFamily[] =
@@ -353,12 +357,9 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
       })),
     };
   };
-  const primaryBasis: "price" | "tr" | null =
-    (selected?.basis ?? selectedUniverse?.basis) === "price"
-      ? "price"
-      : (selected?.basis ?? selectedUniverse?.basis) === null
-        ? null
-        : "tr";
+  // The RS history contract has its own basis. A price-cycle structure row
+  // must never relabel the plotted total-return relative-wealth observations.
+  const primaryBasis = historySeries?.points.length ? history?.basis ?? null : null;
   const comparisonUniverse = comparisonId
     ? (universe.find((r) => r.id === comparisonId) ?? null)
     : null;
@@ -376,12 +377,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     ? (zh ? comparisonRoster.nameZh || comparisonRoster.name : comparisonRoster.name)
     : comparisonUniverse?.name ?? comparisonId;
   if (comparisonId) {
-    const cmpBasis: "price" | "tr" | null =
-      (comparisonRoster?.basis ?? comparisonUniverse?.basis) === "price"
-        ? "price"
-        : (comparisonRoster?.basis ?? comparisonUniverse?.basis) === null
-          ? null
-          : "tr";
+    const cmpBasis = history?.series[comparisonId]?.points.length ? history.basis : null;
     const cmp = toSeries(
       comparisonId,
       `${comparisonLabel} · ${t("scSeries63")}`,
@@ -392,16 +388,9 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   }
 
   const chartAvailable = chartSeries.some((x) => x.points.length > 0);
-  const tExtent: [number, number] | null = (() => {
-    const all = chartSeries.flatMap((x) => x.points.map((p) => p.t));
-    return all.length ? [Math.min(...all), Math.max(...all)] : null;
-  })();
-  const derivedRange: [number, number] | null =
-    tExtent === null
-      ? null
-      : rangeLimit === 0
-        ? null
-        : [tExtent[1] - rangeLimit * DAY_MS, tExtent[1]];
+  const observationDates = historyPoints.map(point => stamp(point.date));
+  const derivedRange: [number, number] | null = rangeLimit === 0 || !observationDates.length ? null
+    : [observationDates[Math.max(0, observationDates.length - rangeLimit)], observationDates[observationDates.length - 1]];
   const range = rangeOverride ?? derivedRange;
 
   /* ── Picker candidates (R5-Y02 rows: phase + position + same-basis refusal).
@@ -409,37 +398,21 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
    * row); comparing a subject with itself is disabled, a basis clash is a
    * hard refusal (C08). */
   const pickerSeries: PickerSeries[] = roster.map((r) => {
-    const rowBasis = r.basis ?? null;
-    const pillBasis: "price" | "tr" | null =
-      rowBasis === "price" ? "price" : rowBasis === null ? null : "tr";
-    const primaryRaw = selected?.basis ?? selectedUniverse?.basis ?? null;
+    const rowBasis = history?.series[r.id]?.points.length ? history.basis : null;
     const isSubject = r.id === effectiveSubjectId;
-    const clash =
-      !isSubject &&
-      primaryRaw !== null &&
-      rowBasis !== null &&
-      primaryRaw !== rowBasis &&
-      comparisonId !== r.id;
     return {
       id: r.id,
       label: zh ? r.nameZh || r.name : r.name,
       ticker: r.ticker,
-      basis: pillBasis,
+      basis: rowBasis,
       phase: r.phase,
       position: r.position,
       isSubject,
       selected: comparisonId === r.id,
-      // A basis clash is a refusal, not a warning: the row is disabled so
-      // the mixed-measure overlay can never render (C08).
-      disabled: isSubject || rowBasis === null || clash,
-      refusal: clash
-        ? t("scBasisRefusal", {
-            a: selected ? (zh ? selected.nameZh || selected.name : selected.name) : "",
-            b: zh ? r.nameZh || r.name : r.name,
-            basisA: t(primaryRaw === "price" ? "scBasisPillPrice" : primaryRaw === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
-            basisB: t(rowBasis === "price" ? "scBasisPillPrice" : rowBasis === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
-          })
-        : null,
+      // Every admitted RS series shares the parser's total-return basis.
+      // Price-structure differences do not invalidate this comparison.
+      disabled: isSubject || rowBasis === null,
+      refusal: null,
     };
   });
 
@@ -448,7 +421,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     state:
       mode === null
         ? "unavailable"
-        : cyclesFeed?.state === "stale"
+        : displayedStale
           ? "stale"
           : "ready",
     subjectId: effectiveSubjectId,
@@ -620,6 +593,11 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   };
 
   const handleSelect = (id: string) => {
+    if (id === effectiveSubjectId || !roster.some(row => row.id === id)) return;
+    if (returnBinding === "host" && props.onSelectSubject) {
+      props.onSelectSubject({ family: effectiveFamily, id });
+      return;
+    }
     if (id !== effectiveSubjectId) pushSelf();
     setSubjectId(id);
     retireSubject();
@@ -638,8 +616,9 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   /* ── Legs */
   const legs = legsFromTurns(turns);
   const openLeg = legs.length > 0 && legs[legs.length - 1].open ? legs[legs.length - 1] : null;
-  const openSessions = openLegSessionsCount(historyPoints, openLeg?.from ?? null);
+  const openSessions = legSessionsCount(historyPoints, openLeg?.from ?? null, gen?.asOf ?? null);
   const selectedLeg = legs.find((l) => l.id === selectedLegId) ?? null;
+  const selectedSessions = legSessionsCount(historyPoints, selectedLeg?.from ?? null, selectedLeg?.to ?? gen?.asOf ?? null);
 
   /* ── Access / data status screens */
   if (
@@ -710,7 +689,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
    * a claim the source does not make. Delivery cadence stays unstated until a
    * published field carries it. */
   const historyModeLabel =
-    text(meta.history_mode) === "reconstructed_price_history"
+    (mode === "legacy" ? history?.mode : text(meta.history_mode)) === "reconstructed_price_history"
       ? t("scModeReconstructed")
       : null;
 
@@ -718,17 +697,17 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     <section className={s.lens} data-testid="sector-cycle-lens">
       <header className={s.top}>
         <div>
-          <h2>{t("scTitle")}</h2>
+          <h2>{t(props.historyOnly ? "scHistoryTitle" : "scTitle")}</h2>
           <p className={s.note}>
             {selected ? `${zh ? selected.nameZh || selected.name : selected.name} ${selected.ticker} · ` : ""}
             {t("scAsOf")} {gen?.asOf} · {t(familyLabelKey[effectiveFamily])}
             {historyModeLabel ? ` · ${historyModeLabel}` : ""}
-            {cyclesFeed?.state === "stale" && (
+            {displayedStale && (
               <span className={s.chipQuiet}>{t("scStaleChip")}</span>
             )}
           </p>
         </div>
-        {mode === "legacy" && gate.state !== "ready" && (
+        {!props.historyOnly && mode === "legacy" && gate.state !== "ready" && (
           <p
             className={gate.state === "incompatible_generation" ? s.bannerWarn : s.banner}
             role="status"
@@ -767,26 +746,27 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
             measured: roster.filter((r) => r.phase !== null).length,
             total: roster.length,
           }}
+          neutralPhases={props.historyOnly}
         />
 
         <div className={s.main}>
           <section className={s.hero} data-testid="cycle-hero">
             <div>
-              <h3>
+              <h3 tabIndex={-1} data-cycle-selection-focus>
                 {selected ? (zh ? selected.nameZh || selected.name : selected.name) : "—"}{" "}
                 {selected && <b>{selected.ticker}</b>}
               </h3>
               <div className={s.factRow}>
                 <span className={s.chip}>
-                  {t("scPhase")}:{" "}
-                  {ontologyLabel ?? t("scPositionUnavailable")}
+                  {t(props.historyOnly ? selected?.basis === "price" ? "scPriceStructure" : "scCycleStructure" : "scPhase")}:{" "}
+                  {(props.historyOnly ? legacyLabel : ontologyLabel) ?? t("scPositionUnavailable")}
                 </span>
                 {ontology.position !== null && (
                   <span className={s.chipQuiet}>
                     {t("scPositionFact")} {formatValue(ontology.position, 0)}
                   </span>
                 )}
-                {legacyLabel && legacyLabel !== ontologyLabel && (
+                {!props.historyOnly && legacyLabel && legacyLabel !== ontologyLabel && (
                   <span className={s.chipQuiet}>
                     {t("scLegacyPhase")}: {legacyLabel}
                   </span>
@@ -796,8 +776,8 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
                   <b>{above200 === null ? "—" : t(above200 ? "scAbove" : "scBelow")}</b>
                 </span>
               </div>
-              <p className={s.note}>{t("scPositionNote")}</p>
-              {legacyLabel && legacyLabel !== ontologyLabel && (
+              {!props.historyOnly && <p className={s.note}>{t("scPositionNote")}</p>}
+              {!props.historyOnly && legacyLabel && legacyLabel !== ontologyLabel && (
                 <p className={s.note}>{t("scLegacyWithheld")}</p>
               )}
             </div>
@@ -805,22 +785,27 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
               <button
                 type="button"
                 className={s.changeSeriesTrigger}
+                data-cycle-change-series
                 onClick={() => setSeriesSheetOpen(true)}
                 aria-haspopup="dialog"
               >
                 {t("scChangeSeries")}
               </button>
-              <button
+              {props.onNavigate && <button
                 type="button"
                 className={s.dossierButton}
-                onClick={() => navigate(effectiveFamily === "sectors" ? "dossier" : "members")}
+                data-sector-return-focus="cycle-dossier"
+                onClick={event => {
+                  event.currentTarget.focus({ preventScroll: true });
+                  navigate(effectiveFamily === "sectors" ? "dossier" : "members");
+                }}
               >
                 {t(effectiveFamily === "sectors" ? "scOpenDossier" : "scMembers")}
-              </button>
+              </button>}
             </div>
           </section>
 
-          <section className={s.clocks} data-testid="cycle-clocks">
+          {!props.historyOnly && <section className={s.clocks} data-testid="cycle-clocks">
             <h4>{t("scClocks")}</h4>
             {record === null ? (
               <p className={s.note}>{t("scStanceUnavailable")}</p>
@@ -843,7 +828,13 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
                 )}
               </>
             )}
-          </section>
+          </section>}
+
+          {history && <p className={s.measurementNote} data-testid="cycle-history-measurement">
+            {t("scHistoryMeasure", { bench: history.benchmark })}
+            {!!turns.length && <span>{t("scHistoryTurns", { basis: t(selected?.basis === "price" ? "scBasisPillPrice"
+              : selected?.basis === "tr_fallback" ? "scFallbackBasis" : "scBasisUnknown") })}</span>}
+          </p>}
 
           <CycleChartPanel
             series={chartSeries}
@@ -887,13 +878,16 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
           {/* Depth outcomes row (R5-Y01 at 1440, R5-Y04 at 768): turn
            * estimate & priors | grader | timing. Component contracts stay as
            * the frozen spec defined them; only the arrangement is the frame's. */}
+          <details className={s.coverage} open={props.historyOnly ? undefined : true}>
+          <summary>{t("scMethodsCoverage")}</summary>
+          {props.historyOnly && <p className={s.note}>{t("scHistoryCoverage")}</p>}
           <div className={s.depthGrid} data-testid="cycle-depth-grid">
             <CycleHazard record={record} meta={meta} />
             <CycleMethodsGrader
               record={record}
               meta={meta}
               grader={grader}
-              structureBasis={text(meta.structure_basis) || history?.basis || selected?.basis || null}
+              structureBasis={text(meta.structure_basis) || selected?.basis || null}
               membership={text(meta.membership) || null}
               historyMode={text(meta.history_mode) || history?.mode || null}
               seriesVerified={evidenceParts.series === "verified"}
@@ -918,6 +912,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
           {/* v1.1: the per-head capability disclosure sits after the observed
            * depths — observed Cycles stay visible whatever a head says. */}
           <CycleForecastHeads reading={headsReading} />
+          </details>
 
           {baskets && baskets.length > 0 && (
             <SectorBasketCompare rows={baskets} asOf={gen?.asOf ?? ""} />
@@ -931,7 +926,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         open={seriesSheetOpen}
         onClose={() => setSeriesSheetOpen(false)}
         series={pickerSeries}
-        onToggle={(id) => setComparisonId((prev) => (prev === id ? null : id))}
+        onComparison={setComparisonId}
         families={familiesPresent.map((f) => ({ key: f, label: t(familyLabelKey[f]) }))}
         family={effectiveFamily}
         onFamily={(f) => {
@@ -951,8 +946,11 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
               ? t("scLegOpenNoCount")
               : `${selectedLeg.from} → ${selectedLeg.to}`
             : t("scLegTimeline"),
-          sessions: openSessions,
-          pricePct: legPricePct(historyPoints, selectedLeg),
+          sessions: selectedSessions,
+          open: selectedLeg?.open ?? true,
+          // Rolling relative wealth is not a price level. Its difference
+          // cannot establish the selected leg's price return.
+          pricePct: null,
           vsBenchPct: null,
           story: <LegStoryBlock story={story} />,
         }}
@@ -977,27 +975,16 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   );
 }
 
-/* Open-leg session count via the shared clock (pivot-based, reconstructed). */
-function openLegSessionsCount(
+/* Count supplied observations only when the required anchors are retained.
+ * An older pivot outside this history cannot establish the full leg length. */
+function legSessionsCount(
   points: readonly { date: string }[],
   pivotDate: string | null,
+  endDate: string | null,
 ): number | null {
-  if (pivotDate === null || points.length === 0) return null;
+  if (pivotDate === null || endDate === null || !points.some(point => point.date === pivotDate)
+    || !points.some(point => point.date === endDate)) return null;
   let count = 0;
-  for (const p of points) if (p.date > pivotDate) count++;
+  for (const p of points) if (p.date > pivotDate && p.date <= endDate) count++;
   return count;
-}
-
-/* Leg price change over the selected closed leg (donor #1249 turn list basis);
- * the vs-benchmark pp needs a benchmark series the legacy feed does not carry
- * per-leg, so it stays absent rather than inferred. */
-function legPricePct(
-  points: readonly { date: string; rs63: number }[],
-  leg: { from: string | null; to: string | null } | null,
-): number | null {
-  if (!leg || leg.to === null) return null;
-  const a = points.find((p) => p.date === leg.from);
-  const b = points.find((p) => p.date === leg.to);
-  if (!a || !b) return null;
-  return b.rs63 - a.rs63;
 }

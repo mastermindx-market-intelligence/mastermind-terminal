@@ -12,7 +12,7 @@ import {
  * sector serializer (writeSectorState) with every entry identical to the
  * canonical serialization of DEFAULT_SECTOR_STATE omitted — except
  * `sectorWorkspace`, which is always kept so a fully default snapshot still
- * reads back as `sectorWorkspace=discover`. Only rotation/discover/breadth
+ * reads back as `sectorWorkspace=discover`. Only rotation/discover/breadth/cycles
  * workspaces with sourceFamily="sectors" and sourcesOpen=false are
  * capturable. Decode validates by re-encoding, so only canonical,
  * non-recursive, order-faithful strings are accepted.
@@ -44,6 +44,7 @@ const SECTOR_DEPTH_RETURN_WORKSPACES: readonly SectorState["workspace"][] = [
   "rotation",
   "discover",
   "breadth",
+  "cycles",
 ];
 
 /**

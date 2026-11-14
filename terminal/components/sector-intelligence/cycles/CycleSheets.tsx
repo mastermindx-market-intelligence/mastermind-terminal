@@ -1,8 +1,10 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
 import { formatValue } from "@/lib/sectorIntelligence";
 import s from "../SectorCycleLens.module.css";
+import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
 /* Mobile surfaces (Paper R3 2V5-0, upgraded to the R5-Y02 picker): the
  * half-sheet series picker with the 2×2 family control, phase filter chips,
@@ -13,30 +15,12 @@ import s from "../SectorCycleLens.module.css";
  * pointer gesture layered on top, never the only way out. */
 
 function useDialog(open: boolean, onClose: () => void) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const openerRef = useRef<Element | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    openerRef.current = document.activeElement;
-    const first = ref.current?.querySelector<HTMLElement>(
-      "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
-    );
-    first?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // Stacked dialogs: only the one HOLDING focus (the topmost) closes;
-        // stopPropagation alone cannot stop a sibling document listener.
-        if (!ref.current?.contains(document.activeElement)) return;
-        e.stopPropagation();
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => {
-      document.removeEventListener("keydown", onKey, true);
-      (openerRef.current as HTMLElement | null)?.focus?.();
-    };
-  }, [open, onClose]);
+  // A new ref at the open boundary lets the shared focus owner attach after
+  // this conditional dialog mounts, without restarting on callback renders.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- open intentionally creates the shared focus owner's mount boundary.
+  const ref = useMemo(() => ({ current: null as HTMLDivElement | null }), [open]);
+  useDialogFocus(ref, onClose);
+  useEffect(() => open ? acquireScrollLock() : undefined, [open]);
   return ref;
 }
 
@@ -79,7 +63,7 @@ export interface CycleSeriesSheetProps {
   open: boolean;
   onClose: () => void;
   series: PickerSeries[];
-  onToggle: (id: string) => void;
+  onComparison: (id: string | null) => void;
   /** Families present, labelled — the 2×2 control (R5-Y02). */
   families: { key: string; label: string }[];
   family: string;
@@ -100,20 +84,21 @@ const SHEET_PHASE_LABELS: Record<string, string> = {
 export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
   const t = useSectorCycleT();
   const [query, setQuery] = useState("");
-  const [draft, setDraft] = useState<Record<string, boolean>>({});
+  const [draftComparison, setDraftComparison] = useState<string | null | undefined>(undefined);
   const [phaseFilter, setPhaseFilter] = useState<string | null>(null);
   const [draftSubject, setDraftSubject] = useState<string | null>(null);
   const [wasOpen, setWasOpen] = useState(props.open);
   const ref = useDialog(props.open, props.onClose);
   const drag = useDragToClose(props.onClose);
   const titleId = useId();
+  const comparisonName = useId();
   if (wasOpen !== props.open) {
     setWasOpen(props.open);
     if (!props.open) {
       // Every close — Apply, Cancel, Escape, scrim tap, drag — resets the
       // draft so the next open starts from the committed view (the React
       // adjust-state-during-render pattern; no effect cascade).
-      setDraft({});
+      setDraftComparison(undefined);
       setQuery("");
       setPhaseFilter(null);
       setDraftSubject(null);
@@ -128,7 +113,8 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
         x.ticker.toLowerCase().includes(needle)) &&
       (phaseFilter === null || x.phase === phaseFilter),
   );
-  const isSelected = (x: PickerSeries) => draft[x.id] ?? x.selected;
+  const comparison = draftComparison === undefined
+    ? props.series.find(x => x.selected)?.id ?? null : draftComparison;
   const phasesPresent = ["Trough", "Recovery", "Expansion", "Peak", "Downturn"].filter(
     (p) => props.series.some((x) => x.phase === p),
   );
@@ -140,6 +126,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
         ref={ref}
         className={s.sheetHalf}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         style={{ transform: `translateY(${drag.drag}px)` }}
@@ -147,6 +134,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
         <button
           type="button"
           className={s.sheetHandle}
+          onClick={props.onClose}
           aria-label={t("scSeriesSheetCancel")}
           {...drag.handle}
         />
@@ -157,7 +145,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
             ✕
           </button>
         </div>
-        <div className={s.sheetFamilies} role="group" aria-label={t("scSeriesSheetTitle")}>
+        {props.families.length > 1 && <div className={s.sheetFamilies} role="group" aria-label={t("scSeriesSheetTitle")}>
           {props.families.map((f) => (
             <button
               key={f.key}
@@ -168,7 +156,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
               {f.label}
             </button>
           ))}
-        </div>
+        </div>}
         <div className={s.phaseChips} role="group" aria-label={t("scPhaseFilterAll")}>
           <button
             type="button"
@@ -195,6 +183,14 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <div className={s.sheetComparisonHeader}>
+          <span>{t("scCompareOne")}</span>
+          <label className={s.sheetCompare}>
+            <input type="radio" name={comparisonName} checked={comparison === null}
+              onChange={() => setDraftComparison(null)} />
+            {t("scCompareNone")}
+          </label>
+        </div>
         <ul className={s.sheetList}>
           {rows.map((x) => (
             <li key={x.id} className={x.disabled ? s.sheetRowDisabled : undefined}>
@@ -215,11 +211,12 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
                 </button>
                 <label className={s.sheetCompare}>
                   <input
-                    type="checkbox"
-                    checked={isSelected(x)}
+                    type="radio"
+                    name={comparisonName}
+                    checked={comparison === x.id}
                     disabled={x.disabled}
-                    aria-label={`${t("scCompareTitle")}: ${x.label}`}
-                    onChange={() => setDraft((d) => ({ ...d, [x.id]: !isSelected(x) }))}
+                    aria-label={`${t("scSeriesComparison")}: ${x.label}`}
+                    onChange={() => setDraftComparison(x.id)}
                   />
                   {x.basis && (
                     <small>{t(x.basis === "price" ? "scBasisPillPrice" : "scBasisPillTr")}</small>
@@ -262,12 +259,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
               // rules; when the subject changes they are dropped with it (the
               // donor's fresh-mount-per-subject semantics) so a mixed-basis
               // overlay can never be committed blind (C08).
-              if (!subjectChanged) {
-                for (const x of props.series) {
-                  const next = draft[x.id] ?? x.selected;
-                  if (next !== x.selected) props.onToggle(x.id);
-                }
-              }
+              if (!subjectChanged) props.onComparison(comparison);
               props.onClose();
             }}
           >
@@ -285,6 +277,7 @@ export interface CycleLegSheetProps {
   onClose: () => void;
   leg: {
     title: string;
+    open?: boolean;
     sessions: number | null;
     pricePct: number | null;
     vsBenchPct: number | null;
@@ -306,6 +299,7 @@ export function CycleLegSheet(props: CycleLegSheetProps) {
         ref={ref}
         className={tall ? s.sheetFullTall : s.sheetFull}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={titleId}
         style={{ transform: `translateY(${drag.drag}px)` }}
@@ -313,7 +307,7 @@ export function CycleLegSheet(props: CycleLegSheetProps) {
         <button
           type="button"
           className={s.sheetHandle}
-          aria-label={t("scSeriesSheetCancel")}
+          aria-label={t(tall ? "scCollapseSheet" : "scExpandSheet")}
           onClick={() => setTall((v) => !v)}
           {...drag.handle}
         />
@@ -328,8 +322,8 @@ export function CycleLegSheet(props: CycleLegSheetProps) {
             <dt>{t("scLegTimeline")}</dt>
             <dd>
               {props.leg.sessions !== null
-                ? t("scLegOpenSessions", { n: props.leg.sessions })
-                : t("scLegOpenNoCount")}
+                ? t(props.leg.open ? "scLegObservedOpenSessions" : "scLegObservedSessions", { n: props.leg.sessions })
+                : t("scLegCountUnavailable")}
             </dd>
           </div>
           {props.leg.pricePct !== null && (

@@ -34,13 +34,13 @@ function MountedSearch() {
 it("carries the exact HK ticker and typed selection reason, then restores the exact origin and search on Back", async () => {
   await render(); const origin = window.location.href;
   await act(async () => (host.querySelector("button") as HTMLButtonElement).click());
-  expect(state.push).toHaveBeenCalledWith("/analysis?symbol=9988.HK&company_query=Alibaba");
+  expect(state.push).toHaveBeenCalledWith("/analysis?symbol=9988.HK&company_query=Alibaba&workspaceMarket=us");
   expect(state.active).toHaveBeenCalledWith("9988.HK");
   expect(window.location.href).toBe(origin);
   const returnState = window.history.state;
   expect(returnState.nextRouter).toBe("preserved");
   expect(returnState[COMPANY_SEARCH_HISTORY_KEY]).toEqual({ symbol: "9988.HK", query: "Alibaba", href: origin });
-  window.history.replaceState(null, "", "/analysis?symbol=9988.HK&company_query=Alibaba");
+  window.history.replaceState(null, "", "/analysis?symbol=9988.HK&company_query=Alibaba&workspaceMarket=us");
   window.history.replaceState(returnState, "", origin);
   await act(async () => window.dispatchEvent(new PopStateEvent("popstate", { state: returnState })));
   expect(onOpenChange).toHaveBeenLastCalledWith(true);
@@ -71,7 +71,7 @@ it("closes a restored company search on Forward and restores the same listing on
   await act(async () => root.render(<MountedSearch />));
   const origin = window.location.href;
   await act(async () => (host.querySelector("button") as HTMLButtonElement).click());
-  const destination = "/analysis?symbol=9988.HK&company_query=Alibaba";
+  const destination = "/analysis?symbol=9988.HK&company_query=Alibaba&workspaceMarket=us";
   expect(state.push).toHaveBeenCalledWith(destination);
   const returnState = {
     ...originState,

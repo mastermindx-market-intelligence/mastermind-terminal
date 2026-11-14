@@ -10,7 +10,7 @@ import {
 import { sharedShellSource } from "@/lib/sharedShellRoutes";
 
 const navigation = vi.hoisted(() => ({
-  path: "/macro.html", params: new URLSearchParams(),
+  path: "/sector_cycles.html", params: new URLSearchParams(),
   router: { push: vi.fn(), replace: vi.fn() },
 }));
 const owners = vi.hoisted(() => ({
@@ -26,7 +26,7 @@ vi.mock("@/lib/sharedShellCopy", () => ({ useSharedShellT: () => (key: string) =
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const LEGACY = "https://www.mastermind-x.com";
-const HREF = "/macro.html?filter=a%20b&filter=a+b#risk";
+const HREF = "/sector_cycles.html?filter=a%20b&filter=a+b#risk";
 const context = { theme: "dark" as const, locale: "en" as const, contextRevision: 0 };
 const onTitle = vi.fn();
 const onContextRequest = vi.fn();
@@ -56,7 +56,7 @@ function iframe() { return container.querySelector<HTMLIFrameElement>("iframe")!
 function generation() { return new URL(replaceFrame.mock.calls.at(-1)![0]).searchParams.get("mmx_generation")!; }
 function ready(responseKind = "content", overrides: Record<string, unknown> = {}) {
   return {
-    type: "READY", href: LEGACY + HREF, title: "Macro", contextRevision: 0,
+    type: "READY", href: LEGACY + HREF, title: "Sector Cycles", contextRevision: 0,
     bridgeVersion: SHARED_SHELL_BRIDGE_VERSION, documentVersion: SHARED_SHELL_DOCUMENT_VERSION,
     responseKind, ...overrides,
   };
@@ -106,7 +106,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   requests = [];
-  navigation.path = "/macro.html";
+  navigation.path = "/sector_cycles.html";
   navigation.params = new URLSearchParams("filter=a%20b&filter=a+b");
   window.history.replaceState({}, "", HREF);
   vi.spyOn(HTMLIFrameElement.prototype, "contentWindow", "get").mockReturnValue(childWindow);
