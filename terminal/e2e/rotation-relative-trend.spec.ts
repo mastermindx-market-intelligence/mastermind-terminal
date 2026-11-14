@@ -144,6 +144,7 @@ test("weekly trajectories fade with age and keep gaps while all/hover/off modes 
   const trail = rotation.getByTestId("rotation-trend-trail");
   await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(3, { timeout: 30_000 });
   await expect(trail).toHaveAttribute("data-trail-mode", "all");
+  await expect(trail).toHaveAttribute("data-selected-date", "2026-10-16");
   const lines = trail.locator('[data-rotation-trail="xlk"] line[data-trail-from]');
   await expect(lines.first()).toBeVisible();
   const first = Number(await lines.first().getAttribute("stroke-opacity"));
