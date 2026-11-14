@@ -173,6 +173,37 @@ def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
     assert json.loads(pg("select read_investigation_v2('"+ID+"',5)",A))["lifecycle"]=="removed"
 
 
+@pytest.fixture(scope="module")
+def sector_pg(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+
+    run, data, socket_root = handoff._spawn_postgres(
+        tmp_path_factory, "sector-admission-pg", 55491
+    )
+    try:
+        handoff._bootstrap_base_schema(run)
+        # This disposable cluster exercises the complete prerequisite chain.
+        # The original pg fixture remains on the historical 0028 contract.
+        migrations = handoff.PREVIOUS + (
+            ROOT / "supabase/migrations/0040_investigation_review.sql",
+            handoff.SQL,
+            ROOT / "supabase/migrations/0042_investigation_scenario_reference.sql",
+            ROOT / "supabase/migrations/0047_investigation_options_selection_evidence.sql",
+            ROOT / "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
+        )
+        for sql_file in migrations:
+            assert sql_file.exists(), f"{sql_file.name} is not implemented"
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(
+            ["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"],
+            check=True,
+            capture_output=True,
+        )
+        socket_root.cleanup()
+
+
 def _assert_paired_manifest_corpus(pg, *, g1_only):
     bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
     for vector in bundle["vectors"]:
@@ -218,6 +249,30 @@ def _assert_paired_manifest_corpus(pg, *, g1_only):
 
 def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
     _assert_paired_manifest_corpus(pg, g1_only=True)
+
+
+def test_full_paired_manifest_corpus_after_sector_admission(sector_pg):
+    _assert_paired_manifest_corpus(sector_pg, g1_only=False)
+
+
+@pytest.mark.parametrize(
+    ("owner", "object_type", "expected"),
+    [
+        ("macro.sector", "sector_observation", "t"),
+        ("macro.sector", "basket_observation", "t"),
+        ("theme_graph.curation_assertion", "curation_assertion", "t"),
+        ("earnings.workspace_generation", "event_workspace", "t"),
+        ("terminal.options_exposure", "options_matrix_selection", "t"),
+        ("macro.sector", "event_workspace", "f"),
+        ("unadmitted.owner", "sector_observation", "f"),
+    ],
+)
+def test_sector_evidence_admission_probe_executes(sector_pg, owner, object_type, expected):
+    assert sector_pg(
+        "select public.investigation_evidence_admitted_v2("
+        + quote(owner) + "," + quote(object_type) + ");",
+        role="authenticated",
+    ) == expected
 
 
 def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
