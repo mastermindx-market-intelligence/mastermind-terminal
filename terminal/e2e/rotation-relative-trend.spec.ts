@@ -143,7 +143,7 @@ test("weekly trajectories fade with age and keep gaps while all/hover/off modes 
   const rotation = page.getByTestId("sector-rotation");
   const trail = rotation.getByTestId("rotation-trend-trail");
   await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(3, { timeout: 30_000 });
-  await expect(trail).toHaveAttribute("data-trail-mode", "selected");
+  await expect(trail).toHaveAttribute("data-trail-mode", "all");
   const lines = trail.locator('[data-rotation-trail="xlk"] line[data-trail-from]');
   await expect(lines.first()).toBeVisible();
   const first = Number(await lines.first().getAttribute("stroke-opacity"));
@@ -152,6 +152,9 @@ test("weekly trajectories fade with age and keep gaps while all/hover/off modes 
   expect(last).toBeLessThanOrEqual(0.9);
 
   const bar = rotation.getByTestId("rotation-trajectory-toolbar");
+  await bar.locator('[data-trail-display="selected"]').click();
+  await expect(trail).toHaveAttribute("data-trail-mode", "selected");
+  await expect(trail.locator("[data-rotation-trail]")).toHaveCount(1);
   await bar.locator('[data-trail-display="all"]').click();
   await expect(trail).toHaveAttribute("data-trail-mode", "all");
   expect(await trail.locator("[data-rotation-trail]").count()).toBeGreaterThan(1);
