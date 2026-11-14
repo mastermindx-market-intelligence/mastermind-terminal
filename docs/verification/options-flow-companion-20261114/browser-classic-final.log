@@ -1,0 +1,388 @@
+[warmup] /terminal?symbol=NVDA → 200 in 85ms
+[warmup] /options → 200 in 1704ms
+[warmup] /portfolio → 200 in 616ms
+[warmup] /alerts → 200 in 550ms
+[warmup] /analysis → 200 in 816ms
+[warmup] /discover → 200 in 1020ms
+[warmup] /admin → 200 in 252ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 205ms
+[warmup] /login → 200 in 82ms
+[warmup] /reset-password → 200 in 231ms
+[warmup] /api/me → 200 in 359ms
+[warmup] /api/watchlist → 200 in 131ms
+[warmup] /api/layouts → 200 in 141ms
+[warmup] /api/watchlist/annotations → 409 in 112ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 330ms
+
+Running 12 tests using 1 worker
+
+[1/12] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/12] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[3/12] [desktop] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+
+[WebServer] [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[WebServer] 
+[WebServer] - A server/client branch `if (typeof window !== 'undefined')`.
+[WebServer] - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+[WebServer] - Date formatting in a user's locale which doesn't match the server.
+[WebServer] - External changing data without sending a snapshot of it along with the HTML.
+[WebServer] - Invalid HTML tag nesting.
+[WebServer] 
+[WebServer] It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+[WebServer] 
+[WebServer] https://react.dev/link/hydration-mismatch
+[WebServer] 
+[WebServer]   ...
+[WebServer]     <SegmentViewNode type="page" pagePath="(shell)/op...">
+[WebServer]       <SegmentTrieNode>
+[WebServer]       <OptionsPage>
+[WebServer]         <Suspense fallback={null}>
+[WebServer]           ...
+[WebServer]             <LoadableComponent>
+[WebServer]               <OptionsWorkspace>
+[WebServer]                 <main className="main2 opti..." data-options-ia="seven-cate..." style={{overflow:"...", ...}}>
+[WebServer]                   <header>
+[WebServer]                   <OptionsHubView allowedTabs={[...]} activeTab="tape" ...>
+[WebServer]                     <CoachProvider>
+[WebServer]                       <div style={{flex:1,minHeight:0, ...}}>
+[WebServer]                         <div>
+[WebServer]                         <div style={{flex:1, ...}}>
+[WebServer]                           <div>
+[WebServer]                           <div className="flow-filte...">
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <input
+[WebServer]                               type="search"
+[WebServer]                               id="options-tape-ticker-search"
+[WebServer]                               name="options-tape-ticker-search"
+[WebServer]                               autoComplete="off"
+[WebServer]                               autoCapitalize="characters"
+[WebServer]                               spellCheck={false}
+[WebServer]                               aria-label="Ticker…"
+[WebServer]                               placeholder="Ticker…"
+[WebServer]                               disabled={true}
+[WebServer]                               value=""
+[WebServer]                               onChange={function onChange}
+[WebServer]                               style={{
+[WebServer] +                               height: 28
+[WebServer] -                               height: "28px"
+[WebServer] +                               padding: "0 10px"
+[WebServer] +                               borderRadius: "var(--r-md)"
+[WebServer] +                               background: "var(--inset)"
+[WebServer] +                               border: "1px solid var(--line)"
+[WebServer] +                               color: "var(--text)"
+[WebServer] -                               color: "var(--text)"
+[WebServer] +                               font: "13px var(--font-ui)"
+[WebServer] +                               width: 110
+[WebServer] -                               width: "110px"
+[WebServer] -                               padding-top: "0px"
+[WebServer] -                               padding-right: "10px"
+[WebServer] -                               padding-bottom: "0px"
+[WebServer] -                               padding-left: "10px"
+[WebServer] -                               border-top-left-radius: ""
+[WebServer] -                               border-top-right-radius: ""
+[WebServer] -                               border-bottom-right-radius: ""
+[WebServer] -                               border-bottom-left-radius: ""
+[WebServer] -                               background-image: ""
+[WebServer] -                               background-position-x: ""
+[WebServer] -                               background-position-y: ""
+[WebServer] -                               background-size: ""
+[WebServer] -                               background-repeat: ""
+[WebServer] -                               background-attachment: ""
+[WebServer] -                               background-origin: ""
+[WebServer] -                               background-clip: ""
+[WebServer] -                               background-color: ""
+[WebServer] -                               border-top-color: ""
+[WebServer] -                               border-top-style: ""
+[WebServer] -                               border-top-width: ""
+[WebServer] -                               border-right-color: ""
+[WebServer] -                               border-right-style: ""
+[WebServer] -                               border-right-width: ""
+[WebServer] -                               border-bottom-color: ""
+[WebServer] -                               border-bottom-style: ""
+[WebServer] -                               border-bottom-width: ""
+[WebServer] -                               border-left-color: ""
+[WebServer] -                               border-left-style: ""
+[WebServer] -                               border-left-width: ""
+[WebServer] -                               border-image-source: ""
+[WebServer] -                               border-image-slice: ""
+[WebServer] -                               border-image-width: ""
+[WebServer] -                               border-image-outset: ""
+[WebServer] -                               border-image-repeat: ""
+[WebServer] -                               font-style: ""
+[WebServer] -                               font-variant-ligatures: ""
+[WebServer] -                               font-variant-caps: ""
+[WebServer] -                               font-variant-numeric: ""
+[WebServer] -                               font-variant-east-asian: ""
+[WebServer] -                               font-variant-alternates: ""
+[WebServer] -                               font-variant-position: ""
+[WebServer] -                               font-variant-emoji: ""
+[WebServer] -                               font-weight: ""
+[WebServer] -                               font-stretch: ""
+[WebServer] -                               font-size: ""
+[WebServer] -                               line-height: ""
+[WebServer] -                               font-family: ""
+[WebServer] -                               font-optical-sizing: ""
+[WebServer] -                               font-size-adjust: ""
+[WebServer] -                               font-kerning: ""
+[WebServer] -                               font-feature-settings: ""
+[WebServer] -                               font-variation-settings: ""
+[WebServer] -                               font-language-override: ""
+[WebServer]                               }}
+[WebServer]                             >
+[WebServer]                             ...
+[WebServer]                           ...
+[WebServer]                         ...
+[WebServer]  
+[4/12] [desktop] › e2e/options-flow-companion-link.spec.ts:147:5 › a dotted chart root reaches its exact Tape population
+[5/12] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+[6/12] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[7/12] [tablet] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+
+[WebServer] [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[WebServer] 
+[WebServer] - A server/client branch `if (typeof window !== 'undefined')`.
+[WebServer] - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+[WebServer] - Date formatting in a user's locale which doesn't match the server.
+[WebServer] - External changing data without sending a snapshot of it along with the HTML.
+[WebServer] - Invalid HTML tag nesting.
+[WebServer] 
+[WebServer] It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+[WebServer] 
+[WebServer] https://react.dev/link/hydration-mismatch
+[WebServer] 
+[WebServer]   ...
+[WebServer]     <SegmentViewNode type="page" pagePath="(shell)/op...">
+[WebServer]       <SegmentTrieNode>
+[WebServer]       <OptionsPage>
+[WebServer]         <Suspense fallback={null}>
+[WebServer]           ...
+[WebServer]             <LoadableComponent>
+[WebServer]               <OptionsWorkspace>
+[WebServer]                 <main className="main2 opti..." data-options-ia="seven-cate..." style={{overflow:"...", ...}}>
+[WebServer]                   <header>
+[WebServer]                   <OptionsHubView allowedTabs={[...]} activeTab="tape" ...>
+[WebServer]                     <CoachProvider>
+[WebServer]                       <div style={{flex:1,minHeight:0, ...}}>
+[WebServer]                         <div>
+[WebServer]                         <div style={{flex:1, ...}}>
+[WebServer]                           <div>
+[WebServer]                           <div className="flow-filte...">
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <input
+[WebServer]                               type="search"
+[WebServer]                               id="options-tape-ticker-search"
+[WebServer]                               name="options-tape-ticker-search"
+[WebServer]                               autoComplete="off"
+[WebServer]                               autoCapitalize="characters"
+[WebServer]                               spellCheck={false}
+[WebServer]                               aria-label="Ticker…"
+[WebServer]                               placeholder="Ticker…"
+[WebServer]                               disabled={true}
+[WebServer]                               value=""
+[WebServer]                               onChange={function onChange}
+[WebServer]                               style={{
+[WebServer] +                               height: 28
+[WebServer] -                               height: "28px"
+[WebServer] +                               padding: "0 10px"
+[WebServer] +                               borderRadius: "var(--r-md)"
+[WebServer] +                               background: "var(--inset)"
+[WebServer] +                               border: "1px solid var(--line)"
+[WebServer] +                               color: "var(--text)"
+[WebServer] -                               color: "var(--text)"
+[WebServer] +                               font: "13px var(--font-ui)"
+[WebServer] +                               width: 110
+[WebServer] -                               width: "110px"
+[WebServer] -                               padding-top: "0px"
+[WebServer] -                               padding-right: "10px"
+[WebServer] -                               padding-bottom: "0px"
+[WebServer] -                               padding-left: "10px"
+[WebServer] -                               border-top-left-radius: ""
+[WebServer] -                               border-top-right-radius: ""
+[WebServer] -                               border-bottom-right-radius: ""
+[WebServer] -                               border-bottom-left-radius: ""
+[WebServer] -                               background-image: ""
+[WebServer] -                               background-position-x: ""
+[WebServer] -                               background-position-y: ""
+[WebServer] -                               background-size: ""
+[WebServer] -                               background-repeat: ""
+[WebServer] -                               background-attachment: ""
+[WebServer] -                               background-origin: ""
+[WebServer] -                               background-clip: ""
+[WebServer] -                               background-color: ""
+[WebServer] -                               border-top-color: ""
+[WebServer] -                               border-top-style: ""
+[WebServer] -                               border-top-width: ""
+[WebServer] -                               border-right-color: ""
+[WebServer] -                               border-right-style: ""
+[WebServer] -                               border-right-width: ""
+[WebServer] -                               border-bottom-color: ""
+[WebServer] -                               border-bottom-style: ""
+[WebServer] -                               border-bottom-width: ""
+[WebServer] -                               border-left-color: ""
+[WebServer] -                               border-left-style: ""
+[WebServer] -                               border-left-width: ""
+[WebServer] -                               border-image-source: ""
+[WebServer] -                               border-image-slice: ""
+[WebServer] -                               border-image-width: ""
+[WebServer] -                               border-image-outset: ""
+[WebServer] -                               border-image-repeat: ""
+[WebServer] -                               font-style: ""
+[WebServer] -                               font-variant-ligatures: ""
+[WebServer] -                               font-variant-caps: ""
+[WebServer] -                               font-variant-numeric: ""
+[WebServer] -                               font-variant-east-asian: ""
+[WebServer] -                               font-variant-alternates: ""
+[WebServer] -                               font-variant-position: ""
+[WebServer] -                               font-variant-emoji: ""
+[WebServer] -                               font-weight: ""
+[WebServer] -                               font-stretch: ""
+[WebServer] -                               font-size: ""
+[WebServer] -                               line-height: ""
+[WebServer] -                               font-family: ""
+[WebServer] -                               font-optical-sizing: ""
+[WebServer] -                               font-size-adjust: ""
+[WebServer] -                               font-kerning: ""
+[WebServer] -                               font-feature-settings: ""
+[WebServer] -                               font-variation-settings: ""
+[WebServer] -                               font-language-override: ""
+[WebServer]                               }}
+[WebServer]                             >
+[WebServer]                             ...
+[WebServer]                           ...
+[WebServer]                         ...
+[WebServer]  
+[8/12] [tablet] › e2e/options-flow-companion-link.spec.ts:147:5 › a dotted chart root reaches its exact Tape population
+[9/12] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+[10/12] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[11/12] [mobile] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+
+[WebServer] [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[WebServer] 
+[WebServer] - A server/client branch `if (typeof window !== 'undefined')`.
+[WebServer] - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+[WebServer] - Date formatting in a user's locale which doesn't match the server.
+[WebServer] - External changing data without sending a snapshot of it along with the HTML.
+[WebServer] - Invalid HTML tag nesting.
+[WebServer] 
+[WebServer] It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+[WebServer] 
+[WebServer] https://react.dev/link/hydration-mismatch
+[WebServer] 
+[WebServer]   ...
+[WebServer]     <SegmentViewNode type="page" pagePath="(shell)/op...">
+[WebServer]       <SegmentTrieNode>
+[WebServer]       <OptionsPage>
+[WebServer]         <Suspense fallback={null}>
+[WebServer]           ...
+[WebServer]             <LoadableComponent>
+[WebServer]               <OptionsWorkspace>
+[WebServer]                 <main className="main2 opti..." data-options-ia="seven-cate..." style={{overflow:"...", ...}}>
+[WebServer]                   <header>
+[WebServer]                   <OptionsHubView allowedTabs={[...]} activeTab="tape" ...>
+[WebServer]                     <CoachProvider>
+[WebServer]                       <div style={{flex:1,minHeight:0, ...}}>
+[WebServer]                         <div>
+[WebServer]                         <div style={{flex:1, ...}}>
+[WebServer]                           <div>
+[WebServer]                           <div className="flow-filte...">
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <div>
+[WebServer]                             <input
+[WebServer]                               type="search"
+[WebServer]                               id="options-tape-ticker-search"
+[WebServer]                               name="options-tape-ticker-search"
+[WebServer]                               autoComplete="off"
+[WebServer]                               autoCapitalize="characters"
+[WebServer]                               spellCheck={false}
+[WebServer]                               aria-label="Ticker…"
+[WebServer]                               placeholder="Ticker…"
+[WebServer]                               disabled={true}
+[WebServer]                               value=""
+[WebServer]                               onChange={function onChange}
+[WebServer]                               style={{
+[WebServer] +                               height: 28
+[WebServer] -                               height: "28px"
+[WebServer] +                               padding: "0 10px"
+[WebServer] +                               borderRadius: "var(--r-md)"
+[WebServer] +                               background: "var(--inset)"
+[WebServer] +                               border: "1px solid var(--line)"
+[WebServer] +                               color: "var(--text)"
+[WebServer] -                               color: "var(--text)"
+[WebServer] +                               font: "13px var(--font-ui)"
+[WebServer] +                               width: 110
+[WebServer] -                               width: "110px"
+[WebServer] -                               padding-top: "0px"
+[WebServer] -                               padding-right: "10px"
+[WebServer] -                               padding-bottom: "0px"
+[WebServer] -                               padding-left: "10px"
+[WebServer] -                               border-top-left-radius: ""
+[WebServer] -                               border-top-right-radius: ""
+[WebServer] -                               border-bottom-right-radius: ""
+[WebServer] -                               border-bottom-left-radius: ""
+[WebServer] -                               background-image: ""
+[WebServer] -                               background-position-x: ""
+[WebServer] -                               background-position-y: ""
+[WebServer] -                               background-size: ""
+[WebServer] -                               background-repeat: ""
+[WebServer] -                               background-attachment: ""
+[WebServer] -                               background-origin: ""
+[WebServer] -                               background-clip: ""
+[WebServer] -                               background-color: ""
+[WebServer] -                               border-top-color: ""
+[WebServer] -                               border-top-style: ""
+[WebServer] -                               border-top-width: ""
+[WebServer] -                               border-right-color: ""
+[WebServer] -                               border-right-style: ""
+[WebServer] -                               border-right-width: ""
+[WebServer] -                               border-bottom-color: ""
+[WebServer] -                               border-bottom-style: ""
+[WebServer] -                               border-bottom-width: ""
+[WebServer] -                               border-left-color: ""
+[WebServer] -                               border-left-style: ""
+[WebServer] -                               border-left-width: ""
+[WebServer] -                               border-image-source: ""
+[WebServer] -                               border-image-slice: ""
+[WebServer] -                               border-image-width: ""
+[WebServer] -                               border-image-outset: ""
+[WebServer] -                               border-image-repeat: ""
+[WebServer] -                               font-style: ""
+[WebServer] -                               font-variant-ligatures: ""
+[WebServer] -                               font-variant-caps: ""
+[WebServer] -                               font-variant-numeric: ""
+[WebServer] -                               font-variant-east-asian: ""
+[WebServer] -                               font-variant-alternates: ""
+[WebServer] -                               font-variant-position: ""
+[WebServer] -                               font-variant-emoji: ""
+[WebServer] -                               font-weight: ""
+[WebServer] -                               font-stretch: ""
+[WebServer] -                               font-size: ""
+[WebServer] -                               line-height: ""
+[WebServer] -                               font-family: ""
+[WebServer] -                               font-optical-sizing: ""
+[WebServer] -                               font-size-adjust: ""
+[WebServer] -                               font-kerning: ""
+[WebServer] -                               font-feature-settings: ""
+[WebServer] -                               font-variation-settings: ""
+[WebServer] -                               font-language-override: ""
+[WebServer] -                               caret-color: "transparent"
+[WebServer]                               }}
+[WebServer]                             >
+[WebServer]                             ...
+[WebServer]                           ...
+[WebServer]                         ...
+[WebServer]  
+[12/12] [mobile] › e2e/options-flow-companion-link.spec.ts:147:5 › a dotted chart root reaches its exact Tape population
+  12 passed (2.0m)

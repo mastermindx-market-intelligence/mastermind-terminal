@@ -1,0 +1,245 @@
+{
+  "schema": "options-flow-companion-evidence.v1",
+  "base": "e109b0e07af4d6c400c99ff9ed98f17306c570d2",
+  "source": [
+    {
+      "path": "terminal/components/options-companion/FlowCompanion.tsx",
+      "sha256": "2bb104d2d56816e5e02a33e6848d5ecaaabca0b93ce388dc1ccc201fb848e1a7",
+      "bytes": 3072
+    },
+    {
+      "path": "terminal/components/options-companion/optionsStrings.ts",
+      "sha256": "84a286e71a482ac50af7d178e2b8bfc2b0b2a0c6699f4a45146e31995a655dd6",
+      "bytes": 21479
+    },
+    {
+      "path": "terminal/components/options-companion/OptionsCompanion.module.css",
+      "sha256": "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091",
+      "bytes": 23241
+    },
+    {
+      "path": "terminal/components/options-companion/OptionsRail.tsx",
+      "sha256": "2a9dbd16986eb857610e3220f5cacb91c4e0168b9eb9dab4b27a5532b492da4f",
+      "bytes": 8925
+    },
+    {
+      "path": "terminal/lib/optionsTapeView.ts",
+      "sha256": "f3ffea34cf02822c563333df4fc8070ef6193858b05c9e8659843c2d1d75c4fd",
+      "bytes": 8761
+    },
+    {
+      "path": "terminal/lib/optionsCompanion.ts",
+      "sha256": "01dbffcf6a832df7efd06502e008efc7932a6999f7c01f1ad8a347d5af146cf8",
+      "bytes": 19273
+    },
+    {
+      "path": "terminal/components/OptionsHubView.tsx",
+      "sha256": "ee38c6cba9c9f9880372f8b89003d1208324a27d00cbb6158a934a5680272c85",
+      "bytes": 276450
+    },
+    {
+      "path": "terminal/components/flowdesk/FlowFreshnessReceipt.tsx",
+      "sha256": "5dab3ea3ebef1bc310cc652ffa5d3fc133161bb13485cb78dde5fe82c9732b65",
+      "bytes": 5273
+    },
+    {
+      "path": "terminal/e2e/options-flow-companion-link.spec.ts",
+      "sha256": "8452c6cc0c7f7c25966aa2ae6d101761475e004b014aae2cde089804d40c2343",
+      "bytes": 8855
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsFlowCompanionLink.test.tsx",
+      "sha256": "40ebcd2adb67a816d7cbd7a161f8aaaaea1ebb5d4f040ca71b62ef5cc3407d80",
+      "bytes": 4395
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsTapeView.test.ts",
+      "sha256": "5be9a70a45e82b4946533b67f281b364375e7ad37f4c608fac1d61db65073366",
+      "bytes": 11932
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "bytes": 7995
+    },
+    {
+      "path": "terminal/public/data/flow_fixture.json",
+      "sha256": "8fe997f2943d01932a205a6e822d8e36cb8ccdf2e3629060fee3788c8ae17ef2",
+      "bytes": 14014
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/verification/options-flow-companion-20261114/README.md",
+      "sha256": "12942815509ebda1f213baee57aa1dad6b53024949fee880ecc4530cb7aef984",
+      "bytes": 9279
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/browser-classic-final.log",
+      "sha256": "f8cfdf092a8abadb3aa15912f3699da95ade57fe8c68a034769b26aef0cc7c96",
+      "bytes": 24090
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/browser-shared-desktop.log",
+      "sha256": "94a071b686c625e6f658b5b86fb99c224d5ebee4f42c957b9f2923a98827ae8c",
+      "bytes": 11857
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/browser-shared-final.log",
+      "sha256": "efbe399358b933845cf7ec8ecd7dee1c74571f39b237c94998c92768ed005960",
+      "bytes": 8834
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/browser-shared-responsive-repaired.log",
+      "sha256": "9dc933e36d58daabbef03e4d9f8917b8a094e0467590baaf003ee10652d45f3d",
+      "bytes": 1193
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/capture-index.json",
+      "sha256": "e2387e168be6a1fe1c9104d7b48c0243cbd56d575177a2516a5f774671894ed0",
+      "bytes": 3494
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/classic-desktop-en-dark-tape.png",
+      "sha256": "abf11b51bf9e96b926d00eadc9e3c9204535ce77a7abf883b02103f4dd81e4e5",
+      "bytes": 162090
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/classic-mobile-dotted-root.png",
+      "sha256": "1a62c5dad17294c52ba1ed32b28025b0d8f31aa849d408a68a4103b65daf76b7",
+      "bytes": 87181
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-desktop-en-light-source.png",
+      "sha256": "49306f7bae334684d3b6312c73a06ba71f66ba7c6258dc22155ac28c5dd547f6",
+      "bytes": 250643
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-desktop-en-light-tape.png",
+      "sha256": "d9530b3510058327b93c59968d40840c541686faa669b7f88b7de476b878877b",
+      "bytes": 158897
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-changed-root-empty.png",
+      "sha256": "73e68aafbeb7eaa505c1133559ce4267d03f3acf41c8f8db158339d104176e62",
+      "bytes": 62747
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-zh-light-source.png",
+      "sha256": "ee2e4b19f1ef0a5e02423224494969492c63e56bc3ef94c56b8883def4d1e0c1",
+      "bytes": 70730
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-zh-light-tape.png",
+      "sha256": "ce30480b1c7757d582ee4289ce0dfe63305c1af185a2653d0e148d6f95cc78a8",
+      "bytes": 89525
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-tablet-zh-dark-source.png",
+      "sha256": "1c2096a0cc4c9f5ef56c39fc75663d66488f8f0afe3617b5cf495f6dfc9cf74e",
+      "bytes": 100207
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/captures/shared-tablet-zh-dark-tape.png",
+      "sha256": "8984061d770ea8865a2e44195547245751da29e3625ef5a747131c4f0971e9f9",
+      "bytes": 131958
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/dependency-install.log",
+      "sha256": "77cc15d042f5da40e922760cfa98b3f6b678073276f6e45cddd969590fe86ff3",
+      "bytes": 148
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/execution-receipt.json",
+      "sha256": "9c80e0e4fb9355ed219b5a832b24dda4dfd1a8cd301e89ffc51b093d2deabe31",
+      "bytes": 2118
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/lint-initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/receipt-pl6-control.log",
+      "sha256": "6532eb6d1e7a4e06d8d910577b6e23070c5a05c3b01f8d6dd2ec56bc51b86584",
+      "bytes": 1904
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/unit-after.json",
+      "sha256": "95bcc1814f3c25f3f26d2d82780cfeb6f937bd181f141ba5638638a12a81b138",
+      "bytes": 10589
+    },
+    {
+      "path": "docs/verification/options-flow-companion-20261114/unit-before.json",
+      "sha256": "e839097e1a6cfeef83992d3ea0cc6bf26476a2f8ea16788d385f4308f77022e7",
+      "bytes": 8399
+    }
+  ],
+  "incompleteSeparateCapture": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-1b437e9aeca88e97b0bb7237f2b13008.json",
+      "sha256": "549e97df5ee1d1d6efacfc2edbc1df1b93e26b4767fb8d3fdb468024dae4d49a",
+      "bytes": 355
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-1b437e9aeca88e97b0bb7237f2b13008.png",
+      "sha256": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+      "bytes": 4357
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-730e269fd8c27611b9d4a4a826661962.json",
+      "sha256": "8071728b21cab9bdec0041c0150b5174486143b89bbf516d4d5bba2168ecf11d",
+      "bytes": 353
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-730e269fd8c27611b9d4a4a826661962.png",
+      "sha256": "2d589b2e425b47743d0642130e577f4192d92f27ac33cdaeeaee211acb5eeb96",
+      "bytes": 10891
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-b631422c828fbbe9a4bedec4493bf1ce.json",
+      "sha256": "9615a360c068ce875e1aa19806aaf339b5f419076a8e6ea7973422c17925f6d1",
+      "bytes": 355
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-b631422c828fbbe9a4bedec4493bf1ce.png",
+      "sha256": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+      "bytes": 4339
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-b818e1c97c464cce33b12755b6f48ce5.json",
+      "sha256": "38e024fd4d12dc1ec61be93de062ed497a99993ee677a7fa2f8c96956b0b398c",
+      "bytes": 353
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--case-b818e1c97c464cce33b12755b6f48ce5.png",
+      "sha256": "a5139c064799d639d5ed42d1b9714fbf1753583abbe5cf494207a8eec0cbba0b",
+      "bytes": 10872
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/flow-receipt-pl6-control-20261114-c3--start.json",
+      "sha256": "2426bb7579e09bb63a9a2cd7e49fbf3419666e246934fbdb9f3b932adb515650",
+      "bytes": 248060
+    }
+  ]
+}

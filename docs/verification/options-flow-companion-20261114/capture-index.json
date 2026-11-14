@@ -1,0 +1,56 @@
+[
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/chart-flow-source.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-desktop-en-light-source.png",
+    "sha256": "49306f7bae334684d3b6312c73a06ba71f66ba7c6258dc22155ac28c5dd547f6",
+    "bytes": 250643
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-78065-s-exact-root-Tape-en-light--desktop/symbol-tape-destination.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-desktop-en-light-tape.png",
+    "sha256": "d9530b3510058327b93c59968d40840c541686faa669b7f88b7de476b878877b",
+    "bytes": 158897
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--tablet/chart-flow-source.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-tablet-zh-dark-source.png",
+    "sha256": "1c2096a0cc4c9f5ef56c39fc75663d66488f8f0afe3617b5cf495f6dfc9cf74e",
+    "bytes": 100207
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-9c8f6-ns-exact-root-Tape-zh-dark--tablet/symbol-tape-destination.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-tablet-zh-dark-tape.png",
+    "sha256": "8984061d770ea8865a2e44195547245751da29e3625ef5a747131c4f0971e9f9",
+    "bytes": 131958
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/chart-flow-source.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-zh-light-source.png",
+    "sha256": "ee2e4b19f1ef0a5e02423224494969492c63e56bc3ef94c56b8883def4d1e0c1",
+    "bytes": 70730
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-0f6c2-s-exact-root-Tape-zh-light--mobile/symbol-tape-destination.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-zh-light-tape.png",
+    "sha256": "ce30480b1c7757d582ee4289ce0dfe63305c1af185a2653d0e148d6f95cc78a8",
+    "bytes": 89525
+  },
+  {
+    "source": "terminal/test-results/flow-companion-classic-final-20261114/options-flow-companion-lin-03099-ns-exact-root-Tape-en-dark--desktop/symbol-tape-destination.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/classic-desktop-en-dark-tape.png",
+    "sha256": "abf11b51bf9e96b926d00eadc9e3c9204535ce77a7abf883b02103f4dd81e4e5",
+    "bytes": 162090
+  },
+  {
+    "source": "terminal/test-results/flow-companion-classic-final-20261114/options-flow-companion-lin-9a1b7-s-its-exact-Tape-population-mobile/dotted-root-tape.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/classic-mobile-dotted-root.png",
+    "sha256": "1a62c5dad17294c52ba1ed32b28025b0d8f31aa849d408a68a4103b65daf76b7",
+    "bytes": 87181
+  },
+  {
+    "source": "terminal/test-results/flow-companion-shared-repaired-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-mobile/changed-root-empty-tape.png",
+    "file": "docs/verification/options-flow-companion-20261114/captures/shared-mobile-changed-root-empty.png",
+    "sha256": "73e68aafbeb7eaa505c1133559ce4267d03f3acf41c8f8db158339d104176e62",
+    "bytes": 62747
+  }
+]

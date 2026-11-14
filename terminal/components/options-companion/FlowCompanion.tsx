@@ -4,6 +4,7 @@ import { useFlowStream } from "@/lib/flowStream";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
 import type { FeedPayload } from "@/components/flowdesk/FeedPane";
 import { isoSession, readCompanionFlow } from "@/lib/optionsCompanion";
+import { createDefaultTapeView, encodeTapeView } from "@/lib/optionsTapeView";
 import type { OptionsT } from "./optionsStrings";
 import styles from "./OptionsCompanion.module.css";
 
@@ -12,6 +13,15 @@ export function FlowCompanion({ root, t, lang }: { root: string; t: OptionsT; la
   const { data: feed, connected } = useFlowStream<FeedPayload>("feed");
   const { data: meta } = useFlowStream<unknown>("meta", { pollMs: 60_000 });
   const rows = useMemo(() => readCompanionFlow(feed, root), [feed, root]);
+  const tapeHref = useMemo(() => {
+    try {
+      const tapeView = encodeTapeView({ ...createDefaultTapeView(), drillTicker: root });
+      return `/options?${new URLSearchParams({ tab: "tape", tapeView })}`;
+    } catch {
+      // A root the incumbent codec cannot represent must not widen to all roots.
+      return null;
+    }
+  }, [root]);
   const money = useMemo(() => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 }), []);
   const time = useMemo(() => new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", {
     timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
@@ -29,6 +39,8 @@ export function FlowCompanion({ root, t, lang }: { root: string; t: OptionsT; la
       {!rows?.length && <div className={styles.empty} role="status"><strong>{t(rows === null ? "untimed" : "noFlow")}</strong><p>{t("flowNote")}</p></div>}
     </div>
     {rows && rows.length > 40 && <p className={styles.viewCaption}>40 / {rows.length}</p>}
-    <a className={styles.deskLink} href="/options?tab=desk">{t("openFlow")} ↗</a>
+    {tapeHref
+      ? <a className={styles.deskLink} href={tapeHref} data-options-flow-destination="tape">{t("openFlow").replace("{symbol}", root)} ↗</a>
+      : <p className={styles.notice} role="status" data-options-flow-destination="unavailable">{t("flowTapeUnavailable").replace("{symbol}", root)}</p>}
   </>;
 }

@@ -1,0 +1,113 @@
+[warmup] /terminal?symbol=NVDA → 200 in 90ms
+[warmup] /options → 200 in 1987ms
+[warmup] /portfolio → 200 in 1875ms
+[warmup] /alerts → 200 in 1457ms
+[warmup] /analysis → 200 in 2261ms
+[warmup] /discover → 200 in 2682ms
+[warmup] /admin → 200 in 1001ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 566ms
+[warmup] /login → 200 in 169ms
+[warmup] /reset-password → 200 in 278ms
+[warmup] /api/me → 200 in 422ms
+[warmup] /api/watchlist → 200 in 199ms
+[warmup] /api/layouts → 200 in 207ms
+[warmup] /api/watchlist/annotations → 409 in 178ms
+[warmup] 14 routes compiled in 13s
+[fixture-ready] prophet_idx fixture 200 in 488ms
+
+Running 18 tests using 1 worker
+
+[1/18] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/18] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, light)
+[3/18] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[4/18] [desktop] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, light)
+[5/18] [desktop] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[6/18] [desktop] › e2e/options-flow-companion-link.spec.ts:145:5 › a dotted chart root reaches its exact Tape population
+[7/18] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+[8/18] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, light)
+[9/18] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[10/18] [tablet] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, light)
+[11/18] [tablet] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+  1) [tablet] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.scrollIntoViewIfNeeded: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for locator('[data-options-companion]').getByRole('button', { name: 'Close options panel', exact: true })
+
+
+      17 |
+      18 | async function pointer(control: Locator, page: Page) {
+    > 19 |   await control.scrollIntoViewIfNeeded(); await expect(control).toBeVisible();
+         |                 ^
+      20 |   if (await page.evaluate(() => matchMedia("(pointer: coarse)").matches)) await control.tap();
+      21 |   else await control.click();
+      22 | }
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:19:17)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:128:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[12/18] [tablet] › e2e/options-flow-companion-link.spec.ts:145:5 › a dotted chart root reaches its exact Tape population
+[13/18] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, dark)
+[14/18] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (en, light)
+[15/18] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, dark)
+[16/18] [mobile] › e2e/options-flow-companion-link.spec.ts:98:7 › chart Flow opens exact-root Tape (zh, light)
+[17/18] [mobile] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains
+  2) [mobile] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains 
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.scrollIntoViewIfNeeded: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for locator('[data-options-companion]').getByRole('button', { name: 'Close options panel', exact: true })
+
+
+      17 |
+      18 | async function pointer(control: Locator, page: Page) {
+    > 19 |   await control.scrollIntoViewIfNeeded(); await expect(control).toBeVisible();
+         |                 ^
+      20 |   if (await page.evaluate(() => matchMedia("(pointer: coarse)").matches)) await control.tap();
+      21 |   else await control.click();
+      22 | }
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:19:17)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-companion-context-20261114-c3/terminal/e2e/options-flow-companion-link.spec.ts:128:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-companion-shared-final-20261114/options-flow-companion-lin-c44df-xact-while-old-feed-remains-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[18/18] [mobile] › e2e/options-flow-companion-link.spec.ts:145:5 › a dotted chart root reaches its exact Tape population
+  2 failed
+    [tablet] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains 
+    [mobile] › e2e/options-flow-companion-link.spec.ts:123:5 › changing the chart root keeps a missing-root Tape exact while old feed remains 
+  16 passed (6.2m)
