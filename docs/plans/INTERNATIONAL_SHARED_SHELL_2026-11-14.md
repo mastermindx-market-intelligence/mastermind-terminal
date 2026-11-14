@@ -43,4 +43,31 @@ M2 Paper reads returned UPSTREAM_UNAVAILABLE; its supported prepare timed out an
 Macro #9596 stays Draft/HOLD at `621bd44dfac13ea18671fe64c773aa8675928dd6`; publication `9533be2476ba264880c1aa067eb3af32f3d0703a794679a7818b9677f1838d15` remains EFFECT_UNKNOWN. This design branch does not replace or replay it. Preserve International History287, Comparison164 and frozen R14 boundaries.
 
 ## Current frontier
-Design/source archaeology and actual M1 read access verified. New Paper composition not yet applied. Next: inspect the incumbent primary screenshots, select exact disjoint targets, then make guarded native edits and record screenshot evidence. MISSION_COMPLETE:false.
+Five core desktop compositions are applied in native Paper and visually inspected. Regional target designs, interaction/responsive states and implementation contracts remain in progress. No source implementation or release has occurred. MISSION_COMPLETE:false.
+
+
+## Native Paper milestone — five core screens
+
+Exact working file: [International Markets · Core + Global Surveillance](https://app.paper.design/file/01M3P1TW5Y3XWQC37ADDS8K5AG). All new pages below are disjoint successors; incumbent/frozen/uncertain nodes remain preserved.
+
+| Order | New page | Frame | Applied and visually inspected |
+|---|---|---|---|
+| 01 | p-R-0 · World · Terminal shared shell | TAW-0 | Seven-market return matrix, focus inspector, currency effect, relevant next action |
+| 02 | p-S-0 · Stocks · Terminal shared shell | TR6-0 | Cross-market candidate screener; country×sector rank; residual z-score; 21-session momentum |
+| 03 | p-T-0 · Global cycles · Terminal shared shell | TYM-0 | Current USD price-cycle position; actual-price history; historical timing window; curated gaps separated |
+| 04 | p-U-0 · Country cycles · Terminal shared shell | U79-0 | Paired local/USD phase and position; USD-only regional case |
+| 05 | p-V-0 · Thematic baskets · Terminal shared shell | UG5-0 | Theme selector, benchmark-relative history, current constituent performance |
+
+Native edit receipts were APPLIED_RESPONSE_OBSERVED on the original M1 carrier and screenshots were OBSERVED. One inherited text-color parsing issue and chart-axis spacing were corrected and re-rendered. Screenshot review proves composition only; it does not prove executable interactions, source freshness, numerical production parity, accessibility or end-user acceptance. All displayed numerical values are illustrative design fixtures, not current market observations.
+
+### Source refinements that bind the build
+
+- Stocks: `alpha` is a within-market winsorized cross-sectional z-score of sector-centered residual information ratio; never pp or percentage return. `sector_rank / sector_n` is country×sector rank. `rev_1m` is the sum of daily simple returns over 21 sessions, not compounded monthly price return. Canonical ticker joins supply company/sector names; canonical country config supplies the model benchmark. Formation is `eps.shift(21).rolling(252)`; latest 21 sessions excluded.
+- Cycles: phases are Trough / Recovery / Expansion / Peak / Downturn. `pos_v2 = 100 × Φ(z)` measures price position relative to trend; not a turn probability, growth/inflation quadrant, valuation, all-time-high distance or empirical percentile. Legacy `pos/phase/osc` is a different range-stochastic family. Current canonical position is available; a canonical historical trajectory is not exported. Existing Global smooth interpolation is schematic. Show actual price history and confirmed turns; export a versioned canonical history before adding a trail.
+- Global mapping: nine possible engine mappings (UK, Japan, Hong Kong, Canada, China, India, Taiwan, Korea, Australia) plus explicit US/Europe mapping gaps. Europe does have a VGK aggregate in Country Cycles; do not claim that Europe lacks all engine coverage. Runtime record presence is still required.
+- Timing windows are historical half-cycle quartiles after enough confirmed turns, not calibrated confidence bounds. An elapsed window must stay elapsed.
+- Baskets: all 17 configured themes are equal weighted. The **benchmark** `_INTLC` uses current static capitalization weights. These are distinct. Constituent performance exists; contribution-to-return and weight history do not. Membership copy says monthly rebalancing while the current level builder averages eligible member returns daily; resolve that source discrepancy before exact rebalance or attribution claims.
+- Regions: inspected `data/international_macro/{JP,KR,EZ,GB,IN}_latest.json` at the pinned Macro commit. Specialist lenses frequently have no metric and say they await a verified official adapter. `history` is descriptive-state history, not arbitrary wage, export, inflation-component or bank-lending history. Current CPI is stale in JP/KR/GB/IN; IN growth, labour and policy/short-rate values are unavailable. Many policy/FX values have unknown observation dates. Do not relabel a policy/short-rate proxy as a current verified official central-bank rate.
+- Regional target-state frames may illustrate the qualified-source experience, but must be named as target/illustrative and linked to explicit source-admission gates. A current-coverage fallback must remain useful and truthful. A calendar date that passed is not a verified decision outcome; a source homepage is not a numerical series or exact release receipt.
+
+Evidence: [residual engine](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/residual_alpha.py), [cycle ontology](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/cycle_ontology.py), [Global mapping](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/scripts/build_markets.py), [basket membership](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/data/baskets_intl/membership.json), [basket level owner](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/baskets.py), [regional owner](https://github.com/mastermindx-market-intelligence/macro/blob/e856ef0200a0c508c78ef9a6666116020e4835d1/engine/international_macro_dashboard.py).
