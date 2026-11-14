@@ -19,7 +19,7 @@ export const ECONOMIC_WORKSPACES = {
 } as const;
 export type EconomicWorkspaceId = keyof typeof ECONOMIC_WORKSPACES;
 export const economicWorkspaceId = (value: unknown): value is EconomicWorkspaceId => typeof value === "string" && Object.hasOwn(ECONOMIC_WORKSPACES, value);
-export type EconomicTask = "overview" | "drivers" | "history";
+export type EconomicTask = "overview" | "drivers" | "history" | "revisions";
 export type EconomicWindow = "3m" | "1y" | "published";
 export const ECONOMIC_TENORS = ["3m", "6m", "1y", "2y", "3y", "5y", "7y", "10y", "20y", "30y"] as const;
 export type EconomicTenor = typeof ECONOMIC_TENORS[number];
@@ -29,7 +29,7 @@ export function economicSelection(params: Pick<URLSearchParams, "getAll">): Econ
   const one = (key: string) => { const all = params.getAll(key); return all.length > 1 ? undefined : all[0] ?? null; };
   const task = one("study"), series = one("series"), window = one("window"), observation = one("observation"), display = one("display"), evidence = one("evidence"), tenor = one("tenor"), comparison = one("comparison");
   if ([task, series, window, observation, display, evidence, tenor, comparison].includes(undefined)) return null;
-  if (task !== null && !["overview", "drivers", "history"].includes(task!) || window !== null && !["3m", "1y", "published"].includes(window!) || display !== null && !["chart", "table"].includes(display!)) return null;
+  if (task !== null && !["overview", "drivers", "history", "revisions"].includes(task!) || window !== null && !["3m", "1y", "published"].includes(window!) || display !== null && !["chart", "table"].includes(display!)) return null;
   if (series !== null && !identity(series) || evidence !== null && !identity(evidence) || !date(observation)) return null;
   if (tenor !== null && !ECONOMIC_TENORS.includes(tenor as EconomicTenor) || comparison !== null && comparison !== "prior_close" && comparison !== "prior_month") return null;
   return { task: (task ?? "overview") as EconomicTask, series: series!, window: (window ?? "1y") as EconomicWindow, observation: observation!, display: (display ?? "chart") as "chart" | "table", evidence: evidence!, tenor: (tenor ?? "10y") as EconomicTenor, comparison: (comparison ?? "prior_close") as EconomicSelection["comparison"] };
@@ -58,7 +58,7 @@ export type EconomicMetric = {
   metric_id: string; label: Pair; value: Pair | null; value_raw?: number | string | boolean | null;
   unit: Pair | null; basis: Pair | null; absence: Absence; reference_period: string | null;
   freshness: Pair | null; freshness_tone: string; coverage: string | null; source_refs: string[];
-  transformation: string | null; definition_version: string | null;
+  transformation: string | null; transformation_label?: Pair | null; definition_version: string | null;
 };
 export type EconomicDelta = {
   metric_id: string; label: Pair | null; prior: string | null; current: string | null; delta: string | null;
@@ -67,7 +67,7 @@ export type EconomicDelta = {
 };
 export type EconomicSource = {
   source_id: string; label: Pair; provider: string | null; transform: string | null; owner_ref: string | null;
-  rights: Pair | null; freshness: Pair | null; artifact_ref: string | null;
+  transform_label?: Pair | null; rights: Pair | null; freshness: Pair | null; artifact_ref: string | null;
   clocks: { name: Pair; meaning: Pair; value: string | null }[];
 };
 /** Existing producers use both source_id and FRED:<series>. Resolve the latter
@@ -83,6 +83,18 @@ export function economicSourceIds(refs: string[], sources: EconomicSource[]): st
 export type EconomicCurve = {
   ok: boolean; shape_read: Pair; as_of_caption: Pair | null; null_panel: Pair;
   tenors: { tenor: string; label: Pair; as_of_tenor: string | null; today: number | null; prior_close: number | null; prior_month: number | null; delta_close: number | null; delta_month: number | null; prior_close_as_of?: string | null; prior_month_as_of?: string | null }[];
+};
+export const PAYROLL_ROLES = ["earliest_change", "selected_change", "net_revision", "earliest_vintage", "selected_vintage"] as const;
+export type PayrollRevisionRole = typeof PAYROLL_ROLES[number];
+export type EconomicPayrollRow = {
+  period: string; earliest_change: number | null; selected_change: number | null; net_revision: number | null;
+  earliest_vintage: string; selected_vintage: string; metric_ids: Record<PayrollRevisionRole, string>;
+};
+export type EconomicPayrollRevisions = {
+  schema: "mastermind.payroll_revision_view.v1"; method: "payroll_retained_vintages.v1";
+  basis: "retrospective_alfred_recorded_vintages"; unit: "thousands"; status: "ready" | "partial" | "unavailable";
+  cutoff: string; source_digest: string | null; collected_at: string | null; source_refs: string[];
+  rows: EconomicPayrollRow[]; title: Pair; description: Pair; limitation: Pair; absence: Absence;
 };
 export type EconomicWorkspaceView = {
   ok: true; workspace: { id: EconomicWorkspaceId; title: Pair; subtitle: Pair | null }; region: { code: "US"; supported: true };
@@ -100,6 +112,7 @@ export type EconomicWorkspaceView = {
     artifact: EconomicArtifact; authority: { class: "context_only"; statement: Pair; flags: { value: false }[] };
     corrections: { state: Pair; predecessor: string | null; changed_fingerprints: string[]; changed_sources: Pair | null; note: Pair | null; predecessor_label: Pair | null } };
   curve_hero?: EconomicCurve;
+  payroll_revisions?: EconomicPayrollRevisions;
 };
 export type EconomicWorkspaceRead = { source: CommandSource; selected_workspace: { workspace_id: EconomicWorkspaceId; region: "US" } & (
   { state: "ready"; generation_id: string; artifact: EconomicArtifact; view: EconomicWorkspaceView; failure: null } |
@@ -134,6 +147,47 @@ function validPoints(points: unknown): points is EconomicPoint[] {
 }
 const clocks = (v: unknown) => list(v, row => pair(row.name) && pair(row.meaning) && nullableText(row.value), 12);
 
+function payrollRevisions(value: unknown, metrics: Record<string, unknown>[], sources: Record<string, unknown>[], composedAt: string): value is EconomicPayrollRevisions {
+  if (!record(value) || value.schema !== "mastermind.payroll_revision_view.v1" || value.method !== "payroll_retained_vintages.v1" || value.basis !== "retrospective_alfred_recorded_vintages" || value.unit !== "thousands" || !["ready", "partial", "unavailable"].includes(value.status as string) || typeof value.cutoff !== "string" || !date(value.cutoff) || !pair(value.title) || !pair(value.description) || !pair(value.limitation) || !absence(value.absence) || !Array.isArray(value.source_refs)) return false;
+  const digest = value.source_digest, collected = value.collected_at;
+  if (digest !== null && !hash(digest) || collected !== null && (!clock(collected) || !date((collected as string).slice(0, 10)) || Date.parse(collected as string) > Date.parse(composedAt))) return false;
+  const refs = digest === null ? [] : ["revision:alfred:PAYEMS", "revision:alfred:manifest"];
+  if (JSON.stringify(value.source_refs) !== JSON.stringify(refs)) return false;
+  if (digest !== null) {
+    const archive = sources.find(source => source.source_id === refs[0]), manifest = sources.find(source => source.source_id === refs[1]);
+    if (archive?.artifact_ref !== `data/fred_vintage/release_targets/PAYEMS_all_vintages.parquet#sha256=${digest}` || typeof manifest?.artifact_ref !== "string" || !/^data\/fred_vintage\/release_targets\/manifest\.json#sha256=[a-f0-9]{64}$/.test(manifest.artifact_ref)) return false;
+    for (const source of [archive, manifest]) {
+      const sourceClocks = source?.clocks as Record<string, unknown>[];
+      if (sourceClocks.find(clock => clock.key === "collected_at")?.value !== collected) return false;
+      if (["released_at", "available_at", "revised_at"].some(key => sourceClocks.find(clock => clock.key === key)?.value !== null)) return false;
+    }
+  }
+  if (!list(value.rows, row => typeof row.period === "string" && date(row.period) && row.period.endsWith("-01") && row.period <= (value.cutoff as string) && finite(row.earliest_change) && finite(row.selected_change) && finite(row.net_revision) && typeof row.earliest_vintage === "string" && date(row.earliest_vintage) && typeof row.selected_vintage === "string" && date(row.selected_vintage) && row.period <= row.earliest_vintage && row.earliest_vintage <= row.selected_vintage && row.selected_vintage <= (value.cutoff as string) && record(row.metric_ids), 24)) return false;
+  const rows = value.rows;
+  const owned = metrics.filter(metric => (metric.metric_id as string).startsWith("payroll_revision:"));
+  if (!rows.length) return value.status === "unavailable" && value.absence !== null && owned.length === 1 && owned[0].metric_id === "payroll_revision:availability" && owned[0].value_raw === null && owned[0].calculation_as_of === value.cutoff && owned[0].source_digest === digest && owned[0].collected_at === collected && JSON.stringify(owned[0].source_refs) === JSON.stringify(refs);
+  if (digest === null || owned.length !== rows.length * PAYROLL_ROLES.length) return false;
+  const complete = rows.filter(row => row.earliest_change !== null && row.selected_change !== null).length;
+  const anyValue = rows.some(row => row.earliest_change !== null || row.selected_change !== null);
+  const expectedStatus = complete === rows.length ? "ready" : anyValue ? "partial" : "unavailable";
+  if (value.status !== expectedStatus || (value.absence !== null) !== (expectedStatus === "unavailable")) return false;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (i > 0 && (rows[i - 1].period as string) >= (row.period as string)) return false;
+    const first = row.earliest_change as number | null, selected = row.selected_change as number | null, revision = row.net_revision as number | null;
+    if (first === null || selected === null ? revision !== null : revision === null || Math.abs(revision - (selected - first)) > 1e-9) return false;
+    const ids = row.metric_ids as Record<string, unknown>;
+    if (Object.keys(ids).length !== PAYROLL_ROLES.length) return false;
+    for (const role of PAYROLL_ROLES) {
+      if (ids[role] !== `payroll_revision:${row.period}:${role}`) return false;
+      const metric = owned.find(metric => metric.metric_id === ids[role]);
+      const numeric = role === "earliest_change" || role === "selected_change" || role === "net_revision";
+      if (!metric || metric.value_raw !== row[role] || (metric.value_raw === null) !== (metric.value === null) || (metric.value_raw === null) !== (metric.absence !== null) || metric.presence_token !== (metric.value_raw === null ? "ABSENT" : "PRESENT") || metric.reference_period !== row.period || metric.basis_token !== value.basis || metric.definition_id !== `${value.method}.${role}` || metric.definition_version !== "1.0.0" || metric.model_version !== value.method || metric.source_digest !== digest || metric.calculation_as_of !== value.cutoff || metric.collected_at !== collected || metric.value_type !== (numeric ? "number" : "categorical") || metric.unit_token !== (numeric ? "thousands" : null) || JSON.stringify(metric.source_refs) !== JSON.stringify(refs)) return false;
+    }
+  }
+  return true;
+}
+
 /** Only validates transport and consumed fields. Macro remains the semantic,
  * financial and publication authority. Never parses numbers from display copy. */
 export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceId): EconomicWorkspaceRead | null {
@@ -147,7 +201,7 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
   if (selected.state !== "ready" || selected.failure !== null || !artifact(selected.artifact, expected) || !text(selected.generation_id) || !selected.generation_id || !record(v) || v.ok !== true || !record(v.workspace) || v.workspace.id !== expected || !pair(v.workspace.title) || !nullablePair(v.workspace.subtitle) || !record(v.region) || v.region.code !== "US" || v.region.supported !== true) return null;
   const e = v.evidence;
   if (!record(e) || !record(e.generation) || e.generation.generation_id !== selected.generation_id || e.generation.content_sha256 !== selected.artifact.sha256 || !date(e.generation.calculation_as_of) || !artifact(e.artifact, expected) || e.artifact.sha256 !== selected.artifact.sha256 || e.artifact.bytes !== selected.artifact.bytes || !record(e.authority) || e.authority.class !== "context_only" || !pair(e.authority.statement) || !list(e.authority.flags, flag => flag.value === false, 5) || e.authority.flags.length !== 5) return null;
-  if (!list(e.sources, row => identity(row.source_id) && pair(row.label) && nullableText(row.provider) && nullableText(row.transform) && nullableText(row.owner_ref) && nullablePair(row.rights) && nullablePair(row.freshness) && nullableText(row.artifact_ref) && clocks(row.clocks), 160) || !unique(e.sources, "source_id")) return null;
+  if (!list(e.sources, row => identity(row.source_id) && pair(row.label) && nullableText(row.provider) && (row.transform_label === undefined || nullablePair(row.transform_label)) && nullableText(row.transform) && nullableText(row.owner_ref) && nullablePair(row.rights) && nullablePair(row.freshness) && nullableText(row.artifact_ref) && clocks(row.clocks), 160) || !unique(e.sources, "source_id")) return null;
   const corrections = e.corrections;
   if (!record(corrections) || !pair(corrections.state) || !nullableText(corrections.predecessor) || !nullablePair(corrections.changed_sources) || !nullablePair(corrections.note) || !nullablePair(corrections.predecessor_label) || !Array.isArray(corrections.changed_fingerprints) || corrections.changed_fingerprints.length > 200 || !corrections.changed_fingerprints.every(text)) return null;
   const h = v.headline, c = v.context, changes = v.changes;
@@ -157,7 +211,10 @@ export function macroEconomyPayload(input: unknown, expected: EconomicWorkspaceI
   if (!record(changes) || typeof changes.comparable !== "boolean" || changes.comparable !== (changes.comparability === "COMPARABLE") || typeof changes.prior_is_earlier !== "boolean" || !date(changes.prior_effective_date) || !absence(changes.absence)) return null;
   if (changes.prior_is_earlier && !(changes.prior_effective_date && h.effective_date && changes.prior_effective_date < h.effective_date)) return null;
   if (!list(changes.deltas, row => identity(row.metric_id) && nullablePair(row.label) && finite(row.prior_raw) && finite(row.current_raw) && finite(row.delta_raw) && nullableText(row.prior) && nullableText(row.current) && nullableText(row.delta) && row.prior_present === (row.prior_raw !== null) && row.current_present === (row.current_raw !== null) && row.delta_present === (row.delta_raw !== null) && typeof row.comparable === "boolean" && typeof row.is_movement === "boolean" && absence(row.absence), 300)) return null;
-  if (!list(v.metrics, row => identity(row.metric_id) && pair(row.label) && nullablePair(row.value) && nullablePair(row.unit) && nullablePair(row.basis) && absence(row.absence) && date(row.reference_period) && nullablePair(row.freshness) && text(row.freshness_tone) && nullableText(row.coverage) && Array.isArray(row.source_refs) && row.source_refs.every(text) && nullableText(row.transformation) && nullableText(row.definition_version), 300) || !unique(v.metrics, "metric_id")) return null;
+  if (!list(v.metrics, row => identity(row.metric_id) && pair(row.label) && nullablePair(row.value) && nullablePair(row.unit) && nullablePair(row.basis) && absence(row.absence) && date(row.reference_period) && nullablePair(row.freshness) && text(row.freshness_tone) && nullableText(row.coverage) && Array.isArray(row.source_refs) && row.source_refs.every(text) && (row.transformation_label === undefined || nullablePair(row.transformation_label)) && nullableText(row.transformation) && nullableText(row.definition_version), 300) || !unique(v.metrics, "metric_id")) return null;
+  if (v.payroll_revisions !== undefined) {
+    if (expected !== "labor_markets" || !payrollRevisions(v.payroll_revisions, v.metrics, e.sources, source.composed_at as string)) return null;
+  } else if (v.metrics.some(metric => (metric.metric_id as string).startsWith("payroll_revision:"))) return null;
   if (!list(v.drivers, group => identity(group.group_id) && pair(group.title) && typeof group.absent === "boolean" && absence(group.absence) && list(group.rows, row => identity(row.driver_id) && pair(row.label) && nullablePair(row.value) && nullablePair(row.unit) && nullablePair(row.coverage) && absence(row.absence) && nullableText(row.note) && nullableText(row.impact) && row.impact_present === (row.impact !== null) && (row.impact_sign === null || ["up", "down", "flat"].includes(row.impact_sign as string)) && (row.impact_present || row.impact_sign === null) && absence(row.impact_absence)), 8)) return null;
   if (!record(v.implications) || typeof v.implications.absent !== "boolean" || !pair(v.implications.absence_text) || !list(v.implications.entries, row => identity(row.implication_id) && pair(row.text) && nullablePair(row.evidence_label) && nullablePair(row.evidence_claim), 30)) return null;
   if (!record(v.series) || typeof v.series.absent !== "boolean" || !absence(v.series.absence) || !list(v.series.entries, row => identity(row.series_id) && pair(row.label) && pair(row.unit) && pair(row.basis) && Number.isSafeInteger(row.count) && (row.count as number) >= 0 && date(row.first) && date(row.last) && nullableText(row.source_ref) && pair(row.freshness) && text(row.freshness_tone) && nullableText(row.revision_behavior) && (row.points === undefined || validPoints(row.points)), 64) || !unique(v.series.entries, "series_id")) return null;

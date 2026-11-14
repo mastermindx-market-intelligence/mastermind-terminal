@@ -7,8 +7,36 @@ import { ECONOMIC_WORKSPACES, economicSelection, economicSelectionSearch, econom
 // market observations or authenticated responses are represented by this file.
 const fixtures = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_economy_views.json"), "utf8"));
 const fixture = (id: EconomicWorkspaceId = "rates_curves") => structuredClone(fixtures[id]);
+const payrollFixture = () => JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_payroll_revisions.json"), "utf8"));
 
 describe("native economic publication boundary", () => {
+  it("binds real producer payroll revision rows to their metric and cohort receipts", () => {
+    const result = macroEconomyPayload(payrollFixture(), "labor_markets");
+    expect(result?.selected_workspace.state).toBe("ready");
+    if (result?.selected_workspace.state !== "ready") throw Error("payroll fixture");
+    const revisions = result.selected_workspace.view.payroll_revisions!;
+    expect(revisions.status).toBe("partial");
+    expect(revisions.rows.find(row => row.period === "2025-01-01")).toMatchObject({ earliest_change: 57, selected_change: 30, net_revision: -27, earliest_vintage: "2025-02-07", selected_vintage: "2025-03-07" });
+    expect(result.selected_workspace.view.metrics.find(row => row.metric_id === "payrolls_nfp_change_and_revision")?.value_raw).toBeNull();
+  });
+
+  it.each([
+    ["unbound source", (v: any) => { v.evidence.sources = v.evidence.sources.filter((row: any) => !row.source_id.startsWith("revision:")); }],
+    ["wrong source digest", (v: any) => { v.payroll_revisions.source_digest = "f".repeat(64); }],
+    ["crossed metric", (v: any) => { v.metrics.find((row: any) => row.metric_id === "payroll_revision:2025-01-01:net_revision").value_raw = -26; }],
+    ["wrong unit", (v: any) => { v.payroll_revisions.unit = "persons"; }],
+    ["future vintage", (v: any) => { v.payroll_revisions.rows[0].selected_vintage = "2030-01-01"; }],
+    ["future collection", (v: any) => { v.payroll_revisions.collected_at = "2030-01-01T00:00:00Z"; }],
+    ["false ready state", (v: any) => { v.payroll_revisions.status = "ready"; }],
+    ["false zero for missing arithmetic", (v: any) => { v.payroll_revisions.rows[0].net_revision = 0; }],
+    ["missing role", (v: any) => { delete v.payroll_revisions.rows[0].metric_ids.earliest_change; }],
+    ["duplicate period", (v: any) => { v.payroll_revisions.rows[1].period = v.payroll_revisions.rows[0].period; }],
+    ["invalid month", (v: any) => { v.payroll_revisions.rows[0].period = "2025-02-30"; }],
+    ["hidden revision view", (v: any) => { delete v.payroll_revisions; }],
+  ] as const)("refuses payroll %s", (_name, mutate) => {
+    const fixture = payrollFixture(); mutate(fixture.selected_workspace.view);
+    expect(macroEconomyPayload(fixture, "labor_markets")).toBeNull();
+  });
   it.each(Object.keys(ECONOMIC_WORKSPACES) as EconomicWorkspaceId[])("reads the actual %s producer shape", id => {
     const result = macroEconomyPayload(fixture(id), id);
     expect(result?.selected_workspace.workspace_id).toBe(id);

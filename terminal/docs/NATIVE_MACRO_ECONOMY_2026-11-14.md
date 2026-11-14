@@ -46,3 +46,14 @@ This change deliberately publishes no explicit routes and alters no generated ca
 The original scope includes real scenarios, workspace alerts, Macro Analyst evidence attachment, revision/PIT journeys and deeper domain substance. Fourteen BUILT producers do not prove those capabilities: all currently declare scenario execution and alert service unavailable. The next bounded vertical is PAYEMS revision history through the existing Release Radar truth owner. Earliest retained vintage must not be relabelled official first release, and retrospective day-level evidence is not intraday or contemporaneous system custody.
 
 DONE_WHEN remains the parent consumer outcome: useful simple and advanced journeys, complete original capability accounting or lawful holds, Paper/visual proof, genuine native admission without iframes, canonical data publication, protected release, authenticated production proof and durable readback. No source PR or green test closes that outcome.
+
+
+## Payroll revisions increment
+
+The native Jobs workspace now offers a Payroll revisions study using the existing subject-keyed reader and URL selection. A bounded producer view compares monthly job changes at the earliest retained and selected vintage days, with net revision, chart/table, reference-month control and source/calculation detail. Employment levels remain a separate history. Missing values are not zero; vintage days are not verified release times or historical Mastermind custody. English/Chinese copy is supplied. Technical cohort identifiers remain in the evidence layer.
+
+The view is derived from the original closed metric schema and bound to canonical PAYEMS/manifest source receipts. The client validates every period/role/value/unit/cutoff/digest/source relation, rejects a false ready state or future vintage/collection time, and retains older publishers without the optional payroll view. The original official combined-prior-two-month revision obligation remains absent.
+
+Validation: strict TypeScript and75 targeted tests (62 payload +13 mounted consumer) passed. The new `macro_payroll_revisions.json` fixture was emitted from real synthetic Parquet data through the Macro publisher, manifest reader and view, with authentic fixture content identities; it is not a captured production/authenticated response. Browser visual acceptance remains open because the cloud runtime could not reach the local preview server and its policy denied the file preview. No alternate browser/protocol was used to replay that denied effect.
+
+This PR still introduces no page route, shared market catalogue, proxy, daily-dashboard replacement or alternate lifecycle. Continue through the existing held integration sequence and current-head hosted CI. Parent product completion also requires Paper refinement, accepted route/source admission and real authenticated production journeys.

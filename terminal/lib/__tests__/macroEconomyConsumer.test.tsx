@@ -11,6 +11,7 @@ import MacroEconomicEvidence from "@/components/macro-economy/MacroEconomicEvide
 import MacroEconomyWorkspace from "@/components/macro-economy/MacroEconomyWorkspace";
 import MacroEconomyReader, { type MacroEconomyReaderProps } from "@/components/macro-economy/MacroEconomyReader";
 import MacroEconomyOverview from "@/components/macro-economy/MacroEconomyOverview";
+import MacroPayrollRevisions from "@/components/macro-economy/MacroPayrollRevisions";
 import { todayPayload } from "../shared-shell/readingPayloads";
 
 const auth = vi.hoisted(() => ({ getUser: vi.fn(), onAuthStateChange: vi.fn() }));
@@ -18,6 +19,7 @@ vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth }) }));
 vi.mock("next/link", () => ({ default: ({ href, children, prefetch: _prefetch, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { prefetch?: boolean }) => <a href={href} {...props}>{children}</a> }));
 const fixtures = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_economy_views.json"), "utf8"));
 const overviewFixture = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_economy_overview.json"), "utf8"));
+const payrollFixture = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/macro_payroll_revisions.json"), "utf8"));
 const A = "11111111-1111-4111-8111-111111111111", B = "22222222-2222-4222-8222-222222222222";
 const choice = (search = "") => economicSelection(new URLSearchParams(search))!;
 const read = (id: EconomicWorkspaceId) => macroEconomyPayload(structuredClone(fixtures[id]), id)!;
@@ -34,6 +36,34 @@ const mount = async (element: React.ReactNode) => { await act(async () => { root
 const click = async (text: string) => { const button = Array.from(host.querySelectorAll("button")).find(el => el.textContent === text); expect(button).toBeTruthy(); await act(async () => button!.click()); };
 
 describe("native charts and evidence", () => {
+  it("keeps payroll chart/table values and month selection bound to the URL", async () => {
+    const result = macroEconomyPayload(structuredClone(payrollFixture), "labor_markets")!;
+    if (result?.selected_workspace.state !== "ready") throw Error("payroll fixture");
+    const data = result.selected_workspace.view.payroll_revisions!, select = vi.fn(), evidence = vi.fn();
+    const selection = choice("study=revisions&observation=2025-01-01&display=chart&window=published");
+    await mount(<MacroPayrollRevisions data={data} selection={selection} onSelect={select} onEvidence={evidence} lang="en"/>);
+    expect(host.querySelector('[data-reference-period="2025-01-01"] [data-vintage-role="earliest_change"]')!.getAttribute("data-value")).toBe("57");
+    expect(host.querySelector('[data-reference-period="2025-01-01"] [data-vintage-role="selected_change"]')!.getAttribute("data-value")).toBe("30");
+    expect(host.querySelector('[data-reference-period="2024-11-01"] [data-vintage-role]')).toBeNull();
+    await click("Table"); expect(select).toHaveBeenLastCalledWith({ display: "table" });
+    await mount(<MacroPayrollRevisions data={data} selection={{ ...selection, display: "table" }} onSelect={select} onEvidence={evidence} lang="en"/>);
+    expect(host.querySelector("tr[data-selected]")!.textContent).toContain("-27");
+    expect(host.querySelector("tr[data-selected]")!.textContent).toContain("7 Feb 2025");
+    await click("Show the calculation ↗"); expect(evidence).toHaveBeenLastCalledWith("metric:payroll_revision:2025-01-01:net_revision");
+  });
+
+  it("shows Chinese revision calculation and exact receipt sources without a first-release claim", async () => {
+    const result = macroEconomyPayload(structuredClone(payrollFixture), "labor_markets")!;
+    if (result?.selected_workspace.state !== "ready") throw Error("payroll fixture");
+    await mount(<MacroEconomyWorkspace workspaceId="labor_markets" lang="zh" read={{ phase: "ready", data: result }} selection={choice("study=revisions&observation=2025-01-01&display=table")} onSelect={vi.fn()} onRefresh={vi.fn()} onNavigate={vi.fn()} overviewHref="/macro_monetary.html" dashboardHref="/macro.html" workspaceHref={href}/>);
+    expect(host.textContent).toContain("最早保留读数可能晚于首次发布");
+    expect(host.querySelector("tr[data-selected]")!.textContent).toContain("-27");
+    await mount(<MacroEconomicEvidence read={result} selection="metric:payroll_revision:2025-01-01:net_revision" lang="zh" onClose={vi.fn()} onSelect={vi.fn()}/>);
+    expect(host.textContent).toContain("同一版本");
+    expect(host.querySelector("table")!.textContent).toContain("57");
+    expect(host.querySelector("table")!.textContent).toContain("30");
+    expect(host.querySelector('a[href="https://alfred.stlouisfed.org/series?seid=PAYEMS"]')).not.toBeNull();
+  });
   it("keeps all fourteen destinations and distinguishes Policy's figure-only reading", async () => {
     const data = todayPayload(structuredClone(overviewFixture))!;
     const policy = data.strip.find(row => row.section === "policy")!;
