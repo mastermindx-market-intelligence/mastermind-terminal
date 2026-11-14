@@ -372,7 +372,7 @@ function RecordDialog({ position, name, quote, fallback, busy, failure, confirmi
         {issues.length > 0 && <section className={s.recordIssues}><h3>{c("reviewCoverage")}</h3><ul>{issues.map(issue => <li key={issue}>{c(issueCopy[issue])}</li>)}</ul></section>}
         <section className={s.notes}><h3>{c("notes")}</h3><p>{position.notes || c("noNotes")}</p></section>
         <RotationRead symbol={position.ticker} lang={lang} />
-        <div className={s.researchLinks}><Link href={"/discover?tab=screener&symbol=" + encodeURIComponent(position.ticker)}>{lang === "zh" ? "筛选器" : "Stock screener"}<Icon name="arrow" /></Link>{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
+        <div className={s.researchLinks}>{fallback && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(position.ticker) && <Link href={"/discover?tab=screener&symbol=" + encodeURIComponent(position.ticker)}>{lang === "zh" ? "筛选器" : "Stock screener"}<Icon name="arrow" /></Link>}{companyHref(position.ticker) && <Link href={companyHref(position.ticker)!}>{c("research")}<Icon name="arrow" /></Link>}<Link href={terminalHref(shellPresentation, currentHref, position.ticker)}>{c("chart")}<Icon name="arrow" /></Link></div>
       </div>
       <footer className={s.dialogFooter}>
         {confirming ? <div className={s.deleteConfirm} role="group" aria-label={t("deletePositionConfirm")}><h3>{c("confirmDelete")}</h3><p>{c("deleteHint")}</p>

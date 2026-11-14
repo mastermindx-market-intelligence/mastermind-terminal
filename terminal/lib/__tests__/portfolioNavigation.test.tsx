@@ -181,7 +181,7 @@ describe("PortfolioWorkspace navigation", () => {
     expect(row.querySelector("a.pf-tk")!.getAttribute("href")).toBe(ordinaryTerminalHref(SYMBOL));
 
     const dialog = await openRecord(view, "pos-company");
-    expect(dialogHrefs(dialog)).toEqual([companyAnalysisHref(SYMBOL), ordinaryTerminalHref(SYMBOL)]);
+    expect(dialogHrefs(dialog)).toEqual(["/discover?tab=screener&symbol=" + encodeURIComponent(SYMBOL), companyAnalysisHref(SYMBOL), ordinaryTerminalHref(SYMBOL)]);
     expect(dialog.querySelector('a[href^="/analysis?symbol="]')!.textContent).toBe("Open company analysis");
     expect(dialog.querySelector('a[href^="/terminal"]')!.textContent).toBe("Open current chart");
   });
@@ -268,7 +268,7 @@ describe("PortfolioWorkspace navigation", () => {
     expect(listedRow(view, "pos-company").textContent).toContain("伯克希尔哈撒韦");
 
     const dialog = await openRecord(view, "pos-company");
-    expect(dialogHrefs(dialog)).toEqual([companyAnalysisHref(SYMBOL), ordinaryTerminalHref(SYMBOL)]);
+    expect(dialogHrefs(dialog)).toEqual(["/discover?tab=screener&symbol=" + encodeURIComponent(SYMBOL), companyAnalysisHref(SYMBOL), ordinaryTerminalHref(SYMBOL)]);
     expect(dialog.querySelector('a[href^="/analysis?symbol="]')!.textContent).toBe("打开公司分析");
     expect(dialog.querySelector('a[href^="/terminal"]')!.textContent).toBe("打开当前图表");
   });
