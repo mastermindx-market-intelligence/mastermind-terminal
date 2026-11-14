@@ -661,11 +661,17 @@ const PROPHET_LEX = {
   // HONESTY: the board is descriptive market-to-sector context. Nulls use the
   // sector lane's shared not-stated vocabulary; nothing recommends a trade.
   tabToday:          ["Today", "今日"],
+  tabCandidates:    ["Candidates", "候选"],
+  candidateNativeTitle: ["The complete candidate workspace", "完整候选工作台"],
+  candidateNativeBody: ["Continue your candidate research in the native Prophet workspace.", "前往原生 Prophet 工作台继续候选研究。"],
+  candidateNativeOpen: ["Open native Prophet", "打开原生 Prophet"],
   tabScreener:       ["Screener", "筛选"],
   lanePlans:         ["Plans", "计划"],
   // Lane navigation: three primary lanes ride one row at every width; at
   // phone widths the two secondary lanes live behind this disclosure.
   laneMore:          ["More", "更多"],
+  laneOptionsShort:  ["Options", "期权"],
+  laneIssueShort:    ["Issue", "发布"],
   laneMoreAria:      ["More Prophet lanes", "更多预言台分区"],
   laneNavPrimaryAria:["Prophet lanes", "预言台分区"],
   // In-body title (P3): the design's Prophet title and subtitle, since the

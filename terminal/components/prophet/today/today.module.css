@@ -8,7 +8,7 @@
    overflow at 320px (the leadership table scrolls INSIDE its own panel). */
 
 /* ── Lane navigation (M1/M3/P2/P3) ──────────────────────────────────────── */
-/* ONE row at every width: Today / Screener / Plans, no captions under the
+/* ONE row at every width: Today / Candidates / Screener / Plans, no captions under the
    labels. Options Alpha and Issue Desk are inline on desktop/tablet and sit
    behind the More disclosure at ≤640, so the Prophet navigation never becomes
    a second stacked block on a phone. */
@@ -23,8 +23,8 @@
   margin: 12px 12px 0;
   padding: 3px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border-radius: 10px;
+  background: var(--panel);
 }
 .navTabs {
   display: flex;
@@ -50,10 +50,10 @@
 .navTabs button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 1px; }
 .navTabs button.on {
   color: var(--text);
-  background: color-mix(in srgb, var(--brand) 14%, rgba(255, 255, 255, 0.035));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-2) 38%, transparent);
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
-.navTabs button span { font: 600 11.5px/1.2 var(--font-ui); }
+.navTabs button span { font: 550 13px/1.2 var(--font-ui); }
 /* Secondary lanes: the same affordance, visually quieter (no fill), so
    Options Alpha and Issue Desk stay reachable without competing with the
    primary reading order. */
@@ -82,7 +82,7 @@
 .navSecondary button:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 1px; }
 .navSecondary button.on {
   color: var(--text);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-2) 38%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 /* Desktop/tablet: the secondary lanes are already inline — no disclosure. */
 .moreButton { display: none; }
@@ -628,9 +628,10 @@
 @media (max-width: 640px) {
   .board { padding: 10px; gap: 8px; }
   .nav { width: calc(100% - 16px); margin: 8px 8px 0; gap: 2px; }
-  /* ONE row: three primary lanes plus the More disclosure (M1/M3). */
+  /* ONE row: four primary lanes plus the More disclosure (M1/M3). */
   .navTabs { flex-wrap: nowrap; gap: 2px; }
-  .navTabs button { flex: 1 1 auto; min-height: 44px; justify-content: center; padding: 7px 6px; }
+  .navTabs button { flex: 1 1 auto; min-height: 44px; justify-content: center; padding: 7px 5px; }
+  .navTabs button span { font-size: 11.5px; }
   .moreButton {
     display: inline-flex;
     align-items: center;
@@ -650,7 +651,7 @@
   .moreButton.on {
     color: var(--text);
     background: color-mix(in srgb, var(--brand) 14%, rgba(255, 255, 255, 0.035));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-2) 38%, transparent);
+    box-shadow: inset 0 0 0 1px var(--line);
   }
   /* The secondary lanes become the disclosure panel, anchored to the lane bar. */
   .navSecondary {

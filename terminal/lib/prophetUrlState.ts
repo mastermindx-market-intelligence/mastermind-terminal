@@ -59,8 +59,8 @@ export const PROPHET_TAB_KEYS = ["tab", "sector", "symbol", "sel"] as const;
 /** Primary navigation. `sector` is the sector journey lane (reached from
  * Today's research links and the Screener tab as well as directly); the
  * retired `macro` value parses as `plans`. */
-export type ProphetLane = "today" | "screener" | "plans" | "options" | "issue" | "sector";
-export const PROPHET_LANES: readonly ProphetLane[] = ["today", "screener", "plans", "options", "issue", "sector"];
+export type ProphetLane = "today" | "candidates" | "screener" | "plans" | "options" | "issue" | "sector";
+export const PROPHET_LANES: readonly ProphetLane[] = ["today", "candidates", "screener", "plans", "options", "issue", "sector"];
 /** Links minted before the Today board (≤ 2026-11-12) name the plans desk `macro`. */
 const LEGACY_LANE_ALIASES: Readonly<Record<string, ProphetLane>> = { macro: "plans" };
 
@@ -247,7 +247,7 @@ export function parseProphetState(params: URLSearchParams, mount: ProphetMount =
     group: admittedGroup,
     symbol: admittedSymbol,
     plan: plan !== null && PLAN_ID.test(plan) ? plan : null,
-    q: q !== "" && SECTOR_MEMBERS_QUERY.test(q) ? q : "",
+    q: q !== "" && (lane === "candidates" ? q.length <= 64 && !/[\u0000-\u001f\u007f]/.test(q) : SECTOR_MEMBERS_QUERY.test(q)) ? q : "",
     state: state !== null && (PROPHET_MEMBER_STATES as readonly string[]).includes(state) ? state as ProphetMemberState : null,
     offset: offset !== null && /^\d{1,7}$/.test(offset) && Number(offset) <= 1_000_000 ? Number(offset) : 0,
     from: params.getAll(PROPHET_FROM_PARAM).length > 1 ? null : parseProphetFrom(params.get(PROPHET_FROM_PARAM)),
