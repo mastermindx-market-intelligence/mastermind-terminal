@@ -561,6 +561,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siNativeComparePending: ["A rotation comparison is unavailable.", "一项轮动比较暂不可用。"],
   siNativeBreadthMissing: ["Constituent membership is not supplied by this source.", "此来源未提供成分股名单。"],
   siNativeSources: ["Sources and method", "来源与方法"],
+  siNativeDataCoverage: ["Data coverage and limitations", "数据覆盖与限制"],
+  siNativeOpenExplorer: ["Open sector explorer", "打开板块浏览器"],
 
   // Breadth change by sector (Paper R4 R7, accepted 2026-11-12 + 05:47Z deltas 1–7).
   // Shares arrive 0–100; changes arrive in percentage points and are never rescaled.
@@ -630,7 +632,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siBriefLookDivergeCopy: ["{sector} leads one measured window and lags the other.", "{sector}在一个区间领先，在另一个区间落后。"],
   siBriefLaggingBothCopy: ["Lagging {benchmark} in both windows.", "两个区间均落后{benchmark}。"],
   siBriefCompareWindows: ["Compare windows", "比较区间"],
-  siBriefLookNone: ["No measured sector disagrees between its 21- and 63-session windows.", "已测量板块的21日与63日区间方向一致。"],
+  siBriefLookNone: ["No measured sector leads one window while lagging the other.", "没有已测量板块在一个区间领先、在另一个区间落后。"],
   siBriefNext: ["Continue investigating", "继续调查"],
   siBriefInvestigateCyclesCopy: ["Confirmed turns live in the rotation map.", "已确认拐点位于轮动图。"],
   siBriefInvestigateCyclesAction: ["See confirmed turns", "查看已确认拐点"],
@@ -642,6 +644,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siBriefInvestigateResearchAction: ["Open research", "打开研究"],
 
   siExploreColSector: ["Sector", "板块"],
+  siExploreMeasurementBasis: ["Relative wealth vs {benchmark} · Total return", "相对{benchmark}的财富变化 · 总回报"],
+  siExploreBasisUnavailable: ["Measurement basis is unavailable. Check sources and method.", "计量基础不可用，请查看来源与方法。"],
   siExploreCol63: ["63 sessions ↓", "63个交易日 ↓"],
   siExploreCol21: ["21 sessions", "21个交易日"],
   siExploreColParticipation: ["Rising · 1M", "上涨 · 1个月"],
@@ -653,6 +657,10 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siExploreViewSector: ["View sector", "查看板块"],
   siExploreRank: ["No. {rank} of {measured} · 63 sessions", "63个交易日第{rank}名 · 共{measured}个"],
   siExploreUnmeasured: ["Not measured", "未测量"],
+  siExploreEvenBoth: ["At the benchmark in both measured windows.", "两个已测量区间均与基准持平。"],
+  siExploreEvenWindow: ["At the benchmark in one measured window. Read each window separately.", "一个已测量区间与基准持平，请分别解读各区间。"],
+  siExploreEmptyTitle: ["No sectors in this reading", "此读数中没有板块"],
+  siExploreEmptyCopy: ["This source has no sector inventory to compare. Check its coverage and method.", "此来源没有可供比较的板块名单，请查看覆盖范围与方法。"],
 
   siSectorDossierBack: ["Back to US sectors", "返回美国板块"],
   siSectorDossierSub: ["{ticker} sector proxy · relative wealth vs {benchmark}, total return", "{ticker}板块代理 · 相对{benchmark}的财富变化 · 总回报"],

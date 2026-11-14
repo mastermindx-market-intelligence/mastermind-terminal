@@ -12,6 +12,7 @@ const renderTool = vi.hoisted(() => ({ screener: vi.fn(), heatmap: vi.fn() }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => locale, useT: () => (key: string) => key }));
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
+  useRouter: () => ({ push: vi.fn() }),
 }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => ({}) }));
@@ -81,7 +82,7 @@ describe("Discover tool tabs", () => {
     try {
       await act(async () => root.render(<DiscoverWorkspace />));
       const tabs = Array.from(host.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-      expect(tabs).toHaveLength(7);
+      expect(tabs).toHaveLength(6);
 
       const expectPanels = (activeKey: string) => {
         for (const tab of tabs) {

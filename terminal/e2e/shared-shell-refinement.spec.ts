@@ -1,5 +1,7 @@
 import {expect,test} from "@playwright/test";
 import {SHARED_SHELL_PROTOCOL,SHARED_SHELL_BRIDGE_VERSION,SHARED_SHELL_DOCUMENT_VERSION} from "../lib/sharedShellContracts";
+import sectorGeneration from "../lib/__tests__/fixtures/sector_generation.captured.preview.v1.json";
+import { sectorFixture } from "./fixtures/sector-company-v3";
 
 // Use the existing responsive harness and real routes. The normal customer
 // configuration keeps this opt-in surface off; CI qualifies it explicitly.
@@ -174,7 +176,7 @@ test("company search selects one canonical company from desktop, tablet and phon
  await dialog.getByRole("combobox").press("Enter");
  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
  await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
- await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
+ await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple&workspaceMarket=us$/);
  await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
 });
@@ -552,4 +554,55 @@ test("market control remains reachable at 320px alongside existing header action
   await expect(page.getByRole("button", { name: "Open navigation", exact: true })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
+});
+
+test("Sector Intelligence has one page hierarchy, one theme owner and an accessible comparison", async ({ page }, info) => {
+  await page.route("**/api/sector-intelligence?**", route => {
+    const source = new URL(route.request().url()).searchParams.get("source");
+    if (source !== "generation") return sectorFixture(route);
+    return route.fulfill({ json: { data: sectorGeneration, receipt: {
+      source, status: "ready", path: "/api/sector-generation?audience=preview",
+      asOf: sectorGeneration.source_session, observedAt: sectorGeneration.published_at,
+      contentHash: "3e275fc69d22e990f81261c8a803576a832be9332484c7a99b2dddd165a5d425", stale: false,
+    } } });
+  });
+  await page.goto("/discover");
+  await page.getByRole("button", { name: "Open Sectors", exact: true }).click();
+  await expect(page).toHaveURL(/\/sectors\?workspaceMarket=us$/);
+  const workspace = page.getByTestId("sector-intelligence");
+  await expect(workspace.getByRole("heading", { level: 1, name: "Sector Intelligence", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(page.locator("main:visible")).toHaveCount(1);
+  await expect(workspace).toHaveAttribute("id", "shared-shell-content");
+  await expect(workspace.getByRole("button", { name: /Use (light|dark) view/ })).toHaveCount(0);
+  const primary = workspace.getByTestId("sector-native-brief-explore");
+  await expect(primary).toBeVisible();
+  expect(await primary.evaluate(button => {
+    const css = getComputedStyle(button);
+    return css.backgroundColor !== "rgba(0, 0, 0, 0)" && css.backgroundColor !== css.color;
+  })).toBe(true);
+  await noOverflow(page);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("sectors-brief-dark-en.png") });
+  await primary.click();
+  const table = workspace.getByRole("table", { name: "Explore sectors", exact: true });
+  await expect(table.getByRole("columnheader")).toHaveCount(3);
+  await expect(table.getByRole("rowheader")).toHaveCount(11);
+  await table.getByRole("button", { name: "Select sector: Financials", exact: true }).click();
+  await expect(workspace.getByTestId("sector-native-inspector")).toContainText("Financials");
+  await noOverflow(page);
+  await page.getByRole("button", { name: "Light theme", exact: true }).click();
+  await expect(workspace).toHaveAttribute("data-sector-theme", "light");
+  await page.screenshot({ animations: "disabled", path: info.outputPath("sectors-explore-light-en.png") });
+  await workspace.getByTestId("sector-native-inspector-open").click();
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(workspace.getByTestId("sector-native-dossier")).toHaveAttribute("data-sector-theme", "light");
+  await workspace.getByTestId("sector-native-dossier-back").click();
+  await expect(table.getByRole("button", { name: "Select sector: Financials", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // Old investigation addresses retain their mode without the Discover tool tabs.
+  await page.goto("/discover?tab=sectors&sectorJob=brief&sectorTheme=dark");
+  await expect(workspace.getByTestId("sector-native-brief")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("h1:visible")).toHaveCount(1);
+  await expect(page.locator("#wtab-sectors")).toHaveCount(0);
+  await expect(workspace).toHaveAttribute("data-sector-theme", "light");
+  await noOverflow(page);
 });

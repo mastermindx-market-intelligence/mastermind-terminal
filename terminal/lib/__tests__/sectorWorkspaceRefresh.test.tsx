@@ -10,6 +10,10 @@ import capturedGeneration from "./fixtures/sector_generation.captured.preview.v1
 import entitledBlocksJson from "./fixtures/typed_blocks_entitled.json";
 
 const session = vi.hoisted(() => ({ identity: { userId: "owner-a", email: "a@example.test" } }));
+const appearance = vi.hoisted(() => ({ theme: null as "dark" | "light" | null }));
+vi.mock("@/components/chrome/shared-shell/SharedShellPresentation", () => ({
+  useOptionalSharedShellPresentation: () => appearance.theme ? { context: { theme: appearance.theme } } : null,
+}));
 vi.mock("@/components/chrome/AppShell", () => ({ useShellIdentity: () => session.identity }));
 // ZH without mounting LangProvider (same approach as sectorNativeRowMount):
 // the depth lexicon resolves its locale through this override.
@@ -98,6 +102,7 @@ describe("Sector workspace owner revalidation", () => {
     await act(async () => document.dispatchEvent(new Event("visibilitychange")));
   };
   beforeEach(() => {
+    appearance.theme = null;
     vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout", "setInterval", "clearInterval"] });
     vi.setSystemTime(new Date("2026-11-05T21:00:00Z"));
     // jsdom has no matchMedia; the calls board's phone-disclosure query needs it.
@@ -124,6 +129,36 @@ describe("Sector workspace owner revalidation", () => {
     await act(async () => root.unmount());
     G.__SI_REFRESH_LANG = "en";
     host.remove(); vi.restoreAllMocks(); vi.useRealTimers();
+  });
+
+  it.each(["/sectors", "/discover?tab=sectors&sectorWorkspace=discover"])("uses the shell theme at %s without rewriting legacy state or refetching sources", async href => {
+    appearance.theme = "light";
+    const url = href + (href.includes("?") ? "&" : "?") + "sectorTheme=dark";
+    const retained = { mmxSectorDepthReturn: "retained", unrelated: "retained" };
+    window.history.replaceState(retained, "", url);
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(host.querySelectorAll("main")).toHaveLength(1);
+    expect(host.querySelector("main")?.id).toBe("shared-shell-content");
+    expect(host.querySelectorAll("h1")).toHaveLength(1);
+    expect(host.querySelector("h1")?.textContent).toBe("siNativeTitle");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("light");
+    expect(host.textContent).not.toContain("siUseLight"); expect(host.textContent).not.toContain("siUseDark");
+    const reads = request.mock.calls.length;
+    appearance.theme = "dark";
+    await act(async () => root.render(<SectorIntelligenceWorkspace />));
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("dark");
+    expect(request.mock.calls).toHaveLength(reads);
+    expect(window.location.pathname + window.location.search).toBe(url);
+    expect(window.history.state).toEqual(retained);
+  });
+
+  it("preserves the standalone sector theme control", async () => {
+    await render("discover");
+    expect(host.querySelector("h1")?.textContent).toBe("siTitle");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("dark");
+    await click("siUseLight");
+    expect(host.querySelector("main")?.dataset.sectorTheme).toBe("light");
+    expect(new URLSearchParams(window.location.search).get("sectorTheme")).toBe("light");
   });
 
   it("keeps the independent weekly relative-trend method on its legacy source when native evidence is refused", async () => {

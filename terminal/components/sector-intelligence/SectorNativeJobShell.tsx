@@ -52,8 +52,9 @@ export function nativeCause(t: ReturnType<typeof useSectorT>, transport: SectorN
 
 /** The honest body for a native surface without an admitted generation: the
  * real transport cause, a retry when the connection failed, no values. */
-export function NativeUnavailable({ context, onRetry, onSources }: {
+export function NativeUnavailable({ context, onRetry, onSources, onOpenExplorer }: {
   context: SectorNativeContext; onRetry: () => void; onSources: () => void;
+  onOpenExplorer?: () => void;
 }) {
   const t = useSectorT();
   const transport = context.transport;
@@ -70,20 +71,23 @@ export function NativeUnavailable({ context, onRetry, onSources }: {
       {(transport === "error" || transport === "unavailable") &&
         <button type="button" className={styles.secondaryButton} onClick={onRetry}>{t("siRetry")}</button>}
       <button type="button" className={styles.secondaryButton} onClick={onSources}>{t("siNativeSources")}</button>
+      {onOpenExplorer && (transport === "error" || transport === "unavailable") &&
+        <button type="button" className={styles.linkRow} onClick={onOpenExplorer}>{t("siNativeOpenExplorer")} →</button>}
     </div>
   </section>;
 }
 
 export default function SectorNativeJobShell({ context, job, onJob, onSelect, onOpenDossier,
-  onTheme, onRefresh, onSources }: {
+  onTheme, onRefresh, onSources, onOpenExplorer }: {
   context: SectorNativeContext;
   job: SectorJob;
   onJob: (job: SectorJob) => void;
   onSelect: (sectorId: string) => void;
   onOpenDossier: (sectorId: string, view?: SectorView) => void;
-  onTheme: () => void;
+  onTheme?: () => void;
   onRefresh: () => void;
   onSources: () => void;
+  onOpenExplorer?: () => void;
 }) {
   const t = useSectorT();
   const tabs = useRef<HTMLDivElement>(null);
@@ -91,7 +95,7 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
   const session = context.generation?.receipt.source_session || null;
   const body: ReactNode = job === "research" || job === "watches"
     ? !context.generation
-      ? <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} />
+      ? <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} onOpenExplorer={onOpenExplorer} />
       : <section className={`${styles.card} ${styles.stateCard}`} data-testid={`sector-native-${job}-shell`}>
           <h2 className={styles.stateTitle}>{t(job === "research" ? "siBriefInvestigateResearch" : "siBriefInvestigateWatches")}</h2>
           <p className={styles.stateCopy}>{t(job === "research" ? "siBriefInvestigateResearchCopy" : "siBriefInvestigateWatchesCopy")}</p>
@@ -101,11 +105,11 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
           </div>
         </section>
     : !context.generation
-      ? <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} />
+      ? <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} onOpenExplorer={onOpenExplorer} />
       : job === "brief"
         ? <SectorNativeBrief context={context} rows={rows} onJob={onJob}
             onOpenDossier={onOpenDossier} onSources={onSources} />
-        : <SectorNativeExplore context={context} rows={rows} onSelect={onSelect}
+        : <SectorNativeExplore context={context} rows={rows} onSelect={onSelect} onJob={onJob}
             onOpenDossier={onOpenDossier} onSources={onSources} />;
   return <div className={styles.root} data-sector-theme={context.theme} data-sector-language={context.language}>
     <header className={styles.headerTop}>
@@ -117,18 +121,18 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
     <div className={styles.titleRow}>
       <h1 className={styles.title}>{t("siNativeTitle")}</h1>
       <div className={styles.headerTools}>
-        <button type="button" className={styles.regionChip} onClick={onSources}
-          aria-label={`${t("siNativeRegionUs")} · ${t("siNativeSources")}`}>
+        <span className={styles.regionChip}>
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none">
             <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" />
             <path d="M1.5 8h13M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" stroke="currentColor" strokeWidth="1.2" />
           </svg>
           {t("siNativeRegionUs")}
-        </button>
-        <button type="button" className={shell.button} onClick={onTheme}
+        </span>
+        <button type="button" className={shell.button} onClick={onSources}>{t("siNativeSources")}</button>
+        {onTheme && <button type="button" className={shell.button} onClick={onTheme}
           aria-label={t(context.theme === "dark" ? "siUseLight" : "siUseDark")}>
           {t(context.theme === "dark" ? "siUseLight" : "siUseDark")}
-        </button>
+        </button>}
         <button type="button" className={shell.button} onClick={onRefresh}>{t("siRefresh")}</button>
       </div>
     </div>

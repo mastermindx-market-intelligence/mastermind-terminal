@@ -11,7 +11,7 @@ import WatchlistEventPlanner from "@/components/events/WatchlistEventPlanner";
 import { acquireScrollLock, __resetScrollLockForTests } from "@/lib/scrollLock";
 
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }), useT: () => (key: string, fallback?: string) => fallback ?? key }));
-vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/", useSearchParams: () => new URLSearchParams() }));
 vi.mock("@/lib/guides/registry", () => ({ loadGuide: async () => null }));
 vi.mock("@/components/guides/GuideVisual", () => ({ default: () => null }));
 vi.mock("@/lib/sharedShellCopy", () => ({ useSharedShellT: () => (key: string) => key }));

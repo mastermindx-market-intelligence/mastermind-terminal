@@ -520,6 +520,7 @@ export interface MeasuredRead {
   partial: boolean;
   sessionEnd: string | null;
   benchmark: string | null;
+  basis: "total_return" | null;
   expectedN: number | null;
   measuredN: number | null;
   ranked: MeasuredGroup[];
@@ -531,7 +532,7 @@ export interface MeasuredRead {
  */
 export function sectorMeasuredRead(sectorPayload: unknown): MeasuredRead {
   const empty = (state: MeasuredReadState): MeasuredRead =>
-    ({ state, partial: false, sessionEnd: null, benchmark: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
+    ({ state, partial: false, sessionEnd: null, benchmark: null, basis: null, expectedN: null, measuredN: null, ranked: [], unmeasured: [] });
   const root = object(sectorPayload);
   if (!Object.hasOwn(root, "measured_read")) return empty("absent");
   const read = object(root.measured_read);
@@ -560,6 +561,7 @@ export function sectorMeasuredRead(sectorPayload: unknown): MeasuredRead {
     state: "ok", partial: read.status === "partial",
     sessionEnd: text(generation.session_end) || null,
     benchmark: text(generation.benchmark) || null,
+    basis: generation.price_basis === "total_return" ? "total_return" : null,
     expectedN: number(cohort.expected_n), measuredN: number(cohort.measured_n),
     ranked, unmeasured,
   };
