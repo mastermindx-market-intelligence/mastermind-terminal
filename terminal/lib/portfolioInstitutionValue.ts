@@ -2,6 +2,7 @@ import { finite, finiteProduct, nativePrice, priceCurrency, type PriceObservatio
 
 export type InstitutionHolding = {
   account: string;
+  costBasis?: number | null;
   name: string;
   type?: string | null;
   symbol: string | null;
@@ -12,6 +13,14 @@ export type InstitutionHolding = {
   syncedAt: string;
 };
 type Lot = { shares: number | null; brokerage?: InstitutionHolding };
+
+/** A reported aggregate cost can supply an average entry only on a known per-share instrument. */
+export function averageInstitutionCost(item: {symbol: string | null; type: string | null; quantity: number; costBasis?: number | null; currency: string | null}) {
+  if (!item.symbol || !["equity", "etf", "mutual fund"].includes(item.type ?? "") ||
+      !priceCurrency(item.currency) || !finite(item.costBasis) || item.costBasis < 0 || item.quantity <= 0) return null;
+  const average = item.costBasis / item.quantity;
+  return finite(average) ? average : null;
+}
 
 function canMarkFromShareQuote(lot: Lot) {
   const holding = lot.brokerage;
@@ -34,5 +43,6 @@ export function holdingValue(lot: Lot, last: number | null, unit?: unknown): num
   const holding = lot.brokerage;
   if (holding && priceCurrency(holding.currency) && finite(holding.value) &&
       (!canMarkFromShareQuote(lot) || !finite(last) || unit !== holding.currency)) return holding.value;
+  if (holding && !canMarkFromShareQuote(lot)) return null;
   return priceCurrency(unit) ? finiteProduct(lot.shares, last) : null;
 }

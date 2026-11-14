@@ -9,12 +9,13 @@ export const SAMPLE_LOTS = [
   { ticker: "JNJ", name: "Johnson & Johnson", sector: ["Health care", "医疗保健"], shares: 5, examplePrice: 200 },
 ] as const;
 
-export type Allocation = { ticker: string; value: number; weight: number };
+export type Allocation = { ticker: string; value: number; weight: number; institutionName?: string; unlisted?: boolean };
 
 /** Market-value weights require every open lot, one currency, positive gross value and no shorts. */
 export function marketAllocation(positions: readonly (Pick<Position, "ticker" | "shares" | "status"> & {brokerage?: InstitutionHolding})[],
   quotes: Readonly<Record<string, PriceObservation>>, manifest: Readonly<Record<string, PriceObservation>>) {
   const byTicker = new Map<string, number>();
+  const institutions = new Map<string, { institutionName: string; unlisted: boolean }>();
   let currency: string | null = null;
   let total = 0;
   for (const p of positions) {
@@ -26,12 +27,13 @@ export function marketAllocation(positions: readonly (Pick<Position, "ticker" | 
     if (!unit || (currency && currency !== unit)) return null;
     const value = holdingValue(p, q?.last ?? null, unit);
     if (value === null || value <= 0) return null;
+    if (p.brokerage) institutions.set(p.ticker, { institutionName: p.brokerage.name, unlisted: !p.brokerage.symbol });
     currency = unit;
     byTicker.set(p.ticker, (byTicker.get(p.ticker) ?? 0) + value);
     total += value;
   }
   if (!currency || !finite(total) || total <= 0) return null;
-  const rows: Allocation[] = Array.from(byTicker, ([ticker, value]) => ({ ticker, value, weight: value / total * 100 }));
+  const rows: Allocation[] = Array.from(byTicker, ([ticker, value]) => ({ ticker, value, weight: value / total * 100, ...institutions.get(ticker) }));
   rows.sort((a,b) => b.value - a.value || a.ticker.localeCompare(b.ticker));
   return { currency, total, rows };
 }

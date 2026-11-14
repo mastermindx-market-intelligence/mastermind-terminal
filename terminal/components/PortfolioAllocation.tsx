@@ -46,11 +46,12 @@ export default function PortfolioAllocation({ positions, quotes, manifest, sampl
     </div>
     <ul className={s.rows}>{visible.map((row, i) => {
       const example = sample ? SAMPLE_LOTS.find(p => p.ticker === row.ticker) : null;
-      const label = (zh && manifest[row.ticker]?.zh) || manifest[row.ticker]?.name || example?.name || row.ticker;
-      const href = companyHref(row.ticker);
+      const label = (zh && manifest[row.ticker]?.zh) || manifest[row.ticker]?.name || row.institutionName || example?.name || row.ticker;
+      const symbol = row.unlisted ? label : row.ticker;
+      const href = row.unlisted ? null : companyHref(row.ticker);
       return <li key={row.ticker}>
-        <AssetLogo symbol={row.ticker} name={label} color={colors[i]} size={28} />
-        <div className={s.name}>{href ? <Link href={href}>{row.ticker}</Link> : <b>{row.ticker}</b>}
+        <AssetLogo symbol={symbol} name={label} color={colors[i]} size={28} />
+        <div className={s.name}>{href ? <Link href={href}>{row.ticker}</Link> : <b>{symbol}</b>}
           <small>{label}{example ? " · " + example.sector[zh ? 1 : 0] : ""}</small></div>
         <span>{money.format(row.value)}</span><strong>{row.weight.toFixed(1)}%</strong>
       </li>;

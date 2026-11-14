@@ -21,6 +21,7 @@ import type { Position } from "@/lib/portfolio";
 import type { PositionFailureReason, PositionMutationResult } from "@/lib/portfolioMutation";
 import { portfolioCopy } from "@/lib/portfolioWorkspace";
 import styles from "./PortfolioWorkspace.module.css";
+import entryStyles from "./PortfolioEntryMarket.module.css";
 
 export type PositionDraft = {
   clientPositionId?: string;
@@ -58,7 +59,7 @@ export default function PositionModal({
   mode: "add" | "edit";
   position: Position | null;
   initialTicker?: string;
-  instruments?: Record<string, { name?: string; zh?: string }>;
+  instruments?: Record<string, { name?: string; zh?: string; last?: number; currency?: unknown }>;
   onCancel: () => void;
   onSubmit: (draft: PositionDraft) => Promise<PositionMutationResult>;
 }) {
@@ -76,6 +77,10 @@ export default function PositionModal({
       Number(b.toLowerCase().startsWith(query)) - Number(a.toLowerCase().startsWith(query)) || a.localeCompare(b)).slice(0, 8);
   }, [draft.ticker, instruments]);
   const lookupId = useId();
+  const instrument = instruments?.[draft.ticker.trim()];
+  const observedCurrency = priceCurrency(instrument?.currency);
+  const observedClose = typeof instrument?.last === "number" && Number.isFinite(instrument.last) && instrument.last > 0 ? instrument.last : null;
+  const entryCurrencyChoices = [...new Set([observedCurrency, "USD", "HKD", "CAD"].filter((code): code is string => !!code))];
   const enteredCost = Number(draft.shares) * Number(draft.entryPrice);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,6 +196,12 @@ export default function PositionModal({
               {instruments?.[draft.ticker]?.name && <small>{lang === "zh" ? instruments[draft.ticker].zh || instruments[draft.ticker].name : instruments[draft.ticker].name}</small>}
             </label>
 
+            {observedClose !== null && observedCurrency && <div className={entryStyles.reference}>
+              <span>{lang === "zh" ? "最近收盘" : "Latest available close"}<strong>{observedCurrency} {observedClose.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 })}</strong></span>
+              <button type="button" className="pf-btn" onClick={() => setDraft(old => ({ ...old, entryPrice: String(observedClose), entryCurrency: observedCurrency }))}>
+                {lang === "zh" ? "用作入场价" : "Use as entry price"}
+              </button>
+            </div>}
             <div className="pf-field-row">
               <label className="pf-field">
                 <span>{t("shares")}</span>
@@ -223,6 +234,10 @@ export default function PositionModal({
                 onChange={(event) => set("entryCurrency", event.target.value)} />
               <small>{moneyCopy.entryCurrencyHint[lang]}</small>
             </label>
+            <div className={entryStyles.currencies} role="group" aria-label={lang === "zh" ? "常用入场币种" : "Common entry currencies"}>
+              {entryCurrencyChoices.map(code => <button type="button" key={code} aria-pressed={draft.entryCurrency === code}
+                onClick={() => set("entryCurrency", code)}>{code}</button>)}
+            </div>
 
             <label className="pf-field">
               <span>{t("entryDate")}</span>
