@@ -1,0 +1,115 @@
+.inspector { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); height: min(940px, calc(100dvh - 32px)); margin: 16px 16px 16px auto; border-radius: 18px; scrollbar-gutter: stable; }
+.compareDialog { width: min(1160px, calc(100vw - 40px)); max-height: calc(100dvh - 48px); }
+.inspectorBody { padding: 22px 24px 24px; }
+.compareBody { padding: 4px 20px 20px; }
+.navigation { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; color: var(--text-2); font-size: 12px; }
+.arrow { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); color: var(--text); font: inherit; font-size: 18px; cursor: pointer; }
+.identity { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.identity > div { min-width: 0; }
+.identity h3 { margin: 0 0 6px; font-size: 19px; line-height: 1.3; overflow-wrap: anywhere; }
+.identity p { margin: 0; font-size: 12px; font-weight: 650; }
+.identity p span { color: var(--text-2); font-weight: 400; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+.primary, .secondary, .quiet, .chip { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.primary { color: white; background: var(--brand, #3269e9); border-color: transparent; }
+.secondary, .chip { background: var(--panel-2); color: var(--text); }
+.secondary[aria-pressed="true"] { border-color: var(--brand-2); color: var(--brand-2); }
+.quiet { background: transparent; color: var(--text-2); border-color: transparent; }
+.primary:hover { filter: brightness(1.1); }
+.secondary:hover, .quiet:hover, .chip:hover, .arrow:hover { background: var(--line); }
+.primary:disabled, .secondary:disabled, .arrow:disabled { opacity: .35; cursor: default; }
+.quoteGrid { display: grid; grid-template-columns: 1.2fr 1fr; border: 1px solid var(--line); background: var(--panel-2); border-radius: 12px; padding: 17px; gap: 16px; }
+.quoteGrid > div { min-width: 0; }
+.quoteGrid > div + div { border-left: 1px solid var(--line); padding-left: 16px; }
+.quoteGrid h4 { font-size: 11px; font-weight: 600; color: var(--text-2); margin: 0 0 10px; }
+.quoteGrid p { margin: 9px 0 0; font-size: 10px; line-height: 1.5; color: var(--text-2); overflow-wrap: anywhere; }
+.price, .overnightPrice { font-variant-numeric: tabular-nums; font-size: 30px; font-weight: 620; letter-spacing: -.04em; line-height: 1.2; margin-bottom: 5px; overflow-wrap: anywhere; }
+.overnightPrice { font-size: 26px; }
+.quoteGrid > div > span { font-size: 13px; font-variant-numeric: tabular-nums; }
+.positive { color: var(--up); }
+.negative { color: var(--down); }
+.muted { color: var(--text-2); }
+.note { font-size: 11px; line-height: 1.65; color: var(--text-2); margin: 10px 0; }
+.section { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 22px; }
+.section h3 { margin: 0 0 12px; font-size: 13px; font-weight: 650; }
+.sectionHeading { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.sectionHeading h3 { margin: 0; }
+.entry { border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; color: var(--text-2); font-size: 10px; }
+.signalGrid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; }
+.signalGrid > div + div { display: flex; flex-direction: column; gap: 7px; border-left: 1px solid var(--line); padding-left: 20px; }
+.signalGrid strong { font-size: 14px; font-weight: 600; }
+.signalGrid small { color: var(--text-2); font-size: 11px; }
+.valueStack { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-variant-numeric: tabular-nums; }
+.valueStack > span, .valueStack > strong { font-size: 14px; font-weight: 600; }
+.valueStack small { color: var(--text-2); font-size: 10px; line-height: 1.5; font-weight: 400; }
+.conditions { display: grid; gap: 13px; list-style: none; padding: 0; margin: 16px 0 0; }
+.conditions li { display: flex; gap: 10px; align-items: flex-start; }
+.conditionState { display: inline-grid; place-items: center; flex: 0 0 18px; height: 18px; border: 1px solid var(--line); border-radius: 50%; color: var(--text-2); font-size: 11px; }
+.conditions [data-match="pass"] .conditionState { color: var(--up); border-color: color-mix(in srgb, var(--up) 30%, transparent); background: color-mix(in srgb, var(--up) 7%, transparent); }
+.conditions [data-admitted-unknown="true"] .conditionState { color: var(--text-2); border-color: var(--line); background: transparent; }
+.conditions strong { display: block; font-size: 12px; font-weight: 550; }
+.conditions small { display: block; margin-top: 4px; color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.rangeTrack { position: relative; height: 5px; background: linear-gradient(90deg, var(--line), var(--brand-2)); border-radius: 4px; margin: 24px 7px 12px; }
+.rangeTrack span { position: absolute; top: -4px; width: 13px; height: 13px; transform: translateX(-50%); background: var(--text); border: 3px solid var(--panel); border-radius: 50%; box-shadow: 0 0 0 1px var(--line); }
+.rangeEnds { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.facts, .fundGrid, .historyMetrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 13px 16px; margin: 15px 0 0; font-size: 12px; }
+.facts dt, .fundGrid dt, .historyMetrics dt { color: var(--text-2); line-height: 1.5; }
+.facts dd, .fundGrid dd, .historyMetrics dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fundGrid { align-items: start; gap: 0 16px; }
+.fundGrid dt, .fundGrid dd { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.fundGrid .evidenceValue { align-items: flex-end; text-align: right; }
+.evidenceValue { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; width: 100%; border: 0; border-radius: 4px; padding: 2px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.evidenceValue:hover strong { color: var(--brand-2); }
+.evidenceValue strong { font-size: 13px; font-weight: 600; }
+.evidenceValue small { color: var(--text-2); font-size: 10px; line-height: 1.5; }
+.history { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
+.history summary { color: var(--text-2); font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.historyMetrics dt small { display: block; font-size: 10px; font-weight: 400; margin-top: 5px; }
+.empty { padding: 24px; color: var(--text-2); }
+.matrixScroll { overflow: auto; max-width: 100%; max-height: min(60dvh, 600px); overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 10px; scrollbar-width: thin; }
+.matrix { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.matrix :is(th, td) { padding: 14px 16px; width: 200px; min-width: 200px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 12px; line-height: 1.5; }
+.matrix th { font-weight: 500; color: var(--text-2); background: var(--panel); }
+.matrix tr > :first-child { position: sticky; left: 0; width: 180px; min-width: 180px; z-index: 1; border-right: 1px solid var(--line); }
+.matrix tbody tr:last-child > * { border-bottom: 0; }
+.matrix thead th { position: sticky; top: 0; z-index: 2; padding-right: 35px; background: var(--panel-2); }
+.matrix thead th:first-child { z-index: 3; }
+.matrix thead th > .quiet { position: absolute; top: 8px; right: 4px; padding: 4px; min-height: 28px; font-size: 18px; }
+.compareIdentity { display: flex; align-items: center; gap: 9px; text-align: left; color: var(--text); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; min-width: 0; }
+.compareIdentity > span { min-width: 0; }
+.compareIdentity strong { display: block; font-size: 14px; }
+.compareIdentity small { display: block; color: var(--text-2); font-size: 10px; font-weight: 400; white-space: normal; margin-top: 4px; }
+.tray { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; padding: 10px 18px; border-block: 1px solid var(--line); background: var(--panel); }
+.trayStocks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.trayCount { color: var(--text-2); font-size: 11px; margin-right: 8px; }
+.trayActions { display: flex; gap: 4px; flex-shrink: 0; }
+.chip { padding: 5px 8px; min-height: 30px; font-size: 11px; border-radius: 7px; }
+.chip > span { color: var(--text-2); font-size: 15px; margin-left: 3px; }
+.symbolCell { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.symbolCell :global(.sym-cell) { min-width: 0; flex: 1; }
+.symbolCell :global(.sym-cell .nm) { max-width: 150px; }
+.rowActions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.inspectButton, .compareButton { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 5px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-2); font: inherit; cursor: pointer; }
+.inspectButton svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.inspectButton:hover, .compareButton:hover { border-color: var(--line); background: var(--panel-2); color: var(--text); }
+.compareButton[aria-pressed="true"] { color: var(--brand-2); background: var(--panel-2); border-color: var(--line); }
+.signalAge { display: block; font-size: 9px; color: var(--text-2); font-weight: 400; line-height: 11px; }
+.tableSignal.tableSignal { line-height: 14px; padding-block: 2px; }
+.compareNotice { padding: 8px 18px; margin: 0; font-size: 12px; color: var(--text-2); background: var(--panel); }
+.searchClear { position: absolute; right: 7px; top: 7px; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--text-2); font: inherit; font-size: 19px; cursor: pointer; border-radius: 6px; }
+.searchClear:hover { background: var(--panel-2); }
+:is(.inspector, .compareDialog, .tray) :is(button, a, summary, [tabindex]):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+@media (max-width: 700px) {
+  .inspector { width: calc(100vw - 16px); max-width: calc(100vw - 16px); height: calc(100dvh - 16px); max-height: calc(100dvh - 16px); margin: 8px; border-radius: 14px; }
+  .compareDialog { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); }
+  .inspectorBody { padding: 18px 18px 20px; }
+  .compareBody { padding: 0 12px 16px; }
+  .tray { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .trayCount { width: 100%; }
+  .trayActions { margin-left: auto; }
+  .symbolCell :global(.sym-cell .nm) { max-width: 82px; }
+  .matrix :is(th, td) { width: 180px; min-width: 180px; padding: 12px; }
+  .matrix tr > :first-child { width: 120px; min-width: 120px; font-size: 11px; }
+}
+@media (pointer: coarse) { .arrow, .primary, .secondary, .quiet, .chip { min-height: 44px; } .inspectButton, .compareButton { min-width: 30px; min-height: 32px; } }
+@media (prefers-reduced-motion: no-preference) { .inspector { animation: reveal .18s ease-out; } @keyframes reveal { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } } }

@@ -22,6 +22,7 @@ import { ALL_MARKETS, MARKET_TKEY, type MarketId } from "@/lib/markets";
 import { browserStorage } from "@/lib/ownerStorage";
 import { useLang } from "@/lib/i18n";
 import { useSmartScreenT } from "@/lib/smartScreenLex";
+import { useResearchT } from "@/lib/discoverResearchLex";
 import { useSmartScreens } from "@/lib/smartScreen/useSmartScreens";
 import type { PendingOp } from "@/lib/smartScreen/client";
 import {
@@ -58,6 +59,9 @@ type Props = {
   /** The device's enabled markets once known; null while they load. */
   prefsEnabled: MarketId[] | null;
   showAllMarkets: boolean;
+  tableHasExtraConditions?: boolean;
+  tableViewOnlyReason?: string;
+  onSaveFullView?: () => void;
   labelGics: (value: string) => string;
   labelAsset: (value: string) => string;
   /** Put a screen's filters and fundamental conditions on the table. `showAllMarkets` null
@@ -92,9 +96,12 @@ const usd = (n: number): string => {
 export default function SmartScreensPanel(props: Props) {
   const {
     identity, rows, ready, asOf, filters, fundPreds, fundScan, onFundNeeded,
-    prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen,
+    prefsEnabled, showAllMarkets, labelGics, labelAsset, onOpen, tableHasExtraConditions = false, tableViewOnlyReason, onSaveFullView,
   } = props;
   const t = useSmartScreenT();
+  const rt = useResearchT();
+  const cannotPreserve = tableHasExtraConditions || !!tableViewOnlyReason;
+  const preserveNotice = tableViewOnlyReason ?? rt("extraConditions");
   const ft = useFundT();
   const { lang } = useLang();
   const { snap, store } = useSmartScreens(identity);
@@ -197,7 +204,7 @@ export default function SmartScreensPanel(props: Props) {
     () => compileFilters(filters, { prefsEnabled, showAllMarkets }, fundPreds),
     [filters, prefsEnabled, showAllMarkets, fundPreds],
   );
-  const duplicate = current.ok ? screens.find((screen) => screen.hash === current.hash) ?? null : null;
+  const duplicate = current.ok && !cannotPreserve ? screens.find((screen) => screen.hash === current.hash) ?? null : null;
 
   // A saved screen with fundamental conditions needs the fundamental scan to be counted or
   // explained; ask for it only while the panel is open.
@@ -236,6 +243,7 @@ export default function SmartScreensPanel(props: Props) {
 
   const save = async (event?: FormEvent) => {
     event?.preventDefault();
+    if (cannotPreserve) { setNotice({ tone: "warn", text: preserveNotice }); return; }
     if (!current.ok) { setNotice({ tone: "warn", text: t("ssInvalidDef") }); return; }
     const clean = normalizeScreenName(name);
     if (!clean) { setNotice({ tone: "warn", text: t("ssNeedName") }); return; }
@@ -275,7 +283,7 @@ export default function SmartScreensPanel(props: Props) {
       }
     }
     onOpen(back.filters, { showAllMarkets: widen, fund: back.fund });
-    setNotice(warn ? { tone: "warn", text: warn } : { tone: "ok", text: fill(t("ssOpened"), { name: label }) });
+    setNotice({ tone: warn ? "warn" : "ok", text: `${warn ?? fill(t("ssOpened"), { name: label })}${tableHasExtraConditions ? ` ${rt("openedReset")}` : ""}` });
   };
 
   const markReviewed = async (screen: ScreenRecord) => {
@@ -291,6 +299,7 @@ export default function SmartScreensPanel(props: Props) {
   };
 
   const replace = async (screen: ScreenRecord) => {
+    if (cannotPreserve) { setNotice({ tone: "warn", text: preserveNotice }); return; }
     if (!current.ok) { setNotice({ tone: "warn", text: t("ssInvalidDef") }); return; }
     const out = await store.update(screen.id, { def: current.def });
     if (out.ok) setNotice({ tone: "ok", text: fill(t("ssSaved"), { name: screen.name }) });
@@ -390,6 +399,7 @@ export default function SmartScreensPanel(props: Props) {
 
           {snap.device === "failed" && <p className={`${styles.line} ${styles.warnText}`} data-ss-device="failed">{t("ssDeviceFailed")}</p>}
           {snap.device === "blocked" && <p className={`${styles.line} ${styles.warnText}`} data-ss-device="blocked">{t("ssDeviceBlocked")}</p>}
+          {cannotPreserve && <p className={styles.line} data-ss-extra-conditions>{preserveNotice} {onSaveFullView && <button type="button" className={`chip ${styles.btn}`} onClick={onSaveFullView}>{rt("saveFullView")}</button>}</p>}
 
           {snap.status !== "guest" && (
             <form className={styles.saveRow} onSubmit={save} data-ss-save>
@@ -402,7 +412,7 @@ export default function SmartScreensPanel(props: Props) {
                 onChange={(e) => setName(e.target.value)}
                 data-ss-name-input
               />
-              <button type="submit" className={`chip ${styles.btn}`} disabled={!canWrite || !current.ok} data-ss-save-button>
+              <button type="submit" className={`chip ${styles.btn}`} disabled={!canWrite || !current.ok || cannotPreserve} data-ss-save-button>
                 {t("ssSaveCurrent")}
               </button>
               {current.ok && <span className={styles.meta} data-ss-current>{definitionText(current.def)}</span>}
@@ -469,7 +479,7 @@ export default function SmartScreensPanel(props: Props) {
           {ack && screens.length > 0 && (
             <ul className={styles.list} data-ss-screens>
               {screens.map((screen) => {
-                const onTable = current.ok && current.hash === screen.hash;
+                const onTable = current.ok && !cannotPreserve && current.hash === screen.hash;
                 const locked = pendingIds.has(screen.id);
                 const openable = decompileToFilters(screen.def) !== null;
                 const reviewable = reviewableDefinition(screen.def);
@@ -511,7 +521,7 @@ export default function SmartScreensPanel(props: Props) {
                       <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked || !reviewable} onClick={() => void markReviewed(screen)} data-ss-review>
                         {t("ssMarkReviewed")}
                       </button>
-                      <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked || !current.ok || onTable} onClick={() => void replace(screen)} data-ss-replace>
+                      <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked || !current.ok || cannotPreserve || onTable} onClick={() => void replace(screen)} data-ss-replace>
                         {t("ssReplace")}
                       </button>
                       {confirmId === screen.id ? (

@@ -7,7 +7,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import interactionStyles from "./ScreenerInteractions.module.css";
 import { useT, useLang } from "@/lib/i18n";
-import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
+import { displayName, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { currentOwnerToken, ownerTokenIsCurrent, useMarketPrefs, type OwnerToken } from "@/lib/useMarketPrefs";
 import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
@@ -21,12 +21,16 @@ import workspaceStyles from "./screener/DiscoverWorkspace.module.css";
 import { MARKET_TKEY } from "@/lib/markets";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
-import { verdictIsStale } from "@/lib/signalVerdict";
+import { discoverQuoteDemand, discoverSignal, evaluateDiscoverBase, isDiscoverBuy, normalizeDiscoverRow, normalizeDiscoverSymbol, parseDiscoverSearch, toggleDiscoverComparison, type DiscoverRow } from "@/lib/discoverResearch";
+import { useResearchT } from "@/lib/discoverResearchLex";
+import { researchFundamentalConditions, researchTechnicalConditions } from "@/lib/discoverResearchEvidence";
+import DiscoverResearchPanel, { DiscoverComparisonTray, InspectIcon, type DiscoverCandidate, type ResearchCondition } from "./screener/DiscoverResearchPanel";
+import researchStyles from "./screener/DiscoverResearch.module.css";
 // R3.2 msc_* positioning columns: one cross-root index fetch joined by symbol (the
 // heatmap's flowMap pattern). Entitlement 403 / outage → null → the columns never
 // render and the table is exactly what it was (degrade-to-absent, "do not fake it").
 import { flowGet } from "@/lib/flowClientCache";
-import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type GlanceIndex } from "@/lib/mscGlance";
+import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GlanceIndex } from "@/lib/mscGlance";
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
@@ -73,6 +77,7 @@ import {
   FundamentalCell,
   FundamentalScreenBar,
   FundamentalStatusItems,
+  predicateLabel,
   fundamentalTdClass,
   fundamentalThClass,
   type FundamentalEvidenceTarget,
@@ -113,22 +118,7 @@ const FundamentalEvidence = dynamic(() => import("@/components/screener/Fundamen
  * ──────────────────────────────────────────────────────────────────────────── */
 
 // ── types ──────────────────────────────────────────────────────────────────
-type Row = {
-  sym: string; name: string; zh?: string; sec: string; col: string; mkt?: string;
-  last: number | null; chg: number | null; vol: number | null;
-  hi52: number | null; lo52: number | null;
-  gics: string | null; mcap: number | null;
-  verdict: string | null; vts?: string | null; wr: number | null; pf: number | null;
-  cagr: number | null; regimeBull: boolean | null;
-  // derived ONCE at normalization — the sort comparator must never recompute these
-  dv: number | null;      // traded value (last × vol) in the LISTING'S currency — never USD by assumption
-  offHi: number | null;   // % away from the 52-week high (negative = below)
-  offLo: number | null;   // % above the 52-week low
-  mktId: MarketId;        // marketOf(sym, row), precomputed for the market select
-  // R3.2 msc_* positioning columns — joined from gexstate_index AFTER load. mscRank is the
-  // sortable scalar (REGIME_RANK — structural risk PIN→CASCADE); mscRegime the display word.
-  mscRank?: number | null; mscRegime?: GexRegime | null; mscNetGex?: number | null; mscFlip?: number | null;
-};
+type Row = DiscoverRow;
 
 /**
  * Why the scan is not on screen. `null` = no fault.
@@ -210,7 +200,7 @@ const usd = (n: number | null | undefined): string => {
 const floorUsd = (n: number): string =>
   n >= 1e12 ? `$${n / 1e12}T` : n >= 1e9 ? `$${n / 1e9}B` : n >= 1e6 ? `$${n / 1e6}M` : `$${n}`;
 
-const isBuy = (v: string | null) => v === "BUY" || v === "REBUY" || v === "RECLAIM";
+const isBuy = isDiscoverBuy;
 
 // ── option tables ──────────────────────────────────────────────────────────
 const ASSET_OPTS: { v: string; key: string }[] = [
@@ -350,6 +340,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const t = useT();
   const { lang } = useLang();
   const tPlain = useDiscoverT();
+  const rt = useResearchT();
   // The market universe this user sees is OWNER state, so it is keyed on the identity's uuid,
   // not on an address the account can change out from under it.
   const account = useMarketPrefs(identity);
@@ -381,8 +372,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── search state (wrapped in deferred for perf) ────────────────────────
   const [searchRaw, setSearchRaw] = useState(() => {
     if (typeof window === "undefined") return "";
-    const symbol = new URLSearchParams(window.location.search).get("symbol");
-    return symbol && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(symbol) ? symbol : "";
+    return normalizeDiscoverSymbol(new URLSearchParams(window.location.search).get("symbol"));
   });
   const search = useDeferredValue(searchRaw);
 
@@ -453,7 +443,23 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [viewId, setViewId] = useState("current"), [viewName, setViewName] = useState("Market overview");
   const [advancedOpen, setAdvancedOpen] = useState(false), [columnsOpen, setColumnsOpen] = useState(false), [viewsOpen, setViewsOpen] = useState(false);
   const [help, setHelp] = useState<Row | "guide" | null>(null), [activeDrag, setActiveDrag] = useState<DiscoverColumn | null>(null);
-  const [quoteDetail, setQuoteDetail] = useState<Row | null>(null);
+  const [quoteDetailState, setQuoteDetailState] = useState<{ symbol: string; owner: string; generation: number } | null>(null);
+  const quoteDetailSymbol = quoteDetailState?.owner === expectedOwner && quoteDetailState.generation === liveOwnerToken.generation ? quoteDetailState.symbol : null;
+  const setQuoteDetail = (row: Row | null) => setQuoteDetailState(row ? { symbol: row.sym, owner: expectedOwner, generation: liveOwnerToken.generation } : null);
+  // Reading/comparison is transient UI, fenced to the same account generation as the workspace.
+  // It is intentionally absent from the account view serializer.
+  const blankResearch = { owner: expectedOwner, generation: liveOwnerToken.generation, symbol: null as string | null, compare: [] as string[], comparisonOpen: false, full: false };
+  const [researchState, setResearchState] = useState(blankResearch);
+  const research = researchState.owner === expectedOwner && researchState.generation === liveOwnerToken.generation ? researchState : blankResearch;
+  const researchActive = !!research.symbol || research.comparisonOpen;
+  const researchOpener = useRef<{ element: HTMLElement; token: OwnerToken } | null>(null);
+  const researchEvidenceFocus = useRef<{ symbol: string; field: FundamentalFieldId; owner: string; generation: number } | null>(null);
+  const editResearch = (edit: (current: typeof researchState) => typeof researchState) => setResearchState(previous => edit(previous.owner === expectedOwner && previous.generation === liveOwnerToken.generation ? previous : blankResearch));
+  const openInspector = (symbol: string, opener?: HTMLElement) => { if (opener) researchOpener.current = { element: opener, token: liveOwnerToken }; editResearch(current => ({ ...current, symbol, comparisonOpen: false, full: false })); };
+  const toggleCompare = (symbol: string) => editResearch(current => {
+    const next = toggleDiscoverComparison(current.compare, symbol);
+    return { ...current, compare: next.ids, full: next.full, comparisonOpen: current.comparisonOpen && next.ids.length > 0 };
+  });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   const [workspaceOwner, setWorkspaceOwner] = useState<string | null>(null);
   const [workspaceToken, setWorkspaceToken] = useState<OwnerToken | null>(null);
@@ -475,15 +481,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // opened); the fundamental editor reloads its draft on each one, even when the selected field
   // had no condition before or after — see FundamentalScreenBar.sourceEpoch (issue #916).
   const [fundEpoch, setFundEpoch] = useState(0);
-  const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
+  const [evidenceState, setEvidenceState] = useState<(FundamentalEvidenceTarget & { owner: string; generation: number }) | null>(null);
+  const evidence = evidenceState?.owner === expectedOwner && evidenceState.generation === liveOwnerToken.generation ? evidenceState : null;
+  const setEvidence = (target: FundamentalEvidenceTarget) => setEvidenceState({ ...target, owner: expectedOwner, generation: liveOwnerToken.generation });
   const [fundWanted, setFundWanted] = useState(false);
-  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted || columns.some(id => id.startsWith("fund:")) || sort.k.startsWith("fund:"));
+  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted || researchActive || columns.some(id => id.startsWith("fund:")) || sort.k.startsWith("fund:"));
   const fundCtx = useMemo(() => ({ source: fund.source, nowMs: fund.nowMs }), [fund.source, fund.nowMs]);
   const fundCols = useMemo(
     () => FUNDAMENTAL_FIELD_IDS.filter((id) => columns.includes(`fund:${id}`) || sort.k === `fund:${id}`),
     [columns, sort.k],
   );
-  const closeEvidence = useCallback(() => setEvidence(null), []);
+  const closeEvidence = useCallback(() => setEvidenceState(null), []);
 
   // ── scroll tracking for virtualization ────────────────────────────────
   const tableRef = useRef<HTMLDivElement>(null);
@@ -514,40 +522,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     // this browser last cached. An honest-looking date on a stale table is the worst case.
     const apply = (m: any) => {
         setAsOf(m.as_of || "");
-        setRows(
-          Object.entries(m.symbols || {}).map(([sym, r]: any) => {
-            // normalise nulls so thin rows are distinguishable
-            const last = r.last ?? null;
-            const vol = r.vol ?? null;
-            // 0 is MISSING for an equity price, never a print (cn-premarket-zero-ohlc law)
-            const hi52 = r.hi52 || null;
-            const lo52 = r.lo52 || null;
-            const sec = r.sec || "";
-            const mkt = r.mkt;
-            return {
-              sym,
-              last, chg: r.chg ?? null, vol,
-              hi52, lo52,
-              gics: r.gics ?? null,
-              mcap: typeof r.mcap === "number" && r.mcap > 0 ? r.mcap : null,
-              verdict: r.verdict ?? null,
-              vts: r.vts ?? null,
-              wr: r.wr ?? null,
-              pf: r.pf ?? null,
-              cagr: r.cagr ?? null,
-              regimeBull: r.regimeBull ?? null,
-              name: r.name || sym,
-              zh: r.zh,
-              sec,
-              col: r.col || "#888",
-              mkt,
-              dv: last != null && vol != null ? last * vol : null,
-              offHi: last != null && hi52 != null ? (last / hi52 - 1) * 100 : null,
-              offLo: last != null && lo52 != null ? (last / lo52 - 1) * 100 : null,
-              mktId: marketOf(sym, { mkt, sec }),
-            } as Row;
-          })
-        );
+        setRows(Object.entries(m.symbols || {}).map(([sym, row]) => normalizeDiscoverRow(sym, row)));
         setLoaded(true);
     };
     // A background revalidation that FAILS leaves the last good scan on screen (it is still a
@@ -610,10 +585,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const tt = useTechnicalT();
   const [techOpen, setTechOpen] = useState(false);
   const [techControls, setTechControls] = useState<TechControls>(TECH_DEFAULT_CONTROLS);
-  const techScan = useTechnicalScan(techOpen || techControlsActive(techControls) || columns.includes("technical"));
+  const techScan = useTechnicalScan(techOpen || techControlsActive(techControls) || columns.includes("technical") || researchActive);
   const techSource = techScan.phase === "settled" ? techScan.source : null;
   const techNow = techScan.phase === "settled" ? techScan.now : 0;
-  const techOnScreen = techSource !== null;
+  const techIntent = techOpen || techControlsActive(techControls) || columns.includes("technical");
+  const techOnScreen = techIntent && techSource !== null;
   const techScreen = useMemo(() => technicalScreenOf(techControls), [techControls]);
   const techGate = techControlsActive(techControls);
   const techWait = techGate && techSource === null;
@@ -730,7 +706,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // E04 smart screens hold a GICS sector and a floor in US dollars. The bar is handed to them only
   // in a sense that grammar can hold; otherwise Save refuses (smartScreenHandover), so a Yahoo
   // label is never filed as GICS nor an HKD floor as dollars.
-  const smartFilters = useMemo(() => smartScreenHandover(f, floorSt, scope).filters, [f, floorSt, scope]);
+  const smartHandover = useMemo(() => smartScreenHandover(f, floorSt, scope), [f, floorSt, scope]);
+  const smartFilters = smartHandover.filters;
 
   const signalView = f.signal !== "any" || f.uptrend;
   const effSort = sort;
@@ -741,8 +718,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     setSort(value ? value.sort as typeof DEF_SORT_U : DEF_SORT_U);
     setDensity(value?.density ?? "c");
     setViewId(value?.id ?? "current"); setViewName(value?.name ?? "Market overview");
-    const deepLink = new URLSearchParams(window.location.search).get("symbol");
-    setSearchRaw(initial && deepLink && /^[A-Z0-9][A-Z0-9.:^-]{0,30}$/.test(deepLink) ? deepLink : value?.search ?? "");
+    const deepLink = normalizeDiscoverSymbol(new URLSearchParams(window.location.search).get("symbol"));
+    setSearchRaw(initial && deepLink ? deepLink : value?.search ?? "");
     setTechControls(value?.technical ?? TECH_DEFAULT_CONTROLS);
     setFundPreds(value?.fundamental ?? []); setFundEpoch(n => n + 1);
     setActivePreset(null); setShowAllMarkets(value?.showAllMarkets ?? false);
@@ -834,9 +811,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
   // component accumulated them inside the predicate, so the counts never reacted to a filter.
   const { view, nBuy, nSell, hiddenN, hiddenFrom, excl, coverage, techReq, techHidden, fundCells, fundTally, fundSummary, fundWait } = useMemo(() => {
-    const qRaw = search.trim();
-    const q = qRaw.toLowerCase();
-    const explicitMkt = f.market !== "all";
+    const query = parseDiscoverSearch(search);
     let hidden = 0;
     const from = new Set<MarketId>();
     // E03: the classification predicate (native taxonomy, stale only by opt-in) and the money
@@ -851,31 +826,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     let techHidden = 0;
 
     const base = rowsJoined.filter((r) => {
-      if (!f.unpriced && r.last == null) return false;
-      if (explicitMkt && r.mktId !== f.market) return false;
-      if (f.asset !== "all" && r.sec !== f.asset) return false;
-
-      if (f.signal === "buy" && !isBuy(r.verdict)) return false;
-      if (f.signal === "sell" && r.verdict !== "SELL") return false;
-      if (f.signal === "tracked" && r.verdict == null) return false;
-      if (f.uptrend && r.regimeBull !== true) return false;
-
-      if (f.mcap > 0 && (r.mcap == null || r.mcap < f.mcap)) return false;
-
-      if (f.w52 === "nearHigh" && (r.offHi == null || r.offHi < -5)) return false;
-      if (f.w52 === "within15" && (r.offHi == null || r.offHi < -15)) return false;
-      if (f.w52 === "dd30" && (r.offHi == null || r.offHi > -30)) return false;
-      if (f.w52 === "nearLow" && (r.offLo == null || r.offLo > 10)) return false;
-
-      if (f.move !== "any") {
-        if (r.chg == null) return false;
-        if (f.move === "up3" && r.chg < 3) return false;
-        if (f.move === "down3" && r.chg > -3) return false;
-        if (f.move === "abs5" && Math.abs(r.chg) < 5) return false;
-      }
-
-      // zh names are searchable here now — they were unreachable in the old component
-      if (q && !r.sym.toLowerCase().includes(q) && !r.name.toLowerCase().includes(q) && !(r.zh && r.zh.includes(qRaw))) return false;
+      if (!passes(evaluateDiscoverBase(r, f, query).match)) return false;
 
       const visible = !gateByPrefs || isSymbolVisible(r.sym, r, prefs);
       if (scan) {
@@ -883,7 +834,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         if (cov && cls && visible) cov[labelStanding(cls)]++;
         const cur = annot.get(r.sym)?.cur ?? { kind: "unknown" as const, reason: "not_in_scan" };
         const x = screenCrossMarket(cls, pred, { v: r.dv, cur }, appliedLiq, scope.code);
-        if (x !== null) { if (x !== "fail" && visible) ex[x]++; return false; }
+        if (x !== null) { if (x !== "fail" && visible) ex[x] = (ex[x] ?? 0) + 1; return false; }
       } else if (f.liq > 0 || pred) {
         return false; // no read has settled: nothing is admitted on a rule it cannot evaluate
       }
@@ -900,7 +851,14 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
       // Market-visibility gate LAST, so the hidden count describes rows that would OTHERWISE
       // be results — the same semantics as SearchModal's hiddenByMarket notice.
-      if (!visible) { hidden++; from.add(r.mktId); return false; }
+      if (!visible) {
+        // A hidden-market count promises rows that pass the COMPLETE current screen.
+        // Fundamental failures and unknowns must not inflate the invitation to widen it.
+        if (!fundPreds.length || fund.source && passes(evaluateFundamentalScreen(fund.source, r.sym, fundPreds, fund.nowMs).match)) {
+          hidden++; from.add(r.mktId);
+        }
+        return false;
+      }
       return true;
     });
 
@@ -939,7 +897,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
     // sort — nulls always last regardless of direction. Traded value is compared only within
     // one currency (scope currency first, then each other currency as its own block; a listing
-    // whose currency was not read is ordered only against its own market); the sector column
+    // whose currency was not read is grouped by market, never ranked by amount); the sector column
     // sorts by taxonomy, then label. A fundamental column sorts on EVALUATED values only: a
     // stale or unknown cell is never ranked as if it were current.
     const noCur = { kind: "unknown" as const, reason: "not_in_scan" };
@@ -953,19 +911,20 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       return r[effSort.k as keyof Row];
     };
     const sorted = [...kept].sort((a, b2) => {
-      if (effSort.k === "dv") {
+      const tie = a.sym < b2.sym ? -1 : a.sym > b2.sym ? 1 : 0;
+      if (effSort.k === "dv" || effSort.k === "last" || effSort.k === "hi52" || effSort.k === "lo52") {
         return compareMoney(
-          { v: a.dv, cur: annot.get(a.sym)?.cur ?? noCur, mkt: a.mktId },
-          { v: b2.dv, cur: annot.get(b2.sym)?.cur ?? noCur, mkt: b2.mktId },
+          { v: a[effSort.k], cur: annot.get(a.sym)?.cur ?? noCur, mkt: a.mktId },
+          { v: b2[effSort.k], cur: annot.get(b2.sym)?.cur ?? noCur, mkt: b2.mktId },
           scope.code, effSort.dir,
-        );
+        ) || tie;
       }
       const x: any = keyOf(a);
       const y: any = keyOf(b2);
-      if (x == null && y == null) return 0;
+      if (x == null && y == null) return tie;
       if (x == null) return 1;
       if (y == null) return -1;
-      return (x > y ? 1 : x < y ? -1 : 0) * effSort.dir;
+      return (x > y ? 1 : x < y ? -1 : 0) * effSort.dir || tie;
     });
 
     return {
@@ -977,7 +936,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     techOnScreen, techGate, techSource, techScreen, techNow,
     fund.source, fund.nowMs, fundPreds, fundCols, fundOpen, fundField,
   ]);
-  const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
+  const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney + (excl.valueMissing ?? 0);
   // Rows / counts / empty state render only over a settled result (manifest AND, when a
   // fundamental filter is held, the fundamental scan).
   const tableReady = loaded && !err && !fundWait && !techWait;
@@ -997,9 +956,16 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const paddingTop = startIdx * rowH;
   const paddingBottom = Math.max(0, totalH - endIdx * rowH);
   const windowedRows = view.slice(startIdx, endIdx);
-  const quotes = useDiscoverQuotes(expectedOwner, tableReady ? windowedRows.map(r => r.sym) : [],
-    tableReady ? windowedRows.filter(r => r.mktId === "us").map(r => r.sym) : [],
-    columns.includes("last") || columns.includes("chg"), columns.includes("overnight") || columns.includes("overnightChg"));
+  const rowsBySymbol = useMemo(() => new Map(rowsJoined.map(row => [row.sym, row])), [rowsJoined]);
+  const quoteDetail = quoteDetailSymbol ? rowsBySymbol.get(quoteDetailSymbol) ?? null : null;
+  const comparisonRows = research.compare.map(symbol => rowsBySymbol.get(symbol) ?? normalizeDiscoverRow(symbol, {}));
+  const inspectedRow = research.symbol ? rowsBySymbol.get(research.symbol) ?? normalizeDiscoverRow(research.symbol, {}) : null;
+  const openResearchRows = (evidence ? [] : research.comparisonOpen ? comparisonRows : inspectedRow ? [inspectedRow] : []).filter(row => rowsBySymbol.has(row.sym));
+  const workspaceCurrent = workspaceOwner === expectedOwner && account.owner === expectedOwner && account.discoverReady
+    && workspaceToken?.owner === liveOwnerToken.owner && workspaceToken.generation === liveOwnerToken.generation
+    && hydrationRevision === hydrationSequence.current;
+  const quoteDemand = discoverQuoteDemand(tableReady && workspaceCurrent ? windowedRows : [], workspaceCurrent ? [...openResearchRows, ...(quoteDetail ? [quoteDetail] : [])] : [], columns.includes("last") || columns.includes("chg"), columns.includes("overnight") || columns.includes("overnightChg"));
+  const quotes = useDiscoverQuotes(`${expectedOwner}:${liveOwnerToken.generation}`, quoteDemand.regular, quoteDemand.overnight, quoteDemand.regular.length > 0, quoteDemand.overnight.length > 0);
 
   // Only an intentional change of the requested view starts at its first result.
   // Quote/classification revalidation changes rows, not this key, and keeps place.
@@ -1031,6 +997,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     setCleared(null);
     startTransition(() => {
       setActivePreset(null);
+      setSearchRaw("");
       setF(DEFAULT_FILTERS);
       setTechControls((c) => ({ ...TECH_DEFAULT_CONTROLS, tf: c.tf }));
       setFundPreds([]);
@@ -1074,6 +1041,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     startTransition(() => {
       setActivePreset(null);
       setF(merged);
+      setSearchRaw("");
+      setTechControls(TECH_DEFAULT_CONTROLS);
+      setTechOpen(false);
       // A saved screen is applied whole: its fundamental conditions replace the table's, and the
       // editor's draft follows even where the screen has no condition on the selected field.
       setFundPreds(o.fund);
@@ -1210,6 +1180,48 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const observationTime = (ms: number | null | undefined) => ms ? new Date(ms).toLocaleString(tPlain("en_us")) : (tPlain("date_unavailable"));
   const quoteStateLabel = (kind: string) => kind === "live" ? (tPlain("live")) : kind === "close" ? (tPlain("regular_session_close")) : kind === "delayed" ? (tPlain("15_minute_delayed")) : kind === "snapshot" ? (tPlain("scan_snapshot")) : (tPlain("latest_available_quote"));
 
+  const researchPosition = research.symbol ? view.findIndex(row => row.sym === research.symbol) : -1;
+  const researchCandidate = (row: Row): DiscoverCandidate => {
+    const annotation = annot.get(row.sym), cur = annotation?.cur ?? { kind: "unknown" as const, reason: "not_in_scan" };
+    const unit = cur.kind === "code" ? cur.code : rt(cur.kind === "unknown" ? "currencyUnknown" : "unitNotMoney");
+    const recorded = discoverSignal(row, lang, quotes.now);
+    const base = evaluateDiscoverBase(row, f, parseDiscoverSearch(search));
+    const conditions: ResearchCondition[] = base.checks.map(check => {
+      const label = check.id === "price" ? rt("priceRequired") : check.id === "search" ? rt("search") : tags.find(tag => tag.id === (check.id === "regime" ? "uptrend" : check.id))?.label ?? check.id;
+      const value = check.id === "price" ? `${fmt(row.last)} ${unit}` : check.id === "market" ? t(MARKET_TKEY[row.mktId])
+        : check.id === "asset" ? assetLabel(row.sec) : check.id === "signal" ? `${recorded.label} · ${recorded.date ?? recorded.ageLabel}`
+        : check.id === "regime" ? `${row.regimeBull === null ? rt("unavailable") : row.regimeBull ? rt("uptrend") : rt("mixed")} · ${asOf || "—"}`
+        : check.id === "mcap" ? usd(row.mcap) : check.id === "w52" ? `${fmt(f.w52 === "nearLow" ? row.offLo : row.offHi)}%`
+        : check.id === "move" ? `${fmt(row.chg)}%` : search;
+      return { label, value, match: check.match };
+    });
+    if (gateByPrefs) conditions.push({ label: rt("market"), value: t(MARKET_TKEY[row.mktId]), match: isSymbolVisible(row.sym, row, prefs) ? "pass" : "fail" });
+    const predicate = classPredicateOf(f);
+    if (predicate && tax) {
+      const cls = scan ? resolveLabel(scan, row, tax, now) : null;
+      const outcome = cls ? screenCrossMarket(cls, predicate, null, 0, null) : "unread";
+      const label = annotation?.disp.kind === "label" ? labelText(annotation.disp.taxonomy, annotation.disp.label) : rt("unavailable");
+      conditions.push({ label: tags.find(tag => tag.id === "sector")?.label ?? rt("sector"), value: label, match: outcome === null ? "pass" : outcome === "fail" ? "fail" : "unknown" });
+    }
+    if (f.liq > 0) {
+      const outcome = floorSt.kind === "applied" ? screenCrossMarket(null, null, { v: row.dv, cur }, f.liq, scope.code) : "currencyUnknown";
+      conditions.push({ label: `${rt("liquidity")} ≥ ${formatFloor(f.liq, f.liqCcy ?? scope.code)}`, value: formatMoney(row.dv, cur), match: outcome === null ? "pass" : outcome === "fail" ? "fail" : "unknown" });
+    }
+    if (techGate) conditions.push(...researchTechnicalConditions(techSource, row.sym, techScreen, techNow, lang, tt));
+    conditions.push(...researchFundamentalConditions(fund.source, row.sym, fundPreds, fund.nowMs, lang, ft, predicate => predicateLabel(ft, predicate)));
+    return { row, currency: cur, sector: annotation ? <SectorCellContent compact d={annotation.disp} labelText={labelText} /> : rt("unavailable"),
+      href: techIntent ? technicalChartHandover(row.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES)?.href ?? listingHref(row.sym) : listingHref(row.sym),
+      conditions, inResults: view.some(result => result.sym === row.sym), available: rowsBySymbol.has(row.sym) };
+  };
+  const researchCandidates = (research.comparisonOpen ? comparisonRows : inspectedRow ? [inspectedRow] : []).map(researchCandidate);
+  const closeResearch = () => { researchEvidenceFocus.current = null; editResearch(current => ({ ...current, symbol: null, comparisonOpen: false, full: false })); };
+  const restoreResearchFocus = () => {
+    const saved = researchOpener.current, token = currentOwnerToken();
+    if (!saved || saved.token.owner !== token.owner || saved.token.generation !== token.generation) return null;
+    return saved.element.isConnected ? saved.element : tableRef.current;
+  };
+  const resumeResearchEvidence = researchEvidenceFocus.current?.owner === expectedOwner && researchEvidenceFocus.current.generation === liveOwnerToken.generation ? researchEvidenceFocus.current : null;
+
   // "{n} results" with the numeral in a <b> so it can carry tabular-nums
   const resultLine = (() => {
     const tpl = t("scr2Results");
@@ -1225,7 +1237,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     <main className={`main2 screener-main scr2 ${workspaceStyles.workspace}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
       <div className="scr2-bar">
         <div className={workspaceStyles.toolbar}>
-          <div className={workspaceStyles.search}><DiscoverIcon name="search" /><input className="scr2-search" type="search" placeholder={t("scrSearchPlaceholder")} aria-label={t("scrSearchPlaceholder")} value={searchRaw} onChange={e => setSearchRaw(e.target.value)} /></div>
+          <div className={workspaceStyles.search}><DiscoverIcon name="search" /><input className="scr2-search" type="search" placeholder={t("scrSearchPlaceholder")} aria-label={t("scrSearchPlaceholder")} title={rt("searchHint")} maxLength={120} value={searchRaw} onChange={e => setSearchRaw(e.target.value)} />{searchRaw && <button type="button" className={researchStyles.searchClear} aria-label={rt("clearSearch")} onClick={() => setSearchRaw("")}>×</button>}</div>
           <DiscoverSelect
             className="scr2-select"
             aria-label={t("scr2Market")}
@@ -1536,6 +1548,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         onFundNeeded={setFundWanted}
         prefsEnabled={prefsReady ? prefs.enabled : null}
         showAllMarkets={showAllMarkets}
+        tableHasExtraConditions={!!searchRaw.trim() || techGate}
+        tableViewOnlyReason={smartHandover.gap ? rt("classificationViewOnly") : undefined}
+        onSaveFullView={() => setViewsOpen(true)}
         labelGics={gicsLabel}
         labelAsset={assetLabel}
         onOpen={openSmartScreen}
@@ -1576,7 +1591,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           tally={tableReady ? fundTally : null}
           onRemove={(id) => setFundPreds((ps) => ps.filter((p) => p.field !== id))}
         />
-        {tags.length + fundPreds.length + (techGate ? 1 : 0) >= 1 && (
+        {search.trim() && <button type="button" className="fin-tag scr2-ftag" aria-label={rt("clearSearch")} onClick={() => setSearchRaw("")}>{parseDiscoverSearch(search).kind === "symbols" ? rt("tickerList", { n: (parseDiscoverSearch(search) as { symbols: string[] }).symbols.length }) : `${rt("search")}: ${search}`} ×</button>}
+        {tags.length + fundPreds.length + (techGate ? 1 : 0) + (search.trim() ? 1 : 0) >= 1 && (
           <button type="button" className="scr2-clear" onClick={clearAll}>{t("scr2ClearAll")}</button>
         )}
 
@@ -1598,7 +1614,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         )}
       </div>
 
-      <div className="scr2-table" ref={tableRef}>
+      {research.compare.length > 0 && <DiscoverComparisonTray rows={comparisonRows} onRemove={toggleCompare} onClear={() => editResearch(current => ({ ...current, compare: [], comparisonOpen: false, full: false }))} onOpen={() => { researchOpener.current = { element: document.activeElement as HTMLElement, token: liveOwnerToken }; editResearch(current => ({ ...current, symbol: null, comparisonOpen: true, full: false })); }} />}
+      {research.full && <p className={researchStyles.compareNotice} role="status">{rt("compareCap")}</p>}
+      <div className="scr2-table" ref={tableRef} tabIndex={-1}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveDrag(e.active.id as DiscoverColumn)} onDragCancel={() => setActiveDrag(null)} onDragEnd={e => { setActiveDrag(null); if (e.over) setColumns(c => moveDiscoverColumn(c, String(e.active.id), String(e.over!.id))); }}
           accessibility={{ screenReaderInstructions: { draggable: tPlain("press_space_to_move_a_column_arrow") }, announcements: {
             onDragStart: ({ active }) => zh ? `已选择${columnLabels[active.id as DiscoverColumn]}列，当前为第${columns.indexOf(active.id as DiscoverColumn) + 1}列。` : `Picked up ${columnLabels[active.id as DiscoverColumn]}, column ${columns.indexOf(active.id as DiscoverColumn) + 1} of ${columns.length}.`,
@@ -1680,7 +1698,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               const buy = isBuy(r.verdict);
               const a = annot.get(r.sym);
               const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
-              const handover = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
+              const handover = techIntent ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
               const href = handover ? handover.href : listingHref(r.sym);
               const recordPick = () => { if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim()); };
               const symbolIdentity = <>
@@ -1692,8 +1710,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               </>;
               const symCell = (
                 <td data-column="sym">
+                  <div className={researchStyles.symbolCell}>
                   {href ? <Link href={href} prefetch={false} className={`sym-cell ${interactionStyles.symbolLink}`} onClick={recordPick}>{symbolIdentity}</Link>
                     : <div className="sym-cell">{symbolIdentity}</div>}
+                  <span className={researchStyles.rowActions}><button type="button" className={researchStyles.inspectButton} data-discover-inspect={r.sym} title={rt("inspectSymbol", { sym: r.sym })} aria-label={rt("inspectSymbol", { sym: r.sym })} onClick={e => openInspector(r.sym, e.currentTarget)}><InspectIcon /></button><button type="button" className={researchStyles.compareButton} data-discover-compare={r.sym} aria-label={`${rt(research.compare.includes(r.sym) ? "removeCompare" : "addCompare")} · ${r.sym}`} aria-pressed={research.compare.includes(r.sym)} onClick={() => toggleCompare(r.sym)}>{research.compare.includes(r.sym) ? "✓" : "+"}</button></span>
+                  </div>
                 </td>
               );
               const lastCell = <td data-column="last" title={quoteLabel}><button type="button" data-discover-quote={r.sym} className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}价格详情` : `${r.sym} price details`} onClick={() => setQuoteDetail(r)}><span key={quote.price} className={workspaceStyles.quoteChanged}>{quote.price == null ? "—" : fmt(quote.price, quote.price < 10 ? 4 : 2)}</span>{quote.kind === "live" ? <span className={workspaceStyles.quoteLive} aria-label={tPlain("live")} /> : <span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span>}</button></td>;
@@ -1708,12 +1729,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                     : r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
                 >{formatMoney(r.dv, cur)}</td>
               );
-              const signalName = r.verdict === "REBUY" ? (tPlain("re_buy")) : r.verdict === "RECLAIM" ? (tPlain("re_entry")) : r.verdict ? verdictLabel(r.verdict, lang) : "";
-              const sigCell = <td data-column="verdict">{r.verdict ? <button type="button" className={`${workspaceStyles.signalButton} ${buy ? "up" : r.verdict === "SELL" ? "down" : ""}`} title={`${signalName} · ${r.vts || (tPlain("date_unavailable_2"))} · ${tPlain("select_for_explanation")}`} onClick={() => setHelp(r)}>{signalName}{verdictIsStale(r.vts) || !r.vts ? <span aria-label={tPlain("historical_reading")}> ·</span> : null}</button> : <span className={workspaceStyles.uncovered}>{tPlain("not_covered")}</span>}</td>;
+              const signalReading = discoverSignal(r, lang, quotes.now);
+              const sigCell = <td data-column="verdict">{r.verdict ? <button type="button" data-signal-age={signalReading.age} className={`${workspaceStyles.signalButton} ${researchStyles.tableSignal} ${!signalReading.dim && buy ? "up" : !signalReading.dim && r.verdict === "SELL" ? "down" : ""}`} title={`${signalReading.label} · ${signalReading.date ?? signalReading.ageLabel} · ${tPlain("select_for_explanation")}`} onClick={e => openInspector(r.sym, e.currentTarget)}>{signalReading.label}<span className={researchStyles.signalAge}>{signalReading.dim ? signalReading.ageLabel : signalReading.date}</span></button> : <span className={workspaceStyles.uncovered}>{tPlain("not_covered")}</span>}</td>;
               const pct = (n: number | null) => n == null ? "—" : `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
               const cells: Partial<Record<DiscoverColumn, React.ReactNode>> = {
                 sym: symCell, verdict: sigCell, last: lastCell, chg: chgCell, dv: dvCell,
-                regimeBull: <td data-column="regimeBull"><button type="button" className={`${workspaceStyles.regimeButton} ${r.regimeBull === true ? "up" : ""}`} onClick={() => setHelp(r)}>{r.regimeBull === null ? "—" : r.regimeBull ? t("uptrend") : t("mixed")}</button></td>,
+                regimeBull: <td data-column="regimeBull"><button type="button" className={`${workspaceStyles.regimeButton} ${r.regimeBull === true ? "up" : ""}`} onClick={e => openInspector(r.sym, e.currentTarget)}>{r.regimeBull === null ? "—" : r.regimeBull ? t("uptrend") : t("mixed")}</button></td>,
                 mcap: <td>{usd(r.mcap)}</td>, gics: <td className="scr2-sec">{a ? <SectorCellContent compact d={a.disp} labelText={labelText} /> : "—"}</td>,
                 overnight: <td data-column="overnight" title={overnight ? `BOATS · ${new Date(overnight.extTs * 1000).toLocaleString()}` : tPlain("no_current_qualified_overnight_trade")}><button type="button" className={workspaceStyles.quoteButton} aria-label={zh ? `${r.sym}夜盘详情` : `${r.sym} overnight details`} onClick={() => setQuoteDetail(r)}>{overnight ? fmt(overnight.extPrice) : "—"}<span className={workspaceStyles.quoteInfo} aria-hidden="true">ⓘ</span></button></td>,
                 overnightChg: <td className={overnight?.extChg != null ? overnight.extChg >= 0 ? "up" : "down" : ""} title={tPlain("overnight_trade_versus_the_regular_session_close")}>{overnight?.extChg != null ? pct(overnight.extChg) : "—"}</td>,
@@ -1757,6 +1778,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       )}
 
       {columnsOpen && <DiscoverColumns columns={columns} labels={columnLabels} onChange={setColumns} onClose={() => setColumnsOpen(false)} zh={zh} />}
+      {researchActive && !evidence && <DiscoverResearchPanel key={research.comparisonOpen ? "compare" : "inspect"} mode={research.comparisonOpen ? "compare" : "inspect"} candidates={researchCandidates} asOf={asOf} quotes={quotes} fundamental={fund} resumeEvidence={resumeResearchEvidence}
+        technical={{ source: techSource, now: techNow, tf: techControls.tf, retry: techScan.retry }} selected={research.compare} position={researchPosition} total={view.length}
+        onPrevious={researchPosition > 0 ? () => openInspector(view[researchPosition - 1].sym) : null} onNext={researchPosition >= 0 && researchPosition + 1 < view.length ? () => openInspector(view[researchPosition + 1].sym) : null}
+        onToggleCompare={toggleCompare} onInspect={openInspector} onClose={closeResearch} returnFocus={restoreResearchFocus}
+        onEvidence={(sym, field, opener) => { researchEvidenceFocus.current = { symbol: sym, field, owner: expectedOwner, generation: liveOwnerToken.generation }; setEvidence({ sym, name: displayName(rowsBySymbol.get(sym) ?? { name: sym }, lang), field, opener }); }} />}
       {viewsOpen && <DiscoverViews views={account.discover.views} activeId={viewId} onSelect={chooseWorkspace} onSave={saveView} onDelete={deleteView} onTemplate={useTemplate} onClose={() => setViewsOpen(false)} zh={zh} canSave={canSaveViews} />}
       {quoteDetail && detailRegular && <DiscoverDialog title={`${quoteDetail.sym} · ${tPlain("price_details")}`} onClose={() => setQuoteDetail(null)}>
         <div className={workspaceStyles.helpBody}>
@@ -1771,7 +1797,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       </DiscoverDialog>}
       {help && <DiscoverDialog title={help === "guide" ? (tPlain("signals_regimes_historical_data")) : `${help.sym} · ${tPlain("signal_details")}`} onClose={() => setHelp(null)} wide>
         <div className={workspaceStyles.helpBody}>
-          {help !== "guide" && <dl><dt>{tPlain("last_recorded_event")}</dt><dd>{help.verdict ?? "—"} · {help.vts ?? (tPlain("date_unavailable_2"))}</dd><dt>{tPlain("regime_snapshot")}</dt><dd>{help.regimeBull === null ? "—" : help.regimeBull ? t("uptrend") : t("mixed")} · {asOf}</dd></dl>}
+          {help !== "guide" && <dl><dt>{tPlain("last_recorded_event")}</dt><dd>{discoverSignal(help, lang, quotes.now).label} · {help.vts ?? (tPlain("date_unavailable_2"))}</dd><dt>{tPlain("regime_snapshot")}</dt><dd>{help.regimeBull === null ? "—" : help.regimeBull ? t("uptrend") : t("mixed")} · {asOf}</dd></dl>}
           <h3>{tPlain("find_agreement_between_signal_and_regime")}</h3>
           <p>{tPlain("the_buy_signals_uptrend_view_combines_the")}</p>
           <h3>{tPlain("what_each_signal_means")}</h3>
@@ -1800,4 +1826,3 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     </main>
   );
 }
-

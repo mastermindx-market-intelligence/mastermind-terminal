@@ -191,6 +191,8 @@ export type CurrencyScope = {
   auto: boolean;
   /** Known listing currencies in the population, most common first (ties by code). */
   codes: ReadonlyArray<{ code: string; n: number }>;
+  /** Rows without an affirmative monetary unit; they cannot be handed to a raw USD grammar. */
+  unresolved?: number;
 };
 
 /**
@@ -206,10 +208,12 @@ export function resolveCurrencyScope(
   preferred: string | null,
 ): CurrencyScope {
   const counts = new Map<string, number>();
-  for (const c of currencies) if (c.kind === "code") counts.set(c.code, (counts.get(c.code) ?? 0) + 1);
+  let unresolved = 0;
+  for (const c of currencies) { if (c.kind === "code") counts.set(c.code, (counts.get(c.code) ?? 0) + 1); else unresolved++; }
   const codes = Array.from(counts, ([code, n]) => ({ code, n })).sort((a, b) => b.n - a.n || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
-  if (pref && pref !== "auto") return { code: pref, auto: false, codes };
-  return { code: preferred !== null && counts.has(preferred) ? preferred : codes[0]?.code ?? null, auto: true, codes };
+  const missing = unresolved ? { unresolved } : {};
+  if (pref && pref !== "auto") return { code: pref, auto: false, codes, ...missing };
+  return { code: preferred !== null && counts.has(preferred) ? preferred : codes[0]?.code ?? null, auto: true, codes, ...missing };
 }
 
 export type MoneyOutcome = "pass" | "below" | "value_missing" | "other_currency" | "currency_unknown" | "not_money";
@@ -236,11 +240,9 @@ const marketOrder = (m: string | null | undefined): number => {
  * block (by code), then everything that has no comparable value. Values are compared only
  * within one currency; direction flips the values, never the blocks.
  *
- * A listing whose currency was not read still has an amount in its own market's quote unit, so
- * those rows are ordered by amount within their own market only (markets in the product's
- * market order, never interleaved). That keeps a failed or pending classification read from
- * turning the traded-value sort into an arbitrary list, without ranking one market's amounts
- * against another's. Rows with no amount, or no money at all, stay last in their incoming order.
+ * Unknown currencies are grouped by market for orientation, never ranked by amount: a single
+ * market can contain several quote currencies. The caller supplies a stable identity tie-break
+ * within incomparable groups. Rows with no amount or no money stay last.
  */
 export function compareMoney(a: MoneySortItem, b: MoneySortItem, scopeCode: string | null, dir: 1 | -1): number {
   const finite = (x: MoneySortItem) => x.v != null && Number.isFinite(x.v);
@@ -254,9 +256,7 @@ export function compareMoney(a: MoneySortItem, b: MoneySortItem, scopeCode: stri
     if (ma !== mb) return ma - mb;
     const ka = a.mkt ?? "", kb = b.mkt ?? "";
     if (ka !== kb) return ka < kb ? -1 : 1;
-    if (ka === "") return 0; // no market identity: no amount comparison either
-    const va = a.v as number, vb = b.v as number;
-    return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+    return 0; // a market identity is not evidence of a shared currency
   }
   const ca = (a.cur as { code: string }).code, cb = (b.cur as { code: string }).code;
   if (ca !== cb) return ca < cb ? -1 : 1;
@@ -296,8 +296,9 @@ export type ExclusionCounts = {
   otherCurrency: number;   // a money floor in another currency than the scope
   currencyUnknown: number; // a money floor, listing currency unknown
   notMoney: number;        // a money floor on an index / rate / FX / futures row
+  valueMissing?: number;  // known currency, but no usable traded amount
 };
-export const NO_EXCLUSIONS: ExclusionCounts = { stale: 0, unclassified: 0, unread: 0, otherCurrency: 0, currencyUnknown: 0, notMoney: 0 };
+export const NO_EXCLUSIONS: ExclusionCounts = { stale: 0, unclassified: 0, unread: 0, otherCurrency: 0, currencyUnknown: 0, notMoney: 0, valueMissing: 0 };
 
 export type CrossMarketExclusion = keyof ExclusionCounts;
 
@@ -324,6 +325,7 @@ export function screenCrossMarket(
     if (m === "other_currency") return "otherCurrency";
     if (m === "currency_unknown") return "currencyUnknown";
     if (m === "not_money") return "notMoney";
+    if (m === "value_missing") return "valueMissing";
     if (m !== "pass") return "fail";
   }
   return null;
@@ -393,23 +395,24 @@ export function reconcileFilters<F extends CrossMarketFilters, L>(
   if (!opts.readable) return { next: out, cleared };
 
   const currencies = population.map((l) => probe.currency(l));
+  const unreadCurrencies = currencies.some(c => c.kind === "unknown");
   const codes = new Set<string>();
   for (const c of currencies) if (c.kind === "code") codes.add(c.code);
 
-  if (out.ccy && out.ccy !== "auto" && !codes.has(out.ccy)) {
+  if (out.ccy && out.ccy !== "auto" && !codes.has(out.ccy) && !unreadCurrencies) {
     cleared.push({ field: "ccy", value: out.ccy, reason: codes.size > 0 ? "currency_not_in_market" : "currency_unavailable" });
     out.ccy = "auto";
   }
   if (out.liq > 0) {
     const scopeCode = resolveCurrencyScope(out.ccy, currencies, opts.preferred).code;
     const setIn = out.liqCcy ?? null;
-    if (codes.size === 0 || scopeCode === null) {
+    if ((codes.size === 0 || scopeCode === null) && !unreadCurrencies) {
       cleared.push({ field: "liq", value: formatFloor(out.liq, setIn), reason: "currency_unavailable" });
       out.liq = 0; out.liqCcy = null;
-    } else if (setIn !== null && setIn !== scopeCode) {
+    } else if (scopeCode !== null && setIn !== null && setIn !== scopeCode && (!unreadCurrencies || out.ccy && out.ccy !== "auto")) {
       cleared.push({ field: "liq", value: formatFloor(out.liq, setIn), reason: "currency_changed", from: setIn, to: scopeCode });
       out.liq = 0; out.liqCcy = null;
-    } else {
+    } else if (scopeCode !== null && (setIn === null || setIn === scopeCode)) {
       out.liqCcy = scopeCode;
     }
   } else if (out.liqCcy != null) {
@@ -485,7 +488,7 @@ export function sanitizeCrossMarketFields(raw: {
 // ── Smart screens (E04) hand-over ───────────────────────────────────────────
 
 /** Why the filter bar cannot be handed to a smart screen as it stands. */
-export type SmartScreenGap = "unclassified" | "non_gics_taxonomy" | "floor_inactive" | "floor_not_usd" | "floor_mixed_currency";
+export type SmartScreenGap = "unclassified" | "non_gics_taxonomy" | "floor_inactive" | "floor_not_usd" | "floor_mixed_currency" | "floor_unknown_currency";
 
 /**
  * Smart screens (E04) store a GICS sector and ONE traded-value number, shown and compared as US
@@ -511,6 +514,7 @@ export function smartScreenHandover<F extends CrossMarketFilters>(
     if (floor.kind !== "applied") gap = "floor_inactive";
     else if (floor.code !== "USD") gap = "floor_not_usd";
     else if (scope.codes.some((c) => c.code !== "USD")) gap = "floor_mixed_currency";
+    else if ((scope.unresolved ?? 0) > 0) gap = "floor_unknown_currency";
   }
   return { filters: gap === null ? f : { ...f, sector: UNCLASSIFIED }, gap };
 }

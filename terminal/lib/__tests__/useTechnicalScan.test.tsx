@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("../dataCache", () => ({ getJSONResult: mocks.getJSONResult, invalidate: mocks.invalidate }));
 
-import { REFRESH_FAILED, sourceFromOutcome, useTechnicalScan, type TechnicalScanState } from "../useTechnicalScan";
+import { REFRESH_FAILED, sourceFromOutcome, useTechnicalScan, TECHNICAL_SCAN_TIMEOUT_MS, type TechnicalScanState } from "../useTechnicalScan";
 import { TECHNICAL_SCAN_URL } from "../technicalScan";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -67,6 +67,7 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root!.unmount());
   host!.remove();
+  vi.useRealTimers();
 });
 
 const settled = () => {
@@ -90,6 +91,26 @@ describe("sourceFromOutcome", () => {
 });
 
 describe("useTechnicalScan", () => {
+  it("bounds a hung cold read and still adopts a late real answer", async () => {
+    vi.useFakeTimers();
+    const request = deferred<CacheOutcome>(); mocks.getJSONResult.mockReturnValue(request.promise);
+    render(true);
+    await act(async () => { await vi.advanceTimersByTimeAsync(TECHNICAL_SCAN_TIMEOUT_MS); });
+    expect(settled().source).toEqual({ kind: "error", error: "timeout" });
+    request.resolve({ status: "data", data: doc() } as CacheOutcome); await flush();
+    expect(readyScan().scan.generation).toBe(G);
+  });
+
+  it("fences an old timed-out request when Retry starts a new read", async () => {
+    vi.useFakeTimers();
+    const old = deferred<CacheOutcome>(), next = deferred<CacheOutcome>();
+    mocks.getJSONResult.mockReturnValueOnce(old.promise).mockReturnValueOnce(next.promise);
+    render(true); await act(async () => { await vi.advanceTimersByTimeAsync(TECHNICAL_SCAN_TIMEOUT_MS); });
+    act(() => seen.latest!.retry());
+    next.resolve({ status: "data", data: doc({ generation: G + 7200 }) } as CacheOutcome); await flush();
+    old.resolve({ status: "data", data: doc() } as CacheOutcome); await flush();
+    expect(readyScan().scan.generation).toBe(G + 7200);
+  });
   it("reads nothing until the technical screen is opened", async () => {
     render(false);
     await flush();

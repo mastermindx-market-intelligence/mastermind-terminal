@@ -1,0 +1,179 @@
+[warmup] /terminal?symbol=NVDA → 200 in 91ms
+[warmup] /options → 200 in 1812ms
+[warmup] /portfolio → 200 in 637ms
+[warmup] /alerts → 200 in 563ms
+[warmup] /analysis → 200 in 1261ms
+[warmup] /discover → 200 in 1753ms
+[warmup] /admin → 200 in 456ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 289ms
+[warmup] /login → 200 in 108ms
+[warmup] /reset-password → 200 in 310ms
+[warmup] /api/me → 200 in 452ms
+[warmup] /api/watchlist → 200 in 154ms
+[warmup] /api/layouts → 200 in 167ms
+[warmup] /api/watchlist/annotations → 409 in 169ms
+[warmup] 14 routes compiled in 8s
+[fixture-ready] prophet_idx fixture 200 in 502ms
+
+Running 6 tests using 1 worker
+
+[1/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector
+  1) [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      49 |   expect(hit.width).toBeGreaterThan(0);
+      50 |   expect(hit.height).toBeGreaterThan(0);
+    > 51 |   expect(hit.hit).toBe(true);
+         |                   ^
+      52 |   return hit;
+      53 | }
+      54 | async function keyboard(control: Locator) {
+        at reachable (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:51:19)
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:60:3)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:145:5
+
+    attachment #1: selected-bucket (image/png) ─────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/attachments/selected-bucket-1380f761bf1e4068ad44c926af04abb3d865d14a.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-interval-desktop-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-interval-desktop-20261114/flow-projection--en-dark-t-5d4ee-ters-coverage-and-inspector-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[2/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector
+  2) [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      49 |   expect(hit.width).toBeGreaterThan(0);
+      50 |   expect(hit.height).toBeGreaterThan(0);
+    > 51 |   expect(hit.hit).toBe(true);
+         |                   ^
+      52 |   return hit;
+      53 | }
+      54 | async function keyboard(control: Locator) {
+        at reachable (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:51:19)
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:60:3)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:145:5
+
+    attachment #1: selected-bucket (image/png) ─────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/attachments/selected-bucket-791127c94b9a8a3f2d1cb5b39b1228f01baf165e.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-interval-desktop-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-interval-desktop-20261114/flow-projection--en-light--794ab-ters-coverage-and-inspector-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[3/6] [desktop] › e2e/flow-projection.spec.ts:188:7 › [en] a held feed keeps its reason and projection over the last read
+[4/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector
+  3) [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      49 |   expect(hit.width).toBeGreaterThan(0);
+      50 |   expect(hit.height).toBeGreaterThan(0);
+    > 51 |   expect(hit.hit).toBe(true);
+         |                   ^
+      52 |   return hit;
+      53 | }
+      54 | async function keyboard(control: Locator) {
+        at reachable (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:51:19)
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:60:3)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:145:5
+
+    attachment #1: selected-bucket (image/png) ─────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/attachments/selected-bucket-8b00bc9d35a3d7eeeed3a9654a61eba174ef5e83.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-interval-desktop-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-interval-desktop-20261114/flow-projection--zh-dark-t-5e6bd-ters-coverage-and-inspector-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[5/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector
+  4) [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      49 |   expect(hit.width).toBeGreaterThan(0);
+      50 |   expect(hit.height).toBeGreaterThan(0);
+    > 51 |   expect(hit.hit).toBe(true);
+         |                   ^
+      52 |   return hit;
+      53 | }
+      54 | async function keyboard(control: Locator) {
+        at reachable (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:51:19)
+        at pointer (/Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:60:3)
+        at /Volumes/Mastermind 2/agent-workspaces/terminal/web/options-flow-interval-summary-20261114-c3/terminal/e2e/flow-projection.spec.ts:145:5
+
+    attachment #1: selected-bucket (image/png) ─────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/attachments/selected-bucket-bebe78c8db262f43dbaf71d48d141763f5c2e3fa.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flow-interval-desktop-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/flow-interval-desktop-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/flow-interval-desktop-20261114/flow-projection--zh-light--6e235-ters-coverage-and-inspector-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[6/6] [desktop] › e2e/flow-projection.spec.ts:188:7 › [zh] a held feed keeps its reason and projection over the last read
+  4 failed
+    [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector 
+    [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector 
+    [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector 
+    [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector 
+  2 passed (40.5s)

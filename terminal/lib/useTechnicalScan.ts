@@ -41,6 +41,7 @@ export function sourceFromOutcome(o: CacheOutcome): TechnicalScanSource {
 /** A stale serve whose background refresh failed is folded as a failed read, so the held copy is
  *  labelled `refreshFailed` instead of being painted as current. */
 export const REFRESH_FAILED: TechnicalScanSource = { kind: "error", error: "refresh_failed" };
+export const TECHNICAL_SCAN_TIMEOUT_MS = 10_000;
 
 export function useTechnicalScan(enabled: boolean): TechnicalScanState & { retry: () => void } {
   const [state, setState] = useState<TechnicalScanState>({ phase: "idle" });
@@ -57,6 +58,11 @@ export function useTechnicalScan(enabled: boolean): TechnicalScanState & { retry
       setState({ phase: "settled", source, decision, now: Date.now() });
     };
     if (heldRef.current === null) setState({ phase: "loading" });
+    // Bound the cold loading state. A late real answer can still be adopted through the same
+    // generation fence; a timeout never replaces a held scan or pretends filters have passed.
+    const deadline = setTimeout(() => {
+      if (heldRef.current === null) fold({ kind: "error", error: "timeout" });
+    }, TECHNICAL_SCAN_TIMEOUT_MS);
     getJSONResult(TECHNICAL_SCAN_URL, { onRevalidate: (d) => fold(readTechnicalScanResponse(200, d)) })
       .then((res) => {
         fold(sourceFromOutcome(res));
@@ -65,7 +71,7 @@ export function useTechnicalScan(enabled: boolean): TechnicalScanState & { retry
         }
       })
       .catch(() => fold({ kind: "error", error: "network" }));
-    return () => { alive = false; };
+    return () => { alive = false; clearTimeout(deadline); };
   }, [enabled, reloadN]);
 
   // invalidate() also clears the in-session 404 negative cache — without it a scan that once

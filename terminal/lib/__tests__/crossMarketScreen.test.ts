@@ -250,7 +250,7 @@ describe("AC-E03-04 — money is compared only within one listing currency", () 
     expect(asc).toEqual([usd(1e6), usd(5e6), hkd(1e3), hkd(9e9), unk]);
   });
 
-  it("orders a currency that was not read by amount within its own market only, never across markets", () => {
+  it("groups unread currencies by market without comparing unknown units inside a market", () => {
     const usd = (v: number) => ({ v, cur: { kind: "code", code: "USD" } as MoneyCurrency, mkt: "us" });
     const unk = (v: number, mkt: string) => ({ v, cur: { kind: "unknown", reason: "scan_unavailable" } as MoneyCurrency, mkt });
     const index = { v: 1e15, cur: { kind: "not_money", reason: "currency_not_applicable" } as MoneyCurrency, mkt: "us" };
@@ -258,9 +258,11 @@ describe("AC-E03-04 — money is compared only within one listing currency", () 
     // incoming order deliberately puts the largest HK amount first and the US rows apart
     const items = [unk(9e9, "hk"), index, unk(1e6, "us"), noValue, unk(1e3, "hk"), usd(2e6), unk(5e6, "us")];
     const desc = [...items].sort((a, b) => compareMoney(a, b, "USD", -1));
-    expect(desc).toEqual([usd(2e6), unk(5e6, "us"), unk(1e6, "us"), unk(9e9, "hk"), unk(1e3, "hk"), index, noValue]);
+    expect(desc).toEqual([usd(2e6), unk(1e6, "us"), unk(5e6, "us"), unk(9e9, "hk"), unk(1e3, "hk"), index, noValue]);
     const asc = [...items].sort((a, b) => compareMoney(a, b, "USD", 1));
-    expect(asc).toEqual([usd(2e6), unk(1e6, "us"), unk(5e6, "us"), unk(1e3, "hk"), unk(9e9, "hk"), index, noValue]);
+    expect(asc).toEqual(desc);
+    expect(compareMoney(unk(1, "hk"), unk(1e12, "hk"), "USD", -1)).toBe(0);
+    expect(compareMoney(unk(1, "hk"), unk(1e12, "hk"), "USD", 1)).toBe(0);
     // with no read at all (the failure state), the HK block never interleaves with the US block
     const unread = [unk(9e9, "hk"), unk(1e6, "us"), unk(1e3, "hk"), unk(5e6, "us")];
     expect([...unread].sort((a, b) => compareMoney(a, b, null, -1)).map((x) => x.mkt)).toEqual(["us", "us", "hk", "hk"]);
@@ -352,8 +354,30 @@ describe("AC-E03-05 — a market change keeps valid filters and clears incompati
 
   it("clears a traded-value floor only where a read found no listing currency at all", () => {
     expect(go({ ...BASE, liq: 5e6, liqCcy: "USD" }, "crypto").cleared).toEqual([]);
-    const none = reconcileFilters({ ...BASE, liq: 5e6, liqCcy: "USD" }, [{ sym: "ZZZZ" }], probe(S), { preferred: "USD", readable: true });
+    const unknown = reconcileFilters({ ...BASE, liq: 5e6, liqCcy: "USD" }, [{ sym: "ZZZZ" }], probe(S), { preferred: "USD", readable: true });
+    expect(unknown.cleared).toEqual([]);
+    expect(unknown.next).toMatchObject({ liq: 5e6, liqCcy: "USD" });
+    const none = reconcileFilters({ ...BASE, liq: 5e6, liqCcy: "USD" }, [{ sym: "ZZZZ" }], { ...probe(S), currency: () => ({ kind: "not_money", reason: "currency_not_applicable" }) }, { preferred: "USD", readable: true });
     expect(none.cleared).toEqual([{ field: "liq", value: "$5M", reason: "currency_unavailable" }]);
+  });
+
+  it("preserves a requested currency and its floor when unread listings could still carry it", () => {
+    const population: MoneyCurrency[] = [{ kind: "code", code: "USD" }, { kind: "unknown", reason: "not_in_scan" }];
+    const p = { currency: (c: MoneyCurrency) => c, mcap: () => null, label: (_: MoneyCurrency, tax: TaxonomyId) => probe(S).label({ sym: "ZZZZ" }, tax) };
+    const explicit = reconcileFilters({ ...BASE, ccy: "CNY", liq: 5e6, liqCcy: "CNY" }, population, p, { preferred: "USD", readable: true });
+    expect(explicit.cleared).toEqual([]); expect(explicit.next).toMatchObject({ ccy: "CNY", liq: 5e6, liqCcy: "CNY" });
+    const auto = reconcileFilters({ ...BASE, ccy: "auto", liq: 5e6, liqCcy: "CNY" }, population, p, { preferred: "USD", readable: true });
+    expect(auto.cleared).toEqual([]); expect(auto.next).toMatchObject({ liq: 5e6, liqCcy: "CNY" });
+    expect(floorState(auto.next.liq, auto.next.liqCcy, "USD", true)).toEqual({ kind: "other_currency", setIn: "CNY", scope: "USD" });
+    const changed = reconcileFilters({ ...BASE, ccy: "USD", liq: 5e6, liqCcy: "CNY" }, population, p, { preferred: "USD", readable: true });
+    expect(changed.cleared).toEqual([{ field: "liq", value: "CNY 5M", reason: "currency_changed", from: "CNY", to: "USD" }]);
+    const complete = reconcileFilters({ ...BASE, ccy: "CNY", liq: 5e6, liqCcy: "CNY" }, population.slice(0, 1), p, { preferred: "USD", readable: true });
+    expect(complete.cleared.map(c => c.field)).toEqual(["ccy", "liq"]);
+  });
+
+  it("accounts for a missing traded amount separately from a known amount below the floor", () => {
+    expect(screenCrossMarket(null, null, { v: null, cur: { kind: "code", code: "USD" } }, 1e6, "USD")).toBe("valueMissing");
+    expect(screenCrossMarket(null, null, { v: 0, cur: { kind: "code", code: "USD" } }, 1e6, "USD")).toBe("fail");
   });
 
   it("is not an input to a language change: the stored state is canonical, so nothing clears", () => {
@@ -399,7 +423,7 @@ describe("E04 smart screens — the bar is handed over only in a sense their gra
     return smartScreenHandover(f, floor, scope);
   };
 
-  it("hands a GICS sector over unchanged, and a USD floor over a USD-only population", () => {
+  it("hands a GICS sector over unchanged, and a USD floor only over an affirmatively USD population", () => {
     const gics = bar({ taxonomy: "gics_sector", sector: "Energy" });
     const a = handover(gics);
     expect(a.gap).toBeNull();
@@ -407,9 +431,21 @@ describe("E04 smart screens — the bar is handed over only in a sense their gra
     expect(compileFilters(a.filters, ctx).ok).toBe(true);
     const usFloor = bar({ market: "us", liq: 5e6, liqCcy: "USD" });
     expect(screen(S, usFloor).scope.codes.map((c) => c.code)).toEqual(["USD"]);
-    const b = handover(usFloor);
+    const b = smartScreenHandover(usFloor, { kind: "applied", code: "USD" }, resolveCurrencyScope("USD", [{ kind: "code", code: "USD" }], "USD"));
     expect(b.gap).toBeNull();
     expect(compileFilters(b.filters, ctx).ok).toBe(true);
+    // The US fixture also includes index/futures values. A raw dv floor would admit those
+    // numeric amounts although the currency-qualified table excludes them.
+    expect(handover(usFloor).gap).toBe("floor_unknown_currency");
+  });
+
+  it("cannot save an equivalent numeric floor when one candidate's currency was not read", () => {
+    const currencies: MoneyCurrency[] = [{ kind: "code", code: "USD" }, { kind: "unknown", reason: "not_in_scan" }];
+    const scope = resolveCurrencyScope("USD", currencies, "USD"), f = bar({ liq: 1e6, liqCcy: "USD" });
+    expect(currencies.map(cur => screenCrossMarket(null, null, { v: 2e6, cur }, 1e6, "USD"))).toEqual([null, "currencyUnknown"]);
+    const handover = smartScreenHandover(f, { kind: "applied", code: "USD" }, scope);
+    expect(handover.gap).toBe("floor_unknown_currency");
+    expect(compileFilters(handover.filters, ctx).ok).toBe(false);
   });
 
   it("refuses what the grammar would misfile: a Yahoo label as GICS, unclassified, a local-currency floor", () => {

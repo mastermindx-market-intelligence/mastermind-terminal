@@ -1,0 +1,26 @@
+[warmup] /terminal?symbol=NVDA → 200 in 67ms
+[warmup] /options → 200 in 1721ms
+[warmup] /portfolio → 200 in 1651ms
+[warmup] /alerts → 200 in 1090ms
+[warmup] /analysis → 200 in 921ms
+[warmup] /discover → 200 in 2250ms
+[warmup] /admin → 200 in 326ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 236ms
+[warmup] /login → 200 in 89ms
+[warmup] /reset-password → 200 in 271ms
+[warmup] /api/me → 200 in 336ms
+[warmup] /api/watchlist → 200 in 125ms
+[warmup] /api/layouts → 200 in 129ms
+[warmup] /api/watchlist/annotations → 409 in 116ms
+[warmup] 14 routes compiled in 9s
+[fixture-ready] prophet_idx fixture 200 in 348ms
+
+Running 6 tests using 1 worker
+
+[1/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[2/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [en][light] time buckets preserve canonical cards, filters, coverage and inspector
+[3/6] [desktop] › e2e/flow-projection.spec.ts:194:7 › [en] a held feed keeps its reason and projection over the last read
+[4/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][dark] time buckets preserve canonical cards, filters, coverage and inspector
+[5/6] [desktop] › e2e/flow-projection.spec.ts:72:7 › [zh][light] time buckets preserve canonical cards, filters, coverage and inspector
+[6/6] [desktop] › e2e/flow-projection.spec.ts:194:7 › [zh] a held feed keeps its reason and projection over the last read
+  6 passed (39.5s)
