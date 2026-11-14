@@ -1,0 +1,47 @@
+{
+  "kind": "OFFLINE_STATIC_VECTOR_COMPOSITIONS",
+  "native_paper": false,
+  "browser_screenshots": false,
+  "data": "illustrative",
+  "primary_desktop": 16,
+  "primary_narrow": 8,
+  "interaction_states": 4,
+  "viewport_desktop": [
+    1440,
+    1000
+  ],
+  "viewport_narrow": [
+    390,
+    1250
+  ],
+  "files": [
+    "03_Record_dark.svg",
+    "02_Bitcoin_light.svg",
+    "05_Strategies_dark.svg",
+    "06_Reserves_light.svg",
+    "12_Bonds_Exposure_Scenario.svg",
+    "07_Forex_light.svg",
+    "04_Commodities_light.svg",
+    "05_Strategies_mobile.svg",
+    "01_Crypto_mobile.svg",
+    "05_Strategies_light.svg",
+    "07_Forex_dark.svg",
+    "01_Crypto_dark.svg",
+    "11_Forex_Source_Gap_Matrix.svg",
+    "04_Commodities_mobile.svg",
+    "06_Reserves_dark.svg",
+    "01_Crypto_light.svg",
+    "06_Reserves_mobile.svg",
+    "08_Bonds_dark.svg",
+    "02_Bitcoin_mobile.svg",
+    "03_Record_mobile.svg",
+    "02_Bitcoin_dark.svg",
+    "03_Record_light.svg",
+    "10_Commodity_Comparison.svg",
+    "09_Bitcoin_Historical_Snapshot.svg",
+    "04_Commodities_dark.svg",
+    "07_Forex_mobile.svg",
+    "08_Bonds_light.svg",
+    "08_Bonds_mobile.svg"
+  ]
+}

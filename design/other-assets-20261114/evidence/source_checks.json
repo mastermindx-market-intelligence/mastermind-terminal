@@ -1,0 +1,71 @@
+{
+  "status": "SOURCE_CHECKS_PASS",
+  "scope": "Local JavaScript source-level contract checks using a minimal DOM stub. No browser layout, browser interaction, native Paper or production acceptance is claimed.",
+  "checks": [
+    {
+      "name": "All 29 distinct page/view combinations render without undefined or non-finite values",
+      "status": "PASS"
+    },
+    {
+      "name": "All 48 primary data-state combinations render and retain navigation",
+      "status": "PASS"
+    },
+    {
+      "name": "FX inverse arithmetic and chart path use reciprocal values",
+      "status": "PASS"
+    },
+    {
+      "name": "Small FX quotes retain five-decimal axis precision",
+      "status": "PASS"
+    },
+    {
+      "name": "Delayed CHF cells cannot leak current values or magnitude color",
+      "status": "PASS"
+    },
+    {
+      "name": "Crypto source failure withholds the leverage aggregate",
+      "status": "PASS"
+    },
+    {
+      "name": "Bitcoin replay changes the model and all driver states with history",
+      "status": "PASS"
+    },
+    {
+      "name": "A valid zero target remains zero rather than unavailable",
+      "status": "PASS"
+    },
+    {
+      "name": "Performance brush changes narrative, drawdown and matching ledger context",
+      "status": "PASS"
+    },
+    {
+      "name": "Selected decision opens its own original identity and vintage",
+      "status": "PASS"
+    },
+    {
+      "name": "Reserves keep country-specific events, capacity and coverage",
+      "status": "PASS"
+    },
+    {
+      "name": "Bond sensitivity computes a 50 bp shock on the separate sample exposure",
+      "status": "PASS"
+    },
+    {
+      "name": "URL reload preserves comparison, scenario and source context",
+      "status": "PASS"
+    },
+    {
+      "name": "Research drafts survive a context change and retain units/source identity",
+      "status": "PASS"
+    },
+    {
+      "name": "Narrow chart geometry recomposes rather than shrinking 820-unit text",
+      "status": "PASS"
+    },
+    {
+      "name": "Untrusted view URLs cannot inject asset markup or break evidence rendering",
+      "status": "PASS"
+    }
+  ],
+  "checked_at": "2026-11-14T14:04:58.832Z"
+}

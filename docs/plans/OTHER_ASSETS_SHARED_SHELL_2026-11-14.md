@@ -47,10 +47,39 @@ Desktop 1440×900; tablet 820×1180; mobile 390×844. Deliberate narrow composit
 - Original references: MASTERMIND PAGES 01M2WGNCX9475G79JRKJTCM08P; Terminal 01M3NSZGE8JWN2EZCSF0DT05RM.
 - Direct Mastermind Paper inspect/catalog and explicit get_basic_info for both known files returned UPSTREAM_UNAVAILABLE, retry_allowed=false.
 - Read-only Studio guarded inspection returned the same upstream error.
-- Host diagnosis observed Paper running and listening on 127.0.0.1:29979; a transport-only GET responded promptly. Root cause remains unproven; no permission denial and no Paper mutation occurred.
-- Macro research/COMMODITIES_PAPER_REVAMP_2026-10-22.md records an earlier file-capacity/data-loss warning for MASTERMIND PAGES. Its current capacity is unverified.
+- Host diagnosis observed Paper running and listening on 127.0.0.1:29979; a transport-only GET responded promptly, but a bounded MCP initialization handshake timed out after approximately five seconds. Root cause remains unproven; no permission denial and no Paper mutation occurred.
+- Macro research/COMMODITIES_PAPER_REVAMP_2026-10-22.md and the November 8 production-design FILE_MAP record the capacity/data-loss warning and a read-only/migration-pending disposition for MASTERMIND PAGES. Do not append new work there; current native target qualification remains unavailable.
 - No raw Paper mutation, app restart, file deletion or duplicate bridge was performed.
 - Supporting authored screens are NOT_APPLIED_TO_PAPER until exact native file/node receipts and screenshots exist.
 
 ## Acceptance and next action
 Continue the eight-page design work against current contracts while the Paper read/canvas lane is blocked. Native Paper placement requires a serviceable original guarded connection and a verified safe target. Preserve old boards and source identity; no active-file guess or append into a known over-capacity file. Production implementation starts after native design completion and source/state mapping.
+
+
+## Design packet milestone — 2026-11-14
+
+All eight destinations now have authored design candidates and page-specific build contracts in `design/other-assets-20261114/`:
+
+- `Other_Assets_Design_Studio.html`: self-contained interactive study; 29 page/view combinations, all illustrative.
+- Twenty-eight offline static vector compositions: eight desktop dark, eight desktop light, eight narrow and four consequential states. Their primary composition size is 1440×1000 and narrow size 390×1250; these are design canvases, not a claim of viewport acceptance at the production target sizes above.
+- `BUILD_GUIDE.md`, `ARCHITECTURE.md`, `STATE_AND_ACCEPTANCE_MATRIX.md`, `PAPER_TRANSFER_PLAN.md` and `SOURCE_MAP.md` preserve feature intent, existing owners, conditional dependencies and acceptance.
+- Sixteen passing source-level checks cover all 29 view combinations and 48 primary data-state combinations, plus calculation, availability, original-record identity, local drafts, malformed URLs and context persistence. The checks use a minimal DOM stub and do not prove browser layout/interaction.
+- `Other_Assets_Design_Packet.zip` contains the full review artifact and all SVG/PNG compositions. `PROGRESS.md` records exact continuity.
+
+### Truthful coverage
+
+| Surface | Status |
+|---|---|
+| Source-grounded design/architecture packet | Authored and source-checked |
+| Static visual compositions | Authored, locally rasterized and reviewed; not HTML screenshots |
+| Interactive browser rendering | Unverified; local renderer unavailable, connected browser rejected inline data-URL protocol and that path was stopped |
+| Native Paper edits | Zero; NOT_APPLIED_TO_PAPER |
+| Native Terminal/engine implementation | Not started; dependent on native Paper-first sequence |
+| Production release/acceptance | Not claimed |
+
+No app restart, raw Paper write, alternate-account/carrier bypass, external messages, monitoring activation, live data or orders occurred. Read-only native children contributed design and architecture reasoning; this is not GitHub approval or an independent-review requirement.
+
+### Exact continuation
+
+Once the original Paper service materially recovers, inspect the current Migration Directory (`01M6XQ0KYY6ZDDV6F3G85SX6WW`) using the guarded path, qualify the safe current target and disjoint writer scope, inspect the OA1 Crypto/Terminal reference, and place/refine OA1 as editable Paper components. Verify native nodes and screenshots, then continue OA2–OA8. Preserve original boards and all accepted programmes. If the available files cannot safely accept new scope, a safe writable file must be made available through an authorized supported file workflow; exposed direct tools do not create/open arbitrary files.
+

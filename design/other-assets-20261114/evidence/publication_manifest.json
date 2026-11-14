@@ -1,0 +1,356 @@
+{
+  "schema": "mmx.other-assets.design-publication.v1",
+  "native_paper_mutations": 0,
+  "production_changes": 0,
+  "browser_visual_acceptance": false,
+  "source_checks": "16/16 PASS",
+  "compositions": 28,
+  "archive_entries": 76,
+  "branch": "sol/other-assets-design-20261114-astra",
+  "expected_parent": "05f3587faa7ae12203c2e6063d9360c34a8d63dc",
+  "files": [
+    {
+      "path": "design/other-assets-20261114/ARCHITECTURE.md",
+      "bytes": 13921,
+      "encoding": "utf-8",
+      "git_blob_sha": "440f47bbb9da40127b2548e92b636663ab277654",
+      "sha256": "68bf55c954b70cb19105d8af8f1af58895d4a397411bfbe856490901bc07cc2f"
+    },
+    {
+      "path": "design/other-assets-20261114/BUILD_GUIDE.md",
+      "bytes": 30900,
+      "encoding": "utf-8",
+      "git_blob_sha": "aa0b9da776a26a1e6bb0a81ac143456c7cbeab9e",
+      "sha256": "f9dcc283285903b7242979db1f4b051069fd35efd0343499e9dade8763d10cca"
+    },
+    {
+      "path": "design/other-assets-20261114/Other_Assets_Design_Packet.zip",
+      "bytes": 3281324,
+      "encoding": "base64",
+      "git_blob_sha": "d0259d8242e15ba2b8800dd46c1029e2dfc2a62c",
+      "sha256": "3a1ef7c2d24f54071b43dd86d1cfbcc986a179486fe204939e64caa5b261d1ba"
+    },
+    {
+      "path": "design/other-assets-20261114/Other_Assets_Design_Studio.html",
+      "bytes": 134873,
+      "encoding": "utf-8",
+      "git_blob_sha": "fa03d59e78561a182822397eb5bb021e60f5267b",
+      "sha256": "9a8fb5a51ad61a9eb052a21d1885ba9f878ca519c3694cdff481405262ce55fe"
+    },
+    {
+      "path": "design/other-assets-20261114/PAPER_TRANSFER_PLAN.md",
+      "bytes": 9073,
+      "encoding": "utf-8",
+      "git_blob_sha": "7f1be3014c74e81255dc65e3615ecd975dc33838",
+      "sha256": "d528f5e1b28370cb21230cc2d122e24e176d00af40e607364ed27ad324489579"
+    },
+    {
+      "path": "design/other-assets-20261114/PROGRESS.md",
+      "bytes": 5316,
+      "encoding": "utf-8",
+      "git_blob_sha": "701a2b03f6a59424c202533f0763e1eabfaf056b",
+      "sha256": "3507e545ce643446b997f671c2130472f4caa442850e5ce861872f6ce71d733a"
+    },
+    {
+      "path": "design/other-assets-20261114/README.md",
+      "bytes": 4737,
+      "encoding": "utf-8",
+      "git_blob_sha": "c27b9b0508e7bbd084e5769d53eff533a82a462e",
+      "sha256": "f6e576e1add6b5a37a80db4f3b508b45eedeeb2b5bc7896a33a9fde10bf9f2d2"
+    },
+    {
+      "path": "design/other-assets-20261114/SOURCE_MAP.md",
+      "bytes": 8966,
+      "encoding": "utf-8",
+      "git_blob_sha": "e53b474186b4f518f6c5f53d737c960e4cf3af37",
+      "sha256": "79e1720d1d77179a5842dd02e740d0397cf942c37981bbe7bf1223c8313efb75"
+    },
+    {
+      "path": "design/other-assets-20261114/STATE_AND_ACCEPTANCE_MATRIX.md",
+      "bytes": 10361,
+      "encoding": "utf-8",
+      "git_blob_sha": "13edeed9f65d4097ccc878b2e6b3e2e8070591fd",
+      "sha256": "d99b4ca2acd482e477ffee0616289609a80c692139f88cbf16028a83cfaa15d2"
+    },
+    {
+      "path": "design/other-assets-20261114/build.py",
+      "bytes": 557,
+      "encoding": "utf-8",
+      "git_blob_sha": "0d89fa47393dad37a88b423c99ecc90e71cc3dbe",
+      "sha256": "b7905e010435cede9591ecf268685bded64a62928c946cc454a0f00c1ff49f7f"
+    },
+    {
+      "path": "design/other-assets-20261114/check_source.mjs",
+      "bytes": 10237,
+      "encoding": "utf-8",
+      "git_blob_sha": "bf213f4e901bc09d5400b1ce70daff3502db94e3",
+      "sha256": "86898a0ff6632d5e435dda80b5e7252d5893ed0917d354b472fac3010d587c0f"
+    },
+    {
+      "path": "design/other-assets-20261114/compose_boards.py",
+      "bytes": 33039,
+      "encoding": "utf-8",
+      "git_blob_sha": "01025716a0a74b40f5310b3c90734ec24a9bae43",
+      "sha256": "3e7d8dcbb2815e97eb8112665201f11d2eb49c393d8f007fcb718faf430fa1ed"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/01_Crypto_dark.svg",
+      "bytes": 22003,
+      "encoding": "utf-8",
+      "git_blob_sha": "6d1d56e43f4d1f38732bb19a36b982af63794153",
+      "sha256": "815bfa5a07a244e18ff6f920265ddb0bb16e22534c7a8ad2b1e7a915aed279d3"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/01_Crypto_light.svg",
+      "bytes": 22003,
+      "encoding": "utf-8",
+      "git_blob_sha": "d76f3847d24c4a57ebc747b647bfd53dd255f6d0",
+      "sha256": "70012d0a066d2542116922edf6b99d291241237a55eb1182f2da955c4b10691e"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/01_Crypto_mobile.svg",
+      "bytes": 12205,
+      "encoding": "utf-8",
+      "git_blob_sha": "5b96916d61a18a4141523cd9310c7b8dfdf01c1e",
+      "sha256": "449b078ce72790f4e265bb0d2aa01435853a44fb147f098f931797a4e7ea199a"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/02_Bitcoin_dark.svg",
+      "bytes": 26802,
+      "encoding": "utf-8",
+      "git_blob_sha": "f4d4d0a3c50f044eacf773f8a7f6643317e4e49e",
+      "sha256": "cf751d646eb8102ff20a2d0cca5536670a46cb2d2a169965f3a3ada628e7e2e1"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/02_Bitcoin_light.svg",
+      "bytes": 26802,
+      "encoding": "utf-8",
+      "git_blob_sha": "9ee7676cd17639772ebe8e19432425bc79da298e",
+      "sha256": "f18d16fd3784ad8f12ac389ed16785dae8434d5a8b3bb592345f06fc2c40af58"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/02_Bitcoin_mobile.svg",
+      "bytes": 10383,
+      "encoding": "utf-8",
+      "git_blob_sha": "86b708055af26c2c88ab8ae4ed480765a7aa3cc1",
+      "sha256": "605150b184b48ebb7d40835147375a762397b46ea33e3b9dfdf46cdb7f2d079a"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/03_Record_dark.svg",
+      "bytes": 19654,
+      "encoding": "utf-8",
+      "git_blob_sha": "99874c88d06d25aee983e65d1406ea308dc5be55",
+      "sha256": "b736fe842d36c1820c14cae59118476c14426d23b76d0329f289624db49c8483"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/03_Record_light.svg",
+      "bytes": 19654,
+      "encoding": "utf-8",
+      "git_blob_sha": "39116d40cbfd91fa56a22042c861ee010e9aa526",
+      "sha256": "14ed21769c222168970ad89bee4554c355eec2fe880237f43b7afbe9014b3913"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/03_Record_mobile.svg",
+      "bytes": 12911,
+      "encoding": "utf-8",
+      "git_blob_sha": "ad12ddf30d63f960b63a8073cdddea65be1b2349",
+      "sha256": "5245e8398cbc90ccd04e47ae3983c23a2c149b82eb2886ad5b78ec077e168e40"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/04_Commodities_dark.svg",
+      "bytes": 21643,
+      "encoding": "utf-8",
+      "git_blob_sha": "fe1e05e7acd0245be240a6333124055b8ad4f1f9",
+      "sha256": "ec104298075ae2cd738a4479b10b5eaec7b6f30c14d1bfe5ef6da2f6177e0e25"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/04_Commodities_light.svg",
+      "bytes": 21643,
+      "encoding": "utf-8",
+      "git_blob_sha": "edaf564ae94f4ec12f2793bf189e95c6e1d51f5a",
+      "sha256": "d468c638b415c35d20ef68785b01357356ff06909243d80764334bbd4d0d53ee"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/04_Commodities_mobile.svg",
+      "bytes": 7573,
+      "encoding": "utf-8",
+      "git_blob_sha": "338ac2ebaecb4f3ff30fb899187692ffd8bd7c8e",
+      "sha256": "6631463c2466416fa597059786158f0b0e736b622db5d9f8b258d5dceae2dee4"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/05_Strategies_dark.svg",
+      "bytes": 20992,
+      "encoding": "utf-8",
+      "git_blob_sha": "3527a648e34c1f27ac401fd7bc39d0be4145f345",
+      "sha256": "cd5d1ab75d5e339e26189f069d7f798ac87e9e8c7321c5ea32cc14bceb820e4c"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/05_Strategies_light.svg",
+      "bytes": 20992,
+      "encoding": "utf-8",
+      "git_blob_sha": "78605ba70401b37c9edfc5438fbe9b05674f149b",
+      "sha256": "e9379e2783b059a7597debd7f66e07eb2ceb7bc4f8ee96619c4c293e998a6374"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/05_Strategies_mobile.svg",
+      "bytes": 12432,
+      "encoding": "utf-8",
+      "git_blob_sha": "18b2e773827d1b4e692f94bd9da67a5105e68025",
+      "sha256": "54fa5a03ed4d1e9ac06cb2e8ae3ac13bb0ce28207f5d78e5a55b96c68d8be8bd"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/06_Reserves_dark.svg",
+      "bytes": 17269,
+      "encoding": "utf-8",
+      "git_blob_sha": "f012a6c287bf3cfd4ca6c2bf900ff04b15bf12da",
+      "sha256": "930e06052d42a75b640042a16f5262999acb947c5b3f121f4f0f2253cab3be79"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/06_Reserves_light.svg",
+      "bytes": 17269,
+      "encoding": "utf-8",
+      "git_blob_sha": "261a2166a408e55ba8c0d1ad6b9a13f106009329",
+      "sha256": "5de4a5f5bbe7ab8700e82eac4ddd3d31bc2e5d404c9c5f5e9f9ce77758f02596"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/06_Reserves_mobile.svg",
+      "bytes": 9906,
+      "encoding": "utf-8",
+      "git_blob_sha": "3c827d8c0b07b4a77499cfbcefe6810c4e109544",
+      "sha256": "e6fc3eab38f2ebde7dcd60cffb1728405cc2d9202a1ce65cee012ef34f3336e8"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/07_Forex_dark.svg",
+      "bytes": 18569,
+      "encoding": "utf-8",
+      "git_blob_sha": "adcff6291c614fe6ba7dfbaa8b84054876cf05cf",
+      "sha256": "8f9303334953d300a7d050e4bb743168e90f9ef11478bc0f2ca396b0104ab892"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/07_Forex_light.svg",
+      "bytes": 18569,
+      "encoding": "utf-8",
+      "git_blob_sha": "19c47f0744cc6881e694fd55e92c615876f10265",
+      "sha256": "62ca8717236188f2fdfa2945e46dbd83535d97b0c7699e4dfc933532e291a1c4"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/07_Forex_mobile.svg",
+      "bytes": 11440,
+      "encoding": "utf-8",
+      "git_blob_sha": "3f3c207aa4ab4aa986ca1ad5982f912c73640694",
+      "sha256": "fb37a3965aa47d98f365259238cc585920c41425eb6f89acf35fbefb8afcf98f"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/08_Bonds_dark.svg",
+      "bytes": 19863,
+      "encoding": "utf-8",
+      "git_blob_sha": "6aba18f409d07731770f99adced3c2a6599f80a3",
+      "sha256": "32840a2f0e7a5487b4993f778ce0510b482ea4326ae4708a31c4052325903cbb"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/08_Bonds_light.svg",
+      "bytes": 19863,
+      "encoding": "utf-8",
+      "git_blob_sha": "4b8f4165d8ed26d80770919b1aef82748e77233b",
+      "sha256": "9fb34b9c42b2f1f4dfbb6ed1e0e5b4aeaf3429e60a49c9d99cbc074ffe441875"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/08_Bonds_mobile.svg",
+      "bytes": 8806,
+      "encoding": "utf-8",
+      "git_blob_sha": "62ebf265803ed0e63cd82f9f45daa8af60e0cb4b",
+      "sha256": "31c976ffad819b2d5384a4d68215fc4a2dd929476c1abca16b30ef4589fe2e51"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/09_Bitcoin_Historical_Snapshot.svg",
+      "bytes": 34415,
+      "encoding": "utf-8",
+      "git_blob_sha": "ed8d78bb363c31f9a950c12506c3c0d830310dfe",
+      "sha256": "791f6e359d0456b822ca417317cba90fb1408bd281f59e46e65dcdf50662a787"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/10_Commodity_Comparison.svg",
+      "bytes": 27308,
+      "encoding": "utf-8",
+      "git_blob_sha": "231d2f859cc4509f2f0bca81a263596f1d0e45d8",
+      "sha256": "60f4d167ad516c8743b4715e7445ffbb0c5cd6a9ef0012885275c1d10c2657ac"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/11_Forex_Source_Gap_Matrix.svg",
+      "bytes": 34501,
+      "encoding": "utf-8",
+      "git_blob_sha": "057376e715508c49ab4a59a3a4a921b788be4922",
+      "sha256": "53006bb951e732d0317cf5aa2508c5564f648278d97db2fdf21c013c36b54024"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/12_Bonds_Exposure_Scenario.svg",
+      "bytes": 23639,
+      "encoding": "utf-8",
+      "git_blob_sha": "97f9409ef7443825dc325d03235f8facf373eab0",
+      "sha256": "e8a73d2efeb31ca1ec1aafed542b7b6df0934d451e2a10be43a54334a76f2d7f"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/MANIFEST.json",
+      "bytes": 1150,
+      "encoding": "utf-8",
+      "git_blob_sha": "5928c409da48ed4be7c8294615c24745b62df776",
+      "sha256": "5e3be28aa1074cb0652948473cefdd7206fae4857556adbf1651a4495e8249bc"
+    },
+    {
+      "path": "design/other-assets-20261114/compositions/Other_Assets_Design_Overview.png",
+      "bytes": 573350,
+      "encoding": "base64",
+      "git_blob_sha": "ff8f69f0a1846e62845d141e9fffcc601e1d8f4f",
+      "sha256": "eeac7acd2769cd3454f6db8461c8c0e90d1acd0b285a41736b7084bb993145b0"
+    },
+    {
+      "path": "design/other-assets-20261114/evidence/composition_data.json",
+      "bytes": 14312,
+      "encoding": "utf-8",
+      "git_blob_sha": "d5aa6aa7f396435f492880517205dc0160d6fdcb",
+      "sha256": "2d5d9fff64b9a82631d1c3d3f649c6976e05e2e4eb66c7405b1efc857ca35b79"
+    },
+    {
+      "path": "design/other-assets-20261114/evidence/source_checks.json",
+      "bytes": 2177,
+      "encoding": "utf-8",
+      "git_blob_sha": "2d5984aab5989919792967b267999248d46e653d",
+      "sha256": "2959e23c17a59e1df124e5b1c59457aace83c6ee406969bb8dc69fc227f814ba"
+    },
+    {
+      "path": "design/other-assets-20261114/index.template.html",
+      "bytes": 3420,
+      "encoding": "utf-8",
+      "git_blob_sha": "9566bc5a94a0b7309daad12669f2cf2f57f60823",
+      "sha256": "6997fa123ae6598b303830ee81335813b9ec12f03f0cfe15aadbe0f799f09ee4"
+    },
+    {
+      "path": "design/other-assets-20261114/package.py",
+      "bytes": 2414,
+      "encoding": "utf-8",
+      "git_blob_sha": "25ef4de39401a0b6b000bcdf68bcd88d92fc99c7",
+      "sha256": "47e289c8d792d8ea00678847f98f223c2d682d121643df68da3c7cef2ddd9ccc"
+    },
+    {
+      "path": "design/other-assets-20261114/studio.css",
+      "bytes": 31626,
+      "encoding": "utf-8",
+      "git_blob_sha": "c88cf5a25c87dcab86a2e07df00f8e25e11a28e1",
+      "sha256": "78c6b5aff42ce95051af41bf9decf77c410291894cb5c49b5436a17a0917ea8d"
+    },
+    {
+      "path": "design/other-assets-20261114/studio.js",
+      "bytes": 99854,
+      "encoding": "utf-8",
+      "git_blob_sha": "3366d8ac9e4c03d67cd113969e4ff1b4ed80601f",
+      "sha256": "3ff23f7bfc50135a270dbe7300936a1b4600cd9fa67ffb574a190f4c5a8951d5"
+    },
+    {
+      "path": "docs/plans/OTHER_ASSETS_SHARED_SHELL_2026-11-14.md",
+      "bytes": 8801,
+      "encoding": "utf-8",
+      "git_blob_sha": "ac7bb789a8b72bad88457f18333275c3d543c9cf",
+      "sha256": "2b38c17756e4ddac5e681356afb2dfa09de5cbc2573411625bb09644c2f0c781"
+    }
+  ]
+}
