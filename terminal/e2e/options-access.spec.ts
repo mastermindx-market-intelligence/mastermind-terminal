@@ -1,3 +1,4 @@
+import { setShellAppearance } from "./fixtures/shellAppearance";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { SS_OPEN } from "../components/onboarding/types";
 
@@ -46,8 +47,7 @@ test("Options paywall supports skip navigation and the existing Essential entry"
   const main = page.locator("main#shared-shell-content");
   for (const zh of [false, true]) {
     if (zh) {
-      await page.getByRole("button", { name: "Light theme", exact: true }).click();
-      await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+      await setShellAppearance(page, "zh", "light");
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     }
     const action = main.getByRole("button", { name: zh ? "开启 7 天免费试用" : "Start 7-day free trial", exact: true });

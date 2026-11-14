@@ -49,6 +49,7 @@ export type CompanyListingIdentityProps = {
   venue?: string;
   /** Open the native /analysis workspace; always enabled regardless of read outcomes. */
   onOpen?: () => void;
+  onOpenChart?: () => void;
   /** Destination mount: the workspace's loaded fund payload (validated against `symbol`). */
   fund?: unknown;
   /** Destination mount: the workspace's own fund loading state. */
@@ -70,6 +71,7 @@ export default function CompanyListingIdentity({
   preview = false,
   venue,
   onOpen,
+  onOpenChart,
   fund,
   loading = false,
 }: CompanyListingIdentityProps) {
@@ -189,10 +191,13 @@ export default function CompanyListingIdentity({
               ? `${pick(zh, "Trading currency", "交易货币")} ${currency}`
               : pick(zh, "Trading currency unavailable", "交易货币未知")}
         </span>
+        {onOpenChart && <button type="button" className={`btn btn-primary ${styles.open}`} onClick={onOpenChart}>
+          {pick(zh, "Open chart", "打开图表")}
+        </button>}
         {onOpen ? (
           // Never disabled: the native /analysis workspace exists whether or not this strip
           // managed to read its metadata, so absence/mismatch/failure cannot strand the user.
-          <button type="button" className={`btn btn-primary ${styles.open}`} onClick={onOpen}>
+          <button type="button" className={`btn ${onOpenChart ? "" : "btn-primary"} ${styles.open}`} onClick={onOpen}>
             {pick(zh, "Open Analysis", "打开分析")}
           </button>
         ) : null}

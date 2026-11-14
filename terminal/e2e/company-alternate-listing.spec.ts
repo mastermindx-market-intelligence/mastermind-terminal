@@ -1,3 +1,4 @@
+import { setShellAppearance } from "./fixtures/shellAppearance";
 import { expect, test, type Page } from "@playwright/test";
 import published from "./fixtures/company-search-published.json";
 test.skip(process.env.MMX_SHARED_SHELL !== "1", "Shared Shell is an explicit local beta qualification");
@@ -23,14 +24,7 @@ for (const theme of ["dark", "light"] as const) for (const lang of ["en", "zh"] 
     page.on("request", request => { if (new URL(request.url()).pathname.endsWith(".fund.json")) fundReads.push(request.url()); });
     await publishedData(page);
     await page.goto("/discover");
-    const narrow = page.viewportSize()!.width <= 860;
-    const toggles = page.locator(narrow ? ".mobilebar" : ".topbar").locator(".shared-shell-presentation-toggle");
-    await expect(toggles).toHaveCount(2);
-    const languageToggle = toggles.nth(1);
-    const themeToggle = toggles.nth(0);
-    await expect(languageToggle).toBeVisible();
-    if ((await languageToggle.getAttribute("aria-pressed") === "true") !== (lang === "zh")) await languageToggle.click();
-    if ((await themeToggle.getAttribute("aria-pressed") === "true") !== (theme === "light")) await themeToggle.click();
+    await setShellAppearance(page, lang, theme);
     await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const origin = page.url();
@@ -61,8 +55,7 @@ for (const theme of ["dark", "light"] as const) for (const lang of ["en", "zh"] 
     await page.screenshot({ path: info.outputPath("selected-listing.png"), animations: "disabled" });
     const open = preview.getByRole("button", { name: lang === "zh" ? "打开分析" : "Open Analysis", exact: true });
     await expect(open).toBeVisible();
-    if (info.project.name === "desktop") await input.press("Enter");
-    else await open.tap();
+    await open.click();
     await expect(page).toHaveURL(/\/analysis\?symbol=9988\.HK&company_query=Alibaba/);
     const identity = page.locator("[data-company-listing]");
     await expect(identity).toContainText("9988.HK"); await expect(identity).toContainText("HKEX");

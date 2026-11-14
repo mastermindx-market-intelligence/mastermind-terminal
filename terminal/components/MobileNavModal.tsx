@@ -44,7 +44,7 @@ export default function MobileNavModal({
   openerRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   /** Viewport ceiling for auto-dismiss; defaults to PR697's authored 860px. */
-  breakpointPx?: number;
+  breakpointPx?: number | null;
   children: ReactNode;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -103,14 +103,14 @@ export default function MobileNavModal({
     firstNavLink?.focus({ preventScroll: true });
     window.scrollTo(scrollX, scrollY);
 
-    const mobileViewport = window.matchMedia(`(max-width: ${breakpointPx}px)`);
+    const mobileViewport = breakpointPx === null ? null : window.matchMedia(`(max-width: ${breakpointPx}px)`);
     const handleViewportChange = (event: MediaQueryListEvent) => {
       if (!event.matches) dismiss();
     };
-    mobileViewport.addEventListener("change", handleViewportChange);
+    mobileViewport?.addEventListener("change", handleViewportChange);
 
     return () => {
-      mobileViewport.removeEventListener("change", handleViewportChange);
+      mobileViewport?.removeEventListener("change", handleViewportChange);
       if (closeTimerRef.current !== null) {
         window.clearTimeout(closeTimerRef.current);
         closeTimerRef.current = null;

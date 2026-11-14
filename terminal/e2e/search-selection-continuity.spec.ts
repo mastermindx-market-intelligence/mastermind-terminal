@@ -115,7 +115,7 @@ test("Shared Companies keeps keyboard selection visible inside its own list", as
     Array.from({ length: 30 }, (_, i) => [`T${String(i).padStart(2, "0")}`, { name: `Sample company ${i}`, col: "#777", verdict: null, sec: "Equities", mkt: "NASDAQ" }]),
   ) } }));
   await page.goto("/discover");
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("#wtab-screener")).toBeVisible({ timeout: 30_000 });
   const opener = info.project.name === "desktop" ? page.locator(".topbar .shared-shell-company-search") : page.locator(".mobilebar").getByRole("button", { name: "Search companies", exact: true });
   await opener.click();
   const input = page.getByRole("dialog").getByRole("combobox");

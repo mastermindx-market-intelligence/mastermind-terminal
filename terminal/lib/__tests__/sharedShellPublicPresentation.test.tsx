@@ -90,7 +90,7 @@ const healthyGate = {
 let container: HTMLDivElement;
 let root: Root;
 let childWindows: WeakMap<HTMLIFrameElement, Window>;
-type Surface = ".topbar" | ".mobilebar";
+
 
 async function renderShell(props: Partial<ComponentProps<typeof AppShell>> = {}) {
   await act(async () => {
@@ -139,31 +139,17 @@ async function start(props: Partial<ComponentProps<typeof AppShell>> = {}) {
   await renderShell(props);
   return admitFrame();
 }
-function control(surface: Surface, kind: "theme" | "language") {
-  const zh = document.documentElement.dataset.lang === "zh";
-  const label = kind === "theme" ? (zh ? "浅色主题" : "Light theme") : (zh ? "中文界面" : "Chinese language");
-  const scope = container.querySelector(surface);
-  expect(scope, `Missing actual ${surface}`).not.toBeNull();
-  const buttons = scope!.querySelectorAll<HTMLButtonElement>(`button[aria-label="${label}"]`);
-  expect(buttons, `Missing unique public ${kind} control in ${surface}`).toHaveLength(1);
-  expect(buttons[0].type).toBe("button");
-  expect(buttons[0].disabled).toBe(false);
-  return buttons[0];
-}
-async function click(surface: Surface, kind: "theme" | "language") {
-  const button = control(surface, kind);
-  button.focus();
-  await act(async () => { button.click(); });
-  expect(document.activeElement).toBe(button);
+async function requestToggle(kind: "theme" | "language") {
+  const root = document.documentElement.dataset;
+  await childMessage(kind === "theme"
+    ? { type: "CONTEXT_REQUEST", theme: root.theme === "light" ? "dark" : "light" }
+    : { type: "CONTEXT_REQUEST", locale: root.lang === "zh" ? "en" : "zh" });
 }
 function expectPresentation(theme: "dark" | "light", locale: "en" | "zh") {
   expect(document.documentElement.dataset.theme).toBe(theme);
   expect(document.documentElement.dataset.lang).toBe(locale);
   expect(document.documentElement.lang).toBe(locale === "zh" ? "zh-CN" : "en");
-  for (const surface of [".topbar", ".mobilebar"] as const) {
-    expect(control(surface, "theme").getAttribute("aria-pressed")).toBe(String(theme === "light"));
-    expect(control(surface, "language").getAttribute("aria-pressed")).toBe(String(locale === "zh"));
-  }
+  expect(container.querySelector(".topbar .shared-shell-presentation, .mobilebar .shared-shell-presentation")).toBeNull();
   const message = postToFrame.mock.calls.filter(([target, data]) => target === iframe() && (data.type === "CONTEXT" || data.type === "INIT")).at(-1);
   expect(message?.[1]).toMatchObject({ theme, locale, frameGeneration: latestInit().frameGeneration });
   expect(message?.[2]).toBe(LEGACY);
@@ -242,20 +228,20 @@ afterEach(async () => {
 });
 
 describe("public Shared Shell presentation", () => {
-  it.each([".topbar", ".mobilebar"] as const)("real %s guest controls update both owners without navigation or signup", async surface => {
+  it("keeps authenticated frame presentation in sync without header toggles, navigation or signup", async () => {
     const owned = await start();
     expectPresentation("dark", "en");
     const revision = latestInit().contextRevision;
-    await click(surface, "theme");
+    await requestToggle("theme");
     expectPresentation("light", "en");
-    await click(surface, "language");
+    await requestToggle("language");
     expectPresentation("light", "zh");
     expect(localStorage.getItem("mmx.shell.theme")).toBe("light");
     expect(localStorage.getItem("mm.lang")).toBe("zh");
     const contexts = postToFrame.mock.calls.map(([, data]) => data).filter(data => data.type === "CONTEXT");
     expect(contexts.at(-1)?.contextRevision).toBeGreaterThan(revision);
-    await click(surface, "theme");
-    await click(surface, "language");
+    await requestToggle("theme");
+    await requestToggle("language");
     expectPresentation("dark", "en");
     expectPersistent(owned);
     expect(edges.getUser).not.toHaveBeenCalled();
@@ -264,8 +250,8 @@ describe("public Shared Shell presentation", () => {
 
   it("restores guest choices on a fresh shell using the real document language bootstrap", async () => {
     await start();
-    await click(".topbar", "theme");
-    await click(".topbar", "language");
+    await requestToggle("theme");
+    await requestToggle("language");
     await act(async () => { root.unmount(); });
     __resetMarketPrefsStore();
     document.documentElement.dataset.theme = "dark";
@@ -293,8 +279,8 @@ describe("public Shared Shell presentation", () => {
     expectPresentation("dark", "en");
     expect(edges.updateUser).toHaveBeenCalled();
     const writes = edges.updateUser.mock.calls.length;
-    await click(".mobilebar", "theme");
-    await click(".mobilebar", "language");
+    await requestToggle("theme");
+    await requestToggle("language");
     expectPresentation("light", "zh");
     expect(__marketPrefsSnapshot().metaPrefs).toMatchObject({ theme: "dark", themeAuto: "0", lang: "en" });
     expect(edges.updateUser).toHaveBeenCalledTimes(writes);
@@ -314,7 +300,7 @@ describe("public Shared Shell presentation", () => {
     expect(current.proxy).not.toBe(outgoing.proxy);
     expect(current.generation).not.toBe(outgoing.generation);
     expectPresentation("dark", "zh");
-    await click(".topbar", "theme");
+    await requestToggle("theme");
     await act(async () => { resolveA(userWith(A, { theme: "dark", theme_auto: "0", lang: "en" })); });
     expectPresentation("light", "zh");
     expect(__marketPrefsSnapshot().owner).toBe(`account:${B}`);
@@ -347,8 +333,8 @@ describe("public Shared Shell presentation", () => {
   it("still applies public choices when browser storage is blocked", async () => {
     const owned = await start();
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("fixture: storage denied"); });
-    await click(".mobilebar", "theme");
-    await click(".mobilebar", "language");
+    await requestToggle("theme");
+    await requestToggle("language");
     expectPresentation("light", "zh");
     expectPersistent(owned);
     noAccountAction();
@@ -408,7 +394,7 @@ describe("explicit Settings presentation intent after a public override", () => 
     expectPresentation("light", "en");
     await act(async () => { systemDark = true; listeners.forEach(fn => fn()); });
     expectPresentation("dark", "en");
-    await click(".topbar", "theme");
+    await requestToggle("theme");
     expectPresentation("light", "en");
     await act(async () => { systemDark = false; listeners.forEach(fn => fn()); systemDark = true; listeners.forEach(fn => fn()); });
     expectPresentation("light", "en");
@@ -429,7 +415,7 @@ describe("explicit Settings presentation intent after a public override", () => 
     edges.getUser.mockResolvedValue(userWith(A, saved));
     const owned = await start({ userId: A, email: "person@example.test" });
     expectPresentation(expected, "en");
-    await click(".topbar", "theme");
+    await requestToggle("theme");
     const override = expected === "dark" ? "light" : "dark";
     expectPresentation(override, "en");
     noAccountAction();
@@ -454,7 +440,7 @@ describe("explicit Settings presentation intent after a public override", () => 
   it.each(["language", "trade", "follow"] as const)("does not reapply a saved theme on a real Settings %s edit", async item => {
     edges.getUser.mockResolvedValue(userWith(A, { theme: "dark", theme_auto: "0", lang: "en", trade_types: [] }));
     const owned = await start({ userId: A, email: "person@example.test" });
-    await click(".topbar", "theme");
+    await requestToggle("theme");
     expectPresentation("light", "en");
     noAccountAction();
     const panel = await openPreferences();

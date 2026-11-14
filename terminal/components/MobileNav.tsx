@@ -12,9 +12,9 @@ import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
 import SharedShellLaunchLinks from "./chrome/shared-shell/SharedShellLaunchLinks";
 import { sharedShellActiveKey } from "@/lib/sharedShellNavigation";
+import { TerminalViews } from "./chrome/shared-shell/TerminalWorkspaceNav";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
-import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
 import SharedShellMarketSelect from "./chrome/shared-shell/SharedShellMarketSelect";
 
 // Shared Shell beta viewport ceiling (px). MobileNavModal keeps PR697's default 860
@@ -164,7 +164,6 @@ export default function MobileNav({
           {sharedShell && <button className="m-ic" onClick={onOpenSearch} aria-label={t("shellSearchCompanies")}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></svg>
           </button>}
-          {sharedShell && <SharedShellPresentationControls />}
           {onOpenCommandPalette && (
             <button className="m-ic" type="button" onClick={onOpenCommandPalette} aria-label={commandPaletteLabel} aria-haspopup="dialog" data-command-palette-trigger="mobile">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
@@ -200,6 +199,7 @@ export default function MobileNav({
               <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
                 activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
                 renderGlyph={key => <NavGlyph k={key} />} />
+              {(navPath === "/analysis" || navPath === "/discover") && <TerminalViews symbol={activeSymbol} onNavigate={closeDrawer} />}
               <SharedShellLaunchLinks drawer labelled glyph={key => <NavGlyph k={key} />} onNavigate={closeDrawer} />
               <button type="button" aria-controls="shared-shell-tools"
                 onClick={() => { closeDrawer(); onOpenDirectory?.(); }}>{t("shellBrowseTools")}</button>

@@ -30,7 +30,7 @@ vi.mock("@/components/workspaces/DiscoverFlowMounts", () => ({ DiscoverLeadersMo
 let host: HTMLDivElement, root: Root, external: HTMLButtonElement;
 beforeEach(() => {
   navigation.push.mockReset(); navigation.beta = true;
-  window.history.replaceState(null, "", "/discover");
+  window.history.replaceState(null, "", "/discover?tab=guide");
   external = document.createElement("button"); external.textContent = "Shell action"; document.body.append(external); external.focus();
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
@@ -56,7 +56,7 @@ describe("Discover chooser focus continuity", () => {
     await activate(button("Open Heatmap"));
     expect(selected().id).toBe("wtab-heatmap");
     expect(document.activeElement).toBe(selected());
-    await activate(button("Discover ←"));
+    await activate(button("Discovery guide"));
     expect(actions()).toHaveLength(7);
     expect(actions().every(action => !action.disabled)).toBe(true);
     expect(document.activeElement).toBe(host.querySelector("h1"));
@@ -66,7 +66,7 @@ describe("Discover chooser focus continuity", () => {
     await render(); expect(document.activeElement).toBe(external);
     await activate(button(label));
     expect(selected().id).toBe(`wtab-${key}`); expect(document.activeElement).toBe(selected());
-    await activate(button("Discover ←"));
+    await activate(button("Discovery guide"));
     const heading = host.querySelector("h1")!;
     expect(document.activeElement).toBe(heading); expect(heading.tabIndex).toBe(-1);
     external.focus(); await render(); expect(document.activeElement).toBe(external);
@@ -77,7 +77,7 @@ describe("Discover chooser focus continuity", () => {
     await render(); expect(document.activeElement).toBe(external);
     await act(async () => navigate("?tab=rs-pivot"));
     expect(selected().id).toBe("wtab-rs-pivot"); expect(document.activeElement).toBe(external);
-    await act(async () => navigate("")); expect(document.activeElement).toBe(external);
+    await act(async () => navigate("?tab=guide")); expect(document.activeElement).toBe(external);
   });
 
   it("preserves ordinary tab-key navigation after a chooser launch", async () => {
@@ -88,10 +88,10 @@ describe("Discover chooser focus continuity", () => {
   });
 
   it("opens the canonical sector workspace with market context from a new chooser action", async () => {
-    window.history.replaceState(null, "", "/discover?workspaceMarket=us");
+    window.history.replaceState(null, "", "/discover?tab=guide&workspaceMarket=us");
     await render(); await activate(button("Open Sectors"));
     expect(navigation.push).toHaveBeenCalledWith("/sectors?workspaceMarket=us");
-    expect(window.location.search).toBe("?workspaceMarket=us");
+    expect(window.location.search).toBe("?tab=guide&workspaceMarket=us");
   });
 
   it("preserves a bookmarked sector investigation and its depth-return state without the Discover tab layer", async () => {
@@ -133,10 +133,10 @@ describe("Discover chooser focus continuity", () => {
 
   it("cancels a return superseded by the same tool before a later unrelated chooser visit", async () => {
     await render(); await activate(button("Open Heatmap"));
-    const back = button("Discover ←"); back.focus();
+    const back = button("Discovery guide"); back.focus();
     await act(async () => { back.click(); navigate("?tab=heatmap"); });
     expect(selected().id).toBe("wtab-heatmap");
-    await act(async () => navigate(""));
+    await act(async () => navigate("?tab=guide"));
     expect(document.activeElement).not.toBe(host.querySelector("h1"));
   });
 });

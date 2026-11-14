@@ -18,9 +18,7 @@ async function openMissing(page: Page, lang: "en" | "zh") {
   const theme = sharedShell && lang === "zh" ? "light" : "dark";
   if (sharedShell) {
     await expect(page.locator("html")).toHaveAttribute("data-mmx-shared-shell", "1");
-    await expect(page.getByRole("button", { name: /Chinese language|English language|中文界面|英文界面/ })).toBeVisible();
-    const themeToggle = page.getByRole("button", { name: /Light theme|浅色主题/ });
-    if (await themeToggle.getAttribute("aria-pressed") !== String(theme === "light")) await themeToggle.click();
+    await expect(page.locator(".topbar .shared-shell-presentation-toggle")).toHaveCount(0);
   }
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 }
@@ -55,7 +53,7 @@ async function reachable(page: Page, link: Locator) {
 for (const lang of ["en", "zh"] as const) {
   test(`404 recovery exposes real keyboard destinations in ${lang}`, async ({ page }, info) => {
     if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
-    await page.addInitScript(language => localStorage.setItem("mm.lang", language), lang);
+    await page.addInitScript(language => { localStorage.setItem("mm.lang", language); localStorage.setItem("mmx.shell.theme", language === "zh" ? "light" : "dark"); }, lang);
     for (const destination of destinations) {
       await openMissing(page, lang);
       await expect(page.getByRole("heading", { level: 1 })).toContainText("404");
@@ -70,7 +68,6 @@ for (const lang of ["en", "zh"] as const) {
       await expect(page.getByRole("heading", { level: 1 }).filter({ hasText: "404" })).toHaveCount(0);
       if (destination.path === "/terminal") await expect(page.locator(".chart-body").first()).toBeVisible();
       else if (destination.path === "/today") await expect(page.getByRole("heading", { level: 1, name: /^(Sign in to open Today|登录后查看今日工作区)$/ })).toBeVisible();
-      else if (sharedShell) await expect(page.getByRole("heading", { level: 1, name: /^(Discover|发现)$/ })).toBeVisible();
       else await expect(page.getByRole("tablist", { name: /^(Discover tabs|发现选项卡)$/ })).toBeVisible();
     }
   });
@@ -79,7 +76,7 @@ for (const lang of ["en", "zh"] as const) {
 for (const lang of ["en", "zh"] as const) {
   test(`404 recovery keeps all destinations reachable on short and narrow screens in ${lang}`, async ({ page }, info) => {
     test.skip(info.project.name !== "desktop", "Explicit viewport loop runs once per language");
-    await page.addInitScript(language => localStorage.setItem("mm.lang", language), lang);
+    await page.addInitScript(language => { localStorage.setItem("mm.lang", language); localStorage.setItem("mmx.shell.theme", language === "zh" ? "light" : "dark"); }, lang);
     for (const viewport of [{ width: 568, height: 320 }, { width: 320, height: 568 }, { width: 320, height: 844 }]) {
       await page.setViewportSize(viewport);
       await openMissing(page, lang);

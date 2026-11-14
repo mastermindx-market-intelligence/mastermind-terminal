@@ -16,6 +16,7 @@ export type SharedSearchResume = { scope: SharedSearchScope; query: string; sele
 export type SharedSearchOptions = {
   scope?: SharedSearchScope;
   selectedTool?: string;
+  onOpenChart?: (symbol: string, query: string) => void;
   onOpenTool: (href: string, query: string) => void;
   onDraftChange?: (draft: SharedSearchResume) => void;
 };
@@ -84,7 +85,7 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   };
   const stateText = (state: State) => state === "loading" ? pick(zh, "Loading", "读取中") : state === "unavailable" ? pick(zh, "Unavailable", "暂不可用") : "";
   return <div className={styles.workspace} data-shared-search-scope={scope}>
-    <div className={styles.intro}><div><h2>{pick(zh, "Find your next step", "找到下一步")}</h2><p>{pick(zh, "Search companies and tools. Choose a listing before opening Analysis.", "搜索公司和工具。选择上市标的后再打开分析。")}</p></div>{onClose && <button type="button" className={styles.phoneClose} aria-label={pick(zh, "Close search", "关闭搜索")} onClick={onClose}>×</button>}</div>
+    <div className={styles.intro}><div><h2>{pick(zh, "Find your next step", "找到下一步")}</h2><p>{pick(zh, "Choose a listing to open its chart or analysis.", "选择上市标的以打开图表或分析。")}</p></div>{onClose && <button type="button" className={styles.phoneClose} aria-label={pick(zh, "Close search", "关闭搜索")} onClick={onClose}>×</button>}</div>
     <div className={styles.search}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
       <input ref={input} data-autofocus value={query} maxLength={160} autoComplete="off"

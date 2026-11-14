@@ -31,11 +31,12 @@ function nav(mode: "rail" | "drawer", activeKeyOverride?: string) {
 beforeEach(() => { mock.path="/intelligence"; mock.search=""; mock.lang="en"; });
 describe("beta-only primary nav and intelligence current-page policy", () => {
   it.each([
-    ["/intelligence", "", "/intelligence?workspaceMarket=us"],
+    ["/today", "", "/today?workspaceMarket=us"],
     ["/macro.html", "", "/macro.html"],
     ["/us_stocks.html", "", "/us_stocks.html"],
     ["/prophet", "", "/us_stocks.html"],
-    ["/sector_cycles.html", "", "/sector_cycles.html"],
+    ["/sector_cycles.html", "", "/sectors?workspaceMarket=us"],
+    ["/options", "", "/options"],
     ["/sectors", "", "/sectors?workspaceMarket=us"],
     ["/options", "tab=prophet", "/us_stocks.html"],
     ["/discover", "tab=sectors", "/sectors?workspaceMarket=us"],
@@ -51,34 +52,22 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
     expect([...nav("drawer","shellToday").querySelectorAll('a[aria-current="page"]')]
       .map(a=>a.getAttribute("href"))).toEqual(["/us_stocks.html"]);
   });
-  it("preserves a legitimate caller override on a non-intelligence route", () => {
-    mock.path="/analysis";
-    expect([...nav("drawer","shellMonitor").querySelectorAll('a[aria-current="page"]')]
-      .map(a=>a.getAttribute("href"))).toEqual(["/monitor"]);
-  });
-  it("marks nested workspace navigation as a location without a caller override", () => {
-    mock.path="/research/notes";
-    for (const mode of ["rail", "drawer"] as const) {
-      const host=nav(mode);
-      const current=host.querySelector('a[aria-current="location"]');
-      expect(current?.getAttribute("href")).toBe("/research");
-      expect(host.querySelectorAll('a[aria-current="page"]')).toHaveLength(0);
+  it("keeps instrument tools local and opens marketwide Options without an inherited symbol", () => {
+    mock.path="/today";
+    for (const mode of ["rail","drawer"] as const) {
+      const refs=[...nav(mode).querySelectorAll("a")].map(a=>a.getAttribute("href"));
+      expect(refs).toContain("/options?workspaceMarket=us");
+      expect(refs).toContain("/portfolio?workspaceMarket=us");
+      for(const local of ["/analysis","/discover","/scripts","/alerts","/monitor","/research"])
+        expect(refs.some(href=>href?.startsWith(local))).toBe(false);
     }
   });
-  it("preserves original symbol decoration for Analysis only", () => {
-    mock.path="/today";
-    const host=nav("rail");
-    const refs=[...host.querySelectorAll("a")].map(a=>a.getAttribute("href"));
-    expect(refs.find(x=>x?.startsWith("/analysis"))).toBe("/analysis?symbol=SMR&workspaceMarket=us");
-    expect(refs).toContain("/us_stocks.html");
-    expect(refs).not.toContain("/prophet");
-  });
-  it("renders the same five bilingual intelligence destinations without losing labels", () => {
+  it("renders the same three flagship intelligence intelligence destinations without losing labels", () => {
     mock.lang="zh";
     const host=nav("drawer");
     expect(host.textContent).toContain("市场情报");
-    expect(host.textContent).toContain("行业周期");
+    expect(host.textContent).toContain("行业情报");
     expect(host.textContent).toContain("宏观仪表盘");
-    expect(host.querySelectorAll('[data-intelligence-nav="drawer"] a')).toHaveLength(5);
+    expect(host.querySelectorAll('[data-intelligence-nav="drawer"] a')).toHaveLength(3);
   });
 });

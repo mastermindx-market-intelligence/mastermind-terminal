@@ -1,3 +1,4 @@
+import { setShellAppearance } from "./fixtures/shellAppearance";
 import {expect,test} from "@playwright/test";
 import {SHARED_SHELL_PROTOCOL,SHARED_SHELL_BRIDGE_VERSION,SHARED_SHELL_DOCUMENT_VERSION} from "../lib/sharedShellContracts";
 
@@ -16,20 +17,21 @@ async function noOverflow(page:import("@playwright/test").Page) {
 test("Paper header geometry preserves one mobile owner and a readable company search",async({page},info)=>{
  await page.goto("/discover");
  const shell=page.locator('[data-shared-shell="beta"]');
- await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ await expect(page.locator("#wtab-screener")).toBeVisible();
  await expect(shell.locator("#shared-primary-navigation")).toHaveCount(1);
  if(info.project.name==="desktop"){
   const rail=await shell.locator(".appnav").boundingBox();
   const search=shell.locator(".shared-shell-company-search");
   const searchBox=await search.boundingBox();
   expect(Math.abs(searchBox!.x-(rail!.x+rail!.width+32))).toBeLessThan(2);
-  expect(searchBox!.width).toBeGreaterThan(300);
+  expect(searchBox!.width).toBeGreaterThanOrEqual(100);
+  expect(searchBox!.width).toBeLessThanOrEqual(200);
   expect(searchBox!.height).toBeGreaterThanOrEqual(40);
   await expect(search).toHaveCSS("display","flex");
   const ids=await page.locator(".topbar-brand-group linearGradient").evaluateAll(nodes=>nodes.map(n=>n.id));
   expect(ids).toHaveLength(1);
   expect(await page.locator('[id="'+ids[0]+'"]').count()).toBe(1);
-  await shell.locator(".appnav").getByRole("link",{name:"Discover",exact:true}).focus();
+  await shell.locator(".appnav").getByRole("link",{name:"Options Flow",exact:true}).focus();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
   const toggle=shell.locator("[data-investor-compact-toggle]");
   await toggle.click();await expect(toggle).toHaveAttribute("aria-pressed","true");
@@ -52,13 +54,10 @@ test("Paper header geometry preserves one mobile owner and a readable company se
 
 test("light and Chinese presentation stay coherent through the tools directory",async({page},info)=>{
  await page.goto("/discover");
- const theme=page.getByRole("button",{name:"Light theme",exact:true});
- await expect(theme).toBeVisible();
- if(await theme.getAttribute("aria-pressed")!=="true")await theme.click();
- await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+ await setShellAppearance(page, "en", "light");
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-en.png")});
- await page.getByRole("button",{name:"Chinese language",exact:true}).click();
- await expect(page.getByRole("heading",{name:"发现",exact:true})).toBeVisible();
+ await setShellAppearance(page, "zh", "light");
+ await expect(page.locator("#wtab-screener")).toHaveAttribute("aria-selected", "true");
  await noOverflow(page);
  await page.screenshot({animations:"disabled",path:info.outputPath("discover-light-zh.png")});
  await page.keyboard.press("ControlOrMeta+k");
@@ -75,19 +74,17 @@ test("light and Chinese presentation stay coherent through the tools directory",
 test("mobile chrome keeps every target usable at 320px and contract widths",async({page},info)=>{
  test.skip(info.project.name!=="desktop","One explicit smallest-width stress case");
  await page.goto("/discover");
- await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ await expect(page.locator("#wtab-screener")).toBeVisible();
  for(const width of [320,390,641,820,860]){
   await page.setViewportSize({width,height:844});
   for(const chinese of [false,true]){
    const bar=page.locator(".mobilebar");
-   const presentation=bar.locator(".shared-shell-presentation-toggle");
-   if((await presentation.nth(0).getAttribute("aria-pressed")==="true")!==chinese)await presentation.nth(0).click();
-   if((await presentation.nth(1).getAttribute("aria-pressed")==="true")!==chinese)await presentation.nth(1).click();
+   await setShellAppearance(page, chinese ? "zh" : "en", chinese ? "light" : "dark");
    await expect(page.locator("html")).toHaveAttribute("data-lang",chinese?"zh":"en");
    await expect(page.locator("html")).toHaveAttribute("data-theme",chinese?"light":"dark");
    const controls=bar.locator("button:visible");
-   // Menu, company search, appearance, locale and the incumbent account owner.
-   await expect(controls).toHaveCount(5);
+   // Menu, company search and the account owner share the phone header.
+   await expect(controls).toHaveCount(3);
    const boxes=await controls.evaluateAll(buttons=>buttons.map(button=>{
     const box=button.getBoundingClientRect();
     const after=getComputedStyle(button,"::after");
@@ -158,7 +155,7 @@ test("company search selects one canonical company from desktop, tablet and phon
   AAPL:{name:"Apple Inc.",zh:"苹果公司",col:"#aaa",verdict:null,mkt:"NASDAQ",sec:"Equities"},
  }}}));
  await page.goto("/discover");
- await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ await expect(page.locator("#wtab-screener")).toBeVisible();
  const opener=info.project.name==="desktop"
   ? page.locator(".topbar .shared-shell-company-search")
   : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
@@ -182,10 +179,10 @@ test("company search selects one canonical company from desktop, tablet and phon
 test("phone company search keeps its scope in both languages and dismisses by touch",async({page},info)=>{
  test.skip(info.project.name!=="mobile","Actual phone sheet and touch context");
  await page.goto("/discover");
- await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ await expect(page.locator("#wtab-screener")).toBeVisible();
  const bar=page.locator(".mobilebar");
  for(const chinese of [false,true]){
-  if(chinese){await bar.getByRole("button",{name:"Light theme",exact:true}).click();await bar.getByRole("button",{name:"Chinese language",exact:true}).click();}
+  if(chinese) await setShellAppearance(page, "zh", "light");
   const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
   await opener.tap();
   const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
@@ -239,7 +236,7 @@ test("Tools opens an admitted public page and Back restores query, scope and sel
  // /learn is an existing canonical public native member, not a fabricated fixture route.
  // Its real static page needs neither an entitlement appointment nor a data response.
  await page.goto("/discover");
- await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ await expect(page.locator("#wtab-screener")).toBeVisible();
  const origin=page.url();
  const opener=info.project.name==="desktop"
   ? page.locator(".topbar .shared-shell-company-search")
@@ -391,9 +388,8 @@ test.describe("legacy workspace recovery",()=>{
 
  test("light Chinese recovery remains usable on short screens and preserves a newer focus choice",async({page,baseURL},info)=>{
   await page.emulateMedia({reducedMotion:"reduce"});
+  await page.addInitScript(() => { localStorage.setItem("mm.lang","zh"); localStorage.setItem("mmx.shell.theme","light"); });
   const {frame,child,holdNext}=await setup(page,baseURL!);
-  await page.getByRole("button",{name:"Light theme",exact:true}).click();
-  await page.getByRole("button",{name:"Chinese language",exact:true}).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme","light");
   await expect(page.locator("html")).toHaveAttribute("data-lang","zh");
   await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.fail();});
@@ -486,7 +482,8 @@ test("the current legacy company opens its chart and returns to the exact resear
  await chart.click();
  await expect(page).toHaveURL(chartHref.href);
  await expect(page.locator(".pair b")).toHaveText("MSFT");
- await page.locator(".brand-back").click();
+ await page.locator("[data-chart-workspaces]:visible").click();
+ await page.getByRole("button", { name: /Return to previous workspace/ }).click();
  await expect(page).toHaveURL(origin+next);
  await expect(page.locator("[data-shared-shell-frame]")).toBeVisible();
 });
@@ -496,12 +493,12 @@ test("market selection preserves the workspace and history without displaying an
   await page.goto("/discover");
   const selector = page.getByRole("combobox", { name: "Workspace market" }).filter({ visible: true });
   await expect(selector).toHaveValue("us");
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await expect(page.locator("#wtab-screener")).toBeVisible();
   await selector.focus(); await expect(selector).toBeFocused();
   await selector.selectOption("cn");
   await expect(page).toHaveURL(/\/discover\?workspaceMarket=cn$/);
   await expect(page.getByRole("heading", { name: "This workspace is not available for this market yet" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toHaveCount(0);
+  await expect(page.locator("#wtab-screener")).toHaveCount(0);
   await expect(page.locator(".shared-shell-market-coverage a").first()).toHaveAttribute("href", "/china.html");
   await selector.selectOption("hk");
   await expect(selector).toHaveValue("hk");
@@ -509,7 +506,7 @@ test("market selection preserves the workspace and history without displaying an
   await page.goBack(); await expect(selector).toHaveValue("cn");
   await page.reload(); await expect(selector).toHaveValue("cn");
   await page.goBack(); await expect(selector).toHaveValue("us");
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await expect(page.locator("#wtab-screener")).toBeVisible();
   await page.goForward(); await expect(selector).toHaveValue("cn");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   if (info.project.name === "desktop") {
@@ -520,8 +517,7 @@ test("market selection preserves the workspace and history without displaying an
     await expect(nav.getByRole("link", { name: "China", exact: true })).toHaveCount(0);
   }
   await page.screenshot({ animations: "disabled", path: info.outputPath("market-coverage-dark-en.png") });
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
-  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await setShellAppearance(page, "zh", "light");
   await expect(page.getByRole("heading", { name: "此市场暂未提供这个工作区" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "工作区市场" }).filter({ visible: true })).toHaveValue("cn");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
@@ -552,4 +548,41 @@ test("market control remains reachable at 320px alongside existing header action
   await expect(page.getByRole("button", { name: "Open navigation", exact: true })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ animations: "disabled", path: info.outputPath("market-320.png") });
+});
+
+test("the Beta chart opens labelled workspaces without a second rail", async ({ page, baseURL }, info) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/terminal?symbol=AAPL&tf=W");
+  const chart = page.locator(".app[data-beta-chart]");
+  const menu = chart.locator("[data-chart-workspaces]:visible");
+  await expect(menu).toBeVisible();
+  await expect(chart.locator(".appnav")).toHaveCount(0);
+  await expect(page.locator("iframe[src*='/terminal']")).toHaveCount(0);
+  if (info.project.name === "desktop") {
+    await expect(chart.locator(".topbar .pair b")).toHaveText("AAPL");
+    await expect(chart.locator(".tfbtn.on")).toHaveText("W");
+    expect((await chart.locator(".workspace").boundingBox())!.x).toBeLessThan(2);
+  } else {
+    await expect(chart.locator(".m-symbar [data-symbol-search]")).toContainText("AAPL");
+    await expect(chart.locator(".mobilebar")).toHaveCount(0);
+  }
+  const width = (await chart.locator(".workspace").boundingBox())!.width;
+  await menu.click();
+  const drawer = page.getByRole("dialog", { name: "Workspaces", exact: true });
+  for (const name of ["Macro Dashboard", "Prophet", "Sector Intelligence", "Portfolio", "Options Flow", "Analysis", "Discover"]) {
+    await expect(drawer.getByRole("link", {name, exact: true})).toBeVisible();
+  }
+  await expect(drawer.getByRole("link", {name: "Analysis", exact: true})).toHaveAttribute("href", "/analysis?symbol=AAPL");
+  await expect(drawer.getByRole("button", {name: "Settings", exact: true})).toBeAttached();
+  expect((await chart.locator(".workspace").boundingBox())!.width).toBe(width);
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
+  await menu.click();
+  await drawer.getByRole("link", {name: "Options Flow", exact: true}).click();
+  await expect(page).toHaveURL(url => url.pathname === "/options");
+  await expect(page.locator(".app2[data-shared-shell='beta']")).toBeVisible();
+  await page.goBack();
+  await expect(menu).toBeVisible();
+  await expect(page).toHaveURL(url => url.pathname === "/terminal" && url.searchParams.get("symbol") === "AAPL" && url.searchParams.get("tf") === "W");
 });

@@ -27,6 +27,7 @@ export default function SharedShellPrimaryNav({ mode, labelled, activeSymbol, ac
   const intelligenceKey = intelligenceActiveKey(path, search.toString());
   const activeKey = intelligenceKey ? null : (activeKeyOverride ?? sharedShellActiveKey(path));
   return <>
+    <IntelligenceNav mode={mode} labelled={labelled} onNavigate={onNavigate} />
     {SHARED_SHELL_NAV.map(item => {
       const selected = item.k === activeKey;
       // Top-level destination is the current page; nested routes are its current
@@ -50,6 +51,5 @@ export default function SharedShellPrimaryNav({ mode, labelled, activeSymbol, ac
         </Link>
       );
     })}
-    <IntelligenceNav mode={mode} labelled={labelled} onNavigate={onNavigate} />
   </>;
 }

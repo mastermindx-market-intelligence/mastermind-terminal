@@ -26,6 +26,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
+import TerminalWorkspaceMenu, { TerminalViews } from "@/components/chrome/shared-shell/TerminalWorkspaceNav";
+import { createDefaultTapeView, encodeTapeView } from "@/lib/optionsTapeView";
 import { AppNav } from "@/components/AppNav";
 import { initShellBridge, postToShell } from "@/lib/platform/shellBridge";
 import MobileNav from "@/components/MobileNav";
@@ -223,7 +225,7 @@ import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
 // E20 seam: the palette lists templates through the same accessor the chart's template menu uses.
 import { listTemplates, type TemplateMenuEntry } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
-import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
+import { canonicalChartSymbol, resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
 import WatchlistDisplaySettings from "@/components/WatchlistDisplaySettings";
 import {
@@ -1020,7 +1022,7 @@ function btMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _btStart).toFixed(1)}ms`);
 }
 
-export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false, newsRailEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean; newsRailEnabled?: boolean }) {
+export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, initialTimeframe, betaWorkspace = false, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false, newsRailEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; initialTimeframe?: string; betaWorkspace?: boolean; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean; newsRailEnabled?: boolean }) {
   const [man, setMan] = useState<Manifest | null>(null);
   // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
   // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
@@ -1246,7 +1248,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // same ref, so the prop and the state can never disagree.
   const startTfRef = useRef<string | null>(null);
   if (startTfRef.current === null && typeof window !== "undefined") {
-    startTfRef.current = resolveStartTf(readStartTf(), functionalSet(seed0, secondBarsEnabled));
+    const supported = functionalSet(seed0, secondBarsEnabled);
+    startTfRef.current = initialSymbol && initialTimeframe && supported.has(initialTimeframe)
+      ? initialTimeframe : resolveStartTf(readStartTf(), supported);
   }
   // The active chart is the source of truth for Recently viewed. Recording here (instead of only
   // inside the search picker) includes direct Macro Dashboard links, the warm iframe bridge,
@@ -1291,6 +1295,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const setTf = (t: string) => setPaneTfs((a) => { const n = [...a]; n[activePane] = t; return n; });
   // per-market functional TF set: daily-derived always; intraday TFs only for intraday-capable markets (R12)
   const FUNCTIONAL = useMemo(() => functionalSet(active, secondBarsEnabled), [active, secondBarsEnabled]);
+  const lastChartView = useRef<{ symbol: string; timeframe: string } | null>(null);
+  useEffect(() => {
+    if (!betaWorkspace || !prefsHydrated || !workspaceRestored) return;
+    const previous = lastChartView.current;
+    lastChartView.current = { symbol: active, timeframe: tf };
+    if (!previous || (previous.symbol === active && previous.timeframe === tf)) return;
+    const url = new URL(window.location.href);
+    if (url.pathname !== "/terminal" || isComposite(active) || !canonicalChartSymbol(active)) return;
+    if (previous.symbol !== active) url.searchParams.delete("episode");
+    url.searchParams.delete("sym");
+    url.searchParams.set("symbol", active);
+    url.searchParams.set("tf", tf);
+    window.history.replaceState(window.history.state, "", url);
+  }, [active, betaWorkspace, prefsHydrated, tf, workspaceRestored]);
   const [chartType, setChartType] = useState("candles");
   // Default-on indicators for new users: Moving Averages + Volume + MACD-RSI (TH_RSIMACD+) + Stochastic (CM_Stochastic_MTF).
   // item-28: Golden Oracle is OFF by default. A user's explicit saved indicator set (mm.inds)
@@ -1857,7 +1875,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // only surface a "back" affordance when the user actually arrived from the Macro Dashboard — for direct
   // visitors a back button would just throw them onto whatever unrelated site they were last on.
   const { fromMacro, macroHref } = useFromMacro();
-  const onBack = useCallback(() => backToMacro(macroHref), [macroHref]);
+  const onBack = useCallback(() => {
+    if (betaWorkspace && macroHref && new URL(macroHref).origin === window.location.origin) {
+      router.push(macroHref);
+    } else backToMacro(macroHref);
+  }, [betaWorkspace, macroHref, router]);
   // shared per-symbol drawing store (lifted out of ChartPane so multiple panes on the same
   // symbol share one set instead of clobbering each other through the replace-all PUT)
   const [drawStore, setDrawStore] = useState<Record<string, Drawing[]>>({});
@@ -6192,6 +6214,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     },
   };
 
+  // The tape accepts US underlying roots. Never reinterpret an international listing or a pair.
+  const tapeRoot = m?.mkt && ["US", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS"].includes(m.mkt.toUpperCase())
+    && m.sec !== "Crypto" && /^[A-Z][A-Z0-9.-]{0,9}$/.test(active) ? active : null;
+  const tapeHref = betaWorkspace && tapeRoot ? "/options?" + new URLSearchParams({
+    tab: "tape", tapeView: encodeTapeView({ ...createDefaultTapeView(), drillTicker: tapeRoot }),
+  }) : undefined;
+  const betaMenu = betaWorkspace && <TerminalWorkspaceMenu symbol={active} email={email} optionsHref={tapeHref}
+    onOpenBrain={openBrain} onOpenCommands={() => setPaletteOpen(true)} onReturn={fromMacro ? onBack : undefined} />;
+
   return (
     <OnboardingProvider email={email}>
     {/* Inside OnboardingProvider so the settings panel (and the avatar button)
@@ -6200,7 +6231,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         below are children of it, which is what matters. */}
     <SharedShellPresentation enabled={!shellMode} identity={identity} appearanceOnly>
     <SettingsProvider identity={identity} defaultSection="terminal">
-    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+    <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-beta-chart={betaWorkspace ? "" : undefined} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
         loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
         // A historical read is an unnamed local working copy. It must never target the
@@ -6209,11 +6240,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }}/>}
       {!shellMode && (
       <header className="topbar">
-        {fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />}
+        {(betaWorkspace && !isMobile ? betaMenu : null) || (fromMacro ? <DashboardBackButton onClick={onBack} returnHref={macroHref} /> : <BrandLockup />)}
         <div className="tdiv" />
         <button type="button" className="pair" aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
           onClick={() => { setSeed(""); setSearchMode("go"); setSearchOpen(true); }}><span className="dual"><i>{active[0]}</i><i>$</i></span><b>{active}</b>
           <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
+        {betaWorkspace && <TerminalViews symbol={active} />}
         <button className="cmp-btn" title={t("compareTitle")} onClick={(e) => { e.stopPropagation(); setSearchMode("compare"); setSeed(""); setSearchOpen(true); }}>
           <svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 5 3-4 4 8" /></svg>
           <span>{t("compare")}</span>
@@ -6262,7 +6294,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
       {/* ── mobile top bar + drawer (shared component) ── */}
       {!shellMode && (<>
-      <MobileNav
+      {!betaWorkspace && <MobileNav
         email={email}
         intentPrefetch
         fromMacro={fromMacro}
@@ -6276,9 +6308,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           const pane = new URLSearchParams(urlSearch).get("pane");
           return (pane === "analyst" || pane === "forecast") ? "analyst" : "chart";
         })()}
-      />
+      />}
       {/* ── mobile symbol bar (tap → search) ── */}
       <div className={`m-symbar${activeExtData ? " has-ext" : ""}`}>
+        {isMobile && betaMenu}
         <button type="button" className={searchStyles.mobileTrigger} data-symbol-search
           aria-describedby={mobileQuoteId}
           aria-label={`${t("searchTitle")} — ${active}`} aria-haspopup="dialog" aria-expanded={searchOpen && searchMode === "go"}
@@ -6302,7 +6335,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
-      <AppNav intentPrefetch />
+      {!betaWorkspace && <AppNav intentPrefetch />}
       </>)}
 
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}

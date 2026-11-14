@@ -9,7 +9,7 @@ for (const lang of ["en", "zh"] as const) {
     test.setTimeout(90_000);
     await page.addInitScript(value => localStorage.setItem("mm.lang", value), lang);
     await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
-    await page.goto("/discover");
+    await page.goto("/discover?tab=guide");
     const heading = page.getByRole("heading", { name: lang === "zh" ? "发现" : "Discover", exact: true });
     await expect(heading).toBeVisible({ timeout: 30_000 });
 

@@ -2,10 +2,7 @@ import { isPresentationHref } from "./sharedShellContracts";
 /** Presentation of existing destinations. Admission remains in the generated route projection. */
 export const SHARED_SHELL_NAV = [
   { k: "shellToday", label: "Today", href: "/today" },
-  { k: "discover", label: "Discover", href: "/discover" },
-  { k: "analysis", label: "Analysis", href: "/analysis" },
-  { k: "shellMonitor", label: "Monitor", href: "/monitor" },
-  { k: "shellResearch", label: "Research", href: "/research" },
+  { k: "shellOptionsFlow", label: "Options Flow", href: "/options" },
   { k: "portfolio", label: "Portfolio", href: "/portfolio" },
 ];
 export const SHARED_SHELL_MARKETS = [
@@ -16,6 +13,7 @@ export const SHARED_SHELL_MARKETS = [
   { id: "intl", k: "shellMarketIntl", label: "International", code: "INTL", href: "/intl.html" },
 ];
 export function sharedShellActiveKey(path: string): string {
+  if (path === "/options" || path.startsWith("/options/")) return "shellOptionsFlow";
   if (path === "/today") return "shellToday";
   if (path.startsWith("/analysis") || /^\/(?:stock|china_lookup|hk_lookup|canada_stock|intl_stock)\.html$/.test(path))
     return "analysis";

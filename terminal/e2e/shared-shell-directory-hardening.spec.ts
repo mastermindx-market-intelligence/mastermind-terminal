@@ -1,3 +1,4 @@
+import { setShellAppearance } from "./fixtures/shellAppearance";
 import { expect, test, type Page } from "@playwright/test";
 
 // Runs real AppShell/ShellMegaMenu/Link and the existing development-only
@@ -27,7 +28,7 @@ test.beforeEach(async ({ context, page, baseURL }) => {
   } }));
   await page.goto("/discover");
   await expect(page.locator('[data-shared-shell="beta"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Discover", exact: true })).toBeVisible();
+  await expect(page.locator("#wtab-screener")).toBeVisible();
 });
 
 test.afterEach(async ({ page }, info) => {
@@ -128,8 +129,7 @@ test("pointer crosses from the rail into family rows and dismisses outside", asy
 });
 
 test("light Chinese browse and independent search stay reachable at narrow widths", async ({ page }, info) => {
-  await page.getByRole("button", { name: "Light theme", exact: true }).click();
-  await page.getByRole("button", { name: "Chinese language", exact: true }).click();
+  await setShellAppearance(page, "zh", "light");
   await page.keyboard.press("ControlOrMeta+k");
   await expect(directory(page)).toBeVisible();
   await page.setViewportSize({ width: 320, height: 560 });
