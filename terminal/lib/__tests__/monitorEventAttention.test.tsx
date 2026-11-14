@@ -3,25 +3,16 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import golden from './fixtures/aapl-event-workspace.json';
+import { monitorRetainedEventFixture as success } from './fixtures/monitorDesk';
 import MonitorEventAttention from '@/components/workspaces/MonitorEventAttention';
-vi.mock('next/link', () => ({default: ({children, ...props}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => createElement('a', props, children)}));
+vi.mock('next/link', () => ({default: ({children, href, className}: React.AnchorHTMLAttributes<HTMLAnchorElement>) => createElement('a', {href, className}, children)}));
 const { load, openSignin } = vi.hoisted(() => ({load: vi.fn(), openSignin: vi.fn()}));
 vi.mock('@/components/onboarding/OnboardingProvider', () => ({useOnboarding: () => ({open: openSignin})}));
 vi.mock('@/lib/companyRetainedContext', async () => ({
   ...await vi.importActual<typeof import('@/lib/companyRetainedContext')>('@/lib/companyRetainedContext'),
   loadCompanyRetainedContext: load,
 }));
-const receipt = {
-  schema: 'earnings.retained_baseline.v1', owner: 'earnings.workspace_generation',
-  company_id: golden.issuer.company_id, event_id: golden.event_id, generation_id: golden.generation_id,
-  workspace_schema: golden.schema, manifest_schema: 'event_workspace_manifest.v1', authority: 'context_only',
-  manifest_sha256: 'a'.repeat(64), manifest_bytes: 2048, workspace_sha256: 'b'.repeat(64), workspace_bytes: 4096,
-  fingerprint: 'c'.repeat(64), public_known_at: golden.lifecycle.source_available_at,
-  platform_known_at: golden.lifecycle.observed_at, generation_emitted_at: '2026-10-21T12:00:00Z',
-  rights: {allowed: true, policy_version: 'fixture-retained-context.v1', checked_at: '2026-10-21T12:00:00Z'},
-};
-const success = (name = golden.issuer.display_name, symbol = 'AAPL') => ({ok: true,
-  workspace: {...golden, issuer: {...golden.issuer, display_name: name, listings: [{...golden.issuer.listings[0], ticker: symbol}]}}, receipt});
+const receipt = success().receipt;
 type Props = Parameters<typeof MonitorEventAttention>[0];
 let props: Props;
 let root: Root | null = null;
@@ -159,5 +150,17 @@ describe('Monitor event evidence lifetime and target contract', () => {
     await render(); await render({lang: 'zh'});
     expect(load).toHaveBeenCalledTimes(1); expect(text()).toContain('事件证据'); expect(text()).toContain('打开已保留事件证据');
     expect(text()).not.toContain('Available retained event version'); expect(text()).not.toContain('Open retained event evidence');
+  });
+  it('carries workspace market on the immutable target without replacing its accepted event reader', async () => {
+    await render({market:'cn'});
+    const link = target()!, clock = host.querySelector('time')!;
+    const before = new URL(link.href).searchParams;
+    expect(before.get('workspaceMarket')).toBe('cn');
+    await render({market:'ca',lang:'zh'});
+    expect(load).toHaveBeenCalledTimes(1); expect(target()).toBe(link); expect(host.querySelector('time')).toBe(clock);
+    const after = new URL(target()!.href).searchParams;
+    expect(after.get('workspaceMarket')).toBe('ca');
+    for (const key of ['symbol','page','ci_lens','ci_company','ci_event','ci_generation','ci_fingerprint']) expect(after.get(key)).toBe(before.get(key));
+    expect(clock.getAttribute('datetime')).toBe(receipt.public_known_at);
   });
 });

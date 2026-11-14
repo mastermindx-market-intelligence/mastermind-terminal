@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useShellIdentity } from '@/components/chrome/AppShell';
 import { useLang } from '@/lib/i18n';
 import { composeMonitorSnapshot } from '@/lib/sharedShellMonitor';
@@ -12,6 +13,7 @@ import { sharedShellTerminalHref } from '@/lib/sharedShellNavigation';
 import { isPresentationHref } from '@/lib/sharedShellContracts';
 import { companyHref } from '@/lib/sectorIntelligence';
 import { conditionText } from '@/lib/alertsView';
+import { marketNavigationHref, workspaceMarket } from '@/lib/sharedShellMarket';
 import styles from './MonitorWorkspace.module.css';
 import MonitorEventAttention from './MonitorEventAttention';
 import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
@@ -30,6 +32,9 @@ type AlertConditionInput = {
 };
 
 type Copy = {
+  workspace: string;
+  backToLists: string;
+  showingAlerts: (shown: number, total: number) => string;
   eventHeading: string;
   checkEvent: string;
   inventoryLoading: string;
@@ -71,6 +76,9 @@ type Copy = {
 
 const COPY: Record<Lang, Copy> = {
   en: {
+    workspace: 'Your workspace',
+    backToLists: 'Back to your lists',
+    showingAlerts: (shown, total) => 'Showing ' + shown + ' of ' + total + ' saved conditions',
     eventHeading: 'Event evidence',
     checkEvent: 'Check event evidence',
     inventoryLoading: 'Refreshing your lists. Event checks resume after membership is verified.',
@@ -80,7 +88,7 @@ const COPY: Record<Lang, Copy> = {
     title: 'Monitor',
     portfolioNote: 'Watchlists follow your interests. Your held positions are in Portfolio.',
     allAlerts: (count) => 'See all ' + count + ' saved alerts',
-    subtitle: 'Your watchlists and saved alert conditions.',
+    subtitle: 'Your saved symbols, alert conditions and event evidence.',
     refresh: 'Refresh',
     signIn: 'Sign in',
     guestHeading: 'Sign in to see your Monitor',
@@ -96,7 +104,7 @@ const COPY: Record<Lang, Copy> = {
       'Saved conditions and recorded states. The latest evaluation time is unavailable here.',
     manageAlerts: 'Manage alerts',
     created: (isoDate) => 'Created ' + isoDate,
-    activeLabel: 'Active',
+    activeLabel: 'Enabled',
     triggeredLabel: 'Triggered (recorded)',
     pausedLabel: 'Paused',
     listsHeading: 'Your lists',
@@ -112,6 +120,9 @@ const COPY: Record<Lang, Copy> = {
     openCompany: 'Company',
   },
   zh: {
+    workspace: '账户工作区',
+    backToLists: '返回关注列表',
+    showingAlerts: (shown, total) => '显示 ' + total + ' 条已保存条件中的 ' + shown + ' 条',
     eventHeading: '事件证据',
     checkEvent: '核对事件证据',
     inventoryLoading: '正在刷新关注列表；验证成员关系后可继续核对事件。',
@@ -121,7 +132,7 @@ const COPY: Record<Lang, Copy> = {
     title: '监控',
     portfolioNote: '关注列表记录你的关注；实际持仓请查看投资组合。',
     allAlerts: (count) => '查看全部 ' + count + ' 条提醒',
-    subtitle: '你的关注列表与已保存的预警条件。',
+    subtitle: '查看已保存代码、预警条件与事件证据。',
     refresh: '刷新',
     signIn: '登录',
     guestHeading: '登录后查看你的监控',
@@ -135,7 +146,7 @@ const COPY: Record<Lang, Copy> = {
     savedNote: '以下为已保存的条件与记录状态；本页暂未提供最近评估时间。',
     manageAlerts: '管理预警条件',
     created: (isoDate) => '创建于 ' + isoDate,
-    activeLabel: '生效中',
+    activeLabel: '已启用',
     triggeredLabel: '已触发（记录）',
     pausedLabel: '已暂停',
     listsHeading: '你的列表',
@@ -313,21 +324,6 @@ function readInventory<T>(url: string, parentSignal: AbortSignal, parse: (body: 
   });
 }
 
-// The same null snapshot is used by SSR and initial hydration; the browser URL
-// becomes available through the external-store update after hydration.
-const serverLocationSnapshot = (): string | null => null;
-const browserLocationSnapshot = () => window.location.href;
-function subscribeToLocation(onChange: () => void) {
-  window.addEventListener('popstate', onChange);
-  window.addEventListener('hashchange', onChange);
-  window.addEventListener('mmx:shell-location', onChange);
-  return () => {
-    window.removeEventListener('popstate', onChange);
-    window.removeEventListener('hashchange', onChange);
-    window.removeEventListener('mmx:shell-location', onChange);
-  };
-}
-
 function monitorChartHref(symbol: string, currentHref: string | null): string | null {
   const listing = listingHref(symbol);
   if (!listing || !currentHref || !isPresentationHref(currentHref)) return null;
@@ -354,12 +350,31 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   const onboarding = useOnboarding();
   const {scope, ready: ownerReady, ended: sessionEnded, unavailable: identityUnavailable, retryIdentity, invalidateIdentity} = useReadingScope(subjectId ?? '');
   const inventoryController = useRef<AbortController | null>(null);
-  const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
+  const path = usePathname(), params = useSearchParams();
+  const [currentHref, setCurrentHref] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    // Next publishes its search context before HistoryUpdater commits the URL.
+    // Read afterward, preserving the exact query encoding and fragment for return.
+    // The initial null value is shared by SSR and hydration.
+    const update = () => setCurrentHref(window.location.href);
+    update();
+    window.addEventListener('popstate', update);
+    window.addEventListener('hashchange', update);
+    window.addEventListener('mmx:shell-location', update);
+    return () => {
+      window.removeEventListener('popstate', update);
+      window.removeEventListener('hashchange', update);
+      window.removeEventListener('mmx:shell-location', update);
+    };
+  }, [path, params]);
+  const contextMarket = currentHref ? workspaceMarket('/monitor', new URL(currentHref).search) : null;
   const [listState, setListState] = useState<ListInventory>({ subjectId: '', state: 'loading' });
   const [alertState, setAlertState] = useState<AlertInventory>({ subjectId: '', state: 'loading' });
   const [refreshTick, setRefreshTick] = useState(0);
   const [attention, setAttention] = useState<{listId: string; symbol: string; inventoryRead: number; attempt: number} | null>(null);
   const attentionTarget = useRef<HTMLDivElement>(null);
+  const listsHeading = useRef<HTMLHeadingElement>(null);
+  const returnPoint = useRef<{listId: string; symbol: string; read: ListInventory; control: HTMLButtonElement} | null>(null);
   const attentionAttempt = useRef(0);
   const generationRef = useRef(0);
 
@@ -436,13 +451,20 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
     : attention.inventoryRead !== refreshTick ? { state: 'inventory-refreshed', text: copy.inventoryRefreshed }
     : null;
   const attentionSelection = attention && !attentionBoundary ? {listId: attention.listId, symbol: attention.symbol} : null;
-  const chooseEvent = (listId: string, symbol: string) => {
+  const chooseEvent = (listId: string, symbol: string, control: HTMLButtonElement) => {
     if (listPhase !== 'ready' || !lists.some(list => list.id === listId && list.symbols.some(member => member.symbol === symbol))) return;
+    returnPoint.current = {listId, symbol, read: listState, control};
     setAttention({ listId, symbol, inventoryRead: refreshTick, attempt: ++attentionAttempt.current });
     attentionTarget.current?.scrollIntoView?.({ block: 'start' });
     attentionTarget.current?.focus({ preventScroll: true });
   };
-
+  const backToLists = () => {
+    const point = returnPoint.current;
+    const canReturn = point && point.read === listState && listPhase === 'ready'
+      && lists.some(list => list.id === point.listId && list.symbols.some(member => member.symbol === point.symbol))
+      && point.control.isConnected && point.control.closest('details')?.open;
+    (canReturn ? point.control : listsHeading.current)?.focus();
+  };
 
   let listBody;
   if (listPhase === 'loading') {
@@ -471,26 +493,31 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
                     key={list.id + ':' + member.symbol + ':' + String(member.position)}
                     className={styles.symbolRow}
                   >
-                    <span className={styles.symbolName}>{member.symbol}</span>
-                    <span className={styles.symbolActions}>
+                    <div className={styles.symbolHead}>
+                      <span className={styles.symbolName}>{member.symbol}</span>
+                      <button type="button" className={styles.inspectLink}
+                        aria-controls="monitor-event-attention"
+                        aria-label={`${copy.checkEvent} · ${member.symbol}`}
+                        data-selected={attention?.listId === list.id && attention.symbol === member.symbol}
+                        onClick={event => chooseEvent(list.id, member.symbol, event.currentTarget)}>{copy.checkEvent}</button>
+                    </div>
+                    <div className={styles.symbolActions}>
                       {terminal ? (
-                        <Link className={styles.actionLink} href={terminal}>
+                        <Link className={styles.rowLink} prefetch={false} href={terminal}>
                           {copy.openTerminal}
+                          <span aria-hidden="true">→</span>
                         </Link>
                       ) : null}
                       {company ? (
-                        <Link className={styles.actionLink} href={company}>
+                        <Link className={styles.rowLink} prefetch={false} href={marketNavigationHref(company, contextMarket)}>
                           {copy.openCompany}
+                          <span aria-hidden="true">→</span>
                         </Link>
                       ) : null}
-                      <button type="button" className={styles.actionLink}
-                        aria-controls="monitor-event-attention"
-                        aria-label={`${copy.checkEvent} · ${member.symbol}`}
-                        onClick={() => chooseEvent(list.id, member.symbol)}>{copy.checkEvent}</button>
                       {!terminal && !company ? (
                         <span className={styles.plainSymbol}>{member.symbol}</span>
                       ) : null}
-                    </span>
+                    </div>
                   </li>
                 );
               })}
@@ -542,14 +569,15 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
   }
 
   return (
-    <main id="shared-shell-content" tabIndex={-1} className={styles.root}>
+    <main id="shared-shell-content" tabIndex={-1} className={styles.root} data-testid="monitor-workspace">
       <header className={styles.header}>
         <div className={styles.headerText}>
+          <p className={styles.eyebrow}>{copy.workspace}</p>
           <h1 className={styles.title}>{copy.title}</h1>
           <p className={styles.subtitle}>{copy.subtitle}</p>
         </div>
         {subjectId && ownerReady ? (
-          <button type="button" className="btn btn-primary" onClick={onRefresh}>
+          <button type="button" className={styles.refreshButton} onClick={onRefresh}>
             {copy.refresh}
           </button>
         ) : null}
@@ -566,26 +594,9 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
           </div>}
           {sessionEnded && <p className={styles.note}>{RECOVERY_COPY[lang].failed}</p>}
         </section> : <div className={styles.grid}>
-            <div className={styles.attentionStack}>
-              <div id="monitor-event-attention" ref={attentionTarget} tabIndex={-1} className={styles.attentionTarget}>
-                {attentionBoundary ? <section className={styles.panel} data-event-attention-state={attentionBoundary.state}>
-                  <h2 className={styles.panelTitle}>{copy.eventHeading}</h2>
-                  <p className={styles.stateText} role="status">{attentionBoundary.text}</p>
-                </section> : <MonitorEventAttention subjectId={subjectId} selection={attentionSelection}
-                  refreshKey={attention?.attempt ?? 0} lang={lang} onUnauthenticated={invalidateSession} />}
-              </div>
-            <section className={styles.panel}>
-              <h2 className={styles.panelTitle}>{copy.alertsHeading}</h2>
-              {alertBody}
-              <p className={styles.note}>{copy.savedNote}</p>
-              <p className={styles.footerLink}>
-                <Link href="/alerts">{alerts.length > 8 ? copy.allAlerts(alerts.length) : copy.manageAlerts}</Link>
-              </p>
-            </section>
-            </div>
-            <section className={styles.panel}>
+            <section className={styles.workspaceSection} aria-labelledby="monitor-lists-title">
               <div className={styles.panelHead}>
-                <h2 className={styles.panelTitle}>
+                <h2 id="monitor-lists-title" ref={listsHeading} tabIndex={-1} className={styles.panelTitle}>
                   {copy.listsHeading}
                   {listCount !== null ? ' (' + String(listCount) + ')' : ''}
                 </h2>
@@ -597,16 +608,35 @@ function OwnedMonitorWorkspace({ subjectId, lang }: { subjectId: string | null; 
               <p className={styles.note}>{copy.sharedNote}</p>
               <p className={styles.footerLink}>
                 <span className={styles.portfolioNote}>{copy.portfolioNote}</span>
-                <Link href="/portfolio">{copy.portfolio}</Link>
+                <Link prefetch={false} href={marketNavigationHref('/portfolio', contextMarket)}>{copy.portfolio}<span aria-hidden="true">→</span></Link>
               </p>
             </section>
+            <div className={styles.attentionStack}>
+              <div id="monitor-event-attention" ref={attentionTarget} tabIndex={-1} className={styles.attentionTarget}>
+                {attention && <button type="button" className={styles.returnLink} onClick={backToLists}><span aria-hidden="true">←</span>{copy.backToLists}</button>}
+                {attentionBoundary ? <section className={styles.panel} data-event-attention-state={attentionBoundary.state}>
+                  <h2 className={styles.panelTitle}>{copy.eventHeading}</h2>
+                  <p className={styles.stateText} role="status">{attentionBoundary.text}</p>
+                </section> : <MonitorEventAttention subjectId={subjectId} selection={attentionSelection}
+                  refreshKey={attention?.attempt ?? 0} lang={lang} market={contextMarket} onUnauthenticated={invalidateSession} />}
+              </div>
+              <section className={styles.workspaceSection + ' ' + styles.alertSection} aria-labelledby="monitor-alerts-title">
+                <div className={styles.alertSectionHead}>
+                  <h2 id="monitor-alerts-title" className={styles.panelTitle}>{copy.alertsHeading}{alertPhase === 'ready' ? ' (' + String(alerts.length) + ')' : ''}</h2>
+                  <Link className={styles.rowLink} prefetch={false} href={marketNavigationHref('/alerts', contextMarket)}>{alerts.length > 8 ? copy.allAlerts(alerts.length) : copy.manageAlerts}<span aria-hidden="true">→</span></Link>
+                </div>
+                {alertPhase === 'ready' && alerts.length > 0 && <p className={styles.note}>{copy.savedNote}</p>}
+                {alerts.length > 8 && <p className={styles.previewNote}>{copy.showingAlerts(8, alerts.length)}</p>}
+                {alertBody}
+              </section>
+            </div>
           </div>
         ) : (
           <section className={styles.panel + ' ' + styles.guestCard}>
             <h2 className={styles.panelTitle}>{copy.guestHeading}</h2>
             <p className={styles.stateText}>{copy.guestBody}</p>
             <p className={styles.footerLink}>
-              <Link className="btn btn-primary" href="/login">
+              <Link className="btn btn-primary" prefetch={false} href="/login">
                 {copy.signIn}
               </Link>
             </p>

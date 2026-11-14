@@ -20,7 +20,8 @@ require.extensions['.ts'] = (module, filename) => {
   const liquidityFixture = path.join(ROOT,'lib/__tests__/fixtures/macroLiquidity.ts');
   const candidateFixture = path.join(ROOT,'lib/__tests__/fixtures/prophetCandidatePool.ts');
   const todayFixture = path.join(ROOT,'lib/__tests__/fixtures/todayDailyDesk.ts');
-  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture && resolved !== todayFixture) throw Error('fixture loader scope');
+  const monitorFixture = path.join(ROOT,'lib/__tests__/fixtures/monitorDesk.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture && resolved !== historyFixture && resolved !== liquidityFixture && resolved !== candidateFixture && resolved !== todayFixture && resolved !== monitorFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
@@ -33,6 +34,7 @@ const {todayMarketFixture,todayPersonalBriefFixture,todayChangesFixture,todayDig
  todayCatalogFixture,todayWatchlistFixture,TODAY_SAVED_SELECTION} = require('../../lib/__tests__/fixtures/todayDailyDesk.ts');
 const catalystFixture = require('../../lib/__tests__/fixtures/catalystOpportunity.json');
 const defenseFixture = require('../../lib/__tests__/fixtures/catalystDefenseOwner.json');
+const {monitorWatchlistsFixture,monitorAlertsFixture,monitorRetainedEventFixture} = require('../../lib/__tests__/fixtures/monitorDesk.ts');
 const EVIDENCE_ROOT = path.join(ROOT,'docs/pr-crops/shared-shell-intelligence-20261103');
 const VARIANT = process.env.INTELLIGENCE_TEST_VARIANT || '';
 if (VARIANT && !/^[a-z][a-z0-9-]{0,63}$/.test(VARIANT)) throw Error('invalid evidence variant');
@@ -79,6 +81,11 @@ report.sourceFiles=Object.fromEntries([
  'components/workspaces/TodayBreadthReading.tsx', 'lib/__tests__/fixtures/todayDailyDesk.ts',
  'components/workspaces/DiscoverLanding.tsx', 'components/workspaces/DiscoverLanding.module.css',
  'components/workspaces/DiscoverWorkspace.tsx', 'components/chrome/WorkspaceTabs.tsx',
+ 'components/workspaces/MonitorWorkspace.tsx', 'components/workspaces/MonitorWorkspace.module.css',
+ 'components/workspaces/MonitorEventAttention.tsx', 'components/workspaces/MonitorEventAttention.module.css',
+ 'lib/sharedShellMonitor.ts', 'lib/companyRetainedContext.ts', 'lib/eventWorkspace.ts',
+ 'lib/sharedShellMarket.ts', 'lib/sharedShellNavigation.ts',
+ 'lib/__tests__/fixtures/monitorDesk.ts', 'lib/__tests__/fixtures/aapl-event-workspace.json',
  'components/catalyst-opportunity/CatalystOpportunityView.tsx',
  'components/catalyst-opportunity/CatalystOpportunity.module.css', 'lib/catalystOpportunityLex.ts',
  'components/catalyst-opportunity/CatalystOpportunityWorkspace.tsx',
@@ -566,6 +573,9 @@ async function qualifyDiscover(page,cell) {
     await presentation(lang,mode);
     await expect(chooser.getByRole('heading',{level:1,name:lang==='zh'?'发现':'Discover',exact:true})).toBeVisible();
     for(const action of await chooser.locator('button,a').all()){
+      // Search belongs to the existing command-palette readiness boundary.
+      // Focusing a disabled button is a no-op before client hydration completes.
+      await expect(action).toBeEnabled();
       await action.scrollIntoViewIfNeeded();
       const box=await action.boundingBox();expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
       expect(await action.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
@@ -704,6 +714,145 @@ async function qualifyCatalyst(page,cell) {
     reads,selectionReturnDidNotRead:true,passed:true});
 }
 
+async function qualifyMonitor(page,cell) {
+  const writesBefore=report.fixtureWrites.length;
+  let lists=monitorWatchlistsFixture(),alerts=monitorAlertsFixture();
+  let listStatus=200,alertStatus=200,eventStatus=200;
+  const event=monitorRetainedEventFixture(),reads={lists:0,alerts:0,event:0},eventQueries=[];
+  const readOnly=route=>{
+    if(route.request().method()==='GET')return false;
+    report.fixtureWrites.push({method:route.request().method(),path:new URL(route.request().url()).pathname});
+    return true;
+  };
+  await page.route('**/api/watchlist',route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.lists++;return route.fulfill({status:listStatus,json:listStatus===200?{lists,sharedWithMe:[{id:'shared-fixture',name:'Shared list must not appear'}]}:{error:'synthetic inventory unavailable'}});
+  });
+  await page.route('**/api/alerts',route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.alerts++;return route.fulfill({status:alertStatus,json:alertStatus===200?{alerts}:{error:'synthetic alerts unavailable'}});
+  });
+  await page.route('**/api/investigations/baseline?**',route=>{
+    if(readOnly(route))return route.fulfill({status:405,json:{error:'read-only fixture'}});
+    reads.event++;const query=new URL(route.request().url()).searchParams;eventQueries.push(Object.fromEntries(query));
+    if(query.get('symbol')!=='AAPL'||[...query.keys()].length!==1)return route.fulfill({status:400,json:{ok:false,reason:'invalid_reference'}});
+    return route.fulfill({status:eventStatus,json:eventStatus===200?event:{ok:false,code:'HISTORICAL_UNAVAILABLE',reason:eventStatus===403?'denied':'owner_unavailable'}});
+  });
+  await page.goto(BASE+'/monitor?workspaceMarket=cn&list=core&origin=monitor-proof#saved');
+  const root=page.getByTestId('monitor-workspace'),listsHeading=root.locator('#monitor-lists-title');
+  const target=root.locator('#monitor-event-attention'),evidence=target.locator('[data-event-attention-state]');
+  const alertSection=root.locator('section[aria-labelledby="monitor-alerts-title"]');
+  const core=root.locator('details').first(),aapl=()=>core.getByRole('button',{name:/^(Check event evidence|核对事件证据) · AAPL$/});
+  const openCore=async()=>{if(await core.getAttribute('open')===null)await core.locator('summary').click();};
+  const back=()=>target.getByRole('button',{name:/^(Back to your lists|返回关注列表)$/});
+  const refresh=()=>root.getByRole('button',{name:'Refresh',exact:true}).click();
+  const presentation=async(lang,mode)=>{
+    const language=page.getByRole('button',{name:/^(Chinese language|中文界面)$/});
+    if(await language.getAttribute('aria-pressed')!==(lang==='zh'?'true':'false'))await language.click();
+    const light=page.getByRole('button',{name:/^(Light theme|浅色主题)$/});
+    if(await light.getAttribute('aria-pressed')!==(mode==='light'?'true':'false'))await light.click();
+    await expect(page.locator('html')).toHaveAttribute('data-lang',lang);await expect(page.locator('html')).toHaveAttribute('data-theme',mode);
+  };
+  await expect(listsHeading).toHaveText('Your lists (2)',{timeout:30000});
+  await expect(alertSection.locator('h2')).toHaveText('Saved alerts (3)');
+  await expect(root).toContainText('3 distinct symbols');await expect(root).not.toContainText('Shared list must not appear');
+  await expect(page.locator('h1:visible')).toHaveCount(1);await expect(page.locator('main:visible')).toHaveCount(1);
+  await expect(root.locator('iframe')).toHaveCount(0);await expect(target).toHaveCount(1);await expect(evidence).toHaveAttribute('data-event-attention-state','idle');
+  expect(await root.evaluate(el=>{
+    const lists=el.querySelector('#monitor-lists-title'),event=el.querySelector('#monitor-event-attention'),alerts=el.querySelector('#monitor-alerts-title');
+    return Boolean((lists.compareDocumentPosition(event)&Node.DOCUMENT_POSITION_FOLLOWING)&&(event.compareDocumentPosition(alerts)&Node.DOCUMENT_POSITION_FOLLOWING));
+  })).toBe(true);
+  const initialUrl=page.url();await core.locator('summary').click();expect(reads.event).toBe(0);
+  const assertLinks=async(market,companyCount=3)=>{
+    await expect(root.locator('a[href^="/analysis?"]')).toHaveCount(companyCount);
+    await expect(root.locator('a[href^="/alerts"]')).toHaveCount(1);
+    await expect(root.locator('a[href^="/portfolio"]')).toHaveCount(1);
+    for(const link of await root.locator('a[href^="/analysis?"],a[href^="/alerts"],a[href^="/portfolio"]').all()){
+      await expect(link).toHaveAttribute('href',new RegExp('[?&]workspaceMarket='+market+'(?:&|$)'));
+    }
+    const currentHref=page.url();
+    await expect.poll(async()=>{
+      const chart=new URL(await core.locator('a[href^="/terminal?"]').first().getAttribute('href'),BASE);
+      return {symbol:chart.searchParams.get('symbol'),ret:chart.searchParams.get('ret')};
+    }).toEqual({symbol:'AAPL',ret:currentHref});
+  };
+  await assertLinks('cn');await aapl().focus();await page.keyboard.press('Enter');
+  await expect(target).toBeFocused();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
+  await expect(evidence).toContainText('Fiscal Q3 2026');await expect(evidence.locator('time')).toHaveAttribute('datetime',event.receipt.public_known_at);
+  const pinKeys=['ci_company','ci_event','ci_generation','ci_fingerprint'];
+  const sourceHref=()=>evidence.locator('a[href^="/analysis?"]').getAttribute('href');
+  const sourceBefore=new URL(await sourceHref(),BASE);
+  expect(sourceBefore.searchParams.get('page')).toBe('intelligence');expect(sourceBefore.searchParams.get('ci_lens')).toBe('sources');
+  expect(sourceBefore.searchParams.get('ci_company')).toBe(event.receipt.company_id);
+  expect(sourceBefore.searchParams.get('ci_event')).toBe(event.receipt.event_id);
+  expect(sourceBefore.searchParams.get('ci_generation')).toBe(event.receipt.generation_id);
+  expect(sourceBefore.searchParams.get('ci_fingerprint')).toBe(event.receipt.fingerprint);
+  const acceptedReads={...reads};await back().click();await expect(aapl()).toBeFocused();expect(reads).toEqual(acceptedReads);expect(page.url()).toBe(initialUrl);
+  await core.locator('summary').click();await back().click();await expect(listsHeading).toBeFocused();expect(reads).toEqual(acceptedReads);
+  await core.locator('summary').click();
+  await evidence.evaluate(el=>{window.__monitorAcceptedEvidence=el;});
+  await page.getByRole('combobox',{name:'Workspace market',exact:true}).selectOption('ca');
+  await expect(page).toHaveURL(/workspaceMarket=ca/);await assertLinks('ca',4);
+  const sourceAfter=new URL(await sourceHref(),BASE);
+  for(const key of pinKeys)expect(sourceAfter.searchParams.get(key)).toBe(sourceBefore.searchParams.get(key));
+  expect(await evidence.evaluate(el=>el===window.__monitorAcceptedEvidence)).toBe(true);expect(reads).toEqual(acceptedReads);
+  for(const [lang,mode] of [['en','dark'],['zh','light']]){
+    await presentation(lang,mode);
+    await expect(root.getByRole('heading',{level:1,name:lang==='zh'?'监控':'Monitor',exact:true})).toBeVisible();
+    await expect(alertSection).toContainText(lang==='zh'?'已启用':'Enabled');
+    await expect(alertSection).toContainText(lang==='zh'?'已触发（记录）':'Triggered (recorded)');
+    for(const action of await root.locator('button:visible,a:visible,summary:visible').all()){
+      await action.scrollIntoViewIfNeeded();const box=await action.boundingBox();
+      expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(await action.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+      await action.focus();await expect(action).toBeFocused();
+    }
+    await noOverflow(page);expect(reads).toEqual(acceptedReads);
+    expect(await evidence.evaluate(el=>el===window.__monitorAcceptedEvidence)).toBe(true);
+    await target.evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-evidence-'+lang+'.png')});
+    await back().click();await expect(aapl()).toBeFocused();
+    await root.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-lists-'+lang+'.png')});
+  }
+  await presentation('en','dark');
+  await refresh();await expect(evidence).toHaveAttribute('data-event-attention-state','inventory-refreshed');
+  await expect(evidence.locator('a')).toHaveCount(0);expect(reads.event).toBe(acceptedReads.event);
+  await back().click();await expect(listsHeading).toBeFocused();
+  await openCore();await aapl().click();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
+  const refreshedEventReads=reads.event;
+  alertStatus=503;await refresh();await expect(alertSection).toContainText('Saved alert conditions are unavailable right now.');
+  await expect(alertSection.locator('h2')).toHaveText('Saved alerts');await expect(alertSection).not.toContainText('latest evaluation time');
+  await expect(listsHeading).toHaveText('Your lists (2)');await openCore();await aapl().click();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
+  expect(reads.event).toBeGreaterThan(refreshedEventReads);await noOverflow(page);
+  await target.evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-alerts-unavailable.png')});
+  eventStatus=403;await evidence.getByRole('button',{name:'Check again',exact:true}).click();
+  await expect(evidence).toHaveAttribute('data-event-attention-state','restricted');await expect(evidence.locator('a')).toHaveCount(0);await expect(listsHeading).toHaveText('Your lists (2)');
+  eventStatus=200;alertStatus=200;listStatus=503;await refresh();
+  await expect(evidence).toHaveAttribute('data-event-attention-state','membership-unavailable');await expect(alertSection.locator('h2')).toHaveText('Saved alerts (3)');
+  await expect(listsHeading).toHaveText('Your lists');await expect(root.locator('details')).toHaveCount(0);
+  listStatus=200;await refresh();await expect(evidence).toHaveAttribute('data-event-attention-state','inventory-refreshed');
+  await openCore();await aapl().click();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
+  lists[0].symbols=lists[0].symbols.filter(row=>row.symbol!=='AAPL');const beforeRemoval=reads.event;
+  await refresh();await expect(evidence).toHaveAttribute('data-event-attention-state','membership-lost');expect(reads.event).toBe(beforeRemoval);
+  await back().click();await expect(listsHeading).toBeFocused();
+  lists=monitorWatchlistsFixture();await refresh();await expect(evidence).toHaveAttribute('data-event-attention-state','inventory-refreshed');
+  await openCore();await aapl().click();await expect(evidence).toHaveAttribute('data-event-attention-state','ready');
+  eventStatus=401;await evidence.getByRole('button',{name:'Check again',exact:true}).click();
+  await expect(root.locator('[data-monitor-session]')).toHaveAttribute('data-monitor-session','ended');
+  await expect(root.locator('details')).toHaveCount(0);await expect(root.locator('#monitor-alerts-title')).toHaveCount(0);await expect(target).toHaveCount(0);
+  const beforeRecovery=reads.event;eventStatus=200;
+  await root.getByRole('button',{name:'Verify account and reload',exact:true}).click();
+  await expect(listsHeading).toHaveText('Your lists (2)');await expect(alertSection.locator('h2')).toHaveText('Saved alerts (3)');
+  await expect(evidence).toHaveAttribute('data-event-attention-state','idle');expect(reads.event).toBe(beforeRecovery);
+  expect(new URL(page.url()).searchParams.get('origin')).toBe('monitor-proof');expect(new URL(page.url()).hash).toBe('#saved');
+  await noOverflow(page);await root.evaluate(el=>el.scrollTop=0);await page.screenshot({animations:'disabled',path:path.join(OUT,cell+'-account-recovered.png')});
+  expect(report.fixtureWrites.length).toBe(writesBefore);
+  report.cells.push({w:page.viewportSize().width,journey:'monitor-lists-event-evidence',
+    sourceProof:'SYNTHETIC_ACCOUNT_AND_RETAINED_EVENT_FIXTURE_NOT_LIVE_ACCOUNT_OR_PRODUCTION',
+    fixtureSha256:crypto.createHash('sha256').update(JSON.stringify({lists:monitorWatchlistsFixture(),alerts:monitorAlertsFixture(),event:monitorRetainedEventFixture()})).digest('hex'),
+    reads,eventQueries,singleEvidenceRegion:true,presentationDidNotRead:true,returnDidNotRead:true,
+    destinationProof:'IMMUTABLE_LINK_FIELDS_ONLY; downstream Analysis consumer remains its existing owner',passed:true});
+}
+
 async function qualifyToday(page,cell) {
   let marketRead=todayMarketFixture(),marketStatus=200,changesStatus=200;
   const counts={market:0,brief:0,comparison:0,catalog:0,watchlists:0,breadth:0,reportBodies:0},comparisonInputs=[];
@@ -830,7 +979,7 @@ async function qualifyToday(page,cell) {
   if(!ready)throw Error('local Next readiness not established');
   browser=await chromium.launch({headless:true});
   // Warm only the qualified real routes, with the same synthetic authority.
-  for(const dest of ['/intelligence','/prophet','/sectors','/today','/discover']){
+  for(const dest of ['/intelligence','/prophet','/sectors','/today','/discover','/monitor']){
    const r=await fetch(BASE+dest,{headers:{cookie:`sb-127-auth-token=base64-${Buffer.from(JSON.stringify(session())).toString('base64url')}`},signal:AbortSignal.timeout(120000)});
    if(!r.ok)throw Error(`${dest} warm HTTP ${r.status}`);await r.text();
   }
@@ -927,6 +1076,9 @@ async function qualifyToday(page,cell) {
    const catalystContext=await context(),catalystPage=await catalystContext.newPage();
    await catalystPage.setViewportSize({width,height});catalystPage.on('pageerror',error=>report.errors.push({cell:`catalyst-${width}`,error:error.message}));
    await qualifyCatalyst(catalystPage,`catalyst-${width}`);await catalystContext.close();
+   const monitorContext=await context(),monitorPage=await monitorContext.newPage();
+   await monitorPage.setViewportSize({width,height});monitorPage.on('pageerror',error=>report.errors.push({cell:`monitor-${width}`,error:error.message}));
+   await qualifyMonitor(monitorPage,`monitor-${width}`);await monitorContext.close();
   }
   report.passed=report.errors.length===0; if(!report.passed)throw Error('browser page errors; inspect receipt');
  }catch(error){report.failure=String(error);process.exitCode=1;if(browser){const pages=browser.contexts().flatMap(c=>c.pages());const page=pages.at(-1);if(page){report.failureBody=(await page.locator('body').innerText().catch(()=>'' )).slice(0,5000);await page.screenshot({path:path.join(OUT,'failure-diagnostic.png')}).catch(()=>{});}}}
