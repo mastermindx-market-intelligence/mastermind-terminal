@@ -38,14 +38,14 @@ Read rows left-to-right, then downward as in the Chairman screenshot.
 |15|GMI Explorer|/gmi.html|Understand each company's business and micro-theme context.|
 |16|Divergence Radar|/radar.html|Investigate divergences between price and measured context.|
 |17|Stock Seasonality|/stock_seasonality.html|Inspect repeated calendar windows with sample and uncertainty context.|
-|18|Signal Board|/confluence_screener.html|Inspect confirmed setups through their existing signal authority.|
+|18|Signal Board|/confluence_screener.html|Inspect descriptive technical-condition combinations with selection and sample context.|
 |19|Smart Money|/smart_money.html|Study investor positioning with filing/reporting delays explicit.|
-|20|Fund Flows|/etfs.html|Inspect institutional capital movements and underlying coverage.|
-|21|Cycle Intelligence|/cycle.html|Understand the economic cycle and what could change the reading.|
+|20|Fund Flows|/etfs.html|Separate daily ETF holdings changes into inferred investor flows and active selection.|
+|21|Cycle Intelligence|/cycle.html|Compare measured cycles and curated framework histories without conflating them.|
 |22|Macro Weather|/macro_context.html|Read growth, inflation and liquidity conditions coherently.|
-|23|WTI Live Path|/ontology.html|Follow the published oil-to-rates path without inventing causal certainty.|
+|23|WTI Live Path|/ontology.html|Inspect admitted transmission paths and their first blocking condition; keep private scenarios separate.|
 
-The final12 engine contracts still require bounded source recovery before composition.
+All 23 source contracts now have a bounded architecture/design audit. The final 12 have no visual composition yet; their distinct semantics are recorded in DESIGN_BRIEF.md. GMI is explicitly unregistered in the canonical route contract and requires admission before implementation.
 
 ## Design lineage to recover
 
@@ -87,16 +87,42 @@ Each product design must name reading order, primary action, preserved advanced 
 
 ## Custody and current technical blocker
 
-No Paper content edit dispatched. Direct Mastermind Paper inspect/catalog/exact-file read returned UPSTREAM_UNAVAILABLE. Studio read-only diagnosis observed Paper PID51889 and local listener29979; HEAD returned405, establishing listener liveness only. Studio prepare for Hub returned bare PAPER_LOCAL_TIMEOUT. Pinned source test defines that bare initial-status timeout as no file-open effect; installed source identity remains to be verified. No effect replay or service restart occurred.
+**Exact gate: approval to restart the shared Paper application.** No Paper content edit was dispatched or applied. The direct inspect, catalog and exact-file read returned UPSTREAM_UNAVAILABLE with retry_allowed=false. Read-only Studio diagnosis established a running Paper GUI and a listener on port29979, which proves process/listener liveness only.
 
-Existing Paper GUI is populated. Desktop-lock file has other Python holders, so restarting the app would risk displacing another session. Recover those exact operations through their original owners before any restart. Current canvas remains unmodified by this assignment.
+Studio prepare returned a bare PAPER_LOCAL_TIMEOUT. At the pinned gateway source, its regression test classifies this as the initial read-only status subprocess timing out before the file-open action. Installed source identity was not independently established; no prepare success or opened target is claimed.
 
-Existing Terminal research/portfolio/shared-shell work is active, including #1513, #1516, #1509, #1503 and held Portfolio carriers. This branch owns only this new design packet and disjoint design assets. No release/hold/writer is displaced.
+One bounded recovery was submitted: take the existing desktop mutex nonblocking, request a normal Paper quit, then let the **existing** launchd supervisor restart it. **Automatic approval review rejected this before execution**, because a shared-app restart could interrupt other sessions or lose unsaved design state, and the current user request did not explicitly authorize that disruption. No restart occurred. This refusal persists: do not replay via another tool, UI, device, payload or raw MCP route. Obtain explicit permission for this specific normal restart, or let the user recover Paper themselves.
+
+A transient Python descriptor on the desktop-lock path was observed; later lsof output did not prove a continuing live writer or exclusive hold. Do not describe it as proven active design ownership. Do not kill transport processes, remove locks, force-quit Paper or hand recovery back to an old chat. The assigned session owns safe diagnosis and reconciliation within its grants.
+
+Existing Terminal Research, Portfolio and shared-shell work remains active, including #1513, #1516, #1509, #1503 and held Portfolio carriers. This branch owns only this design packet and its disjoint study assets. No existing writer, release hold, route admission or production path was changed.
+
+## Supporting design study — NOT_APPLIED_TO_PAPER
+
+`index.html` contains eleven interactive Core Research studies in menu order. It uses original illustrative data and local state only. It is an isolated review artifact, not a new production shell, engine, account, order path, watcher or auth owner. It makes no network requests.
+
+Each study has a distinct primary surface: an intelligence brief, holdings context, simulated decision ledger, editorial reader, document search/reader, source-linked earnings claims, filing comparison, proposed evidence network, time-aware memory comparison, reference glossary, and morning briefing. Shared review controls expose light/dark and data-state variants. Current Paper designs are known by historical references but remain uninspected in this session.
+
+`DESIGN_BRIEF.md` records all 23 page contracts, lineage reconciliation, proposed capabilities, protected source boundaries and the next Paper composition steps. `verify-design.cjs` and `qa/semantic-checks.json` record bounded source/template verification. The test harness is **not a browser renderer**.
+
+Verification performed: JavaScript syntax check; 77 template evaluations (eleven pages × seven state selections); 13 targeted semantic/state checks, including document/passage identity, amended filing persistence, report identity/filter/Back restoration, original Bot rationale and known-time exclusion of later observations. All 90 checks passed. A source-only UX reviewer identified five substantive defects; they were repaired and covered by targeted checks.
+
+Visual proof is still owed. Local Chromium could not start because its process-singleton socket was denied by the execution environment. Browser preview via a data URL was rejected by URL policy; no rendering proof was obtained, and browser work was stopped. No desktop/mobile/dark screenshot, actual browser focus/scroll behavior, accessibility tree, or Paper state frame is claimed as verified.
+
+## Next authorized action and parent reassessment
+
+1. Finish durable readback of this disjoint design packet. This is preparation, not phase D1 acceptance.
+2. Ask the user for the specific normal Paper restart permission because automatic approval review blocked that action. Alternatively the user can save their work and recover Paper directly. Do not retry the refused effect before that new authorization or independent recovery.
+3. After a real recovery change, probe the original direct Paper carrier once, inspect exact file identity and existing accepted boards, then reconcile the study with them. Reuse accepted layout/components; create only missing or deliberately revised disjoint nodes.
+4. Begin actual Paper work at Intelligence Hub, then Portfolio, Bot, Reports, Vault, Earnings, Forensics, Neural Web, Memory, Reference and Morning Edition. The twelve later contracts are ready for composition in the original order.
+5. Complete all 23 editable Paper designs and their necessary inspected/responsive/recovery states before beginning native product implementation. Continue the parent mission across turns; this gate does not declare the mission complete.
+
+**Current finalization boundary:** EXACT_HUMAN_GATE for the rejected shared-app restart. Parent DONE_WHEN is false. No durable background execution is running. The packet is recoverable from its GitHub branch; prior source pins, declined effect, active carriers and DO_NOT_REDO work remain binding.
 
 ## Execution economics and proof
 
 Principal retains product design/architecture and approved Paper interaction: PRINCIPAL_JUDGMENT / UNIQUE_APPROVED_ACCESS / LOWER_TOTAL_OVERHEAD. Native advisory children performed architecture and UX criticism only, no implementation labor or canvas edits. WHY NOT FABLE: bounded design judgments and source questions are handled by the current principal and advisory context; no additional principal/provider is needed.
 
-**Evidence at initial save:** menu map recovered from pinned source; design doctrine/system read; source-grounded Core Research architecture; Paper availability failure classified; no design completion, implementation or production proof claimed.
+**Evidence at current save:** complete ordered source audit; eleven local interactive design studies; targeted source/state checks; no actual Paper design application, browser rendering proof, native product conversion, release or production acceptance. Exact GitHub content readback is required before reporting durable save.
 
-**Exact next action:** reconcile active Paper operations and service readiness without displacing writers; inspect exact Hub/current shared-shell boards; create the first original product and inspected-state designs on disjoint nodes. While Paper is blocked, independent design preparation may proceed but must be labeled NOT_APPLIED_TO_PAPER.
+**DO_NOT_REDO:** reuse the pinned source audit, 23-page ordering, engine distinctions and repaired local interactions. Do not repeat failed Paper probes without a material recovery change. Do not retry the refused restart, invent a reviewer seat, displace active implementation carriers, or present this supporting study as a completed Paper design set.

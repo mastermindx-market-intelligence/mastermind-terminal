@@ -1,0 +1,522 @@
+{
+  "artifact": "index.html",
+  "verification": "Node VM template and state semantics only; browser rendering and focus behavior not verified",
+  "checks": [
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "hub",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "portfolio",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "bot",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reports",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "vault",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "earnings",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "forensics",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "neural",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "memory",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "reference",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "ready",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "partial",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "stale",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "empty",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "error",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "loading",
+      "pass": true
+    },
+    {
+      "check": "template",
+      "page": "morning",
+      "state": "access",
+      "pass": true
+    },
+    {
+      "check": "Distinct report identity, sections, preserved subject filter",
+      "pass": true
+    },
+    {
+      "check": "Vault passage control preserves document identity",
+      "pass": true
+    },
+    {
+      "check": "Amended filing comparison changes displayed version and passage",
+      "pass": true
+    },
+    {
+      "check": "Known-time chart excludes later points; current context has distinct temporal controls",
+      "pass": true
+    },
+    {
+      "check": "One edge per source; missing signal is separate from disagreement",
+      "pass": true
+    },
+    {
+      "check": "Missing original Bot explanation is not reconstructed",
+      "pass": true
+    },
+    {
+      "check": "Reference example matches selected concept",
+      "pass": true
+    },
+    {
+      "check": "Missing prior call leaves current source readable and disables comparison",
+      "pass": true
+    },
+    {
+      "check": "Every Vault record keeps its own document, passage and source identity",
+      "pass": true
+    },
+    {
+      "check": "Memory inspection follows selected episode or current context",
+      "pass": true
+    },
+    {
+      "check": "Bot explanation follows recorded action",
+      "pass": true
+    },
+    {
+      "check": "Filing revision selector retains active amended basis",
+      "pass": true
+    },
+    {
+      "check": "Report history restores filtered list and originating scroll position",
+      "pass": true
+    }
+  ],
+  "total": 90,
+  "passed": 90
+}
