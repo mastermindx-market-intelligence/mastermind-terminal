@@ -69,9 +69,12 @@ async function compactAnalysisChrome(page:Page) {
 
 async function analysisChartReturn(page:Page,lang:"en"|"zh",symbol:string) {
  const researchUrl=page.url();
- const desktopChart=page.locator(".shared-shell-terminal-link:visible");
+ const visibleChrome=page.locator(".shared-shell > .topbar:visible, .shared-shell > .mobilebar:visible");
+ await expect(visibleChrome).toHaveCount(1);
+ const desktopChart=page.locator(".shared-shell > .topbar .shared-shell-terminal-link");
  let href:string|null;
- if(await desktopChart.count()) {
+ if(await page.locator(".shared-shell > .topbar").isVisible()) {
+  await expect(desktopChart).toBeVisible();
   await expect(desktopChart).toHaveCount(1);
   href=await desktopChart.getAttribute("href");
  } else {
@@ -133,11 +136,13 @@ for(const lang of ["en","zh"] as const) {
   await page.screenshot({animations:"disabled",path:info.outputPath(`analysis-beta-earnings-${lang}.png`)});
  });
 
- test(`Statistics uses the Beta canvas for current ratios and published history (${lang})`,async({page,baseURL},info)=>{
+ for(const history of [false,true]) {
+ test(`Statistics uses the Beta canvas for ${history?"published history":"current ratios"} (${lang})`,async({page,baseURL},info)=>{
   test.setTimeout(120_000);
   await installAnalysisFixtures(page,baseURL!,lang);
   const zh=lang==="zh";
-  for(const history of [false,true]) {
+  // Each source state gets the default fresh browser context. The application
+  // intentionally persists fresh company data across reloads in IndexedDB.
    const fund=structuredClone(overviewFundFixture);
    if(!history) fund.ratios={...fund.ratios,periods:[],pe:[],ps:[],pb:[],pcf:[],ev:[],ev_ebitda:[]};
    let reads=0;
@@ -169,8 +174,8 @@ for(const lang of ["en","zh"] as const) {
    await expect(source).toHaveAttribute("open","");
    await expect(source).toContainText("USD");
    expect(reads).toBe(readCount);
-  }
  });
+ }
 
  test(`company Intelligence leads with the brief and keeps source limits accessible in Beta (${lang})`,async({page,baseURL},info)=>{
   test.setTimeout(120_000);

@@ -1,13 +1,13 @@
-# Current Company design recapture is mobileAnalysisRecapture20261109; prior records remain historical.
+# Current Company design recapture is analysisRevampRecapture20261114; prior records remain historical.
 # B4 company theme-context empty state (mi-g10-b4t) - capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a89cb179c0012d0b08b5e8a654de1706f14ba6fe
-# capturedAt: 2026-11-09T11:01:46.200Z
+# capturedAtHead: c6a9b3d41b89396b15e234c386edd67074dc7299
+# capturedAt: 2026-11-14T05:27:24.643Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/fin/CompanyThemeContextCard.tsx: "0b8a0e1c252926f11cb1de1ffb885d6a379dc8c8a1fdda4103fc7957143b1555"
-  terminal/app/company-intelligence.css: "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed"
+  terminal/app/company-intelligence.css: "23dd3547f88806875891417352baca9cd6c2af4f84b6118ac5156c5966e837ea"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -29,14 +29,16 @@ light_gap: |
   The terminal shell is dark-only: terminal/app/layout.tsx renders the html
   element with data-theme dark. The tool also writes a light-named PNG per crop;
   each one is byte-identical to its dark twin (capture-log.json, darkLightIdentical)
-  and is retained only as a comparison in the verification directory.
+  and is retained only as a comparison in the original CI artifact.
   Light remains an honest GAP here, not a PASS.
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. The existing responsive Playwright server uses that flag.
 command: |
   cd terminal
-  node e2e/tools/capture_mi_g10_b4t_theme_empty.mjs 3197 docs/verification/pr1316-evidence-renewal-20261109/b4
-  cp docs/verification/pr1316-evidence-renewal-20261109/b4/*-dark-theme-empty.png docs/verification/pr1316-evidence-renewal-20261109/b4/capture-log.json docs/pr-crops/b-mi-g10-b4t-theme-empty/
+  npm run test:e2e:responsive -- --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --workers=1
+  # The incumbent CI serial job ran the complete Company Intelligence qualifier.
+  # Theme specimen tests emit four case receipts and eight actual PNGs in test-results.
+  # The supported dark specimens and aggregate receipt are preserved in this packet.
 files:
   - 1440x900-en-dark-theme-empty.png
   - 1440x900-zh-dark-theme-empty.png
@@ -56,3 +58,19 @@ mobileAnalysisRecapture20261109:
   captures: ../../verification/pr1316-evidence-renewal-20261109/b4
   priorPacket: ../../verification/pr1316-evidence-renewal-20261109/prior/b-mi-g10-b4t-theme-empty
   qualification: Actual incumbent eight-case local fixture capture; four supported dark crops and four identical unsupported-light comparisons; no production or authenticated claim
+
+analysisRevampRecapture20261114:
+  sourceHead: "7055fc735eea2c5eac035b2fee62974c3dc27a9e"
+  capturedAtHead: "c6a9b3d41b89396b15e234c386edd67074dc7299"
+  capturedTree: "a56adefab0a0c60461bfab6c784bdc4b8e666c9b"
+  baseHead: "c67a68ee1ff340a2bf9b2e0b4abdc0476fdf3d40"
+  checkoutKind: "GitHub pull-request merge ref; parents independently read back"
+  run: "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/43561176210"
+  runAttempt: 1
+  job: 132345253031
+  artifact: 14100422884
+  artifactSha256: "380001b9a5331b7ad1cd598cbc52f05da29a6a072e411bb94a4919be199e50ca"
+  receipt: capture-log.json
+  rawCaseReceipts: ../../verification/analysis-redesign-20261114/theme-empty
+  lightComparisonsArtifact: 14100422884
+  qualification: "Actual CI fixture-browser captures at the observed checkout; supported dark specimens visually inspected, all PNG bytes and controlling source hashes verified. This locks only the declared Theme layout sources. It is not production acceptance or proof for subsequent workspace refinements."

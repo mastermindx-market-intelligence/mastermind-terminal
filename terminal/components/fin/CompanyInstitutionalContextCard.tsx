@@ -132,7 +132,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
   const maxTrendValue = Math.max(1, ...context.trend.periods.map((point) => point.total_value_usd));
   const palette = state === "ready" ? "var(--up)" : state === "no_covered_holder" ? "var(--muted)" : "var(--warn)";
   const headline = holders
-    ? pick(zh, `${holders} tracked managers reported a position`, `${holders} 家追踪管理人披露持仓`)
+    ? pick(zh, `${holders} tracked ${holders === 1 ? "manager" : "managers"} reported a position`, `${holders} 家追踪管理人披露持仓`)
     : pick(zh, "No position among the tracked manager set", "追踪管理人集合中暂无持仓");
 
   return (
@@ -156,7 +156,7 @@ function ContextCard({ context, state }: { context: CompanyInstitutionalContext;
 
       <div className="ci-inst-stats" aria-label={pick(zh, "Institutional filing coverage", "机构披露覆盖") }>
         <span><small>{pick(zh, "Reporting set", "披露集合")}</small><b className="num">{context.coverage.reporting_manager_count}/{context.coverage.active_manager_count}</b><i>{pick(zh, "active managers", "活跃管理人")}</i></span>
-        <span><small>{pick(zh, "Current holders", "当前持有人")}</small><b className="num">{holders}</b><i>{pick(zh, `${context.consensus.buyer_count} buyers · ${context.consensus.trimmer_count} trimmers`, `${context.consensus.buyer_count} 增持 · ${context.consensus.trimmer_count} 减持`)}</i></span>
+        <span><small>{pick(zh, "Current holders", "当前持有人")}</small><b className="num">{holders}</b><i>{pick(zh, `${context.consensus.buyer_count} ${context.consensus.buyer_count === 1 ? "buyer" : "buyers"} · ${context.consensus.trimmer_count} ${context.consensus.trimmer_count === 1 ? "trimmer" : "trimmers"}`, `${context.consensus.buyer_count} 增持 · ${context.consensus.trimmer_count} 减持`)}</i></span>
         <span><small>{pick(zh, "Tracked value", "追踪价值")}</small><b className="num">{currency(context.consensus.total_value_usd, zh)}</b><i>{pick(zh, "reported market value", "披露市值")}</i></span>
         <span><small>{pick(zh, "Tracked concentration", "追踪集中度")}</small><b className="num">{context.consensus.ownership_hhi === null ? "—" : context.consensus.ownership_hhi.toFixed(3)}</b><i>{pick(zh, "HHI within this roster", "仅限该名册的 HHI")}</i></span>
       </div>
