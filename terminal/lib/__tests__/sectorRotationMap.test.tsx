@@ -339,14 +339,50 @@ describe("SectorRotationMap", () => {
     expect(trail.hasAttribute("preserveAspectRatio")).toBe(false);
     expect(trail.getAttribute("viewBox")).toBe("0 0 600 560");
     expect(trail.getAttribute("width")).toBe("600");
-    const coords = trail.querySelector("polyline")!.getAttribute("points")!.split(" ").map(pair => pair.split(",").map(Number));
-    expect(coords).toHaveLength(3);
-    for (const [x, y] of coords) {
-      expect(x).toBeGreaterThanOrEqual(0); expect(x).toBeLessThanOrEqual(600);
-      expect(y).toBeGreaterThanOrEqual(0); expect(y).toBeLessThanOrEqual(560);
-    }
-    expect(coords.some(([x]) => x > 100)).toBe(true);
+    const strokes = Array.from(trail.querySelectorAll('[data-rotation-trail="xlk"] line[data-trail-from]'));
+    expect(strokes).toHaveLength(2);
+    const coords = strokes.flatMap(stroke => ["x1", "x2", "y1", "y2"].map(attribute => Number(stroke.getAttribute(attribute))));
+    expect(coords.every(Number.isFinite)).toBe(true);
+    expect(coords.some(value => value > 100)).toBe(true);
+    expect(strokes.every(stroke => Number(stroke.getAttribute("x1")) >= 0 && Number(stroke.getAttribute("x2")) <= 600)).toBe(true);
+    expect(strokes.every(stroke => Number(stroke.getAttribute("y1")) >= 0 && Number(stroke.getAttribute("y2")) <= 560)).toBe(true);
+    expect(Number(strokes[1].getAttribute("stroke-opacity"))).toBeGreaterThan(Number(strokes[0].getAttribute("stroke-opacity")));
     expect(trail.querySelector("circle")?.getAttribute("r")).toBe("4");
+  });
+
+  it("lets the user turn contextual trails on or off and select a bounded daily observation window", async () => {
+    await render();
+    const bar = host.querySelector('[data-testid="rotation-trajectory-toolbar"]')!;
+    expect(bar.textContent).toContain("Reconstructed sector/SPY price history");
+    const trail = () => host.querySelector('[data-testid="rotation-history-trail"]');
+    expect(trail()?.getAttribute("data-trail-mode")).toBe("all");
+    expect(trail()?.querySelectorAll('[data-rotation-trail]').length).toBeGreaterThan(1);
+    await act(async () => (bar.querySelector('[data-trail-display="selected"]') as HTMLButtonElement).click());
+    expect(trail()?.querySelectorAll('[data-rotation-trail]')).toHaveLength(1);
+    await act(async () => (bar.querySelector('[data-trail-display="all"]') as HTMLButtonElement).click());
+    expect(trail()?.getAttribute("data-trail-mode")).toBe("all");
+    expect(trail()?.querySelectorAll('[data-rotation-trail]').length).toBeGreaterThan(1);
+    const selected = trail()?.querySelector('[data-rotation-trail="xlk"]');
+    const ambient = trail()?.querySelector('[data-rotation-trail="xlf"]');
+    expect(selected?.getAttribute("data-trail-emphasis")).toBe("selected");
+    expect(ambient?.getAttribute("data-trail-emphasis")).toBe("ambient");
+    await act(async () => (bar.querySelector('[data-trail-sessions="63"]') as HTMLButtonElement).click());
+    expect(bar.querySelector('[data-trail-sessions="63"]')?.getAttribute("aria-pressed")).toBe("true");
+    await act(async () => (bar.querySelector('[data-trail-display="off"]') as HTMLButtonElement).click());
+    expect(trail()).toBeNull();
+    await act(async () => (bar.querySelector('[data-trail-display="selected"]') as HTMLButtonElement).click());
+    expect(trail()?.querySelectorAll('[data-rotation-trail]')).toHaveLength(1);
+  });
+
+  it("offers the existing independently sourced weekly method when native generation is unavailable", async () => {
+    const changeMethod = vi.fn();
+    await render({ rows: [], status: "unavailable", onMethod: changeMethod });
+    expect(host.querySelector('[data-testid="rotation-trajectory-toolbar"]')).toBeNull();
+    expect(host.querySelector('[data-testid="rotation-history-trail"]')).toBeNull();
+    const weekly = Array.from(host.querySelectorAll("button")).find(button => button.textContent?.includes("Relative trend · weekly EMA"))!;
+    expect(weekly).toBeDefined();
+    await act(async () => weekly.click());
+    expect(changeMethod).toHaveBeenCalledWith("relative_trend_ema");
   });
 
   it("serves the current answer before controls while keeping methodology disclosed", async () => {
@@ -523,14 +559,15 @@ describe("SectorRotationMap", () => {
     const trail = host.querySelector('[data-testid="rotation-history-trail"]');
     expect(trail).not.toBeNull();
     expect(trail?.getAttribute("data-selected-date")).toBe("2026-09-25");
-    expect(trail?.querySelector("polyline")?.getAttribute("points")?.split(" ")).toHaveLength(3);
+    expect(trail?.querySelectorAll('[data-rotation-trail="xlk"] line[data-trail-from]')).toHaveLength(2);
     const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
     await act(async () => {
       slider.value = "0";
       slider.dispatchEvent(new Event("input", { bubbles: true }));
     });
     expect(host.querySelector('[data-testid="rotation-history-trail"]')?.getAttribute("data-selected-date")).toBe("2026-09-23");
-    expect(host.querySelector('[data-testid="rotation-history-trail"] polyline')?.getAttribute("points")?.split(" ")).toHaveLength(1);
+    expect(host.querySelectorAll('[data-testid="rotation-history-trail"] [data-rotation-trail="xlk"] line[data-trail-from]')).toHaveLength(0);
+    expect(host.querySelector('[data-testid="rotation-history-trail"] circle[data-trail-end]')?.getAttribute("data-trail-end")).toBe("2026-09-23");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(live);
     await render({ history: null, historyStatus: "unavailable" });
     expect(host.querySelector('[data-testid="rotation-history-trail"]')).toBeNull();
@@ -845,7 +882,8 @@ describe("Options R1 W2A — explicit relative trend method on the rotation map"
     await render(trendProps({ selected: "xlf" }));
     const trail = testId("rotation-trend-trail")!;
     expect(trail.getAttribute("data-runs")).toBe("2"); expect(trail.getAttribute("data-weeks")).toBe("11");
-    expect(trail.querySelectorAll("polyline").length).toBe(2);
+    expect(trail.querySelectorAll('[data-rotation-trail="xlf"] line[data-trail-from]').length).toBe(9);
+    expect(trail.querySelector('line[data-trail-from="2026-08-21"][data-trail-to="2026-09-04"]')).toBeNull();
     expect(trail.querySelectorAll("circle").length).toBe(1);
     expect(testId("rotation-history")).toBeNull();
     expect(host.textContent).toContain("trailing 12 completed weeks");

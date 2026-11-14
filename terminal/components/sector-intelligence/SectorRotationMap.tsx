@@ -7,6 +7,7 @@ import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
 import { placeRotation, placeRotationCohort, rotationContextLabel, rotationPlacementLabel, rotationShownReceipt, ROTATION_METHOD_INCUMBENT, ROTATION_METHOD_RELATIVE_TREND, type RotationPlacement, type RotationQuadrant } from "@/lib/rotationEligibility";
 import { relativeTrendLatest, relativeTrendPlacement, relativeTrendTrail, RELATIVE_TREND_BOUNDARY_TOLERANCE, RELATIVE_TREND_CENTER, RELATIVE_TREND_TRAIL_WEEKS, type RelativeTrendObservation, type RelativeTrendStatus, type SectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 
+import SectorRotationTrails, { type RotationProjectedTrail, type RotationTrailDisplay } from "./SectorRotationTrails";
 import styles from "./SectorRotationMap.module.css";
 
 export type { RotationQuadrant } from "@/lib/rotationEligibility";
@@ -74,6 +75,12 @@ const COPY = {
   map: ["Map", "图表"], list: ["List", "列表"],
   viewMode: ["Rotation display", "轮动显示"],
   filter: ["Filter sectors", "筛选板块"],
+  trailLabel: ["Trajectories", "轮动轨迹"],
+  trailSelected: ["Focused", "聚焦"], trailAll: ["All faint", "全部淡显"], trailOff: ["Off", "关闭"],
+  trailWindow: ["History window", "历史窗口"],
+  trailUnavailable: ["Qualified trajectory history is not available for this source; no path is inferred.", "该来源暂无可验证的轨迹历史；不推断移动路径。"],
+  trailDailySource: ["Reconstructed sector/SPY price history, not live-time observations; paths connect the dated source samples without inventing missing coordinates.", "轨迹来自板块/SPY历史价格重建，并非当时实时观测；仅连接来源提供的带日期样本，不虚构缺失坐标。"],
+  trailWeeklySource: ["Completed-week relative trend only; missing weeks break the path.", "仅显示已完成周的相对趋势；缺失周会中断轨迹。"],
   query: ["Find a sector", "搜索板块"], clear: ["Clear search", "清除搜索"],
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
   unavailableObservationDate: ["Unavailable source observation date:", "不可用来源的观测日期："],
@@ -504,6 +511,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const { lang } = useLang();
   const [qualificationTime, setQualificationTime] = useState(Date.now);
   const [showLegacySnapshot, setShowLegacySnapshot] = useState(false);
+  const [trailDisplay, setTrailDisplay] = useState<RotationTrailDisplay>("all");
+  const [trailSessions, setTrailSessions] = useState<21 | 63 | 126 | 252>(21);
+  const [hoveredTrail, setHoveredTrail] = useState<string | null>(null);
   const legacyOpenRef = useRef<HTMLButtonElement>(null);
   const legacyCloseRef = useRef<HTMLButtonElement>(null);
   const legacyFocusTarget = useRef<"open" | "close" | null>(null);
@@ -568,7 +578,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
   // The daily history trail belongs to the incumbent method; the trend method carries its own weekly trail.
   const historyConnected = !usingLegacy && !trendMethod && props.historyStatus === "ready" && props.history !== null && !!historical;
-  const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain) : null;
+  const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain, trailSessions) : null;
   const recentCycleTurns = historyConnected && historical && historySeries
     ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
     : [];
@@ -592,6 +602,27 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const shown = rotationShownReceipt(filtered.length, points.length, language,
     trend ? { label: t("trendMethodShort"), vintage: trend.vintage, endpointPolicy: t("trendEndpointPolicy") } : undefined);
   const trendTrail = trend && trendSelected ? relativeTrendTrailPath(trendSelected.trail, domain) : null;
+  // Only native history or the qualified weekly trend owns these movements.
+  // The dated legacy fallback cannot silently borrow a different source's path.
+  const trajectoryTracks = useMemo<RotationProjectedTrail[]>(() => {
+    if (usingLegacy || activeStatus !== "ready") return [];
+    if (trend) return trendFiltered.filter(point => point.x !== null && point.y !== null).flatMap(point => {
+      const projected = relativeTrendTrailPath(point.trail, domain);
+      const runs = projected.runs.map(run => run.map(sample => ({ date: sample.weekEnd, x: sample.x, y: sample.y })));
+      return runs.some(run => run.length) ? [{ id: point.id, color: point.accent, runs, clipped: projected.clipped }] : [];
+    });
+    if (props.historyStatus !== "ready" || !props.history) return [];
+    return filtered.filter(point => point.rs21 !== null && point.rs63 !== null).flatMap(point => {
+      const source = props.history?.series[point.id];
+      if (!source || source.ticker !== point.ticker || !source.points.length) return [];
+      const index = point.id === props.selected ? historyIndex : source.points.length - 1;
+      const projection = rotationHistoryTrail(source.points, index, domain, trailSessions);
+      return projection.points.length
+        ? [{ id: point.id, color: point.accent, runs: [projection.points], clipped: projection.clipped }]
+        : [];
+    });
+  }, [usingLegacy, activeStatus, trend, trendFiltered, domain, props.history, props.historyStatus, props.selected, filtered, historyIndex, trailSessions]);
+
   // One formatter and one date for chart, list, inspector and receipt under the trend method.
   const trendValue = (value: number | null) => formatValue(value, 2);
   const trendDate = (weekEnd: string | null) => weekEnd ? rotationHistoryDate(weekEnd, language) : t("unknownDate");
@@ -615,8 +646,14 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     : activeStatus === "invalid" ? t("invalid") : activeStatus === "unavailable" ? t(trendMethod ? "trendUnavailable" : "feedUnavailable")
     : activeStatus === "error" ? t("feedError") : t("empty");
 
+  const methodSwitch = props.onMethod ? <div className={styles.mode} role="group" aria-label={t("methodGroup")}>
+    <button type="button" aria-pressed={!trendMethod} onClick={() => props.onMethod?.("incumbent")}>{t("methodIncumbent")}</button>
+    <button type="button" aria-pressed={trendMethod} onClick={() => props.onMethod?.("relative_trend_ema")}>{t("methodTrend")}</button>
+  </div> : null;
+
   if (activeStatus !== "ready" || !points.length) return <section className={styles.root} data-testid="sector-rotation">
     <div className={styles.header}><h2>{t("title")}</h2></div>
+    {methodSwitch && <div className={styles.controls}>{methodSwitch}</div>}
     <div className={styles.empty} role="status">
       <p>{emptyCopy}</p>
       <button type="button" onClick={props.onSources}>{t("sources")} →</button>
@@ -626,10 +663,6 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     </div>
   </section>;
 
-  const methodSwitch = props.onMethod ? <div className={styles.mode} role="group" aria-label={t("methodGroup")}>
-    <button type="button" aria-pressed={!trendMethod} onClick={() => props.onMethod?.("incumbent")}>{t("methodIncumbent")}</button>
-    <button type="button" aria-pressed={trendMethod} onClick={() => props.onMethod?.("relative_trend_ema")}>{t("methodTrend")}</button>
-  </div> : null;
 
   // The trend feed is missing: the switch stays usable and the way back is named; nothing is plotted as 100.
   if (trendMethod && !trend) return <section className={styles.root} data-testid="sector-rotation">
@@ -672,6 +705,23 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         </div>
       </details>
     </div>
+    {props.mode === "map" && <div className={styles.trajectoryToolbar} data-testid="rotation-trajectory-toolbar">
+      <span className={styles.trajectoryLabel}>{t("trailLabel")}</span>
+      <div className={styles.mode} role="group" aria-label={t("trailLabel")}>
+        {(["selected", "all", "off"] as const).map(value => <button type="button" key={value}
+          data-trail-display={value} aria-pressed={trailDisplay === value} onClick={() => setTrailDisplay(value)}>
+          {t(value === "selected" ? "trailSelected" : value === "all" ? "trailAll" : "trailOff")}
+        </button>)}
+      </div>
+      {!trend && trajectoryTracks.length > 0 && <div className={styles.trajectoryWindow} role="group" aria-label={t("trailWindow")}>
+        {([21, 63, 126, 252] as const).map((sessions, index) => <button type="button" key={sessions}
+          data-trail-sessions={sessions} aria-pressed={trailSessions === sessions}
+          onClick={() => setTrailSessions(sessions)}>{(["1M", "3M", "6M", "12M"] as const)[index]}</button>)}
+      </div>}
+      <small className={styles.trajectoryInfo} role="status">{trajectoryTracks.length
+        ? t(trend ? "trailWeeklySource" : "trailDailySource")
+        : t("trailUnavailable")}</small>
+    </div>}
 
     {filtered.length === 0 ? <div className={styles.empty} role="status"><p>{t("noMatches")}</p><button type="button" onClick={() => props.onQuery("")}>{t("clear")}</button></div>
       : props.mode === "map" ? <div className={styles.mapLayout}>
@@ -684,28 +734,18 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <span className={styles.axisX} aria-hidden="true" /><span className={styles.axisY} aria-hidden="true" />
             <span className={styles.axisTop}>{t(trend ? "trendUp" : "fasterUp")}</span><span className={styles.axisBottom}>{t(trend ? "trendDown" : "fasterDown")}</span>
             <span className={styles.axisLeft}>{t(trend ? "trendWeaker" : "weaker")}</span><span className={styles.axisRight}>{t(trend ? "trendStronger" : "stronger")}</span>
-            {historyTrail && historyTrail.points.length > 0 && <svg className={styles.historyTrail} data-testid="rotation-history-trail"
-              data-selected-date={historical?.date} data-clipped={historyTrail.clipped ? "true" : "false"}
-              viewBox={`0 0 ${plotBox.width} ${plotBox.height}`} width={plotBox.width} height={plotBox.height} aria-hidden="true">
-              <polyline className={styles.historyTrailLine} points={historyTrail.points.map(point => `${px(point.x, plotBox.width)},${px(point.y, plotBox.height)}`).join(" ")} />
-              <circle className={styles.historyTrailPoint} cx={px(historyTrail.points[historyTrail.points.length - 1].x, plotBox.width)}
-                cy={px(historyTrail.points[historyTrail.points.length - 1].y, plotBox.height)} r="4" />
-            </svg>}
-            {trendTrail && trendTrail.runs.length > 0 && <svg className={styles.historyTrail} data-testid="rotation-trend-trail"
-              data-runs={trendTrail.runs.length} data-weeks={trendTrail.weeks} data-clipped={trendTrail.clipped ? "true" : "false"}
-              viewBox={`0 0 ${plotBox.width} ${plotBox.height}`} width={plotBox.width} height={plotBox.height} aria-hidden="true">
-              {trendTrail.runs.map(run => <polyline key={run[0].weekEnd} className={styles.historyTrailLine}
-                points={run.map(point => `${px(point.x, plotBox.width)},${px(point.y, plotBox.height)}`).join(" ")} />)}
-              <circle className={styles.historyTrailPoint} cx={px(trendTrail.runs[trendTrail.runs.length - 1].at(-1)!.x, plotBox.width)}
-                cy={px(trendTrail.runs[trendTrail.runs.length - 1].at(-1)!.y, plotBox.height)} r="4" />
-            </svg>}
+            <SectorRotationTrails trails={trajectoryTracks} selected={props.selected} hovered={hoveredTrail}
+              display={trailDisplay} kind={trend ? "weekly" : "daily"} width={plotBox.width} height={plotBox.height}
+              selectedDate={trend ? trendSelected?.weekEnd : historical?.date} trailRuns={trendTrail?.runs.length} trailWeeks={trendTrail?.weeks} />
             {trend ? trendPlotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
               data-placement={point.placement.state} // plain-language-ok: data attribute for CSS/tests, never rendered; the visible label is rotationPlacementLabel()
               data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
               aria-label={`${name(point)} (${point.ticker}), ${quadrantName(point)}, ${t("trendY")}: ${trendValue(point.y)}, ${t("trendX")}: ${trendValue(point.x)}, ${t("trendWeekEnd")} ${trendDate(point.weekEnd)}`}
               style={{ left: trendPosition(point.x), top: trendPosition(point.y, true), "--rotation-accent": point.accent || "var(--brand)" } as CSSProperties}
-              onClick={() => props.onSelect(point.id)} onKeyDown={event => moveFocus(event, point.id)}>
+              onClick={() => props.onSelect(point.id)} onKeyDown={event => moveFocus(event, point.id)}
+              onMouseEnter={() => setHoveredTrail(point.id)} onMouseLeave={() => setHoveredTrail(null)}
+              onFocus={() => setHoveredTrail(point.id)} onBlur={() => setHoveredTrail(null)}>
               <span className={styles.dot} aria-hidden="true" /><span className={styles.pointLabel}>{point.ticker}</span>
             </button>) : plotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
@@ -713,14 +753,16 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
               data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
               aria-label={`${name(point)} (${point.ticker}), ${quadrantName(point)}, ${t("faster")}: ${sign(point.rs21)}, ${t("quarter")}: ${sign(point.rs63)}`}
               style={{ left: position(point.rs63!), top: position(point.rs21!, true), "--rotation-accent": point.accent || "var(--brand)" } as CSSProperties}
-              onClick={() => props.onSelect(point.id)} onKeyDown={event => moveFocus(event, point.id)}>
+              onClick={() => props.onSelect(point.id)} onKeyDown={event => moveFocus(event, point.id)}
+              onMouseEnter={() => setHoveredTrail(point.id)} onMouseLeave={() => setHoveredTrail(null)}
+              onFocus={() => setHoveredTrail(point.id)} onBlur={() => setHoveredTrail(null)}>
               <span className={styles.dot} aria-hidden="true" /><span className={styles.pointLabel}>{point.ticker}</span>
             </button>)}
           </div>
           <div className={styles.scale} data-testid="rotation-scale">{trend
             ? <><span>{formatValue(RELATIVE_TREND_CENTER - domain, 1)}</span><span>100</span><span>{formatValue(RELATIVE_TREND_CENTER + domain, 1)}</span></>
             : <><span>{sign(-domain)}</span><span>0</span><span>{sign(domain)}</span></>}</div>
-          {trendTrail && trendTrail.runs.length > 0 && <p className={styles.trailNote} data-testid="rotation-trend-trail-note">
+          {trailDisplay !== "off" && trendTrail && trendTrail.runs.length > 0 && <p className={styles.trailNote} data-testid="rotation-trend-trail-note">
             {t("trendTrail")}{trendTrail.clipped ? ` ${t("trendTrailClipped")}` : ""}</p>}
           {trend ? <UnplacedShelf title={t("shelfTitle")} items={trendUnplaced.map(point => ({
             id: point.id, ticker: point.ticker, name: name(point), placement: point.placement.state,
