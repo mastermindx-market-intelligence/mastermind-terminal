@@ -320,6 +320,7 @@ describe("Research editorial source-page composition", () => {
   expect(request.searchParams.get("segment_start")).toBe("2");
   expect(request.searchParams.get("source_pdf_sha256")).toBe(selection.sourcePdfSha256);
   expect(request.searchParams.get("extracted_text_sha256")).toBe(selection.extractedTextSha256);
+  expect([...request.searchParams.keys()].sort()).toEqual(["extracted_text_sha256","max_segments","segment_start","source_pdf_sha256"]);
   const third = body("EXACT THIRD SOURCE PASSAGE",2);
   third.segments[0].page_start=3;third.segments[0].page_end=3;
   await answer(2,{...third,outline});
