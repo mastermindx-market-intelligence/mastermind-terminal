@@ -46,9 +46,10 @@ export function CaseTabs({ tab, onTab, lang }: { tab: CaseTab; onTab: (tab: Case
               onClick={() => onTab(id)}
               onKeyDown={(event) => {
                 const index = TAB_KEYS.findIndex((entry) => entry.id === id);
-                if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+                if (["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) {
                   event.preventDefault();
-                  const next = TAB_KEYS[(index + (event.key === "ArrowRight" ? 1 : TAB_KEYS.length - 1)) % TAB_KEYS.length];
+                  const next = TAB_KEYS[event.key === "Home" ? 0 : event.key === "End" ? TAB_KEYS.length - 1
+                    : (index + (event.key === "ArrowRight" ? 1 : TAB_KEYS.length - 1)) % TAB_KEYS.length];
                   onTab(next.id);
                   document.getElementById(`case-tab-${next.id}`)?.focus();
                 }

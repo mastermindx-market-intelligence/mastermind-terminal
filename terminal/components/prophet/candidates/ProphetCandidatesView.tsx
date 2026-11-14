@@ -6,6 +6,8 @@ import { filterProphetCandidates, type ProphetCandidate, type ProphetCandidatePo
 import { writeProphetState, type ProphetUrlState } from "@/lib/prophetUrlState";
 import { candidateReason, candidateT, type CandidateKey } from "./candidateStrings";
 import { useProphetCandidates } from "./useProphetCandidates";
+import { CandidateObservations } from "./CandidateObservations";
+import { SaveFollow } from "../setup/SaveFollow";
 import s from "./candidates.module.css";
 
 const PAGE_SIZE = 50;
@@ -128,6 +130,8 @@ export function ProphetCandidatesView({ state, update }: { state: ProphetUrlStat
         </dl>
         {reasons.length > 0 && <section className={s.reasons}><h3>{t("recordedReasons")}</h3><ul>{[...new Set(reasons.map(code => candidateReason(code, lang)))].map(reason => <li key={reason}>{reason}</li>)}</ul></section>}
       </div>
+      <CandidateObservations key={row.ticker} symbol={row.ticker} />
+      <SaveFollow key={`save:${row.ticker}`} symbol={row.ticker} />
       <section className={s.nextSection}>
         <h3>{t("next")}</h3><div className={s.destinations}>
           <Link className={s.destination} prefetch={false} href={`/analysis?symbol=${encodeURIComponent(row.ticker)}&page=intelligence`}><strong>{t("intelligence")} <Arrow /></strong><span>{t("intelligenceBody")}</span></Link>

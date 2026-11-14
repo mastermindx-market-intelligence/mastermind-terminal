@@ -721,6 +721,7 @@ const PROPHET_LEX = {
   todayCaseCompareRemoveShort: ["Selected", "已选"],
   todayCaseCompareAria:["Add {symbol} to the compare selection", "将 {symbol} 加入对比选择"],
   todayCaseCompareRemove:["Remove {symbol} from the compare selection", "将 {symbol} 移出对比选择"],
+  todayCompareSelected: ["Compare selected", "对比已选"],
   todaySelected:     ["Selected to compare", "已选对比"],
   todaySelectedCount:["{n} of 12 selected", "已选 {n} / 12"],
   todaySelectionFull:["Selection is full (12) — remove one to add another.", "选择已满（12）——请先移除一项再添加。"],

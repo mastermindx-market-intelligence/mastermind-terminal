@@ -221,13 +221,13 @@ export const PROPHET_SECTOR_LEX = {
   removeSelectionAria: ["Remove {symbol} from the selection", "从已选中移除 {symbol}"],
   selectedCount:       ["{n} selected", "已选 {n} 只"],
   selectionNote:       ["Selections stay fixed as you change filters.", "更改筛选时选择保持不变。"],
-  selectionCapNote:    ["Up to {n} names can be compared.", "最多可对比 {n} 只名称。"],
+  selectionCapNote:    ["Keep up to {n} names selected; compare three at a time.", "最多保留 {n} 只选择，每次对比三只。"],
   compareSelected:     ["Compare selected ⇅", "对比已选 ⇅"],
   compareNeedsMore:    ["Select at least two names in the population to compare them.", "请在成分列表中至少选择两只名称后再对比。"],
   // Compare is its own view address. Until the address carries the selection
   // (Lane A's `sel` key), a reload lands on compare with nothing selected — say
   // that plainly instead of showing an empty comparison.
-  compareSelectionLost: ["The comparison selection was not kept in this address. Choose names in the population to compare them.", "本地址未保留对比选择。请在成分列表中选择名称后再对比。"],
+  compareSelectionLost: ["No companies are selected in this address. Choose at least two names to compare.", "此地址没有已选公司。请至少选择两只进行对比。"],
   populationMeasuresNote: ["Return and vs-sector figures are not available for these companies yet.", "这些公司暂无收益与相对行业数据。"],
   columnReturnMember:  ["Return", "收益"],
   columnVsSector:      ["Vs sector", "相对行业"],
@@ -235,8 +235,12 @@ export const PROPHET_SECTOR_LEX = {
   populationContextSessions: ["{n} sessions to {session}", "{n} 个交易日，截至 {session}"],
   populationContextSessionsNoDate: ["{n} sessions", "{n} 个交易日"],
   compareTitle:        ["Compare the evidence", "对比证据"],
+  compareShown: ["Comparing {shown} of {total} selected. Choose which names to show.", "正在对比已选 {total} 只中的 {shown} 只。请选择要显示的名称。"],
+  compareColumn: ["Comparison {n}", "对比 {n}"],
   compareIntro:        ["Keep each research case, its clock and its next check in view.", "把每个研究案例、其时间基准与下一步核查放在同一视野。"],
   compareBack:         ["← Back to population", "← 返回成分列表"],
+  compareBackScreener: ["← Choose a group", "← 选择行业组"],
+  compareFooterScreener: ["Choose a group to explore more companies. Your selection stays in the address.", "选择行业组以探索更多公司。已选名称会保留在地址中。"],
   compareAddName:      ["Add a name +", "添加名称 +"],
   compareNoScore:      ["Each case keeps its own clock and basis. No combined score or ranking is assigned.", "每个案例保留各自的时间基准与口径。不给出综合评分或排名。"],
   // ONE sentence for the mixed-clock case (SX09 #08) — the banner states the

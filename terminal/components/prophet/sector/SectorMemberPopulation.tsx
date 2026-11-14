@@ -23,8 +23,8 @@
  *   - Selection (T2-06): real checkboxes, a tray that names the count with a
  *     removable chip per name, "Selections stay fixed as you change filters"
  *     — and selection SURVIVES search/filter/paging because it lives above
- *     this component, in the lane's state. Compare needs two names, caps at
- *     three (the cap is stated, never a silent no-op).
+ *     this component, in the lane's state. Keep up to twelve names; comparison reads up to three at a time.
+ *     The full selection survives every compare and filter action.
  *   - The per-member performance/research measures the wire does not carry
  *     are named ONCE under the table (doctrine Law 4), never as per-row null
  *     spam or an invented number.
@@ -39,10 +39,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import {
-  SECTOR_MEMBERS_QUERY, SECTOR_MEMBERS_SYMBOL,
+  SECTOR_MEMBERS_QUERY,
   type ProphetMemberState, type SectorMembersPayload,
 } from "@/lib/prophetSectorMembers";
-import type { ProphetUrlState } from "@/lib/prophetUrlState";
+import { parseProphetSel, toggleProphetSel, PROPHET_SEL_MAX, type ProphetUrlState } from "@/lib/prophetUrlState";
 import {
   makeProphetSectorT, PROPHET_STATE_LABEL_KEY, prophetReasonKey, prophetSectorFill,
   prophetUnservedReasonKey,
@@ -54,33 +54,21 @@ import styles from "./prophetSector.module.css";
  * not a silent drop. */
 export const PROPHET_COMPARE_CAP = 3;
 
-/** Tolerant read of Lane A's future `sel` key: until the URL codec publishes
- * it, the selection rides the lane's React state (a refresh drops it — never
- * an error); once the codec carries `sel`, the same calls persist it with no
- * change on this side. Invalid or over-cap entries are dropped, never
- * rendered. */
+/** The URL owner retains the full selection. A bounded comparison is a view
+ * of it, never a smaller array sent back to the selection writer. */
 export function readProphetSelection(state: ProphetUrlState): string[] {
-  const raw = (state as ProphetUrlState & { sel?: unknown }).sel;
-  if (!Array.isArray(raw)) return [];
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const entry of raw) {
-    if (typeof entry !== "string" || !SECTOR_MEMBERS_SYMBOL.test(entry)) continue;
-    if (seen.has(entry) || out.length >= PROPHET_COMPARE_CAP) continue;
-    seen.add(entry);
-    out.push(entry);
-  }
-  return out;
+  return parseProphetSel(Array.isArray(state.sel) ? state.sel : []);
 }
-
-/** Toggle one symbol, appending at the end (the tray's chip order follows the
- * reader's picking order); at the cap a new pick replaces nothing — the cap
- * note explains. */
 export function toggleProphetSelection(current: string[], symbol: string): string[] {
-  if (!SECTOR_MEMBERS_SYMBOL.test(symbol)) return current;
-  if (current.includes(symbol)) return current.filter(entry => entry !== symbol);
-  if (current.length >= PROPHET_COMPARE_CAP) return current;
-  return [...current, symbol];
+  return toggleProphetSel(current, symbol);
+}
+/** Choose a visible comparison subject by swapping its selection position.
+ * Every retained name survives, and the existing ordered URL is shareable. */
+export function chooseProphetCompareSubject(current: string[], index: number, symbol: string): string[] {
+  const from = current.indexOf(symbol);
+  if (!Number.isInteger(index) || index < 0 || index >= PROPHET_COMPARE_CAP || index >= current.length || from < 0 || from === index) return current;
+  const next = [...current]; [next[index], next[from]] = [next[from], next[index]];
+  return next;
 }
 
 export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilter, onOpenMember,
@@ -219,9 +207,9 @@ export function SectorMemberPopulation({ payload, q, stateFilter, offset, onFilt
             ))}
           </span>
           <span className={styles.selectionNote}>{t("selectionNote")}</span>
-          {selection.length >= PROPHET_COMPARE_CAP ? (
+          {selection.length >= PROPHET_SEL_MAX ? (
             <span className={styles.selectionCap}>
-              {prophetSectorFill(t("selectionCapNote"), { n: PROPHET_COMPARE_CAP })}
+              {prophetSectorFill(t("selectionCapNote"), { n: PROPHET_SEL_MAX })}
             </span>
           ) : null}
           <button

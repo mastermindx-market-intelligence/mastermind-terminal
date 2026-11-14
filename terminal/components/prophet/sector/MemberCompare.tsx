@@ -20,11 +20,12 @@
  *     row is invented and the per-name window series keeps its own line.
  *   - Back returns to the population with the selection and filters intact
  *     (selection lives above, in the lane's state).
- *   - Cards stack to one column at phone width (T2-13); no horizontal
- *     overflow at 320px.
+ *   - Phones compare two aligned columns (Paper 1E97-0/1ERB-0); the full
+ *     selection remains available through each column's subject selector.
  */
 import type { ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
+import { useIsPhone } from "@/lib/useMediaQuery";
 import type { SectorMembersPayload } from "@/lib/prophetSectorMembers";
 import { PROPHET_COMPARE_CAP } from "./SectorMemberPopulation";
 import {
@@ -34,9 +35,13 @@ import styles from "./prophetSector.module.css";
 
 type SymbolPayload = Extract<SectorMembersPayload, { mode: "symbol" }>;
 
-export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMember }: {
+export function MemberCompare({ symbols, allSymbols = symbols, returnToPopulation = true, onChooseSubject, payloadOf, stateBlock, onBack, onOpenMember }: {
   /** The lane's selection, in picking order; two minimum, three maximum. */
   symbols: string[];
+  /** The full URL selection is retained even when only three reads are shown. */
+  allSymbols?: string[];
+  returnToPopulation?: boolean;
+  onChooseSubject?: (index: number, symbol: string) => void;
   /** The decoded symbol read when ready, else null (same order as symbols). */
   payloadOf: (symbol: string) => SymbolPayload | null;
   /** The container's honest fetch-state block for a not-ready card, by the
@@ -47,8 +52,9 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
 }) {
   const { lang } = useLang();
   const t = makeProphetSectorT(lang);
+  const phone = useIsPhone();
 
-  const cards = symbols.map(symbol => ({ symbol, payload: payloadOf(symbol) }));
+  const cards = symbols.slice(0, phone ? 2 : PROPHET_COMPARE_CAP).map(symbol => ({ symbol, payload: payloadOf(symbol) }));
   const ready = cards.filter(card => card.payload !== null) as { symbol: string; payload: SymbolPayload }[];
   // SX09 #08: warn for a mismatch within any ready read or across ready reads.
   // Unknown clocks do not establish a difference; down reads retain their own
@@ -64,7 +70,7 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
     <section className={styles.compare} data-testid="prophet-sector-compare">
       <div className={styles.crumbs}>
         <button type="button" className={styles.backButton} data-testid="prophet-sector-compare-back" onClick={onBack}>
-          {t("compareBack")}
+          {t(returnToPopulation ? "compareBack" : "compareBackScreener")}
         </button>
       </div>
 
@@ -74,7 +80,7 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
       </header>
 
       <div className={styles.selectionChips} data-testid="prophet-sector-compare-chips">
-        {symbols.map(symbol => (
+        {allSymbols.map(symbol => (
           <span key={symbol} className={styles.selectionChip}>{symbol}</span>
         ))}
         {symbols.length < PROPHET_COMPARE_CAP ? (
@@ -84,6 +90,10 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
         ) : null}
       </div>
 
+      {allSymbols.length > cards.length && <p className={styles.compareSelection}>
+        {prophetSectorFill(t("compareShown"), { shown: cards.length, total: allSymbols.length })}
+      </p>}
+
       {/* ONE banner sentence: the mixed-clock case carries both the clock
           difference and the no-combined-arithmetic rule in that single line
           (SX09 #08), rather than repeating the same point twice. */}
@@ -91,15 +101,20 @@ export function MemberCompare({ symbols, payloadOf, stateBlock, onBack, onOpenMe
         {mixedClocks ? t("compareMixedClocks") : t("compareNoScore")}
       </p>
 
-      <div className={styles.compareGrid}>
-        {cards.map(({ symbol, payload }, index) => payload === null ? (
-          <div key={symbol}>{stateBlock(index)}</div>
-        ) : (
-          <CompareCard key={symbol} payload={payload} onOpenMember={onOpenMember} />
-        ))}
+      <div className={styles.compareGrid} data-count={cards.length}>
+        {cards.map(({ symbol, payload }, index) => <div key={index} className={styles.compareColumn}>
+          {allSymbols.length > cards.length ? <label className={styles.comparePicker}>
+            <span>{prophetSectorFill(t("compareColumn"), { n: index + 1 })}</span>
+            <select value={symbol} onChange={event => onChooseSubject?.(index, event.target.value)}>
+              {allSymbols.map(value => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label> : <span aria-hidden="true" />}
+          {payload === null ? <div className={styles.comparePending}><h4>{symbol}</h4>{stateBlock(index)}</div>
+            : <CompareCard key={symbol} payload={payload} onOpenMember={onOpenMember} />}
+        </div>)}
       </div>
 
-      <p className={styles.compareFooter}>{t("compareFooter")}</p>
+      <p className={styles.compareFooter}>{t(returnToPopulation ? "compareFooter" : "compareFooterScreener")}</p>
     </section>
   );
 }

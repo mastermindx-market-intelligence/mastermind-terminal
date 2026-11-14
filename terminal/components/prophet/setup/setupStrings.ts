@@ -26,6 +26,7 @@ export const SETUP_LEX = {
   crumbsSelected:     ["selected", "已选中"],
   crumbsShort:        ["Sector members", "行业成员"],
   backToMembers:      ["Back to sector members", "返回行业成员"],
+  backToScreener:     ["Back to Screener", "返回筛选"],
 
   // ── Case header (T2-C5: the honest case state IS the headline) ───────────
   caseUnpublished:    ["Case not published yet", "案例尚未发布"],
@@ -90,6 +91,7 @@ export const SETUP_LEX = {
 
   // ── Save / follow (G11, T2-20) ───────────────────────────────────────────
   saveAction:         ["Save security", "收藏证券"],
+  saveInNative:       ["Save in native Prophet", "在原生 Prophet 中保存"],
   saveWorking:        ["Confirming…", "确认中…"],
   saveSavedButton:    ["Saved ✓", "已收藏 ✓"],
   saveSavedTitle:     ["Saved to your list", "已收藏到列表"],
@@ -106,15 +108,16 @@ export const SETUP_LEX = {
   followTitle:        ["Alerts aren't available here", "此处暂无提醒"],
   followBody:         ["This research does not yet provide a supported change feed.", "该研究尚未提供受支持的变化推送。"],
   followNote:         ["You can still save the security and return to its published research.", "你仍可收藏该证券，并回到其已发布的研究。"],
-  followBack:         ["Back to setup", "返回研究"],
+  followBack:         ["Close", "关闭"],
+  openMonitor:        ["Open Monitor", "打开监控"],
 
   // ── Evidence tab (T2-04): served observation + one plain line ───────────
   observationEvidence: ["Early observation evidence", "早期观察证据"],
-  evidenceUnavailable: ["Evidence for this company is not available yet.", "该公司的证据尚未提供。"],
+  evidenceUnavailable: ["Further research-case evidence is not published yet.", "尚未发布更多研究案例证据。"],
 
   // ── Context tab (T2-17): membership + one plain line ────────────────────
   membershipTitle:    ["Group membership", "行业组归属"],
-  contextUnavailable: ["Company context is not available yet.", "公司背景尚未提供。"],
+  contextUnavailable: ["Further company context is not published yet.", "尚未发布更多公司背景。"],
 
   // ── Sources sheet (T2-16; opened from the study list) ───────────────────
   sourcesTitle:       ["Sources & method", "来源与方法"],

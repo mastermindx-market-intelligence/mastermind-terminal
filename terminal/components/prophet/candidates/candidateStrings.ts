@@ -69,6 +69,8 @@ const STRINGS = {
   nextPage: ["Next", "下一页"],
   page: ["{first}–{last} of {total}", "第 {first}–{last} 个，共 {total} 个"],
   pagination: ["Candidate pages", "候选分页"],
+  observationSource: ["Independent source reading for {symbol}", "{symbol} 的独立来源记录"],
+  observationSeparation: ["Early observations retain their own source dates and episode relationships. Showing them alongside a candidate does not establish a shared assessment.", "早期迹象保留各自的来源日期与周期关联。与候选列表同时展示，不代表它们属于同一次评估。"],
 } as const;
 export type CandidateKey = keyof typeof STRINGS;
 export function candidateT(lang: Lang, key: CandidateKey, values?: Record<string, string | number>): string {
