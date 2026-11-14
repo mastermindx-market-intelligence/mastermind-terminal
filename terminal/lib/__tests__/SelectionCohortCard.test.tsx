@@ -6,6 +6,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import {
   SelectionCohortCard,
+  SelectionCohortMastheadTile,
   useSelectionCohort,
 } from "@/components/prophet/SelectionCohortCard";
 import { parseSelectionCohort } from "@/lib/selectionCohort";
@@ -103,7 +104,7 @@ describe("SelectionCohortCard", () => {
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("unavailable");
     expect(card.textContent).toContain(
-      "These picks couldn't be matched to their recorded source, so nothing is shown rather than a guess.",
+      "The recorded source for these picks is unavailable, so no theme context is shown.",
     );
     expect(container.querySelectorAll("[title]").length).toBe(0);
   });
@@ -125,6 +126,90 @@ describe("SelectionCohortCard", () => {
       "The theme read for these picks didn't pass its checks, so nothing is shown.",
     );
     expect(container.querySelectorAll("[title]").length).toBe(0);
+  });
+});
+
+// Reproduce the existing Macro refusal contract without fetching or admitting source data.
+const CAPTURE_REFUSAL = {
+  ...UNAVAILABLE,
+  unavailable_reason: "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE",
+};
+const CAPTURE_COPY = {
+  en: "Theme context is withheld because permission to retain these selection records is not available.",
+  zh: "当前尚未获得保存这批入选记录所需的授权，因此不展示主题信息。",
+} as const;
+
+function FetchedCohortCard() {
+  const { view } = useSelectionCohort();
+  return <SelectionCohortCard lang="en" view={view} />;
+}
+
+describe("capture-rights refusal presentation", () => {
+  it.each(["en", "zh"] as const)("in-flow %s explains capture rights without inventing matching or zero overlap", async (lang) => {
+    await renderCard(lang, parseSelectionCohort(CAPTURE_REFUSAL));
+    const card = container.querySelector("[data-testid=selection-cohort-card]")!;
+    const text = card.textContent ?? "";
+    expect(card.getAttribute("data-state")).toBe("unavailable");
+    expect(text).toContain(CAPTURE_COPY[lang]);
+    expect(text).not.toContain("couldn't be matched");
+    expect(text).not.toContain("未能与其记录来源对上");
+    expect(text).not.toContain(CAPTURE_REFUSAL.unavailable_reason);
+    expect(card.querySelector("dl")).toBeNull();
+    expect(container.querySelector("[data-testid=selection-cohort-withheld]")).toBeNull();
+    expect(container.querySelectorAll("[title]").length).toBe(0);
+    expect(text).not.toMatch(lang === "en" ? /[㐀-鿿]/ : /[A-Za-z]/);
+  });
+
+  it.each(["en", "zh"] as const)("desktop %s keeps the dash and opens the same rights explanation", async (lang) => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => {
+      root.render(<SelectionCohortMastheadTile lang={lang} view={parseSelectionCohort(CAPTURE_REFUSAL)} />);
+    });
+    const button = container.querySelector<HTMLButtonElement>("[data-testid=selection-cohort-tile]")!;
+    expect(button.querySelector("b")?.textContent).toBe("—");
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    await act(async () => button.click());
+    const panel = container.querySelector("[data-testid=selection-cohort-popover]")!;
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(panel.getAttribute("data-state")).toBe("unavailable");
+    expect(panel.textContent).toContain(CAPTURE_COPY[lang]);
+    expect(panel.querySelector("dl")).toBeNull();
+    expect(panel.textContent).not.toMatch(lang === "en" ? /[㐀-鿿]/ : /[A-Za-z]/);
+  });
+
+  it("actual fetch hook, parser and mounted card preserve the capture-rights reason", async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(jsonResponse(CAPTURE_REFUSAL)));
+    vi.stubGlobal("fetch", fetchMock);
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => {
+      root.render(<FetchedCohortCard />);
+      await Promise.resolve();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith("/api/nw?f=selection_cohort_us");
+    expect(container.textContent).toContain(CAPTURE_COPY.en);
+    expect(container.querySelector("[data-testid=selection-cohort-card]")?.getAttribute("data-state"))
+      .toBe("unavailable");
+  });
+
+  it("a claimed capture refusal with action authority still displays failed checks", async () => {
+    await renderCard("en", parseSelectionCohort({ ...CAPTURE_REFUSAL, can_rank: true }));
+    expect(container.textContent).toContain("The theme read for these picks didn't pass its checks");
+    expect(container.textContent).not.toContain(CAPTURE_COPY.en);
+    expect(container.querySelector("dl")).toBeNull();
+  });
+
+  it("unknown source detail is not echoed or diagnosed as capture rights", async () => {
+    const why = "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE:<script>untrusted_detail</script>";
+    await renderCard("en", parseSelectionCohort({ ...CAPTURE_REFUSAL, unavailable_reason: why }));
+    expect(container.textContent).toContain("The recorded source for these picks is unavailable");
+    expect(container.textContent).not.toContain("untrusted_detail");
+    expect(container.textContent).not.toContain(CAPTURE_COPY.en);
+    expect(container.querySelector("script")).toBeNull();
   });
 });
 
