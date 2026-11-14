@@ -43,7 +43,7 @@ M2 Paper reads returned UPSTREAM_UNAVAILABLE; its supported prepare timed out an
 Macro #9596 stays Draft/HOLD at `621bd44dfac13ea18671fe64c773aa8675928dd6`; publication `9533be2476ba264880c1aa067eb3af32f3d0703a794679a7818b9677f1838d15` remains EFFECT_UNKNOWN. This design branch does not replace or replay it. Preserve International History287, Comparison164 and frozen R14 boundaries.
 
 ## Current frontier
-All ten menu destinations have native desktop and mobile compositions. The delivered wave contains 31 product frames and four builder boards, all visually inspected, with source-linked contracts below. No application implementation or production release has occurred. MISSION_COMPLETE:false.
+All ten menu destinations have native desktop and mobile compositions. The delivered wave contains 33 product frames and four builder boards, all visually inspected, with source-linked contracts below. No application implementation or production release has occurred. MISSION_COMPLETE:false.
 
 
 ## Native Paper milestone — five core screens
@@ -368,3 +368,47 @@ Reuse the native boards and the exact source audit. Do not repeat the estate cen
 Principal reasoning children supplied bounded source, architecture and UX advice; the author integrated and self-checked it. This is not a formal GitHub non-author approval. All canvas writes stayed on the original M1 bridge and were reconciled. No durable background worker, source implementation, executable prototype or production acceptance is claimed.
 
 The next design-to-build action is to bind the existing thirteen World views to their native/retained dispositions, then qualify the World source-read and route-admission vertical slice. The user’s design-first sequencing remains in force: do not fill unqualified regional charts with Paper numbers to start implementation early.
+
+
+## World control completion — 37 total native frames
+
+After the first 35-frame plan merged in Terminal PR1531, two additional interaction designs closed specific navigation gaps. The final delivered count is **33 product frames plus four builder boards**. Both new frames were applied on the original M1 carrier, screenshot-inspected and finished by exact node ID. Paper readback now reports 62 pages (25 preserved original + 37 new) and five dividers.
+
+| Page / frame | State | Behavior contract |
+|---|---|---|
+| p-1V-0 / YFV-0 | World: Edit comparison | Four selected chips, canonical market/instrument rows, search, explicit cap, clear/remove, Cancel and Apply |
+| p-1W-0 / YQF-0 | World: Research workspaces | Searchable, grouped access to eleven deeper views; Overview and Compare remain direct page tabs |
+
+### Comparison selection
+
+The side panel is an explicit selection step from Overview or an editor from Compare. Its temporary draft selection is UI state within the existing controller, not another persisted store. Remove/clear affect the draft; Cancel, Escape or dismissal discard it and restore focus. Apply commits the validated pin set through the existing route-state owner and enters/retains Compare. Preserve market IDs, pin order, horizon and return basis.
+
+At four selected markets, additional unchecked rows are visibly unavailable with the adjacent “Remove a market to add another” reason. No hidden replacement. Search filters the canonical available-market list without changing selected chips. The existing controller's empty-selection semantics must be retained; never fabricate default selections or data to fill an empty result. Controls have explicit 44px hit regions.
+
+### Workspace navigation
+
+This control exposes the retained World view grammar without putting eleven extra tabs across the page. Grouping is presentation only; it does not create another catalogue or source owner.
+
+| Launcher item | Existing view key |
+|---|---|
+| Market scanner | scanner |
+| Dislocations | dislocations |
+| Country dossier | dossier |
+| Macro & policy | macro |
+| Risk | risk |
+| Transmission | transmission |
+| History | history |
+| Scenarios | scenario |
+| Replay | replay |
+| Research library | library |
+| Data coverage | coverage |
+
+Overview maps to overview and Compare to compare in the visible page tabs. All thirteen view entrances now have a designed navigation disposition. This does **not** mean the eleven deep screens have all been redesigned natively or implemented. The pathname migration constraint remains unchanged.
+
+Use existing accessible popover/search primitives. Focus the search on opening; preserve keyboard-readable groups and links; Escape/dismiss restores the Research tools trigger. Search is over these route labels, not a replacement global search index. Selecting a workspace retains compatible market/pin/horizon/basis state and uses the incumbent parser; absent data still reaches that view's explicit coverage state.
+
+### Bounded contrast verification
+
+Sampled source color pairs measured 6.18:1 for dark metadata (#949494 on #121212) and 5.15:1 for light metadata (#667066 on white). These exceed the normal-text 4.5:1 threshold in [W3C SC1.4.3](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html). The other seven sampled primary/secondary/positive/negative text pairs also exceeded that threshold. This is a palette sample, not a full accessibility audit; selected surfaces, focus, zoom, keyboard, screen reader and real interaction still need implementation proof. BUILD02 records the bounded sample.
+
+The next design work remains substantive deep-view and full theme/language/responsive parity, followed by the already specified canonical World implementation slice. No new runtime, route, data adapter, access decision or production behavior was introduced by these two states.
