@@ -39,6 +39,35 @@ const COMPANY_TICKER = /^[A-Z0-9][A-Z0-9.-]{0,23}$/;
 
 export const companyLogoDevEnabled = PUBLISHABLE_TOKEN.test(LOGO_DEV_TOKEN);
 
+/**
+ * Macro already publishes its browser-safe Logo.dev image key as a first-party
+ * runtime script. Shared Shell can reuse that exact deployment configuration,
+ * without shipping a new credential, widening connect-src, or copying values.
+ * The script origin is already explicitly permitted by Terminal's script-src.
+ */
+let macroLogoConfigPromise: Promise<string> | null = null;
+export function loadCompanyLogoRuntimeToken(): Promise<string> {
+  if (companyLogoDevEnabled) return Promise.resolve(LOGO_DEV_TOKEN);
+  if (typeof document === "undefined" || typeof window === "undefined") return Promise.resolve("");
+  const current = () => {
+    const candidate = (window as Window & { MMX_LOGO_DEV_TOKEN?: string }).MMX_LOGO_DEV_TOKEN;
+    return typeof candidate === "string" && PUBLISHABLE_TOKEN.test(candidate.trim()) ? candidate.trim() : "";
+  };
+  if (current()) return Promise.resolve(current());
+  if (macroLogoConfigPromise) return macroLogoConfigPromise;
+  macroLogoConfigPromise = new Promise<string>((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://www.mastermind-x.com/logo_config.js";
+    script.async = true;
+    script.dataset.companyLogoConfig = "macro";
+    script.onload = () => resolve(current());
+    script.onerror = () => resolve("");
+    document.head.appendChild(script);
+  });
+  return macroLogoConfigPromise;
+}
+
+
 export function normalizeCompanyLogoTicker(value: string, venue?: string | null): string | null {
   let ticker = value.trim().toUpperCase();
   if (!COMPANY_TICKER.test(ticker)) return null;
